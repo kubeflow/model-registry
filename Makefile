@@ -9,6 +9,9 @@ clean:
 build: gen/grpc
 	go build
 
+run/migrate: gen/grpc
+	go run main.go migrate
+
 run/server: gen/grpc
 	go run main.go serve
 
