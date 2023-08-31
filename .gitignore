@@ -3,3 +3,4 @@
 ml-metadata-go-server
 ml_metadata/proto/*.go
 metadata.sqlite.db
+vendor
