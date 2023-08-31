@@ -19,4 +19,4 @@ run/client: gen/grpc
 	python3.9 test/python/test_mlmetadata.py
 
 serve: build
-	./ml-metadata-go-server serve
+	./ml-metadata-go-server serve --logtostderr=true

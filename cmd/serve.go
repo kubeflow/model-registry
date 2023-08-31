@@ -30,7 +30,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"sync"
+	"os/signal"
+	"syscall"
 )
 
 func InterceptorLogger(l *log.Logger) logging.Logger {
@@ -67,7 +68,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("serve called")
+			glog.Info("server started...")
+
+			// Create a channel to receive signals
+			signalChannel := make(chan os.Signal, 1)
+
+			// Notify the channel on SIGINT (Ctrl+C) and SIGTERM signals
+			signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
 
 			// connect to the DB using Gorm
 			db, err := NewDatabaseConnection(dbFile)
@@ -99,22 +106,44 @@ to quickly create a Cobra application.`,
 			proto.RegisterMetadataStoreServiceServer(grpcServer, server.NewGrpcServer(db))
 			reflection.Register(grpcServer)
 
-			var wg sync.WaitGroup
-			wg.Add(1)
 			go func() {
 				glog.Info("Starting grpc server...")
 				err = grpcServer.Serve(listen)
 				if err != nil {
-					log.Fatalf("grpc serving failed: %v", err)
+					glog.Errorf("grpc serving failed: %v", err)
+					signalChannel <- syscall.SIGTERM
 				}
-				wg.Done()
 			}()
 
 			// TODO serve the GraphQL server
 
-			// wait for servers to finish
-			wg.Wait()
+			// error starting server
+			if err != nil {
+				return err
+			}
 
+			// Wait for a signal
+			receivedSignal := <-signalChannel
+			glog.Infof("received signal: %s\n", receivedSignal)
+
+			// Perform cleanup or other graceful shutdown actions here
+			glog.Info("shutting down services...")
+
+			// stop grpc server
+			grpcServer.Stop()
+			// TODO stop graphql server
+
+			// close DB
+			glog.Info("closing DB...")
+			sqlDB, err := db.DB()
+			if err != nil {
+				return fmt.Errorf("error accessing DB: %v", err)
+			}
+			err = sqlDB.Close()
+			if err != nil {
+				return fmt.Errorf("error closing DB: %v", err)
+			}
+			glog.Info("shutdown!")
 			return nil
 		},
 	}

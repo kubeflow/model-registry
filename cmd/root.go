@@ -16,8 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"flag"
 	"fmt"
-	"log"
+	"github.com/golang/glog"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -45,9 +46,9 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
+	glog.Flush()
 	if err != nil {
-		log.Fatalf("error: %v", err)
-		os.Exit(1)
+		glog.Exitf("error: %v", err)
 	}
 }
 
@@ -59,10 +60,13 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ml-metadata-go-server.yaml)")
+	// also add standard glog flags
+	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }
 
 // initConfig reads in config file and ENV variables if set.
