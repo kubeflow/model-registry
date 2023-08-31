@@ -6,6 +6,8 @@ import (
 	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
 	"github.com/dhirajsb/ml-metadata-go-server/model/db"
 	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
 
@@ -78,15 +80,17 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 	}, nil
 }
 
-func (g grpcServer) createProperties(ctx context.Context, properties map[string]proto.PropertyType, value *db.Type) error {
+func (g grpcServer) createProperties(ctx context.Context, properties map[string]proto.PropertyType, value *db.Type) (err error) {
+	ctx, dbConn := Begin(ctx, g.dbConnection)
+	defer closeDbConnection(ctx, &err)
+
 	for propName, prop := range properties {
 		number := int32(prop.Number())
-		property := db.TypeProperty{
+		property := &db.TypeProperty{
 			TypeID:   value.ID,
 			Name:     propName,
 			DataType: &number,
 		}
-		dbConn, _ := FromContext(ctx)
 		if err := dbConn.Create(property).Error; err != nil {
 			glog.Errorf("error creating type property %s: %v", propName, err)
 			return err
@@ -204,10 +208,19 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest
 }
 
 func closeDbConnection(ctx context.Context, err *error) {
+	// handle panic
+	if perr := recover(); perr != nil {
+		_ = Rollback(ctx)
+		*err = status.Errorf(codes.Internal, "server panic: %v", perr)
+		return
+	}
 	if err == nil || *err == nil {
 		*err = Commit(ctx)
 	} else {
 		_ = Rollback(ctx)
+		if _, ok := status.FromError(*err); !ok {
+			*err = status.Errorf(codes.Internal, "internal error: %v", *err)
+		}
 	}
 }
 
