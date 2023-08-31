@@ -36,7 +36,7 @@ func FromContext(ctx context.Context) (*gorm.DB, bool) {
 
 func Begin(ctx context.Context, db *gorm.DB) (newCtx context.Context, dbConn *gorm.DB) {
 	newCtx = NewContext(ctx, db)
-	dbConn, _ = FromContext(ctx)
+	dbConn, _ = FromContext(newCtx)
 	return
 }
 

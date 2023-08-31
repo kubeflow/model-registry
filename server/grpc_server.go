@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
 	"github.com/dhirajsb/ml-metadata-go-server/model/db"
 	"github.com/golang/glog"
@@ -47,12 +48,21 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 
 	artifactType := request.GetArtifactType()
 	name := artifactType.Name
+	if name == nil {
+		return nil, errors.New("missing required field name")
+	}
 	value := &db.Type{
-		Name:        *name,
-		Version:     *artifactType.Version,
-		TypeKind:    int32(ARTIFACT_TYPE),
-		Description: *(artifactType.Description),
-		ExternalID:  *(artifactType.ExternalId),
+		Name:     *name,
+		TypeKind: int32(ARTIFACT_TYPE),
+	}
+	if artifactType.Version != nil {
+		value.Version = *artifactType.Version
+	}
+	if artifactType.Description != nil {
+		value.Description = *artifactType.Description
+	}
+	if artifactType.ExternalId != nil {
+		value.ExternalID = *artifactType.ExternalId
 	}
 	if err := dbConn.Create(value).Error; err != nil {
 		glog.Errorf("error creating artifact type %s: %v", name, err)
