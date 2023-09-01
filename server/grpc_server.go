@@ -2,10 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
 	"github.com/dhirajsb/ml-metadata-go-server/model/db"
-	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
@@ -44,33 +43,30 @@ func NewGrpcServer(dbConnection *gorm.DB) proto.MetadataStoreServiceServer {
 	return &grpcServer{dbConnection: dbConnection}
 }
 
+var REQUIRED_TYPE_FIELDS = []string{"name"}
+
 func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtifactTypeRequest) (resp *proto.PutArtifactTypeResponse, err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
-	defer closeDbConnection(ctx, &err)
+	defer handleTransaction(ctx, &err)
 
 	artifactType := request.GetArtifactType()
-	name := artifactType.Name
-	if name == nil {
-		return nil, errors.New("missing required field name")
-	}
-	value := &db.Type{
-		Name:     *name,
-		TypeKind: int32(ARTIFACT_TYPE),
-	}
-	if artifactType.Version != nil {
-		value.Version = *artifactType.Version
-	}
-	if artifactType.Description != nil {
-		value.Description = *artifactType.Description
-	}
-	if artifactType.ExternalId != nil {
-		value.ExternalID = *artifactType.ExternalId
-	}
-	if err := dbConn.Create(value).Error; err != nil {
-		glog.Errorf("error creating artifact type %s: %v", name, err)
+	err = requiredFields(REQUIRED_TYPE_FIELDS, artifactType.Name)
+	if err != nil {
 		return nil, err
 	}
-	err = g.createProperties(ctx, request.ArtifactType.Properties, value)
+	value := &db.Type{
+		Name:     *artifactType.Name,
+		TypeKind: int32(ARTIFACT_TYPE),
+	}
+	nilSafeCopy(&value.Version, artifactType.Version, strToStr)
+	nilSafeCopy(&value.Description, artifactType.Description, strToStr)
+	nilSafeCopy(&value.ExternalID, artifactType.ExternalId, strToStr)
+
+	if err = dbConn.Create(value).Error; err != nil {
+		err = fmt.Errorf("error creating artifact type %s: %v", value.Name, err)
+		return nil, err
+	}
+	err = g.createTypeProperties(ctx, request.ArtifactType.Properties, value)
 	if err != nil {
 		return nil, err
 	}
@@ -80,44 +76,27 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 	}, nil
 }
 
-func (g grpcServer) createProperties(ctx context.Context, properties map[string]proto.PropertyType, value *db.Type) (err error) {
-	ctx, dbConn := Begin(ctx, g.dbConnection)
-	defer closeDbConnection(ctx, &err)
-
-	for propName, prop := range properties {
-		number := int32(prop.Number())
-		property := &db.TypeProperty{
-			TypeID:   value.ID,
-			Name:     propName,
-			DataType: &number,
-		}
-		if err := dbConn.Create(property).Error; err != nil {
-			glog.Errorf("error creating type property %s: %v", propName, err)
-			return err
-		}
-	}
-	return nil
-}
-
 func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExecutionTypeRequest) (resp *proto.PutExecutionTypeResponse, err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
-	defer closeDbConnection(ctx, &err)
+	defer handleTransaction(ctx, &err)
 
 	executionType := request.GetExecutionType()
-	value := &db.Type{
-		Name:        *executionType.Name,
-		Version:     *executionType.Version,
-		TypeKind:    int32(EXECUTION_TYPE),
-		Description: *(executionType.Description),
-		InputType:   executionType.InputType.String(),
-		OutputType:  executionType.OutputType.String(),
-		ExternalID:  *(executionType.ExternalId),
-	}
-	if err = dbConn.Create(value).Error; err != nil {
-		glog.Errorf("error creating execution type %s: %v", executionType.Name, err)
+	err = requiredFields(REQUIRED_TYPE_FIELDS, executionType.Name)
+	if err != nil {
 		return nil, err
 	}
-	err = g.createProperties(ctx, request.ExecutionType.Properties, value)
+	value := &db.Type{
+		Name:     *executionType.Name,
+		TypeKind: int32(EXECUTION_TYPE),
+	}
+	nilSafeCopy(&value.Version, executionType.Version, strToStr)
+	nilSafeCopy(&value.Description, executionType.Description, strToStr)
+	nilSafeCopy(&value.ExternalID, executionType.ExternalId, strToStr)
+	if err = dbConn.Create(value).Error; err != nil {
+		err = fmt.Errorf("error creating execution type %s: %v", value.Name, err)
+		return nil, err
+	}
+	err = g.createTypeProperties(ctx, request.ExecutionType.Properties, value)
 	if err != nil {
 		return nil, err
 	}
@@ -129,21 +108,25 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 
 func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContextTypeRequest) (resp *proto.PutContextTypeResponse, err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
-	defer closeDbConnection(ctx, &err)
+	defer handleTransaction(ctx, &err)
 
-	contextType := request.ContextType
-	value := &db.Type{
-		Name:        *contextType.Name,
-		Version:     *contextType.Version,
-		TypeKind:    int32(CONTEXT_TYPE),
-		Description: *(contextType.Description),
-		ExternalID:  *(contextType.ExternalId),
-	}
-	if err := dbConn.Create(value).Error; err != nil {
-		glog.Errorf("error creating type %s: %v", contextType.Name, err)
+	contextType := request.GetContextType()
+	err = requiredFields(REQUIRED_TYPE_FIELDS, contextType.Name)
+	if err != nil {
 		return nil, err
 	}
-	err = g.createProperties(ctx, request.ContextType.Properties, value)
+	value := &db.Type{
+		Name:     *contextType.Name,
+		TypeKind: int32(CONTEXT_TYPE),
+	}
+	nilSafeCopy(&value.Version, contextType.Version, strToStr)
+	nilSafeCopy(&value.Description, contextType.Description, strToStr)
+	nilSafeCopy(&value.ExternalID, contextType.ExternalId, strToStr)
+	if err = dbConn.Create(value).Error; err != nil {
+		err = fmt.Errorf("error creating context type %s: %v", value.Name, err)
+		return nil, err
+	}
+	err = g.createTypeProperties(ctx, request.ContextType.Properties, value)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +138,7 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 
 func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest) (resp *proto.PutTypesResponse, err error) {
 	ctx, _ = Begin(ctx, g.dbConnection)
-	defer closeDbConnection(ctx, &err)
+	defer handleTransaction(ctx, &err)
 
 	response := &proto.PutTypesResponse{}
 
@@ -207,26 +190,46 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest
 	return response, nil
 }
 
-func closeDbConnection(ctx context.Context, err *error) {
-	// handle panic
-	if perr := recover(); perr != nil {
-		_ = Rollback(ctx)
-		*err = status.Errorf(codes.Internal, "server panic: %v", perr)
-		return
-	}
-	if err == nil || *err == nil {
-		*err = Commit(ctx)
-	} else {
-		_ = Rollback(ctx)
-		if _, ok := status.FromError(*err); !ok {
-			*err = status.Errorf(codes.Internal, "internal error: %v", *err)
-		}
-	}
-}
+var REQUIRED_ARTIFACT_FIELDS = []string{"type_id", "uri"}
 
-func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifactsRequest) (*proto.PutArtifactsResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifactsRequest) (resp *proto.PutArtifactsResponse, err error) {
+	ctx, dbConn := Begin(ctx, g.dbConnection)
+	defer handleTransaction(ctx, &err)
+
+	var artifactIds []int64
+	for _, artifact := range request.Artifacts {
+		err = requiredFields(REQUIRED_ARTIFACT_FIELDS, artifact.TypeId, artifact.Uri)
+		if err != nil {
+			return nil, err
+		}
+		value := &db.Artifact{
+			TypeID: int32(*artifact.TypeId),
+			URI:    *artifact.Uri,
+		}
+		nilSafeCopy(&value.ID, artifact.Id, int64ToInt32)
+		nilSafeCopy(&value.State, artifact.State, artifactStateToInt32)
+		nilSafeCopy(&value.Name, artifact.Name, strToStr)
+		nilSafeCopy(&value.ExternalID, artifact.ExternalId, strToStr)
+		// create in DB
+		if err = dbConn.Create(value).Error; err != nil {
+			err = fmt.Errorf("error creating artifact with type_id[%d], name[%s]: %w", value.TypeID, value.Name, err)
+			return nil, err
+		}
+		// create properties in DB
+		err = g.createArtifactProperties(ctx, value.ID, artifact.GetProperties(), false)
+		if err != nil {
+			return nil, err
+		}
+		err = g.createArtifactProperties(ctx, value.ID, artifact.GetCustomProperties(), true)
+		if err != nil {
+			return nil, err
+		}
+		artifactIds = append(artifactIds, int64(value.ID))
+	}
+	resp = &proto.PutArtifactsResponse{
+		ArtifactIds: artifactIds,
+	}
+	return resp, nil
 }
 
 func (g grpcServer) PutExecutions(ctx context.Context, request *proto.PutExecutionsRequest) (*proto.PutExecutionsResponse, error) {
@@ -467,4 +470,108 @@ func (g grpcServer) GetLineageSubgraph(ctx context.Context, request *proto.GetLi
 func (g grpcServer) mustEmbedUnimplementedMetadataStoreServiceServer() {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto.PropertyType, value *db.Type) (err error) {
+	ctx, dbConn := Begin(ctx, g.dbConnection)
+	defer handleTransaction(ctx, &err)
+
+	for propName, prop := range properties {
+		number := int32(prop.Number())
+		property := &db.TypeProperty{
+			TypeID:   value.ID,
+			Name:     propName,
+			DataType: &number,
+		}
+		if err = dbConn.Create(property).Error; err != nil {
+			err = fmt.Errorf("error creating type property for type_id[%d] with name[%s]: %v", value.ID, propName, err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int32, properties map[string]*proto.Value, isCustomProperty bool) (err error) {
+	ctx, dbConn := Begin(ctx, g.dbConnection)
+	defer handleTransaction(ctx, &err)
+
+	for propName, prop := range properties {
+		property := &db.ArtifactProperty{
+			ArtifactID: artifactId,
+			Name:       propName,
+		}
+		if isCustomProperty {
+			property.IsCustomProperty = 1
+		}
+		// TODO handle polymorphic value with null columns
+		intValue, ok := prop.GetValue().(*proto.Value_IntValue)
+		if ok {
+			i := int32(intValue.IntValue)
+			property.IntValue = &i
+		}
+		doubleValue, ok := prop.GetValue().(*proto.Value_DoubleValue)
+		if ok {
+			property.DoubleValue = &doubleValue.DoubleValue
+		}
+		stringValue, ok := prop.GetValue().(*proto.Value_StringValue)
+		if ok {
+			property.StringValue = &stringValue.StringValue
+		}
+		structValue, ok := prop.GetValue().(*proto.Value_StructValue)
+		if ok {
+			property.ByteValue = []byte(fmt.Sprintf("%s", structValue.StructValue))
+		}
+		protoValue, ok := prop.GetValue().(*proto.Value_ProtoValue)
+		if ok {
+			property.ProtoValue = []byte(fmt.Sprintf("%s", protoValue.ProtoValue))
+		}
+		boolValue, ok := prop.GetValue().(*proto.Value_BoolValue)
+		if ok {
+			property.BoolValue = &boolValue.BoolValue
+		}
+		if err = dbConn.Create(property).Error; err != nil {
+			err = fmt.Errorf("error creating artifact property for type_id[%d] with name %s: %v", artifactId, propName, err)
+			return err
+		}
+	}
+	return nil
+}
+
+func int64ToInt32(i int64) int32                        { return int32(i) }
+func artifactStateToInt32(i proto.Artifact_State) int32 { return int32(i) }
+func strToStr(i string) string                          { return i }
+
+func requiredFields(names []string, args ...interface{}) error {
+	var missing []string
+	for i, a := range args {
+		if a == nil {
+			missing = append(missing, names[i])
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("missing required properties: %s", missing)
+	}
+	return nil
+}
+
+func nilSafeCopy[D int32 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
+	if src != nil {
+		*dest = f(*src)
+	}
+}
+func handleTransaction(ctx context.Context, err *error) {
+	// handle panic
+	if perr := recover(); perr != nil {
+		_ = Rollback(ctx)
+		*err = status.Errorf(codes.Internal, "server panic: %v", perr)
+		return
+	}
+	if err == nil || *err == nil {
+		*err = Commit(ctx)
+	} else {
+		_ = Rollback(ctx)
+		if _, ok := status.FromError(*err); !ok {
+			*err = status.Errorf(codes.Internal, "internal error: %v", *err)
+		}
+	}
 }

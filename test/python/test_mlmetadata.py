@@ -29,7 +29,6 @@ def main():
     data_type.name = "DataSet"
     data_type.properties["day"] = metadata_store_pb2.INT
     data_type.properties["split"] = metadata_store_pb2.STRING
-    # data_type_id = store.PutArtifactType(data_type)
 
     request = metadata_store_service_pb2.PutArtifactTypeRequest()
     request.all_fields_match = True
@@ -43,28 +42,37 @@ def main():
     model_type.properties["name"] = metadata_store_pb2.STRING
 
     request.artifact_type.CopyFrom(model_type)
-    model_type_id = store.PutArtifactType(request)
+    response = store.PutArtifactType(request)
+    model_type_id = response.type_id
 
     # Query all registered Artifact types.
     # artifact_types = store.GetArtifactTypes()
-    #
-    # # Create an ExecutionType, e.g., Trainer
-    # trainer_type = metadata_store_pb2.ExecutionType()
-    # trainer_type.name = "Trainer"
-    # trainer_type.properties["state"] = metadata_store_pb2.STRING
-    # trainer_type_id = store.PutExecutionType(trainer_type)
-    #
+
+    # Create an ExecutionType, e.g., Trainer
+    trainer_type = metadata_store_pb2.ExecutionType()
+    trainer_type.name = "Trainer"
+    trainer_type.properties["state"] = metadata_store_pb2.STRING
+
+    request = metadata_store_service_pb2.PutExecutionTypeRequest()
+    request.execution_type.CopyFrom(trainer_type)
+    response = store.PutExecutionType(request)
+    trainer_type_id = response.type_id
+
     # # Query a registered Execution type with the returned id
     # [registered_type] = store.GetExecutionTypesByID([trainer_type_id])
-    #
-    # # Create an input artifact of type DataSet
-    # data_artifact = metadata_store_pb2.Artifact()
-    # data_artifact.uri = 'path/to/data'
-    # data_artifact.properties["day"].int_value = 1
-    # data_artifact.properties["split"].string_value = 'train'
-    # data_artifact.type_id = data_type_id
-    # [data_artifact_id] = store.PutArtifacts([data_artifact])
-    #
+
+    # Create an input artifact of type DataSet
+    data_artifact = metadata_store_pb2.Artifact()
+    data_artifact.uri = 'path/to/data'
+    data_artifact.properties["day"].int_value = 1
+    data_artifact.properties["split"].string_value = 'train'
+    data_artifact.type_id = data_type_id
+
+    request = metadata_store_service_pb2.PutArtifactsRequest()
+    request.artifacts.extend([data_artifact])
+    response = store.PutArtifacts(request)
+    data_artifact_id = response.artifact_ids[0]
+
     # # Query all registered Artifacts
     # artifacts = store.GetArtifacts()
     #
@@ -117,13 +125,16 @@ def main():
     # trainer_run.id = run_id
     # trainer_run.properties["state"].string_value = "COMPLETED"
     # store.PutExecutions([trainer_run])
-    #
-    # # Create a ContextType, e.g., Experiment with a note property
-    # experiment_type = metadata_store_pb2.ContextType()
-    # experiment_type.name = "Experiment"
-    # experiment_type.properties["note"] = metadata_store_pb2.STRING
-    # experiment_type_id = store.PutContextType(experiment_type)
-    #
+
+    # Create a ContextType, e.g., Experiment with a note property
+    experiment_type = metadata_store_pb2.ContextType()
+    experiment_type.name = "Experiment"
+    experiment_type.properties["note"] = metadata_store_pb2.STRING
+    request = metadata_store_service_pb2.PutContextTypeRequest()
+    request.context_type.CopyFrom(experiment_type)
+    response = store.PutContextType(request)
+    experiment_type_id = response.type_id
+
     # # Group the model and the trainer run to an experiment.
     # my_experiment = metadata_store_pb2.Context()
     # my_experiment.type_id = experiment_type_id
