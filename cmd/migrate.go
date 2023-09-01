@@ -35,12 +35,11 @@ import (
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Migrate ml-metadata DB to latest schema",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This command migrates an existing DB to the latest schema
+used by ml-metadata-go-server. It can also create a new DB if it doesn't exist.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This command can create a new ml-metadata Sqlite DB, or migrate an existing DB
+to the latest schema required by this server.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// connect to DB
 		dbConn, err := NewDatabaseConnection(dbFile)

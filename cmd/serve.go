@@ -60,13 +60,11 @@ var (
 	// serveCmd represents the serve command
 	serveCmd = &cobra.Command{
 		Use:   "serve",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+		Short: "Starts the ml-metadata go server",
+		Long: `This command launches the ml-metadata go server.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+The server connects to a SQlite database. It supports options to customize the 
+location of the database file and the hostname and port where it listens.'`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			glog.Info("server started...")
 
@@ -164,7 +162,7 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	serveCmd.Flags().StringVar(&dbFile, "db-file", "metadata.sqlite.db", "Sqlite DB file")
-	serveCmd.Flags().StringVar(&grpcHost, "grpc-host", grpcHost, "gRPC listen hostname")
-	serveCmd.Flags().IntVar(&grpcPort, "grpc-port", grpcPort, "gRPC listen port")
+	serveCmd.Flags().StringVarP(&dbFile, "db-file", "d", "metadata.sqlite.db", "Sqlite DB file")
+	serveCmd.Flags().StringVarP(&grpcHost, "grpc-host", "h", grpcHost, "gRPC listen hostname")
+	serveCmd.Flags().IntVarP(&grpcPort, "grpc-port", "p", grpcPort, "gRPC listen port")
 }
