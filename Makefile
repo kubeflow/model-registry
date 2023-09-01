@@ -1,10 +1,10 @@
-gen/grpc: ml_metadata/proto/*.proto
-	protoc --go_out=. --go_opt=paths=source_relative \
+gen/grpc: api/grpc/ml_metadata/proto/*.proto
+	protoc -I./api/grpc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		ml_metadata/proto/metadata_store.proto ml_metadata/proto/metadata_store_service.proto
 
 clean:
-	rm -Rf ml_metadata/*.go
+	rm -Rf ml_metadata/proto/*.go
 
 build: gen/grpc
 	go build
