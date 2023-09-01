@@ -4,7 +4,7 @@ gen/grpc: api/grpc/ml_metadata/proto/*.proto
 		ml_metadata/proto/metadata_store.proto ml_metadata/proto/metadata_store_service.proto
 
 clean:
-	rm -Rf ml_metadata/proto/*.go
+	rm -Rf ml_metadata/proto/*.go ./ml-metadata-go-server
 
 build: gen/grpc
 	go build
@@ -20,3 +20,5 @@ run/client: gen/grpc
 
 serve: build
 	./ml-metadata-go-server serve --logtostderr=true
+
+all: build
