@@ -70,7 +70,6 @@ to the latest schema required by this server.`,
 			db.Execution{},
 			db.ExecutionProperty{},
 			db.ParentContext{},
-			db.ParentType{},
 			db.Type{},
 			db.TypeProperty{},
 		)
