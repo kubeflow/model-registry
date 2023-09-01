@@ -8,7 +8,7 @@ const TableNameType = "Type"
 
 // Type mapped from table <Type>
 type Type struct {
-	ID          int32  `gorm:"column:id;primaryKey" json:"-"`
+	ID          int64  `gorm:"column:id;primaryKey" json:"-"`
 	Name        string `gorm:"column:name;not null" json:"-"`
 	Version     string `gorm:"column:version;not null" json:"-"`
 	TypeKind    int32  `gorm:"column:type_kind;not null" json:"-"`

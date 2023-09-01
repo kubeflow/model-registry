@@ -8,8 +8,8 @@ const TableNameParentType = "ParentType"
 
 // ParentType mapped from table <ParentType>
 type ParentType struct {
-	TypeID       int32 `gorm:"column:type_id;primaryKey" json:"-"`
-	ParentTypeID int32 `gorm:"column:parent_type_id;not null" json:"-"`
+	TypeID       int64 `gorm:"column:type_id;primaryKey" json:"-"`
+	ParentTypeID int64 `gorm:"column:parent_type_id;not null" json:"-"`
 }
 
 // TableName ParentType's table name

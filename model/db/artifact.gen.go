@@ -8,8 +8,8 @@ const TableNameArtifact = "Artifact"
 
 // Artifact mapped from table <Artifact>
 type Artifact struct {
-	ID                       int32  `gorm:"column:id;primaryKey" json:"-"`
-	TypeID                   int32  `gorm:"column:type_id;not null" json:"-"`
+	ID                       int64  `gorm:"column:id;primaryKey" json:"-"`
+	TypeID                   int64  `gorm:"column:type_id;not null" json:"-"`
 	URI                      string `gorm:"column:uri;not null" json:"-"`
 	State                    int32  `gorm:"column:state;not null" json:"-"`
 	Name                     string `gorm:"column:name;not null" json:"-"`

@@ -8,7 +8,7 @@ const TableNameContextProperty = "ContextProperty"
 
 // ContextProperty mapped from table <ContextProperty>
 type ContextProperty struct {
-	ContextID        int32   `gorm:"column:context_id;primaryKey" json:"-"`
+	ContextID        int64   `gorm:"column:context_id;primaryKey" json:"-"`
 	Name             string  `gorm:"column:name;not null" json:"-"`
 	IsCustomProperty int32   `gorm:"column:is_custom_property;not null" json:"-"`
 	IntValue         int32   `gorm:"column:int_value;not null" json:"-"`

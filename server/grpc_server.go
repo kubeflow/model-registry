@@ -58,9 +58,9 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 		Name:     *artifactType.Name,
 		TypeKind: int32(ARTIFACT_TYPE),
 	}
-	nilSafeCopy(&value.Version, artifactType.Version, strToStr)
-	nilSafeCopy(&value.Description, artifactType.Description, strToStr)
-	nilSafeCopy(&value.ExternalID, artifactType.ExternalId, strToStr)
+	nilSafeCopy(&value.Version, artifactType.Version, identity[string])
+	nilSafeCopy(&value.Description, artifactType.Description, identity[string])
+	nilSafeCopy(&value.ExternalID, artifactType.ExternalId, identity[string])
 
 	if err = dbConn.Create(value).Error; err != nil {
 		err = fmt.Errorf("error creating artifact type %s: %v", value.Name, err)
@@ -89,9 +89,9 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 		Name:     *executionType.Name,
 		TypeKind: int32(EXECUTION_TYPE),
 	}
-	nilSafeCopy(&value.Version, executionType.Version, strToStr)
-	nilSafeCopy(&value.Description, executionType.Description, strToStr)
-	nilSafeCopy(&value.ExternalID, executionType.ExternalId, strToStr)
+	nilSafeCopy(&value.Version, executionType.Version, identity[string])
+	nilSafeCopy(&value.Description, executionType.Description, identity[string])
+	nilSafeCopy(&value.ExternalID, executionType.ExternalId, identity[string])
 	if err = dbConn.Create(value).Error; err != nil {
 		err = fmt.Errorf("error creating execution type %s: %v", value.Name, err)
 		return nil, err
@@ -119,9 +119,9 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 		Name:     *contextType.Name,
 		TypeKind: int32(CONTEXT_TYPE),
 	}
-	nilSafeCopy(&value.Version, contextType.Version, strToStr)
-	nilSafeCopy(&value.Description, contextType.Description, strToStr)
-	nilSafeCopy(&value.ExternalID, contextType.ExternalId, strToStr)
+	nilSafeCopy(&value.Version, contextType.Version, identity[string])
+	nilSafeCopy(&value.Description, contextType.Description, identity[string])
+	nilSafeCopy(&value.ExternalID, contextType.ExternalId, identity[string])
 	if err = dbConn.Create(value).Error; err != nil {
 		err = fmt.Errorf("error creating context type %s: %v", value.Name, err)
 		return nil, err
@@ -203,13 +203,13 @@ func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifact
 			return nil, err
 		}
 		value := &db.Artifact{
-			TypeID: int32(*artifact.TypeId),
+			TypeID: *artifact.TypeId,
 			URI:    *artifact.Uri,
 		}
-		nilSafeCopy(&value.ID, artifact.Id, int64ToInt32)
+		nilSafeCopy(&value.ID, artifact.Id, identity[int64])
 		nilSafeCopy(&value.State, artifact.State, artifactStateToInt32)
-		nilSafeCopy(&value.Name, artifact.Name, strToStr)
-		nilSafeCopy(&value.ExternalID, artifact.ExternalId, strToStr)
+		nilSafeCopy(&value.Name, artifact.Name, identity[string])
+		nilSafeCopy(&value.ExternalID, artifact.ExternalId, identity[string])
 		// create in DB
 		if err = dbConn.Create(value).Error; err != nil {
 			err = fmt.Errorf("error creating artifact with type_id[%d], name[%s]: %w", value.TypeID, value.Name, err)
@@ -491,7 +491,7 @@ func (g grpcServer) createTypeProperties(ctx context.Context, properties map[str
 	return nil
 }
 
-func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int32, properties map[string]*proto.Value, isCustomProperty bool) (err error) {
+func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int64, properties map[string]*proto.Value, isCustomProperty bool) (err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
@@ -537,9 +537,8 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 	return nil
 }
 
-func int64ToInt32(i int64) int32                        { return int32(i) }
+func identity[T int64 | string](i T) T                  { return i }
 func artifactStateToInt32(i proto.Artifact_State) int32 { return int32(i) }
-func strToStr(i string) string                          { return i }
 
 func requiredFields(names []string, args ...interface{}) error {
 	var missing []string
@@ -554,7 +553,7 @@ func requiredFields(names []string, args ...interface{}) error {
 	return nil
 }
 
-func nilSafeCopy[D int32 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
+func nilSafeCopy[D int32 | int64 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
 	if src != nil {
 		*dest = f(*src)
 	}

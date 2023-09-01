@@ -8,7 +8,7 @@ const TableNameArtifactProperty = "ArtifactProperty"
 
 // ArtifactProperty mapped from table <ArtifactProperty>
 type ArtifactProperty struct {
-	ArtifactID       int32   `gorm:"column:artifact_id;primaryKey" json:"-"`
+	ArtifactID       int64   `gorm:"column:artifact_id;primaryKey" json:"-"`
 	Name             string  `gorm:"column:name;primaryKey" json:"-"`
 	IsCustomProperty int32   `gorm:"column:is_custom_property;not null" json:"-"`
 	IntValue         *int32   `gorm:"column:int_value" json:"-"`

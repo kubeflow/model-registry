@@ -8,9 +8,9 @@ const TableNameAssociation = "Association"
 
 // Association mapped from table <Association>
 type Association struct {
-	ID          int32 `gorm:"column:id;primaryKey" json:"-"`
-	ContextID   int32 `gorm:"column:context_id;not null" json:"-"`
-	ExecutionID int32 `gorm:"column:execution_id;not null" json:"-"`
+	ID          int64 `gorm:"column:id;primaryKey" json:"-"`
+	ContextID   int64 `gorm:"column:context_id;not null" json:"-"`
+	ExecutionID int64 `gorm:"column:execution_id;not null" json:"-"`
 }
 
 // TableName Association's table name

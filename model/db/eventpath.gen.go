@@ -8,7 +8,7 @@ const TableNameEventPath = "EventPath"
 
 // EventPath mapped from table <EventPath>
 type EventPath struct {
-	EventID     int32  `gorm:"column:event_id;not null" json:"-"`
+	EventID     int64  `gorm:"column:event_id;not null" json:"-"`
 	IsIndexStep int32  `gorm:"column:is_index_step;not null" json:"-"`
 	StepIndex   int32  `gorm:"column:step_index;not null" json:"-"`
 	StepKey     string `gorm:"column:step_key;not null" json:"-"`

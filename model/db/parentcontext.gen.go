@@ -8,8 +8,8 @@ const TableNameParentContext = "ParentContext"
 
 // ParentContext mapped from table <ParentContext>
 type ParentContext struct {
-	ContextID       int32 `gorm:"column:context_id;primaryKey" json:"-"`
-	ParentContextID int32 `gorm:"column:parent_context_id;not null" json:"-"`
+	ContextID       int64 `gorm:"column:context_id;primaryKey" json:"-"`
+	ParentContextID int64 `gorm:"column:parent_context_id;not null" json:"-"`
 }
 
 // TableName ParentContext's table name

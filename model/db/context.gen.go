@@ -8,8 +8,8 @@ const TableNameContext = "Context"
 
 // Context mapped from table <Context>
 type Context struct {
-	ID                       int32  `gorm:"column:id;primaryKey" json:"-"`
-	TypeID                   int32  `gorm:"column:type_id;not null" json:"-"`
+	ID                       int64  `gorm:"column:id;primaryKey" json:"-"`
+	TypeID                   int64  `gorm:"column:type_id;not null" json:"-"`
 	Name                     string `gorm:"column:name;not null" json:"-"`
 	ExternalID               string `gorm:"column:external_id;not null" json:"-"`
 	CreateTimeSinceEpoch     int32  `gorm:"column:create_time_since_epoch;not null" json:"-"`

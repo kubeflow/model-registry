@@ -8,7 +8,7 @@ const TableNameExecutionProperty = "ExecutionProperty"
 
 // ExecutionProperty mapped from table <ExecutionProperty>
 type ExecutionProperty struct {
-	ExecutionID      int32   `gorm:"column:execution_id;primaryKey" json:"-"`
+	ExecutionID      int64   `gorm:"column:execution_id;primaryKey" json:"-"`
 	Name             string  `gorm:"column:name;not null" json:"-"`
 	IsCustomProperty int32   `gorm:"column:is_custom_property;not null" json:"-"`
 	IntValue         int32   `gorm:"column:int_value;not null" json:"-"`
