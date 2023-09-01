@@ -16,10 +16,19 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
 	"github.com/dhirajsb/ml-metadata-go-server/model/db"
+	"github.com/dhirajsb/ml-metadata-go-server/server"
+	"github.com/dhirajsb/ml-metadata-go-server/server/library"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // migrateCmd represents the migrate command
@@ -35,12 +44,21 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// connect to DB
 		dbConn, err := NewDatabaseConnection(dbFile)
+		defer func() {
+			// close DB connection on exit
+			db, err2 := dbConn.DB()
+			if err2 != nil {
+				err2 = db.Close()
+				if err2 != nil {
+					glog.Warningf("error closing DB connection: %v", err2)
+				}
+			}
+		}()
 		if err != nil {
-			err = fmt.Errorf("db connection failed: %w", err)
-			glog.Error(err)
-			return err
+			return fmt.Errorf("db connection failed: %w", err)
 		}
 		// migrate all DB types
+		// TODO add support for more elaborate Gorm migrations
 		err = dbConn.AutoMigrate(
 			db.Artifact{},
 			db.ArtifactProperty{},
@@ -58,13 +76,85 @@ to quickly create a Cobra application.`,
 			db.TypeProperty{},
 		)
 		if err != nil {
-			err = fmt.Errorf("db migration failed: %w", err)
-			glog.Error(err)
-			return err
+			return fmt.Errorf("db migration failed: %w", err)
+		}
+
+		// load metadata type libraries
+		for _, dir := range libraryDirs {
+			abs, err := filepath.Abs(dir)
+			if err != nil {
+				return fmt.Errorf("error getting absolute library path for %s: %w", dir, err)
+			}
+			_, err = os.Stat(abs)
+			if err != nil {
+				return fmt.Errorf("error opening library path for %s: %w", abs, err)
+			}
+			err = filepath.WalkDir(abs, func(path string, entry fs.DirEntry, err error) error {
+				if err != nil {
+					glog.Warningf("error reading library path %s: %v", path, err)
+					return filepath.SkipDir
+				}
+				if entry.IsDir() || !isYamlFile(path) {
+					return nil
+				}
+
+				bytes, err := os.ReadFile(path)
+				if err != nil {
+					return fmt.Errorf("failed to read library file %s: %w", path, err)
+				}
+				var lib library.MetadataLibrary
+				err = yaml.Unmarshal(bytes, &lib)
+				grpcServer := server.NewGrpcServer(dbConn)
+				typesRequest := proto.PutTypesRequest{}
+				for _, ar := range lib.ArtifactTypes {
+					typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto.ArtifactType{
+						Name:        ar.Name,
+						Version:     ar.Version,
+						Description: ar.Description,
+						ExternalId:  ar.ExternalId,
+						Properties:  ar.Properties,
+					})
+				}
+				for _, ar := range lib.ContextTypes {
+					typesRequest.ContextTypes = append(typesRequest.ContextTypes, &proto.ContextType{
+						Name:        ar.Name,
+						Version:     ar.Version,
+						Description: ar.Description,
+						ExternalId:  ar.ExternalId,
+						Properties:  ar.Properties,
+					})
+				}
+				for _, ar := range lib.ExecutionTypes {
+					typesRequest.ExecutionTypes = append(typesRequest.ExecutionTypes, &proto.ExecutionType{
+						Name:        ar.Name,
+						Version:     ar.Version,
+						Description: ar.Description,
+						ExternalId:  ar.ExternalId,
+						Properties:  ar.Properties,
+					})
+				}
+				response, err := grpcServer.PutTypes(context.Background(), &typesRequest)
+				if err != nil {
+					return fmt.Errorf("failed to add library from file %s: %w", path, err)
+				}
+				glog.Infof("added %d artifacts, %d contexts and %d execution types from library file %s",
+					len(response.ArtifactTypeIds), len(response.ContextTypeIds), len(response.ExecutionTypeIds), path)
+				return nil
+			})
+			if err != nil {
+				return fmt.Errorf("failed to read library directory %s: %w", abs, err)
+			}
 		}
 		return nil
 	},
 }
+
+func isYamlFile(path string) bool {
+	lowerPath := strings.ToLower(filepath.Ext(path))
+	return strings.HasSuffix(lowerPath, ".yaml") || strings.HasSuffix(lowerPath, ".yml")
+}
+
+var libraryDirs []string
 
 func init() {
 	rootCmd.AddCommand(migrateCmd)
@@ -77,5 +167,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	migrateCmd.Flags().StringVar(&dbFile, "db-file", "metadata.sqlite.db", "Sqlite DB file")
+	migrateCmd.Flags().StringVarP(&dbFile, "db-file", "d", "metadata.sqlite.db", "Sqlite DB file")
+	migrateCmd.Flags().StringSliceVarP(&libraryDirs, "metadata-library-dir", "m", libraryDirs, "Built-in metadata types library directories containing yaml files")
 }

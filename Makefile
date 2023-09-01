@@ -10,10 +10,10 @@ build: gen/grpc
 	go build
 
 run/migrate: gen/grpc
-	go run main.go migrate
+	go run main.go migrate --logtostderr=true
 
 run/server: gen/grpc
-	go run main.go serve
+	go run main.go serve --logtostderr=true
 
 run/client: gen/grpc
 	python3.9 test/python/test_mlmetadata.py

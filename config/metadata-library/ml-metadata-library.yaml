@@ -1,0 +1,12 @@
+# types for ml-metadata library
+artifact-types:
+  - name: "mlmd.Dataset"
+  - name: "mlmd.Model"
+  - name: "mlmd.Metrics"
+  - name: "mlmd.Statistics"
+execution-types:
+  - name: "mlmd.Train"
+  - name: "mlmd.Transform"
+  - name: "mlmd.Process"
+  - name: "mlmd.Evaluate"
+  - name: "mlmd.Deploy"

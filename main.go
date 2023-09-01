@@ -15,8 +15,13 @@ limitations under the License.
 */
 package main
 
-import "github.com/dhirajsb/ml-metadata-go-server/cmd"
+import (
+	"github.com/dhirajsb/ml-metadata-go-server/cmd"
+	"github.com/golang/glog"
+)
 
 func main() {
+	defer glog.Flush()
+
 	cmd.Execute()
 }

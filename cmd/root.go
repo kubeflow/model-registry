@@ -46,7 +46,6 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
-	glog.Flush()
 	if err != nil {
 		glog.Exitf("error: %v", err)
 	}
