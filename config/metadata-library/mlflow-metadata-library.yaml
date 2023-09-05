@@ -1,0 +1,27 @@
+# types for ml-metadata library
+artifact-types:
+  - name: "mlflow.Model"
+  - name: "mlflow.ModelEvaluation"
+  - name: "mlflow.EvaluationMeasure"
+  - name: "mlflow.EvaluationSpecification"
+  - name: "mlflow.EvaluationProcedure"
+  - name: "mlflow.Task"
+  - name: "mlflow.Data"
+  - name: "mlflow.DataSet"
+  - name: "mlflow.Feature"
+  - name: "mlflow.Algorithm"
+  - name: "mlflow.Software"
+  - name: "mlflow.Implementation"
+  - name: "mlflow.HyperParameter"
+  - name: "mlflow.HyperParameterSetting"
+  - name: "mlflow.ImplementationCharacteristic"
+  - name: "mlflow.DatasetCharacteristic"
+  - name: "mlflow.FeatureCharacteristic"
+context-types:
+  - name: "mlflow.RegisteredModel"
+  - name: "mlflow.ModelVersion"
+  - name: "mlflow.DataCharacteristic"
+execution-types:
+  - name: "mlflow.Study"
+  - name: "mlflow.Experiment"
+  - name: "mlflow.Run"

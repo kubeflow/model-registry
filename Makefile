@@ -7,31 +7,37 @@ ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 .PHONY: gen/grpc
 gen/grpc: ml_metadata/proto/metadata_store.pb.go ml_metadata/proto/metadata_store_service.pb.go
 
+.PHONY: gen/graph
+gen/graph: model/graph/models_gen.go
+
+model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
+	go run github.com/99designs/gqlgen generate
+
 .PHONY: clean
 clean:
-	rm -Rf ml_metadata/proto/*.go ./ml-metadata-go-server
+	rm -Rf ./ml-metadata-go-server ml_metadata/proto/*.go ./model/graph/*.go
 
 .PHONY: vendor
 vendor:
 	go mod vendor
 
 .PHONY: build
-build: gen/grpc
+build: gen
 	go build
 
 .PHONY: gen
-gen: gen/grpc
+gen: gen/grpc gen/graph
 
 .PHONY: run/migrate
-run/migrate: gen/grpc
+run/migrate: gen
 	go run main.go migrate --logtostderr=true
 
 .PHONY: run/server
-run/server: gen/grpc
+run/server: gen
 	go run main.go serve --logtostderr=true
 
 .PHONY: run/client
-run/client: gen/grpc
+run/client: gen
 	python3.9 test/python/test_mlmetadata.py
 
 .PHONY: serve
