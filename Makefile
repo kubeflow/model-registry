@@ -13,6 +13,10 @@ gen/graph: model/graph/models_gen.go
 model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
 	go run github.com/99designs/gqlgen generate
 
+.PHONY: vet
+vet:
+	go vet ./...
+
 .PHONY: clean
 clean:
 	rm -Rf ./ml-metadata-go-server ml_metadata/proto/*.go ./model/graph/*.go
@@ -22,7 +26,7 @@ vendor:
 	go mod vendor
 
 .PHONY: build
-build: gen
+build: gen vet
 	go build
 
 .PHONY: gen
