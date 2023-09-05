@@ -39,6 +39,13 @@ Run the following command to run the ml-metadata Python test client:
 ```
 make run/client
 ```
+### Running GraphQL Playground
+This project includes support for a GraphiQL playground, which supports interactive query design. 
+It can be reached by opening the following URL in a web browser:
+```
+http://localhost:8080/
+```
+Where, 8080 is the default port that the server listens on. This port can be changed with the `-p` option.  
 ### Clean
 Run the following command to clean the DB file, generated gRPC and GraphQL models, etc.:
 ```
