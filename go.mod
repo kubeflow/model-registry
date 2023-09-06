@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.36
 	github.com/golang/glog v1.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0
+	github.com/searKing/golang/tools/go-enum v1.2.97
 	github.com/soheilhy/cmux v0.1.5
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -35,6 +36,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/searKing/golang/go v1.2.52 // indirect
+	github.com/searKing/golang/tools v1.2.29 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

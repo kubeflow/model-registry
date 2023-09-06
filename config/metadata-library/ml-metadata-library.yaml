@@ -1,6 +1,8 @@
 # types for ml-metadata library
 artifact-types:
   - name: "mlmd.Dataset"
+    properties:
+      "note": STRING
   - name: "mlmd.Model"
   - name: "mlmd.Metrics"
   - name: "mlmd.Statistics"
