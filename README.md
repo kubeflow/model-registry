@@ -40,6 +40,11 @@ Run the following command to start the server:
 make run/server &
 ```
 ### Running Python ml-metadata test client
+Before running the test client, install the required Python libraries (using a python venv, if using one) 
+using the command:
+```
+pip install ml_metadata grpcio
+```
 Run the following command to run the ml-metadata Python test client:
 ```
 make run/client

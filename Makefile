@@ -42,7 +42,7 @@ run/server: gen
 
 .PHONY: run/client
 run/client: gen
-	python3.9 test/python/test_mlmetadata.py
+	python test/python/test_mlmetadata.py
 
 .PHONY: serve
 serve: build
