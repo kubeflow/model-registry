@@ -98,8 +98,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 		log.Fatalf("server listen failed: %v", err)
 	}
 	m := cmux.New(listener)
-	grpcListener := m.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
 	gqlListener := m.Match(cmux.HTTP1Fast())
+	grpcListener := m.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
 
 	// gRPC server
 	grpcServer := grpcListenerServer(grpcListener, server.NewGrpcServer(db))
