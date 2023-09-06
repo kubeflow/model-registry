@@ -36,8 +36,10 @@ gen: gen/grpc gen/graph
 run/migrate: gen
 	go run main.go migrate --logtostderr=true
 
+metadata.sqlite.db: run/migrate
+
 .PHONY: run/server
-run/server: gen
+run/server: gen metadata.sqlite.db
 	go run main.go serve --logtostderr=true
 
 .PHONY: run/client
