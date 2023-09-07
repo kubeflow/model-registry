@@ -2,6 +2,44 @@
 
 package graph
 
+type ArtifactTypeInterface interface {
+	IsType()
+	IsArtifactTypeInterface()
+	GetID() *string
+	GetName() string
+	GetVersion() string
+	GetTypeKind() int
+	GetDescription() string
+	GetExternalID() *string
+	GetProperties() []*TypeProperty
+}
+
+type ContextTypeInterface interface {
+	IsType()
+	IsContextTypeInterface()
+	GetID() *string
+	GetName() string
+	GetVersion() string
+	GetTypeKind() int
+	GetDescription() string
+	GetExternalID() *string
+	GetProperties() []*TypeProperty
+}
+
+type ExecutionTypeInterface interface {
+	IsType()
+	IsExecutionTypeInterface()
+	GetID() *string
+	GetName() string
+	GetVersion() string
+	GetTypeKind() int
+	GetDescription() string
+	GetExternalID() *string
+	GetInputType() string
+	GetOutputType() string
+	GetProperties() []*TypeProperty
+}
+
 type Type interface {
 	IsType()
 	GetID() *string
@@ -47,7 +85,7 @@ type ArtifactType struct {
 	Properties  []*TypeProperty `json:"properties,omitempty"`
 }
 
-func (ArtifactType) IsType()                     {}
+func (ArtifactType) IsArtifactTypeInterface()    {}
 func (this ArtifactType) GetID() *string         { return this.ID }
 func (this ArtifactType) GetName() string        { return this.Name }
 func (this ArtifactType) GetVersion() string     { return this.Version }
@@ -64,6 +102,8 @@ func (this ArtifactType) GetProperties() []*TypeProperty {
 	}
 	return interfaceSlice
 }
+
+func (ArtifactType) IsType() {}
 
 type BoolValue struct {
 	Value bool `json:"value"`
@@ -103,7 +143,7 @@ type ContextType struct {
 	Properties  []*TypeProperty `json:"properties,omitempty"`
 }
 
-func (ContextType) IsType()                     {}
+func (ContextType) IsContextTypeInterface()     {}
 func (this ContextType) GetID() *string         { return this.ID }
 func (this ContextType) GetName() string        { return this.Name }
 func (this ContextType) GetVersion() string     { return this.Version }
@@ -120,6 +160,8 @@ func (this ContextType) GetProperties() []*TypeProperty {
 	}
 	return interfaceSlice
 }
+
+func (ContextType) IsType() {}
 
 type DoubleValue struct {
 	Value float64 `json:"value"`
@@ -175,13 +217,15 @@ type ExecutionType struct {
 	Properties  []*TypeProperty `json:"properties,omitempty"`
 }
 
-func (ExecutionType) IsType()                     {}
+func (ExecutionType) IsExecutionTypeInterface()   {}
 func (this ExecutionType) GetID() *string         { return this.ID }
 func (this ExecutionType) GetName() string        { return this.Name }
 func (this ExecutionType) GetVersion() string     { return this.Version }
 func (this ExecutionType) GetTypeKind() int       { return this.TypeKind }
 func (this ExecutionType) GetDescription() string { return this.Description }
 func (this ExecutionType) GetExternalID() *string { return this.ExternalID }
+func (this ExecutionType) GetInputType() string   { return this.InputType }
+func (this ExecutionType) GetOutputType() string  { return this.OutputType }
 func (this ExecutionType) GetProperties() []*TypeProperty {
 	if this.Properties == nil {
 		return nil
@@ -192,6 +236,8 @@ func (this ExecutionType) GetProperties() []*TypeProperty {
 	}
 	return interfaceSlice
 }
+
+func (ExecutionType) IsType() {}
 
 type InstanceFilter struct {
 	Ids         []string `json:"ids,omitempty"`
@@ -205,6 +251,296 @@ type IntValue struct {
 }
 
 func (IntValue) IsValue() {}
+
+type MlmdDataset struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdDataset) IsArtifactTypeInterface()    {}
+func (this MlmdDataset) GetID() *string         { return this.ID }
+func (this MlmdDataset) GetName() string        { return this.Name }
+func (this MlmdDataset) GetVersion() string     { return this.Version }
+func (this MlmdDataset) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdDataset) GetDescription() string { return this.Description }
+func (this MlmdDataset) GetExternalID() *string { return this.ExternalID }
+func (this MlmdDataset) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdDataset) IsType() {}
+
+type MlmdDeploy struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	InputType   string          `json:"inputType"`
+	OutputType  string          `json:"outputType"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdDeploy) IsExecutionTypeInterface()   {}
+func (this MlmdDeploy) GetID() *string         { return this.ID }
+func (this MlmdDeploy) GetName() string        { return this.Name }
+func (this MlmdDeploy) GetVersion() string     { return this.Version }
+func (this MlmdDeploy) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdDeploy) GetDescription() string { return this.Description }
+func (this MlmdDeploy) GetExternalID() *string { return this.ExternalID }
+func (this MlmdDeploy) GetInputType() string   { return this.InputType }
+func (this MlmdDeploy) GetOutputType() string  { return this.OutputType }
+func (this MlmdDeploy) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdDeploy) IsType() {}
+
+type MlmdEvaluate struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	InputType   string          `json:"inputType"`
+	OutputType  string          `json:"outputType"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdEvaluate) IsExecutionTypeInterface()   {}
+func (this MlmdEvaluate) GetID() *string         { return this.ID }
+func (this MlmdEvaluate) GetName() string        { return this.Name }
+func (this MlmdEvaluate) GetVersion() string     { return this.Version }
+func (this MlmdEvaluate) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdEvaluate) GetDescription() string { return this.Description }
+func (this MlmdEvaluate) GetExternalID() *string { return this.ExternalID }
+func (this MlmdEvaluate) GetInputType() string   { return this.InputType }
+func (this MlmdEvaluate) GetOutputType() string  { return this.OutputType }
+func (this MlmdEvaluate) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdEvaluate) IsType() {}
+
+type MlmdMetrics struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdMetrics) IsArtifactTypeInterface()    {}
+func (this MlmdMetrics) GetID() *string         { return this.ID }
+func (this MlmdMetrics) GetName() string        { return this.Name }
+func (this MlmdMetrics) GetVersion() string     { return this.Version }
+func (this MlmdMetrics) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdMetrics) GetDescription() string { return this.Description }
+func (this MlmdMetrics) GetExternalID() *string { return this.ExternalID }
+func (this MlmdMetrics) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdMetrics) IsType() {}
+
+type MlmdModel struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdModel) IsArtifactTypeInterface()    {}
+func (this MlmdModel) GetID() *string         { return this.ID }
+func (this MlmdModel) GetName() string        { return this.Name }
+func (this MlmdModel) GetVersion() string     { return this.Version }
+func (this MlmdModel) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdModel) GetDescription() string { return this.Description }
+func (this MlmdModel) GetExternalID() *string { return this.ExternalID }
+func (this MlmdModel) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdModel) IsType() {}
+
+type MlmdProcess struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	InputType   string          `json:"inputType"`
+	OutputType  string          `json:"outputType"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdProcess) IsExecutionTypeInterface()   {}
+func (this MlmdProcess) GetID() *string         { return this.ID }
+func (this MlmdProcess) GetName() string        { return this.Name }
+func (this MlmdProcess) GetVersion() string     { return this.Version }
+func (this MlmdProcess) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdProcess) GetDescription() string { return this.Description }
+func (this MlmdProcess) GetExternalID() *string { return this.ExternalID }
+func (this MlmdProcess) GetInputType() string   { return this.InputType }
+func (this MlmdProcess) GetOutputType() string  { return this.OutputType }
+func (this MlmdProcess) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdProcess) IsType() {}
+
+type MlmdStatistics struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdStatistics) IsArtifactTypeInterface()    {}
+func (this MlmdStatistics) GetID() *string         { return this.ID }
+func (this MlmdStatistics) GetName() string        { return this.Name }
+func (this MlmdStatistics) GetVersion() string     { return this.Version }
+func (this MlmdStatistics) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdStatistics) GetDescription() string { return this.Description }
+func (this MlmdStatistics) GetExternalID() *string { return this.ExternalID }
+func (this MlmdStatistics) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdStatistics) IsType() {}
+
+type MlmdTrain struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	InputType   string          `json:"inputType"`
+	OutputType  string          `json:"outputType"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdTrain) IsExecutionTypeInterface()   {}
+func (this MlmdTrain) GetID() *string         { return this.ID }
+func (this MlmdTrain) GetName() string        { return this.Name }
+func (this MlmdTrain) GetVersion() string     { return this.Version }
+func (this MlmdTrain) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdTrain) GetDescription() string { return this.Description }
+func (this MlmdTrain) GetExternalID() *string { return this.ExternalID }
+func (this MlmdTrain) GetInputType() string   { return this.InputType }
+func (this MlmdTrain) GetOutputType() string  { return this.OutputType }
+func (this MlmdTrain) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdTrain) IsType() {}
+
+type MlmdTransform struct {
+	ID          *string         `json:"id,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	TypeKind    int             `json:"typeKind"`
+	Description string          `json:"description"`
+	ExternalID  *string         `json:"externalId,omitempty"`
+	InputType   string          `json:"inputType"`
+	OutputType  string          `json:"outputType"`
+	Properties  []*TypeProperty `json:"properties,omitempty"`
+}
+
+func (MlmdTransform) IsExecutionTypeInterface()   {}
+func (this MlmdTransform) GetID() *string         { return this.ID }
+func (this MlmdTransform) GetName() string        { return this.Name }
+func (this MlmdTransform) GetVersion() string     { return this.Version }
+func (this MlmdTransform) GetTypeKind() int       { return this.TypeKind }
+func (this MlmdTransform) GetDescription() string { return this.Description }
+func (this MlmdTransform) GetExternalID() *string { return this.ExternalID }
+func (this MlmdTransform) GetInputType() string   { return this.InputType }
+func (this MlmdTransform) GetOutputType() string  { return this.OutputType }
+func (this MlmdTransform) GetProperties() []*TypeProperty {
+	if this.Properties == nil {
+		return nil
+	}
+	interfaceSlice := make([]*TypeProperty, 0, len(this.Properties))
+	for _, concrete := range this.Properties {
+		interfaceSlice = append(interfaceSlice, concrete)
+	}
+	return interfaceSlice
+}
+
+func (MlmdTransform) IsType() {}
 
 type StringValue struct {
 	Value string `json:"value"`

@@ -11,12 +11,6 @@ import (
 	"github.com/dhirajsb/ml-metadata-go-server/model/graph"
 )
 
-// Type is the resolver for the type field.
-func (r *artifactResolver) Type(ctx context.Context, obj *graph.Artifact) (*graph.ArtifactType, error) {
-	id := "1"
-	return &graph.ArtifactType{ID: &id, Name: "TestType"}, nil
-}
-
 // Types is the resolver for the types field.
 func (r *queryResolver) Types(ctx context.Context, filter *graph.TypeFilter) ([]graph.Type, error) {
 	//panic(fmt.Errorf("not implemented: Types - types"))
@@ -60,11 +54,12 @@ func (r *queryResolver) Events(ctx context.Context) ([]*graph.Event, error) {
 	panic(fmt.Errorf("not implemented: Events - events"))
 }
 
-// Artifact returns ArtifactResolver implementation.
-func (r *Resolver) Artifact() ArtifactResolver { return &artifactResolver{r} }
+// MlmdDataset is the resolver for the mlmdDataset field.
+func (r *queryResolver) MlmdDataset(ctx context.Context, filter *graph.InstanceFilter) ([]*graph.MlmdDataset, error) {
+	panic(fmt.Errorf("not implemented: MlmdDataset - mlmdDataset"))
+}
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-type artifactResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
