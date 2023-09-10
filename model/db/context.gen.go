@@ -8,12 +8,12 @@ const TableNameContext = "Context"
 
 // Context mapped from table <Context>
 type Context struct {
-	ID                       int64  `gorm:"column:id;primaryKey" json:"-"`
-	TypeID                   int64  `gorm:"column:type_id;not null" json:"-"`
-	Name                     string `gorm:"column:name;not null" json:"-"`
-	ExternalID               string `gorm:"column:external_id;not null" json:"-"`
-	CreateTimeSinceEpoch     int32  `gorm:"column:create_time_since_epoch;not null" json:"-"`
-	LastUpdateTimeSinceEpoch int32  `gorm:"column:last_update_time_since_epoch;not null" json:"-"`
+	ID                       int64   `gorm:"column:id;primaryKey;autoIncrement:true" json:"-"`
+	TypeID                   int64   `gorm:"column:type_id;not null;uniqueIndex:UniqueContextName,priority:1" json:"-"`
+	Name                     string  `gorm:"column:name;not null;uniqueIndex:UniqueContextName,priority:2" json:"-"`
+	ExternalID               *string `gorm:"column:external_id;uniqueIndex:idx_context_external_id,priority:1" json:"-"`
+	CreateTimeSinceEpoch     int64   `gorm:"autoCreateTime:milli;column:create_time_since_epoch;not null;index:idx_context_create_time_since_epoch,priority:1" json:"-"`
+	LastUpdateTimeSinceEpoch int64   `gorm:"autoUpdateTime:milli;column:last_update_time_since_epoch;not null;index:idx_context_last_update_time_since_epoch,priority:1" json:"-"`
 }
 
 // TableName Context's table name

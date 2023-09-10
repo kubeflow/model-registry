@@ -46,27 +46,23 @@ func NewGrpcServer(dbConnection *gorm.DB) proto.MetadataStoreServiceServer {
 var REQUIRED_TYPE_FIELDS = []string{"name"}
 
 func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtifactTypeRequest) (resp *proto.PutArtifactTypeResponse, err error) {
-	ctx, dbConn := Begin(ctx, g.dbConnection)
+	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	artifactType := request.GetArtifactType()
+	properties := request.ArtifactType.Properties
 	err = requiredFields(REQUIRED_TYPE_FIELDS, artifactType.Name)
 	if err != nil {
 		return nil, err
 	}
 	value := &db.Type{
-		Name:     *artifactType.Name,
-		TypeKind: int32(ARTIFACT_TYPE),
+		Name:        *artifactType.Name,
+		Version:     artifactType.Version,
+		TypeKind:    int32(ARTIFACT_TYPE),
+		Description: artifactType.Description,
+		ExternalID:  artifactType.ExternalId,
 	}
-	nilSafeCopy(&value.Version, artifactType.Version, identity[string])
-	nilSafeCopy(&value.Description, artifactType.Description, identity[string])
-	nilSafeCopy(&value.ExternalID, artifactType.ExternalId, identity[string])
-
-	if err = dbConn.Create(value).Error; err != nil {
-		err = fmt.Errorf("error creating artifact type %s: %v", value.Name, err)
-		return nil, err
-	}
-	err = g.createTypeProperties(ctx, request.ArtifactType.Properties, value)
+	err = g.createOrUpdateType(ctx, value, properties)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +72,24 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 	}, nil
 }
 
+func (g grpcServer) createOrUpdateType(ctx context.Context, value *db.Type,
+	properties map[string]proto.PropertyType) error {
+	// TODO handle CanAdd, CanOmit properties from type request
+	dbConn, _ := FromContext(ctx)
+
+	if err := dbConn.Where("name = ?", value.Name).Assign(value).FirstOrCreate(value).Error; err != nil {
+		err = fmt.Errorf("error creating type %s: %v", value.Name, err)
+		return err
+	}
+	err := g.createTypeProperties(ctx, properties, value.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExecutionTypeRequest) (resp *proto.PutExecutionTypeResponse, err error) {
-	ctx, dbConn := Begin(ctx, g.dbConnection)
+	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	executionType := request.GetExecutionType()
@@ -86,17 +98,13 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 		return nil, err
 	}
 	value := &db.Type{
-		Name:     *executionType.Name,
-		TypeKind: int32(EXECUTION_TYPE),
+		Name:        *executionType.Name,
+		Version:     executionType.Version,
+		TypeKind:    int32(EXECUTION_TYPE),
+		Description: executionType.Description,
+		ExternalID:  executionType.ExternalId,
 	}
-	nilSafeCopy(&value.Version, executionType.Version, identity[string])
-	nilSafeCopy(&value.Description, executionType.Description, identity[string])
-	nilSafeCopy(&value.ExternalID, executionType.ExternalId, identity[string])
-	if err = dbConn.Create(value).Error; err != nil {
-		err = fmt.Errorf("error creating execution type %s: %v", value.Name, err)
-		return nil, err
-	}
-	err = g.createTypeProperties(ctx, request.ExecutionType.Properties, value)
+	err = g.createOrUpdateType(ctx, value, executionType.Properties)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +115,7 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 }
 
 func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContextTypeRequest) (resp *proto.PutContextTypeResponse, err error) {
-	ctx, dbConn := Begin(ctx, g.dbConnection)
+	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	contextType := request.GetContextType()
@@ -116,17 +124,16 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 		return nil, err
 	}
 	value := &db.Type{
-		Name:     *contextType.Name,
-		TypeKind: int32(CONTEXT_TYPE),
+		Name:        *contextType.Name,
+		Version:     contextType.Version,
+		TypeKind:    int32(CONTEXT_TYPE),
+		Description: contextType.Description,
+		ExternalID:  contextType.ExternalId,
 	}
-	nilSafeCopy(&value.Version, contextType.Version, identity[string])
-	nilSafeCopy(&value.Description, contextType.Description, identity[string])
-	nilSafeCopy(&value.ExternalID, contextType.ExternalId, identity[string])
-	if err = dbConn.Create(value).Error; err != nil {
-		err = fmt.Errorf("error creating context type %s: %v", value.Name, err)
+	err = g.createOrUpdateType(ctx, value, contextType.Properties)
+	if err != nil {
 		return nil, err
 	}
-	err = g.createTypeProperties(ctx, request.ContextType.Properties, value)
 	if err != nil {
 		return nil, err
 	}
@@ -203,13 +210,13 @@ func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifact
 			return nil, err
 		}
 		value := &db.Artifact{
-			TypeID: *artifact.TypeId,
-			URI:    *artifact.Uri,
+			TypeID:     *artifact.TypeId,
+			URI:        artifact.Uri,
+			Name:       artifact.Name,
+			ExternalID: artifact.ExternalId,
 		}
 		nilSafeCopy(&value.ID, artifact.Id, identity[int64])
-		nilSafeCopy(&value.State, artifact.State, artifactStateToInt32)
-		nilSafeCopy(&value.Name, artifact.Name, identity[string])
-		nilSafeCopy(&value.ExternalID, artifact.ExternalId, identity[string])
+		nilSafeCopy(&value.State, artifact.State, artifactStateToInt64)
 		// create in DB
 		if err = dbConn.Create(value).Error; err != nil {
 			err = fmt.Errorf("error creating artifact with type_id[%d], name[%s]: %w", value.TypeID, value.Name, err)
@@ -472,19 +479,20 @@ func (g grpcServer) mustEmbedUnimplementedMetadataStoreServiceServer() {
 	panic("implement me")
 }
 
-func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto.PropertyType, value *db.Type) (err error) {
+func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto.PropertyType, typeId int64) (err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	for propName, prop := range properties {
 		number := int32(prop.Number())
 		property := &db.TypeProperty{
-			TypeID:   value.ID,
+			TypeID:   typeId,
 			Name:     propName,
-			DataType: &number,
+			DataType: number,
 		}
-		if err = dbConn.Create(property).Error; err != nil {
-			err = fmt.Errorf("error creating type property for type_id[%d] with name[%s]: %v", value.ID, propName, err)
+		if err = dbConn.Where("type_id = ? AND name = ?", typeId, propName).
+			Assign(property).FirstOrCreate(property).Error; err != nil {
+			err = fmt.Errorf("error creating type property for type_id[%d] with name[%s]: %v", typeId, propName, err)
 			return err
 		}
 	}
@@ -501,13 +509,12 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 			Name:       propName,
 		}
 		if isCustomProperty {
-			property.IsCustomProperty = 1
+			property.IsCustomProperty = true
 		}
 		// TODO handle polymorphic value with null columns
 		intValue, ok := prop.GetValue().(*proto.Value_IntValue)
 		if ok {
-			i := int32(intValue.IntValue)
-			property.IntValue = &i
+			property.IntValue = &intValue.IntValue
 		}
 		doubleValue, ok := prop.GetValue().(*proto.Value_DoubleValue)
 		if ok {
@@ -519,11 +526,16 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 		}
 		structValue, ok := prop.GetValue().(*proto.Value_StructValue)
 		if ok {
-			property.ByteValue = []byte(fmt.Sprintf("%s", structValue.StructValue))
+			json, err2 := structValue.StructValue.MarshalJSON()
+			if err2 != nil {
+				err = fmt.Errorf("error marshaling struct %s value: %w", propName, err2)
+				return err
+			}
+			property.ByteValue = &json
 		}
 		protoValue, ok := prop.GetValue().(*proto.Value_ProtoValue)
 		if ok {
-			property.ProtoValue = []byte(fmt.Sprintf("%s", protoValue.ProtoValue))
+			property.ProtoValue = &protoValue.ProtoValue.Value
 		}
 		boolValue, ok := prop.GetValue().(*proto.Value_BoolValue)
 		if ok {
@@ -537,8 +549,11 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 	return nil
 }
 
-func identity[T int64 | string](i T) T                  { return i }
-func artifactStateToInt32(i proto.Artifact_State) int32 { return int32(i) }
+func identity[T int64 | string](i T) T { return i }
+func artifactStateToInt64(i proto.Artifact_State) *int64 {
+	var result = int64(i)
+	return &result
+}
 
 func requiredFields(names []string, args ...interface{}) error {
 	var missing []string
@@ -553,7 +568,7 @@ func requiredFields(names []string, args ...interface{}) error {
 	return nil
 }
 
-func nilSafeCopy[D int32 | int64 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
+func nilSafeCopy[D int32 | int64 | *int64 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
 	if src != nil {
 		*dest = f(*src)
 	}

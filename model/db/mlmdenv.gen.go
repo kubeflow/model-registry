@@ -8,7 +8,7 @@ const TableNameMLMDEnv = "MLMDEnv"
 
 // MLMDEnv mapped from table <MLMDEnv>
 type MLMDEnv struct {
-	SchemaVersion int32 `gorm:"column:schema_version;primaryKey" json:"-"`
+	SchemaVersion int64 `gorm:"column:schema_version;primaryKey" json:"-"`
 }
 
 // TableName MLMDEnv's table name

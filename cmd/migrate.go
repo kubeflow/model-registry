@@ -156,7 +156,7 @@ func loadLibraries(dbConn *gorm.DB) error {
 			if err != nil {
 				return fmt.Errorf("failed to add library from file %s: %w", path, err)
 			}
-			glog.Infof("added %d artifacts, %d contexts and %d execution types from library file %s",
+			glog.Infof("created/updated %d artifacts, %d contexts and %d execution types from library file %s",
 				len(response.ArtifactTypeIds), len(response.ContextTypeIds), len(response.ExecutionTypeIds), path)
 			return nil
 		})

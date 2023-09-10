@@ -8,15 +8,15 @@ const TableNameContextProperty = "ContextProperty"
 
 // ContextProperty mapped from table <ContextProperty>
 type ContextProperty struct {
-	ContextID        int64   `gorm:"column:context_id;primaryKey" json:"-"`
-	Name             string  `gorm:"column:name;not null" json:"-"`
-	IsCustomProperty int32   `gorm:"column:is_custom_property;not null" json:"-"`
-	IntValue         int32   `gorm:"column:int_value;not null" json:"-"`
-	DoubleValue      float64 `gorm:"column:double_value;not null" json:"-"`
-	StringValue      string  `gorm:"column:string_value;not null" json:"-"`
-	ByteValue        []byte  `gorm:"column:byte_value;not null" json:"-"`
-	ProtoValue       []byte  `gorm:"column:proto_value;not null" json:"-"`
-	BoolValue        bool    `gorm:"column:bool_value;not null" json:"-"`
+	ContextID        int64    `gorm:"column:context_id;primaryKey" json:"-"`
+	Name             string   `gorm:"column:name;primaryKey;index:idx_context_property_int,priority:1;index:idx_context_property_string,priority:1;index:idx_context_property_double,priority:1" json:"-"`
+	IsCustomProperty bool     `gorm:"column:is_custom_property;primaryKey;index:idx_context_property_int,priority:2;index:idx_context_property_string,priority:2;index:idx_context_property_double,priority:2" json:"-"`
+	IntValue         *int64   `gorm:"column:int_value;index:idx_context_property_int,priority:3" json:"-"`
+	DoubleValue      *float64 `gorm:"column:double_value;index:idx_context_property_double,priority:3" json:"-"`
+	StringValue      *string  `gorm:"column:string_value;index:idx_context_property_string,priority:3" json:"-"`
+	ByteValue        *[]byte  `gorm:"column:byte_value" json:"-"`
+	ProtoValue       *[]byte  `gorm:"column:proto_value" json:"-"`
+	BoolValue        *bool    `gorm:"column:bool_value" json:"-"`
 }
 
 // TableName ContextProperty's table name
