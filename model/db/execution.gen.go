@@ -15,6 +15,12 @@ type Execution struct {
 	ExternalID               *string `gorm:"column:external_id;uniqueIndex:idx_execution_external_id,priority:1" json:"-"`
 	CreateTimeSinceEpoch     int64   `gorm:"autoCreateTime:milli;column:create_time_since_epoch;not null;index:idx_execution_create_time_since_epoch,priority:1" json:"-"`
 	LastUpdateTimeSinceEpoch int64   `gorm:"autoUpdateTime:milli;column:last_update_time_since_epoch;not null;index:idx_execution_last_update_time_since_epoch,priority:1" json:"-"`
+
+	// relationships
+	Properties    []ExecutionProperty
+	ExecutionType Type `gorm:"foreignKey:TypeID;references:ID"`
+	Associations  []Association `gorm:"foreignKey:ExecutionID;references:ID"`
+	Events       []Event
 }
 
 // TableName Execution's table name

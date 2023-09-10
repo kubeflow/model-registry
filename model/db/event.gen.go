@@ -12,7 +12,11 @@ type Event struct {
 	ArtifactID             int64  `gorm:"column:artifact_id;not null;uniqueIndex:UniqueEvent,priority:1" json:"-"`
 	ExecutionID            int64  `gorm:"column:execution_id;not null;uniqueIndex:UniqueEvent,priority:2;index:idx_event_execution_id,priority:1" json:"-"`
 	Type                   int64  `gorm:"column:type;not null;uniqueIndex:UniqueEvent,priority:3" json:"-"`
-	MillisecondsSinceEpoch *int64 `gorm:"column:milliseconds_since_epoch" json:"-"`
+	MillisecondsSinceEpoch *int64 `gorm:"autoCreateTime:milli;column:milliseconds_since_epoch;not null" json:"-"`
+
+	// relationships
+	Artifact Artifact
+	Execution Execution
 }
 
 // TableName Event's table name

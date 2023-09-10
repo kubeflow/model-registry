@@ -14,6 +14,16 @@ type Context struct {
 	ExternalID               *string `gorm:"column:external_id;uniqueIndex:idx_context_external_id,priority:1" json:"-"`
 	CreateTimeSinceEpoch     int64   `gorm:"autoCreateTime:milli;column:create_time_since_epoch;not null;index:idx_context_create_time_since_epoch,priority:1" json:"-"`
 	LastUpdateTimeSinceEpoch int64   `gorm:"autoUpdateTime:milli;column:last_update_time_since_epoch;not null;index:idx_context_last_update_time_since_epoch,priority:1" json:"-"`
+
+	// relationships
+	Properties   []ContextProperty
+	ContextType  Type `gorm:"foreignKey:TypeID;references:ID"`
+	Attributions []Attribution `gorm:"foreignKey:ContextID;references:ID"`
+	Associations []Association `gorm:"foreignKey:ContextID;references:ID"`
+
+	// self-reference for context graphs
+	Parents      []ParentContext   `gorm:"foreignKey:ContextID;references:ID"`
+	Children     []ParentContext   `gorm:"foreignKey:ParentContextID;references:ID"`
 }
 
 // TableName Context's table name

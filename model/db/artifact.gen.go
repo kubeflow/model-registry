@@ -16,6 +16,12 @@ type Artifact struct {
 	ExternalID               *string `gorm:"column:external_id;uniqueIndex:idx_artifact_external_id,priority:1" json:"-"`
 	CreateTimeSinceEpoch     int64   `gorm:"autoCreateTime:milli;column:create_time_since_epoch;not null;index:idx_artifact_create_time_since_epoch,priority:1" json:"-"`
 	LastUpdateTimeSinceEpoch int64   `gorm:"autoUpdateTime:milli;column:last_update_time_since_epoch;not null;index:idx_artifact_last_update_time_since_epoch,priority:1" json:"-"`
+
+	// relationships
+	Properties   []ArtifactProperty
+	ArtifactType Type          `gorm:"foreignKey:TypeID;references:ID"`
+	Attributions []Attribution `gorm:"foreignKey:ArtifactID;references:ID"`
+	Events       []Event
 }
 
 // TableName Artifact's table name
