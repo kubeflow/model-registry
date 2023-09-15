@@ -1,4 +1,4 @@
-# ml-metadata-go-server
+# model-registry
 A go based server that implements a gRPC interface for [ml_metadata](https://github.com/google/ml-metadata/) library.
 It adds other features on top of the functionality offered by the gRPC interface.
 ## Pre-requisites:
