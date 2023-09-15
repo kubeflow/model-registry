@@ -17,18 +17,18 @@ make build
 ```
 The generated binary uses spf13 cmdline args. More information on using the server can be obtained by running the command:
 ```
-./ml-metadata-go-server --help
+./model-registry --help
 ```
 ## Creating/Migrating Server DB
 The server uses a local SQLite DB file (`metadata.sqlite.db` by default), which can be configured using the `-d` cmdline option.
 The following command creates the DB:
 ```
-./ml-metadata-go-server migrate
+./model-registry migrate
 ```
 ### Loading metadata library
 Run the following command to load a metadata library:
 ```
-./ml-metadata-go-server migrate -m config/metadata-library
+./model-registry migrate -m config/metadata-library
 ```
 Note that currently no duplicate detection is done as the implementation is a WIP proof of concept. 
 Running this command multiple times will create duplicate metadata types. 

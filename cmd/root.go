@@ -29,9 +29,9 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ml-metadata-go-server",
+	Use:   "model-registry",
 	Short: "A go server for ml-metadata",
-	Long: `The ml-metadata-go-server is a gRPC server that stores metadata 
+	Long: `The model-registry is a gRPC server that stores metadata 
 for ML applications. 
 
 It's based on the ml-metadata project that provides a python client library 
@@ -61,7 +61,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ml-metadata-go-server.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.model-registry.yaml)")
 	// also add standard glog flags
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
 
@@ -81,10 +81,10 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".ml-metadata-go-server" (without extension).
+		// Search config in home directory with name ".model-registry" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".ml-metadata-go-server")
+		viper.SetConfigName(".model-registry")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

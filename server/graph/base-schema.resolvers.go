@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 
-	"github.com/dhirajsb/ml-metadata-go-server/model/graph"
+	"github.com/opendatahub-io/model-registry/model/graph"
 )
 
 // Type is the resolver for the type field.

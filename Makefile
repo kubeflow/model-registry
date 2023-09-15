@@ -1,4 +1,4 @@
-ml-metadata-go-server: build
+model-registry: build
 
 ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 	protoc -I./api/grpc --go_out=. --go_opt=paths=source_relative \
@@ -19,7 +19,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./ml-metadata-go-server ml_metadata/proto/*.go ./model/graph/*.go
+	rm -Rf ./model-registry ml_metadata/proto/*.go ./model/graph/*.go
 
 .PHONY: vendor
 vendor:
@@ -48,6 +48,6 @@ run/client: gen
 
 .PHONY: serve
 serve: build
-	./ml-metadata-go-server serve --logtostderr=true
+	./model-registry serve --logtostderr=true
 
-all: ml-metadata-go-server
+all: model-registry

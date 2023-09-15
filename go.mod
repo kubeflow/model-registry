@@ -1,4 +1,4 @@
-module github.com/dhirajsb/ml-metadata-go-server
+module github.com/opendatahub-io/model-registry
 
 go 1.19
 

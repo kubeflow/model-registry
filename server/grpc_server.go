@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
-	"github.com/dhirajsb/ml-metadata-go-server/model/db"
+	"github.com/opendatahub-io/model-registry/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/model/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
@@ -219,7 +219,7 @@ func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifact
 		nilSafeCopy(&value.State, artifact.State, artifactStateToInt64)
 		// create in DB
 		if err = dbConn.Create(value).Error; err != nil {
-			err = fmt.Errorf("error creating artifact with type_id[%d], name[%s]: %w", value.TypeID, value.Name, err)
+			err = fmt.Errorf("error creating artifact with type_id[%d], name[%s]: %w", value.TypeID, *value.Name, err)
 			return nil, err
 		}
 		// create properties in DB

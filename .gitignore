@@ -1,6 +1,6 @@
 .idea
-.ml-metadata-go-server.yaml
-ml-metadata-go-server
+.model-registry.yaml
+model-registry
 ml_metadata/proto/*.go
 metadata.sqlite.db
 vendor

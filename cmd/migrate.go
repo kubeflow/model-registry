@@ -18,11 +18,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/dhirajsb/ml-metadata-go-server/ml_metadata/proto"
-	"github.com/dhirajsb/ml-metadata-go-server/model/db"
-	"github.com/dhirajsb/ml-metadata-go-server/model/library"
-	"github.com/dhirajsb/ml-metadata-go-server/server"
 	"github.com/golang/glog"
+	"github.com/opendatahub-io/model-registry/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/model/db"
+	"github.com/opendatahub-io/model-registry/model/library"
+	"github.com/opendatahub-io/model-registry/server"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 	"gorm.io/gorm"
@@ -37,7 +37,7 @@ var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Migrate ml-metadata DB to latest schema",
 	Long: `This command migrates an existing DB to the latest schema
-used by ml-metadata-go-server. It can also create a new DB if it doesn't exist.
+used by model-registry. It can also create a new DB if it doesn't exist.
 
 This command can create a new ml-metadata Sqlite DB, or migrate an existing DB
 to the latest schema required by this server.`,
