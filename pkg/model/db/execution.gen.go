@@ -18,9 +18,9 @@ type Execution struct {
 
 	// relationships
 	Properties    []ExecutionProperty
-	ExecutionType Type `gorm:"foreignKey:TypeID;references:ID"`
+	ExecutionType Type          `gorm:"foreignKey:TypeID;references:ID"`
 	Associations  []Association `gorm:"foreignKey:ExecutionID;references:ID"`
-	Events       []Event
+	Events        []Event
 }
 
 // TableName Execution's table name

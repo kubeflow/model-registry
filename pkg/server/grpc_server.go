@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/opendatahub-io/model-registry/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/model/db"
+	proto2 "github.com/opendatahub-io/model-registry/pkg/ml_metadata/proto"
+	db2 "github.com/opendatahub-io/model-registry/pkg/model/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
@@ -32,20 +32,20 @@ func (tk TypeKind) String() string {
 }
 
 type grpcServer struct {
-	proto.UnimplementedMetadataStoreServiceServer
+	proto2.UnimplementedMetadataStoreServiceServer
 	dbConnection *gorm.DB
 }
 
-var _ proto.MetadataStoreServiceServer = grpcServer{}
-var _ proto.MetadataStoreServiceServer = (*grpcServer)(nil)
+var _ proto2.MetadataStoreServiceServer = grpcServer{}
+var _ proto2.MetadataStoreServiceServer = (*grpcServer)(nil)
 
-func NewGrpcServer(dbConnection *gorm.DB) proto.MetadataStoreServiceServer {
+func NewGrpcServer(dbConnection *gorm.DB) proto2.MetadataStoreServiceServer {
 	return &grpcServer{dbConnection: dbConnection}
 }
 
 var REQUIRED_TYPE_FIELDS = []string{"name"}
 
-func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtifactTypeRequest) (resp *proto.PutArtifactTypeResponse, err error) {
+func (g grpcServer) PutArtifactType(ctx context.Context, request *proto2.PutArtifactTypeRequest) (resp *proto2.PutArtifactTypeResponse, err error) {
 	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
@@ -55,7 +55,7 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 	if err != nil {
 		return nil, err
 	}
-	value := &db.Type{
+	value := &db2.Type{
 		Name:        *artifactType.Name,
 		Version:     artifactType.Version,
 		TypeKind:    int32(ARTIFACT_TYPE),
@@ -67,13 +67,13 @@ func (g grpcServer) PutArtifactType(ctx context.Context, request *proto.PutArtif
 		return nil, err
 	}
 	var typeId = int64(value.ID)
-	return &proto.PutArtifactTypeResponse{
+	return &proto2.PutArtifactTypeResponse{
 		TypeId: &typeId,
 	}, nil
 }
 
-func (g grpcServer) createOrUpdateType(ctx context.Context, value *db.Type,
-	properties map[string]proto.PropertyType) error {
+func (g grpcServer) createOrUpdateType(ctx context.Context, value *db2.Type,
+	properties map[string]proto2.PropertyType) error {
 	// TODO handle CanAdd, CanOmit properties from type request
 	dbConn, _ := FromContext(ctx)
 
@@ -88,7 +88,7 @@ func (g grpcServer) createOrUpdateType(ctx context.Context, value *db.Type,
 	return nil
 }
 
-func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExecutionTypeRequest) (resp *proto.PutExecutionTypeResponse, err error) {
+func (g grpcServer) PutExecutionType(ctx context.Context, request *proto2.PutExecutionTypeRequest) (resp *proto2.PutExecutionTypeResponse, err error) {
 	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
@@ -97,7 +97,7 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 	if err != nil {
 		return nil, err
 	}
-	value := &db.Type{
+	value := &db2.Type{
 		Name:        *executionType.Name,
 		Version:     executionType.Version,
 		TypeKind:    int32(EXECUTION_TYPE),
@@ -109,12 +109,12 @@ func (g grpcServer) PutExecutionType(ctx context.Context, request *proto.PutExec
 		return nil, err
 	}
 	var typeId = int64(value.ID)
-	return &proto.PutExecutionTypeResponse{
+	return &proto2.PutExecutionTypeResponse{
 		TypeId: &typeId,
 	}, nil
 }
 
-func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContextTypeRequest) (resp *proto.PutContextTypeResponse, err error) {
+func (g grpcServer) PutContextType(ctx context.Context, request *proto2.PutContextTypeRequest) (resp *proto2.PutContextTypeResponse, err error) {
 	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
@@ -123,7 +123,7 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 	if err != nil {
 		return nil, err
 	}
-	value := &db.Type{
+	value := &db2.Type{
 		Name:        *contextType.Name,
 		Version:     contextType.Version,
 		TypeKind:    int32(CONTEXT_TYPE),
@@ -138,20 +138,20 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 		return nil, err
 	}
 	var typeId = int64(value.ID)
-	return &proto.PutContextTypeResponse{
+	return &proto2.PutContextTypeResponse{
 		TypeId: &typeId,
 	}, nil
 }
 
-func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest) (resp *proto.PutTypesResponse, err error) {
+func (g grpcServer) PutTypes(ctx context.Context, request *proto2.PutTypesRequest) (resp *proto2.PutTypesResponse, err error) {
 	ctx, _ = Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
-	response := &proto.PutTypesResponse{}
+	response := &proto2.PutTypesResponse{}
 
 	for _, ar := range request.ArtifactTypes {
-		var at *proto.PutArtifactTypeResponse
-		at, err = g.PutArtifactType(ctx, &proto.PutArtifactTypeRequest{
+		var at *proto2.PutArtifactTypeResponse
+		at, err = g.PutArtifactType(ctx, &proto2.PutArtifactTypeRequest{
 			ArtifactType:       ar,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
@@ -165,8 +165,8 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest
 		response.ArtifactTypeIds = append(response.ArtifactTypeIds, *at.TypeId)
 	}
 	for _, ex := range request.ExecutionTypes {
-		var er *proto.PutExecutionTypeResponse
-		er, err = g.PutExecutionType(ctx, &proto.PutExecutionTypeRequest{
+		var er *proto2.PutExecutionTypeResponse
+		er, err = g.PutExecutionType(ctx, &proto2.PutExecutionTypeRequest{
 			ExecutionType:      ex,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
@@ -180,8 +180,8 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest
 		response.ExecutionTypeIds = append(response.ExecutionTypeIds, *er.TypeId)
 	}
 	for _, ct := range request.ContextTypes {
-		var cr *proto.PutContextTypeResponse
-		cr, err = g.PutContextType(ctx, &proto.PutContextTypeRequest{
+		var cr *proto2.PutContextTypeResponse
+		cr, err = g.PutContextType(ctx, &proto2.PutContextTypeRequest{
 			ContextType:        ct,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
@@ -199,7 +199,7 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto.PutTypesRequest
 
 var REQUIRED_ARTIFACT_FIELDS = []string{"type_id", "uri"}
 
-func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifactsRequest) (resp *proto.PutArtifactsResponse, err error) {
+func (g grpcServer) PutArtifacts(ctx context.Context, request *proto2.PutArtifactsRequest) (resp *proto2.PutArtifactsResponse, err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
@@ -209,7 +209,7 @@ func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifact
 		if err != nil {
 			return nil, err
 		}
-		value := &db.Artifact{
+		value := &db2.Artifact{
 			TypeID:     *artifact.TypeId,
 			URI:        artifact.Uri,
 			Name:       artifact.Name,
@@ -233,243 +233,243 @@ func (g grpcServer) PutArtifacts(ctx context.Context, request *proto.PutArtifact
 		}
 		artifactIds = append(artifactIds, int64(value.ID))
 	}
-	resp = &proto.PutArtifactsResponse{
+	resp = &proto2.PutArtifactsResponse{
 		ArtifactIds: artifactIds,
 	}
 	return resp, nil
 }
 
-func (g grpcServer) PutExecutions(ctx context.Context, request *proto.PutExecutionsRequest) (*proto.PutExecutionsResponse, error) {
+func (g grpcServer) PutExecutions(ctx context.Context, request *proto2.PutExecutionsRequest) (*proto2.PutExecutionsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutEvents(ctx context.Context, request *proto.PutEventsRequest) (*proto.PutEventsResponse, error) {
+func (g grpcServer) PutEvents(ctx context.Context, request *proto2.PutEventsRequest) (*proto2.PutEventsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutExecution(ctx context.Context, request *proto.PutExecutionRequest) (*proto.PutExecutionResponse, error) {
+func (g grpcServer) PutExecution(ctx context.Context, request *proto2.PutExecutionRequest) (*proto2.PutExecutionResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutLineageSubgraph(ctx context.Context, request *proto.PutLineageSubgraphRequest) (*proto.PutLineageSubgraphResponse, error) {
+func (g grpcServer) PutLineageSubgraph(ctx context.Context, request *proto2.PutLineageSubgraphRequest) (*proto2.PutLineageSubgraphResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutContexts(ctx context.Context, request *proto.PutContextsRequest) (*proto.PutContextsResponse, error) {
+func (g grpcServer) PutContexts(ctx context.Context, request *proto2.PutContextsRequest) (*proto2.PutContextsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutAttributionsAndAssociations(ctx context.Context, request *proto.PutAttributionsAndAssociationsRequest) (*proto.PutAttributionsAndAssociationsResponse, error) {
+func (g grpcServer) PutAttributionsAndAssociations(ctx context.Context, request *proto2.PutAttributionsAndAssociationsRequest) (*proto2.PutAttributionsAndAssociationsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) PutParentContexts(ctx context.Context, request *proto.PutParentContextsRequest) (*proto.PutParentContextsResponse, error) {
+func (g grpcServer) PutParentContexts(ctx context.Context, request *proto2.PutParentContextsRequest) (*proto2.PutParentContextsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactType(ctx context.Context, request *proto.GetArtifactTypeRequest) (*proto.GetArtifactTypeResponse, error) {
+func (g grpcServer) GetArtifactType(ctx context.Context, request *proto2.GetArtifactTypeRequest) (*proto2.GetArtifactTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactTypesByID(ctx context.Context, request *proto.GetArtifactTypesByIDRequest) (*proto.GetArtifactTypesByIDResponse, error) {
+func (g grpcServer) GetArtifactTypesByID(ctx context.Context, request *proto2.GetArtifactTypesByIDRequest) (*proto2.GetArtifactTypesByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactTypes(ctx context.Context, request *proto.GetArtifactTypesRequest) (*proto.GetArtifactTypesResponse, error) {
+func (g grpcServer) GetArtifactTypes(ctx context.Context, request *proto2.GetArtifactTypesRequest) (*proto2.GetArtifactTypesResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionType(ctx context.Context, request *proto.GetExecutionTypeRequest) (*proto.GetExecutionTypeResponse, error) {
+func (g grpcServer) GetExecutionType(ctx context.Context, request *proto2.GetExecutionTypeRequest) (*proto2.GetExecutionTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionTypesByID(ctx context.Context, request *proto.GetExecutionTypesByIDRequest) (*proto.GetExecutionTypesByIDResponse, error) {
+func (g grpcServer) GetExecutionTypesByID(ctx context.Context, request *proto2.GetExecutionTypesByIDRequest) (*proto2.GetExecutionTypesByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionTypes(ctx context.Context, request *proto.GetExecutionTypesRequest) (*proto.GetExecutionTypesResponse, error) {
+func (g grpcServer) GetExecutionTypes(ctx context.Context, request *proto2.GetExecutionTypesRequest) (*proto2.GetExecutionTypesResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextType(ctx context.Context, request *proto.GetContextTypeRequest) (*proto.GetContextTypeResponse, error) {
+func (g grpcServer) GetContextType(ctx context.Context, request *proto2.GetContextTypeRequest) (*proto2.GetContextTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextTypesByID(ctx context.Context, request *proto.GetContextTypesByIDRequest) (*proto.GetContextTypesByIDResponse, error) {
+func (g grpcServer) GetContextTypesByID(ctx context.Context, request *proto2.GetContextTypesByIDRequest) (*proto2.GetContextTypesByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextTypes(ctx context.Context, request *proto.GetContextTypesRequest) (*proto.GetContextTypesResponse, error) {
+func (g grpcServer) GetContextTypes(ctx context.Context, request *proto2.GetContextTypesRequest) (*proto2.GetContextTypesResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifacts(ctx context.Context, request *proto.GetArtifactsRequest) (*proto.GetArtifactsResponse, error) {
+func (g grpcServer) GetArtifacts(ctx context.Context, request *proto2.GetArtifactsRequest) (*proto2.GetArtifactsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutions(ctx context.Context, request *proto.GetExecutionsRequest) (*proto.GetExecutionsResponse, error) {
+func (g grpcServer) GetExecutions(ctx context.Context, request *proto2.GetExecutionsRequest) (*proto2.GetExecutionsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContexts(ctx context.Context, request *proto.GetContextsRequest) (*proto.GetContextsResponse, error) {
+func (g grpcServer) GetContexts(ctx context.Context, request *proto2.GetContextsRequest) (*proto2.GetContextsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactsByID(ctx context.Context, request *proto.GetArtifactsByIDRequest) (*proto.GetArtifactsByIDResponse, error) {
+func (g grpcServer) GetArtifactsByID(ctx context.Context, request *proto2.GetArtifactsByIDRequest) (*proto2.GetArtifactsByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionsByID(ctx context.Context, request *proto.GetExecutionsByIDRequest) (*proto.GetExecutionsByIDResponse, error) {
+func (g grpcServer) GetExecutionsByID(ctx context.Context, request *proto2.GetExecutionsByIDRequest) (*proto2.GetExecutionsByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextsByID(ctx context.Context, request *proto.GetContextsByIDRequest) (*proto.GetContextsByIDResponse, error) {
+func (g grpcServer) GetContextsByID(ctx context.Context, request *proto2.GetContextsByIDRequest) (*proto2.GetContextsByIDResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactsByType(ctx context.Context, request *proto.GetArtifactsByTypeRequest) (*proto.GetArtifactsByTypeResponse, error) {
+func (g grpcServer) GetArtifactsByType(ctx context.Context, request *proto2.GetArtifactsByTypeRequest) (*proto2.GetArtifactsByTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionsByType(ctx context.Context, request *proto.GetExecutionsByTypeRequest) (*proto.GetExecutionsByTypeResponse, error) {
+func (g grpcServer) GetExecutionsByType(ctx context.Context, request *proto2.GetExecutionsByTypeRequest) (*proto2.GetExecutionsByTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextsByType(ctx context.Context, request *proto.GetContextsByTypeRequest) (*proto.GetContextsByTypeResponse, error) {
+func (g grpcServer) GetContextsByType(ctx context.Context, request *proto2.GetContextsByTypeRequest) (*proto2.GetContextsByTypeResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactByTypeAndName(ctx context.Context, request *proto.GetArtifactByTypeAndNameRequest) (*proto.GetArtifactByTypeAndNameResponse, error) {
+func (g grpcServer) GetArtifactByTypeAndName(ctx context.Context, request *proto2.GetArtifactByTypeAndNameRequest) (*proto2.GetArtifactByTypeAndNameResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionByTypeAndName(ctx context.Context, request *proto.GetExecutionByTypeAndNameRequest) (*proto.GetExecutionByTypeAndNameResponse, error) {
+func (g grpcServer) GetExecutionByTypeAndName(ctx context.Context, request *proto2.GetExecutionByTypeAndNameRequest) (*proto2.GetExecutionByTypeAndNameResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextByTypeAndName(ctx context.Context, request *proto.GetContextByTypeAndNameRequest) (*proto.GetContextByTypeAndNameResponse, error) {
+func (g grpcServer) GetContextByTypeAndName(ctx context.Context, request *proto2.GetContextByTypeAndNameRequest) (*proto2.GetContextByTypeAndNameResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactsByURI(ctx context.Context, request *proto.GetArtifactsByURIRequest) (*proto.GetArtifactsByURIResponse, error) {
+func (g grpcServer) GetArtifactsByURI(ctx context.Context, request *proto2.GetArtifactsByURIRequest) (*proto2.GetArtifactsByURIResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetEventsByExecutionIDs(ctx context.Context, request *proto.GetEventsByExecutionIDsRequest) (*proto.GetEventsByExecutionIDsResponse, error) {
+func (g grpcServer) GetEventsByExecutionIDs(ctx context.Context, request *proto2.GetEventsByExecutionIDsRequest) (*proto2.GetEventsByExecutionIDsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetEventsByArtifactIDs(ctx context.Context, request *proto.GetEventsByArtifactIDsRequest) (*proto.GetEventsByArtifactIDsResponse, error) {
+func (g grpcServer) GetEventsByArtifactIDs(ctx context.Context, request *proto2.GetEventsByArtifactIDsRequest) (*proto2.GetEventsByArtifactIDsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactsByExternalIds(ctx context.Context, request *proto.GetArtifactsByExternalIdsRequest) (*proto.GetArtifactsByExternalIdsResponse, error) {
+func (g grpcServer) GetArtifactsByExternalIds(ctx context.Context, request *proto2.GetArtifactsByExternalIdsRequest) (*proto2.GetArtifactsByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionsByExternalIds(ctx context.Context, request *proto.GetExecutionsByExternalIdsRequest) (*proto.GetExecutionsByExternalIdsResponse, error) {
+func (g grpcServer) GetExecutionsByExternalIds(ctx context.Context, request *proto2.GetExecutionsByExternalIdsRequest) (*proto2.GetExecutionsByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextsByExternalIds(ctx context.Context, request *proto.GetContextsByExternalIdsRequest) (*proto.GetContextsByExternalIdsResponse, error) {
+func (g grpcServer) GetContextsByExternalIds(ctx context.Context, request *proto2.GetContextsByExternalIdsRequest) (*proto2.GetContextsByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactTypesByExternalIds(ctx context.Context, request *proto.GetArtifactTypesByExternalIdsRequest) (*proto.GetArtifactTypesByExternalIdsResponse, error) {
+func (g grpcServer) GetArtifactTypesByExternalIds(ctx context.Context, request *proto2.GetArtifactTypesByExternalIdsRequest) (*proto2.GetArtifactTypesByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionTypesByExternalIds(ctx context.Context, request *proto.GetExecutionTypesByExternalIdsRequest) (*proto.GetExecutionTypesByExternalIdsResponse, error) {
+func (g grpcServer) GetExecutionTypesByExternalIds(ctx context.Context, request *proto2.GetExecutionTypesByExternalIdsRequest) (*proto2.GetExecutionTypesByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextTypesByExternalIds(ctx context.Context, request *proto.GetContextTypesByExternalIdsRequest) (*proto.GetContextTypesByExternalIdsResponse, error) {
+func (g grpcServer) GetContextTypesByExternalIds(ctx context.Context, request *proto2.GetContextTypesByExternalIdsRequest) (*proto2.GetContextTypesByExternalIdsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextsByArtifact(ctx context.Context, request *proto.GetContextsByArtifactRequest) (*proto.GetContextsByArtifactResponse, error) {
+func (g grpcServer) GetContextsByArtifact(ctx context.Context, request *proto2.GetContextsByArtifactRequest) (*proto2.GetContextsByArtifactResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetContextsByExecution(ctx context.Context, request *proto.GetContextsByExecutionRequest) (*proto.GetContextsByExecutionResponse, error) {
+func (g grpcServer) GetContextsByExecution(ctx context.Context, request *proto2.GetContextsByExecutionRequest) (*proto2.GetContextsByExecutionResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetParentContextsByContext(ctx context.Context, request *proto.GetParentContextsByContextRequest) (*proto.GetParentContextsByContextResponse, error) {
+func (g grpcServer) GetParentContextsByContext(ctx context.Context, request *proto2.GetParentContextsByContextRequest) (*proto2.GetParentContextsByContextResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetChildrenContextsByContext(ctx context.Context, request *proto.GetChildrenContextsByContextRequest) (*proto.GetChildrenContextsByContextResponse, error) {
+func (g grpcServer) GetChildrenContextsByContext(ctx context.Context, request *proto2.GetChildrenContextsByContextRequest) (*proto2.GetChildrenContextsByContextResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetParentContextsByContexts(ctx context.Context, request *proto.GetParentContextsByContextsRequest) (*proto.GetParentContextsByContextsResponse, error) {
+func (g grpcServer) GetParentContextsByContexts(ctx context.Context, request *proto2.GetParentContextsByContextsRequest) (*proto2.GetParentContextsByContextsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetChildrenContextsByContexts(ctx context.Context, request *proto.GetChildrenContextsByContextsRequest) (*proto.GetChildrenContextsByContextsResponse, error) {
+func (g grpcServer) GetChildrenContextsByContexts(ctx context.Context, request *proto2.GetChildrenContextsByContextsRequest) (*proto2.GetChildrenContextsByContextsResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactsByContext(ctx context.Context, request *proto.GetArtifactsByContextRequest) (*proto.GetArtifactsByContextResponse, error) {
+func (g grpcServer) GetArtifactsByContext(ctx context.Context, request *proto2.GetArtifactsByContextRequest) (*proto2.GetArtifactsByContextResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetExecutionsByContext(ctx context.Context, request *proto.GetExecutionsByContextRequest) (*proto.GetExecutionsByContextResponse, error) {
+func (g grpcServer) GetExecutionsByContext(ctx context.Context, request *proto2.GetExecutionsByContextRequest) (*proto2.GetExecutionsByContextResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetLineageGraph(ctx context.Context, request *proto.GetLineageGraphRequest) (*proto.GetLineageGraphResponse, error) {
+func (g grpcServer) GetLineageGraph(ctx context.Context, request *proto2.GetLineageGraphRequest) (*proto2.GetLineageGraphResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g grpcServer) GetLineageSubgraph(ctx context.Context, request *proto.GetLineageSubgraphRequest) (*proto.GetLineageSubgraphResponse, error) {
+func (g grpcServer) GetLineageSubgraph(ctx context.Context, request *proto2.GetLineageSubgraphRequest) (*proto2.GetLineageSubgraphResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -479,13 +479,13 @@ func (g grpcServer) mustEmbedUnimplementedMetadataStoreServiceServer() {
 	panic("implement me")
 }
 
-func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto.PropertyType, typeId int64) (err error) {
+func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto2.PropertyType, typeId int64) (err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	for propName, prop := range properties {
 		number := int32(prop.Number())
-		property := &db.TypeProperty{
+		property := &db2.TypeProperty{
 			TypeID:   typeId,
 			Name:     propName,
 			DataType: number,
@@ -499,12 +499,12 @@ func (g grpcServer) createTypeProperties(ctx context.Context, properties map[str
 	return nil
 }
 
-func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int64, properties map[string]*proto.Value, isCustomProperty bool) (err error) {
+func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int64, properties map[string]*proto2.Value, isCustomProperty bool) (err error) {
 	ctx, dbConn := Begin(ctx, g.dbConnection)
 	defer handleTransaction(ctx, &err)
 
 	for propName, prop := range properties {
-		property := &db.ArtifactProperty{
+		property := &db2.ArtifactProperty{
 			ArtifactID: artifactId,
 			Name:       propName,
 		}
@@ -512,19 +512,19 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 			property.IsCustomProperty = true
 		}
 		// TODO handle polymorphic value with null columns
-		intValue, ok := prop.GetValue().(*proto.Value_IntValue)
+		intValue, ok := prop.GetValue().(*proto2.Value_IntValue)
 		if ok {
 			property.IntValue = &intValue.IntValue
 		}
-		doubleValue, ok := prop.GetValue().(*proto.Value_DoubleValue)
+		doubleValue, ok := prop.GetValue().(*proto2.Value_DoubleValue)
 		if ok {
 			property.DoubleValue = &doubleValue.DoubleValue
 		}
-		stringValue, ok := prop.GetValue().(*proto.Value_StringValue)
+		stringValue, ok := prop.GetValue().(*proto2.Value_StringValue)
 		if ok {
 			property.StringValue = &stringValue.StringValue
 		}
-		structValue, ok := prop.GetValue().(*proto.Value_StructValue)
+		structValue, ok := prop.GetValue().(*proto2.Value_StructValue)
 		if ok {
 			json, err2 := structValue.StructValue.MarshalJSON()
 			if err2 != nil {
@@ -533,11 +533,11 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 			}
 			property.ByteValue = &json
 		}
-		protoValue, ok := prop.GetValue().(*proto.Value_ProtoValue)
+		protoValue, ok := prop.GetValue().(*proto2.Value_ProtoValue)
 		if ok {
 			property.ProtoValue = &protoValue.ProtoValue.Value
 		}
-		boolValue, ok := prop.GetValue().(*proto.Value_BoolValue)
+		boolValue, ok := prop.GetValue().(*proto2.Value_BoolValue)
 		if ok {
 			property.BoolValue = &boolValue.BoolValue
 		}
@@ -550,7 +550,7 @@ func (g grpcServer) createArtifactProperties(ctx context.Context, artifactId int
 }
 
 func identity[T int64 | string](i T) T { return i }
-func artifactStateToInt64(i proto.Artifact_State) *int64 {
+func artifactStateToInt64(i proto2.Artifact_State) *int64 {
 	var result = int64(i)
 	return &result
 }
@@ -568,7 +568,7 @@ func requiredFields(names []string, args ...interface{}) error {
 	return nil
 }
 
-func nilSafeCopy[D int32 | int64 | *int64 | string, S int64 | proto.Artifact_State | string](dest *D, src *S, f func(i S) D) {
+func nilSafeCopy[D int32 | int64 | *int64 | string, S int64 | proto2.Artifact_State | string](dest *D, src *S, f func(i S) D) {
 	if src != nil {
 		*dest = f(*src)
 	}

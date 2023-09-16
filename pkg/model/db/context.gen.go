@@ -17,13 +17,13 @@ type Context struct {
 
 	// relationships
 	Properties   []ContextProperty
-	ContextType  Type `gorm:"foreignKey:TypeID;references:ID"`
+	ContextType  Type          `gorm:"foreignKey:TypeID;references:ID"`
 	Attributions []Attribution `gorm:"foreignKey:ContextID;references:ID"`
 	Associations []Association `gorm:"foreignKey:ContextID;references:ID"`
 
 	// self-reference for context graphs
-	Parents      []ParentContext   `gorm:"foreignKey:ContextID;references:ID"`
-	Children     []ParentContext   `gorm:"foreignKey:ParentContextID;references:ID"`
+	Parents      []ParentContext `gorm:"foreignKey:ContextID;references:ID"`
+	Children     []ParentContext `gorm:"foreignKey:ParentContextID;references:ID"`
 }
 
 // TableName Context's table name

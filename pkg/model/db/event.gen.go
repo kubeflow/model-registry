@@ -15,7 +15,7 @@ type Event struct {
 	MillisecondsSinceEpoch *int64 `gorm:"autoCreateTime:milli;column:milliseconds_since_epoch;not null" json:"-"`
 
 	// relationships
-	Artifact Artifact
+	Artifact  Artifact
 	Execution Execution
 }
 

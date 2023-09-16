@@ -1,16 +1,16 @@
 model-registry: build
 
-ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
-	protoc -I./api/grpc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative $<
+pkg/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
+	protoc -I./api/grpc --go_out=./pkg --go_opt=paths=source_relative \
+		--go-grpc_out=./pkg --go-grpc_opt=paths=source_relative $<
 
 .PHONY: gen/grpc
-gen/grpc: ml_metadata/proto/metadata_store.pb.go ml_metadata/proto/metadata_store_service.pb.go
+gen/grpc: pkg/ml_metadata/proto/metadata_store.pb.go pkg/ml_metadata/proto/metadata_store_service.pb.go
 
 .PHONY: gen/graph
-gen/graph: model/graph/models_gen.go
+gen/graph: pkg/model/graph/models_gen.go
 
-model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
+pkg/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
 	go run github.com/99designs/gqlgen generate
 
 .PHONY: vet
@@ -19,7 +19,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry ml_metadata/proto/*.go ./model/graph/*.go
+	rm -Rf ./model-registry pkg/ml_metadata/proto/*.go pkg/model/graph/*.go
 
 .PHONY: vendor
 vendor:

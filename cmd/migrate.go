@@ -19,10 +19,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/model/db"
-	"github.com/opendatahub-io/model-registry/model/library"
-	"github.com/opendatahub-io/model-registry/server"
+	proto2 "github.com/opendatahub-io/model-registry/pkg/ml_metadata/proto"
+	db2 "github.com/opendatahub-io/model-registry/pkg/model/db"
+	"github.com/opendatahub-io/model-registry/pkg/model/library"
+	"github.com/opendatahub-io/model-registry/pkg/server"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 	"gorm.io/gorm"
@@ -75,19 +75,19 @@ to the latest schema required by this server.`,
 func migrateDatabase(dbConn *gorm.DB) error {
 	// TODO add support for more elaborate Gorm migrations
 	err := dbConn.AutoMigrate(
-		db.Artifact{},
-		db.ArtifactProperty{},
-		db.Association{},
-		db.Attribution{},
-		db.Context{},
-		db.ContextProperty{},
-		db.Event{},
-		db.EventPath{},
-		db.Execution{},
-		db.ExecutionProperty{},
-		db.ParentContext{},
-		db.Type{},
-		db.TypeProperty{},
+		db2.Artifact{},
+		db2.ArtifactProperty{},
+		db2.Association{},
+		db2.Attribution{},
+		db2.Context{},
+		db2.ContextProperty{},
+		db2.Event{},
+		db2.EventPath{},
+		db2.Execution{},
+		db2.ExecutionProperty{},
+		db2.ParentContext{},
+		db2.Type{},
+		db2.TypeProperty{},
 	)
 	if err != nil {
 		return fmt.Errorf("db migration failed: %w", err)
@@ -124,9 +124,9 @@ func loadLibraries(dbConn *gorm.DB) error {
 				return fmt.Errorf("failed to parse library file %s: %w", path, err)
 			}
 			grpcServer := server.NewGrpcServer(dbConn)
-			typesRequest := proto.PutTypesRequest{}
+			typesRequest := proto2.PutTypesRequest{}
 			for _, at := range lib.ArtifactTypes {
-				typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto.ArtifactType{
+				typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto2.ArtifactType{
 					Name:        at.Name,
 					Version:     at.Version,
 					Description: at.Description,
@@ -135,7 +135,7 @@ func loadLibraries(dbConn *gorm.DB) error {
 				})
 			}
 			for _, ct := range lib.ContextTypes {
-				typesRequest.ContextTypes = append(typesRequest.ContextTypes, &proto.ContextType{
+				typesRequest.ContextTypes = append(typesRequest.ContextTypes, &proto2.ContextType{
 					Name:        ct.Name,
 					Version:     ct.Version,
 					Description: ct.Description,
@@ -144,7 +144,7 @@ func loadLibraries(dbConn *gorm.DB) error {
 				})
 			}
 			for _, et := range lib.ExecutionTypes {
-				typesRequest.ExecutionTypes = append(typesRequest.ExecutionTypes, &proto.ExecutionType{
+				typesRequest.ExecutionTypes = append(typesRequest.ExecutionTypes, &proto2.ExecutionType{
 					Name:        et.Name,
 					Version:     et.Version,
 					Description: et.Description,
