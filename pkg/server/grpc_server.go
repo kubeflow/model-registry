@@ -155,8 +155,6 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto2.PutTypesReques
 			ArtifactType:       ar,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
-			CanDeleteFields:    request.CanDeleteFields,
-			AllFieldsMatch:     request.AllFieldsMatch,
 			TransactionOptions: request.TransactionOptions,
 		})
 		if err != nil {
@@ -170,8 +168,6 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto2.PutTypesReques
 			ExecutionType:      ex,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
-			CanDeleteFields:    request.CanDeleteFields,
-			AllFieldsMatch:     request.AllFieldsMatch,
 			TransactionOptions: request.TransactionOptions,
 		})
 		if err != nil {
@@ -185,8 +181,6 @@ func (g grpcServer) PutTypes(ctx context.Context, request *proto2.PutTypesReques
 			ContextType:        ct,
 			CanAddFields:       request.CanAddFields,
 			CanOmitFields:      request.CanOmitFields,
-			CanDeleteFields:    request.CanDeleteFields,
-			AllFieldsMatch:     request.AllFieldsMatch,
 			TransactionOptions: request.TransactionOptions,
 		})
 		if err != nil {
@@ -474,9 +468,9 @@ func (g grpcServer) GetLineageSubgraph(ctx context.Context, request *proto2.GetL
 	panic("implement me")
 }
 
+//nolint:golint,unused
 func (g grpcServer) mustEmbedUnimplementedMetadataStoreServiceServer() {
-	//TODO implement me
-	panic("implement me")
+	// implemented to signal that server is extendable
 }
 
 func (g grpcServer) createTypeProperties(ctx context.Context, properties map[string]proto2.PropertyType, typeId int64) (err error) {
