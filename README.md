@@ -4,6 +4,11 @@ It adds other features on top of the functionality offered by the gRPC interface
 ## Pre-requisites:
 - go >= 1.19
 - protoc - [Protocol buffer compiler](https://grpc.io/docs/protoc-installation/).
+- go tools - Installed with the following commands:
+```
+go install github.com/99designs/gqlgen@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
 - gRPC go plugins - Installed with the following commands:
 ```
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest

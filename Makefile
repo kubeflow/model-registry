@@ -34,6 +34,7 @@ gen: gen/grpc gen/graph
 
 .PHONY: lint
 lint: gen
+	golangci-lint run main.go
 	golangci-lint run cmd/... pkg/...
 
 .PHONY: run/migrate
