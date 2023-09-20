@@ -24,12 +24,7 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/model/library"
 	"github.com/opendatahub-io/model-registry/internal/server"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 // migrateCmd represents the migrate command
@@ -96,80 +91,57 @@ func migrateDatabase(dbConn *gorm.DB) error {
 }
 
 func loadLibraries(dbConn *gorm.DB) error {
-	for _, dir := range libraryDirs {
-		abs, err := filepath.Abs(dir)
-		if err != nil {
-			return fmt.Errorf("error getting absolute library path for %s: %w", dir, err)
+	libs, err := library.LoadLibraries(libraryDirs)
+	if err != nil {
+		return fmt.Errorf("failed to read library directories %s: %w", libraryDirs, err)
+	}
+	for path, lib := range libs {
+		grpcServer := server.NewGrpcServer(dbConn)
+		typesRequest := proto.PutTypesRequest{}
+		for _, at := range lib.ArtifactTypes {
+			typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto.ArtifactType{
+				Name:        at.Name,
+				Version:     at.Version,
+				Description: at.Description,
+				ExternalId:  at.ExternalId,
+				Properties:  ToProtoProperties(at.Properties),
+			})
 		}
-		_, err = os.Stat(abs)
-		if err != nil {
-			return fmt.Errorf("error opening library path for %s: %w", abs, err)
+		for _, ct := range lib.ContextTypes {
+			typesRequest.ContextTypes = append(typesRequest.ContextTypes, &proto.ContextType{
+				Name:        ct.Name,
+				Version:     ct.Version,
+				Description: ct.Description,
+				ExternalId:  ct.ExternalId,
+				Properties:  ToProtoProperties(ct.Properties),
+			})
 		}
-		err = filepath.WalkDir(abs, func(path string, entry fs.DirEntry, err error) error {
-			if err != nil {
-				glog.Warningf("error reading library path %s: %v", path, err)
-				return filepath.SkipDir
-			}
-			if entry.IsDir() || !isYamlFile(path) {
-				return nil
-			}
-
-			bytes, err := os.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("failed to read library file %s: %w", path, err)
-			}
-			var lib library.MetadataLibrary
-			err = yaml.Unmarshal(bytes, &lib)
-			if err != nil {
-				return fmt.Errorf("failed to parse library file %s: %w", path, err)
-			}
-			grpcServer := server.NewGrpcServer(dbConn)
-			typesRequest := proto.PutTypesRequest{}
-			for _, at := range lib.ArtifactTypes {
-				typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto.ArtifactType{
-					Name:        at.Name,
-					Version:     at.Version,
-					Description: at.Description,
-					ExternalId:  at.ExternalId,
-					Properties:  library.ToProtoProperties(at.Properties),
-				})
-			}
-			for _, ct := range lib.ContextTypes {
-				typesRequest.ContextTypes = append(typesRequest.ContextTypes, &proto.ContextType{
-					Name:        ct.Name,
-					Version:     ct.Version,
-					Description: ct.Description,
-					ExternalId:  ct.ExternalId,
-					Properties:  library.ToProtoProperties(ct.Properties),
-				})
-			}
-			for _, et := range lib.ExecutionTypes {
-				typesRequest.ExecutionTypes = append(typesRequest.ExecutionTypes, &proto.ExecutionType{
-					Name:        et.Name,
-					Version:     et.Version,
-					Description: et.Description,
-					ExternalId:  et.ExternalId,
-					Properties:  library.ToProtoProperties(et.Properties),
-				})
-			}
-			response, err := grpcServer.PutTypes(context.Background(), &typesRequest)
-			if err != nil {
-				return fmt.Errorf("failed to add library from file %s: %w", path, err)
-			}
-			glog.Infof("created/updated %d artifacts, %d contexts and %d execution types from library file %s",
-				len(response.ArtifactTypeIds), len(response.ContextTypeIds), len(response.ExecutionTypeIds), path)
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("failed to read library directory %s: %w", abs, err)
+		for _, et := range lib.ExecutionTypes {
+			typesRequest.ExecutionTypes = append(typesRequest.ExecutionTypes, &proto.ExecutionType{
+				Name:        et.Name,
+				Version:     et.Version,
+				Description: et.Description,
+				ExternalId:  et.ExternalId,
+				Properties:  ToProtoProperties(et.Properties),
+			})
 		}
+		response, err := grpcServer.PutTypes(context.Background(), &typesRequest)
+		if err != nil {
+			return fmt.Errorf("failed to add library from file %s: %w", path, err)
+		}
+		glog.Infof("created/updated %d ArtifactTypes, %d ContextTypes and %d ExecutionTypes from library file %s",
+			len(response.ArtifactTypeIds), len(response.ContextTypeIds), len(response.ExecutionTypeIds), path)
+		return nil
 	}
 	return nil
 }
 
-func isYamlFile(path string) bool {
-	lowerPath := strings.ToLower(filepath.Ext(path))
-	return strings.HasSuffix(lowerPath, ".yaml") || strings.HasSuffix(lowerPath, ".yml")
+func ToProtoProperties(props map[string]library.PropertyType) map[string]proto.PropertyType {
+	result := make(map[string]proto.PropertyType)
+	for name, prop := range props {
+		result[name] = proto.PropertyType(prop)
+	}
+	return result
 }
 
 var libraryDirs []string
