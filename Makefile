@@ -1,3 +1,10 @@
+# useful paths
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
+PROJECT_BIN := $(PROJECT_PATH)/bin
+
+# add tools bin directory
+PATH := $(PROJECT_BIN):$(PATH)
 model-registry: build
 
 internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
@@ -19,15 +26,15 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/*.go
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go
 
 .PHONY: deps
 deps:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.54.2
-	go install github.com/99designs/gqlgen@latest
-	go install github.com/searKing/golang/tools/go-enum@latest
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
+	GOBIN=$(PROJECT_BIN) go install github.com/99designs/gqlgen@v0.17.36
+	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
+	GOBIN=$(PROJECT_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	GOBIN=$(PROJECT_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
 .PHONY: vendor
 vendor:
@@ -48,7 +55,7 @@ lint: gen
 
 .PHONY: run/migrate
 run/migrate: gen
-	go run main.go migrate --logtostderr=true
+	go run main.go migrate --logtostderr=true -m config/metadata-library
 
 metadata.sqlite.db: run/migrate
 

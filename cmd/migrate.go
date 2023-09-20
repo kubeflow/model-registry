@@ -22,7 +22,7 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/db"
 	"github.com/opendatahub-io/model-registry/internal/model/library"
-	"github.com/opendatahub-io/model-registry/internal/server"
+	"github.com/opendatahub-io/model-registry/internal/server/grpc"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 )
@@ -96,7 +96,7 @@ func loadLibraries(dbConn *gorm.DB) error {
 		return fmt.Errorf("failed to read library directories %s: %w", libraryDirs, err)
 	}
 	for path, lib := range libs {
-		grpcServer := server.NewGrpcServer(dbConn)
+		grpcServer := grpc.NewGrpcServer(dbConn)
 		typesRequest := proto.PutTypesRequest{}
 		for _, at := range lib.ArtifactTypes {
 			typesRequest.ArtifactTypes = append(typesRequest.ArtifactTypes, &proto.ArtifactType{
@@ -131,7 +131,6 @@ func loadLibraries(dbConn *gorm.DB) error {
 		}
 		glog.Infof("created/updated %d ArtifactTypes, %d ContextTypes and %d ExecutionTypes from library file %s",
 			len(response.ArtifactTypeIds), len(response.ContextTypeIds), len(response.ExecutionTypeIds), path)
-		return nil
 	}
 	return nil
 }

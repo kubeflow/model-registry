@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	grpc2 "github.com/opendatahub-io/model-registry/internal/server/grpc"
 	"log"
 	"net"
 	"net/http"
@@ -30,7 +31,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/internal/server"
 	"github.com/opendatahub-io/model-registry/internal/server/graph"
 	"github.com/soheilhy/cmux"
 	"github.com/spf13/cobra"
@@ -103,7 +103,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	grpcListener := m.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
 
 	// gRPC server
-	grpcServer := grpcListenerServer(server.NewGrpcServer(db))
+	grpcServer := grpcListenerServer(grpc2.NewGrpcServer(db))
 	// GraphQL server
 	gqlServer := graphQlListenerServer(db)
 
