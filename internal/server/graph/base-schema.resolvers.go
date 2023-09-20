@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 
-	"github.com/opendatahub-io/model-registry/pkg/model/graph"
+	"github.com/opendatahub-io/model-registry/internal/model/graph"
 )
 
 // Type is the resolver for the type field.

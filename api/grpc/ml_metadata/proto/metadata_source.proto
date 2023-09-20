@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 // The returned results from a MetadataSource.
 syntax = "proto3";
-option go_package = "github.com/opendatahub-io/model-registry/pkg/ml_metadata/proto";
+option go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";
 
 package ml_metadata;
 

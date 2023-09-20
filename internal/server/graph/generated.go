@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/opendatahub-io/model-registry/pkg/model/graph"
+	"github.com/opendatahub-io/model-registry/internal/model/graph"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -1933,7 +1933,7 @@ func (ec *executionContext) field_Artifact_type_args(ctx context.Context, rawArg
 	var arg0 *graph.InstanceFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1963,7 +1963,7 @@ func (ec *executionContext) field_Query_artifactTypes_args(ctx context.Context, 
 	var arg0 *graph.TypeFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1978,7 +1978,7 @@ func (ec *executionContext) field_Query_artifacts_args(ctx context.Context, rawA
 	var arg0 *graph.InstanceFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1993,7 +1993,7 @@ func (ec *executionContext) field_Query_contextTypes_args(ctx context.Context, r
 	var arg0 *graph.TypeFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2008,7 +2008,7 @@ func (ec *executionContext) field_Query_contexts_args(ctx context.Context, rawAr
 	var arg0 *graph.InstanceFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2023,7 +2023,7 @@ func (ec *executionContext) field_Query_executionTypes_args(ctx context.Context,
 	var arg0 *graph.TypeFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2038,7 +2038,7 @@ func (ec *executionContext) field_Query_executions_args(ctx context.Context, raw
 	var arg0 *graph.InstanceFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2053,7 +2053,7 @@ func (ec *executionContext) field_Query_mlmdDataset_args(ctx context.Context, ra
 	var arg0 *graph.InstanceFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2068,7 +2068,7 @@ func (ec *executionContext) field_Query_types_args(ctx context.Context, rawArgs 
 	var arg0 *graph.TypeFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
+		arg0, err = ec.unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2489,7 +2489,7 @@ func (ec *executionContext) _Artifact_type(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*graph.ArtifactType)
 	fc.Result = res
-	return ec.marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactType(ctx, field.Selections, res)
+	return ec.marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Artifact_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2557,7 +2557,7 @@ func (ec *executionContext) _Artifact_properties(ctx context.Context, field grap
 	}
 	res := resTmp.([]*graph.ArtifactProperty)
 	fc.Result = res
-	return ec.marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactPropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactPropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Artifact_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2737,7 +2737,7 @@ func (ec *executionContext) _ArtifactProperty_propertyValue(ctx context.Context,
 	}
 	res := resTmp.(graph.Value)
 	fc.Result = res
-	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
+	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ArtifactProperty_propertyValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3036,7 +3036,7 @@ func (ec *executionContext) _ArtifactType_properties(ctx context.Context, field 
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ArtifactType_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3390,7 +3390,7 @@ func (ec *executionContext) _Context_type(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*graph.ContextType)
 	fc.Result = res
-	return ec.marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextType(ctx, field.Selections, res)
+	return ec.marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3447,7 +3447,7 @@ func (ec *executionContext) _Context_parent(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*graph.Context)
 	fc.Result = res
-	return ec.marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx, field.Selections, res)
+	return ec.marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_parent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3514,7 +3514,7 @@ func (ec *executionContext) _Context_children(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*graph.Context)
 	fc.Result = res
-	return ec.marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx, field.Selections, res)
+	return ec.marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3581,7 +3581,7 @@ func (ec *executionContext) _Context_attributions(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.Artifact)
 	fc.Result = res
-	return ec.marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactᚄ(ctx, field.Selections, res)
+	return ec.marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_attributions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3644,7 +3644,7 @@ func (ec *executionContext) _Context_associations(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.Execution)
 	fc.Result = res
-	return ec.marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionᚄ(ctx, field.Selections, res)
+	return ec.marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_associations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3705,7 +3705,7 @@ func (ec *executionContext) _Context_properties(ctx context.Context, field graph
 	}
 	res := resTmp.([]*graph.ContextProperty)
 	fc.Result = res
-	return ec.marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextPropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextPropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Context_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3888,7 +3888,7 @@ func (ec *executionContext) _ContextProperty_propertyValue(ctx context.Context, 
 	}
 	res := resTmp.(graph.Value)
 	fc.Result = res
-	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
+	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ContextProperty_propertyValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4187,7 +4187,7 @@ func (ec *executionContext) _ContextType_properties(ctx context.Context, field g
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ContextType_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4453,7 +4453,7 @@ func (ec *executionContext) _Event_artifact(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*graph.Artifact)
 	fc.Result = res
-	return ec.marshalOArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifact(ctx, field.Selections, res)
+	return ec.marshalOArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifact(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Event_artifact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4516,7 +4516,7 @@ func (ec *executionContext) _Event_execution(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*graph.Execution)
 	fc.Result = res
-	return ec.marshalOExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecution(ctx, field.Selections, res)
+	return ec.marshalOExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecution(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Event_execution(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5102,7 +5102,7 @@ func (ec *executionContext) _Execution_type(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*graph.ExecutionType)
 	fc.Result = res
-	return ec.marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionType(ctx, field.Selections, res)
+	return ec.marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Execution_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5163,7 +5163,7 @@ func (ec *executionContext) _Execution_properties(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.ExecutionProperty)
 	fc.Result = res
-	return ec.marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionPropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionPropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Execution_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5346,7 +5346,7 @@ func (ec *executionContext) _ExecutionProperty_propertyValue(ctx context.Context
 	}
 	res := resTmp.(graph.Value)
 	fc.Result = res
-	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
+	return ec.marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExecutionProperty_propertyValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5733,7 +5733,7 @@ func (ec *executionContext) _ExecutionType_properties(ctx context.Context, field
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExecutionType_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6084,7 +6084,7 @@ func (ec *executionContext) _MlmdDataset_properties(ctx context.Context, field g
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdDataset_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6479,7 +6479,7 @@ func (ec *executionContext) _MlmdDeploy_properties(ctx context.Context, field gr
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdDeploy_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6874,7 +6874,7 @@ func (ec *executionContext) _MlmdEvaluate_properties(ctx context.Context, field 
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdEvaluate_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7181,7 +7181,7 @@ func (ec *executionContext) _MlmdMetrics_properties(ctx context.Context, field g
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdMetrics_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7488,7 +7488,7 @@ func (ec *executionContext) _MlmdModel_properties(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdModel_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7883,7 +7883,7 @@ func (ec *executionContext) _MlmdProcess_properties(ctx context.Context, field g
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdProcess_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8190,7 +8190,7 @@ func (ec *executionContext) _MlmdStatistics_properties(ctx context.Context, fiel
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdStatistics_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8585,7 +8585,7 @@ func (ec *executionContext) _MlmdTrain_properties(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdTrain_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8980,7 +8980,7 @@ func (ec *executionContext) _MlmdTransform_properties(ctx context.Context, field
 	}
 	res := resTmp.([]*graph.TypeProperty)
 	fc.Result = res
-	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
+	return ec.marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MlmdTransform_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9029,7 +9029,7 @@ func (ec *executionContext) _Query_types(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]graph.Type)
 	fc.Result = res
-	return ec.marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_types(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9081,7 +9081,7 @@ func (ec *executionContext) _Query_artifactTypes(ctx context.Context, field grap
 	}
 	res := resTmp.([]*graph.ArtifactType)
 	fc.Result = res
-	return ec.marshalOArtifactType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOArtifactType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_artifactTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9149,7 +9149,7 @@ func (ec *executionContext) _Query_contextTypes(ctx context.Context, field graph
 	}
 	res := resTmp.([]*graph.ContextType)
 	fc.Result = res
-	return ec.marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_contextTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9217,7 +9217,7 @@ func (ec *executionContext) _Query_executionTypes(ctx context.Context, field gra
 	}
 	res := resTmp.([]*graph.ExecutionType)
 	fc.Result = res
-	return ec.marshalOExecutionType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOExecutionType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_executionTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9289,7 +9289,7 @@ func (ec *executionContext) _Query_artifacts(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*graph.Artifact)
 	fc.Result = res
-	return ec.marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactᚄ(ctx, field.Selections, res)
+	return ec.marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_artifacts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9363,7 +9363,7 @@ func (ec *executionContext) _Query_contexts(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*graph.Context)
 	fc.Result = res
-	return ec.marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextᚄ(ctx, field.Selections, res)
+	return ec.marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_contexts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9441,7 +9441,7 @@ func (ec *executionContext) _Query_executions(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*graph.Execution)
 	fc.Result = res
-	return ec.marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionᚄ(ctx, field.Selections, res)
+	return ec.marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_executions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9513,7 +9513,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*graph.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐEventᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9570,7 +9570,7 @@ func (ec *executionContext) _Query_mlmdDataset(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*graph.MlmdDataset)
 	fc.Result = res
-	return ec.marshalOMlmdDataset2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐMlmdDatasetᚄ(ctx, field.Selections, res)
+	return ec.marshalOMlmdDataset2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐMlmdDatasetᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_mlmdDataset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14112,7 +14112,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifact(ctx context.Context, sel ast.SelectionSet, v *graph.Artifact) graphql.Marshaler {
+func (ec *executionContext) marshalNArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifact(ctx context.Context, sel ast.SelectionSet, v *graph.Artifact) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14122,7 +14122,7 @@ func (ec *executionContext) marshalNArtifact2ᚖgithubᚗcomᚋopendatahubᚑio�
 	return ec._Artifact(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNArtifactProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ArtifactProperty) graphql.Marshaler {
+func (ec *executionContext) marshalNArtifactProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ArtifactProperty) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14132,11 +14132,11 @@ func (ec *executionContext) marshalNArtifactProperty2ᚖgithubᚗcomᚋopendatah
 	return ec._ArtifactProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNArtifactType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactType(ctx context.Context, sel ast.SelectionSet, v graph.ArtifactType) graphql.Marshaler {
+func (ec *executionContext) marshalNArtifactType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactType(ctx context.Context, sel ast.SelectionSet, v graph.ArtifactType) graphql.Marshaler {
 	return ec._ArtifactType(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactType(ctx context.Context, sel ast.SelectionSet, v *graph.ArtifactType) graphql.Marshaler {
+func (ec *executionContext) marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactType(ctx context.Context, sel ast.SelectionSet, v *graph.ArtifactType) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14161,7 +14161,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v *graph.Context) graphql.Marshaler {
+func (ec *executionContext) marshalNContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v *graph.Context) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14171,7 +14171,7 @@ func (ec *executionContext) marshalNContext2ᚖgithubᚗcomᚋopendatahubᚑio�
 	return ec._Context(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNContextProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ContextProperty) graphql.Marshaler {
+func (ec *executionContext) marshalNContextProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ContextProperty) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14181,7 +14181,7 @@ func (ec *executionContext) marshalNContextProperty2ᚖgithubᚗcomᚋopendatahu
 	return ec._ContextProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextType(ctx context.Context, sel ast.SelectionSet, v *graph.ContextType) graphql.Marshaler {
+func (ec *executionContext) marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextType(ctx context.Context, sel ast.SelectionSet, v *graph.ContextType) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14191,7 +14191,7 @@ func (ec *executionContext) marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑ
 	return ec._ContextType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐEvent(ctx context.Context, sel ast.SelectionSet, v *graph.Event) graphql.Marshaler {
+func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐEvent(ctx context.Context, sel ast.SelectionSet, v *graph.Event) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14201,7 +14201,7 @@ func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋopendatahubᚑioᚋm
 	return ec._Event(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecution(ctx context.Context, sel ast.SelectionSet, v *graph.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalNExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecution(ctx context.Context, sel ast.SelectionSet, v *graph.Execution) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14211,7 +14211,7 @@ func (ec *executionContext) marshalNExecution2ᚖgithubᚗcomᚋopendatahubᚑio
 	return ec._Execution(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExecutionProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ExecutionProperty) graphql.Marshaler {
+func (ec *executionContext) marshalNExecutionProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionProperty(ctx context.Context, sel ast.SelectionSet, v *graph.ExecutionProperty) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14221,7 +14221,7 @@ func (ec *executionContext) marshalNExecutionProperty2ᚖgithubᚗcomᚋopendata
 	return ec._ExecutionProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionType(ctx context.Context, sel ast.SelectionSet, v *graph.ExecutionType) graphql.Marshaler {
+func (ec *executionContext) marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionType(ctx context.Context, sel ast.SelectionSet, v *graph.ExecutionType) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14276,7 +14276,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNMlmdDataset2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐMlmdDataset(ctx context.Context, sel ast.SelectionSet, v *graph.MlmdDataset) graphql.Marshaler {
+func (ec *executionContext) marshalNMlmdDataset2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐMlmdDataset(ctx context.Context, sel ast.SelectionSet, v *graph.MlmdDataset) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14301,7 +14301,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐType(ctx context.Context, sel ast.SelectionSet, v graph.Type) graphql.Marshaler {
+func (ec *executionContext) marshalNType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐType(ctx context.Context, sel ast.SelectionSet, v graph.Type) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14311,7 +14311,7 @@ func (ec *executionContext) marshalNType2githubᚗcomᚋopendatahubᚑioᚋmodel
 	return ec._Type(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTypeProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeProperty(ctx context.Context, sel ast.SelectionSet, v *graph.TypeProperty) graphql.Marshaler {
+func (ec *executionContext) marshalNTypeProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeProperty(ctx context.Context, sel ast.SelectionSet, v *graph.TypeProperty) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14321,7 +14321,7 @@ func (ec *executionContext) marshalNTypeProperty2ᚖgithubᚗcomᚋopendatahub�
 	return ec._TypeProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐValue(ctx context.Context, sel ast.SelectionSet, v graph.Value) graphql.Marshaler {
+func (ec *executionContext) marshalNValue2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐValue(ctx context.Context, sel ast.SelectionSet, v graph.Value) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -14584,7 +14584,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Artifact) graphql.Marshaler {
+func (ec *executionContext) marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Artifact) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14611,7 +14611,7 @@ func (ec *executionContext) marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifact(ctx, sel, v[i])
+			ret[i] = ec.marshalNArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifact(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14631,14 +14631,14 @@ func (ec *executionContext) marshalOArtifact2ᚕᚖgithubᚗcomᚋopendatahubᚑ
 	return ret
 }
 
-func (ec *executionContext) marshalOArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifact(ctx context.Context, sel ast.SelectionSet, v *graph.Artifact) graphql.Marshaler {
+func (ec *executionContext) marshalOArtifact2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifact(ctx context.Context, sel ast.SelectionSet, v *graph.Artifact) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Artifact(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ArtifactProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ArtifactProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14665,7 +14665,7 @@ func (ec *executionContext) marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopenda
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNArtifactProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNArtifactProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14685,7 +14685,7 @@ func (ec *executionContext) marshalOArtifactProperty2ᚕᚖgithubᚗcomᚋopenda
 	return ret
 }
 
-func (ec *executionContext) marshalOArtifactType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ArtifactType) graphql.Marshaler {
+func (ec *executionContext) marshalOArtifactType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ArtifactType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14712,7 +14712,7 @@ func (ec *executionContext) marshalOArtifactType2ᚕᚖgithubᚗcomᚋopendatahu
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐArtifactType(ctx, sel, v[i])
+			ret[i] = ec.marshalNArtifactType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐArtifactType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14758,7 +14758,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v []*graph.Context) graphql.Marshaler {
+func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v []*graph.Context) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14785,7 +14785,7 @@ func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx, sel, v[i])
+			ret[i] = ec.marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14799,7 +14799,7 @@ func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑi
 	return ret
 }
 
-func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Context) graphql.Marshaler {
+func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Context) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14826,7 +14826,7 @@ func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx, sel, v[i])
+			ret[i] = ec.marshalNContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14846,14 +14846,14 @@ func (ec *executionContext) marshalOContext2ᚕᚖgithubᚗcomᚋopendatahubᚑi
 	return ret
 }
 
-func (ec *executionContext) marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v *graph.Context) graphql.Marshaler {
+func (ec *executionContext) marshalOContext2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContext(ctx context.Context, sel ast.SelectionSet, v *graph.Context) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Context(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ContextProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ContextProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14880,7 +14880,7 @@ func (ec *executionContext) marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNContextProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNContextProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14900,7 +14900,7 @@ func (ec *executionContext) marshalOContextProperty2ᚕᚖgithubᚗcomᚋopendat
 	return ret
 }
 
-func (ec *executionContext) marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ContextType) graphql.Marshaler {
+func (ec *executionContext) marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ContextType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14927,7 +14927,7 @@ func (ec *executionContext) marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐContextType(ctx, sel, v[i])
+			ret[i] = ec.marshalNContextType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐContextType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14947,7 +14947,7 @@ func (ec *executionContext) marshalOContextType2ᚕᚖgithubᚗcomᚋopendatahub
 	return ret
 }
 
-func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Event) graphql.Marshaler {
+func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -14974,7 +14974,7 @@ func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑio�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐEvent(ctx, sel, v[i])
+			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐEvent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -14994,7 +14994,7 @@ func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋopendatahubᚑio�
 	return ret
 }
 
-func (ec *executionContext) marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.Execution) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15021,7 +15021,7 @@ func (ec *executionContext) marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahub�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecution(ctx, sel, v[i])
+			ret[i] = ec.marshalNExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecution(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15041,14 +15041,14 @@ func (ec *executionContext) marshalOExecution2ᚕᚖgithubᚗcomᚋopendatahub�
 	return ret
 }
 
-func (ec *executionContext) marshalOExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecution(ctx context.Context, sel ast.SelectionSet, v *graph.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalOExecution2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecution(ctx context.Context, sel ast.SelectionSet, v *graph.Execution) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Execution(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ExecutionProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionPropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ExecutionProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15075,7 +15075,7 @@ func (ec *executionContext) marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopend
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNExecutionProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNExecutionProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15095,7 +15095,7 @@ func (ec *executionContext) marshalOExecutionProperty2ᚕᚖgithubᚗcomᚋopend
 	return ret
 }
 
-func (ec *executionContext) marshalOExecutionType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ExecutionType) graphql.Marshaler {
+func (ec *executionContext) marshalOExecutionType2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.ExecutionType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15122,7 +15122,7 @@ func (ec *executionContext) marshalOExecutionType2ᚕᚖgithubᚗcomᚋopendatah
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐExecutionType(ctx, sel, v[i])
+			ret[i] = ec.marshalNExecutionType2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐExecutionType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15196,7 +15196,7 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐInstanceFilter(ctx context.Context, v interface{}) (*graph.InstanceFilter, error) {
+func (ec *executionContext) unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐInstanceFilter(ctx context.Context, v interface{}) (*graph.InstanceFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -15204,7 +15204,7 @@ func (ec *executionContext) unmarshalOInstanceFilter2ᚖgithubᚗcomᚋopendatah
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMlmdDataset2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐMlmdDatasetᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.MlmdDataset) graphql.Marshaler {
+func (ec *executionContext) marshalOMlmdDataset2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐMlmdDatasetᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.MlmdDataset) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15231,7 +15231,7 @@ func (ec *executionContext) marshalOMlmdDataset2ᚕᚖgithubᚗcomᚋopendatahub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMlmdDataset2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐMlmdDataset(ctx, sel, v[i])
+			ret[i] = ec.marshalNMlmdDataset2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐMlmdDataset(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15305,7 +15305,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []graph.Type) graphql.Marshaler {
+func (ec *executionContext) marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []graph.Type) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15332,7 +15332,7 @@ func (ec *executionContext) marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐType(ctx, sel, v[i])
+			ret[i] = ec.marshalNType2githubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -15352,7 +15352,7 @@ func (ec *executionContext) marshalOType2ᚕgithubᚗcomᚋopendatahubᚑioᚋmo
 	return ret
 }
 
-func (ec *executionContext) unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeFilter(ctx context.Context, v interface{}) (*graph.TypeFilter, error) {
+func (ec *executionContext) unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeFilter(ctx context.Context, v interface{}) (*graph.TypeFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -15360,7 +15360,7 @@ func (ec *executionContext) unmarshalOTypeFilter2ᚖgithubᚗcomᚋopendatahub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypePropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.TypeProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypePropertyᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph.TypeProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -15387,7 +15387,7 @@ func (ec *executionContext) marshalOTypeProperty2ᚕᚖgithubᚗcomᚋopendatahu
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTypeProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋpkgᚋmodelᚋgraphᚐTypeProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNTypeProperty2ᚖgithubᚗcomᚋopendatahubᚑioᚋmodelᚑregistryᚋinternalᚋmodelᚋgraphᚐTypeProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

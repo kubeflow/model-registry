@@ -1,16 +1,16 @@
 model-registry: build
 
-pkg/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
-	protoc -I./api/grpc --go_out=./pkg --go_opt=paths=source_relative \
-		--go-grpc_out=./pkg --go-grpc_opt=paths=source_relative $<
+internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
+	protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
+		--go-grpc_out=./internal --go-grpc_opt=paths=source_relative $<
 
 .PHONY: gen/grpc
-gen/grpc: pkg/ml_metadata/proto/metadata_store.pb.go pkg/ml_metadata/proto/metadata_store_service.pb.go
+gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
 .PHONY: gen/graph
-gen/graph: pkg/model/graph/models_gen.go
+gen/graph: internal/model/graph/models_gen.go
 
-pkg/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
+internal/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
 	go run github.com/99designs/gqlgen generate
 
 .PHONY: vet
@@ -19,7 +19,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry pkg/ml_metadata/proto/*.go pkg/model/graph/*.go
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/*.go
 
 .PHONY: vendor
 vendor:
@@ -31,11 +31,12 @@ build: gen vet lint
 
 .PHONY: gen
 gen: gen/grpc gen/graph
+	go generate ./...
 
 .PHONY: lint
 lint: gen
 	golangci-lint run main.go
-	golangci-lint run cmd/... pkg/...
+	golangci-lint run cmd/... internal/...
 
 .PHONY: run/migrate
 run/migrate: gen

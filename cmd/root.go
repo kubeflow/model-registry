@@ -62,6 +62,9 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.model-registry.yaml)")
+
+	// default to logging to stderr
+	_ = flag.Set("logtostderr", "true")
 	// also add standard glog flags
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
 

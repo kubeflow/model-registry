@@ -22,9 +22,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/opendatahub-io/model-registry/pkg/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/server"
-	graph2 "github.com/opendatahub-io/model-registry/pkg/server/graph"
+	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/internal/server"
+	"github.com/opendatahub-io/model-registry/internal/server/graph"
 	"github.com/soheilhy/cmux"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -154,7 +154,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 func graphQlListenerServer(listener net.Listener, db *gorm.DB) *http.Server {
 	mux := http.NewServeMux()
-	srv := handler.NewDefaultServer(graph2.NewExecutableSchema(graph2.Config{Resolvers: &graph2.Resolver{}}))
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
 	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	mux.Handle("/query", srv)

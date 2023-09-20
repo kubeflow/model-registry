@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/opendatahub-io/model-registry/pkg/model/graph"
+	"github.com/opendatahub-io/model-registry/internal/model/graph"
 )
 
 // Types is the resolver for the types field.

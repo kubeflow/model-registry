@@ -1,7 +1,7 @@
 package library
 
 import (
-	"github.com/opendatahub-io/model-registry/pkg/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 )
 
 //go:generate go-enum -type=PropertyType
