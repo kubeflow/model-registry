@@ -7,7 +7,7 @@ It adds other features on top of the functionality offered by the gRPC interface
 - go tools - Installed with the following commands:
 ```
 go install github.com/99designs/gqlgen@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
 ```
 - gRPC go plugins - Installed with the following commands:
 ```
