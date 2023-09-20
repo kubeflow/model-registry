@@ -28,13 +28,26 @@ vet:
 clean:
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go
 
-.PHONY: deps
-deps:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
-	GOBIN=$(PROJECT_BIN) go install github.com/99designs/gqlgen@v0.17.36
+bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
+
+bin/protoc-gen-go:
 	GOBIN=$(PROJECT_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+
+bin/protoc-gen-go-grpc:
 	GOBIN=$(PROJECT_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+
+bin/gqlgen:
+	GOBIN=$(PROJECT_BIN) go install github.com/99designs/gqlgen@v0.17.36
+
+bin/golangci-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
+
+bin/goverter:
+	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v0.18.0
+
+.PHONY: deps
+deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/gqlgen bin/golangci-lint bin/goverter
 
 .PHONY: vendor
 vendor:
