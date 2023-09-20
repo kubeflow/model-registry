@@ -8,6 +8,7 @@ It adds other features on top of the functionality offered by the gRPC interface
 ```
 go install github.com/99designs/gqlgen@latest
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+go install github.com/searKing/golang/tools/go-enum@latest
 ```
 - gRPC go plugins - Installed with the following commands:
 ```
