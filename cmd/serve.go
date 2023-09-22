@@ -18,6 +18,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/golang/glog"
@@ -34,12 +41,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func InterceptorLogger(l *log.Logger) logging.Logger {
@@ -102,15 +103,15 @@ func runServer(cmd *cobra.Command, args []string) error {
 	grpcListener := m.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
 
 	// gRPC server
-	grpcServer := grpcListenerServer(grpcListener, server.NewGrpcServer(db))
+	grpcServer := grpcListenerServer(server.NewGrpcServer(db))
 	// GraphQL server
-	gqlServer := graphQlListenerServer(grpcListener, db)
+	gqlServer := graphQlListenerServer(db)
 
 	// start cmux listeners
 	g := new(errgroup.Group)
 	g.Go(func() error {
 		glog.Info("starting gRPC server...")
-		return grpcServer.Serve(listener)
+		return grpcServer.Serve(grpcListener)
 	})
 	g.Go(func() error {
 		glog.Info("starting GraphQL server...")
@@ -152,7 +153,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func graphQlListenerServer(listener net.Listener, db *gorm.DB) *http.Server {
+func graphQlListenerServer(db *gorm.DB) *http.Server {
 	mux := http.NewServeMux()
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
@@ -162,7 +163,7 @@ func graphQlListenerServer(listener net.Listener, db *gorm.DB) *http.Server {
 	return &http.Server{Handler: mux}
 }
 
-func grpcListenerServer(listener net.Listener, server proto.MetadataStoreServiceServer) *grpc.Server {
+func grpcListenerServer(server proto.MetadataStoreServiceServer) *grpc.Server {
 	// TODO map server options from flags
 	logger := log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 	lopts := []logging.Option{
