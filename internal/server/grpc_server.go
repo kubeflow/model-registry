@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/db"
 	"google.golang.org/grpc/codes"
@@ -131,9 +132,6 @@ func (g grpcServer) PutContextType(ctx context.Context, request *proto.PutContex
 		ExternalID:  contextType.ExternalId,
 	}
 	err = g.createOrUpdateType(ctx, value, contextType.Properties)
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}
