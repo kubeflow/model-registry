@@ -14,6 +14,12 @@ internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 .PHONY: gen/grpc
 gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
+internal/converter/generated/converter.go: internal/converter/*.go
+	goverter -packageName generated -output ./internal/converter/generated/converter.go github.com/opendatahub-io/model-registry/internal/converter/
+
+.PHONY: gen/converter
+gen/converter: gen/grpc gen/graph internal/converter/generated/converter.go
+
 .PHONY: gen/graph
 gen/graph: internal/model/graph/models_gen.go
 
@@ -26,7 +32,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/converter.go
 
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
@@ -58,7 +64,7 @@ build: gen vet lint
 	go build
 
 .PHONY: gen
-gen: gen/grpc gen/graph
+gen: deps gen/grpc gen/graph gen/converter
 	go generate ./...
 
 .PHONY: lint
