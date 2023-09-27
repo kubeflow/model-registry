@@ -3,18 +3,7 @@ A go based server that implements a gRPC interface for [ml_metadata](https://git
 It adds other features on top of the functionality offered by the gRPC interface.
 ## Pre-requisites:
 - go >= 1.19
-- protoc - [Protocol buffer compiler](https://grpc.io/docs/protoc-installation/).
-- go tools - Installed with the following commands:
-```
-go install github.com/99designs/gqlgen@latest
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
-go install github.com/searKing/golang/tools/go-enum@latest
-```
-- gRPC go plugins - Installed with the following commands:
-```
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-```
+- protoc v24.3 - [Protocol Buffers v24.3 Release](https://github.com/protocolbuffers/protobuf/releases/tag/v24.3)
 - python 3.9
 ## Building
 Run the following command to build the server binary:
