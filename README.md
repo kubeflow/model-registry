@@ -14,7 +14,8 @@ The generated binary uses spf13 cmdline args. More information on using the serv
 ```
 ./model-registry --help
 ```
-## Creating/Migrating Server DB
+## Server
+### Creating/Migrating Server DB
 The server uses a local SQLite DB file (`metadata.sqlite.db` by default), which can be configured using the `-d` cmdline option.
 The following command creates the DB:
 ```
@@ -29,11 +30,12 @@ Note that currently no duplicate detection is done as the implementation is a WI
 Running this command multiple times will create duplicate metadata types. 
 To clear the DB simply delete the SQLite DB file `metadata.sqlite.db`. 
 
-### Running Server
+### Starting the Server
 Run the following command to start the server:
 ```
 make run/server &
 ```
+## Clients
 ### Running Python ml-metadata test client
 Before running the test client, install the required Python libraries (using a python venv, if using one) 
 using the command:
@@ -52,7 +54,32 @@ http://localhost:8080/
 ```
 Where, 8080 is the default port that the server listens on. This port can be changed with the `-p` option.  
 ### Clean
-Run the following command to clean the DB file, generated gRPC and GraphQL models, etc.:
+Run the following command to clean the server binary, generated gRPC and GraphQL models, etc.:
 ```
 make clean
 ```
+## Docker Image
+### Building the Docker Image
+The following command builds a docker image for the server with the tag `model-registry``:
+```shell
+docker build -t model-registry .
+```
+Note that the first build will be longer as it downloads the build tool dependencies. 
+Subsequent builds will re-use the cached tools layer. 
+### Creating/Migrating Server DB
+The following command migrates or creates a DB for the server:
+```shell
+docker run -it --user <uid>:<gid> -v <host-path>:/var/db model-registry migrate -d /var/db/metadata.sqlite.db -m /config/metadata-library
+```
+Where, `<uid>` and `<gid>` are local user and group ids on the host machine to allow volume mapping for the DB files. 
+And, `<host-path>` is the path on the local directory writable by the `<uid>:<gid>` user. 
+### Running the Server
+The following command starts the server:
+```shell
+docker run -d -p <hostname>:<port>:8080 --user <uid>:<gid> -v <host-path>:/var/db --name server model-registry serve -n 0.0.0.0 -d /var/db/metadata.sqlite.db
+```
+Where, `<uid>`, `<gid>`, and `<host-path>` are the same as in the migrate command above. 
+And `<hostname>` and `<port>` are the local ip and port to use to expose the container's default `8080` listening port. 
+The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allows the server port to be exposed. 
+
+Once the server has started, test clients and playground can be used as described in the above sections. 

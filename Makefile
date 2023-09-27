@@ -18,7 +18,7 @@ gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/p
 gen/graph: internal/model/graph/models_gen.go
 
 internal/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
-	go run github.com/99designs/gqlgen generate
+	gqlgen generate
 
 .PHONY: vet
 vet:
