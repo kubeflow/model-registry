@@ -266,9 +266,38 @@ func (g grpcServer) PutParentContexts(ctx context.Context, request *proto.PutPar
 	panic("implement me")
 }
 
-func (g grpcServer) GetArtifactType(ctx context.Context, request *proto.GetArtifactTypeRequest) (*proto.GetArtifactTypeResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (g grpcServer) GetArtifactType(ctx context.Context, request *proto.GetArtifactTypeRequest) (resp *proto.GetArtifactTypeResponse, err error) {
+	ctx, dbConn := Begin(ctx, g.dbConnection)
+	defer handleTransaction(ctx, &err)
+
+	err = requiredFields(REQUIRED_TYPE_FIELDS, request.TypeName)
+	response := &proto.GetArtifactTypeResponse{}
+
+	var results []db.Type
+	rx := dbConn.Find(&results, db.Type{Name: *request.TypeName, TypeKind: int32(ARTIFACT_TYPE), Version: request.TypeVersion})
+	if rx.Error != nil {
+		return nil, rx.Error
+	}
+	if len(results) > 1 {
+		return nil, fmt.Errorf("more than one type found: %v", len(results))
+	}
+	if len(results) == 0 {
+		return response, nil
+	}
+
+	r0 := results[0]
+	artifactType := proto.ArtifactType{
+		Id:          &r0.ID,
+		Name:        &r0.Name,
+		Version:     r0.Version,
+		Description: r0.Description,
+		ExternalId:  r0.ExternalID,
+	}
+	for _, v := range r0.Properties {
+		artifactType.Properties[v.Name] = proto.PropertyType(v.DataType)
+	}
+	response.ArtifactType = &artifactType
+	return response, nil
 }
 
 func (g grpcServer) GetArtifactTypesByID(ctx context.Context, request *proto.GetArtifactTypesByIDRequest) (*proto.GetArtifactTypesByIDResponse, error) {

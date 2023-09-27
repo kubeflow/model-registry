@@ -45,6 +45,12 @@ def main():
     response = store.PutArtifactType(request)
     model_type_id = response.type_id
 
+    request = metadata_store_service_pb2.GetArtifactTypeRequest()
+    request.type_name = "SavedModel"
+    response = store.GetArtifactType(request)
+    assert response.artifact_type.id == 2
+    assert response.artifact_type.name == "SavedModel"
+
     # Query all registered Artifact types.
     # artifact_types = store.GetArtifactTypes()
 
