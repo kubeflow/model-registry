@@ -72,6 +72,10 @@ lint: gen
 	golangci-lint run main.go
 	golangci-lint run cmd/... internal/...
 
+.PHONY: test
+test: gen
+	go test ./internal/...
+
 .PHONY: run/migrate
 run/migrate: gen
 	go run main.go migrate --logtostderr=true -m config/metadata-library

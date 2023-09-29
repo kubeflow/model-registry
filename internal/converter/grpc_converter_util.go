@@ -25,13 +25,9 @@ func ConvertTypeIDToName(id int64) (*string, error) {
 func ConvertToProtoArtifactProperties(source []db.ArtifactProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if !p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, false)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -40,13 +36,9 @@ func ConvertToProtoArtifactProperties(source []db.ArtifactProperty) (map[string]
 func ConvertToProtoArtifactCustomProperties(source []db.ArtifactProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, true)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -55,13 +47,9 @@ func ConvertToProtoArtifactCustomProperties(source []db.ArtifactProperty) (map[s
 func ConvertToProtoContextProperties(source []db.ContextProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if !p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, false)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -70,13 +58,9 @@ func ConvertToProtoContextProperties(source []db.ContextProperty) (map[string]*p
 func ConvertToProtoContextCustomProperties(source []db.ContextProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, true)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -85,13 +69,9 @@ func ConvertToProtoContextCustomProperties(source []db.ContextProperty) (map[str
 func ConvertToProtoExecutionProperties(source []db.ExecutionProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if !p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, false)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -100,16 +80,23 @@ func ConvertToProtoExecutionProperties(source []db.ExecutionProperty) (map[strin
 func ConvertToProtoExecutionCustomProperties(source []db.ExecutionProperty) (map[string]*proto.Value, error) {
 	result := make(map[string]*proto.Value)
 	for _, prop := range source {
-		var p db.MetadataProperty = &prop
-		if p.GetIsCustomProperty() {
-			value, err := convertToProtoValue(p)
-			if err != nil {
-				return nil, err
-			}
-			result[p.GetName()] = value
+		err := convertToProtoMetadataProperty(&prop, result, true)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
+}
+
+func convertToProtoMetadataProperty(p db.MetadataProperty, result map[string]*proto.Value, customProperty bool) error {
+	if p.GetIsCustomProperty() == customProperty {
+		value, err := convertToProtoValue(p)
+		if err != nil {
+			return err
+		}
+		result[p.GetName()] = value
+	}
+	return nil
 }
 
 func convertToProtoValue(prop db.MetadataProperty) (*proto.Value, error) {
