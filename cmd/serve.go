@@ -47,10 +47,6 @@ func InterceptorLogger(l *log.Logger) logging.Logger {
 }
 
 var (
-	dbFile string
-	host       = "localhost"
-	port   int = 8080
-
 	// serveCmd represents the serve command
 	serveCmd = &cobra.Command{
 		Use:   "serve",
@@ -64,7 +60,7 @@ location of the database file and the hostname and port where it listens.'`,
 )
 
 func runServer(cmd *cobra.Command, args []string) error {
-	glog.Info("server started...")
+	glog.Infof("server started at %s:%v", cfg.Hostname, cfg.Port)
 
 	// Create a channel to receive signals
 	signalChannel := make(chan os.Signal, 1)
@@ -73,13 +69,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
 
 	// connect to the DB using Gorm
-	db, err := NewDatabaseConnection(dbFile)
+	db, err := NewDatabaseConnection(cfg.DbFile)
 	if err != nil {
 		log.Fatalf("db connection failed: %v", err)
 	}
 
 	// listen on host:port
-	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port))
 	if err != nil {
 		log.Fatalf("server listen failed: %v", err)
 	}
@@ -189,7 +185,7 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	serveCmd.Flags().StringVarP(&dbFile, "db-file", "d", "metadata.sqlite.db", "Sqlite DB file")
-	serveCmd.Flags().StringVarP(&host, "hostname", "n", host, "Server listen hostname")
-	serveCmd.Flags().IntVarP(&port, "port", "p", port, "Server listen port")
+	serveCmd.Flags().StringVarP(&cfg.DbFile, "db-file", "d", cfg.DbFile, "Sqlite DB file")
+	serveCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Server listen hostname")
+	serveCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Server listen port")
 }

@@ -23,7 +23,7 @@ This command can create a new ml-metadata Sqlite DB, or migrate an existing DB
 to the latest schema required by this server.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// connect to DB
-		dbConn, err := NewDatabaseConnection(dbFile)
+		dbConn, err := NewDatabaseConnection(cfg.DbFile)
 		defer func() {
 			// close DB connection on exit
 			db, err2 := dbConn.DB()
@@ -76,9 +76,9 @@ func migrateDatabase(dbConn *gorm.DB) error {
 }
 
 func loadLibraries(dbConn *gorm.DB) error {
-	libs, err := library.LoadLibraries(libraryDirs)
+	libs, err := library.LoadLibraries(cfg.LibraryDirs)
 	if err != nil {
-		return fmt.Errorf("failed to read library directories %s: %w", libraryDirs, err)
+		return fmt.Errorf("failed to read library directories %s: %w", cfg.LibraryDirs, err)
 	}
 	for path, lib := range libs {
 		grpcServer := grpc.NewGrpcServer(dbConn)
@@ -128,8 +128,6 @@ func ToProtoProperties(props map[string]library.PropertyType) map[string]proto.P
 	return result
 }
 
-var libraryDirs []string
-
 func init() {
 	rootCmd.AddCommand(migrateCmd)
 
@@ -141,6 +139,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	migrateCmd.Flags().StringVarP(&dbFile, "db-file", "d", "metadata.sqlite.db", "Sqlite DB file")
-	migrateCmd.Flags().StringSliceVarP(&libraryDirs, "metadata-library-dir", "m", libraryDirs, "Built-in metadata types library directories containing yaml files")
+	migrateCmd.Flags().StringVarP(&cfg.DbFile, "db-file", "d", cfg.DbFile, "Sqlite DB file")
+	migrateCmd.Flags().StringSliceVarP(&cfg.LibraryDirs, "metadata-library-dir", "m", cfg.LibraryDirs, "Built-in metadata types library directories containing yaml files")
 }
