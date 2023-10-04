@@ -1,8 +1,11 @@
-package server
+package service
 
 import (
 	"context"
 	"fmt"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
 
@@ -62,4 +65,21 @@ func Rollback(ctx context.Context) error {
 	}
 	// rollback in unwrapped parent context
 	return nil
+}
+
+func handleTransaction(ctx context.Context, err *error) {
+	// handle panic
+	if perr := recover(); perr != nil {
+		_ = Rollback(ctx)
+		*err = status.Errorf(codes.Internal, "server panic: %v", perr)
+		return
+	}
+	if err == nil || *err == nil {
+		*err = Commit(ctx)
+	} else {
+		_ = Rollback(ctx)
+		if _, ok := status.FromError(*err); !ok {
+			*err = status.Errorf(codes.Internal, "internal error: %v", *err)
+		}
+	}
 }
