@@ -8,7 +8,13 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
+      - name: Generate github-app token
+        id: app-token
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.DEVOPS_APP_ID }}
+          private_key: ${{ secrets.DEVOPS_APP_PRIVATE_KEY }}
       - uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/opendatahub-io/projects/49
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
