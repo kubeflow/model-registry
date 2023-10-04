@@ -827,8 +827,9 @@ func TestConvertTypeIDToName(t *testing.T) {
 	}
 	_ = dbConn.Migrator().AutoMigrate(db.Type{})
 	_ = dbConn.Exec("INSERT INTO Type VALUES(1,'mlmd.Dataset',NULL,1,NULL,NULL,NULL,NULL)").Error
+	_ = SetConverterDB(dbConn)
+	// add a new type after the converter cache is initialized
 	_ = dbConn.Exec("INSERT INTO Type VALUES(2,'mlmd.Model',NULL,1,NULL,NULL,NULL,NULL)").Error
-	SetConverterDB(dbConn)
 
 	type args struct {
 		id int64

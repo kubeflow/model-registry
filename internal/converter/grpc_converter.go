@@ -1,6 +1,7 @@
 package converter
 
 import (
+	"fmt"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/db"
 	"gorm.io/gorm"
@@ -13,11 +14,12 @@ var (
 
 // SetConverterDB must be called before using gRPC converters,
 // it uses the singleton DB connection to lookup type names
-func SetConverterDB(db *gorm.DB) {
+func SetConverterDB(db *gorm.DB) error {
 	if globalDB != nil {
-		panic("converter global DB connection MUST only be set once")
+		return fmt.Errorf("converter global DB connection MUST only be set once")
 	}
 	globalDB = db
+	return initTypeNameCache()
 }
 
 // goverter:converter

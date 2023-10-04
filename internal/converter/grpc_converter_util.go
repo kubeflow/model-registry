@@ -6,11 +6,36 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/model/db"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
+	"sync"
 )
+
+var typeNameCache = map[int64]string{}
+var cacheMutex = sync.Mutex{}
+
+func initTypeNameCache() error {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	var types []db.Type
+	if err := globalDB.Model(db.Type{}).Select("id", "name").Find(&types).Error; err != nil {
+		return fmt.Errorf("error initializing type id cache: %w", err)
+	}
+	for _, t := range types {
+		typeNameCache[t.ID] = t.Name
+	}
+	return nil
+}
 
 func ConvertTypeIDToName(id int64) (*string, error) {
 	if id == 0 {
 		return nil, nil
+	}
+
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	if name, ok := typeNameCache[id]; ok {
+		return &name, nil
 	}
 	if globalDB == nil {
 		return nil, fmt.Errorf("converter DB connection has not been initialized")
@@ -19,6 +44,10 @@ func ConvertTypeIDToName(id int64) (*string, error) {
 	if err := globalDB.Model(db.Type{}).Select("name").Where("id = ?", id).First(&name).Error; err != nil {
 		return nil, fmt.Errorf("error getting type name for type id %d: %w", id, err)
 	}
+
+	// update cache
+	typeNameCache[id] = name
+
 	return &name, nil
 }
 
