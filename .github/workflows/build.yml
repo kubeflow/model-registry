@@ -30,5 +30,15 @@ jobs:
         run: make clean
       - name: Build
         run: make build
+      - name: Check if there are uncommitted file changes
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "Empty git status --porcelain: $clean"
+          else
+              echo "Uncommitted file changes detected: $clean"
+              git diff
+              exit 1
+          fi
       - name: Unit tests
         run: make test
