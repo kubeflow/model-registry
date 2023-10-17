@@ -1,4 +1,7 @@
-# model-registry
+# Model Registry
+
+![build checks status](https://github.com/opendatahub-io/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
+
 A go based server that implements a gRPC interface for [ml_metadata](https://github.com/google/ml-metadata/) library.
 It adds other features on top of the functionality offered by the gRPC interface.
 ## Pre-requisites:
