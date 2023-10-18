@@ -7,6 +7,8 @@ It adds other features on top of the functionality offered by the gRPC interface
 ## Pre-requisites:
 - go >= 1.19
 - protoc v24.3 - [Protocol Buffers v24.3 Release](https://github.com/protocolbuffers/protobuf/releases/tag/v24.3)
+- npm >= 10.2.0 - [Installing Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- Java >= 11.0
 - python 3.9
 ## Building
 Run the following command to build the server binary:
@@ -17,6 +19,13 @@ The generated binary uses spf13 cmdline args. More information on using the serv
 ```
 ./model-registry --help
 ```
+## OpenAPI Proxy Server
+### Starting the OpenAPI Proxy Server
+Run the following command to start the OpenAPI proxy server:
+```
+make run/proxy &
+```
+The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create an Open Data Hub specific REST API that stores metadata in an ml-metadata CPP server. 
 ## Server
 ### Creating/Migrating Server DB
 The server uses a local SQLite DB file (`metadata.sqlite.db` by default), which can be configured using the `-d` cmdline option.

@@ -26,13 +26,38 @@ gen/graph: internal/model/graph/models_gen.go
 internal/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
 	gqlgen generate
 
+# validate the openapi schema
+.PHONY: openapi/validate
+openapi/validate: bin/openapi-generator-cli
+	openapi-generator-cli validate -i api/openapi/model-registry.yaml
+
+# generate the openapi server implementation
+# note: run manually only when model-registry.yaml api changes, for model changes gen/openapi is run automatically
+.PHONY: gen/openapi-server
+gen/openapi-server: bin/openapi-generator-cli openapi/validate
+	openapi-generator-cli generate \
+		-i api/openapi/model-registry.yaml -g go-server -o internal/server/openapi --package-name openapi \
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true
+	gofmt -w internal/server/openapi
+
+# generate the openapi schema model and client
+.PHONY: gen/openapi
+gen/openapi: bin/openapi-generator-cli openapi/validate internal/model/openapi/client.go
+
+internal/model/openapi/client.go: api/openapi/model-registry.yaml
+	rm -rf internal/model/openapi
+	openapi-generator-cli generate \
+		-i api/openapi/model-registry.yaml -g go -o internal/model/openapi --package-name openapi \
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
+	gofmt -w internal/model/openapi
+
 .PHONY: vet
 vet:
 	go vet ./...
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/converter.go
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/converter.go internal/model/openapi
 
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
@@ -52,8 +77,26 @@ bin/golangci-lint:
 bin/goverter:
 	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v0.18.0
 
+OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
+NPM ?= "$(shell which npm)"
+bin/openapi-generator-cli:
+ifeq (, $(shell which ${NPM} 2> /dev/null))
+	@echo "npm is not available please install it to be able to install openapi-generator"
+	exit 1
+endif
+ifeq (, $(shell which ${PROJECT_BIN}/openapi-generator-cli 2> /dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p ${PROJECT_BIN} ;\
+	mkdir -p ${PROJECT_BIN}/openapi-generator-installation ;\
+	cd ${PROJECT_BIN} ;\
+	${NPM} install -g --prefix ${PROJECT_BIN}/openapi-generator-installation @openapitools/openapi-generator-cli ;\
+	ln -s openapi-generator-installation/bin/openapi-generator-cli openapi-generator-cli ;\
+	}
+endif
+
 .PHONY: deps
-deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/gqlgen bin/golangci-lint bin/goverter
+deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/gqlgen bin/golangci-lint bin/goverter bin/openapi-generator-cli
 
 .PHONY: vendor
 vendor:
@@ -64,7 +107,7 @@ build: gen vet lint
 	go build
 
 .PHONY: gen
-gen: deps gen/grpc gen/graph gen/converter
+gen: deps gen/grpc gen/openapi gen/graph gen/converter
 	go generate ./...
 
 .PHONY: lint
@@ -85,6 +128,10 @@ metadata.sqlite.db: run/migrate
 .PHONY: run/server
 run/server: gen metadata.sqlite.db
 	go run main.go serve --logtostderr=true
+
+.PHONY: run/proxy
+run/proxy: gen
+	go run main.go proxy --logtostderr=true
 
 .PHONY: run/client
 run/client: gen

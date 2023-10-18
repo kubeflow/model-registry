@@ -8,9 +8,12 @@ COPY ["go.mod", "go.sum", "./"]
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-# Copy the go source
 USER root
-COPY ["Makefile", "main.go", "gqlgen.yml", "./"]
+# install npm and java for openapi-generator-cli
+RUN yum install -y nodejs npm java-11
+
+# Copy the go source
+COPY ["Makefile", "main.go", "gqlgen.yml", ".openapi-generator-ignore", "openapitools.json", "./"]
 
 # Download protoc compiler v24.3
 RUN wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip -O protoc.zip && \
