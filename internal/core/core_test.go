@@ -44,7 +44,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 		ExternalID: &externalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataValueOneOf2: &openapi.MetadataValueOneOf2{
+				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue: &owner,
 				},
 			},

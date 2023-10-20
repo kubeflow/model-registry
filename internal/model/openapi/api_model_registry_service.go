@@ -1705,10 +1705,11 @@ func (a *ModelRegistryServiceAPIService) FindModelArtifactExecute(r ApiFindModel
 }
 
 type ApiFindModelVersionRequest struct {
-	ctx        context.Context
-	ApiService *ModelRegistryServiceAPIService
-	name       *string
-	externalID *string
+	ctx               context.Context
+	ApiService        *ModelRegistryServiceAPIService
+	name              *string
+	externalID        *string
+	registeredModelID *string
 }
 
 // Name of entity to search.
@@ -1720,6 +1721,12 @@ func (r ApiFindModelVersionRequest) Name(name string) ApiFindModelVersionRequest
 // External ID of entity to search.
 func (r ApiFindModelVersionRequest) ExternalID(externalID string) ApiFindModelVersionRequest {
 	r.externalID = &externalID
+	return r
+}
+
+// ID of the &#x60;RegisteredModel&#x60; to use for search.
+func (r ApiFindModelVersionRequest) RegisteredModelID(registeredModelID string) ApiFindModelVersionRequest {
+	r.registeredModelID = &registeredModelID
 	return r
 }
 
@@ -1769,6 +1776,9 @@ func (a *ModelRegistryServiceAPIService) FindModelVersionExecute(r ApiFindModelV
 	}
 	if r.externalID != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	}
+	if r.registeredModelID != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "registeredModelID", r.registeredModelID, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

@@ -51,19 +51,19 @@ func (m *Mapper) MapToProperties(data map[string]openapi.MetadataValue) (map[str
 
 		switch {
 		// int value
-		case v.MetadataValueOneOf != nil:
-			intValue, err := IdToInt64(*v.MetadataValueOneOf.IntValue)
+		case v.MetadataIntValue != nil:
+			intValue, err := IdToInt64(*v.MetadataIntValue.IntValue)
 			if err != nil {
 				log.Printf("Skipping mapping for %s:%v", key, v)
 				continue
 			}
 			value.Value = &proto.Value_IntValue{IntValue: *intValue}
 		// double value
-		case v.MetadataValueOneOf1 != nil:
-			value.Value = &proto.Value_DoubleValue{DoubleValue: *v.MetadataValueOneOf1.DoubleValue}
-		// double value
-		case v.MetadataValueOneOf2 != nil:
-			value.Value = &proto.Value_StringValue{StringValue: *v.MetadataValueOneOf2.StringValue}
+		case v.MetadataDoubleValue != nil:
+			value.Value = &proto.Value_DoubleValue{DoubleValue: *v.MetadataDoubleValue.DoubleValue}
+		// string value
+		case v.MetadataStringValue != nil:
+			value.Value = &proto.Value_StringValue{StringValue: *v.MetadataStringValue.StringValue}
 		default:
 			log.Printf("Type mapping not found for %s:%v", key, v)
 			continue
@@ -169,15 +169,15 @@ func (m *Mapper) MapFromProperties(props map[string]*proto.Value) (map[string]op
 
 		switch typedValue := v.Value.(type) {
 		case *proto.Value_IntValue:
-			customValue.MetadataValueOneOf = &openapi.MetadataValueOneOf{
+			customValue.MetadataIntValue = &openapi.MetadataIntValue{
 				IntValue: IdToString(typedValue.IntValue),
 			}
 		case *proto.Value_DoubleValue:
-			customValue.MetadataValueOneOf1 = &openapi.MetadataValueOneOf1{
+			customValue.MetadataDoubleValue = &openapi.MetadataDoubleValue{
 				DoubleValue: &typedValue.DoubleValue,
 			}
 		case *proto.Value_StringValue:
-			customValue.MetadataValueOneOf2 = &openapi.MetadataValueOneOf2{
+			customValue.MetadataStringValue = &openapi.MetadataStringValue{
 				StringValue: &typedValue.StringValue,
 			}
 		default:

@@ -14,33 +14,33 @@ import (
 	"encoding/json"
 )
 
-// checks if the MetadataValueOneOf type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &MetadataValueOneOf{}
+// checks if the MetadataIntValue type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MetadataIntValue{}
 
-// MetadataValueOneOf struct for MetadataValueOneOf
-type MetadataValueOneOf struct {
+// MetadataIntValue An integer (int64) property value.
+type MetadataIntValue struct {
 	IntValue *string `json:"int_value,omitempty"`
 }
 
-// NewMetadataValueOneOf instantiates a new MetadataValueOneOf object
+// NewMetadataIntValue instantiates a new MetadataIntValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataValueOneOf() *MetadataValueOneOf {
-	this := MetadataValueOneOf{}
+func NewMetadataIntValue() *MetadataIntValue {
+	this := MetadataIntValue{}
 	return &this
 }
 
-// NewMetadataValueOneOfWithDefaults instantiates a new MetadataValueOneOf object
+// NewMetadataIntValueWithDefaults instantiates a new MetadataIntValue object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMetadataValueOneOfWithDefaults() *MetadataValueOneOf {
-	this := MetadataValueOneOf{}
+func NewMetadataIntValueWithDefaults() *MetadataIntValue {
+	this := MetadataIntValue{}
 	return &this
 }
 
 // GetIntValue returns the IntValue field value if set, zero value otherwise.
-func (o *MetadataValueOneOf) GetIntValue() string {
+func (o *MetadataIntValue) GetIntValue() string {
 	if o == nil || IsNil(o.IntValue) {
 		var ret string
 		return ret
@@ -50,7 +50,7 @@ func (o *MetadataValueOneOf) GetIntValue() string {
 
 // GetIntValueOk returns a tuple with the IntValue field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MetadataValueOneOf) GetIntValueOk() (*string, bool) {
+func (o *MetadataIntValue) GetIntValueOk() (*string, bool) {
 	if o == nil || IsNil(o.IntValue) {
 		return nil, false
 	}
@@ -58,7 +58,7 @@ func (o *MetadataValueOneOf) GetIntValueOk() (*string, bool) {
 }
 
 // HasIntValue returns a boolean if a field has been set.
-func (o *MetadataValueOneOf) HasIntValue() bool {
+func (o *MetadataIntValue) HasIntValue() bool {
 	if o != nil && !IsNil(o.IntValue) {
 		return true
 	}
@@ -67,11 +67,11 @@ func (o *MetadataValueOneOf) HasIntValue() bool {
 }
 
 // SetIntValue gets a reference to the given string and assigns it to the IntValue field.
-func (o *MetadataValueOneOf) SetIntValue(v string) {
+func (o *MetadataIntValue) SetIntValue(v string) {
 	o.IntValue = &v
 }
 
-func (o MetadataValueOneOf) MarshalJSON() ([]byte, error) {
+func (o MetadataIntValue) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -79,7 +79,7 @@ func (o MetadataValueOneOf) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o MetadataValueOneOf) ToMap() (map[string]interface{}, error) {
+func (o MetadataIntValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.IntValue) {
 		toSerialize["int_value"] = o.IntValue
@@ -87,38 +87,38 @@ func (o MetadataValueOneOf) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMetadataValueOneOf struct {
-	value *MetadataValueOneOf
+type NullableMetadataIntValue struct {
+	value *MetadataIntValue
 	isSet bool
 }
 
-func (v NullableMetadataValueOneOf) Get() *MetadataValueOneOf {
+func (v NullableMetadataIntValue) Get() *MetadataIntValue {
 	return v.value
 }
 
-func (v *NullableMetadataValueOneOf) Set(val *MetadataValueOneOf) {
+func (v *NullableMetadataIntValue) Set(val *MetadataIntValue) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMetadataValueOneOf) IsSet() bool {
+func (v NullableMetadataIntValue) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMetadataValueOneOf) Unset() {
+func (v *NullableMetadataIntValue) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMetadataValueOneOf(val *MetadataValueOneOf) *NullableMetadataValueOneOf {
-	return &NullableMetadataValueOneOf{value: val, isSet: true}
+func NewNullableMetadataIntValue(val *MetadataIntValue) *NullableMetadataIntValue {
+	return &NullableMetadataIntValue{value: val, isSet: true}
 }
 
-func (v NullableMetadataValueOneOf) MarshalJSON() ([]byte, error) {
+func (v NullableMetadataIntValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMetadataValueOneOf) UnmarshalJSON(src []byte) error {
+func (v *NullableMetadataIntValue) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

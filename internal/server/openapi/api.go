@@ -72,7 +72,7 @@ type ModelRegistryServiceAPIServicer interface {
 	CreateServingEnvironment(context.Context, model.ServingEnvironmentCreate) (ImplResponse, error)
 	FindInferenceService(context.Context, string, string) (ImplResponse, error)
 	FindModelArtifact(context.Context, string, string) (ImplResponse, error)
-	FindModelVersion(context.Context, string, string) (ImplResponse, error)
+	FindModelVersion(context.Context, string, string, string) (ImplResponse, error)
 	FindRegisteredModel(context.Context, string, string) (ImplResponse, error)
 	FindServingEnvironment(context.Context, string, string) (ImplResponse, error)
 	GetEnvironmentInferenceServices(context.Context, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)

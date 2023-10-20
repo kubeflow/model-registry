@@ -372,33 +372,6 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/model_version:
-    summary: Path used to search for a modelversion.
-    description: >-
-      The REST endpoint/path used to search for a `ModelVersion` entity.  This path contains a `GET`
-      operation to perform the find task.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        '200':
-          $ref: '#/components/responses/ModelVersionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      operationId: findModelVersion
-      summary: Get a ModelVersion that matches search parameters.
-      description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
-    parameters:
-      -
-        $ref: '#/components/parameters/name'
-      -
-        $ref: '#/components/parameters/externalID'
   '/api/model_registry/v1alpha1/model_versions/{modelversionId}/artifacts':
     summary: Path used to manage the list of artifacts for a modelversion.
     description: >-
@@ -981,6 +954,35 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_registry/v1alpha1/model_version:
+    summary: Path used to search for a modelversion.
+    description: >-
+      The REST endpoint/path used to search for a `ModelVersion` entity.  This path contains a `GET`
+      operation to perform the find task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        '200':
+          $ref: '#/components/responses/ModelVersionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      operationId: findModelVersion
+      summary: Get a ModelVersion that matches search parameters.
+      description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
+    parameters:
+      -
+        $ref: '#/components/parameters/name'
+      -
+        $ref: '#/components/parameters/externalID'
+      -
+        $ref: '#/components/parameters/registeredModelID'
 components:
   schemas:
     ArtifactState:
@@ -1165,43 +1167,61 @@ components:
     MetadataValue:
       oneOf:
         -
-          type: object
-          properties:
-            int_value:
-              format: int64
-              type: string
+          $ref: '#/components/schemas/MetadataIntValue'
         -
-          type: object
-          properties:
-            double_value:
-              format: double
-              type: number
+          $ref: '#/components/schemas/MetadataDoubleValue'
         -
-          type: object
-          properties:
-            string_value:
-              type: string
+          $ref: '#/components/schemas/MetadataStringValue'
         -
-          type: object
-          properties:
-            struct_value:
-              description: Base64 encoded bytes for struct value
-              type: string
+          $ref: '#/components/schemas/MetadataStructValue'
         -
-          type: object
-          properties:
-            type:
-              description: url describing proto value
-              type: string
-            proto_value:
-              description: Base64 encoded bytes for proto value
-              type: string
+          $ref: '#/components/schemas/MetadataProtoValue'
         -
-          type: object
-          properties:
-            bool_value:
-              type: boolean
+          $ref: '#/components/schemas/MetadataBoolValue'
       description: A value in properties.
+    MetadataIntValue:
+      description: An integer (int64) property value.
+      type: object
+      properties:
+        int_value:
+          format: int64
+          type: string
+    MetadataDoubleValue:
+      description: A double property value.
+      type: object
+      properties:
+        double_value:
+          format: double
+          type: number
+    MetadataStringValue:
+      description: A string property value.
+      type: object
+      properties:
+        string_value:
+          type: string
+    MetadataStructValue:
+      description: A struct property value.
+      type: object
+      properties:
+        struct_value:
+          description: Base64 encoded bytes for struct value
+          type: string
+    MetadataProtoValue:
+      description: A proto property value.
+      type: object
+      properties:
+        type:
+          description: url describing proto value
+          type: string
+        proto_value:
+          description: Base64 encoded bytes for proto value
+          type: string
+    MetadataBoolValue:
+      description: A bool property value.
+      type: object
+      properties:
+        bool_value:
+          type: boolean
     BaseResource:
       allOf:
         -
@@ -1654,6 +1674,16 @@ components:
           value: '10'
       name: externalID
       description: External ID of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    registeredModelID:
+      examples:
+        registeredModelID:
+          value: '10'
+      name: registeredModelID
+      description: ID of the `RegisteredModel` to use for search.
       schema:
         type: string
       in: query

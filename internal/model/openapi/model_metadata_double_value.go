@@ -14,33 +14,33 @@ import (
 	"encoding/json"
 )
 
-// checks if the MetadataValueOneOf1 type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &MetadataValueOneOf1{}
+// checks if the MetadataDoubleValue type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MetadataDoubleValue{}
 
-// MetadataValueOneOf1 struct for MetadataValueOneOf1
-type MetadataValueOneOf1 struct {
+// MetadataDoubleValue A double property value.
+type MetadataDoubleValue struct {
 	DoubleValue *float64 `json:"double_value,omitempty"`
 }
 
-// NewMetadataValueOneOf1 instantiates a new MetadataValueOneOf1 object
+// NewMetadataDoubleValue instantiates a new MetadataDoubleValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataValueOneOf1() *MetadataValueOneOf1 {
-	this := MetadataValueOneOf1{}
+func NewMetadataDoubleValue() *MetadataDoubleValue {
+	this := MetadataDoubleValue{}
 	return &this
 }
 
-// NewMetadataValueOneOf1WithDefaults instantiates a new MetadataValueOneOf1 object
+// NewMetadataDoubleValueWithDefaults instantiates a new MetadataDoubleValue object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMetadataValueOneOf1WithDefaults() *MetadataValueOneOf1 {
-	this := MetadataValueOneOf1{}
+func NewMetadataDoubleValueWithDefaults() *MetadataDoubleValue {
+	this := MetadataDoubleValue{}
 	return &this
 }
 
 // GetDoubleValue returns the DoubleValue field value if set, zero value otherwise.
-func (o *MetadataValueOneOf1) GetDoubleValue() float64 {
+func (o *MetadataDoubleValue) GetDoubleValue() float64 {
 	if o == nil || IsNil(o.DoubleValue) {
 		var ret float64
 		return ret
@@ -50,7 +50,7 @@ func (o *MetadataValueOneOf1) GetDoubleValue() float64 {
 
 // GetDoubleValueOk returns a tuple with the DoubleValue field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MetadataValueOneOf1) GetDoubleValueOk() (*float64, bool) {
+func (o *MetadataDoubleValue) GetDoubleValueOk() (*float64, bool) {
 	if o == nil || IsNil(o.DoubleValue) {
 		return nil, false
 	}
@@ -58,7 +58,7 @@ func (o *MetadataValueOneOf1) GetDoubleValueOk() (*float64, bool) {
 }
 
 // HasDoubleValue returns a boolean if a field has been set.
-func (o *MetadataValueOneOf1) HasDoubleValue() bool {
+func (o *MetadataDoubleValue) HasDoubleValue() bool {
 	if o != nil && !IsNil(o.DoubleValue) {
 		return true
 	}
@@ -67,11 +67,11 @@ func (o *MetadataValueOneOf1) HasDoubleValue() bool {
 }
 
 // SetDoubleValue gets a reference to the given float64 and assigns it to the DoubleValue field.
-func (o *MetadataValueOneOf1) SetDoubleValue(v float64) {
+func (o *MetadataDoubleValue) SetDoubleValue(v float64) {
 	o.DoubleValue = &v
 }
 
-func (o MetadataValueOneOf1) MarshalJSON() ([]byte, error) {
+func (o MetadataDoubleValue) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -79,7 +79,7 @@ func (o MetadataValueOneOf1) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o MetadataValueOneOf1) ToMap() (map[string]interface{}, error) {
+func (o MetadataDoubleValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.DoubleValue) {
 		toSerialize["double_value"] = o.DoubleValue
@@ -87,38 +87,38 @@ func (o MetadataValueOneOf1) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMetadataValueOneOf1 struct {
-	value *MetadataValueOneOf1
+type NullableMetadataDoubleValue struct {
+	value *MetadataDoubleValue
 	isSet bool
 }
 
-func (v NullableMetadataValueOneOf1) Get() *MetadataValueOneOf1 {
+func (v NullableMetadataDoubleValue) Get() *MetadataDoubleValue {
 	return v.value
 }
 
-func (v *NullableMetadataValueOneOf1) Set(val *MetadataValueOneOf1) {
+func (v *NullableMetadataDoubleValue) Set(val *MetadataDoubleValue) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMetadataValueOneOf1) IsSet() bool {
+func (v NullableMetadataDoubleValue) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMetadataValueOneOf1) Unset() {
+func (v *NullableMetadataDoubleValue) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMetadataValueOneOf1(val *MetadataValueOneOf1) *NullableMetadataValueOneOf1 {
-	return &NullableMetadataValueOneOf1{value: val, isSet: true}
+func NewNullableMetadataDoubleValue(val *MetadataDoubleValue) *NullableMetadataDoubleValue {
+	return &NullableMetadataDoubleValue{value: val, isSet: true}
 }
 
-func (v NullableMetadataValueOneOf1) MarshalJSON() ([]byte, error) {
+func (v NullableMetadataDoubleValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMetadataValueOneOf1) UnmarshalJSON(src []byte) error {
+func (v *NullableMetadataDoubleValue) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

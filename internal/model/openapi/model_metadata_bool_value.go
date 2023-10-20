@@ -14,33 +14,33 @@ import (
 	"encoding/json"
 )
 
-// checks if the MetadataValueOneOf5 type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &MetadataValueOneOf5{}
+// checks if the MetadataBoolValue type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MetadataBoolValue{}
 
-// MetadataValueOneOf5 struct for MetadataValueOneOf5
-type MetadataValueOneOf5 struct {
+// MetadataBoolValue A bool property value.
+type MetadataBoolValue struct {
 	BoolValue *bool `json:"bool_value,omitempty"`
 }
 
-// NewMetadataValueOneOf5 instantiates a new MetadataValueOneOf5 object
+// NewMetadataBoolValue instantiates a new MetadataBoolValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataValueOneOf5() *MetadataValueOneOf5 {
-	this := MetadataValueOneOf5{}
+func NewMetadataBoolValue() *MetadataBoolValue {
+	this := MetadataBoolValue{}
 	return &this
 }
 
-// NewMetadataValueOneOf5WithDefaults instantiates a new MetadataValueOneOf5 object
+// NewMetadataBoolValueWithDefaults instantiates a new MetadataBoolValue object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMetadataValueOneOf5WithDefaults() *MetadataValueOneOf5 {
-	this := MetadataValueOneOf5{}
+func NewMetadataBoolValueWithDefaults() *MetadataBoolValue {
+	this := MetadataBoolValue{}
 	return &this
 }
 
 // GetBoolValue returns the BoolValue field value if set, zero value otherwise.
-func (o *MetadataValueOneOf5) GetBoolValue() bool {
+func (o *MetadataBoolValue) GetBoolValue() bool {
 	if o == nil || IsNil(o.BoolValue) {
 		var ret bool
 		return ret
@@ -50,7 +50,7 @@ func (o *MetadataValueOneOf5) GetBoolValue() bool {
 
 // GetBoolValueOk returns a tuple with the BoolValue field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MetadataValueOneOf5) GetBoolValueOk() (*bool, bool) {
+func (o *MetadataBoolValue) GetBoolValueOk() (*bool, bool) {
 	if o == nil || IsNil(o.BoolValue) {
 		return nil, false
 	}
@@ -58,7 +58,7 @@ func (o *MetadataValueOneOf5) GetBoolValueOk() (*bool, bool) {
 }
 
 // HasBoolValue returns a boolean if a field has been set.
-func (o *MetadataValueOneOf5) HasBoolValue() bool {
+func (o *MetadataBoolValue) HasBoolValue() bool {
 	if o != nil && !IsNil(o.BoolValue) {
 		return true
 	}
@@ -67,11 +67,11 @@ func (o *MetadataValueOneOf5) HasBoolValue() bool {
 }
 
 // SetBoolValue gets a reference to the given bool and assigns it to the BoolValue field.
-func (o *MetadataValueOneOf5) SetBoolValue(v bool) {
+func (o *MetadataBoolValue) SetBoolValue(v bool) {
 	o.BoolValue = &v
 }
 
-func (o MetadataValueOneOf5) MarshalJSON() ([]byte, error) {
+func (o MetadataBoolValue) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -79,7 +79,7 @@ func (o MetadataValueOneOf5) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o MetadataValueOneOf5) ToMap() (map[string]interface{}, error) {
+func (o MetadataBoolValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.BoolValue) {
 		toSerialize["bool_value"] = o.BoolValue
@@ -87,38 +87,38 @@ func (o MetadataValueOneOf5) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMetadataValueOneOf5 struct {
-	value *MetadataValueOneOf5
+type NullableMetadataBoolValue struct {
+	value *MetadataBoolValue
 	isSet bool
 }
 
-func (v NullableMetadataValueOneOf5) Get() *MetadataValueOneOf5 {
+func (v NullableMetadataBoolValue) Get() *MetadataBoolValue {
 	return v.value
 }
 
-func (v *NullableMetadataValueOneOf5) Set(val *MetadataValueOneOf5) {
+func (v *NullableMetadataBoolValue) Set(val *MetadataBoolValue) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMetadataValueOneOf5) IsSet() bool {
+func (v NullableMetadataBoolValue) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMetadataValueOneOf5) Unset() {
+func (v *NullableMetadataBoolValue) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMetadataValueOneOf5(val *MetadataValueOneOf5) *NullableMetadataValueOneOf5 {
-	return &NullableMetadataValueOneOf5{value: val, isSet: true}
+func NewNullableMetadataBoolValue(val *MetadataBoolValue) *NullableMetadataBoolValue {
+	return &NullableMetadataBoolValue{value: val, isSet: true}
 }
 
-func (v NullableMetadataValueOneOf5) MarshalJSON() ([]byte, error) {
+func (v NullableMetadataBoolValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMetadataValueOneOf5) UnmarshalJSON(src []byte) error {
+func (v *NullableMetadataBoolValue) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

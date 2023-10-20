@@ -269,7 +269,7 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 }
 
 // FindModelVersion - Get a ModelVersion that matches search parameters.
-func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalID string) (ImplResponse, error) {
+func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalID string, registeredModelID string) (ImplResponse, error) {
 	// TODO - update FindModelVersion with the required logic for this service method.
 	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 

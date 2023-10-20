@@ -58,7 +58,6 @@ func AssertArtifactListConstraints(obj model.ArtifactList) error {
 	return nil
 }
 
-
 // AssertArtifactStateRequired checks if the required fields are not zero-ed
 func AssertArtifactStateRequired(obj model.ArtifactState) error {
 	return nil
@@ -69,7 +68,6 @@ func AssertArtifactStateConstraints(obj model.ArtifactState) error {
 	return nil
 }
 
-
 // AssertBaseArtifactCreateRequired checks if the required fields are not zero-ed
 func AssertBaseArtifactCreateRequired(obj model.BaseArtifactCreate) error {
 	return nil
@@ -79,7 +77,6 @@ func AssertBaseArtifactCreateRequired(obj model.BaseArtifactCreate) error {
 func AssertBaseArtifactCreateConstraints(obj model.BaseArtifactCreate) error {
 	return nil
 }
-
 
 // AssertBaseArtifactRequired checks if the required fields are not zero-ed
 func AssertBaseArtifactRequired(obj model.BaseArtifact) error {
@@ -100,7 +97,6 @@ func AssertBaseArtifactConstraints(obj model.BaseArtifact) error {
 	return nil
 }
 
-
 // AssertBaseArtifactUpdateRequired checks if the required fields are not zero-ed
 func AssertBaseArtifactUpdateRequired(obj model.BaseArtifactUpdate) error {
 	return nil
@@ -110,7 +106,6 @@ func AssertBaseArtifactUpdateRequired(obj model.BaseArtifactUpdate) error {
 func AssertBaseArtifactUpdateConstraints(obj model.BaseArtifactUpdate) error {
 	return nil
 }
-
 
 // AssertBaseExecutionCreateRequired checks if the required fields are not zero-ed
 func AssertBaseExecutionCreateRequired(obj model.BaseExecutionCreate) error {
@@ -122,7 +117,6 @@ func AssertBaseExecutionCreateConstraints(obj model.BaseExecutionCreate) error {
 	return nil
 }
 
-
 // AssertBaseExecutionRequired checks if the required fields are not zero-ed
 func AssertBaseExecutionRequired(obj model.BaseExecution) error {
 	return nil
@@ -132,7 +126,6 @@ func AssertBaseExecutionRequired(obj model.BaseExecution) error {
 func AssertBaseExecutionConstraints(obj model.BaseExecution) error {
 	return nil
 }
-
 
 // AssertBaseExecutionUpdateRequired checks if the required fields are not zero-ed
 func AssertBaseExecutionUpdateRequired(obj model.BaseExecutionUpdate) error {
@@ -144,7 +137,6 @@ func AssertBaseExecutionUpdateConstraints(obj model.BaseExecutionUpdate) error {
 	return nil
 }
 
-
 // AssertBaseResourceCreateRequired checks if the required fields are not zero-ed
 func AssertBaseResourceCreateRequired(obj model.BaseResourceCreate) error {
 	return nil
@@ -155,7 +147,6 @@ func AssertBaseResourceCreateConstraints(obj model.BaseResourceCreate) error {
 	return nil
 }
 
-
 // AssertBaseResourceRequired checks if the required fields are not zero-ed
 func AssertBaseResourceRequired(obj model.BaseResource) error {
 	return nil
@@ -165,7 +156,6 @@ func AssertBaseResourceRequired(obj model.BaseResource) error {
 func AssertBaseResourceConstraints(obj model.BaseResource) error {
 	return nil
 }
-
 
 // AssertBaseResourceListRequired checks if the required fields are not zero-ed
 func AssertBaseResourceListRequired(obj model.BaseResourceList) error {
@@ -188,7 +178,6 @@ func AssertBaseResourceListConstraints(obj model.BaseResourceList) error {
 	return nil
 }
 
-
 // AssertBaseResourceUpdateRequired checks if the required fields are not zero-ed
 func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
 	return nil
@@ -198,7 +187,6 @@ func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
 func AssertBaseResourceUpdateConstraints(obj model.BaseResourceUpdate) error {
 	return nil
 }
-
 
 // AssertErrorRequired checks if the required fields are not zero-ed
 func AssertErrorRequired(obj model.Error) error {
@@ -220,7 +208,6 @@ func AssertErrorConstraints(obj model.Error) error {
 	return nil
 }
 
-
 // AssertExecutionStateRequired checks if the required fields are not zero-ed
 func AssertExecutionStateRequired(obj model.ExecutionState) error {
 	return nil
@@ -230,7 +217,6 @@ func AssertExecutionStateRequired(obj model.ExecutionState) error {
 func AssertExecutionStateConstraints(obj model.ExecutionState) error {
 	return nil
 }
-
 
 // AssertInferenceServiceCreateRequired checks if the required fields are not zero-ed
 func AssertInferenceServiceCreateRequired(obj model.InferenceServiceCreate) error {
@@ -252,7 +238,6 @@ func AssertInferenceServiceCreateConstraints(obj model.InferenceServiceCreate) e
 	return nil
 }
 
-
 // AssertInferenceServiceRequired checks if the required fields are not zero-ed
 func AssertInferenceServiceRequired(obj model.InferenceService) error {
 	return nil
@@ -262,7 +247,6 @@ func AssertInferenceServiceRequired(obj model.InferenceService) error {
 func AssertInferenceServiceConstraints(obj model.InferenceService) error {
 	return nil
 }
-
 
 // AssertInferenceServiceListRequired checks if the required fields are not zero-ed
 func AssertInferenceServiceListRequired(obj model.InferenceServiceList) error {
@@ -290,7 +274,6 @@ func AssertInferenceServiceListConstraints(obj model.InferenceServiceList) error
 	return nil
 }
 
-
 // AssertInferenceServiceUpdateRequired checks if the required fields are not zero-ed
 func AssertInferenceServiceUpdateRequired(obj model.InferenceServiceUpdate) error {
 	return nil
@@ -300,7 +283,6 @@ func AssertInferenceServiceUpdateRequired(obj model.InferenceServiceUpdate) erro
 func AssertInferenceServiceUpdateConstraints(obj model.InferenceServiceUpdate) error {
 	return nil
 }
-
 
 // AssertMetadataValueRequired checks if the required fields are not zero-ed
 func AssertMetadataValueRequired(obj model.MetadataValue) error {
@@ -312,7 +294,6 @@ func AssertMetadataValueConstraints(obj model.MetadataValue) error {
 	return nil
 }
 
-
 // AssertModelArtifactCreateRequired checks if the required fields are not zero-ed
 func AssertModelArtifactCreateRequired(obj model.ModelArtifactCreate) error {
 	return nil
@@ -322,7 +303,6 @@ func AssertModelArtifactCreateRequired(obj model.ModelArtifactCreate) error {
 func AssertModelArtifactCreateConstraints(obj model.ModelArtifactCreate) error {
 	return nil
 }
-
 
 // AssertModelArtifactRequired checks if the required fields are not zero-ed
 func AssertModelArtifactRequired(obj model.ModelArtifact) error {
@@ -342,7 +322,6 @@ func AssertModelArtifactRequired(obj model.ModelArtifact) error {
 func AssertModelArtifactConstraints(obj model.ModelArtifact) error {
 	return nil
 }
-
 
 // AssertModelArtifactListRequired checks if the required fields are not zero-ed
 func AssertModelArtifactListRequired(obj model.ModelArtifactList) error {

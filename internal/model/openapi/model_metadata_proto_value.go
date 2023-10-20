@@ -14,36 +14,36 @@ import (
 	"encoding/json"
 )
 
-// checks if the MetadataValueOneOf4 type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &MetadataValueOneOf4{}
+// checks if the MetadataProtoValue type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MetadataProtoValue{}
 
-// MetadataValueOneOf4 struct for MetadataValueOneOf4
-type MetadataValueOneOf4 struct {
+// MetadataProtoValue A proto property value.
+type MetadataProtoValue struct {
 	// url describing proto value
 	Type *string `json:"type,omitempty"`
 	// Base64 encoded bytes for proto value
 	ProtoValue *string `json:"proto_value,omitempty"`
 }
 
-// NewMetadataValueOneOf4 instantiates a new MetadataValueOneOf4 object
+// NewMetadataProtoValue instantiates a new MetadataProtoValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataValueOneOf4() *MetadataValueOneOf4 {
-	this := MetadataValueOneOf4{}
+func NewMetadataProtoValue() *MetadataProtoValue {
+	this := MetadataProtoValue{}
 	return &this
 }
 
-// NewMetadataValueOneOf4WithDefaults instantiates a new MetadataValueOneOf4 object
+// NewMetadataProtoValueWithDefaults instantiates a new MetadataProtoValue object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMetadataValueOneOf4WithDefaults() *MetadataValueOneOf4 {
-	this := MetadataValueOneOf4{}
+func NewMetadataProtoValueWithDefaults() *MetadataProtoValue {
+	this := MetadataProtoValue{}
 	return &this
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
-func (o *MetadataValueOneOf4) GetType() string {
+func (o *MetadataProtoValue) GetType() string {
 	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
@@ -53,7 +53,7 @@ func (o *MetadataValueOneOf4) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MetadataValueOneOf4) GetTypeOk() (*string, bool) {
+func (o *MetadataProtoValue) GetTypeOk() (*string, bool) {
 	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
@@ -61,7 +61,7 @@ func (o *MetadataValueOneOf4) GetTypeOk() (*string, bool) {
 }
 
 // HasType returns a boolean if a field has been set.
-func (o *MetadataValueOneOf4) HasType() bool {
+func (o *MetadataProtoValue) HasType() bool {
 	if o != nil && !IsNil(o.Type) {
 		return true
 	}
@@ -70,12 +70,12 @@ func (o *MetadataValueOneOf4) HasType() bool {
 }
 
 // SetType gets a reference to the given string and assigns it to the Type field.
-func (o *MetadataValueOneOf4) SetType(v string) {
+func (o *MetadataProtoValue) SetType(v string) {
 	o.Type = &v
 }
 
 // GetProtoValue returns the ProtoValue field value if set, zero value otherwise.
-func (o *MetadataValueOneOf4) GetProtoValue() string {
+func (o *MetadataProtoValue) GetProtoValue() string {
 	if o == nil || IsNil(o.ProtoValue) {
 		var ret string
 		return ret
@@ -85,7 +85,7 @@ func (o *MetadataValueOneOf4) GetProtoValue() string {
 
 // GetProtoValueOk returns a tuple with the ProtoValue field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MetadataValueOneOf4) GetProtoValueOk() (*string, bool) {
+func (o *MetadataProtoValue) GetProtoValueOk() (*string, bool) {
 	if o == nil || IsNil(o.ProtoValue) {
 		return nil, false
 	}
@@ -93,7 +93,7 @@ func (o *MetadataValueOneOf4) GetProtoValueOk() (*string, bool) {
 }
 
 // HasProtoValue returns a boolean if a field has been set.
-func (o *MetadataValueOneOf4) HasProtoValue() bool {
+func (o *MetadataProtoValue) HasProtoValue() bool {
 	if o != nil && !IsNil(o.ProtoValue) {
 		return true
 	}
@@ -102,11 +102,11 @@ func (o *MetadataValueOneOf4) HasProtoValue() bool {
 }
 
 // SetProtoValue gets a reference to the given string and assigns it to the ProtoValue field.
-func (o *MetadataValueOneOf4) SetProtoValue(v string) {
+func (o *MetadataProtoValue) SetProtoValue(v string) {
 	o.ProtoValue = &v
 }
 
-func (o MetadataValueOneOf4) MarshalJSON() ([]byte, error) {
+func (o MetadataProtoValue) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -114,7 +114,7 @@ func (o MetadataValueOneOf4) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o MetadataValueOneOf4) ToMap() (map[string]interface{}, error) {
+func (o MetadataProtoValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
@@ -125,38 +125,38 @@ func (o MetadataValueOneOf4) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMetadataValueOneOf4 struct {
-	value *MetadataValueOneOf4
+type NullableMetadataProtoValue struct {
+	value *MetadataProtoValue
 	isSet bool
 }
 
-func (v NullableMetadataValueOneOf4) Get() *MetadataValueOneOf4 {
+func (v NullableMetadataProtoValue) Get() *MetadataProtoValue {
 	return v.value
 }
 
-func (v *NullableMetadataValueOneOf4) Set(val *MetadataValueOneOf4) {
+func (v *NullableMetadataProtoValue) Set(val *MetadataProtoValue) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMetadataValueOneOf4) IsSet() bool {
+func (v NullableMetadataProtoValue) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMetadataValueOneOf4) Unset() {
+func (v *NullableMetadataProtoValue) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMetadataValueOneOf4(val *MetadataValueOneOf4) *NullableMetadataValueOneOf4 {
-	return &NullableMetadataValueOneOf4{value: val, isSet: true}
+func NewNullableMetadataProtoValue(val *MetadataProtoValue) *NullableMetadataProtoValue {
+	return &NullableMetadataProtoValue{value: val, isSet: true}
 }
 
-func (v NullableMetadataValueOneOf4) MarshalJSON() ([]byte, error) {
+func (v NullableMetadataProtoValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMetadataValueOneOf4) UnmarshalJSON(src []byte) error {
+func (v *NullableMetadataProtoValue) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

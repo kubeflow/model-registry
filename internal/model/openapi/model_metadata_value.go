@@ -17,53 +17,53 @@ import (
 
 // MetadataValue - A value in properties.
 type MetadataValue struct {
-	MetadataValueOneOf  *MetadataValueOneOf
-	MetadataValueOneOf1 *MetadataValueOneOf1
-	MetadataValueOneOf2 *MetadataValueOneOf2
-	MetadataValueOneOf3 *MetadataValueOneOf3
-	MetadataValueOneOf4 *MetadataValueOneOf4
-	MetadataValueOneOf5 *MetadataValueOneOf5
+	MetadataBoolValue   *MetadataBoolValue
+	MetadataDoubleValue *MetadataDoubleValue
+	MetadataIntValue    *MetadataIntValue
+	MetadataProtoValue  *MetadataProtoValue
+	MetadataStringValue *MetadataStringValue
+	MetadataStructValue *MetadataStructValue
 }
 
-// MetadataValueOneOfAsMetadataValue is a convenience function that returns MetadataValueOneOf wrapped in MetadataValue
-func MetadataValueOneOfAsMetadataValue(v *MetadataValueOneOf) MetadataValue {
+// MetadataBoolValueAsMetadataValue is a convenience function that returns MetadataBoolValue wrapped in MetadataValue
+func MetadataBoolValueAsMetadataValue(v *MetadataBoolValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf: v,
+		MetadataBoolValue: v,
 	}
 }
 
-// MetadataValueOneOf1AsMetadataValue is a convenience function that returns MetadataValueOneOf1 wrapped in MetadataValue
-func MetadataValueOneOf1AsMetadataValue(v *MetadataValueOneOf1) MetadataValue {
+// MetadataDoubleValueAsMetadataValue is a convenience function that returns MetadataDoubleValue wrapped in MetadataValue
+func MetadataDoubleValueAsMetadataValue(v *MetadataDoubleValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf1: v,
+		MetadataDoubleValue: v,
 	}
 }
 
-// MetadataValueOneOf2AsMetadataValue is a convenience function that returns MetadataValueOneOf2 wrapped in MetadataValue
-func MetadataValueOneOf2AsMetadataValue(v *MetadataValueOneOf2) MetadataValue {
+// MetadataIntValueAsMetadataValue is a convenience function that returns MetadataIntValue wrapped in MetadataValue
+func MetadataIntValueAsMetadataValue(v *MetadataIntValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf2: v,
+		MetadataIntValue: v,
 	}
 }
 
-// MetadataValueOneOf3AsMetadataValue is a convenience function that returns MetadataValueOneOf3 wrapped in MetadataValue
-func MetadataValueOneOf3AsMetadataValue(v *MetadataValueOneOf3) MetadataValue {
+// MetadataProtoValueAsMetadataValue is a convenience function that returns MetadataProtoValue wrapped in MetadataValue
+func MetadataProtoValueAsMetadataValue(v *MetadataProtoValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf3: v,
+		MetadataProtoValue: v,
 	}
 }
 
-// MetadataValueOneOf4AsMetadataValue is a convenience function that returns MetadataValueOneOf4 wrapped in MetadataValue
-func MetadataValueOneOf4AsMetadataValue(v *MetadataValueOneOf4) MetadataValue {
+// MetadataStringValueAsMetadataValue is a convenience function that returns MetadataStringValue wrapped in MetadataValue
+func MetadataStringValueAsMetadataValue(v *MetadataStringValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf4: v,
+		MetadataStringValue: v,
 	}
 }
 
-// MetadataValueOneOf5AsMetadataValue is a convenience function that returns MetadataValueOneOf5 wrapped in MetadataValue
-func MetadataValueOneOf5AsMetadataValue(v *MetadataValueOneOf5) MetadataValue {
+// MetadataStructValueAsMetadataValue is a convenience function that returns MetadataStructValue wrapped in MetadataValue
+func MetadataStructValueAsMetadataValue(v *MetadataStructValue) MetadataValue {
 	return MetadataValue{
-		MetadataValueOneOf5: v,
+		MetadataStructValue: v,
 	}
 }
 
@@ -71,92 +71,92 @@ func MetadataValueOneOf5AsMetadataValue(v *MetadataValueOneOf5) MetadataValue {
 func (dst *MetadataValue) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
-	// try to unmarshal data into MetadataValueOneOf
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf)
+	// try to unmarshal data into MetadataBoolValue
+	err = json.Unmarshal(data, &dst.MetadataBoolValue)
 	if err == nil {
-		jsonMetadataValueOneOf, _ := json.Marshal(dst.MetadataValueOneOf)
-		if string(jsonMetadataValueOneOf) == "{}" { // empty struct
-			dst.MetadataValueOneOf = nil
+		jsonMetadataBoolValue, _ := json.Marshal(dst.MetadataBoolValue)
+		if string(jsonMetadataBoolValue) == "{}" { // empty struct
+			dst.MetadataBoolValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf = nil
+		dst.MetadataBoolValue = nil
 	}
 
-	// try to unmarshal data into MetadataValueOneOf1
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf1)
+	// try to unmarshal data into MetadataDoubleValue
+	err = json.Unmarshal(data, &dst.MetadataDoubleValue)
 	if err == nil {
-		jsonMetadataValueOneOf1, _ := json.Marshal(dst.MetadataValueOneOf1)
-		if string(jsonMetadataValueOneOf1) == "{}" { // empty struct
-			dst.MetadataValueOneOf1 = nil
+		jsonMetadataDoubleValue, _ := json.Marshal(dst.MetadataDoubleValue)
+		if string(jsonMetadataDoubleValue) == "{}" { // empty struct
+			dst.MetadataDoubleValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf1 = nil
+		dst.MetadataDoubleValue = nil
 	}
 
-	// try to unmarshal data into MetadataValueOneOf2
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf2)
+	// try to unmarshal data into MetadataIntValue
+	err = json.Unmarshal(data, &dst.MetadataIntValue)
 	if err == nil {
-		jsonMetadataValueOneOf2, _ := json.Marshal(dst.MetadataValueOneOf2)
-		if string(jsonMetadataValueOneOf2) == "{}" { // empty struct
-			dst.MetadataValueOneOf2 = nil
+		jsonMetadataIntValue, _ := json.Marshal(dst.MetadataIntValue)
+		if string(jsonMetadataIntValue) == "{}" { // empty struct
+			dst.MetadataIntValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf2 = nil
+		dst.MetadataIntValue = nil
 	}
 
-	// try to unmarshal data into MetadataValueOneOf3
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf3)
+	// try to unmarshal data into MetadataProtoValue
+	err = json.Unmarshal(data, &dst.MetadataProtoValue)
 	if err == nil {
-		jsonMetadataValueOneOf3, _ := json.Marshal(dst.MetadataValueOneOf3)
-		if string(jsonMetadataValueOneOf3) == "{}" { // empty struct
-			dst.MetadataValueOneOf3 = nil
+		jsonMetadataProtoValue, _ := json.Marshal(dst.MetadataProtoValue)
+		if string(jsonMetadataProtoValue) == "{}" { // empty struct
+			dst.MetadataProtoValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf3 = nil
+		dst.MetadataProtoValue = nil
 	}
 
-	// try to unmarshal data into MetadataValueOneOf4
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf4)
+	// try to unmarshal data into MetadataStringValue
+	err = json.Unmarshal(data, &dst.MetadataStringValue)
 	if err == nil {
-		jsonMetadataValueOneOf4, _ := json.Marshal(dst.MetadataValueOneOf4)
-		if string(jsonMetadataValueOneOf4) == "{}" { // empty struct
-			dst.MetadataValueOneOf4 = nil
+		jsonMetadataStringValue, _ := json.Marshal(dst.MetadataStringValue)
+		if string(jsonMetadataStringValue) == "{}" { // empty struct
+			dst.MetadataStringValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf4 = nil
+		dst.MetadataStringValue = nil
 	}
 
-	// try to unmarshal data into MetadataValueOneOf5
-	err = json.Unmarshal(data, &dst.MetadataValueOneOf5)
+	// try to unmarshal data into MetadataStructValue
+	err = json.Unmarshal(data, &dst.MetadataStructValue)
 	if err == nil {
-		jsonMetadataValueOneOf5, _ := json.Marshal(dst.MetadataValueOneOf5)
-		if string(jsonMetadataValueOneOf5) == "{}" { // empty struct
-			dst.MetadataValueOneOf5 = nil
+		jsonMetadataStructValue, _ := json.Marshal(dst.MetadataStructValue)
+		if string(jsonMetadataStructValue) == "{}" { // empty struct
+			dst.MetadataStructValue = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.MetadataValueOneOf5 = nil
+		dst.MetadataStructValue = nil
 	}
 
 	if match > 1 { // more than 1 match
 		// reset to nil
-		dst.MetadataValueOneOf = nil
-		dst.MetadataValueOneOf1 = nil
-		dst.MetadataValueOneOf2 = nil
-		dst.MetadataValueOneOf3 = nil
-		dst.MetadataValueOneOf4 = nil
-		dst.MetadataValueOneOf5 = nil
+		dst.MetadataBoolValue = nil
+		dst.MetadataDoubleValue = nil
+		dst.MetadataIntValue = nil
+		dst.MetadataProtoValue = nil
+		dst.MetadataStringValue = nil
+		dst.MetadataStructValue = nil
 
 		return fmt.Errorf("data matches more than one schema in oneOf(MetadataValue)")
 	} else if match == 1 {
@@ -168,28 +168,28 @@ func (dst *MetadataValue) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src MetadataValue) MarshalJSON() ([]byte, error) {
-	if src.MetadataValueOneOf != nil {
-		return json.Marshal(&src.MetadataValueOneOf)
+	if src.MetadataBoolValue != nil {
+		return json.Marshal(&src.MetadataBoolValue)
 	}
 
-	if src.MetadataValueOneOf1 != nil {
-		return json.Marshal(&src.MetadataValueOneOf1)
+	if src.MetadataDoubleValue != nil {
+		return json.Marshal(&src.MetadataDoubleValue)
 	}
 
-	if src.MetadataValueOneOf2 != nil {
-		return json.Marshal(&src.MetadataValueOneOf2)
+	if src.MetadataIntValue != nil {
+		return json.Marshal(&src.MetadataIntValue)
 	}
 
-	if src.MetadataValueOneOf3 != nil {
-		return json.Marshal(&src.MetadataValueOneOf3)
+	if src.MetadataProtoValue != nil {
+		return json.Marshal(&src.MetadataProtoValue)
 	}
 
-	if src.MetadataValueOneOf4 != nil {
-		return json.Marshal(&src.MetadataValueOneOf4)
+	if src.MetadataStringValue != nil {
+		return json.Marshal(&src.MetadataStringValue)
 	}
 
-	if src.MetadataValueOneOf5 != nil {
-		return json.Marshal(&src.MetadataValueOneOf5)
+	if src.MetadataStructValue != nil {
+		return json.Marshal(&src.MetadataStructValue)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -200,28 +200,28 @@ func (obj *MetadataValue) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
-	if obj.MetadataValueOneOf != nil {
-		return obj.MetadataValueOneOf
+	if obj.MetadataBoolValue != nil {
+		return obj.MetadataBoolValue
 	}
 
-	if obj.MetadataValueOneOf1 != nil {
-		return obj.MetadataValueOneOf1
+	if obj.MetadataDoubleValue != nil {
+		return obj.MetadataDoubleValue
 	}
 
-	if obj.MetadataValueOneOf2 != nil {
-		return obj.MetadataValueOneOf2
+	if obj.MetadataIntValue != nil {
+		return obj.MetadataIntValue
 	}
 
-	if obj.MetadataValueOneOf3 != nil {
-		return obj.MetadataValueOneOf3
+	if obj.MetadataProtoValue != nil {
+		return obj.MetadataProtoValue
 	}
 
-	if obj.MetadataValueOneOf4 != nil {
-		return obj.MetadataValueOneOf4
+	if obj.MetadataStringValue != nil {
+		return obj.MetadataStringValue
 	}
 
-	if obj.MetadataValueOneOf5 != nil {
-		return obj.MetadataValueOneOf5
+	if obj.MetadataStructValue != nil {
+		return obj.MetadataStructValue
 	}
 
 	// all schemas are nil
