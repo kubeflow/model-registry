@@ -119,6 +119,10 @@ lint: gen
 test: gen
 	go test ./internal/...
 
+.PHONY: test-nocache
+test-nocache: gen
+	go test ./internal/... -count=1
+
 .PHONY: run/migrate
 run/migrate: gen
 	go run main.go migrate --logtostderr=true -m config/metadata-library
