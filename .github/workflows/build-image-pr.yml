@@ -1,0 +1,27 @@
+name: Test container image build
+
+on:
+  pull_request_target:
+    branches: [ '*' ]
+
+env:
+  QUAY_IMG_REPO: model-registry
+  PUSH_IMAGE: false
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate Tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Build Image
+        shell: bash
+        env:
+          VERSION: ${{ steps.tags.outputs.tag }}
+        run: ./scripts/build_deploy.sh

@@ -5,6 +5,22 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
+
+# docker executable
+DOCKER ?= docker
+# default Dockerfile
+DOCKERFILE ?= Dockerfile
+# container registry
+IMG_REGISTRY ?= quay.io
+# container image organization
+IMG_ORG ?= opendatahub
+# container image version
+IMG_VERSION ?= main
+# container image repository
+IMG_REPO ?= model-registry
+# container image
+IMG := ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
+
 model-registry: build
 
 internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
@@ -144,5 +160,20 @@ run/client: gen
 .PHONY: serve
 serve: build
 	./model-registry serve --logtostderr=true
+
+# login to docker
+.PHONY: docker/login
+docker/login:
+	$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}" "${IMG_REGISTRY}"
+
+# build docker image
+.PHONY: image/build
+image/build:
+	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
+
+# push docker image
+.PHONY: image/push
+image/push:
+	${DOCKER} push ${IMG}:$(IMG_VERSION)
 
 all: model-registry
