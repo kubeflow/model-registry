@@ -1,12 +1,14 @@
 package mapper
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Mapper struct {
@@ -50,12 +52,14 @@ func (m *Mapper) MapToProperties(data map[string]openapi.MetadataValue) (map[str
 		value := proto.Value{}
 
 		switch {
+		// bool value
+		case v.MetadataBoolValue != nil:
+			value.Value = &proto.Value_BoolValue{BoolValue: *v.MetadataBoolValue.BoolValue}
 		// int value
 		case v.MetadataIntValue != nil:
 			intValue, err := IdToInt64(*v.MetadataIntValue.IntValue)
 			if err != nil {
-				log.Printf("Skipping mapping for %s:%v", key, v)
-				continue
+				return nil, fmt.Errorf("unable to decode as int64 %w for key %s", err, key)
 			}
 			value.Value = &proto.Value_IntValue{IntValue: *intValue}
 		// double value
@@ -64,9 +68,26 @@ func (m *Mapper) MapToProperties(data map[string]openapi.MetadataValue) (map[str
 		// string value
 		case v.MetadataStringValue != nil:
 			value.Value = &proto.Value_StringValue{StringValue: *v.MetadataStringValue.StringValue}
+		// struct value
+		case v.MetadataStructValue != nil:
+			data, err := base64.StdEncoding.DecodeString(*v.MetadataStructValue.StructValue)
+			if err != nil {
+				return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+			}
+			var asMap map[string]interface{}
+			err = json.Unmarshal(data, &asMap)
+			if err != nil {
+				return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+			}
+			asStruct, err := structpb.NewStruct(asMap)
+			if err != nil {
+				return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+			}
+			value.Value = &proto.Value_StructValue{
+				StructValue: asStruct,
+			}
 		default:
-			log.Printf("Type mapping not found for %s:%v", key, v)
-			continue
+			return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
 		}
 
 		props[key] = &value
@@ -168,6 +189,10 @@ func (m *Mapper) MapFromProperties(props map[string]*proto.Value) (map[string]op
 		customValue := openapi.MetadataValue{}
 
 		switch typedValue := v.Value.(type) {
+		case *proto.Value_BoolValue:
+			customValue.MetadataBoolValue = &openapi.MetadataBoolValue{
+				BoolValue: &typedValue.BoolValue,
+			}
 		case *proto.Value_IntValue:
 			customValue.MetadataIntValue = &openapi.MetadataIntValue{
 				IntValue: IdToString(typedValue.IntValue),
@@ -180,9 +205,19 @@ func (m *Mapper) MapFromProperties(props map[string]*proto.Value) (map[string]op
 			customValue.MetadataStringValue = &openapi.MetadataStringValue{
 				StringValue: &typedValue.StringValue,
 			}
+		case *proto.Value_StructValue:
+			sv := typedValue.StructValue
+			asMap := sv.AsMap()
+			asJSON, err := json.Marshal(asMap)
+			if err != nil {
+				return nil, err
+			}
+			b64 := base64.StdEncoding.EncodeToString(asJSON)
+			customValue.MetadataStructValue = &openapi.MetadataStructValue{
+				StructValue: &b64,
+			}
 		default:
-			log.Printf("Type mapping not found for %s:%v", key, v)
-			continue
+			return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
 		}
 
 		data[key] = customValue
