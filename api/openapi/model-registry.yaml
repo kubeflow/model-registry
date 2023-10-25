@@ -37,6 +37,8 @@ paths:
         $ref: '#/components/parameters/name'
       -
         $ref: '#/components/parameters/externalID'
+      -
+        $ref: '#/components/parameters/parentResourceID'
   /api/model_registry/v1alpha1/model_artifacts:
     summary: Path used to manage the list of modelartifacts.
     description: >-
@@ -982,7 +984,7 @@ paths:
       -
         $ref: '#/components/parameters/externalID'
       -
-        $ref: '#/components/parameters/registeredModelID'
+        $ref: '#/components/parameters/parentResourceID'
 components:
   schemas:
     ArtifactState:
@@ -1678,12 +1680,12 @@ components:
         type: string
       in: query
       required: false
-    registeredModelID:
+    parentResourceID:
       examples:
-        registeredModelID:
+        parentResourceID:
           value: '10'
-      name: registeredModelID
-      description: ID of the `RegisteredModel` to use for search.
+      name: parentResourceID
+      description: ID of the parent resource to use for search.
       schema:
         type: string
       in: query
