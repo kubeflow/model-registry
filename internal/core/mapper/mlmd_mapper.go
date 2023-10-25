@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -122,7 +124,7 @@ func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel
 }
 
 func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registeredModelId int64, registeredModelName *string) (*proto.Context, error) {
-	fullName := fmt.Sprintf("%d:%s", registeredModelId, *modelVersion.Name)
+	fullName := PrefixWhenOwned(&registeredModelId, *modelVersion.Name)
 	customProps := make(map[string]*proto.Value)
 	if modelVersion.CustomProperties != nil {
 		customProps, _ = m.MapToProperties(*modelVersion.CustomProperties)
@@ -158,22 +160,30 @@ func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registe
 	return ctx, nil
 }
 
-func (m *Mapper) MapFromModelArtifact(modelArtifact openapi.ModelArtifact) *proto.Artifact {
+func (m *Mapper) MapFromModelArtifact(modelArtifact openapi.ModelArtifact, modelVersionId *int64) *proto.Artifact {
+	// openapi.Artifact is defined with optional name, so build arbitrary name for this artifact if missing
+	var artifactName string
+	if modelArtifact.Name != nil {
+		artifactName = *modelArtifact.Name
+	} else {
+		artifactName = uuid.New().String()
+	}
+	// build fullName for mlmd storage
+	fullName := PrefixWhenOwned(modelVersionId, artifactName)
 	return &proto.Artifact{
 		TypeId: &m.ModelArtifactTypeId,
-		// TODO: we should use concatenation between uuid + name
-		Name: modelArtifact.Name,
-		Uri:  modelArtifact.Uri,
+		Name:   &fullName,
+		Uri:    modelArtifact.Uri,
 	}
 }
 
-func (m *Mapper) MapFromModelArtifacts(modelArtifacts *[]openapi.ModelArtifact) ([]*proto.Artifact, error) {
+func (m *Mapper) MapFromModelArtifacts(modelArtifacts *[]openapi.ModelArtifact, modelVersionId *int64) ([]*proto.Artifact, error) {
 	artifacts := []*proto.Artifact{}
 	if modelArtifacts == nil {
 		return artifacts, nil
 	}
 	for _, a := range *modelArtifacts {
-		artifacts = append(artifacts, m.MapFromModelArtifact(a))
+		artifacts = append(artifacts, m.MapFromModelArtifact(a, modelVersionId))
 	}
 	return artifacts, nil
 }
@@ -263,10 +273,11 @@ func (m *Mapper) MapToModelVersion(ctx *proto.Context) (*openapi.ModelVersion, e
 
 	idString := strconv.FormatInt(*ctx.Id, 10)
 
+	name := NameFromOwned(*ctx.Name)
 	modelVersion := &openapi.ModelVersion{
 		// ModelName: &modelName,
 		Id:   &idString,
-		Name: ctx.Name,
+		Name: &name,
 		// Author:   &author,
 		CustomProperties: &metadata,
 	}
@@ -289,10 +300,29 @@ func (m *Mapper) MapToModelArtifact(artifact *proto.Artifact) (*openapi.ModelArt
 		return nil, err
 	}
 
+	name := NameFromOwned(*artifact.Name)
 	modelArtifact := &openapi.ModelArtifact{
 		Uri:  artifact.Uri,
-		Name: artifact.Name,
+		Name: &name,
 	}
 
 	return modelArtifact, nil
+}
+
+// For owned entity such as ModelVersion
+// for potentially owned entity such as ModelArtifact
+// compose the mlmd fullname by using ownerId as prefix
+func PrefixWhenOwned(ownerId *int64, entityName string) string {
+	if ownerId != nil {
+		return fmt.Sprintf("%d:%s", *ownerId, entityName)
+	}
+	uuidPrefix := uuid.New().String()
+	return fmt.Sprintf("%s:%s", uuidPrefix, entityName)
+}
+
+// For owned entity such as ModelVersion
+// for potentially owned entity such as ModelArtifact
+// derive the entity name from the mlmd fullname
+func NameFromOwned(fullName string) string {
+	return strings.Split(fullName, ":")[1]
 }

@@ -26,20 +26,20 @@ type ModelRegistryApi interface {
 	// MODEL VERSION
 
 	// Create a new Model Version
-	// or update a Model Version associated to a specific RegisteredModel identified by registeredModelId parameter
-	UpsertModelVersion(modelVersion *openapi.ModelVersion, registeredModelId *BaseResourceId) (*openapi.ModelVersion, error)
+	// or update a Model Version associated to a specific RegisteredModel identified by parentResourceId parameter
+	UpsertModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *BaseResourceId) (*openapi.ModelVersion, error)
 
 	GetModelVersionById(id *BaseResourceId) (*openapi.ModelVersion, error)
-	GetModelVersionByParams(name *string, externalId *string) (*openapi.ModelVersion, error)
-	GetModelVersions(listOptions ListOptions, registeredModelId *BaseResourceId) (*openapi.ModelVersionList, error)
+	GetModelVersionByParams(versionName *string, parentResourceId *BaseResourceId, externalId *string) (*openapi.ModelVersion, error)
+	GetModelVersions(listOptions ListOptions, parentResourceId *BaseResourceId) (*openapi.ModelVersionList, error)
 
 	// MODEL ARTIFACT
 
-	// Create or update a Model Artifact associated to a specific ModelVersion
-	// identified by ModelArtifact.ModelVersionId
-	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *BaseResourceId) (*openapi.ModelArtifact, error)
+	// Create a new Artifact
+	// or update an Artifact associated to a specific ModelVersion identified by parentResourceId parameter
+	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *BaseResourceId) (*openapi.ModelArtifact, error)
 
 	GetModelArtifactById(id *BaseResourceId) (*openapi.ModelArtifact, error)
-	GetModelArtifactByParams(name *string, externalId *string) (*openapi.ModelArtifact, error)
-	GetModelArtifacts(listOptions ListOptions, modelVersionId *BaseResourceId) (*openapi.ModelArtifactList, error)
+	GetModelArtifactByParams(artifactName *string, parentResourceId *BaseResourceId, externalId *string) (*openapi.ModelArtifact, error)
+	GetModelArtifacts(listOptions ListOptions, parentResourceId *BaseResourceId) (*openapi.ModelArtifactList, error)
 }
