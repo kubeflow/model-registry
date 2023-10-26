@@ -63,7 +63,7 @@ if [[ "${PUSH_IMAGE,,}" == "true" ]]; then
     IMG_ORG="${QUAY_ORG}" \
     IMG_REPO="${QUAY_IMG_REPO}" \
     IMG_VERSION="${VERSION}" \
-    DOCKER_USER="${QUAY_USERNAME} "\
+    DOCKER_USER="${QUAY_USERNAME}"\
     DOCKER_PWD="${QUAY_PASSWORD}" \
     docker/login \
     image/push
