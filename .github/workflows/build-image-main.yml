@@ -2,7 +2,8 @@ name: Main container image build and tag
 
 on:
   push:
-    branches: [ 'main' ]
+    branches:
+      - 'main'
 
 env:
   QUAY_ORG: opendatahub

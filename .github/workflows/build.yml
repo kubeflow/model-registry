@@ -2,9 +2,21 @@ name: Build
 
 on:
   push:
-    branches: [ 'main' ]
+    branches:
+      - 'main'
   pull_request:
-    branches: [ '*' ]
+    branches:
+      - '*'
+    paths-ignore:
+      - 'LICENSE*'
+      - 'DOCKERFILE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
+      - 'scripts/**'
 
 jobs:
   build:

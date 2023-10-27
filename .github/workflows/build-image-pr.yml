@@ -2,7 +2,16 @@ name: Test container image build
 
 on:
   pull_request_target:
-    branches: [ '*' ]
+    branches:
+      - '*'
+    paths-ignore:
+      - 'LICENSE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
 
 env:
   QUAY_IMG_REPO: model-registry
