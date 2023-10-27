@@ -37,7 +37,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
 WORKDIR /
 # copy the metadata library
 COPY --from=builder /workspace/config ./config
