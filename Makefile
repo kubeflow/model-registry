@@ -6,6 +6,8 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
 
+MLMD_VERSION ?= 1.14.0
+
 # docker executable
 DOCKER ?= docker
 # default Dockerfile
@@ -22,6 +24,32 @@ IMG_REPO ?= model-registry
 IMG := ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
 
 model-registry: build
+
+# clean the ml-metadata protos and trigger a fresh new build which downloads
+# ml-metadata protos based on specified MLMD_VERSION 
+.PHONY: update/ml_metadata
+update/ml_metadata: clean/ml_metadata clean build
+
+clean/ml_metadata:
+	rm -rf api/grpc/ml_metadata/proto/*.proto
+
+api/grpc/ml_metadata/proto/metadata_source.proto:
+	mkdir -p api/grpc/ml_metadata/proto/
+	cd api/grpc/ml_metadata/proto/ && \
+		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_source.proto" && \
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_source.proto
+
+api/grpc/ml_metadata/proto/metadata_store.proto:
+	mkdir -p api/grpc/ml_metadata/proto/
+	cd api/grpc/ml_metadata/proto/ && \
+		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store.proto" && \
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_store.proto
+
+api/grpc/ml_metadata/proto/metadata_store_service.proto:
+	mkdir -p api/grpc/ml_metadata/proto/
+	cd api/grpc/ml_metadata/proto/ && \
+		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store_service.proto" && \
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
 
 internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 	protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
