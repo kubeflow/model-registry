@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -80,36 +79,17 @@ func iStoreARegisteredModelWithNameAndAChildModelVersionWithNameAndAChildArtifac
 	if err != nil {
 		return err
 	}
-	registeredModelId, err := idToInt64(*registeredModel.Id)
-	if err != nil {
-		return err
-	}
 
 	var modelVersion *openapi.ModelVersion
-	if modelVersion, err = service.UpsertModelVersion(&openapi.ModelVersion{Name: &modelVersionName}, (*core.BaseResourceId)(registeredModelId)); err != nil {
-		return err
-	}
-	modelVersionId, err := idToInt64(*modelVersion.Id)
-	if err != nil {
+	if modelVersion, err = service.UpsertModelVersion(&openapi.ModelVersion{Name: &modelVersionName}, registeredModel.Id); err != nil {
 		return err
 	}
 
-	if _, err = service.UpsertModelArtifact(&openapi.ModelArtifact{Uri: &artifactURI}, (*core.BaseResourceId)(modelVersionId)); err != nil {
+	if _, err = service.UpsertModelArtifact(&openapi.ModelArtifact{Uri: &artifactURI}, modelVersion.Id); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func idToInt64(idString string) (*int64, error) {
-	idInt, err := strconv.Atoi(idString)
-	if err != nil {
-		return nil, err
-	}
-
-	idInt64 := int64(idInt)
-
-	return &idInt64, nil
 }
 
 func thereShouldBeAMlmdContextOfTypeNamed(ctx context.Context, arg1, arg2 string) error {
@@ -183,7 +163,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 			return ctx, err
 		}
 		wd := ctx.Value(wdCtxKey{}).(string)
-		clearMetadataSqliteDB(wd)
+		_ = clearMetadataSqliteDB(wd)
 		return ctx, nil
 	})
 }

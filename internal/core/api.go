@@ -19,7 +19,7 @@ type ModelRegistryApi interface {
 	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
 	UpsertRegisteredModel(registeredModel *openapi.RegisteredModel) (*openapi.RegisteredModel, error)
 
-	GetRegisteredModelById(id *BaseResourceId) (*openapi.RegisteredModel, error)
+	GetRegisteredModelById(id string) (*openapi.RegisteredModel, error)
 	GetRegisteredModelByParams(name *string, externalId *string) (*openapi.RegisteredModel, error)
 	GetRegisteredModels(listOptions ListOptions) (*openapi.RegisteredModelList, error)
 
@@ -27,19 +27,19 @@ type ModelRegistryApi interface {
 
 	// Create a new Model Version
 	// or update a Model Version associated to a specific RegisteredModel identified by parentResourceId parameter
-	UpsertModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *BaseResourceId) (*openapi.ModelVersion, error)
+	UpsertModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *string) (*openapi.ModelVersion, error)
 
-	GetModelVersionById(id *BaseResourceId) (*openapi.ModelVersion, error)
-	GetModelVersionByParams(versionName *string, parentResourceId *BaseResourceId, externalId *string) (*openapi.ModelVersion, error)
-	GetModelVersions(listOptions ListOptions, parentResourceId *BaseResourceId) (*openapi.ModelVersionList, error)
+	GetModelVersionById(id string) (*openapi.ModelVersion, error)
+	GetModelVersionByParams(versionName *string, parentResourceId *string, externalId *string) (*openapi.ModelVersion, error)
+	GetModelVersions(listOptions ListOptions, parentResourceId *string) (*openapi.ModelVersionList, error)
 
 	// MODEL ARTIFACT
 
 	// Create a new Artifact
 	// or update an Artifact associated to a specific ModelVersion identified by parentResourceId parameter
-	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *BaseResourceId) (*openapi.ModelArtifact, error)
+	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *string) (*openapi.ModelArtifact, error)
 
-	GetModelArtifactById(id *BaseResourceId) (*openapi.ModelArtifact, error)
-	GetModelArtifactByParams(artifactName *string, parentResourceId *BaseResourceId, externalId *string) (*openapi.ModelArtifact, error)
-	GetModelArtifacts(listOptions ListOptions, parentResourceId *BaseResourceId) (*openapi.ModelArtifactList, error)
+	GetModelArtifactById(id string) (*openapi.ModelArtifact, error)
+	GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error)
+	GetModelArtifacts(listOptions ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error)
 }

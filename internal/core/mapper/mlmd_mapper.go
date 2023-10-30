@@ -98,6 +98,15 @@ func (m *Mapper) MapToProperties(data map[string]openapi.MetadataValue) (map[str
 	return props, nil
 }
 
+func (m *Mapper) MapToArtifactState(oapiState *openapi.ArtifactState) *proto.Artifact_State {
+	if oapiState == nil {
+		return nil
+	}
+
+	state := (proto.Artifact_State)(proto.Artifact_State_value[string(*oapiState)])
+	return &state
+}
+
 func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel) (*proto.Context, error) {
 
 	var idInt *int64
@@ -129,9 +138,20 @@ func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registe
 	if modelVersion.CustomProperties != nil {
 		customProps, _ = m.MapToProperties(*modelVersion.CustomProperties)
 	}
+
+	var idAsInt *int64
+	if modelVersion.Id != nil {
+		var err error
+		idAsInt, err = IdToInt64(*modelVersion.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
 	ctx := &proto.Context{
-		Name:   &fullName,
-		TypeId: &m.ModelVersionTypeId,
+		Id:         idAsInt,
+		Name:       &fullName,
+		TypeId:     &m.ModelVersionTypeId,
+		ExternalId: modelVersion.ExternalID,
 		Properties: map[string]*proto.Value{
 			"model_name": {
 				Value: &proto.Value_StringValue{
@@ -170,10 +190,25 @@ func (m *Mapper) MapFromModelArtifact(modelArtifact openapi.ModelArtifact, model
 	}
 	// build fullName for mlmd storage
 	fullName := PrefixWhenOwned(modelVersionId, artifactName)
+
+	customProps := make(map[string]*proto.Value)
+	if modelArtifact.CustomProperties != nil {
+		customProps, _ = m.MapToProperties(*modelArtifact.CustomProperties)
+	}
+
+	var idAsInt *int64
+	if modelArtifact.Id != nil {
+		idAsInt, _ = IdToInt64(*modelArtifact.Id)
+	}
+
 	return &proto.Artifact{
-		TypeId: &m.ModelArtifactTypeId,
-		Name:   &fullName,
-		Uri:    modelArtifact.Uri,
+		Id:               idAsInt,
+		TypeId:           &m.ModelArtifactTypeId,
+		Name:             &fullName,
+		Uri:              modelArtifact.Uri,
+		ExternalId:       modelArtifact.ExternalID,
+		State:            m.MapToArtifactState(modelArtifact.State),
+		CustomProperties: customProps,
 	}
 }
 
@@ -236,12 +271,21 @@ func (m *Mapper) MapFromProperties(props map[string]*proto.Value) (map[string]op
 	return data, nil
 }
 
+func (m *Mapper) MapFromArtifactState(mlmdState *proto.Artifact_State) *openapi.ArtifactState {
+	if mlmdState == nil {
+		return nil
+	}
+
+	state := mlmdState.String()
+	return (*openapi.ArtifactState)(&state)
+}
+
 func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredModel, error) {
 	if ctx.GetTypeId() != m.RegisteredModelTypeId {
 		return nil, fmt.Errorf("invalid TypeId, exptected %d but received %d", m.RegisteredModelTypeId, ctx.GetTypeId())
 	}
 
-	_, err := m.MapFromProperties(ctx.CustomProperties)
+	customProps, err := m.MapFromProperties(ctx.CustomProperties)
 	if err != nil {
 		return nil, err
 	}
@@ -249,9 +293,10 @@ func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredMo
 	idString := strconv.FormatInt(*ctx.Id, 10)
 
 	model := &openapi.RegisteredModel{
-		Id:         &idString,
-		Name:       ctx.Name,
-		ExternalID: ctx.ExternalId,
+		Id:               &idString,
+		Name:             ctx.Name,
+		ExternalID:       ctx.ExternalId,
+		CustomProperties: &customProps,
 	}
 
 	return model, nil
@@ -276,8 +321,9 @@ func (m *Mapper) MapToModelVersion(ctx *proto.Context) (*openapi.ModelVersion, e
 	name := NameFromOwned(*ctx.Name)
 	modelVersion := &openapi.ModelVersion{
 		// ModelName: &modelName,
-		Id:   &idString,
-		Name: &name,
+		Id:         &idString,
+		Name:       &name,
+		ExternalID: ctx.ExternalId,
 		// Author:   &author,
 		CustomProperties: &metadata,
 	}
@@ -290,7 +336,7 @@ func (m *Mapper) MapToModelArtifact(artifact *proto.Artifact) (*openapi.ModelArt
 		return nil, fmt.Errorf("invalid TypeId, exptected %d but received %d", m.ModelArtifactTypeId, artifact.GetTypeId())
 	}
 
-	_, err := m.MapFromProperties(artifact.CustomProperties)
+	customProps, err := m.MapFromProperties(artifact.CustomProperties)
 	if err != nil {
 		return nil, err
 	}
@@ -302,8 +348,12 @@ func (m *Mapper) MapToModelArtifact(artifact *proto.Artifact) (*openapi.ModelArt
 
 	name := NameFromOwned(*artifact.Name)
 	modelArtifact := &openapi.ModelArtifact{
-		Uri:  artifact.Uri,
-		Name: &name,
+		Id:               IdToString(*artifact.Id),
+		Uri:              artifact.Uri,
+		Name:             &name,
+		ExternalID:       artifact.ExternalId,
+		State:            m.MapFromArtifactState(artifact.State),
+		CustomProperties: &customProps,
 	}
 
 	return modelArtifact, nil

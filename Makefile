@@ -167,6 +167,10 @@ test: gen
 test-nocache: gen
 	go test ./internal/... -count=1
 
+.PHONY: test-cover
+test-cover: gen
+	go test ./internal/... -cover -count=1
+
 .PHONY: run/migrate
 run/migrate: gen
 	go run main.go migrate --logtostderr=true -m config/metadata-library
