@@ -1269,6 +1269,10 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/MetadataValue'
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
         externalID:
           description: |-
             The external id that come from the clients’ system. This field is optional.
