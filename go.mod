@@ -3,7 +3,7 @@ module github.com/opendatahub-io/model-registry
 go 1.19
 
 require (
-	github.com/99designs/gqlgen v0.17.36
+	github.com/99designs/gqlgen v0.17.40
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/golang/glog v1.1.2
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0
@@ -35,6 +35,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
