@@ -16,8 +16,10 @@ from abc import ABC
 from attrs import define, field
 from ml_metadata.proto import Context
 
+from model_registry.store import ScalarType
+
 from .artifacts import BaseArtifact, ModelArtifact
-from .base import ProtoBase, ScalarType
+from .base import ProtoBase
 
 
 @define(slots=False, init=False)

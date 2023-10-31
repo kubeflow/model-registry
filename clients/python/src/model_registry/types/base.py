@@ -4,13 +4,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from attrs import define, field
-from ml_metadata.proto import Artifact, Context
 
-ProtoType = Union[Artifact, Context]
-ScalarType = Union[bool, int, float, str]
+from model_registry.store import ProtoType, ScalarType
 
 
 class Mappable(ABC):
