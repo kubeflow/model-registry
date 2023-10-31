@@ -183,17 +183,18 @@ func TestCreateRegisteredModel(t *testing.T) {
 	assertion.Nilf(err, "error creating registered model: %v", err)
 	assertion.NotNilf(createdModel.Id, "created registered model should not have nil Id")
 
-	byTypeAndNameResp, err := client.GetContextByTypeAndName(context.Background(), &proto.GetContextByTypeAndNameRequest{
-		TypeName:    &core.RegisteredModelTypeName,
-		ContextName: &modelName,
+	createdModelId, _ := mapper.IdToInt64(*createdModel.Id)
+	ctxById, err := client.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
+		ContextIds: []int64{*createdModelId},
 	})
 	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
 
-	ctxId := mapper.IdToString(*byTypeAndNameResp.Context.Id)
+	ctx := ctxById.Contexts[0]
+	ctxId := mapper.IdToString(*ctx.Id)
 	assertion.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
-	assertion.Equal(modelName, *byTypeAndNameResp.Context.Name, "saved model name should match the provided one")
-	assertion.Equal(modelExternalId, *byTypeAndNameResp.Context.ExternalId, "saved external id should match the provided one")
-	assertion.Equal(owner, byTypeAndNameResp.Context.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	assertion.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
+	assertion.Equal(modelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
+	assertion.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
@@ -226,27 +227,12 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	// checks
 	assertion.Nilf(err, "error creating registered model: %v", err)
 	assertion.NotNilf(createdModel.Id, "created registered model should not have nil Id")
+	createdModelId, _ := mapper.IdToInt64(*createdModel.Id)
 
 	// checks created model matches original one except for Id
 	assertion.Equal(*registeredModel.Name, *createdModel.Name, "returned model name should match the original one")
 	assertion.Equal(*registeredModel.ExternalID, *createdModel.ExternalID, "returned model external id should match the original one")
 	assertion.Equal(*registeredModel.CustomProperties, *createdModel.CustomProperties, "returned model custom props should match the original one")
-
-	byTypeAndNameResp, err := client.GetContextByTypeAndName(context.Background(), &proto.GetContextByTypeAndNameRequest{
-		TypeName:    &core.RegisteredModelTypeName,
-		ContextName: &modelName,
-	})
-	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
-
-	ctxId := mapper.IdToString(*byTypeAndNameResp.Context.Id)
-	assertion.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
-	assertion.Equal(modelName, *byTypeAndNameResp.Context.Name, "saved model name should match the provided one")
-	assertion.Equal(modelExternalId, *byTypeAndNameResp.Context.ExternalId, "saved external id should match the provided one")
-	assertion.Equal(owner, byTypeAndNameResp.Context.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
-
-	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
-	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
-	assertion.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 
 	// update existing model
 	newModelExternalId := "newExternalId"
@@ -264,21 +250,45 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	assertion.Nilf(err, "error creating registered model: %v", err)
 
 	// still one registered model
+	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
+	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
+	assertion.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
+
+	ctxById, err := client.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
+		ContextIds: []int64{*createdModelId},
+	})
+	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
+
+	ctx := ctxById.Contexts[0]
+	ctxId := mapper.IdToString(*ctx.Id)
+	assertion.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
+	assertion.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
+	assertion.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
+	assertion.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+
+	// update the model keeping nil name
+	newModelExternalId = "newNewExternalId"
+	createdModel.ExternalID = &newModelExternalId
+	createdModel.Name = nil
+	createdModel, err = service.UpsertRegisteredModel(createdModel)
+	assertion.Nilf(err, "error creating registered model: %v", err)
+
+	// still one registered model
 	getAllResp, err = client.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
 	assertion.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 
-	byTypeAndNameResp, err = client.GetContextByTypeAndName(context.Background(), &proto.GetContextByTypeAndNameRequest{
-		TypeName:    &core.RegisteredModelTypeName,
-		ContextName: &modelName,
+	ctxById, err = client.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
+		ContextIds: []int64{*createdModelId},
 	})
 	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
 
-	ctxId = mapper.IdToString(*byTypeAndNameResp.Context.Id)
+	ctx = ctxById.Contexts[0]
+	ctxId = mapper.IdToString(*ctx.Id)
 	assertion.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
-	assertion.Equal(modelName, *byTypeAndNameResp.Context.Name, "saved model name should match the provided one")
-	assertion.Equal(newModelExternalId, *byTypeAndNameResp.Context.ExternalId, "saved external id should match the provided one")
-	assertion.Equal(newOwner, byTypeAndNameResp.Context.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	assertion.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
+	assertion.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
+	assertion.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
 }
 
 func TestGetRegisteredModelById(t *testing.T) {
@@ -358,6 +368,27 @@ func TestGetRegisteredModelByParamsExternalId(t *testing.T) {
 	assertion.Nilf(err, "error getting registered model by external id: %v", err)
 
 	assertion.Equalf(*createdModel.Id, *byName.Id, "the returned model id should match the retrieved by name")
+}
+
+func TestGetRegisteredModelByEmptyParams(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	// register a new model
+	registeredModel := &openapi.RegisteredModel{
+		Name:       &modelName,
+		ExternalID: &modelExternalId,
+	}
+
+	_, err := service.UpsertRegisteredModel(registeredModel)
+	assertion.Nilf(err, "error creating registered model: %v", err)
+
+	_, err = service.GetRegisteredModelByParams(nil, nil)
+	assertion.NotNil(err)
+	assertion.Equal("invalid parameters call, supply either name or externalId", err.Error())
 }
 
 func TestGetRegisteredModelsOrderedById(t *testing.T) {
@@ -533,33 +564,6 @@ func TestGetRegisteredModelsWithPageSize(t *testing.T) {
 
 // MODEL VERSIONS
 
-func TestCreateModelVersionWithInvalidRegisteredModelId(t *testing.T) {
-	assertion, conn, _, teardown := setup(t)
-	defer teardown(t)
-
-	// create mode registry service
-	service := initModelRegistryService(assertion, conn)
-
-	notExistingRegisteredModelId := "9999"
-
-	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
-		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
-	}
-
-	createdVersion, err := service.UpsertModelVersion(modelVersion, &notExistingRegisteredModelId)
-	assertion.NotNil(err, "model version should fail because registered model id does not exist")
-	assertion.Equal(fmt.Sprintf("not a valid registered model id: %s", notExistingRegisteredModelId), err.Error())
-	assertion.Nil(createdVersion)
-}
-
 func TestCreateModelVersion(t *testing.T) {
 	assertion, conn, client, teardown := setup(t)
 	defer teardown(t)
@@ -607,6 +611,36 @@ func TestCreateModelVersion(t *testing.T) {
 	assertion.Equal(2, len(getAllResp.Contexts), "there should be two contexts saved in mlmd")
 }
 
+func TestCreateModelVersionFailure(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	registeredModelId := "9999"
+
+	modelVersion := &openapi.ModelVersion{
+		Name:       &modelVersionName,
+		ExternalID: &versionExternalId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	_, err := service.UpsertModelVersion(modelVersion, nil)
+	assertion.NotNil(err)
+	assertion.Equal("missing registered model id, cannot create model version without registered model", err.Error())
+
+	_, err = service.UpsertModelVersion(modelVersion, &registeredModelId)
+	assertion.NotNil(err)
+	assertion.Equal("no registered model found for id 9999", err.Error())
+}
+
 func TestUpdateModelVersion(t *testing.T) {
 	assertion, conn, client, teardown := setup(t)
 	defer teardown(t)
@@ -645,7 +679,7 @@ func TestUpdateModelVersion(t *testing.T) {
 	}
 
 	updatedVersion, err := service.UpsertModelVersion(createdVersion, &registeredModelId)
-	assertion.Nilf(err, "error updating new model version for %d: %v", registeredModelId, err)
+	assertion.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
 
 	updateVersionId, _ := mapper.IdToInt64(*updatedVersion.Id)
 	assertion.Equal(*createdVersionId, *updateVersionId, "created and updated model version should have same id")
@@ -669,6 +703,73 @@ func TestUpdateModelVersion(t *testing.T) {
 	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
 	fmt.Printf("%+v", getAllResp.Contexts)
 	assertion.Equal(2, len(getAllResp.Contexts), "there should be two contexts saved in mlmd")
+
+	// update with nil name
+	newExternalId = "org.my_awesome_model_@v1"
+	updatedVersion.ExternalID = &newExternalId
+	updatedVersion.Name = nil
+	updatedVersion, err = service.UpsertModelVersion(updatedVersion, &registeredModelId)
+	assertion.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
+
+	updateVersionId, _ = mapper.IdToInt64(*updatedVersion.Id)
+	assertion.Equal(*createdVersionId, *updateVersionId, "created and updated model version should have same id")
+
+	byId, err = client.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
+		ContextIds: []int64{
+			*updateVersionId,
+		},
+	})
+	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
+	assertion.Equal(1, len(byId.Contexts), "there should be just one context saved in mlmd")
+
+	assertion.Equal(*updateVersionId, *byId.Contexts[0].Id, "returned model id should match the mlmd one")
+	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, modelVersionName), *byId.Contexts[0].Name, "saved model name should match the provided one")
+	assertion.Equal(newExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
+	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
+	assertion.Equalf(core.ModelVersionTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", core.ModelVersionTypeName)
+}
+
+func TestUpdateModelVersionFailure(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	registeredModelId := registerModel(assertion, service, nil, nil)
+
+	modelVersion := &openapi.ModelVersion{
+		Name:       &modelVersionName,
+		ExternalID: &versionExternalId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	assertion.Nilf(err, "error creating new model version for %s", registeredModelId)
+	assertion.NotNilf(createdVersion.Id, "created model version should not have nil Id")
+
+	newExternalId := "org.my_awesome_model@v1"
+	newScore := 0.95
+
+	createdVersion.ExternalID = &newExternalId
+	(*createdVersion.CustomProperties)["score"] = openapi.MetadataValue{
+		MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			DoubleValue: &newScore,
+		},
+	}
+
+	wrongId := "9999"
+	createdVersion.Id = &wrongId
+	_, err = service.UpsertModelVersion(createdVersion, &registeredModelId)
+	assertion.NotNil(err)
+	assertion.Equal(fmt.Sprintf("no model version found for id %s", wrongId), err.Error())
 }
 
 func TestGetModelVersionById(t *testing.T) {
@@ -801,6 +902,36 @@ func TestGetModelVersionByParamsExternalId(t *testing.T) {
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getByExternalId.Name), *ctx.Name, "saved model name should match the provided one")
 	assertion.Equal(*ctx.ExternalId, *getByExternalId.ExternalID, "saved external id should match the provided one")
 	assertion.Equal(ctx.CustomProperties["author"].GetStringValue(), *(*getByExternalId.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+}
+
+func TestGetModelVersionByEmptyParams(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	registeredModelId := registerModel(assertion, service, nil, nil)
+
+	modelVersion := &openapi.ModelVersion{
+		Name:       &modelVersionName,
+		ExternalID: &versionExternalId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	assertion.Nilf(err, "error creating new model version for %d", registeredModelId)
+	assertion.NotNilf(createdVersion.Id, "created model version should not have nil Id")
+
+	_, err = service.GetModelVersionByParams(nil, nil, nil)
+	assertion.NotNil(err)
+	assertion.Equal("invalid parameters call, supply either (versionName and parentResourceId), or externalId", err.Error())
 }
 
 func TestGetModelVersions(t *testing.T) {
@@ -957,6 +1088,37 @@ func TestCreateModelArtifact(t *testing.T) {
 	assertion.Equal(*createdArtifactId, *byCtx.Artifacts[0].Id)
 }
 
+func TestCreateModelArtifactFailure(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	modelVersionId := "9998"
+
+	modelArtifact := &openapi.ModelArtifact{
+		Name:  &artifactName,
+		State: (*openapi.ArtifactState)(&artifactState),
+		Uri:   &artifactUri,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	_, err := service.UpsertModelArtifact(modelArtifact, nil)
+	assertion.NotNil(err)
+	assertion.Equal("missing model version id, cannot create model artifact without model version", err.Error())
+
+	_, err = service.UpsertModelArtifact(modelArtifact, &modelVersionId)
+	assertion.NotNil(err)
+	assertion.Equal("no model version found for id 9998", err.Error())
+}
+
 func TestUpdateModelArtifact(t *testing.T) {
 	assertion, conn, client, teardown := setup(t)
 	defer teardown(t)
@@ -1001,6 +1163,44 @@ func TestUpdateModelArtifact(t *testing.T) {
 	assertion.Equal(string(newState), getById.Artifacts[0].State.String())
 	assertion.Equal(*createdArtifact.Uri, *getById.Artifacts[0].Uri)
 	assertion.Equal(*(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["author"].GetStringValue())
+}
+
+func TestUpdateModelArtifactFailure(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	modelVersionId := registerModelVersion(assertion, service, nil, nil, nil, nil)
+
+	modelArtifact := &openapi.ModelArtifact{
+		Name:  &artifactName,
+		State: (*openapi.ArtifactState)(&artifactState),
+		Uri:   &artifactUri,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	createdArtifact, err := service.UpsertModelArtifact(modelArtifact, &modelVersionId)
+	assertion.Nilf(err, "error creating new model artifact for model version %s", modelVersionId)
+	assertion.NotNilf(createdArtifact.Id, "created model artifact should not have nil Id")
+
+	newState := "MARKED_FOR_DELETION"
+	createdArtifact.State = (*openapi.ArtifactState)(&newState)
+	updatedArtifact, err := service.UpsertModelArtifact(createdArtifact, &modelVersionId)
+	assertion.Nilf(err, "error updating model artifact for %d: %v", modelVersionId, err)
+
+	wrongId := "9998"
+	updatedArtifact.Id = &wrongId
+	_, err = service.UpsertModelArtifact(updatedArtifact, &modelVersionId)
+	assertion.NotNil(err)
+	assertion.Equal(fmt.Sprintf("no model artifact found for id %s", wrongId), err.Error())
 }
 
 func TestGetModelArtifactById(t *testing.T) {
@@ -1096,6 +1296,37 @@ func TestGetModelArtifactByParams(t *testing.T) {
 	assertion.Equal(author, *(*getByExtId.CustomProperties)["author"].MetadataStringValue.StringValue)
 
 	assertion.Equal(*createdArtifact, *getByExtId, "artifacts returned during creation and on get by ext id should be equal")
+}
+
+func TestGetModelArtifactByEmptyParams(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	modelVersionId := registerModelVersion(assertion, service, nil, nil, nil, nil)
+
+	modelArtifact := &openapi.ModelArtifact{
+		Name:       &artifactName,
+		State:      (*openapi.ArtifactState)(&artifactState),
+		Uri:        &artifactUri,
+		ExternalID: &artifactExtId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"author": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: &author,
+				},
+			},
+		},
+	}
+
+	_, err := service.UpsertModelArtifact(modelArtifact, &modelVersionId)
+	assertion.Nilf(err, "error creating new model artifact for %d", modelVersionId)
+
+	_, err = service.GetModelArtifactByParams(nil, nil, nil)
+	assertion.NotNil(err)
+	assertion.Equal("invalid parameters call, supply either (artifactName and parentResourceId), or externalId", err.Error())
 }
 
 func TestGetModelArtifacts(t *testing.T) {

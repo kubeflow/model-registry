@@ -108,7 +108,6 @@ func (m *Mapper) MapToArtifactState(oapiState *openapi.ArtifactState) *proto.Art
 }
 
 func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel) (*proto.Context, error) {
-
 	var idInt *int64
 	if registeredModel.Id != nil {
 		var err error
@@ -124,10 +123,10 @@ func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel
 	}
 
 	return &proto.Context{
-		Name:             registeredModel.Name,
-		TypeId:           &m.RegisteredModelTypeId,
-		ExternalId:       registeredModel.ExternalID,
 		Id:               idInt,
+		TypeId:           &m.RegisteredModelTypeId,
+		Name:             registeredModel.Name,
+		ExternalId:       registeredModel.ExternalID,
 		CustomProperties: customProps,
 	}, nil
 }
