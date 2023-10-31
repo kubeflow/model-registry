@@ -103,7 +103,7 @@ model = RegisteredModel("my_model_name",
                         external_id="another_unique_reference")
 ```
 
-You can also perform queries by parameters to get model artifacts:
+You can also perform queries by parameters:
 
 ```py
 # We can get the model artifact associated to a version
@@ -111,6 +111,18 @@ another_trained_model = registry.get_model_artifact_by_params(model_version_id=a
 
 # Or by its unique identifier
 trained_model = registry.get_model_artifact_by_params(external_id="unique_reference")
+
+# Same thing for a version
+version = registry.get_model_version_by_params(external_id="unique_reference")
+
+# Or for a model
+model = registry.get_registered_model_by_params(external_id="another_unique_reference")
+
+# We can also get a version by its name and associated model id
+version = registry.get_model_version_by_params(version="v1.0", registered_model_id="x")
+
+# And we can get a model by simply calling its name
+model = registry.get_registered_model_by_params(name="my_model_name")
 ```
 
 ### Query multiple objects

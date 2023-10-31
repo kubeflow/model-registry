@@ -130,6 +130,29 @@ class ModelRegistry:
         py_rm.versions = versions
         return py_rm
 
+    def get_registered_model_by_params(
+        self, name: Optional[str] = None, external_id: Optional[str] = None
+    ) -> RegisteredModel:
+        """Fetch a registered model by its name or external ID.
+
+        Args:
+            name (str, optional): Registered model name.
+            external_id (str, optional): Registered model external ID.
+
+        Returns:
+            RegisteredModel: Registered model.
+        """
+        if name is None and external_id is None:
+            raise StoreException("Either name or external_id must be provided")
+        proto_rm = self._store.get_context(
+            RegisteredModel.get_proto_type_name(), name=name, external_id=external_id
+        )
+        py_rm = self._unmap(proto_rm)
+        assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
+        assert py_rm.id is not None
+        py_rm.versions = self.get_model_versions(py_rm.id)
+        return py_rm
+
     def get_registered_models(
         self, options: Optional[ListOptions] = None
     ) -> Sequence[RegisteredModel]:
@@ -231,6 +254,42 @@ class ModelRegistry:
             py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
             py_mvs.append(py_mv)
         return py_mvs
+
+    def get_model_version_by_params(
+        self,
+        registered_model_id: Optional[str] = None,
+        version: Optional[str] = None,
+        external_id: Optional[str] = None,
+    ) -> ModelVersion:
+        """Fetch a model version by associated parameters.
+
+        Either fetches by using external ID or by using registered model ID and version.
+
+        Args:
+            registered_model_id (str, optional): Registered model ID.
+            version (str, optional): Model version.
+            external_id (str, optional): Model version external ID.
+
+        Returns:
+            ModelVersion: Model version.
+        """
+        if external_id is not None:
+            proto_mv = self._store.get_context(
+                ModelVersion.get_proto_type_name(), external_id=external_id
+            )
+        elif registered_model_id is None or version is None:
+            raise StoreException(
+                "Either registered_model_id and version or external_id must be provided"
+            )
+        else:
+            proto_mv = self._store.get_context(
+                ModelVersion.get_proto_type_name(),
+                name=f"{registered_model_id}:{version}",
+            )
+        py_mv = self._unmap(proto_mv)
+        assert isinstance(py_mv, ModelVersion), "Expected a model version"
+        # TODO: reinsert model
+        return py_mv
 
     def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str

@@ -138,12 +138,20 @@ class MLMDStore:
     ) -> Sequence[ProtoType]:
         return [proto for proto in protos if proto.type == type_name]
 
-    def get_context(self, ctx_type_name: str, id: int) -> Context:
+    def get_context(self, ctx_type_name: str,
+                    id: Optional[int] = None,
+                    name: Optional[str] = None,
+                    external_id: Optional[str] = None) -> Context:
         """Get a context from the store.
+
+        This gets a context either by ID, name or external ID.
+        If multiple arguments are provided, the simplest query will be performed.
 
         Args:
             ctx_type_name (str): Name of the context type.
-            id (int): ID of the context.
+            id (int, optional): ID of the context.
+            name (str, optional): Name of the context.
+            external_id (str, optional): External ID of the context.
 
         Returns:
             Context: Context.
@@ -151,7 +159,15 @@ class MLMDStore:
         Raises:
             StoreException: If the context doesn't exist.
         """
-        contexts = self._mlmd_store.get_contexts_by_id([id])
+        if name is not None:
+            return self._mlmd_store.get_context_by_type_and_name(ctx_type_name, name)
+
+        if id is not None:
+            contexts = self._mlmd_store.get_contexts_by_id([id])
+        elif external_id is not None:
+            contexts = self._mlmd_store.get_contexts_by_external_ids([external_id])
+        else:
+            raise StoreError("Either id, name or external_id must be provided")
 
         contexts = self._filter_type(ctx_type_name, contexts)
         if contexts:
