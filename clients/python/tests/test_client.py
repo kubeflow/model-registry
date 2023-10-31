@@ -6,14 +6,16 @@ from attrs import evolve
 from ml_metadata.proto import (
     ArtifactType,
     Artifact,
+    Attribution,
     ContextType,
     Context,
     metadata_store_pb2,
 )
 from model_registry import ModelRegistry
+from model_registry.exceptions import StoreException
 from model_registry.store import MLMDStore
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
-from pytest import fixture
+from pytest import fixture, raises
 
 
 @fixture
@@ -129,12 +131,20 @@ def test_upsert_model_version(
     assert model_version.py.version != mv_proto.name
 
 
-def test_get_model_version_by_id(model_registry: ModelRegistry, model_version: Mapped):
+def test_get_model_version_by_id(
+    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+):
+    model.proto.name = f"test_prefix:{model.proto.name}"
+    art_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+
     model_version.proto.name = f"1:{model_version.proto.name}"
+    ctx_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
 
-    id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-    id = str(id)
+    model_registry._store._mlmd_store.put_attributions_and_associations(
+        [Attribution(context_id=ctx_id, artifact_id=art_id)], []
+    )
 
+    id = str(ctx_id)
     mlmd_mv = model_registry.get_model_version_by_id(id)
     assert mlmd_mv.id == id
     assert mlmd_mv.name == model_version.py.name
@@ -159,16 +169,20 @@ def test_upsert_model_artifact(
     assert model.py.name != ma_proto.name
 
 
-def test_upsert_duplicate_model_artifact(
+def test_upsert_duplicate_model_artifact_with_different_version(
     model_registry: ModelRegistry, model: Mapped, model_version: Mapped
 ):
-    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-    mv_id = str(mv_id)
+    mv1_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+    mv1_id = str(mv1_id)
+
+    model_version.proto.name = "version2"
+    mv2_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+    mv2_id = str(mv2_id)
 
     ma1 = evolve(model.py)
-    model_registry.upsert_model_artifact(ma1, mv_id)
+    model_registry.upsert_model_artifact(ma1, mv1_id)
     ma2 = evolve(model.py)
-    model_registry.upsert_model_artifact(ma2, mv_id)
+    model_registry.upsert_model_artifact(ma2, mv2_id)
 
     ma_protos = model_registry._store._mlmd_store.get_artifacts_by_id(
         [int(ma1.id), int(ma2.id)]
@@ -178,12 +192,63 @@ def test_upsert_duplicate_model_artifact(
     assert ma2.name != str(ma_protos[1].name)
 
 
+def test_upsert_duplicate_model_artifact_with_same_version(
+    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+):
+    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+    mv_id = str(mv_id)
+
+    ma1 = evolve(model.py)
+    model_registry.upsert_model_artifact(ma1, mv_id)
+    ma2 = evolve(model.py)
+    with raises(StoreException):
+        model_registry.upsert_model_artifact(ma2, mv_id)
+
+
 def test_get_model_artifact_by_id(model_registry: ModelRegistry, model: Mapped):
     model.proto.name = f"test_prefix:{model.proto.name}"
     id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
     id = str(id)
 
     mlmd_ma = model_registry.get_model_artifact_by_id(id)
+
+    assert mlmd_ma.id == id
+    assert mlmd_ma.name == model.py.name
+    assert mlmd_ma.name != model.proto.name
+
+
+def test_get_model_artifact_by_model_version_id(
+    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+):
+    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+
+    model.proto.name = f"test_prefix:{model.proto.name}"
+    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+
+    model_registry._store._mlmd_store.put_attributions_and_associations(
+        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
+    )
+
+    mlmd_ma = model_registry.get_model_artifact_by_params(model_version_id=str(mv_id))
+
+    assert mlmd_ma.id == str(ma_id)
+    assert mlmd_ma.name == model.py.name
+    assert mlmd_ma.name != model.proto.name
+
+
+def test_get_model_artifact_by_external_id(
+    model_registry: ModelRegistry, model: Mapped
+):
+    model.proto.name = f"test_prefix:{model.proto.name}"
+    model.proto.external_id = "external_id"
+    model.py.external_id = "external_id"
+
+    id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+    id = str(id)
+
+    mlmd_ma = model_registry.get_model_artifact_by_params(
+        external_id=model.py.external_id
+    )
 
     assert mlmd_ma.id == id
     assert mlmd_ma.name == model.py.name

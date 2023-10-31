@@ -173,7 +173,9 @@ class ModelRegistry:
         )
         py_mv = self._unmap(proto_mv)
         assert isinstance(py_mv, ModelVersion), "Expected a model version"
-        # TODO: reinsert model
+        py_mv.model = self.get_model_artifact_by_params(
+            model_version_id=model_version_id
+        )
         return py_mv
 
     def upsert_model_artifact(
@@ -191,8 +193,17 @@ class ModelRegistry:
         Returns:
             str: ID of the model artifact.
         """
-        # TODO: check if mv doesn't have ma already
         mv_id = int(model_version_id)
+        try:
+            self._store.get_attributed_artifact(
+                ModelArtifact.get_proto_type_name(), mv_id
+            )
+            raise StoreException(
+                f"Model version with ID {mv_id} already has a model artifact"
+            )
+        except StoreException as e:
+            if "found" not in str(e).lower():
+                raise
         proto_ma = self._map(model_artifact)
         id = self._store.put_artifact(proto_ma)
         self._store.put_attribution(mv_id, id)
@@ -219,6 +230,34 @@ class ModelRegistry:
         proto_ma = self._store.get_artifact(
             ModelArtifact.get_proto_type_name(), int(id)
         )
+        py_ma = self._unmap(proto_ma)
+        assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
+        return py_ma
+
+    def get_model_artifact_by_params(
+        self, model_version_id: Optional[str] = None, external_id: Optional[str] = None
+    ) -> ModelArtifact:
+        """Fetch a model artifact either by external ID or by the ID of its associated model version.
+
+        Args:
+            model_version_id (str, optional): ID of the associated model version.
+            external_id (str, optional): Model artifact external ID.
+
+        Returns:
+            ModelArtifact: Model artifact.
+        """
+        if external_id:
+            proto_ma = self._store.get_artifact(
+                ModelArtifact.get_proto_type_name(), external_id=external_id
+            )
+        elif not model_version_id:
+            raise StoreException(
+                "Either model_version_id or external_id must be provided"
+            )
+        else:
+            proto_ma = self._store.get_attributed_artifact(
+                ModelArtifact.get_proto_type_name(), int(model_version_id)
+            )
         py_ma = self._unmap(proto_ma)
         assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
         return py_ma

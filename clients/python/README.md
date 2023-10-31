@@ -18,7 +18,8 @@ Registry objects can be created by doing
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
 
 trained_model = ModelArtifact("my_model_name", "resource_URI",
-                              description="Model description")
+                              description="Model description",
+                              external_id="unique_reference")
 
 version = ModelVersion(trained_model, "v1.0", "model author")
 
@@ -49,6 +50,16 @@ another_model = registry.get_registered_model_by_id("another-model-id")
 another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
 
 another_trained_model = registry.get_model_artifact_by_id("another-model-artifact-id")
+```
+
+You can also perform queries by parameters to get model artifacts:
+
+```py
+# we can get the model associated to a version
+another_trained_model = registry.get_model_artifact_by_params(model_version_id=another_version.id)
+
+# or get it by a unique identifier
+trained_model = registry.get_model_artifact_by_params(external_id="unique_reference")
 ```
 
 ## Development

@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Optional
 
 from ml_metadata import MetadataStore, errors
 from ml_metadata.proto import (
@@ -200,7 +201,13 @@ class MLMDStore:
             else:
                 raise StoreException(f"Invalid argument: {e}") from e
 
-    def get_artifact(self, art_type_name: str, id: int) -> Artifact:
+    def get_artifact(
+        self,
+        art_type_name: str,
+        id: Optional[int] = None,
+        name: Optional[str] = None,
+        external_id: Optional[str] = None,
+    ) -> Artifact:
         """Get an artifact from the store.
 
         Args:
@@ -213,10 +220,28 @@ class MLMDStore:
         Raises:
             StoreException: If the context doesn't exist.
         """
-        artifacts = self._mlmd_store.get_artifacts_by_id([id])
+        if name is not None:
+            return self._mlmd_store.get_artifact_by_type_and_name(art_type_name, name)
+
+        if id is not None:
+            artifacts = self._mlmd_store.get_artifacts_by_id([id])
+        elif external_id is not None:
+            artifacts = self._mlmd_store.get_artifacts_by_external_ids([external_id])
+        else:
+            raise StoreException("Either id, name or external_id must be provided")
 
         artifacts = self._filter_type(art_type_name, artifacts)
         if artifacts:
             return artifacts[0]
 
         raise StoreException(f"Artifact with ID {id} does not exist")
+
+    def get_attributed_artifact(self, art_type_name: str, ctx_id: int) -> Artifact:
+        try:
+            artifacts = self._mlmd_store.get_artifacts_by_context(ctx_id)
+        except errors.InternalError as e:
+            raise ServerException(f"Couldn't get artifacts by context {ctx_id}") from e
+        artifacts = self._filter_type(art_type_name, artifacts)
+        if artifacts:
+            return artifacts[0]
+        raise StoreException("No artifacts found")
