@@ -7,7 +7,6 @@ are already covered by the Registry client.
 from ml_metadata.proto import (
     Artifact,
     ArtifactType,
-    ConnectionConfig,
     Context,
     ContextType,
 )
@@ -18,13 +17,6 @@ from model_registry.exceptions import (
 )
 from model_registry.store import MLMDStore
 from pytest import fixture, raises
-
-
-@fixture
-def store_wrapper() -> MLMDStore:
-    config = ConnectionConfig()
-    config.fake_database.SetInParent()
-    return MLMDStore(config)
 
 
 @fixture

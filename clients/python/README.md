@@ -25,6 +25,32 @@ version = ModelVersion(trained_model, "v1.0", "model author")
 model = RegisteredModel("my_model_name")
 ```
 
+<!-- TODO: #120 provide a link to the reference docs instead of code -->
+To register those objects, you can use the [`model_registry.ModelRegistry` class](src/model_registry/registry/client.py):
+
+```py
+from model_registry import ModelRegistry
+
+registry = ModelRegistry("server-address", "port")
+
+model_id = registry.upsert_registered_model(model)
+
+# we need a model to associate the version to
+version_id = registry.upsert_model_version(version, model_id)
+
+# we need a version to associate an trained model to
+experiment_id = registry.upsert_model_artifact(trained_model, version_id)
+```
+
+To get previously registered objects from the registry, use
+```py
+another_model = registry.get_registered_model_by_id("another-model-id")
+
+another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
+
+another_experiment = registry.get_model_artifact_by_id("another-model-artifact-id")
+```
+
 ## Development
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.

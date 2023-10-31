@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Any, Optional
+from inspect import isabstract
+from typing import Any, ClassVar, Optional
 
 from attrs import define, field
 
@@ -13,6 +14,15 @@ from model_registry.store import ProtoType, ScalarType
 
 class Mappable(ABC):
     """Interface for types that can be mapped to and from proto types."""
+
+    @classmethod
+    def get_proto_type_name(cls) -> str:
+        """Name of the proto type
+
+        Returns:
+            str: Name of the class prefixed with `odh.`
+        """
+        return f"odh.{cls.__name__}"
 
     @abstractmethod
     def map(self) -> ProtoType:
@@ -59,6 +69,26 @@ class ProtoBase(Mappable, ABC):
     external_id: Optional[str] = field(kw_only=True, default=None)
     create_time_since_epoch: Optional[int] = field(init=False, default=None)
     last_update_time_since_epoch: Optional[int] = field(init=False, default=None)
+
+    _types_map: ClassVar[dict[str, ProtoBase]] = {}
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        if isabstract(cls):
+            return
+        cls._types_map[cls.get_proto_type_name()] = cls
+
+    @classmethod
+    def get_subclass(cls, proto_type_name: str) -> Mappable:
+        """Get a subclass by proto type name.
+
+        Args:
+            proto_type_name (str): Name of the proto type.
+
+        Returns:
+            Mappable: Subclass.
+        """
+        return cls._types_map[proto_type_name]
 
     @classmethod
     @abstractmethod
