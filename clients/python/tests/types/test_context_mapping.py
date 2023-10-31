@@ -7,7 +7,7 @@ TODO:
 from pytest import fixture
 from ml_metadata.proto import Context
 
-from model_registry.types import ModelArtifact, ModelVersion
+from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
 
 from . import Mapped
 
@@ -15,7 +15,7 @@ from . import Mapped
 @fixture
 def full_model_version() -> Mapped:
     proto_version = Context()
-    proto_version.name = "1.0.0"
+    proto_version.name = "1:1.0.0"
     proto_version.external_id = "test_external_id"
     proto_version.properties["description"].string_value = "test description"
     proto_version.properties["model_name"].string_value = "test_model"
@@ -34,6 +34,7 @@ def full_model_version() -> Mapped:
         external_id="test_external_id",
         description="test description",
     )
+    py_version._registered_model_id = 1
     py_version.tags = ["test_tag1", "test_tag2"]
     py_version.metadata = {
         "int_key": 1,
@@ -47,12 +48,13 @@ def full_model_version() -> Mapped:
 @fixture
 def minimal_model_version() -> Mapped:
     proto_version = Context()
-    proto_version.name = "1.0.0"
+    proto_version.name = "1:1.0.0"
     proto_version.properties["model_name"].string_value = "test_model"
     proto_version.properties["author"].string_value = "test_author"
 
     py_model = ModelArtifact("test_model", "test_uri")
     py_version = ModelVersion(py_model, "1.0.0", "test_author")
+    py_version._registered_model_id = 1
     return Mapped(proto_version, py_version)
 
 

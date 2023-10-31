@@ -24,6 +24,13 @@ class Mappable(ABC):
         """
         return f"odh.{cls.__name__}"
 
+    @property
+    @abstractmethod
+    def proto_name(self) -> str:
+        """Name of the proto object.
+        """
+        pass
+
     @abstractmethod
     def map(self) -> ProtoType:
         """Map to a proto object.
@@ -43,6 +50,20 @@ class Mappable(ABC):
 
         Returns:
             Mappable: Python object.
+        """
+        pass
+
+
+class Prefixable(ABC):
+    """Interface for types that are prefixed.
+
+    We use prefixes to ensure that the user can insert more than one instance of the same type
+    with the same name/external_id.
+    """
+    @property
+    @abstractmethod
+    def mlmd_name_prefix(self) -> str:
+        """Prefix to be used in the proto object.
         """
         pass
 
@@ -90,6 +111,12 @@ class ProtoBase(Mappable, ABC):
         """
         return cls._types_map[proto_type_name]
 
+    @property
+    def proto_name(self) -> str:
+        if isinstance(self, Prefixable):
+            return f"{self.mlmd_name_prefix}:{self.name}"
+        return self.name
+
     @classmethod
     @abstractmethod
     def get_proto_type(cls) -> type[ProtoType]:
@@ -127,7 +154,7 @@ class ProtoBase(Mappable, ABC):
 
     def map(self) -> ProtoType:
         mlmd_obj = (self.get_proto_type())()
-        mlmd_obj.name = self.name
+        mlmd_obj.name = self.proto_name
         if self.id:
             mlmd_obj.id = int(self.id)
         if self.external_id:
@@ -166,7 +193,12 @@ class ProtoBase(Mappable, ABC):
     def unmap(cls, mlmd_obj: ProtoType) -> ProtoBase:
         py_obj = cls.__new__(cls)
         py_obj.id = str(mlmd_obj.id)
-        py_obj.name = mlmd_obj.name
+        if isinstance(py_obj, Prefixable):
+            name: str = mlmd_obj.name
+            assert ':' in name, f"Expected {name} to be prefixed"
+            py_obj.name = name.split(':', 1)[1]
+        else:
+            py_obj.name = mlmd_obj.name
         py_obj.description = mlmd_obj.properties["description"].string_value
         py_obj.external_id = mlmd_obj.external_id
         py_obj.create_time_since_epoch = mlmd_obj.create_time_since_epoch

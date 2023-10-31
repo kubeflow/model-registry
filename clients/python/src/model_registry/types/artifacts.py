@@ -14,11 +14,12 @@ from __future__ import annotations
 
 from enum import Enum, unique
 from typing import Optional
+from uuid import uuid4
 
 from attrs import define, field
 from ml_metadata.proto import Artifact
 
-from .base import ProtoBase
+from .base import Prefixable, ProtoBase
 
 
 @unique
@@ -70,7 +71,7 @@ class BaseArtifact(ProtoBase):
 
 
 @define(slots=False, auto_attribs=True)
-class ModelArtifact(BaseArtifact):
+class ModelArtifact(BaseArtifact, Prefixable):
     """Represents a Model.
 
     Attributes:
@@ -93,6 +94,10 @@ class ModelArtifact(BaseArtifact):
     storage_key: Optional[str] = field(kw_only=True, default=None)
     storage_path: Optional[str] = field(kw_only=True, default=None)
     service_account_name: Optional[str] = field(kw_only=True, default=None)
+
+    @property
+    def mlmd_name_prefix(self) -> str:
+        return uuid4().hex
 
     def map(self) -> Artifact:
         mlmd_obj = super().map()

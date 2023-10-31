@@ -2,6 +2,7 @@
 
 from collections import namedtuple
 
+from attrs import evolve
 from ml_metadata.proto import (
     ArtifactType,
     Artifact,
@@ -42,6 +43,7 @@ def model(store_wrapper: MLMDStore) -> Mapped:
         art_type.properties[key] = metadata_store_pb2.STRING
 
     art = Artifact()
+    # we can't test the name directly as it's prefixed
     art.name = "model"
     art.type_id = store_wrapper._mlmd_store.put_artifact_type(art_type)
     art.uri = "uri"
@@ -63,6 +65,7 @@ def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
         ctx_type.properties[key] = metadata_store_pb2.STRING
 
     ctx = Context()
+    # we can't test the name directly as it's prefixed
     ctx.name = "version"
     ctx.type_id = store_wrapper._mlmd_store.put_context_type(ctx_type)
     ctx.properties["author"].string_value = "author"
@@ -106,6 +109,7 @@ def test_get_registered_model_by_id(
 
     mlmd_rm = model_registry.get_registered_model_by_id(id)
     assert mlmd_rm.id == id
+    assert mlmd_rm.name == registered_model.py.name
     assert mlmd_rm.name == registered_model.proto.name
 
 
@@ -118,43 +122,69 @@ def test_upsert_model_version(
     model_registry.upsert_model_version(model_version.py, rm_id)
 
     mv_proto = model_registry._store._mlmd_store.get_context_by_type_and_name(
-        ModelVersion.get_proto_type_name(), model_version.proto.name
+        ModelVersion.get_proto_type_name(), f"{rm_id}:{model_version.proto.name}"
     )
     assert mv_proto is not None
     assert model_version.py.id == str(mv_proto.id)
-    assert model_version.py.version == mv_proto.name
+    assert model_version.py.version != mv_proto.name
 
 
 def test_get_model_version_by_id(model_registry: ModelRegistry, model_version: Mapped):
+    model_version.proto.name = f"1:{model_version.proto.name}"
+
     id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
     id = str(id)
 
     mlmd_mv = model_registry.get_model_version_by_id(id)
     assert mlmd_mv.id == id
-    assert mlmd_mv.version == model_version.proto.name
+    assert mlmd_mv.name == model_version.py.name
+    assert mlmd_mv.version != model_version.proto.name
 
 
 def test_upsert_model_artifact(
-    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+    monkeypatch, model_registry: ModelRegistry, model: Mapped, model_version: Mapped
 ):
+    monkeypatch.setattr(ModelArtifact, "mlmd_name_prefix", "test_prefix")
+
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
     mv_id = str(mv_id)
 
     model_registry.upsert_model_artifact(model.py, mv_id)
 
     ma_proto = model_registry._store._mlmd_store.get_artifact_by_type_and_name(
-        ModelArtifact.get_proto_type_name(), model.proto.name
+        ModelArtifact.get_proto_type_name(), f"test_prefix:{model.proto.name}"
     )
     assert ma_proto is not None
     assert model.py.id == str(ma_proto.id)
-    assert model.py.name == ma_proto.name
+    assert model.py.name != ma_proto.name
+
+
+def test_upsert_duplicate_model_artifact(
+    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+):
+    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+    mv_id = str(mv_id)
+
+    ma1 = evolve(model.py)
+    model_registry.upsert_model_artifact(ma1, mv_id)
+    ma2 = evolve(model.py)
+    model_registry.upsert_model_artifact(ma2, mv_id)
+
+    ma_protos = model_registry._store._mlmd_store.get_artifacts_by_id(
+        [int(ma1.id), int(ma2.id)]
+    )
+    assert ma1.name == ma2.name
+    assert ma1.name != str(ma_protos[0].name)
+    assert ma2.name != str(ma_protos[1].name)
 
 
 def test_get_model_artifact_by_id(model_registry: ModelRegistry, model: Mapped):
+    model.proto.name = f"test_prefix:{model.proto.name}"
     id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
     id = str(id)
 
     mlmd_ma = model_registry.get_model_artifact_by_id(id)
 
     assert mlmd_ma.id == id
-    assert mlmd_ma.name == model.proto.name
+    assert mlmd_ma.name == model.py.name
+    assert mlmd_ma.name != model.proto.name

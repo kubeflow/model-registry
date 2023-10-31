@@ -12,6 +12,7 @@ TODO:
 from __future__ import annotations
 
 from abc import ABC
+from typing import Optional
 
 from attrs import define, field
 from ml_metadata.proto import Context
@@ -19,7 +20,7 @@ from ml_metadata.proto import Context
 from model_registry.store import ScalarType
 
 from .artifacts import BaseArtifact, ModelArtifact
-from .base import ProtoBase
+from .base import Prefixable, ProtoBase
 
 
 @define(slots=False, init=False)
@@ -32,7 +33,7 @@ class BaseContext(ProtoBase, ABC):
 
 
 @define(slots=False)
-class ModelVersion(BaseContext):
+class ModelVersion(BaseContext, Prefixable):
     """Represents a model version.
 
     Attributes:
@@ -53,8 +54,15 @@ class ModelVersion(BaseContext):
     tags: list[str] = field(init=False, factory=list)
     metadata: dict[str, ScalarType] = field(init=False, factory=dict)
 
+    _registered_model_id: Optional[int] = field(init=False, default=None)
+
     def __attrs_post_init__(self) -> None:
         self.name = self.version
+
+    @property
+    def mlmd_name_prefix(self):
+        assert self._registered_model_id is not None, "There's no registered model associated with this version"
+        return self._registered_model_id
 
     def map(self) -> Context:
         mlmd_obj = super().map()

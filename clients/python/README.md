@@ -48,7 +48,7 @@ another_model = registry.get_registered_model_by_id("another-model-id")
 
 another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
 
-another_experiment = registry.get_model_artifact_by_id("another-model-artifact-id")
+another_trained_model = registry.get_model_artifact_by_id("another-model-artifact-id")
 ```
 
 ## Development

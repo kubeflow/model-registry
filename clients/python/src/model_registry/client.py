@@ -142,6 +142,8 @@ class ModelRegistry:
             str: ID of the model version.
         """
         rm_id = int(registered_model_id)
+        # this is not ideal but we need this info for the prefix
+        model_version._registered_model_id = rm_id
         proto_mv = self._map(model_version)
         id = self._store.put_context(proto_mv)
         self._store.put_context_parent(rm_id, id)

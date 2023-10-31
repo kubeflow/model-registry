@@ -14,7 +14,7 @@ from . import Mapped
 @fixture
 def complete_model() -> Mapped:
     proto_model = Artifact()
-    proto_model.name = "test_model"
+    proto_model.name = "test_prefix:test_model"
     proto_model.external_id = "test_external_id"
     proto_model.state = Artifact.UNKNOWN
     proto_model.uri = "test_uri"
@@ -45,7 +45,7 @@ def complete_model() -> Mapped:
 @fixture
 def minimal_model() -> Mapped:
     proto_model = Artifact()
-    proto_model.name = "test_model"
+    proto_model.name = "test_prefix:test_model"
     proto_model.state = Artifact.UNKNOWN
     proto_model.uri = "test_uri"
 
@@ -53,7 +53,9 @@ def minimal_model() -> Mapped:
     return Mapped(proto_model, py_model)
 
 
-def test_partial_model_mapping(minimal_model: Mapped):
+def test_partial_model_mapping(monkeypatch, minimal_model: Mapped):
+    monkeypatch.setattr(ModelArtifact, "mlmd_name_prefix", "test_prefix")
+
     mapped_model = minimal_model.py.map()
     proto_model = minimal_model.proto
     assert mapped_model.name == proto_model.name
@@ -61,7 +63,9 @@ def test_partial_model_mapping(minimal_model: Mapped):
     assert mapped_model.uri == proto_model.uri
 
 
-def test_full_model_mapping(complete_model: Mapped):
+def test_full_model_mapping(monkeypatch, complete_model: Mapped):
+    monkeypatch.setattr(ModelArtifact, "mlmd_name_prefix", "test_prefix")
+
     mapped_model = complete_model.py.map()
     proto_model = complete_model.proto
     assert mapped_model.name == proto_model.name
@@ -93,3 +97,9 @@ def test_full_model_unmapping(complete_model: Mapped):
     assert unmapped_model.storage_key == py_model.storage_key
     assert unmapped_model.storage_path == py_model.storage_path
     assert unmapped_model.service_account_name == py_model.service_account_name
+
+
+def test_model_prefix_generation(minimal_model: Mapped):
+    name1 = minimal_model.py.map().name
+    name2 = minimal_model.py.map().name
+    assert name1 != name2
