@@ -1,0 +1,6 @@
+.mypy_cache/
+/.coverage*
+/dist/
+/.nox/
+/.python-version
+__pycache__/

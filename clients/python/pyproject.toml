@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "model-registry"
+version = "0.0.0"
+description = "Client for Red Hat OpenDataHub Model Registry"
+authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">= 3.9, < 3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 119
+
+[tool.ruff]
+ignore = ["E501"]
+
+[tool.ruff.mccabe]
+max-complexity = 8
