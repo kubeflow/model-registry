@@ -3,6 +3,7 @@
 
 from .artifacts import ModelArtifact, ArtifactState
 from .contexts import ModelVersion, RegisteredModel
+from .options import ListOptions, OrderByField
 
 __all__ = [
     # Artifacts
@@ -11,4 +12,7 @@ __all__ = [
     # Contexts
     "ModelVersion",
     "RegisteredModel",
+    # Options
+    "ListOptions",
+    "OrderByField",
 ]

@@ -1,7 +1,14 @@
 from collections.abc import Sequence
 from typing import Optional
 
-from ml_metadata import MetadataStore, errors
+from ml_metadata import ListOptions, MetadataStore, errors
+from ml_metadata.proto import (
+    Artifact,
+    Attribution,
+    Context,
+    MetadataStoreClientConfig,
+    ParentContext,
+)
 from ml_metadata.proto import (
     Artifact,
     Attribution,
@@ -152,6 +159,27 @@ class MLMDStore:
 
         raise StoreException(f"Context with ID {id} does not exist")
 
+    def get_contexts(
+        self, ctx_type_name: str, options: ListOptions
+    ) -> Sequence[Context]:
+        # TODO: should we make options optional?
+        # if options is not None:
+        try:
+            contexts = self._mlmd_store.get_contexts(options)
+        except errors.InvalidArgumentError as e:
+            raise StoreError(f"Invalid arguments for get_contexts: {e}") from e
+        except errors.InternalError as e:
+            raise ServerError("Couldn't get contexts from MLMD store") from e
+
+        contexts = self._filter_type(ctx_type_name, contexts)
+        # else:
+        #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
+
+        if not contexts:
+            raise StoreError(f"Context type {ctx_type_name} does not exist")
+
+        return contexts
+
     def put_context_parent(self, parent_id: int, child_id: int):
         """Put a parent-child relationship between two contexts.
 
@@ -245,3 +273,19 @@ class MLMDStore:
         if artifacts:
             return artifacts[0]
         raise StoreException("No artifacts found")
+
+    def get_artifacts(
+        self, art_type_name: str, options: ListOptions
+    ) -> Sequence[Artifact]:
+        try:
+            artifacts = self._mlmd_store.get_artifacts(options)
+        except errors.InvalidArgumentError as e:
+            raise StoreError(f"Invalid arguments for get_artifacts: {e}") from e
+        except errors.InternalError as e:
+            raise ServerError("Couldn't get artifacts from MLMD store") from e
+
+        artifacts = self._filter_type(art_type_name, artifacts)
+        if not artifacts:
+            raise StoreError(f"Artifact type {art_type_name} does not exist")
+
+        return artifacts

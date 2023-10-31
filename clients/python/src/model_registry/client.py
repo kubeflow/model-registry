@@ -1,15 +1,17 @@
 """Client for the model registry.
 """
+from collections.abc import Sequence
 from typing import Optional
 
 from ml_metadata.proto import Artifact, Context, MetadataStoreClientConfig
 
 from .exceptions import StoreException
 from .store import ProtoType, MLMDStore
-from .types import ModelArtifact, ModelVersion, RegisteredModel
+from .types import ModelArtifact, ModelVersion, RegisteredModel, ListOptions
 from .types.artifacts import BaseArtifact
 from .types.base import Mappable
 from .types.contexts import BaseContext
+from .types.options import MLMDListOptions
 
 
 class ModelRegistry:
@@ -123,8 +125,34 @@ class ModelRegistry:
         )
         py_rm = self._unmap(proto_rm)
         assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
-        # TODO: reinsert versions
+        versions = self.get_model_versions(id)
+        assert isinstance(versions, list), "Expected a list"
+        py_rm.versions = versions
         return py_rm
+
+    def get_registered_models(
+        self, options: Optional[ListOptions] = None
+    ) -> Sequence[RegisteredModel]:
+        """Fetch registered models.
+
+        Args:
+            options (ListOptions, optional): Options for listing registered models.
+
+        Returns:
+            Sequence[RegisteredModel]: Registered models.
+        """
+        mlmd_options = options.as_mlmd_list_options() if options else None
+        proto_rms = self._store.get_contexts(
+            RegisteredModel.get_proto_type_name(), mlmd_options
+        )
+        # using a list comprehension will generate a warning as it can't infer the type for every
+        # element on the list
+        py_rms: list[RegisteredModel] = []
+        for proto_rm in proto_rms:
+            py_rm = self._unmap(proto_rm)
+            assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
+            py_rms.append(py_rm)
+        return py_rms
 
     def upsert_model_version(
         self, model_version: ModelVersion, registered_model_id: str
@@ -177,6 +205,32 @@ class ModelRegistry:
             model_version_id=model_version_id
         )
         return py_mv
+
+    def get_model_versions(
+        self, registered_model_id: str, options: Optional[ListOptions] = None
+    ) -> Sequence[ModelVersion]:
+        """Fetch model versions by registered model ID.
+
+        Args:
+            registered_model_id (str): Registered model ID.
+            options (ListOptions, optional): Options for listing model versions.
+
+        Returns:
+            Sequence[ModelVersion]: Model versions.
+        """
+        mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
+        mlmd_options.filter_query = f"parent_contexts_a.id = {registered_model_id}"
+        proto_mvs = self._store.get_contexts(
+            ModelVersion.get_proto_type_name(), mlmd_options
+        )
+        py_mvs: list[ModelVersion] = []
+        for proto_mv in proto_mvs:
+            py_mv = self._unmap(proto_mv)
+            assert isinstance(py_mv, ModelVersion), "Expected a model version"
+            assert py_mv.id is not None, "Model version ID is None"
+            py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
+            py_mvs.append(py_mv)
+        return py_mvs
 
     def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str
@@ -261,3 +315,25 @@ class ModelRegistry:
         py_ma = self._unmap(proto_ma)
         assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
         return py_ma
+
+    # TODO: does this call make sense?
+    def get_model_artifacts(
+        self,
+        model_version_id: Optional[str] = None,
+        options: Optional[ListOptions] = None,
+    ) -> Sequence[ModelArtifact]:
+        mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
+        if model_version_id is not None:
+            mlmd_options.filter_query = f"contexts_a.id = {model_version_id}"
+
+        proto_mas = self._store.get_artifacts(
+            ModelArtifact.get_proto_type_name(), mlmd_options
+        )
+        # using a list comprehension will generate a warning as it can't infer the type for every
+        # element on the list
+        py_mas: list[ModelArtifact] = []
+        for proto_ma in proto_mas:
+            py_ma = self._unmap(proto_ma)
+            assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
+            py_mas.append(py_ma)
+        return py_mas
