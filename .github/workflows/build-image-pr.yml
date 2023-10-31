@@ -10,6 +10,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/dependabot.yml'
       - 'docs/**'
+      - 'clients/python/**'
 
 env:
   QUAY_IMG_REPO: model-registry
