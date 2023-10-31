@@ -1,6 +1,7 @@
 .mypy_cache/
 /.coverage*
 /dist/
+/docs/_build/
 /.nox/
 /.python-version
 __pycache__/

@@ -8,6 +8,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">= 3.9, < 3.11"
+attrs = "^21.0"
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^7.2.6"
+furo = "^2023.9.10"
+myst-parser = { extras = ["linkify"], version = "^2.0.0" }
 
 [build-system]
 requires = ["poetry-core"]
