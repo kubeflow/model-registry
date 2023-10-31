@@ -10,10 +10,13 @@ TODO:
     * Move part of the description to API Reference docs (#120).
 """
 
+from __future__ import annotations
+
 from enum import Enum, unique
 from typing import Optional
 
 from attrs import define, field
+from ml_metadata.proto import Artifact
 
 from .base import ProtoBase
 
@@ -22,13 +25,13 @@ from .base import ProtoBase
 class ArtifactState(Enum):
     """State of an artifact."""
 
-    UNKNOWN = 0
-    PENDING = 1
-    LIVE = 2
-    MARKED_FOR_DELETION = 3
-    DELETED = 4
-    ABANDONED = 5
-    REFERENCE = 6
+    UNKNOWN = Artifact.UNKNOWN
+    PENDING = Artifact.PENDING
+    LIVE = Artifact.LIVE
+    MARKED_FOR_DELETION = Artifact.MARKED_FOR_DELETION
+    DELETED = Artifact.DELETED
+    ABANDONED = Artifact.ABANDONED
+    REFERENCE = Artifact.REFERENCE
 
 
 @define(slots=False)
@@ -45,8 +48,28 @@ class BaseArtifact(ProtoBase):
     uri: str
     state: ArtifactState = field(init=False, default=ArtifactState.UNKNOWN)
 
+    @classmethod
+    def get_proto_type(cls) -> type[Artifact]:
+        return Artifact
 
-@define(slots=False)
+    def map(self) -> Artifact:
+        mlmd_obj = super().map()
+        mlmd_obj.uri = self.uri
+        mlmd_obj.state = ArtifactState[self.state.name].value
+        return mlmd_obj
+
+    @classmethod
+    def unmap(cls, mlmd_obj: Artifact) -> BaseArtifact:
+        py_obj = super().unmap(mlmd_obj)
+        assert isinstance(
+            py_obj, BaseArtifact
+        ), f"Expected BaseArtifact, got {type(py_obj)}"
+        py_obj.uri = mlmd_obj.uri
+        py_obj.state = ArtifactState(mlmd_obj.state)
+        return py_obj
+
+
+@define(slots=False, auto_attribs=True)
 class ModelArtifact(BaseArtifact):
     """Represents a Model.
 
@@ -70,3 +93,34 @@ class ModelArtifact(BaseArtifact):
     storage_key: Optional[str] = field(kw_only=True, default=None)
     storage_path: Optional[str] = field(kw_only=True, default=None)
     service_account_name: Optional[str] = field(kw_only=True, default=None)
+
+    def map(self) -> Artifact:
+        mlmd_obj = super().map()
+        props = {
+            "modelFormatName": self.model_format_name,
+            "modelFormatVersion": self.model_format_version,
+            "runtime": self.runtime,
+            "storageKey": self.storage_key,
+            "storagePath": self.storage_path,
+            "serviceAccountName": self.service_account_name,
+        }
+        self._map_props(props, mlmd_obj.properties)
+        return mlmd_obj
+
+    @classmethod
+    def unmap(cls, mlmd_obj: Artifact) -> ModelArtifact:
+        py_obj = super().unmap(mlmd_obj)
+        assert isinstance(
+            py_obj, ModelArtifact
+        ), f"Expected ModelArtifact, got {type(py_obj)}"
+        py_obj.model_format_name = mlmd_obj.properties["modelFormatName"].string_value
+        py_obj.model_format_version = mlmd_obj.properties[
+            "modelFormatVersion"
+        ].string_value
+        py_obj.runtime = mlmd_obj.properties["runtime"].string_value
+        py_obj.storage_key = mlmd_obj.properties["storageKey"].string_value
+        py_obj.storage_path = mlmd_obj.properties["storagePath"].string_value
+        py_obj.service_account_name = mlmd_obj.properties[
+            "serviceAccountName"
+        ].string_value
+        return py_obj

@@ -27,6 +27,8 @@ model = RegisteredModel("my_model_name")
 
 ## Development
 
-To build the documentation, run `nox -s docs-build`.
+Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
+
+Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
 <!-- github-only -->
