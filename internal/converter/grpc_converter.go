@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/db"
 	"gorm.io/gorm"
@@ -23,6 +24,7 @@ func SetConverterDB(db *gorm.DB) error {
 }
 
 // goverter:converter
+// goverter:output:file ./generated/grpc_converter.gen.go
 // goverter:wrapErrors
 // goverter:matchIgnoreCase
 // goverter:useZeroValueOnPointerInconsistency

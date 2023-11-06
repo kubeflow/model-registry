@@ -59,10 +59,10 @@ internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	goverter -packageName generated -output ./internal/converter/generated/converter.go github.com/opendatahub-io/model-registry/internal/converter/
+	goverter gen github.com/opendatahub-io/model-registry/internal/converter/
 
 .PHONY: gen/converter
-gen/converter: gen/grpc gen/graph internal/converter/generated/converter.go
+gen/converter: gen/grpc internal/converter/generated/converter.go gen/graph
 
 .PHONY: gen/graph
 gen/graph: internal/model/graph/models_gen.go
@@ -101,7 +101,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/converter.go internal/model/openapi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/*.go internal/model/openapi
 
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
@@ -119,7 +119,7 @@ bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
 
 bin/goverter:
-	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v0.18.0
+	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v1.0.0
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
@@ -151,7 +151,7 @@ build: gen vet lint
 	go build
 
 .PHONY: gen
-gen: deps gen/grpc gen/openapi gen/graph gen/converter
+gen: deps gen/grpc gen/openapi gen/converter gen/graph
 	go generate ./...
 
 .PHONY: lint
