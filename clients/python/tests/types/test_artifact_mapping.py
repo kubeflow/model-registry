@@ -21,7 +21,6 @@ def complete_model() -> Mapped:
     proto_model.properties["description"].string_value = "test description"
     proto_model.properties["modelFormatName"].string_value = "test_format"
     proto_model.properties["modelFormatVersion"].string_value = "test_format_version"
-    proto_model.properties["runtime"].string_value = "test_runtime"
     proto_model.properties["storageKey"].string_value = "test_storage_key"
     proto_model.properties["storagePath"].string_value = "test_storage_path"
     proto_model.properties["serviceAccountName"].string_value = "test_account_name"
@@ -33,7 +32,6 @@ def complete_model() -> Mapped:
         external_id="test_external_id",
         model_format_name="test_format",
         model_format_version="test_format_version",
-        runtime="test_runtime",
         storage_key="test_storage_key",
         storage_path="test_storage_path",
         service_account_name="test_account_name",
@@ -93,7 +91,6 @@ def test_full_model_unmapping(complete_model: Mapped):
     assert unmapped_model.description == py_model.description
     assert unmapped_model.model_format_name == py_model.model_format_name
     assert unmapped_model.model_format_version == py_model.model_format_version
-    assert unmapped_model.runtime == py_model.runtime
     assert unmapped_model.storage_key == py_model.storage_key
     assert unmapped_model.storage_path == py_model.storage_path
     assert unmapped_model.service_account_name == py_model.service_account_name

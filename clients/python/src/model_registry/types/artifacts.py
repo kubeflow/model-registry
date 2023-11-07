@@ -81,7 +81,6 @@ class ModelArtifact(BaseArtifact, Prefixable):
         external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
         model_format_name (str, optional): Name of the model format.
         model_format_version (str, optional): Version of the model format.
-        runtime (str, optional): Runtime of the model.
         storage_key (str, optional): Storage key of the model.
         storage_path (str, optional): Storage path of the model.
         service_account_name (str, optional): Service account name of the model.
@@ -90,7 +89,6 @@ class ModelArtifact(BaseArtifact, Prefixable):
     # TODO: this could be an enum of valid formats
     model_format_name: Optional[str] = field(kw_only=True, default=None)
     model_format_version: Optional[str] = field(kw_only=True, default=None)
-    runtime: Optional[str] = field(kw_only=True, default=None)
     storage_key: Optional[str] = field(kw_only=True, default=None)
     storage_path: Optional[str] = field(kw_only=True, default=None)
     service_account_name: Optional[str] = field(kw_only=True, default=None)
@@ -104,7 +102,6 @@ class ModelArtifact(BaseArtifact, Prefixable):
         props = {
             "modelFormatName": self.model_format_name,
             "modelFormatVersion": self.model_format_version,
-            "runtime": self.runtime,
             "storageKey": self.storage_key,
             "storagePath": self.storage_path,
             "serviceAccountName": self.service_account_name,
@@ -122,7 +119,6 @@ class ModelArtifact(BaseArtifact, Prefixable):
         py_obj.model_format_version = mlmd_obj.properties[
             "modelFormatVersion"
         ].string_value
-        py_obj.runtime = mlmd_obj.properties["runtime"].string_value
         py_obj.storage_key = mlmd_obj.properties["storageKey"].string_value
         py_obj.storage_path = mlmd_obj.properties["storagePath"].string_value
         py_obj.service_account_name = mlmd_obj.properties[

@@ -37,7 +37,6 @@ def model(store_wrapper: MLMDStore) -> Mapped:
         "description",
         "modelFormatName",
         "modelFormatVersion",
-        "runtime",
         "storageKey",
         "storagePath",
         "serviceAccountName",
