@@ -241,12 +241,20 @@ def test_get_model_version_by_id(
 
 
 def test_get_model_version_by_name(
-    model_registry: ModelRegistry, model_version: Mapped
+    model_registry: ModelRegistry, model_version: Mapped, model: Mapped
 ):
+    model.proto.name = f"test_prefix:{model.proto.name}"
+    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+
     model_version.proto.name = f"1:{model_version.proto.name}"
 
-    id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-    id = str(id)
+    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+
+    model_registry._store._mlmd_store.put_attributions_and_associations(
+        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
+    )
+
+    id = str(mv_id)
 
     mlmd_mv = model_registry.get_model_version_by_params(
         registered_model_id="1", version=model_version.py.name
@@ -257,14 +265,22 @@ def test_get_model_version_by_name(
 
 
 def test_get_model_version_by_external_id(
-    model_registry: ModelRegistry, model_version: Mapped
+    model_registry: ModelRegistry, model_version: Mapped, model: Mapped
 ):
+    model.proto.name = f"test_prefix:{model.proto.name}"
+    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+
     model_version.proto.name = f"1:{model_version.proto.name}"
     model_version.proto.external_id = "external_id"
     model_version.py.external_id = "external_id"
 
-    id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-    id = str(id)
+    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
+
+    model_registry._store._mlmd_store.put_attributions_and_associations(
+        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
+    )
+
+    id = str(mv_id)
 
     mlmd_mv = model_registry.get_model_version_by_params(
         external_id=model_version.py.external_id

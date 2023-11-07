@@ -288,7 +288,7 @@ class ModelRegistry:
             )
         py_mv = self._unmap(proto_mv)
         assert isinstance(py_mv, ModelVersion), "Expected a model version"
-        # TODO: reinsert model
+        py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
         return py_mv
 
     def upsert_model_artifact(
