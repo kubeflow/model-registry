@@ -430,7 +430,20 @@ def test_get_model_artifact_by_external_id(
     assert mlmd_ma.name != model.proto.name
 
 
-def test_get_model_artifacts(
+def test_get_all_model_artifacts(
+    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
+):
+    model.proto.name = "test_prefix:model1"
+    ma1_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+    model.proto.name = "test_prefix:model2"
+    ma2_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
+
+    mlmd_mas = model_registry.get_model_artifacts()
+    assert len(mlmd_mas) == 2
+    assert mlmd_mas[0].id in [str(ma1_id), str(ma2_id)]
+
+
+def test_get_model_artifacts_by_mv_id(
     model_registry: ModelRegistry, model: Mapped, model_version: Mapped
 ):
     mv1_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
@@ -451,6 +464,6 @@ def test_get_model_artifacts(
         [],
     )
 
-    mlmd_mas = model_registry.get_model_artifacts()
-    assert len(mlmd_mas) == 2
-    assert mlmd_mas[0].id in [str(ma1_id), str(ma2_id)]
+    mlmd_mas = model_registry.get_model_artifacts(str(mv1_id))
+    assert len(mlmd_mas) == 1
+    assert mlmd_mas[0].id == str(ma1_id)
