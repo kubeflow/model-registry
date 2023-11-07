@@ -150,7 +150,9 @@ class ModelRegistry:
         py_rm = self._unmap(proto_rm)
         assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
         assert py_rm.id is not None
-        py_rm.versions = self.get_model_versions(py_rm.id)
+        versions = self.get_model_versions(py_rm.id)
+        assert isinstance(versions, list), "Expected a list"
+        py_rm.versions = versions
         return py_rm
 
     def get_registered_models(
@@ -293,7 +295,7 @@ class ModelRegistry:
 
     def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str
-    ) -> None:
+    ) -> str:
         """Upsert a model artifact.
 
         Updates or creates a model artifact on the server.
@@ -323,6 +325,7 @@ class ModelRegistry:
         new_py_ma = self._unmap(
             self._store.get_artifact(ModelArtifact.get_proto_type_name(), id)
         )
+        assert isinstance(new_py_ma, ModelArtifact), "Expected a model artifact"
         id = str(id)
         model_artifact.id = id
         model_artifact.create_time_since_epoch = new_py_ma.create_time_since_epoch
