@@ -9,6 +9,8 @@ info:
 servers:
   -
     url: 'https://localhost:8080'
+  -
+    url: 'http://localhost:8080'
 paths:
   /api/model_registry/v1alpha1/model_artifact:
     summary: Path used to search for a modelartifact.
@@ -1044,6 +1046,12 @@ components:
           $ref: '#/components/schemas/BaseArtifact'
         -
           $ref: '#/components/schemas/ModelArtifactCreate'
+        -
+          type: object
+          properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:

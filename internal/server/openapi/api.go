@@ -11,8 +11,9 @@ package openapi
 
 import (
 	"context"
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"net/http"
+
+	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 )
 
 // ModelRegistryServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelRegistryServiceAPI
@@ -71,7 +72,7 @@ type ModelRegistryServiceAPIServicer interface {
 	CreateRegisteredModelVersion(context.Context, string, model.ModelVersion) (ImplResponse, error)
 	CreateServingEnvironment(context.Context, model.ServingEnvironmentCreate) (ImplResponse, error)
 	FindInferenceService(context.Context, string, string) (ImplResponse, error)
-	FindModelArtifact(context.Context, string, string) (ImplResponse, error)
+	FindModelArtifact(context.Context, string, string, string) (ImplResponse, error)
 	FindModelVersion(context.Context, string, string, string) (ImplResponse, error)
 	FindRegisteredModel(context.Context, string, string) (ImplResponse, error)
 	FindServingEnvironment(context.Context, string, string) (ImplResponse, error)

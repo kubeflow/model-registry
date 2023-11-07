@@ -70,6 +70,8 @@ func NewModelArtifactWithDefaults() *ModelArtifact {
 	this := ModelArtifact{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	return &this
 }
 

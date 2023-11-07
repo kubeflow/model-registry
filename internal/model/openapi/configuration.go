@@ -96,6 +96,10 @@ func NewConfiguration() *Configuration {
 				URL:         "https://localhost:8080",
 				Description: "No description provided",
 			},
+			{
+				URL:         "http://localhost:8080",
+				Description: "No description provided",
+			},
 		},
 		OperationServers: map[string]ServerConfigurations{},
 	}

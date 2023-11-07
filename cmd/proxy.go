@@ -1,12 +1,17 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/internal/server/openapi"
-	"github.com/spf13/cobra"
 	"log"
 	"net/http"
+
+	"github.com/golang/glog"
+	"github.com/opendatahub-io/model-registry/internal/core"
+	"github.com/opendatahub-io/model-registry/internal/server/openapi"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -25,7 +30,27 @@ hostname and port where it listens.'`,
 func runProxyServer(cmd *cobra.Command, args []string) error {
 	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
-	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService()
+	mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
+	glog.Infof("MLMD server %s", mlmdAddr)
+	conn, err := grpc.DialContext(
+		context.Background(),
+		mlmdAddr,
+		grpc.WithReturnConnectionError(),
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatalf("Error dialing connection to mlmd server %s: %v", mlmdAddr, err)
+		return err
+	}
+	defer conn.Close()
+	service, err := core.NewModelRegistryService(conn)
+	if err != nil {
+		log.Fatalf("Error creating core service: %v", err)
+		return err
+	}
+
+	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
 	ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 
 	router := openapi.NewRouter(ModelRegistryServiceAPIController)
@@ -37,14 +62,19 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 func init() {
 	rootCmd.AddCommand(proxyCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// proxyCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
+
+	proxyCmd.Flags().StringVar(&proxyCfg.MLMDHostname, "mlmdhostname", proxyCfg.MLMDHostname, "MLMD hostname")
+	proxyCmd.Flags().IntVar(&proxyCfg.MLMDPort, "mlmdport", proxyCfg.MLMDPort, "MLMD port")
+}
+
+type ProxyConfig struct {
+	MLMDHostname string
+	MLMDPort     int
+}
+
+var proxyCfg = ProxyConfig{
+	MLMDHostname: "localhost",
+	MLMDPort:     8081,
 }

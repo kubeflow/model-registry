@@ -37,6 +37,17 @@ func Int64ToString(id *int64) *string {
 	return &idAsString
 }
 
+// StringToInt32 converts string-based numeric value (a OpenAPI string literal consisting only of digits) to int32 if numeric, otherwise return error
+func StringToInt32(idString string) (int32, error) {
+	idInt, err := strconv.Atoi(idString)
+	if err != nil {
+		return 0, err
+	}
+
+	idInt32 := int32(idInt)
+	return idInt32, nil
+}
+
 // MapOpenAPICustomProperties maps OpenAPI custom properties model to MLMD one
 func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[string]*proto.Value, error) {
 	props := make(map[string]*proto.Value)

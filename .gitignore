@@ -3,3 +3,9 @@
 model-registry
 metadata.sqlite.db
 vendor
+
+# Robot Framework files
+log.html
+output.xml
+report.html
+__pycache__

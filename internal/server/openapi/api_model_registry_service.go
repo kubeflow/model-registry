@@ -11,11 +11,11 @@ package openapi
 
 import (
 	"encoding/json"
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 )
 
 // ModelRegistryServiceAPIController binds http requests to an api service and writes the service results to the http response
@@ -496,7 +496,8 @@ func (c *ModelRegistryServiceAPIController) FindModelArtifact(w http.ResponseWri
 	query := r.URL.Query()
 	nameParam := query.Get("name")
 	externalIDParam := query.Get("externalID")
-	result, err := c.service.FindModelArtifact(r.Context(), nameParam, externalIDParam)
+	parentResourceIDParam := query.Get("parentResourceID")
+	result, err := c.service.FindModelArtifact(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -511,8 +512,8 @@ func (c *ModelRegistryServiceAPIController) FindModelVersion(w http.ResponseWrit
 	query := r.URL.Query()
 	nameParam := query.Get("name")
 	externalIDParam := query.Get("externalID")
-	registeredModelIDParam := query.Get("registeredModelID")
-	result, err := c.service.FindModelVersion(r.Context(), nameParam, externalIDParam, registeredModelIDParam)
+	parentResourceIDParam := query.Get("parentResourceID")
+	result, err := c.service.FindModelVersion(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

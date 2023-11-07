@@ -12,15 +12,17 @@ package openapi
 import (
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/golang/glog"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/golang/glog"
 )
 
 //lint:file-ignore U1000 Ignore all unused code, it's generated
@@ -48,6 +50,14 @@ const errMsgMaxValueConstraint = "provided parameter is not respecting maximum v
 func NewRouter(routers ...Router) chi.Router {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-PINGOTHER"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 	for _, api := range routers {
 		for _, route := range api.Routes() {
 			handler := route.HandlerFunc

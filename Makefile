@@ -80,8 +80,10 @@ openapi/validate: bin/openapi-generator-cli
 .PHONY: gen/openapi-server
 gen/openapi-server: bin/openapi-generator-cli openapi/validate
 	openapi-generator-cli generate \
-		-i api/openapi/model-registry.yaml -g go-server -o internal/server/openapi --package-name openapi \
-		--ignore-file-override ./.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true
+		-i api/openapi/model-registry.yaml -g go-server -o internal/server/openapi --package-name openapi --global-property models \
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true \
+		--template-dir ./templates/go-server
+	./scripts/gen_type_asserts.sh
 	gofmt -w internal/server/openapi
 
 # generate the openapi schema model and client

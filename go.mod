@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.40
 	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/cors v1.2.1
 	github.com/golang/glog v1.1.2
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/searKing/golang/tools/go-enum v1.2.97
