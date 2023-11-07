@@ -136,6 +136,9 @@ versions = registry.get_model_versions("registered_model_id")
 
 # We can get associated model artifacts with the versions
 model_artifacts = [version.model for version in versions]
+
+# We can also get a list of all model artifacts
+all_model_artifacts = registry.get_model_artifacts()
 ```
 
 To limit or order the query, provide a [`ListOptions`](src/model_registry/types/options.py) object

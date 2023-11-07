@@ -378,12 +378,20 @@ class ModelRegistry:
         assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
         return py_ma
 
-    # TODO: does this call make sense?
     def get_model_artifacts(
         self,
         model_version_id: Optional[str] = None,
         options: Optional[ListOptions] = None,
     ) -> Sequence[ModelArtifact]:
+        """Fetches model artifacts.
+
+        Args:
+            model_version_id (str, optional): ID of the associated model version.
+            options (ListOptions, optional): Options for listing model artifacts.
+
+        Returns:
+            Sequence[ModelArtifact]: Model artifacts.
+        """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         if model_version_id is not None:
             mlmd_options.filter_query = f"contexts_a.id = {model_version_id}"
