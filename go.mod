@@ -9,7 +9,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/searKing/golang/tools/go-enum v1.2.97
 	github.com/soheilhy/cmux v0.1.5
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4
@@ -51,7 +51,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/containerd/containerd v1.7.7 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/cucumber/godog v0.13.0
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v24.0.7+incompatible // indirect
