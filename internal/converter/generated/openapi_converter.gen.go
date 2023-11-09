@@ -6,6 +6,84 @@ import openapi "github.com/opendatahub-io/model-registry/internal/model/openapi"
 
 type OpenAPIConverterImpl struct{}
 
+func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.InferenceServiceCreate) (*openapi.InferenceService, error) {
+	var pOpenapiInferenceService *openapi.InferenceService
+	if source != nil {
+		var openapiInferenceService openapi.InferenceService
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiInferenceService.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiInferenceService.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiInferenceService.ExternalID = pString2
+		var pString3 *string
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			pString3 = &xstring3
+		}
+		openapiInferenceService.Name = pString3
+		var pString4 *string
+		if (*source).ModelVersionId != nil {
+			xstring4 := *(*source).ModelVersionId
+			pString4 = &xstring4
+		}
+		openapiInferenceService.ModelVersionId = pString4
+		openapiInferenceService.RegisteredModelId = (*source).RegisteredModelId
+		openapiInferenceService.ServingEnvironmentId = (*source).ServingEnvironmentId
+		pOpenapiInferenceService = &openapiInferenceService
+	}
+	return pOpenapiInferenceService, nil
+}
+func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.InferenceServiceUpdate) (*openapi.InferenceService, error) {
+	var pOpenapiInferenceService *openapi.InferenceService
+	if source != nil {
+		var openapiInferenceService openapi.InferenceService
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiInferenceService.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiInferenceService.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiInferenceService.ExternalID = pString2
+		var pString3 *string
+		if (*source).ModelVersionId != nil {
+			xstring3 := *(*source).ModelVersionId
+			pString3 = &xstring3
+		}
+		openapiInferenceService.ModelVersionId = pString3
+		pOpenapiInferenceService = &openapiInferenceService
+	}
+	return pOpenapiInferenceService, nil
+}
 func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
@@ -293,6 +371,147 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil
+}
+func (c *OpenAPIConverterImpl) ConvertServeModelCreate(source *openapi.ServeModelCreate) (*openapi.ServeModel, error) {
+	var pOpenapiServeModel *openapi.ServeModel
+	if source != nil {
+		var openapiServeModel openapi.ServeModel
+		var pOpenapiExecutionState *openapi.ExecutionState
+		if (*source).LastKnownState != nil {
+			openapiExecutionState := openapi.ExecutionState(*(*source).LastKnownState)
+			pOpenapiExecutionState = &openapiExecutionState
+		}
+		openapiServeModel.LastKnownState = pOpenapiExecutionState
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiServeModel.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiServeModel.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiServeModel.ExternalID = pString2
+		var pString3 *string
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			pString3 = &xstring3
+		}
+		openapiServeModel.Name = pString3
+		openapiServeModel.ModelVersionId = (*source).ModelVersionId
+		pOpenapiServeModel = &openapiServeModel
+	}
+	return pOpenapiServeModel, nil
+}
+func (c *OpenAPIConverterImpl) ConvertServeModelUpdate(source *openapi.ServeModelUpdate) (*openapi.ServeModel, error) {
+	var pOpenapiServeModel *openapi.ServeModel
+	if source != nil {
+		var openapiServeModel openapi.ServeModel
+		var pOpenapiExecutionState *openapi.ExecutionState
+		if (*source).LastKnownState != nil {
+			openapiExecutionState := openapi.ExecutionState(*(*source).LastKnownState)
+			pOpenapiExecutionState = &openapiExecutionState
+		}
+		openapiServeModel.LastKnownState = pOpenapiExecutionState
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiServeModel.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiServeModel.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiServeModel.ExternalID = pString2
+		pOpenapiServeModel = &openapiServeModel
+	}
+	return pOpenapiServeModel, nil
+}
+func (c *OpenAPIConverterImpl) ConvertServingEnvironmentCreate(source *openapi.ServingEnvironmentCreate) (*openapi.ServingEnvironment, error) {
+	var pOpenapiServingEnvironment *openapi.ServingEnvironment
+	if source != nil {
+		var openapiServingEnvironment openapi.ServingEnvironment
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiServingEnvironment.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiServingEnvironment.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiServingEnvironment.ExternalID = pString2
+		var pString3 *string
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			pString3 = &xstring3
+		}
+		openapiServingEnvironment.Name = pString3
+		pOpenapiServingEnvironment = &openapiServingEnvironment
+	}
+	return pOpenapiServingEnvironment, nil
+}
+func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.ServingEnvironmentUpdate) (*openapi.ServingEnvironment, error) {
+	var pOpenapiServingEnvironment *openapi.ServingEnvironment
+	if source != nil {
+		var openapiServingEnvironment openapi.ServingEnvironment
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue := make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+			for key, value := range *(*source).CustomProperties {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+			pMapStringOpenapiMetadataValue = &mapStringOpenapiMetadataValue
+		}
+		openapiServingEnvironment.CustomProperties = pMapStringOpenapiMetadataValue
+		var pString *string
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			pString = &xstring
+		}
+		openapiServingEnvironment.Description = pString
+		var pString2 *string
+		if (*source).ExternalID != nil {
+			xstring2 := *(*source).ExternalID
+			pString2 = &xstring2
+		}
+		openapiServingEnvironment.ExternalID = pString2
+		pOpenapiServingEnvironment = &openapiServingEnvironment
+	}
+	return pOpenapiServingEnvironment, nil
 }
 func (c *OpenAPIConverterImpl) openapiMetadataValueToOpenapiMetadataValue(source openapi.MetadataValue) openapi.MetadataValue {
 	var openapiMetadataValue openapi.MetadataValue

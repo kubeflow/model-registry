@@ -6,12 +6,22 @@ import (
 )
 
 const (
-	RegisteredModelTypeName = "odh.RegisteredModel"
-	ModelVersionTypeName    = "odh.ModelVersion"
-	ModelArtifactTypeName   = "odh.ModelArtifact"
+	RegisteredModelTypeName    = "odh.RegisteredModel"
+	ModelVersionTypeName       = "odh.ModelVersion"
+	ModelArtifactTypeName      = "odh.ModelArtifact"
+	ServingEnvironmentTypeName = "odh.ServingEnvironment"
+	InferenceServiceTypeName   = "odh.InferenceService"
+	ServeModelTypeName         = "odh.ServeModel"
 )
 
-type OpenAPIModelWrapper[M openapi.RegisteredModel | openapi.ModelVersion | openapi.ModelArtifact] struct {
+type OpenAPIModelWrapper[
+	M openapi.RegisteredModel |
+		openapi.ModelVersion |
+		openapi.ModelArtifact |
+		openapi.ServingEnvironment |
+		openapi.InferenceService |
+		openapi.ServeModel,
+] struct {
 	TypeId           int64
 	Model            *M
 	ParentResourceId *string // optional parent id
@@ -47,4 +57,25 @@ type OpenAPIToMLMDConverter interface {
 	// goverter:map Model.State State | MapOpenAPIModelArtifactState
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertModelArtifact(source *OpenAPIModelWrapper[openapi.ModelArtifact]) (*proto.Artifact, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Type | MapServingEnvironmentType
+	// goverter:map Model Properties | MapServingEnvironmentProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertServingEnvironment(source *OpenAPIModelWrapper[openapi.ServingEnvironment]) (*proto.Context, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapInferenceServiceName
+	// goverter:map Model Type | MapInferenceServiceType
+	// goverter:map Model Properties | MapInferenceServiceProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertInferenceService(source *OpenAPIModelWrapper[openapi.InferenceService]) (*proto.Context, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapServeModelName
+	// goverter:map Model Type | MapServeModelType
+	// goverter:map Model Properties | MapServeModelProperties
+	// goverter:map Model.LastKnownState LastKnownState | MapLastKnownState
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertServeModel(source *OpenAPIModelWrapper[openapi.ServeModel]) (*proto.Execution, error)
 }

@@ -133,7 +133,7 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 	return props, nil
 }
 
-// MapRegisteredModelType returnd RegisteredModel corresponding MLMD context type
+// MapRegisteredModelType return RegisteredModel corresponding MLMD context type
 func MapRegisteredModelType(_ *openapi.RegisteredModel) *string {
 	return of(RegisteredModelTypeName)
 }
@@ -173,7 +173,7 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 	return props, nil
 }
 
-// MapModelVersionType returnd ModelVersion corresponding MLMD context type
+// MapModelVersionType return ModelVersion corresponding MLMD context type
 func MapModelVersionType(_ *openapi.ModelVersion) *string {
 	return of(ModelVersionTypeName)
 }
@@ -243,7 +243,7 @@ func MapModelArtifactProperties(source *openapi.ModelArtifact) (map[string]*prot
 	return props, nil
 }
 
-// MapModelArtifactType returnd ModelArtifact corresponding MLMD context type
+// MapModelArtifactType return ModelArtifact corresponding MLMD context type
 func MapModelArtifactType(_ *openapi.ModelArtifact) *string {
 	return of(ModelArtifactTypeName)
 }
@@ -262,13 +262,162 @@ func MapModelArtifactName(source *OpenAPIModelWrapper[openapi.ModelArtifact]) *s
 	return of(PrefixWhenOwned(source.ParentResourceId, artifactName))
 }
 
-func MapOpenAPIModelArtifactState(source *openapi.ArtifactState) *proto.Artifact_State {
+func MapOpenAPIModelArtifactState(source *openapi.ArtifactState) (*proto.Artifact_State, error) {
 	if source == nil {
-		return nil
+		return nil, nil
 	}
 
-	state := (proto.Artifact_State)(proto.Artifact_State_value[string(*source)])
-	return &state
+	val, ok := proto.Artifact_State_value[string(*source)]
+	if !ok {
+		return nil, fmt.Errorf("invalid artifact state: %s", string(*source))
+	}
+
+	return (*proto.Artifact_State)(&val), nil
+}
+
+// SERVING ENVIRONMENT
+
+// MapServingEnvironmentType return ServingEnvironment corresponding MLMD context type
+func MapServingEnvironmentType(_ *openapi.ServingEnvironment) *string {
+	return of(ServingEnvironmentTypeName)
+}
+
+// MapServingEnvironmentProperties maps ServingEnvironment fields to specific MLMD properties
+func MapServingEnvironmentProperties(source *openapi.ServingEnvironment) (map[string]*proto.Value, error) {
+	props := make(map[string]*proto.Value)
+	if source != nil {
+		if source.Description != nil {
+			props["description"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Description,
+				},
+			}
+		}
+	}
+	return props, nil
+}
+
+// INFERENCE SERVICE
+
+// MapInferenceServiceType return InferenceService corresponding MLMD context type
+func MapInferenceServiceType(_ *openapi.InferenceService) *string {
+	return of(InferenceServiceTypeName)
+}
+
+// MapInferenceServiceProperties maps InferenceService fields to specific MLMD properties
+func MapInferenceServiceProperties(source *openapi.InferenceService) (map[string]*proto.Value, error) {
+	props := make(map[string]*proto.Value)
+	if source != nil {
+		if source.Description != nil {
+			props["description"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Description,
+				},
+			}
+		}
+
+		registeredModelId, err := StringToInt64(&source.RegisteredModelId)
+		if err != nil {
+			return nil, err
+		}
+		props["registered_model_id"] = &proto.Value{
+			Value: &proto.Value_IntValue{
+				IntValue: *registeredModelId,
+			},
+		}
+
+		servingEnvironmentId, err := StringToInt64(&source.ServingEnvironmentId)
+		if err != nil {
+			return nil, err
+		}
+		props["serving_environment_id"] = &proto.Value{
+			Value: &proto.Value_IntValue{
+				IntValue: *servingEnvironmentId,
+			},
+		}
+
+		if source.ModelVersionId != nil {
+			modelVersionId, err := StringToInt64(source.ModelVersionId)
+			if err != nil {
+				return nil, err
+			}
+			props["model_version_id"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: *modelVersionId,
+				},
+			}
+		}
+
+	}
+	return props, nil
+}
+
+// MapInferenceServiceName maps the user-provided name into MLMD one, i.e., prefixing it with
+// either the parent resource id or a generated uuid
+// ref: > InferenceService context is actually a child of ServingEnvironment parent context
+func MapInferenceServiceName(source *OpenAPIModelWrapper[openapi.InferenceService]) *string {
+	return of(PrefixWhenOwned(source.ParentResourceId, *(*source).Model.Name))
+}
+
+// SERVE MODEL
+
+// MapServeModelType return ServeModel corresponding MLMD context type
+func MapServeModelType(_ *openapi.ServeModel) *string {
+	return of(ServeModelTypeName)
+}
+
+// MapServeModelProperties maps ServeModel fields to specific MLMD properties
+func MapServeModelProperties(source *openapi.ServeModel) (map[string]*proto.Value, error) {
+	props := make(map[string]*proto.Value)
+	if source != nil {
+		if source.Description != nil {
+			props["description"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Description,
+				},
+			}
+		}
+
+		modelVersionId, err := StringToInt64(&source.ModelVersionId)
+		if err != nil {
+			return nil, err
+		}
+		props["model_version_id"] = &proto.Value{
+			Value: &proto.Value_IntValue{
+				IntValue: *modelVersionId,
+			},
+		}
+
+	}
+	return props, nil
+}
+
+// MapServeModelName maps the user-provided name into MLMD one, i.e., prefixing it with
+// either the parent resource id or a generated uuid. If not provided, autogenerate the name
+// itself
+func MapServeModelName(source *OpenAPIModelWrapper[openapi.ServeModel]) *string {
+	// openapi.ServeModel is defined with optional name, so build arbitrary name for this artifact if missing
+	var serveModelName string
+	if (*source).Model.Name != nil {
+		serveModelName = *(*source).Model.Name
+	} else {
+		serveModelName = uuid.New().String()
+	}
+	return of(PrefixWhenOwned(source.ParentResourceId, serveModelName))
+}
+
+// MapLastKnownState maps LastKnownState field from ServeModel to Execution
+func MapLastKnownState(source *openapi.ExecutionState) (*proto.Execution_State, error) {
+	if source == nil {
+		return nil, nil
+	}
+
+	val, ok := proto.Execution_State_value[string(*source)]
+	if !ok {
+		return nil, fmt.Errorf("invalid execution state: %s", string(*source))
+	}
+
+	return (*proto.Execution_State)(&val), nil
 }
 
 // of returns a pointer to the provided literal/const input

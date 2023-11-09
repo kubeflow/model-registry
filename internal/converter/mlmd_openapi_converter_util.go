@@ -93,7 +93,7 @@ func MapMLMDModelArtifactState(source *proto.Artifact_State) *openapi.ArtifactSt
 	return (*openapi.ArtifactState)(&state)
 }
 
-// MapStringProperty maps proto.Artifact property to specific ModelArtifact string field
+// MapStringProperty maps string proto.Value property to specific string field
 func MapStringProperty(properties map[string]*proto.Value, key string) *string {
 	val, ok := properties[key]
 	if ok {
@@ -104,6 +104,26 @@ func MapStringProperty(properties map[string]*proto.Value, key string) *string {
 	}
 
 	return nil
+}
+
+// MapIntProperty maps int proto.Value property to specific string field
+func MapIntProperty(properties map[string]*proto.Value, key string) *string {
+	val, ok := properties[key]
+	if ok {
+		res := val.GetIntValue()
+		return Int64ToString(&res)
+	}
+
+	return nil
+}
+
+// MapIntPropertyAsValue maps int proto.Value property to specific string field
+func MapIntPropertyAsValue(properties map[string]*proto.Value, key string) string {
+	val := MapIntProperty(properties, key)
+	if val != nil {
+		return *val
+	}
+	return ""
 }
 
 func MapDescription(properties map[string]*proto.Value) *string {
@@ -132,4 +152,31 @@ func MapModelArtifactStoragePath(properties map[string]*proto.Value) *string {
 
 func MapModelArtifactServiceAccountName(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "service_account_name")
+}
+
+func MapPropertyModelVersionId(properties map[string]*proto.Value) *string {
+	return MapIntProperty(properties, "model_version_id")
+}
+
+func MapPropertyModelVersionIdAsValue(properties map[string]*proto.Value) string {
+	return MapIntPropertyAsValue(properties, "model_version_id")
+}
+
+func MapPropertyRegisteredModelId(properties map[string]*proto.Value) string {
+	return MapIntPropertyAsValue(properties, "registered_model_id")
+}
+
+func MapPropertyServingEnvironmentId(properties map[string]*proto.Value) string {
+	return MapIntPropertyAsValue(properties, "serving_environment_id")
+}
+
+// SERVE MODEL
+
+func MapMLMDServeModelLastKnownState(source *proto.Execution_State) *openapi.ExecutionState {
+	if source == nil {
+		return nil
+	}
+
+	state := source.String()
+	return (*openapi.ExecutionState)(&state)
 }

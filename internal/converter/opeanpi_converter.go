@@ -25,4 +25,22 @@ type OpenAPIConverter interface {
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
 	ConvertModelArtifactUpdate(source *openapi.ModelArtifactUpdate) (*openapi.ModelArtifact, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertServingEnvironmentCreate(source *openapi.ServingEnvironmentCreate) (*openapi.ServingEnvironment, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
+	ConvertServingEnvironmentUpdate(source *openapi.ServingEnvironmentUpdate) (*openapi.ServingEnvironment, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertInferenceServiceCreate(source *openapi.InferenceServiceCreate) (*openapi.InferenceService, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name RegisteredModelId ServingEnvironmentId
+	ConvertInferenceServiceUpdate(source *openapi.InferenceServiceUpdate) (*openapi.InferenceService, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertServeModelCreate(source *openapi.ServeModelCreate) (*openapi.ServeModel, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ModelVersionId
+	ConvertServeModelUpdate(source *openapi.ServeModelUpdate) (*openapi.ServeModel, error)
 }

@@ -21,7 +21,6 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
 	ConvertModelVersion(source *proto.Context) (*openapi.ModelVersion, error)
 
-	// TODO: map actually ignored properties from Artifact.Properties
 	// goverter:map Name | MapNameFromOwned
 	// goverter:map . ArtifactType | MapArtifactType
 	// goverter:map State | MapMLMDModelArtifactState
@@ -33,4 +32,21 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties StoragePath | MapModelArtifactStoragePath
 	// goverter:map Properties ServiceAccountName | MapModelArtifactServiceAccountName
 	ConvertModelArtifact(source *proto.Artifact) (*openapi.ModelArtifact, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map Properties Description | MapDescription
+	ConvertServingEnvironment(source *proto.Context) (*openapi.ServingEnvironment, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties ModelVersionId | MapPropertyModelVersionId
+	// goverter:map Properties RegisteredModelId | MapPropertyRegisteredModelId
+	// goverter:map Properties ServingEnvironmentId | MapPropertyServingEnvironmentId
+	ConvertInferenceService(source *proto.Context) (*openapi.InferenceService, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties ModelVersionId | MapPropertyModelVersionIdAsValue
+	// goverter:map LastKnownState | MapMLMDServeModelLastKnownState
+	ConvertServeModel(source *proto.Execution) (*openapi.ServeModel, error)
 }

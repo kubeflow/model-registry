@@ -38,88 +38,58 @@ func NewModelRegistryServiceAPIService(coreApi core.ModelRegistryApi) ModelRegis
 
 // CreateEnvironmentInferenceService - Create a InferenceService in ServingEnvironment
 func (s *ModelRegistryServiceAPIService) CreateEnvironmentInferenceService(ctx context.Context, servingenvironmentId string, inferenceServiceCreate model.InferenceServiceCreate) (ImplResponse, error) {
-	// TODO - update CreateEnvironmentInferenceService with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(201, InferenceService{}) or use other options such as http.Ok ...
-	// return Response(201, InferenceService{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateEnvironmentInferenceService method not implemented")
+	inferenceServiceCreate.ServingEnvironmentId = servingenvironmentId
+	return s.CreateInferenceService(ctx, inferenceServiceCreate)
+	// TODO: return Response(404, Error{}), nil
 }
 
 // CreateInferenceService - Create a InferenceService
 func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Context, inferenceServiceCreate model.InferenceServiceCreate) (ImplResponse, error) {
-	// TODO - update CreateInferenceService with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	entity, err := s.converter.ConvertInferenceServiceCreate(&inferenceServiceCreate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
 
-	// TODO: Uncomment the next line to return response Response(200, InferenceService{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceService{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateInferenceService method not implemented")
+	result, err := s.coreApi.UpsertInferenceService(entity)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(201, result), nil
+	// TODO: return Response(400, Error{}), nil
+	// TODO: return Response(401, Error{}), nil
 }
 
 // CreateInferenceServiceServe - Create a ServeModel action in a InferenceService
 func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context.Context, inferenceserviceId string, serveModelCreate model.ServeModelCreate) (ImplResponse, error) {
-	// TODO - update CreateInferenceServiceServe with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	entity, err := s.converter.ConvertServeModelCreate(&serveModelCreate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
 
-	// TODO: Uncomment the next line to return response Response(201, ServeModel{}) or use other options such as http.Ok ...
-	// return Response(201, ServeModel{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateInferenceServiceServe method not implemented")
+	result, err := s.coreApi.UpsertServeModel(entity, &inferenceserviceId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(201, result), nil
+	// TODO: return Response(400, Error{}), nil
+	// TODO: return Response(401, Error{}), nil
+	// TODO: return Response(404, Error{}), nil
 }
 
 // CreateModelArtifact - Create a ModelArtifact
 func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context, modelArtifactCreate model.ModelArtifactCreate) (ImplResponse, error) {
-	// TODO - update CreateModelArtifact with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	entity, err := s.converter.ConvertModelArtifactCreate(&modelArtifactCreate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
 
-	// TODO: Uncomment the next line to return response Response(201, ModelArtifact{}) or use other options such as http.Ok ...
-	// return Response(201, ModelArtifact{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateModelArtifact method not implemented")
+	result, err := s.coreApi.UpsertModelArtifact(entity, nil)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(201, result), nil
+	// TODO: return Response(400, Error{}), nil
+	// TODO: return Response(401, Error{}), nil
 }
 
 // CreateModelVersion - Create a ModelVersion
@@ -158,7 +128,6 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.
 
 // CreateRegisteredModel - Create a RegisteredModel
 func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Context, registeredModelCreate model.RegisteredModelCreate) (ImplResponse, error) {
-
 	registeredModel, err := s.converter.ConvertRegisteredModelCreate(&registeredModelCreate)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
@@ -187,45 +156,30 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx contex
 
 // CreateServingEnvironment - Create a ServingEnvironment
 func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Context, servingEnvironmentCreate model.ServingEnvironmentCreate) (ImplResponse, error) {
-	// TODO - update CreateServingEnvironment with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	entity, err := s.converter.ConvertServingEnvironmentCreate(&servingEnvironmentCreate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
 
-	// TODO: Uncomment the next line to return response Response(201, ServingEnvironment{}) or use other options such as http.Ok ...
-	// return Response(201, ServingEnvironment{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("CreateServingEnvironment method not implemented")
+	result, err := s.coreApi.UpsertServingEnvironment(entity)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(201, result), nil
+	// TODO: return Response(400, Error{}), nil
+	// TODO: return Response(401, Error{}), nil
 }
 
 // FindInferenceService - Get an InferenceServices that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalID string) (ImplResponse, error) {
-	// TODO - update FindInferenceService with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, InferenceService{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceService{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("FindInferenceService method not implemented")
+	result, err := s.coreApi.GetInferenceServiceByParams(&name, nil, &externalID)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return esponse(400, Error{}), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
@@ -266,145 +220,112 @@ func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context
 
 // FindServingEnvironment - Find ServingEnvironment
 func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Context, name string, externalID string) (ImplResponse, error) {
-	// TODO - update FindServingEnvironment with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ServingEnvironment{}) or use other options such as http.Ok ...
-	// return Response(200, ServingEnvironment{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("FindServingEnvironment method not implemented")
+	result, err := s.coreApi.GetServingEnvironmentByParams(&name, &externalID)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // GetEnvironmentInferenceServices - List All ServingEnvironment&#39;s InferenceServices
 func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO - update GetEnvironmentInferenceServices with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, InferenceServiceList{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceServiceList{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetEnvironmentInferenceServices method not implemented")
+	orderByString := string(orderBy)
+	sortOrderString := string(sortOrder)
+	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.GetInferenceServices(core.ListOptions{
+		PageSize:      &pageSizeInt32,
+		OrderBy:       &orderByString,
+		SortOrder:     &sortOrderString,
+		NextPageToken: &nextPageToken,
+	}, &servingenvironmentId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // GetInferenceService - Get a InferenceService
 func (s *ModelRegistryServiceAPIService) GetInferenceService(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
-	// TODO - update GetInferenceService with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, InferenceService{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceService{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetInferenceService method not implemented")
+	result, err := s.coreApi.GetInferenceServiceById(inferenceserviceId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO: return Response(401, Error{}), nil
+	// TODO: return Response(404, Error{}), nil
 }
 
 // GetInferenceServiceModel - Get InferenceService&#39;s RegisteredModel
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
-	// TODO - update GetInferenceServiceModel with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, RegisteredModel{}) or use other options such as http.Ok ...
-	// return Response(200, RegisteredModel{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetInferenceServiceModel method not implemented")
+	result, err := s.coreApi.GetRegisteredModelByInferenceService(inferenceserviceId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO: return Response(401, Error{}), nil
+	// TODO: return Response(404, Error{}), nil
 }
 
 // GetInferenceServiceServes - List All InferenceService&#39;s ServeModel actions
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO - update GetInferenceServiceServes with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ServeModelList{}) or use other options such as http.Ok ...
-	// return Response(200, ServeModelList{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetInferenceServiceServes method not implemented")
+	orderByString := string(orderBy)
+	sortOrderString := string(sortOrder)
+	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.GetServeModels(core.ListOptions{
+		PageSize:      &pageSizeInt32,
+		OrderBy:       &orderByString,
+		SortOrder:     &sortOrderString,
+		NextPageToken: &nextPageToken,
+	}, &inferenceserviceId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // GetInferenceServiceVersion - Get InferenceService&#39;s ModelVersion
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
-	// TODO - update GetInferenceServiceVersion with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ModelVersion{}) or use other options such as http.Ok ...
-	// return Response(200, ModelVersion{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetInferenceServiceVersion method not implemented")
+	result, err := s.coreApi.GetModelVersionByInferenceService(inferenceserviceId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO: return Response(401, Error{}), nil
+	// TODO: return Response(404, Error{}), nil
 }
 
 // GetInferenceServices - List All InferenceServices
 func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO - update GetInferenceServices with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, InferenceServiceList{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceServiceList{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetInferenceServices method not implemented")
+	orderByString := string(orderBy)
+	sortOrderString := string(sortOrder)
+	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.GetInferenceServices(core.ListOptions{
+		PageSize:      &pageSizeInt32,
+		OrderBy:       &orderByString,
+		SortOrder:     &sortOrderString,
+		NextPageToken: &nextPageToken,
+	}, nil)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // GetModelArtifact - Get a ModelArtifact
@@ -559,62 +480,51 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context
 
 // GetServingEnvironment - Get a ServingEnvironment
 func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Context, servingenvironmentId string) (ImplResponse, error) {
-	// TODO - update GetServingEnvironment with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ServingEnvironment{}) or use other options such as http.Ok ...
-	// return Response(200, ServingEnvironment{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetServingEnvironment method not implemented")
+	result, err := s.coreApi.GetServingEnvironmentById(servingenvironmentId)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO: return Response(401, Error{}), nil
+	// TODO: return Response(404, Error{}), nil
 }
 
 // GetServingEnvironments - List All ServingEnvironments
 func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO - update GetServingEnvironments with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ServingEnvironmentList{}) or use other options such as http.Ok ...
-	// return Response(200, ServingEnvironmentList{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetServingEnvironments method not implemented")
+	orderByString := string(orderBy)
+	sortOrderString := string(sortOrder)
+	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.GetServingEnvironments(core.ListOptions{
+		PageSize:      &pageSizeInt32,
+		OrderBy:       &orderByString,
+		SortOrder:     &sortOrderString,
+		NextPageToken: &nextPageToken,
+	})
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(401, Error{}), nil
 }
 
 // UpdateInferenceService - Update a InferenceService
 func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Context, inferenceserviceId string, inferenceServiceUpdate model.InferenceServiceUpdate) (ImplResponse, error) {
-	// TODO - update UpdateInferenceService with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, InferenceService{}) or use other options such as http.Ok ...
-	// return Response(200, InferenceService{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("UpdateInferenceService method not implemented")
+	entity, err := s.converter.ConvertInferenceServiceUpdate(&inferenceServiceUpdate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	entity.Id = &inferenceserviceId
+	result, err := s.coreApi.UpsertInferenceService(entity)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(400, Error{}), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }
 
 // UpdateModelArtifact - Update a ModelArtifact
@@ -671,23 +581,17 @@ func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Conte
 
 // UpdateServingEnvironment - Update a ServingEnvironment
 func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Context, servingenvironmentId string, servingEnvironmentUpdate model.ServingEnvironmentUpdate) (ImplResponse, error) {
-	// TODO - update UpdateServingEnvironment with the required logic for this service method.
-	// Add api_model_registry_service_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	// TODO: Uncomment the next line to return response Response(200, ServingEnvironment{}) or use other options such as http.Ok ...
-	// return Response(200, ServingEnvironment{}), nil
-
-	// TODO: Uncomment the next line to return response Response(400, Error{}) or use other options such as http.Ok ...
-	// return Response(400, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(401, Error{}) or use other options such as http.Ok ...
-	// return Response(401, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(404, Error{}) or use other options such as http.Ok ...
-	// return Response(404, Error{}), nil
-
-	// TODO: Uncomment the next line to return response Response(500, Error{}) or use other options such as http.Ok ...
-	// return Response(500, Error{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("UpdateServingEnvironment method not implemented")
+	entity, err := s.converter.ConvertServingEnvironmentUpdate(&servingEnvironmentUpdate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	entity.Id = &servingenvironmentId
+	result, err := s.coreApi.UpsertServingEnvironment(entity)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	return Response(200, result), nil
+	// TODO return Response(400, Error{}), nil
+	// TODO return Response(401, Error{}), nil
+	// TODO return Response(404, Error{}), nil
 }

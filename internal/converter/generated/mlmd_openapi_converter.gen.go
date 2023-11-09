@@ -11,6 +11,33 @@ import (
 
 type MLMDToOpenAPIConverterImpl struct{}
 
+func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Context) (*openapi.InferenceService, error) {
+	var pOpenapiInferenceService *openapi.InferenceService
+	if source != nil {
+		var openapiInferenceService openapi.InferenceService
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, err
+		}
+		openapiInferenceService.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiInferenceService.Description = converter.MapDescription((*source).Properties)
+		var pString *string
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			pString = &xstring
+		}
+		openapiInferenceService.ExternalID = pString
+		openapiInferenceService.Name = converter.MapNameFromOwned((*source).Name)
+		openapiInferenceService.Id = converter.Int64ToString((*source).Id)
+		openapiInferenceService.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiInferenceService.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		openapiInferenceService.ModelVersionId = converter.MapPropertyModelVersionId((*source).Properties)
+		openapiInferenceService.RegisteredModelId = converter.MapPropertyRegisteredModelId((*source).Properties)
+		openapiInferenceService.ServingEnvironmentId = converter.MapPropertyServingEnvironmentId((*source).Properties)
+		pOpenapiInferenceService = &openapiInferenceService
+	}
+	return pOpenapiInferenceService, nil
+}
 func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
@@ -105,4 +132,54 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Contex
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil
+}
+func (c *MLMDToOpenAPIConverterImpl) ConvertServeModel(source *proto.Execution) (*openapi.ServeModel, error) {
+	var pOpenapiServeModel *openapi.ServeModel
+	if source != nil {
+		var openapiServeModel openapi.ServeModel
+		openapiServeModel.LastKnownState = converter.MapMLMDServeModelLastKnownState((*source).LastKnownState)
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, err
+		}
+		openapiServeModel.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiServeModel.Description = converter.MapDescription((*source).Properties)
+		var pString *string
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			pString = &xstring
+		}
+		openapiServeModel.ExternalID = pString
+		openapiServeModel.Name = converter.MapNameFromOwned((*source).Name)
+		openapiServeModel.Id = converter.Int64ToString((*source).Id)
+		openapiServeModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiServeModel.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		openapiServeModel.ModelVersionId = converter.MapPropertyModelVersionIdAsValue((*source).Properties)
+		pOpenapiServeModel = &openapiServeModel
+	}
+	return pOpenapiServeModel, nil
+}
+func (c *MLMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *proto.Context) (*openapi.ServingEnvironment, error) {
+	var pOpenapiServingEnvironment *openapi.ServingEnvironment
+	if source != nil {
+		var openapiServingEnvironment openapi.ServingEnvironment
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, err
+		}
+		openapiServingEnvironment.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiServingEnvironment.Description = converter.MapDescription((*source).Properties)
+		var pString *string
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			pString = &xstring
+		}
+		openapiServingEnvironment.ExternalID = pString
+		openapiServingEnvironment.Name = converter.MapNameFromOwned((*source).Name)
+		openapiServingEnvironment.Id = converter.Int64ToString((*source).Id)
+		openapiServingEnvironment.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiServingEnvironment.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		pOpenapiServingEnvironment = &openapiServingEnvironment
+	}
+	return pOpenapiServingEnvironment, nil
 }

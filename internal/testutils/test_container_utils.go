@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -27,6 +28,17 @@ func clearMetadataSqliteDB(wd string) error {
 	return nil
 }
 
+func fileExists(filePath string) (bool, error) {
+	info, err := os.Stat(filePath)
+	if err == nil {
+		return !info.IsDir(), nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
 // SetupMLMDTestContainer creates a MLMD gRPC test container
 // Returns
 //   - gRPC client connection to the test container
@@ -40,6 +52,18 @@ func SetupMLMDTestContainer(t *testing.T) (*grpc.ClientConn, proto.MetadataStore
 	}
 	wd = fmt.Sprintf("%s/../../%s", wd, testConfigFolder)
 	t.Logf("using working directory: %s", wd)
+
+	// when unhandled panics or other hard failures, could leave the DB in the directory
+	// here we make sure it's not existing already, and that it was really cleanup by previous runs
+	sqlitePath := fmt.Sprintf("%s/%s", wd, sqliteFile)
+	exists, err := fileExists(sqlitePath)
+	if err != nil {
+		t.Errorf("error looking up for SQLite path: %v", err)
+	}
+	if exists {
+		t.Errorf("SQLite should not exists: %v", sqlitePath)
+		panic("halting immediately, SQLite should not exists: " + sqlitePath)
+	}
 
 	req := testcontainers.ContainerRequest{
 		Image:        mlmdImage,

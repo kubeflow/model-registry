@@ -297,11 +297,13 @@ func TestMapModelArtifactName(t *testing.T) {
 func TestMapOpenAPIModelArtifactState(t *testing.T) {
 	assertion := setup(t)
 
-	state := MapOpenAPIModelArtifactState(of(openapi.ARTIFACTSTATE_LIVE))
+	state, err := MapOpenAPIModelArtifactState(of(openapi.ARTIFACTSTATE_LIVE))
+	assertion.Nil(err)
 	assertion.NotNil(state)
 	assertion.Equal(string(openapi.ARTIFACTSTATE_LIVE), state.String())
 
-	state = MapOpenAPIModelArtifactState(nil)
+	state, err = MapOpenAPIModelArtifactState(nil)
+	assertion.Nil(err)
 	assertion.Nil(state)
 }
 
@@ -452,4 +454,68 @@ func TestMapMLMDModelArtifactState(t *testing.T) {
 
 	artifactState = MapMLMDModelArtifactState(nil)
 	assertion.Nil(artifactState)
+}
+
+func TestMapServingEnvironmentType(t *testing.T) {
+	assertion := setup(t)
+
+	typeName := MapServingEnvironmentType(&openapi.ServingEnvironment{})
+	assertion.NotNil(typeName)
+	assertion.Equal(ServingEnvironmentTypeName, *typeName)
+}
+
+func TestMapInferenceServiceType(t *testing.T) {
+	assertion := setup(t)
+
+	typeName := MapInferenceServiceType(&openapi.InferenceService{})
+	assertion.NotNil(typeName)
+	assertion.Equal(InferenceServiceTypeName, *typeName)
+}
+
+func TestMapInferenceServiceProperties(t *testing.T) {
+	assertion := setup(t)
+
+	props, err := MapInferenceServiceProperties(&openapi.InferenceService{
+		Description:          of("my custom description"),
+		ModelVersionId:       of("1"),
+		RegisteredModelId:    "2",
+		ServingEnvironmentId: "3",
+	})
+	assertion.Nil(err)
+	assertion.Equal(4, len(props))
+	assertion.Equal("my custom description", props["description"].GetStringValue())
+	assertion.Equal(int64(1), props["model_version_id"].GetIntValue())
+	assertion.Equal(int64(2), props["registered_model_id"].GetIntValue())
+	assertion.Equal(int64(3), props["serving_environment_id"].GetIntValue())
+
+	// serving and model id must be provided and must be a valid numeric id
+	props, err = MapInferenceServiceProperties(&openapi.InferenceService{})
+	assertion.NotNil(err)
+	assertion.Equal(0, len(props))
+}
+
+func TestMapServeModelType(t *testing.T) {
+	assertion := setup(t)
+
+	typeName := MapServeModelType(&openapi.ServeModel{})
+	assertion.NotNil(typeName)
+	assertion.Equal(ServeModelTypeName, *typeName)
+}
+
+func TestMapServeModelProperties(t *testing.T) {
+	assertion := setup(t)
+
+	props, err := MapServeModelProperties(&openapi.ServeModel{
+		Description:    of("my custom description"),
+		ModelVersionId: "1",
+	})
+	assertion.Nil(err)
+	assertion.Equal(2, len(props))
+	assertion.Equal("my custom description", props["description"].GetStringValue())
+	assertion.Equal(int64(1), props["model_version_id"].GetIntValue())
+
+	// serving and model id must be provided and must be a valid numeric id
+	props, err = MapServeModelProperties(&openapi.ServeModel{})
+	assertion.NotNil(err)
+	assertion.Equal(0, len(props))
 }
