@@ -90,7 +90,7 @@ gen/openapi-server: bin/openapi-generator-cli openapi/validate
 .PHONY: gen/openapi
 gen/openapi: bin/openapi-generator-cli openapi/validate internal/model/openapi/client.go
 
-internal/model/openapi/client.go: api/openapi/model-registry.yaml
+internal/model/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 	rm -rf internal/model/openapi
 	openapi-generator-cli generate \
 		-i api/openapi/model-registry.yaml -g go -o internal/model/openapi --package-name openapi \
@@ -140,6 +140,10 @@ ifeq (, $(shell which ${PROJECT_BIN}/openapi-generator-cli 2> /dev/null))
 	ln -s openapi-generator-installation/bin/openapi-generator-cli openapi-generator-cli ;\
 	}
 endif
+
+.PHONY: clean/deps
+clean/deps:
+	rm -Rf bin/*
 
 .PHONY: deps
 deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/gqlgen bin/golangci-lint bin/goverter bin/openapi-generator-cli

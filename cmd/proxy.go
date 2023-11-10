@@ -65,8 +65,8 @@ func init() {
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
 
-	proxyCmd.Flags().StringVar(&proxyCfg.MLMDHostname, "mlmdhostname", proxyCfg.MLMDHostname, "MLMD hostname")
-	proxyCmd.Flags().IntVar(&proxyCfg.MLMDPort, "mlmdport", proxyCfg.MLMDPort, "MLMD port")
+	proxyCmd.Flags().StringVar(&proxyCfg.MLMDHostname, "mlmd-hostname", proxyCfg.MLMDHostname, "MLMD hostname")
+	proxyCmd.Flags().IntVar(&proxyCfg.MLMDPort, "mlmd-port", proxyCfg.MLMDPort, "MLMD port")
 }
 
 type ProxyConfig struct {
