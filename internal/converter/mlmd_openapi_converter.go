@@ -25,7 +25,6 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map . ArtifactType | MapArtifactType
 	// goverter:map State | MapMLMDModelArtifactState
 	// goverter:map Properties Description | MapDescription
-	// goverter:map Properties Runtime | MapModelArtifactRuntime
 	// goverter:map Properties ModelFormatName | MapModelArtifactFormatName
 	// goverter:map Properties ModelFormatVersion | MapModelArtifactFormatVersion
 	// goverter:map Properties StorageKey | MapModelArtifactStorageKey
@@ -39,6 +38,7 @@ type MLMDToOpenAPIConverter interface {
 
 	// goverter:map Name | MapNameFromOwned
 	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Runtime | MapPropertyRuntime
 	// goverter:map Properties ModelVersionId | MapPropertyModelVersionId
 	// goverter:map Properties RegisteredModelId | MapPropertyRegisteredModelId
 	// goverter:map Properties ServingEnvironmentId | MapPropertyServingEnvironmentId

@@ -232,16 +232,14 @@ func TestMapModelArtifactProperties(t *testing.T) {
 		Name:               of("v1"),
 		ModelFormatName:    of("sklearn"),
 		ModelFormatVersion: of("1.0"),
-		Runtime:            of("my-runtime"),
 		StorageKey:         of("storage-key"),
 		StoragePath:        of("storage-path"),
 		ServiceAccountName: of("service-account-name"),
 	})
 	assertion.Nil(err)
-	assertion.Equal(6, len(props))
+	assertion.Equal(5, len(props))
 	assertion.Equal("sklearn", props["model_format_name"].GetStringValue())
 	assertion.Equal("1.0", props["model_format_version"].GetStringValue())
-	assertion.Equal("my-runtime", props["runtime"].GetStringValue())
 	assertion.Equal("storage-key", props["storage_key"].GetStringValue())
 	assertion.Equal("storage-path", props["storage_path"].GetStringValue())
 	assertion.Equal("service-account-name", props["service_account_name"].GetStringValue())
@@ -329,10 +327,10 @@ func TestMapDescription(t *testing.T) {
 	assertion.Equal("my-description", *extracted)
 }
 
-func TestMapModelArtifactRuntime(t *testing.T) {
+func TestPropertyRuntime(t *testing.T) {
 	assertion := setup(t)
 
-	extracted := MapModelArtifactRuntime(map[string]*proto.Value{
+	extracted := MapPropertyRuntime(map[string]*proto.Value{
 		"runtime": {
 			Value: &proto.Value_StringValue{
 				StringValue: "my-runtime",
@@ -478,13 +476,15 @@ func TestMapInferenceServiceProperties(t *testing.T) {
 	props, err := MapInferenceServiceProperties(&openapi.InferenceService{
 		Description:          of("my custom description"),
 		ModelVersionId:       of("1"),
+		Runtime:              of("my-runtime"),
 		RegisteredModelId:    "2",
 		ServingEnvironmentId: "3",
 	})
 	assertion.Nil(err)
-	assertion.Equal(4, len(props))
+	assertion.Equal(5, len(props))
 	assertion.Equal("my custom description", props["description"].GetStringValue())
 	assertion.Equal(int64(1), props["model_version_id"].GetIntValue())
+	assertion.Equal("my-runtime", props["runtime"].GetStringValue())
 	assertion.Equal(int64(2), props["registered_model_id"].GetIntValue())
 	assertion.Equal(int64(3), props["serving_environment_id"].GetIntValue())
 

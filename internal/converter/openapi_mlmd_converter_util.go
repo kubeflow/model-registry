@@ -197,13 +197,6 @@ func MapModelArtifactProperties(source *openapi.ModelArtifact) (map[string]*prot
 				},
 			}
 		}
-		if source.Runtime != nil {
-			props["runtime"] = &proto.Value{
-				Value: &proto.Value_StringValue{
-					StringValue: *source.Runtime,
-				},
-			}
-		}
 		if source.ModelFormatName != nil {
 			props["model_format_name"] = &proto.Value{
 				Value: &proto.Value_StringValue{
@@ -312,6 +305,14 @@ func MapInferenceServiceProperties(source *openapi.InferenceService) (map[string
 			props["description"] = &proto.Value{
 				Value: &proto.Value_StringValue{
 					StringValue: *source.Description,
+				},
+			}
+		}
+
+		if source.Runtime != nil {
+			props["runtime"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Runtime,
 				},
 			}
 		}

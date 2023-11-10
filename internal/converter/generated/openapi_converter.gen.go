@@ -43,6 +43,12 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.Inf
 			pString4 = &xstring4
 		}
 		openapiInferenceService.ModelVersionId = pString4
+		var pString5 *string
+		if (*source).Runtime != nil {
+			xstring5 := *(*source).Runtime
+			pString5 = &xstring5
+		}
+		openapiInferenceService.Runtime = pString5
 		openapiInferenceService.RegisteredModelId = (*source).RegisteredModelId
 		openapiInferenceService.ServingEnvironmentId = (*source).ServingEnvironmentId
 		pOpenapiInferenceService = &openapiInferenceService
@@ -80,6 +86,12 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 			pString3 = &xstring3
 		}
 		openapiInferenceService.ModelVersionId = pString3
+		var pString4 *string
+		if (*source).Runtime != nil {
+			xstring4 := *(*source).Runtime
+			pString4 = &xstring4
+		}
+		openapiInferenceService.Runtime = pString4
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
@@ -134,35 +146,29 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelA
 		}
 		openapiModelArtifact.ModelFormatName = pString5
 		var pString6 *string
-		if (*source).Runtime != nil {
-			xstring6 := *(*source).Runtime
+		if (*source).StorageKey != nil {
+			xstring6 := *(*source).StorageKey
 			pString6 = &xstring6
 		}
-		openapiModelArtifact.Runtime = pString6
+		openapiModelArtifact.StorageKey = pString6
 		var pString7 *string
-		if (*source).StorageKey != nil {
-			xstring7 := *(*source).StorageKey
+		if (*source).StoragePath != nil {
+			xstring7 := *(*source).StoragePath
 			pString7 = &xstring7
 		}
-		openapiModelArtifact.StorageKey = pString7
+		openapiModelArtifact.StoragePath = pString7
 		var pString8 *string
-		if (*source).StoragePath != nil {
-			xstring8 := *(*source).StoragePath
+		if (*source).ModelFormatVersion != nil {
+			xstring8 := *(*source).ModelFormatVersion
 			pString8 = &xstring8
 		}
-		openapiModelArtifact.StoragePath = pString8
+		openapiModelArtifact.ModelFormatVersion = pString8
 		var pString9 *string
-		if (*source).ModelFormatVersion != nil {
-			xstring9 := *(*source).ModelFormatVersion
+		if (*source).ServiceAccountName != nil {
+			xstring9 := *(*source).ServiceAccountName
 			pString9 = &xstring9
 		}
-		openapiModelArtifact.ModelFormatVersion = pString9
-		var pString10 *string
-		if (*source).ServiceAccountName != nil {
-			xstring10 := *(*source).ServiceAccountName
-			pString10 = &xstring10
-		}
-		openapiModelArtifact.ServiceAccountName = pString10
+		openapiModelArtifact.ServiceAccountName = pString9
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
 	return pOpenapiModelArtifact, nil
@@ -211,35 +217,29 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactUpdate(source *openapi.ModelA
 		}
 		openapiModelArtifact.ModelFormatName = pString4
 		var pString5 *string
-		if (*source).Runtime != nil {
-			xstring5 := *(*source).Runtime
+		if (*source).StorageKey != nil {
+			xstring5 := *(*source).StorageKey
 			pString5 = &xstring5
 		}
-		openapiModelArtifact.Runtime = pString5
+		openapiModelArtifact.StorageKey = pString5
 		var pString6 *string
-		if (*source).StorageKey != nil {
-			xstring6 := *(*source).StorageKey
+		if (*source).StoragePath != nil {
+			xstring6 := *(*source).StoragePath
 			pString6 = &xstring6
 		}
-		openapiModelArtifact.StorageKey = pString6
+		openapiModelArtifact.StoragePath = pString6
 		var pString7 *string
-		if (*source).StoragePath != nil {
-			xstring7 := *(*source).StoragePath
+		if (*source).ModelFormatVersion != nil {
+			xstring7 := *(*source).ModelFormatVersion
 			pString7 = &xstring7
 		}
-		openapiModelArtifact.StoragePath = pString7
+		openapiModelArtifact.ModelFormatVersion = pString7
 		var pString8 *string
-		if (*source).ModelFormatVersion != nil {
-			xstring8 := *(*source).ModelFormatVersion
+		if (*source).ServiceAccountName != nil {
+			xstring8 := *(*source).ServiceAccountName
 			pString8 = &xstring8
 		}
-		openapiModelArtifact.ModelFormatVersion = pString8
-		var pString9 *string
-		if (*source).ServiceAccountName != nil {
-			xstring9 := *(*source).ServiceAccountName
-			pString9 = &xstring9
-		}
-		openapiModelArtifact.ServiceAccountName = pString9
+		openapiModelArtifact.ServiceAccountName = pString8
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
 	return pOpenapiModelArtifact, nil

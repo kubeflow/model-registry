@@ -29,6 +29,8 @@ type InferenceServiceCreate struct {
 	Name *string `json:"name,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	// Model runtime.
+	Runtime *string `json:"runtime,omitempty"`
 	// ID of the `RegisteredModel` to serve.
 	RegisteredModelId string `json:"registeredModelId"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
@@ -214,6 +216,38 @@ func (o *InferenceServiceCreate) SetModelVersionId(v string) {
 	o.ModelVersionId = &v
 }
 
+// GetRuntime returns the Runtime field value if set, zero value otherwise.
+func (o *InferenceServiceCreate) GetRuntime() string {
+	if o == nil || IsNil(o.Runtime) {
+		var ret string
+		return ret
+	}
+	return *o.Runtime
+}
+
+// GetRuntimeOk returns a tuple with the Runtime field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceServiceCreate) GetRuntimeOk() (*string, bool) {
+	if o == nil || IsNil(o.Runtime) {
+		return nil, false
+	}
+	return o.Runtime, true
+}
+
+// HasRuntime returns a boolean if a field has been set.
+func (o *InferenceServiceCreate) HasRuntime() bool {
+	if o != nil && !IsNil(o.Runtime) {
+		return true
+	}
+
+	return false
+}
+
+// SetRuntime gets a reference to the given string and assigns it to the Runtime field.
+func (o *InferenceServiceCreate) SetRuntime(v string) {
+	o.Runtime = &v
+}
+
 // GetRegisteredModelId returns the RegisteredModelId field value
 func (o *InferenceServiceCreate) GetRegisteredModelId() string {
 	if o == nil {
@@ -286,6 +320,9 @@ func (o InferenceServiceCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ModelVersionId) {
 		toSerialize["modelVersionId"] = o.ModelVersionId
+	}
+	if !IsNil(o.Runtime) {
+		toSerialize["runtime"] = o.Runtime
 	}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
 	toSerialize["servingEnvironmentId"] = o.ServingEnvironmentId

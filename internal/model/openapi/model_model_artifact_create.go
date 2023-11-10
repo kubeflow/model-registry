@@ -32,8 +32,6 @@ type ModelArtifactCreate struct {
 	Name *string `json:"name,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
-	// Model runtime.
-	Runtime *string `json:"runtime,omitempty"`
 	// Storage secret name.
 	StorageKey *string `json:"storageKey,omitempty"`
 	// Path for model in storage provided by `storageKey`.
@@ -289,38 +287,6 @@ func (o *ModelArtifactCreate) SetModelFormatName(v string) {
 	o.ModelFormatName = &v
 }
 
-// GetRuntime returns the Runtime field value if set, zero value otherwise.
-func (o *ModelArtifactCreate) GetRuntime() string {
-	if o == nil || IsNil(o.Runtime) {
-		var ret string
-		return ret
-	}
-	return *o.Runtime
-}
-
-// GetRuntimeOk returns a tuple with the Runtime field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactCreate) GetRuntimeOk() (*string, bool) {
-	if o == nil || IsNil(o.Runtime) {
-		return nil, false
-	}
-	return o.Runtime, true
-}
-
-// HasRuntime returns a boolean if a field has been set.
-func (o *ModelArtifactCreate) HasRuntime() bool {
-	if o != nil && !IsNil(o.Runtime) {
-		return true
-	}
-
-	return false
-}
-
-// SetRuntime gets a reference to the given string and assigns it to the Runtime field.
-func (o *ModelArtifactCreate) SetRuntime(v string) {
-	o.Runtime = &v
-}
-
 // GetStorageKey returns the StorageKey field value if set, zero value otherwise.
 func (o *ModelArtifactCreate) GetStorageKey() string {
 	if o == nil || IsNil(o.StorageKey) {
@@ -479,9 +445,6 @@ func (o ModelArtifactCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
-	}
-	if !IsNil(o.Runtime) {
-		toSerialize["runtime"] = o.Runtime
 	}
 	if !IsNil(o.StorageKey) {
 		toSerialize["storageKey"] = o.StorageKey

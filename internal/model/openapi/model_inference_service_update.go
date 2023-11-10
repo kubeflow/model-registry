@@ -27,6 +27,8 @@ type InferenceServiceUpdate struct {
 	ExternalID *string `json:"externalID,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	// Model runtime.
+	Runtime *string `json:"runtime,omitempty"`
 }
 
 // NewInferenceServiceUpdate instantiates a new InferenceServiceUpdate object
@@ -174,6 +176,38 @@ func (o *InferenceServiceUpdate) SetModelVersionId(v string) {
 	o.ModelVersionId = &v
 }
 
+// GetRuntime returns the Runtime field value if set, zero value otherwise.
+func (o *InferenceServiceUpdate) GetRuntime() string {
+	if o == nil || IsNil(o.Runtime) {
+		var ret string
+		return ret
+	}
+	return *o.Runtime
+}
+
+// GetRuntimeOk returns a tuple with the Runtime field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceServiceUpdate) GetRuntimeOk() (*string, bool) {
+	if o == nil || IsNil(o.Runtime) {
+		return nil, false
+	}
+	return o.Runtime, true
+}
+
+// HasRuntime returns a boolean if a field has been set.
+func (o *InferenceServiceUpdate) HasRuntime() bool {
+	if o != nil && !IsNil(o.Runtime) {
+		return true
+	}
+
+	return false
+}
+
+// SetRuntime gets a reference to the given string and assigns it to the Runtime field.
+func (o *InferenceServiceUpdate) SetRuntime(v string) {
+	o.Runtime = &v
+}
+
 func (o InferenceServiceUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -195,6 +229,9 @@ func (o InferenceServiceUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ModelVersionId) {
 		toSerialize["modelVersionId"] = o.ModelVersionId
+	}
+	if !IsNil(o.Runtime) {
+		toSerialize["runtime"] = o.Runtime
 	}
 	return toSerialize, nil
 }

@@ -1329,9 +1329,6 @@ components:
             modelFormatName:
               description: Name of the model format.
               type: string
-            runtime:
-              description: Model runtime.
-              type: string
             storageKey:
               description: Storage secret name.
               type: string
@@ -1533,6 +1530,9 @@ components:
               description: >-
                 ID of the `ModelVersion` to serve. If it's unspecified, then the latest
                 `ModelVersion` by creation order will be served.
+              type: string
+            runtime:
+              description: Model runtime.
               type: string
     InferenceServiceCreate:
       description: >-

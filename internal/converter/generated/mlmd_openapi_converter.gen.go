@@ -32,6 +32,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Conte
 		openapiInferenceService.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiInferenceService.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		openapiInferenceService.ModelVersionId = converter.MapPropertyModelVersionId((*source).Properties)
+		openapiInferenceService.Runtime = converter.MapPropertyRuntime((*source).Properties)
 		openapiInferenceService.RegisteredModelId = converter.MapPropertyRegisteredModelId((*source).Properties)
 		openapiInferenceService.ServingEnvironmentId = converter.MapPropertyServingEnvironmentId((*source).Properties)
 		pOpenapiInferenceService = &openapiInferenceService
@@ -71,7 +72,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		}
 		openapiModelArtifact.ArtifactType = xstring3
 		openapiModelArtifact.ModelFormatName = converter.MapModelArtifactFormatName((*source).Properties)
-		openapiModelArtifact.Runtime = converter.MapModelArtifactRuntime((*source).Properties)
 		openapiModelArtifact.StorageKey = converter.MapModelArtifactStorageKey((*source).Properties)
 		openapiModelArtifact.StoragePath = converter.MapModelArtifactStoragePath((*source).Properties)
 		openapiModelArtifact.ModelFormatVersion = converter.MapModelArtifactFormatVersion((*source).Properties)

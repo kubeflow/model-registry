@@ -59,7 +59,6 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, err
 			Name: modelArtifactTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description":          proto.PropertyType_STRING,
-				"runtime":              proto.PropertyType_STRING,
 				"model_format_name":    proto.PropertyType_STRING,
 				"model_format_version": proto.PropertyType_STRING,
 				"storage_key":          proto.PropertyType_STRING,
@@ -100,6 +99,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, err
 				// TODO: check with Andrea, my understanding is parent/child is only for ownership of InferenceService/ServeModel via MLMD Association (Execution ServeModel --> Context InferenceService)
 				// we could remove this as we will use ParentContext to keep track of this association
 				"model_version_id": proto.PropertyType_INT,
+				"runtime":          proto.PropertyType_STRING,
 			},
 		},
 	}

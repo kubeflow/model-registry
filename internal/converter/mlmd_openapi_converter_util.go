@@ -130,10 +130,6 @@ func MapDescription(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "description")
 }
 
-func MapModelArtifactRuntime(properties map[string]*proto.Value) *string {
-	return MapStringProperty(properties, "runtime")
-}
-
 func MapModelArtifactFormatName(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "model_format_name")
 }
@@ -168,6 +164,12 @@ func MapPropertyRegisteredModelId(properties map[string]*proto.Value) string {
 
 func MapPropertyServingEnvironmentId(properties map[string]*proto.Value) string {
 	return MapIntPropertyAsValue(properties, "serving_environment_id")
+}
+
+// INFERENCE SERVICE
+
+func MapPropertyRuntime(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "runtime")
 }
 
 // SERVE MODEL
