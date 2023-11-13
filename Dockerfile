@@ -1,5 +1,5 @@
 # Build the model-registry binary
-FROM registry.access.redhat.com/ubi8/go-toolset:1.19 as builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.20 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -37,7 +37,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
 WORKDIR /
 # copy the metadata library
 COPY --from=builder /workspace/config ./config
