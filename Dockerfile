@@ -30,6 +30,7 @@ COPY cmd/ cmd/
 COPY api/ api/
 COPY config/ config/
 COPY internal/ internal/
+COPY pkg/ pkg/
 
 # Build
 USER root

@@ -14,6 +14,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/converter/generated"
 	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
@@ -231,18 +232,11 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 
 // GetEnvironmentInferenceServices - List All ServingEnvironment&#39;s InferenceServices
 func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, &servingenvironmentId)
+	result, err := s.coreApi.GetInferenceServices(listOpts, &servingenvironmentId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -275,18 +269,11 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 
 // GetInferenceServiceServes - List All InferenceService&#39;s ServeModel actions
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetServeModels(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, &inferenceserviceId)
+	result, err := s.coreApi.GetServeModels(listOpts, &inferenceserviceId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -308,18 +295,11 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 
 // GetInferenceServices - List All InferenceServices
 func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, nil)
+	result, err := s.coreApi.GetInferenceServices(listOpts, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -341,18 +321,11 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 
 // GetModelArtifacts - List All ModelArtifacts
 func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelArtifacts(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, nil)
+	result, err := s.coreApi.GetModelArtifacts(listOpts, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -377,18 +350,11 @@ func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, mo
 func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// TODO name unused
 	// TODO externalID unused
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelArtifacts(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, &modelversionId)
+	result, err := s.coreApi.GetModelArtifacts(listOpts, &modelversionId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -399,18 +365,11 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 
 // GetModelVersions - List All ModelVersions
 func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelVersions(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, nil)
+	result, err := s.coreApi.GetModelVersions(listOpts, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -435,18 +394,11 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context,
 func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.Context, registeredmodelId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// TODO name unused
 	// TODO externalID unused
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelVersions(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	}, &registeredmodelId)
+	result, err := s.coreApi.GetModelVersions(listOpts, &registeredmodelId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -457,18 +409,11 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 
 // GetRegisteredModels - List All RegisteredModels
 func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetRegisteredModels(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	})
+	result, err := s.coreApi.GetRegisteredModels(listOpts)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -491,18 +436,11 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 
 // GetServingEnvironments - List All ServingEnvironments
 func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	orderByString := string(orderBy)
-	sortOrderString := string(sortOrder)
-	pageSizeInt32, err := converter.StringToInt32(pageSize)
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetServingEnvironments(api.ListOptions{
-		PageSize:      &pageSizeInt32,
-		OrderBy:       &orderByString,
-		SortOrder:     &sortOrderString,
-		NextPageToken: &nextPageToken,
-	})
+	result, err := s.coreApi.GetServingEnvironments(listOpts)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}

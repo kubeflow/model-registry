@@ -1,7 +1,9 @@
 package apiutils
 
 import (
+	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"github.com/opendatahub-io/model-registry/pkg/api"
 )
 
@@ -42,4 +44,33 @@ func ZeroIfNil[T any](input *T) T {
 		return *input
 	}
 	return *new(T)
+}
+
+func BuildListOption(pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (api.ListOptions, error) {
+	var pageSizeInt32 *int32
+	if pageSize != "" {
+		conv, err := converter.StringToInt32(pageSize)
+		if err != nil {
+			return api.ListOptions{}, err
+		}
+		pageSizeInt32 = &conv
+	}
+	var orderByString *string
+	if orderBy != "" {
+		orderByString = (*string)(&orderBy)
+	}
+	var sortOrderString *string
+	if sortOrder != "" {
+		sortOrderString = (*string)(&sortOrder)
+	}
+	var nextPageTokenParam *string
+	if nextPageToken != "" {
+		nextPageTokenParam = &nextPageToken
+	}
+	return api.ListOptions{
+		PageSize:      pageSizeInt32,
+		OrderBy:       orderByString,
+		SortOrder:     sortOrderString,
+		NextPageToken: nextPageTokenParam,
+	}, nil
 }
