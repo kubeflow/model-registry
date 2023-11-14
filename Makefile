@@ -163,19 +163,19 @@ gen: deps gen/grpc gen/openapi gen/converter gen/graph
 .PHONY: lint
 lint: gen
 	golangci-lint run main.go
-	golangci-lint run cmd/... internal/...
+	golangci-lint run cmd/... internal/... ./pkg/...
 
 .PHONY: test
 test: gen
-	go test ./internal/...
+	go test ./internal/... ./pkg/...
 
 .PHONY: test-nocache
 test-nocache: gen
-	go test ./internal/... -count=1
+	go test ./internal/... ./pkg/... -count=1
 
 .PHONY: test-cover
 test-cover: gen
-	go test ./internal/... -cover -count=1
+	go test ./internal/... ./pkg/... -cover -count=1
 
 .PHONY: run/migrate
 run/migrate: gen

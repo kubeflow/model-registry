@@ -1,4 +1,4 @@
-package core
+package api
 
 import "github.com/opendatahub-io/model-registry/internal/model/openapi"
 

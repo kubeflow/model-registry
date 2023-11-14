@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
+	"github.com/opendatahub-io/model-registry/internal/mapper"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/api"
 	"google.golang.org/grpc"
 )
 
@@ -23,11 +26,11 @@ var (
 // modelRegistryService is the core library of the model registry
 type modelRegistryService struct {
 	mlmdClient proto.MetadataStoreServiceClient
-	mapper     *Mapper
+	mapper     *mapper.Mapper
 }
 
 // NewModelRegistryService create a fresh instance of ModelRegistryService, taking care of setting up needed MLMD Types
-func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, error) {
+func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi, error) {
 
 	client := proto.NewMetadataStoreServiceClient(cc)
 
@@ -84,8 +87,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, err
 				"description":         proto.PropertyType_STRING,
 				"model_version_id":    proto.PropertyType_INT,
 				"registered_model_id": proto.PropertyType_INT,
-				// TODO: check with Andrea, my understanding is parent/child is only for ownership of ServingEnvironment/InferenceService (moving comment down 1 line for serving_environment_id)
-				// we could remove this as we will use ParentContext to keep track of this association
+				// same information tracked using ParentContext association
 				"serving_environment_id": proto.PropertyType_INT,
 			},
 		},
@@ -95,9 +97,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, err
 		ExecutionType: &proto.ExecutionType{
 			Name: serveModelTypeName,
 			Properties: map[string]proto.PropertyType{
-				"description": proto.PropertyType_STRING,
-				// TODO: check with Andrea, my understanding is parent/child is only for ownership of InferenceService/ServeModel via MLMD Association (Execution ServeModel --> Context InferenceService)
-				// we could remove this as we will use ParentContext to keep track of this association
+				"description":      proto.PropertyType_STRING,
 				"model_version_id": proto.PropertyType_INT,
 				"runtime":          proto.PropertyType_STRING,
 			},
@@ -136,7 +136,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (ModelRegistryApi, err
 
 	return &modelRegistryService{
 		mlmdClient: client,
-		mapper: NewMapper(
+		mapper: mapper.NewMapper(
 			registeredModelResp.GetTypeId(),
 			modelVersionResp.GetTypeId(),
 			modelArtifactResp.GetTypeId(),
@@ -296,8 +296,8 @@ func (serv *modelRegistryService) GetRegisteredModelByParams(name *string, exter
 	return regModel, nil
 }
 
-func (serv *modelRegistryService) GetRegisteredModels(listOptions ListOptions) (*openapi.RegisteredModelList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetRegisteredModels(listOptions api.ListOptions) (*openapi.RegisteredModelList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -319,8 +319,8 @@ func (serv *modelRegistryService) GetRegisteredModels(listOptions ListOptions) (
 	}
 
 	toReturn := openapi.RegisteredModelList{
-		NextPageToken: zeroIfNil(contextsResp.NextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(contextsResp.NextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}
@@ -445,7 +445,7 @@ func (serv *modelRegistryService) GetModelVersionByInferenceService(inferenceSer
 	// modelVersionId: ID of the ModelVersion to serve. If it's unspecified, then the latest ModelVersion by creation order will be served.
 	orderByCreateTime := "CREATE_TIME"
 	sortOrderDesc := "DESC"
-	versions, err := serv.GetModelVersions(ListOptions{OrderBy: &orderByCreateTime, SortOrder: &sortOrderDesc}, &is.RegisteredModelId)
+	versions, err := serv.GetModelVersions(api.ListOptions{OrderBy: &orderByCreateTime, SortOrder: &sortOrderDesc}, &is.RegisteredModelId)
 	if err != nil {
 		return nil, err
 	}
@@ -507,7 +507,7 @@ func (serv *modelRegistryService) GetModelVersionByParams(versionName *string, p
 	}
 
 	if len(getByParamsResp.Contexts) != 1 {
-		return nil, fmt.Errorf("multiple model versions found for versionName=%v, parentResourceId=%v, externalId=%v", zeroIfNil(versionName), zeroIfNil(parentResourceId), zeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple model versions found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByParamsResp.Contexts[0])
@@ -517,8 +517,8 @@ func (serv *modelRegistryService) GetModelVersionByParams(versionName *string, p
 	return modelVer, nil
 }
 
-func (serv *modelRegistryService) GetModelVersions(listOptions ListOptions, parentResourceId *string) (*openapi.ModelVersionList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetModelVersions(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelVersionList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -546,8 +546,8 @@ func (serv *modelRegistryService) GetModelVersions(listOptions ListOptions, pare
 	}
 
 	toReturn := openapi.ModelVersionList{
-		NextPageToken: zeroIfNil(contextsResp.NextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(contextsResp.NextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}
@@ -697,8 +697,8 @@ func (serv *modelRegistryService) GetModelArtifactByParams(artifactName *string,
 	return result, nil
 }
 
-func (serv *modelRegistryService) GetModelArtifacts(listOptions ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetModelArtifacts(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -741,8 +741,8 @@ func (serv *modelRegistryService) GetModelArtifacts(listOptions ListOptions, par
 	}
 
 	toReturn := openapi.ModelArtifactList{
-		NextPageToken: zeroIfNil(nextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(nextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}
@@ -859,8 +859,8 @@ func (serv *modelRegistryService) GetServingEnvironmentByParams(name *string, ex
 	return openapiModel, nil
 }
 
-func (serv *modelRegistryService) GetServingEnvironments(listOptions ListOptions) (*openapi.ServingEnvironmentList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -882,8 +882,8 @@ func (serv *modelRegistryService) GetServingEnvironments(listOptions ListOptions
 	}
 
 	toReturn := openapi.ServingEnvironmentList{
-		NextPageToken: zeroIfNil(contextsResp.NextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(contextsResp.NextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}
@@ -1053,7 +1053,7 @@ func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, pare
 	}
 
 	if len(getByParamsResp.Contexts) != 1 {
-		return nil, fmt.Errorf("multiple InferenceServices found for name=%v, parentResourceId=%v, externalId=%v", zeroIfNil(name), zeroIfNil(parentResourceId), zeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple InferenceServices found for name=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByParamsResp.Contexts[0])
@@ -1063,8 +1063,8 @@ func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, pare
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) GetInferenceServices(listOptions ListOptions, parentResourceId *string) (*openapi.InferenceServiceList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetInferenceServices(listOptions api.ListOptions, parentResourceId *string) (*openapi.InferenceServiceList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1092,8 +1092,8 @@ func (serv *modelRegistryService) GetInferenceServices(listOptions ListOptions, 
 	}
 
 	toReturn := openapi.InferenceServiceList{
-		NextPageToken: zeroIfNil(contextsResp.NextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(contextsResp.NextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}
@@ -1242,8 +1242,8 @@ func (serv *modelRegistryService) GetServeModelById(id string) (*openapi.ServeMo
 	return result, nil
 }
 
-func (serv *modelRegistryService) GetServeModels(listOptions ListOptions, parentResourceId *string) (*openapi.ServeModelList, error) {
-	listOperationOptions, err := BuildListOperationOptions(listOptions)
+func (serv *modelRegistryService) GetServeModels(listOptions api.ListOptions, parentResourceId *string) (*openapi.ServeModelList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1286,8 +1286,8 @@ func (serv *modelRegistryService) GetServeModels(listOptions ListOptions, parent
 	}
 
 	toReturn := openapi.ServeModelList{
-		NextPageToken: zeroIfNil(nextPageToken),
-		PageSize:      zeroIfNil(listOptions.PageSize),
+		NextPageToken: apiutils.ZeroIfNil(nextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),
 		Items:         results,
 	}

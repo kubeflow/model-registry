@@ -16,20 +16,20 @@ import (
 
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/converter/generated"
-	"github.com/opendatahub-io/model-registry/internal/core"
 	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/api"
 )
 
 // ModelRegistryServiceAPIService is a service that implements the logic for the ModelRegistryServiceAPIServicer
 // This service should implement the business logic for every endpoint for the ModelRegistryServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelRegistryServiceAPIService struct {
-	coreApi   core.ModelRegistryApi
+	coreApi   api.ModelRegistryApi
 	converter converter.OpenAPIConverter
 }
 
 // NewModelRegistryServiceAPIService creates a default api service
-func NewModelRegistryServiceAPIService(coreApi core.ModelRegistryApi) ModelRegistryServiceAPIServicer {
+func NewModelRegistryServiceAPIService(coreApi api.ModelRegistryApi) ModelRegistryServiceAPIServicer {
 	return &ModelRegistryServiceAPIService{
 		coreApi:   coreApi,
 		converter: &generated.OpenAPIConverterImpl{},
@@ -237,7 +237,7 @@ func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx con
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(core.ListOptions{
+	result, err := s.coreApi.GetInferenceServices(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -281,7 +281,7 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.C
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetServeModels(core.ListOptions{
+	result, err := s.coreApi.GetServeModels(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -314,7 +314,7 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Contex
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(core.ListOptions{
+	result, err := s.coreApi.GetInferenceServices(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -347,7 +347,7 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, 
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelArtifacts(core.ListOptions{
+	result, err := s.coreApi.GetModelArtifacts(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -383,7 +383,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelArtifacts(core.ListOptions{
+	result, err := s.coreApi.GetModelArtifacts(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -405,7 +405,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, p
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelVersions(core.ListOptions{
+	result, err := s.coreApi.GetModelVersions(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -441,7 +441,7 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelVersions(core.ListOptions{
+	result, err := s.coreApi.GetModelVersions(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -463,7 +463,7 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetRegisteredModels(core.ListOptions{
+	result, err := s.coreApi.GetRegisteredModels(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,
@@ -497,7 +497,7 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Cont
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetServingEnvironments(core.ListOptions{
+	result, err := s.coreApi.GetServingEnvironments(api.ListOptions{
 		PageSize:      &pageSizeInt32,
 		OrderBy:       &orderByString,
 		SortOrder:     &sortOrderString,

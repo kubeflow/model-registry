@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/internal/core"
 	"github.com/opendatahub-io/model-registry/internal/server/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

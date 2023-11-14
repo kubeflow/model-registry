@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/opendatahub-io/model-registry/internal/core"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/api"
+	"github.com/opendatahub-io/model-registry/pkg/core"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
@@ -67,7 +68,7 @@ func iHaveAConnectionToMR(ctx context.Context) (context.Context, error) {
 }
 
 func iStoreARegisteredModelWithNameAndAChildModelVersionWithNameAndAChildArtifactWithUri(ctx context.Context, registedModelName, modelVersionName, artifactURI string) error {
-	service, ok := ctx.Value(svcLayerCtxKey{}).(core.ModelRegistryApi)
+	service, ok := ctx.Value(svcLayerCtxKey{}).(api.ModelRegistryApi)
 	if !ok {
 		return fmt.Errorf("not found service layer connection in godog context")
 	}

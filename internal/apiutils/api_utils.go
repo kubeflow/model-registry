@@ -1,17 +1,11 @@
-package core
+package apiutils
 
 import (
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/pkg/api"
 )
 
-func zeroIfNil[T any](input *T) T {
-	if input != nil {
-		return *input
-	}
-	return *new(T)
-}
-
-func BuildListOperationOptions(listOptions ListOptions) (*proto.ListOperationOptions, error) {
+func BuildListOperationOptions(listOptions api.ListOptions) (*proto.ListOperationOptions, error) {
 
 	result := proto.ListOperationOptions{}
 	if listOptions.PageSize != nil {
@@ -40,4 +34,12 @@ func BuildListOperationOptions(listOptions ListOptions) (*proto.ListOperationOpt
 		}
 	}
 	return &result, nil
+}
+
+// ZeroIfNil return the zeroed value if input is a nil pointer
+func ZeroIfNil[T any](input *T) T {
+	if input != nil {
+		return *input
+	}
+	return *new(T)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"github.com/opendatahub-io/model-registry/internal/testutils"
+	"github.com/opendatahub-io/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -71,14 +72,14 @@ func setup(t *testing.T) (*assert.Assertions, *grpc.ClientConn, proto.MetadataSt
 }
 
 // initialize model registry service and assert no error is thrown
-func initModelRegistryService(assertion *assert.Assertions, conn *grpc.ClientConn) ModelRegistryApi {
+func initModelRegistryService(assertion *assert.Assertions, conn *grpc.ClientConn) api.ModelRegistryApi {
 	service, err := NewModelRegistryService(conn)
 	assertion.Nilf(err, "error creating core service: %v", err)
 	return service
 }
 
 // utility function that register a new simple model and return its ID
-func registerModel(assertion *assert.Assertions, service ModelRegistryApi, overrideModelName *string, overrideExternalId *string) string {
+func registerModel(assertion *assert.Assertions, service api.ModelRegistryApi, overrideModelName *string, overrideExternalId *string) string {
 	registeredModel := &openapi.RegisteredModel{
 		Name:        &modelName,
 		ExternalID:  &modelExternalId,
@@ -108,7 +109,7 @@ func registerModel(assertion *assert.Assertions, service ModelRegistryApi, overr
 }
 
 // utility function that register a new simple ServingEnvironment and return its ID
-func registerServingEnvironment(assertion *assert.Assertions, service ModelRegistryApi, overrideName *string, overrideExternalId *string) string {
+func registerServingEnvironment(assertion *assert.Assertions, service api.ModelRegistryApi, overrideName *string, overrideExternalId *string) string {
 	eutName := "Simple ServingEnvironment"
 	eutExtID := "Simple ServingEnvironment ExtID"
 	eut := &openapi.ServingEnvironment{
@@ -142,7 +143,7 @@ func registerServingEnvironment(assertion *assert.Assertions, service ModelRegis
 // utility function that register a new simple model and return its ID
 func registerModelVersion(
 	assertion *assert.Assertions,
-	service ModelRegistryApi,
+	service api.ModelRegistryApi,
 	overrideModelName *string,
 	overrideExternalId *string,
 	overrideVersionName *string,
@@ -178,7 +179,7 @@ func registerModelVersion(
 }
 
 // utility function that register a new simple ServingEnvironment and return its ID
-func registerInferenceService(assertion *assert.Assertions, service ModelRegistryApi, registerdModelId string, overrideParentResourceName *string, overrideParentResourceExternalId *string, overrideName *string, overrideExternalId *string) string {
+func registerInferenceService(assertion *assert.Assertions, service api.ModelRegistryApi, registerdModelId string, overrideParentResourceName *string, overrideParentResourceExternalId *string, overrideName *string, overrideExternalId *string) string {
 	servingEnvironmentId := registerServingEnvironment(assertion, service, overrideParentResourceName, overrideParentResourceExternalId)
 
 	eutName := "simpleInferenceService"
@@ -510,7 +511,7 @@ func TestGetRegisteredModelsOrderedById(t *testing.T) {
 	_, err = service.UpsertRegisteredModel(registeredModel)
 	assertion.Nilf(err, "error creating registered model: %v", err)
 
-	orderedById, err := service.GetRegisteredModels(ListOptions{
+	orderedById, err := service.GetRegisteredModels(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &ascOrderDirection,
 	})
@@ -521,7 +522,7 @@ func TestGetRegisteredModelsOrderedById(t *testing.T) {
 		assertion.Less(*orderedById.Items[i].Id, *orderedById.Items[i+1].Id)
 	}
 
-	orderedById, err = service.GetRegisteredModels(ListOptions{
+	orderedById, err = service.GetRegisteredModels(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &descOrderDirection,
 	})
@@ -570,7 +571,7 @@ func TestGetRegisteredModelsOrderedByLastUpdate(t *testing.T) {
 	_, err = service.UpsertRegisteredModel(secondModel)
 	assertion.Nilf(err, "error creating registered model: %v", err)
 
-	orderedById, err := service.GetRegisteredModels(ListOptions{
+	orderedById, err := service.GetRegisteredModels(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &ascOrderDirection,
 	})
@@ -581,7 +582,7 @@ func TestGetRegisteredModelsOrderedByLastUpdate(t *testing.T) {
 	assertion.Equal(*thirdModel.Id, *orderedById.Items[1].Id)
 	assertion.Equal(*secondModel.Id, *orderedById.Items[2].Id)
 
-	orderedById, err = service.GetRegisteredModels(ListOptions{
+	orderedById, err = service.GetRegisteredModels(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &descOrderDirection,
 	})
@@ -628,7 +629,7 @@ func TestGetRegisteredModelsWithPageSize(t *testing.T) {
 	thirdModel, err := service.UpsertRegisteredModel(registeredModel)
 	assertion.Nilf(err, "error creating registered model: %v", err)
 
-	truncatedList, err := service.GetRegisteredModels(ListOptions{
+	truncatedList, err := service.GetRegisteredModels(api.ListOptions{
 		PageSize: &pageSize,
 	})
 	assertion.Nilf(err, "error getting registered models: %v", err)
@@ -637,7 +638,7 @@ func TestGetRegisteredModelsWithPageSize(t *testing.T) {
 	assertion.NotEqual("", truncatedList.NextPageToken, "next page token should not be empty")
 	assertion.Equal(*firstModel.Id, *truncatedList.Items[0].Id)
 
-	truncatedList, err = service.GetRegisteredModels(ListOptions{
+	truncatedList, err = service.GetRegisteredModels(api.ListOptions{
 		PageSize:      &pageSize2,
 		NextPageToken: &truncatedList.NextPageToken,
 	})
@@ -1078,11 +1079,11 @@ func TestGetModelVersions(t *testing.T) {
 	createdVersionId2, _ := converter.StringToInt64(createdVersion2.Id)
 	createdVersionId3, _ := converter.StringToInt64(createdVersion3.Id)
 
-	getAll, err := service.GetModelVersions(ListOptions{}, nil)
+	getAll, err := service.GetModelVersions(api.ListOptions{}, nil)
 	assertion.Nilf(err, "error getting all model versions")
 	assertion.Equal(int32(4), getAll.Size, "expected four model versions across all registered models")
 
-	getAllByRegModel, err := service.GetModelVersions(ListOptions{}, &registeredModelId)
+	getAllByRegModel, err := service.GetModelVersions(api.ListOptions{}, &registeredModelId)
 	assertion.Nilf(err, "error getting all model versions")
 	assertion.Equalf(int32(3), getAllByRegModel.Size, "expected three model versions for registered model %d", registeredModelId)
 
@@ -1092,7 +1093,7 @@ func TestGetModelVersions(t *testing.T) {
 
 	// order by last update time, expecting last created as first
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByRegModel, err = service.GetModelVersions(ListOptions{
+	getAllByRegModel, err = service.GetModelVersions(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &registeredModelId)
@@ -1111,7 +1112,7 @@ func TestGetModelVersions(t *testing.T) {
 
 	assertion.Equal(newVersionExternalId, *createdVersion2.ExternalID)
 
-	getAllByRegModel, err = service.GetModelVersions(ListOptions{
+	getAllByRegModel, err = service.GetModelVersions(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &registeredModelId)
@@ -1489,7 +1490,7 @@ func TestGetModelArtifacts(t *testing.T) {
 	createdArtifactId2, _ := converter.StringToInt64(createdArtifact2.Id)
 	createdArtifactId3, _ := converter.StringToInt64(createdArtifact3.Id)
 
-	getAll, err := service.GetModelArtifacts(ListOptions{}, nil)
+	getAll, err := service.GetModelArtifacts(api.ListOptions{}, nil)
 	assertion.Nilf(err, "error getting all model artifacts")
 	assertion.Equalf(int32(3), getAll.Size, "expected three model artifacts")
 
@@ -1498,7 +1499,7 @@ func TestGetModelArtifacts(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(createdArtifactId3), *getAll.Items[2].Id)
 
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByModelVersion, err := service.GetModelArtifacts(ListOptions{
+	getAllByModelVersion, err := service.GetModelArtifacts(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &modelVersionId)
@@ -1781,7 +1782,7 @@ func TestGetServingEnvironmentsOrderedById(t *testing.T) {
 	_, err = service.UpsertServingEnvironment(eut)
 	assertion.Nilf(err, "error creating ServingEnvironment: %v", err)
 
-	orderedById, err := service.GetServingEnvironments(ListOptions{
+	orderedById, err := service.GetServingEnvironments(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &ascOrderDirection,
 	})
@@ -1792,7 +1793,7 @@ func TestGetServingEnvironmentsOrderedById(t *testing.T) {
 		assertion.Less(*orderedById.Items[i].Id, *orderedById.Items[i+1].Id)
 	}
 
-	orderedById, err = service.GetServingEnvironments(ListOptions{
+	orderedById, err = service.GetServingEnvironments(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &descOrderDirection,
 	})
@@ -1841,7 +1842,7 @@ func TestGetServingEnvironmentsOrderedByLastUpdate(t *testing.T) {
 	_, err = service.UpsertServingEnvironment(secondEntity)
 	assertion.Nilf(err, "error creating ServingEnvironment: %v", err)
 
-	orderedById, err := service.GetServingEnvironments(ListOptions{
+	orderedById, err := service.GetServingEnvironments(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &ascOrderDirection,
 	})
@@ -1852,7 +1853,7 @@ func TestGetServingEnvironmentsOrderedByLastUpdate(t *testing.T) {
 	assertion.Equal(*thirdEntity.Id, *orderedById.Items[1].Id)
 	assertion.Equal(*secondEntity.Id, *orderedById.Items[2].Id)
 
-	orderedById, err = service.GetServingEnvironments(ListOptions{
+	orderedById, err = service.GetServingEnvironments(api.ListOptions{
 		OrderBy:   &orderBy,
 		SortOrder: &descOrderDirection,
 	})
@@ -1899,7 +1900,7 @@ func TestGetServingEnvironmentsWithPageSize(t *testing.T) {
 	thirdEntity, err := service.UpsertServingEnvironment(eut)
 	assertion.Nilf(err, "error creating ServingEnvironment: %v", err)
 
-	truncatedList, err := service.GetServingEnvironments(ListOptions{
+	truncatedList, err := service.GetServingEnvironments(api.ListOptions{
 		PageSize: &pageSize,
 	})
 	assertion.Nilf(err, "error getting ServingEnvironments: %v", err)
@@ -1908,7 +1909,7 @@ func TestGetServingEnvironmentsWithPageSize(t *testing.T) {
 	assertion.NotEqual("", truncatedList.NextPageToken, "next page token should not be empty")
 	assertion.Equal(*firstEntity.Id, *truncatedList.Items[0].Id)
 
-	truncatedList, err = service.GetServingEnvironments(ListOptions{
+	truncatedList, err = service.GetServingEnvironments(api.ListOptions{
 		PageSize:      &pageSize2,
 		NextPageToken: &truncatedList.NextPageToken,
 	})
@@ -2482,11 +2483,11 @@ func TestGetInferenceServices(t *testing.T) {
 	createdId2, _ := converter.StringToInt64(createdEntity2.Id)
 	createdId3, _ := converter.StringToInt64(createdEntity3.Id)
 
-	getAll, err := service.GetInferenceServices(ListOptions{}, nil)
+	getAll, err := service.GetInferenceServices(api.ListOptions{}, nil)
 	assertion.Nilf(err, "error getting all")
 	assertion.Equal(int32(4), getAll.Size, "expected 4 across all parent resources")
 
-	getAllByParentResource, err := service.GetInferenceServices(ListOptions{}, &parentResourceId)
+	getAllByParentResource, err := service.GetInferenceServices(api.ListOptions{}, &parentResourceId)
 	assertion.Nilf(err, "error getting all")
 	assertion.Equalf(int32(3), getAllByParentResource.Size, "expected 3 for parent resource %d", parentResourceId)
 
@@ -2496,7 +2497,7 @@ func TestGetInferenceServices(t *testing.T) {
 
 	// order by last update time, expecting last created as first
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByParentResource, err = service.GetInferenceServices(ListOptions{
+	getAllByParentResource, err = service.GetInferenceServices(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &parentResourceId)
@@ -2515,7 +2516,7 @@ func TestGetInferenceServices(t *testing.T) {
 
 	assertion.Equal(newExternalId, *createdEntity2.ExternalID)
 
-	getAllByParentResource, err = service.GetInferenceServices(ListOptions{
+	getAllByParentResource, err = service.GetInferenceServices(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &parentResourceId)
@@ -2907,7 +2908,7 @@ func TestGetServeModels(t *testing.T) {
 	createdEntityId2, _ := converter.StringToInt64(createdEntity2.Id)
 	createdEntityId3, _ := converter.StringToInt64(createdEntity3.Id)
 
-	getAll, err := service.GetServeModels(ListOptions{}, nil)
+	getAll, err := service.GetServeModels(api.ListOptions{}, nil)
 	assertion.Nilf(err, "error getting all ServeModel")
 	assertion.Equalf(int32(3), getAll.Size, "expected three ServeModel")
 
@@ -2916,7 +2917,7 @@ func TestGetServeModels(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(createdEntityId3), *getAll.Items[2].Id)
 
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByInferenceService, err := service.GetServeModels(ListOptions{
+	getAllByInferenceService, err := service.GetServeModels(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &inferenceServiceId)
