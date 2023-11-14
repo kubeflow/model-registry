@@ -44,6 +44,23 @@ func TestInt64ToString(t *testing.T) {
 	assertion.Nil(Int64ToString(nil))
 }
 
+func TestStringToInt32(t *testing.T) {
+	assertion := setup(t)
+
+	valid := "12345"
+	converted, err := StringToInt32(valid)
+	assertion.Nil(err)
+	assertion.Equal(int32(12345), converted)
+}
+
+func TestStringToInt32InvalidNumber(t *testing.T) {
+	assertion := setup(t)
+
+	invalid := "not-a-number"
+	_, err := StringToInt32(invalid)
+	assertion.NotNil(err)
+}
+
 func TestMetadataValueBool(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my bool"
@@ -173,7 +190,14 @@ func TestPrefixWhenOwnedWithoutOwner(t *testing.T) {
 func TestMapRegisteredModelProperties(t *testing.T) {
 	assertion := setup(t)
 
-	props, err := MapRegisteredModelProperties(&openapi.RegisteredModel{})
+	props, err := MapRegisteredModelProperties(&openapi.RegisteredModel{
+		Description: of("super description"),
+	})
+	assertion.Nil(err)
+	assertion.Equal(1, len(props))
+	assertion.Equal("super description", props["description"].GetStringValue())
+
+	props, err = MapRegisteredModelProperties(&openapi.RegisteredModel{})
 	assertion.Nil(err)
 	assertion.Equal(0, len(props))
 }
@@ -194,12 +218,14 @@ func TestMapModelVersionProperties(t *testing.T) {
 		ParentResourceId: of("123"),
 		ModelName:        of("MyModel"),
 		Model: &openapi.ModelVersion{
-			Name: of("v1"),
+			Name:        of("v1"),
+			Description: of("my model version description"),
 		},
 	})
 	assertion.Nil(err)
-	assertion.Equal(3, len(props))
-	// TODO check all 3 props
+	assertion.Equal(4, len(props))
+	assertion.Equal("my model version description", props["description"].GetStringValue())
+	assertion.Equal("v1", props["version"].GetStringValue())
 }
 
 func TestMapModelVersionType(t *testing.T) {
@@ -230,6 +256,7 @@ func TestMapModelArtifactProperties(t *testing.T) {
 
 	props, err := MapModelArtifactProperties(&openapi.ModelArtifact{
 		Name:               of("v1"),
+		Description:        of("my model art description"),
 		ModelFormatName:    of("sklearn"),
 		ModelFormatVersion: of("1.0"),
 		StorageKey:         of("storage-key"),
@@ -237,7 +264,8 @@ func TestMapModelArtifactProperties(t *testing.T) {
 		ServiceAccountName: of("service-account-name"),
 	})
 	assertion.Nil(err)
-	assertion.Equal(5, len(props))
+	assertion.Equal(6, len(props))
+	assertion.Equal("my model art description", props["description"].GetStringValue())
 	assertion.Equal("sklearn", props["model_format_name"].GetStringValue())
 	assertion.Equal("1.0", props["model_format_version"].GetStringValue())
 	assertion.Equal("storage-key", props["storage_key"].GetStringValue())
@@ -411,6 +439,62 @@ func TestMapModelArtifactServiceAccountName(t *testing.T) {
 	assertion.Equal("my-account", *extracted)
 }
 
+func TestMapPropertyModelVersionId(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapPropertyModelVersionId(map[string]*proto.Value{
+		"model_version_id": {
+			Value: &proto.Value_IntValue{
+				IntValue: 123,
+			},
+		},
+	})
+
+	assertion.Equal("123", *extracted)
+}
+
+func TestMapPropertyModelVersionIdAsValue(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapPropertyModelVersionIdAsValue(map[string]*proto.Value{
+		"model_version_id": {
+			Value: &proto.Value_IntValue{
+				IntValue: 123,
+			},
+		},
+	})
+
+	assertion.Equal("123", extracted)
+}
+
+func TestMapPropertyRegisteredModelId(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapPropertyRegisteredModelId(map[string]*proto.Value{
+		"registered_model_id": {
+			Value: &proto.Value_IntValue{
+				IntValue: 123,
+			},
+		},
+	})
+
+	assertion.Equal("123", extracted)
+}
+
+func TestMapPropertyServingEnvironmentId(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapPropertyServingEnvironmentId(map[string]*proto.Value{
+		"serving_environment_id": {
+			Value: &proto.Value_IntValue{
+				IntValue: 123,
+			},
+		},
+	})
+
+	assertion.Equal("123", extracted)
+}
+
 func TestMapNameFromOwned(t *testing.T) {
 	assertion := setup(t)
 
@@ -518,4 +602,119 @@ func TestMapServeModelProperties(t *testing.T) {
 	props, err = MapServeModelProperties(&openapi.ServeModel{})
 	assertion.NotNil(err)
 	assertion.Equal(0, len(props))
+}
+
+func TestMapServingEnvironmentProperties(t *testing.T) {
+	assertion := setup(t)
+
+	props, err := MapServingEnvironmentProperties(&openapi.ServingEnvironment{
+		Description: of("my description"),
+	})
+	assertion.Nil(err)
+	assertion.Equal(1, len(props))
+
+	props, err = MapServingEnvironmentProperties(&openapi.ServingEnvironment{})
+	assertion.Nil(err)
+	assertion.Equal(0, len(props))
+}
+
+func TestMapInferenceServiceName(t *testing.T) {
+	assertion := setup(t)
+
+	name := MapInferenceServiceName(&OpenAPIModelWrapper[openapi.InferenceService]{
+		TypeId:           123,
+		ParentResourceId: of("123"),
+		ModelName:        of("MyModel"),
+		Model: &openapi.InferenceService{
+			Name: of("inf-service"),
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Equal("123:inf-service", *name)
+}
+
+func TestMapServeModelName(t *testing.T) {
+	assertion := setup(t)
+
+	name := MapServeModelName(&OpenAPIModelWrapper[openapi.ServeModel]{
+		TypeId:           123,
+		ParentResourceId: of("parent"),
+		Model: &openapi.ServeModel{
+			Name: of("v1"),
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Equal("parent:v1", *name)
+
+	name = MapServeModelName(&OpenAPIModelWrapper[openapi.ServeModel]{
+		TypeId:           123,
+		ParentResourceId: of("parent"),
+		Model: &openapi.ServeModel{
+			Name: nil,
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Regexp("parent:.*", *name)
+
+	name = MapServeModelName(&OpenAPIModelWrapper[openapi.ServeModel]{
+		TypeId: 123,
+		Model: &openapi.ServeModel{
+			Name: of("v1"),
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Regexp(".*:v1", *name)
+}
+
+func TestMapLastKnownState(t *testing.T) {
+	assertion := setup(t)
+
+	state, err := MapLastKnownState(of(openapi.EXECUTIONSTATE_RUNNING))
+	assertion.Nil(err)
+	assertion.Equal("RUNNING", state.String())
+
+	state, err = MapLastKnownState(nil)
+	assertion.Nil(err)
+	assertion.Nil(state)
+}
+
+func TestMapIntProperty(t *testing.T) {
+	assertion := setup(t)
+
+	props := map[string]*proto.Value{
+		"key": {
+			Value: &proto.Value_IntValue{
+				IntValue: 10,
+			},
+		},
+	}
+
+	assertion.Equal("10", *MapIntProperty(props, "key"))
+	assertion.Nil(MapIntProperty(props, "not-present"))
+}
+
+func TestMapIntPropertyAsValue(t *testing.T) {
+	assertion := setup(t)
+
+	props := map[string]*proto.Value{
+		"key": {
+			Value: &proto.Value_IntValue{
+				IntValue: 10,
+			},
+		},
+	}
+
+	assertion.Equal("10", MapIntPropertyAsValue(props, "key"))
+	assertion.Equal("", MapIntPropertyAsValue(props, "not-present"))
+}
+
+func TestMapMLMDServeModelLastKnownState(t *testing.T) {
+	assertion := setup(t)
+
+	state := MapMLMDServeModelLastKnownState(of(proto.Execution_COMPLETE))
+	assertion.NotNil(state)
+	assertion.Equal("COMPLETE", string(*state))
+
+	state = MapMLMDServeModelLastKnownState(nil)
+	assertion.Nil(state)
 }

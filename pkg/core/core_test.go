@@ -45,6 +45,11 @@ var (
 )
 
 func setup(t *testing.T) (*assert.Assertions, *grpc.ClientConn, proto.MetadataStoreServiceClient, func(t *testing.T)) {
+	if testing.Short() {
+		// skip these tests using -short param
+		t.Skip("skipping testing in short mode")
+	}
+
 	// initialize test variable before each test
 	ascOrderDirection = "ASC"
 	descOrderDirection = "DESC"
