@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/maps"
 )

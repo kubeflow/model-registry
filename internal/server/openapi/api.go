@@ -13,7 +13,7 @@ import (
 	"context"
 	"net/http"
 
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelRegistryServiceAPI

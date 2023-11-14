@@ -3,8 +3,8 @@ package apiutils
 import (
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"github.com/opendatahub-io/model-registry/pkg/api"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 func BuildListOperationOptions(listOptions api.ListOptions) (*proto.ListOperationOptions, error) {

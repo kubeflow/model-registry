@@ -29,7 +29,7 @@ INITIAL_CONTENT=$(cat <<EOF
 package openapi
 
 import (
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 

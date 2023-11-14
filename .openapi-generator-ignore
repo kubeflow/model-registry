@@ -23,20 +23,20 @@
 #!docs/README.md
 
 # model and client files
-internal/model/openapi/api
-internal/model/openapi/api/**
-internal/model/openapi/git_push.sh
-internal/model/openapi/.gitignore
-internal/model/openapi/.travis.yml
-internal/model/openapi/.openapi-generator-ignore
+pkg/openapi/api
+pkg/openapi/api/**
+pkg/openapi/git_push.sh
+pkg/openapi/.gitignore
+pkg/openapi/.travis.yml
+pkg/openapi/.openapi-generator-ignore
 
-internal/model/openapi/README.md
-internal/model/openapi/docs/**.md
-internal/model/openapi/test
-internal/model/openapi/test/**
-internal/model/openapi/**all_of.go
-internal/model/openapi/go.mod
-internal/model/openapi/go.sum
+pkg/openapi/README.md
+pkg/openapi/docs/**.md
+pkg/openapi/test
+pkg/openapi/test/**
+pkg/openapi/**all_of.go
+pkg/openapi/go.mod
+pkg/openapi/go.sum
 
 # server files to ignore
 internal/server/openapi/api

@@ -1,6 +1,6 @@
 package api
 
-import "github.com/opendatahub-io/model-registry/internal/model/openapi"
+import "github.com/opendatahub-io/model-registry/pkg/openapi"
 
 type ListOptions struct {
 	PageSize      *int32

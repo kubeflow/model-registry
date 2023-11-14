@@ -88,14 +88,14 @@ gen/openapi-server: bin/openapi-generator-cli openapi/validate
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
-gen/openapi: bin/openapi-generator-cli openapi/validate internal/model/openapi/client.go
+gen/openapi: bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
 
-internal/model/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
-	rm -rf internal/model/openapi
+pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+	rm -rf pkg/openapi
 	openapi-generator-cli generate \
-		-i api/openapi/model-registry.yaml -g go -o internal/model/openapi --package-name openapi \
+		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
-	gofmt -w internal/model/openapi
+	gofmt -w pkg/openapi
 
 .PHONY: vet
 vet:
@@ -103,7 +103,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/*.go internal/model/openapi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/*.go pkg/openapi
 
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97

@@ -17,8 +17,8 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/converter/generated"
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"github.com/opendatahub-io/model-registry/pkg/api"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIService is a service that implements the logic for the ModelRegistryServiceAPIServicer

@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/opendatahub-io/model-registry/internal/model/openapi"
+import "github.com/opendatahub-io/model-registry/pkg/openapi"
 
 // goverter:converter
 // goverter:output:file ./generated/openapi_converter.gen.go

@@ -6,7 +6,7 @@ import (
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/converter/generated"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/internal/model/openapi"
+	"github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 type Mapper struct {

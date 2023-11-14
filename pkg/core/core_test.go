@@ -7,9 +7,9 @@ import (
 
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/internal/model/openapi"
 	"github.com/opendatahub-io/model-registry/internal/testutils"
 	"github.com/opendatahub-io/model-registry/pkg/api"
+	"github.com/opendatahub-io/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )

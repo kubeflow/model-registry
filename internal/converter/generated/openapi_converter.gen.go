@@ -2,7 +2,7 @@
 
 package generated
 
-import openapi "github.com/opendatahub-io/model-registry/internal/model/openapi"
+import openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
 
 type OpenAPIConverterImpl struct{}
 

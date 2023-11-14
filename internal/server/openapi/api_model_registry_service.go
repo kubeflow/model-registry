@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	model "github.com/opendatahub-io/model-registry/internal/model/openapi"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIController binds http requests to an api service and writes the service results to the http response
