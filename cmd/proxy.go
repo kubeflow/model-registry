@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/opendatahub-io/model-registry/internal/server/openapi"
@@ -28,12 +29,15 @@ hostname and port where it listens.'`,
 )
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
-	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+	glog.Infof("Proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
 
 	mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
-	glog.Infof("MLMD server %s", mlmdAddr)
+	glog.Infof("Connecting to MLMD server %s..", mlmdAddr)
 	conn, err := grpc.DialContext(
-		context.Background(),
+		ctxTimeout,
 		mlmdAddr,
 		grpc.WithReturnConnectionError(),
 		grpc.WithBlock(),
@@ -44,6 +48,8 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	defer conn.Close()
+	glog.Infof("Connected to MLMD server")
+
 	service, err := core.NewModelRegistryService(conn)
 	if err != nil {
 		log.Fatalf("Error creating core service: %v", err)

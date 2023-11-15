@@ -1,19 +1,18 @@
 version: '3'
 services:
-  ml-metadata:
+  mlmd-server:
     image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0
     container_name: mlmd-server
     ports:
-      - "8080:8080"
+      - "9090:8080"
     environment:
       - METADATA_STORE_SERVER_CONFIG_FILE=/tmp/shared/conn_config.pb
     volumes:
       - ./test/config/ml-metadata:/tmp/shared
   model-registry:
     image: quay.io/opendatahub/model-registry:latest
-    command: ["proxy"]
+    command: ["proxy", "--mlmd-hostname", "localhost", "--mlmd-port", "9090"]
     container_name: model-registry
-    ports:
-      - "8081:8080"
+    network_mode: host
     depends_on: 
-      - ml-metadata
+      - mlmd-server
