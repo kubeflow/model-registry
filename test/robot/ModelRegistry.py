@@ -37,5 +37,5 @@ class ModelRegistry(mr.client.ModelRegistry):
 # Used only for quick smoke tests 
 if __name__ == "__main__":
     demo_instance = ModelRegistry()
-    demo_instance.upsert_registered_model({'name': 'asd11'})
+    demo_instance.upsert_registered_model({'name': 'testing123'})
     demo_instance.upsert_model_version({'name': 'v1'}, None)
