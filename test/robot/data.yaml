@@ -1,0 +1,9 @@
+# dummy data for Robot Framework tests
+registered_model:
+  name: RegisteredModelName
+model_version:
+  name: v1.2.3
+model_artifact:
+  artifactType: model-artifact
+  name: ModelArtifactName
+  uri: s3://12345
