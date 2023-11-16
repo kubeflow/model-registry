@@ -26,25 +26,25 @@ Verify basic logical mapping between MR and MLMD
     ${aId}    Convert To Integer    ${aId}
 
     # RegisteredModel shall result in a MLMD Context
-    ${mlmdProto}    Get Contexts By Single Id    ${rId}
-    Log To Console    ${mlmdProto[0]}
-    Should be equal    ${mlmdProto[0].type}    odh.RegisteredModel
-    Should be equal    ${mlmdProto[0].name}    ${name}
+    ${mlmdProto}    Get Context By Single Id    ${rId}
+    Log To Console    ${mlmdProto}
+    Should be equal    ${mlmdProto.type}    odh.RegisteredModel
+    Should be equal    ${mlmdProto.name}    ${name}
 
     # ModelVersion shall result in a MLMD Context and parent Context(of RegisteredModel)
-    ${mlmdProto}    Get Contexts By Single Id    ${vId}
-    Log To Console    ${mlmdProto[0]}
-    Should be equal    ${mlmdProto[0].type}    odh.ModelVersion
-    Should be equal    ${mlmdProto[0].name}    ${rId}:v1
+    ${mlmdProto}    Get Context By Single Id    ${vId}
+    Log To Console    ${mlmdProto}
+    Should be equal    ${mlmdProto.type}    odh.ModelVersion
+    Should be equal    ${mlmdProto.name}    ${rId}:v1
     ${mlmdProto}    Get Parent Contexts By Context    ${vId}
     Should be equal    ${mlmdProto[0].id}    ${rId}
 
     # ModelArtifact shall result in a MLMD Artifact and Attribution(to the parent Context of ModelVersion)
     ${aNamePrefix}    Set Variable    ${vId}:
-    ${mlmdProto}    Get Artifacts By Single Id    ${aId}
-    Log To Console    ${mlmdProto[0]}
-    Should be equal    ${mlmdProto[0].type}    odh.ModelArtifact
-    Should Start With   ${mlmdProto[0].name}    ${aNamePrefix}
-    Should be equal   ${mlmdProto[0].uri}    s3://12345
+    ${mlmdProto}    Get Artifact By Single Id    ${aId}
+    Log To Console    ${mlmdProto}
+    Should be equal    ${mlmdProto.type}    odh.ModelArtifact
+    Should Start With   ${mlmdProto.name}    ${aNamePrefix}
+    Should be equal   ${mlmdProto.uri}    s3://12345
     ${mlmdProto}    Get Artifacts By Context    ${vId}
     Should be equal   ${mlmdProto[0].id}    ${aId}

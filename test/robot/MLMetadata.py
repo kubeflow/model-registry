@@ -12,8 +12,8 @@ class MLMetadata(metadata_store.MetadataStore):
         print(client_connection_config)
         super().__init__(client_connection_config)
 
-    def get_contexts_by_single_id(self, context_id: int) -> List[proto.Context]:
-        return self.get_contexts_by_id([context_id])
+    def get_context_by_single_id(self, context_id: int) -> List[proto.Context]:
+        return self.get_contexts_by_id([context_id])[0]
 
-    def get_artifacts_by_single_id(self, artifact_id: int) -> List[proto.Artifact]:
-        return self.get_artifacts_by_id([artifact_id])
+    def get_artifact_by_single_id(self, artifact_id: int) -> List[proto.Artifact]:
+        return self.get_artifacts_by_id([artifact_id])[0]
