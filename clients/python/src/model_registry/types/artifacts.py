@@ -93,9 +93,14 @@ class ModelArtifact(BaseArtifact, Prefixable):
     storage_path: Optional[str] = field(kw_only=True, default=None)
     service_account_name: Optional[str] = field(kw_only=True, default=None)
 
+    _model_version_id: Optional[str] = field(init=False, default=None)
+
     @property
     def mlmd_name_prefix(self) -> str:
-        return uuid4().hex
+        if self._model_version_id:
+            return self._model_version_id
+        else:
+            return uuid4().hex
 
     def map(self) -> Artifact:
         mlmd_obj = super().map()

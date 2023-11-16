@@ -319,6 +319,7 @@ class ModelRegistry:
         except StoreException as e:
             if "found" not in str(e).lower():
                 raise
+        model_artifact._model_version_id = model_version_id
         proto_ma = self._map(model_artifact)
         id = self._store.put_artifact(proto_ma)
         self._store.put_attribution(mv_id, id)
