@@ -79,5 +79,5 @@ type ProxyConfig struct {
 
 var proxyCfg = ProxyConfig{
 	MLMDHostname: "localhost",
-	MLMDPort:     8081,
+	MLMDPort:     9090,
 }
