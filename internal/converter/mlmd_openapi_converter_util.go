@@ -78,10 +78,10 @@ func MapNameFromOwned(source *string) *string {
 // MODEL ARTIFACT
 
 func MapArtifactType(source *proto.Artifact) (string, error) {
-	if *source.Type == ModelArtifactTypeName {
+	if source.Type != nil && *source.Type == ModelArtifactTypeName {
 		return "model-artifact", nil
 	}
-	return "", fmt.Errorf("invalid artifact type found")
+	return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
 }
 
 func MapMLMDModelArtifactState(source *proto.Artifact_State) *openapi.ArtifactState {

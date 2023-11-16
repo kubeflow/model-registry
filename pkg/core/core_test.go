@@ -1141,10 +1141,14 @@ func TestCreateModelArtifact(t *testing.T) {
 	modelVersionId := registerModelVersion(assertion, service, nil, nil, nil, nil)
 
 	modelArtifact := &openapi.ModelArtifact{
-		Name:        &artifactName,
-		State:       (*openapi.ArtifactState)(&artifactState),
-		Uri:         &artifactUri,
-		Description: &artifactDescription,
+		Name:               &artifactName,
+		State:              (*openapi.ArtifactState)(&artifactState),
+		Uri:                &artifactUri,
+		Description:        &artifactDescription,
+		ModelFormatName:    of("onnx"),
+		ModelFormatVersion: of("1"),
+		StorageKey:         of("aws-connection-models"),
+		StoragePath:        of("bucket"),
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -1163,6 +1167,10 @@ func TestCreateModelArtifact(t *testing.T) {
 	assertion.Equal(*state, *createdArtifact.State)
 	assertion.Equal(artifactUri, *createdArtifact.Uri)
 	assertion.Equal(artifactDescription, *createdArtifact.Description)
+	assertion.Equal("onnx", *createdArtifact.ModelFormatName)
+	assertion.Equal("1", *createdArtifact.ModelFormatVersion)
+	assertion.Equal("aws-connection-models", *createdArtifact.StorageKey)
+	assertion.Equal("bucket", *createdArtifact.StoragePath)
 	assertion.Equal(author, *(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue)
 
 	createdArtifactId, _ := converter.StringToInt64(createdArtifact.Id)
@@ -1176,6 +1184,10 @@ func TestCreateModelArtifact(t *testing.T) {
 	assertion.Equal(string(*createdArtifact.State), getById.Artifacts[0].State.String())
 	assertion.Equal(*createdArtifact.Uri, *getById.Artifacts[0].Uri)
 	assertion.Equal(*createdArtifact.Description, getById.Artifacts[0].Properties["description"].GetStringValue())
+	assertion.Equal(*createdArtifact.ModelFormatName, getById.Artifacts[0].Properties["model_format_name"].GetStringValue())
+	assertion.Equal(*createdArtifact.ModelFormatVersion, getById.Artifacts[0].Properties["model_format_version"].GetStringValue())
+	assertion.Equal(*createdArtifact.StorageKey, getById.Artifacts[0].Properties["storage_key"].GetStringValue())
+	assertion.Equal(*createdArtifact.StoragePath, getById.Artifacts[0].Properties["storage_path"].GetStringValue())
 	assertion.Equal(*(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["author"].GetStringValue())
 
 	modelVersionIdAsInt, _ := converter.StringToInt64(&modelVersionId)
@@ -1937,6 +1949,7 @@ func TestCreateInferenceService(t *testing.T) {
 
 	parentResourceId := registerServingEnvironment(assertion, service, nil, nil)
 	registeredModelId := registerModel(assertion, service, nil, nil)
+	runtime := "model-server"
 
 	eut := &openapi.InferenceService{
 		Name:                 &entityName,
@@ -1944,6 +1957,7 @@ func TestCreateInferenceService(t *testing.T) {
 		Description:          &entityDescription,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
+		Runtime:              &runtime,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -1954,7 +1968,7 @@ func TestCreateInferenceService(t *testing.T) {
 	}
 
 	createdEntity, err := service.UpsertInferenceService(eut)
-	assertion.Nilf(err, "error creating new eut for %v", parentResourceId)
+	assertion.Nilf(err, "error creating new eut for %s: %v", parentResourceId, err)
 
 	assertion.NotNilf(createdEntity.Id, "created eut should not have nil Id")
 
@@ -1973,6 +1987,7 @@ func TestCreateInferenceService(t *testing.T) {
 	assertion.Equal(entityExternalId2, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
 	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
 	assertion.Equal(entityDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
+	assertion.Equal(runtime, byId.Contexts[0].Properties["runtime"].GetStringValue(), "saved runtime should match the provided one")
 	assertion.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})

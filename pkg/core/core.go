@@ -89,6 +89,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 				"registered_model_id": proto.PropertyType_INT,
 				// same information tracked using ParentContext association
 				"serving_environment_id": proto.PropertyType_INT,
+				"runtime":                proto.PropertyType_STRING,
 			},
 		},
 	}
@@ -99,7 +100,6 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 			Properties: map[string]proto.PropertyType{
 				"description":      proto.PropertyType_STRING,
 				"model_version_id": proto.PropertyType_INT,
-				"runtime":          proto.PropertyType_STRING,
 			},
 		},
 	}
@@ -285,8 +285,12 @@ func (serv *modelRegistryService) GetRegisteredModelByParams(name *string, exter
 		return nil, err
 	}
 
-	if len(getByParamsResp.Contexts) != 1 {
-		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v", *name, *externalId)
+	if len(getByParamsResp.Contexts) > 1 {
+		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+	}
+
+	if len(getByParamsResp.Contexts) == 0 {
+		return nil, fmt.Errorf("no registered models found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
 	}
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getByParamsResp.Contexts[0])
@@ -506,8 +510,12 @@ func (serv *modelRegistryService) GetModelVersionByParams(versionName *string, p
 		return nil, err
 	}
 
-	if len(getByParamsResp.Contexts) != 1 {
+	if len(getByParamsResp.Contexts) > 1 {
 		return nil, fmt.Errorf("multiple model versions found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+	}
+
+	if len(getByParamsResp.Contexts) == 0 {
+		return nil, fmt.Errorf("no model versions found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByParamsResp.Contexts[0])
@@ -848,8 +856,12 @@ func (serv *modelRegistryService) GetServingEnvironmentByParams(name *string, ex
 		return nil, err
 	}
 
-	if len(getByParamsResp.Contexts) != 1 {
-		return nil, fmt.Errorf("could not find exactly one Context matching criteria: %v", getByParamsResp.Contexts)
+	if len(getByParamsResp.Contexts) > 1 {
+		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+	}
+
+	if len(getByParamsResp.Contexts) == 0 {
+		return nil, fmt.Errorf("no serving environments found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
 	}
 
 	openapiModel, err := serv.mapper.MapToServingEnvironment(getByParamsResp.Contexts[0])
@@ -1052,8 +1064,12 @@ func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, pare
 		return nil, err
 	}
 
-	if len(getByParamsResp.Contexts) != 1 {
-		return nil, fmt.Errorf("multiple InferenceServices found for name=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+	if len(getByParamsResp.Contexts) > 1 {
+		return nil, fmt.Errorf("multiple inference services found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+	}
+
+	if len(getByParamsResp.Contexts) == 0 {
+		return nil, fmt.Errorf("no inference services found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByParamsResp.Contexts[0])

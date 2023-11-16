@@ -131,27 +131,15 @@ func (m *Mapper) MapFromServeModel(serveModel *openapi.ServeModel, inferenceServ
 // Utilities for MLMD --> OpenAPI mapping, make use of generated Converters
 
 func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredModel, error) {
-	if ctx.GetTypeId() != m.RegisteredModelTypeId {
-		return nil, fmt.Errorf("invalid TypeId, expected %d but received %d", m.RegisteredModelTypeId, ctx.GetTypeId())
-	}
-
-	return m.MLMDConverter.ConvertRegisteredModel(ctx)
+	return mapTo(ctx, m.RegisteredModelTypeId, m.MLMDConverter.ConvertRegisteredModel)
 }
 
 func (m *Mapper) MapToModelVersion(ctx *proto.Context) (*openapi.ModelVersion, error) {
-	if ctx.GetTypeId() != m.ModelVersionTypeId {
-		return nil, fmt.Errorf("invalid TypeId, expected %d but received %d", m.ModelVersionTypeId, ctx.GetTypeId())
-	}
-
-	return m.MLMDConverter.ConvertModelVersion(ctx)
+	return mapTo(ctx, m.ModelVersionTypeId, m.MLMDConverter.ConvertModelVersion)
 }
 
-func (m *Mapper) MapToModelArtifact(artifact *proto.Artifact) (*openapi.ModelArtifact, error) {
-	if artifact.GetTypeId() != m.ModelArtifactTypeId {
-		return nil, fmt.Errorf("invalid TypeId, expected %d but received %d", m.ModelArtifactTypeId, artifact.GetTypeId())
-	}
-
-	return m.MLMDConverter.ConvertModelArtifact(artifact)
+func (m *Mapper) MapToModelArtifact(art *proto.Artifact) (*openapi.ModelArtifact, error) {
+	return mapTo(art, m.ModelArtifactTypeId, m.MLMDConverter.ConvertModelArtifact)
 }
 
 func (m *Mapper) MapToServingEnvironment(ctx *proto.Context) (*openapi.ServingEnvironment, error) {
@@ -162,8 +150,8 @@ func (m *Mapper) MapToInferenceService(ctx *proto.Context) (*openapi.InferenceSe
 	return mapTo(ctx, m.InferenceServiceTypeId, m.MLMDConverter.ConvertInferenceService)
 }
 
-func (m *Mapper) MapToServeModel(ctx *proto.Execution) (*openapi.ServeModel, error) {
-	return mapTo(ctx, m.ServeModelTypeId, m.MLMDConverter.ConvertServeModel)
+func (m *Mapper) MapToServeModel(ex *proto.Execution) (*openapi.ServeModel, error) {
+	return mapTo(ex, m.ServeModelTypeId, m.MLMDConverter.ConvertServeModel)
 }
 
 type getTypeIder interface {
