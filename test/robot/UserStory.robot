@@ -1,7 +1,5 @@
 *** Settings ***
-Library    yaml
-Library    OperatingSystem
-Library    Collections
+Resource    Setup.resource
 Resource    MRkeywords.resource
 Test Setup    Test Setup with dummy data
 
@@ -35,25 +33,3 @@ As a MLOps engineer I would like to store a description of the model
           And Should be equal    ${r["description"]}    consectetur adipiscing elit
     ${r}  Then I get ModelArtifactByID    id=${aId}
           And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
-
-
-*** Keywords ***
-Test Setup with dummy data
-    Log To Console  TEST SETUP
-    ${name}    Generate Random String    8    [LETTERS]
-    Set Test Variable    $name    ${name}
-    ${YAML}    Get File  ${CURDIR}${/}data.yaml
-    ${YAML}    yaml.Safe Load  ${YAML}
-    &{registered_model}    Get From Dictionary   ${YAML}    registered_model
-    Set Test Variable    &registered_model    &{registered_model}
-    &{model_version}    Get From Dictionary   ${YAML}    model_version
-    Set Test Variable    &model_version    &{model_version}
-    &{model_artifact}    Get From Dictionary   ${YAML}    model_artifact
-    Set Test Variable    &model_artifact    &{model_artifact}
-
-
-*** Variables ***
-&{registered_model}    
-&{model_version}    
-&{model_artifact}
-${name}

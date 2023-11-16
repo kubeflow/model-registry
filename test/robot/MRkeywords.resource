@@ -31,7 +31,8 @@ I create a RegisteredModel
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
-        Fail    Not Implemented
+        ${result}    Upsert Registered Model    ${payload}
+        Log to console    ${result}
     END
     [return]    ${result}
 
@@ -59,7 +60,8 @@ I create a child ModelVersion
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
-        Fail    Not Implemented
+        ${result}    Upsert Model Version    ${payload}     ${registeredModelID}
+        Log to console    ${result}
     END
     [return]    ${result}
 
@@ -87,7 +89,8 @@ I create a child ModelArtifact
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
-        Fail    Not Implemented
+        ${result}    Upsert Model Artifact    ${payload}    ${modelversionId}
+        Log to console    ${result}
     END
     [return]    ${result}
 
