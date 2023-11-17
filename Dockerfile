@@ -13,7 +13,7 @@ USER root
 RUN yum install -y nodejs npm java-11
 
 # Copy the go source
-COPY ["Makefile", "main.go", "gqlgen.yml", ".openapi-generator-ignore", "openapitools.json", "./"]
+COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 
 # Download protoc compiler v24.3
 RUN wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip -O protoc.zip && \
@@ -28,7 +28,6 @@ RUN make deps
 COPY bin/ bin/
 COPY cmd/ cmd/
 COPY api/ api/
-COPY config/ config/
 COPY internal/ internal/
 COPY pkg/ pkg/
 
@@ -40,8 +39,6 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
 WORKDIR /
-# copy the metadata library
-COPY --from=builder /workspace/config ./config
 # copy the registry binary
 COPY --from=builder /workspace/model-registry .
 USER 65532:65532

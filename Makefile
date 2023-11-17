@@ -62,13 +62,7 @@ internal/converter/generated/converter.go: internal/converter/*.go
 	goverter gen github.com/opendatahub-io/model-registry/internal/converter/
 
 .PHONY: gen/converter
-gen/converter: gen/grpc internal/converter/generated/converter.go gen/graph
-
-.PHONY: gen/graph
-gen/graph: internal/model/graph/models_gen.go
-
-internal/model/graph/models_gen.go: api/graphql/*.graphqls gqlgen.yml
-	gqlgen generate
+gen/converter: gen/grpc internal/converter/generated/converter.go
 
 # validate the openapi schema
 .PHONY: openapi/validate
@@ -103,7 +97,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/model/graph/models_gen.go internal/converter/generated/*.go pkg/openapi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
 
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
@@ -113,9 +107,6 @@ bin/protoc-gen-go:
 
 bin/protoc-gen-go-grpc:
 	GOBIN=$(PROJECT_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
-
-bin/gqlgen:
-	GOBIN=$(PROJECT_BIN) go install github.com/99designs/gqlgen@v0.17.36
 
 bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
@@ -146,7 +137,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/gqlgen bin/golangci-lint bin/goverter bin/openapi-generator-cli
+deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli
 
 .PHONY: vendor
 vendor:
@@ -157,7 +148,7 @@ build: gen vet lint
 	go build
 
 .PHONY: gen
-gen: deps gen/grpc gen/openapi gen/converter gen/graph
+gen: deps gen/grpc gen/openapi gen/converter
 	go generate ./...
 
 .PHONY: lint
@@ -177,27 +168,13 @@ test-nocache: gen
 test-cover: gen
 	go test ./internal/... ./pkg/... -cover -count=1
 
-.PHONY: run/migrate
-run/migrate: gen
-	go run main.go migrate --logtostderr=true -m config/metadata-library
-
-metadata.sqlite.db: run/migrate
-
-.PHONY: run/server
-run/server: gen metadata.sqlite.db
-	go run main.go serve --logtostderr=true
-
 .PHONY: run/proxy
 run/proxy: gen
 	go run main.go proxy --logtostderr=true
 
-.PHONY: run/client
-run/client: gen
-	python test/python/test_mlmetadata.py
-
-.PHONY: serve
-serve: build
-	./model-registry serve --logtostderr=true
+.PHONY: proxy
+proxy: build
+	./model-registry proxy --logtostderr=true
 
 # login to docker
 .PHONY: docker/login
