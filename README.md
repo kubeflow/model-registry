@@ -1,6 +1,7 @@
 # Model Registry
 
 ![build checks status](https://github.com/opendatahub-io/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/github/opendatahub-io/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/opendatahub-io/model-registry)
 
 Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata. A Go-based application that leverages [ml_metadata](https://github.com/google/ml-metadata/) project under the hood.
 
