@@ -63,14 +63,20 @@ jobs:
       - name: Run Nox
         working-directory: clients/python
         run: |
-          nox --python=${{ matrix.python }}
+          if [[ ${{ matrix.session }} == "tests" ]]; then
+            nox --python=${{ matrix.python }} -s tests -- --cov-report=xml
+          else
+            nox --python=${{ matrix.python }}
+          fi
 
-      - name: Upload coverage data
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3.1.4
         if: always() && matrix.session == 'tests'
-        uses: "actions/upload-artifact@v3"
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          name: coverage-data
-          path: "clients/python/.coverage.*"
+          files: coverage.xml
+          fail_ci_if_error: true
 
       - name: Upload documentation
         if: matrix.session == 'docs-build'

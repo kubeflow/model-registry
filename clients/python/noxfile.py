@@ -33,9 +33,15 @@ nox.options.sessions = (
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments")
+    session.install("coverage[toml]", "pytest", "pytest-cov", "pygments")
     try:
-        session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
+        session.run(
+            "pytest",
+            "--cov",
+            "--cov-config=pyproject.toml",
+            *session.posargs,
+            env={"COVERAGE_FILE": f".coverage.{session.python}"},
+        )
     finally:
         if session.interactive:
             session.notify("coverage", posargs=[])
