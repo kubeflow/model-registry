@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 from typing import Optional
 
-from ml_metadata import ListOptions, MetadataStore, errors
+from ml_metadata.metadata_store import ListOptions, MetadataStore
+from ml_metadata import errors
 from ml_metadata.proto import (
     Artifact,
     Attribution,
@@ -167,7 +168,7 @@ class MLMDStore:
         elif external_id is not None:
             contexts = self._mlmd_store.get_contexts_by_external_ids([external_id])
         else:
-            raise StoreError("Either id, name or external_id must be provided")
+            raise StoreException("Either id, name or external_id must be provided")
 
         contexts = self._filter_type(ctx_type_name, contexts)
         if contexts:
@@ -183,16 +184,16 @@ class MLMDStore:
         try:
             contexts = self._mlmd_store.get_contexts(options)
         except errors.InvalidArgumentError as e:
-            raise StoreError(f"Invalid arguments for get_contexts: {e}") from e
+            raise StoreException(f"Invalid arguments for get_contexts: {e}") from e
         except errors.InternalError as e:
-            raise ServerError("Couldn't get contexts from MLMD store") from e
+            raise ServerException("Couldn't get contexts from MLMD store") from e
 
         contexts = self._filter_type(ctx_type_name, contexts)
         # else:
         #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
 
         if not contexts:
-            raise StoreError(f"Context type {ctx_type_name} does not exist")
+            raise StoreException(f"Context type {ctx_type_name} does not exist")
 
         return contexts
 
@@ -296,12 +297,12 @@ class MLMDStore:
         try:
             artifacts = self._mlmd_store.get_artifacts(options)
         except errors.InvalidArgumentError as e:
-            raise StoreError(f"Invalid arguments for get_artifacts: {e}") from e
+            raise StoreException(f"Invalid arguments for get_artifacts: {e}") from e
         except errors.InternalError as e:
-            raise ServerError("Couldn't get artifacts from MLMD store") from e
+            raise ServerException("Couldn't get artifacts from MLMD store") from e
 
         artifacts = self._filter_type(art_type_name, artifacts)
         if not artifacts:
-            raise StoreError(f"Artifact type {art_type_name} does not exist")
+            raise StoreException(f"Artifact type {art_type_name} does not exist")
 
         return artifacts

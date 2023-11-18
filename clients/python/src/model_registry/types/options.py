@@ -7,8 +7,8 @@ from attrs import define, field
 from enum import Enum
 from typing import Optional
 
-from ml_metadata import ListOptions as MLMDListOptions
-from ml_metadata import OrderByField as MLMDOrderByField
+from ml_metadata.metadata_store import ListOptions as MLMDListOptions
+from ml_metadata.metadata_store import OrderByField as MLMDOrderByField
 
 
 class OrderByField(Enum):
