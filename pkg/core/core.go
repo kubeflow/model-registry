@@ -21,6 +21,7 @@ var (
 	servingEnvironmentTypeName = of(converter.ServingEnvironmentTypeName)
 	inferenceServiceTypeName   = of(converter.InferenceServiceTypeName)
 	serveModelTypeName         = of(converter.ServeModelTypeName)
+	canAddFields               = of(true)
 )
 
 // modelRegistryService is the core library of the model registry
@@ -37,6 +38,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	// Setup the needed Type instances if not existing already
 
 	registeredModelReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
 			Name: registeredModelTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -46,6 +48,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	}
 
 	modelVersionReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
 			Name: modelVersionTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -58,6 +61,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	}
 
 	modelArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: canAddFields,
 		ArtifactType: &proto.ArtifactType{
 			Name: modelArtifactTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -72,6 +76,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	}
 
 	servingEnvironmentReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
 			Name: servingEnvironmentTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -81,6 +86,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	}
 
 	inferenceServiceReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
 			Name: inferenceServiceTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -95,6 +101,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 	}
 
 	serveModelReq := proto.PutExecutionTypeRequest{
+		CanAddFields: canAddFields,
 		ExecutionType: &proto.ExecutionType{
 			Name: serveModelTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -106,32 +113,32 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 
 	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
 	if err != nil {
-		glog.Fatalf("Error setting up context type %s: %v", *registeredModelTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *registeredModelTypeName, err)
 	}
 
 	modelVersionResp, err := client.PutContextType(context.Background(), &modelVersionReq)
 	if err != nil {
-		glog.Fatalf("Error setting up context type %s: %v", *modelVersionTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *modelVersionTypeName, err)
 	}
 
 	modelArtifactResp, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
 	if err != nil {
-		glog.Fatalf("Error setting up artifact type %s: %v", *modelArtifactTypeName, err)
+		return nil, fmt.Errorf("error setting up artifact type %s: %v", *modelArtifactTypeName, err)
 	}
 
 	servingEnvironmentResp, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
 	if err != nil {
-		glog.Fatalf("Error setting up context type %s: %v", *servingEnvironmentTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *servingEnvironmentTypeName, err)
 	}
 
 	inferenceServiceResp, err := client.PutContextType(context.Background(), &inferenceServiceReq)
 	if err != nil {
-		glog.Fatalf("Error setting up context type %s: %v", *inferenceServiceTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *inferenceServiceTypeName, err)
 	}
 
 	serveModelResp, err := client.PutExecutionType(context.Background(), &serveModelReq)
 	if err != nil {
-		glog.Fatalf("Error setting up execution type %s: %v", *serveModelTypeName, err)
+		return nil, fmt.Errorf("error setting up execution type %s: %v", *serveModelTypeName, err)
 	}
 
 	return &modelRegistryService{

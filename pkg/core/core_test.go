@@ -217,11 +217,143 @@ func registerInferenceService(assertion *assert.Assertions, service api.ModelReg
 	return *createdEntity.Id
 }
 
+func TestModelRegistryStartupWithExistingEmptyTypes(t *testing.T) {
+	ctx := context.Background()
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	// create all types without props
+	registeredModelReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: registeredModelTypeName,
+		},
+	}
+	modelVersionReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: modelVersionTypeName,
+		},
+	}
+	modelArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: canAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: modelArtifactTypeName,
+		},
+	}
+	servingEnvironmentReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: servingEnvironmentTypeName,
+		},
+	}
+	inferenceServiceReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: inferenceServiceTypeName,
+		},
+	}
+	serveModelReq := proto.PutExecutionTypeRequest{
+		CanAddFields: canAddFields,
+		ExecutionType: &proto.ExecutionType{
+			Name: serveModelTypeName,
+		},
+	}
+
+	_, err := client.PutContextType(context.Background(), &registeredModelReq)
+	assertion.Nil(err)
+	_, err = client.PutContextType(context.Background(), &modelVersionReq)
+	assertion.Nil(err)
+	_, err = client.PutArtifactType(context.Background(), &modelArtifactReq)
+	assertion.Nil(err)
+	_, err = client.PutContextType(context.Background(), &servingEnvironmentReq)
+	assertion.Nil(err)
+	_, err = client.PutContextType(context.Background(), &inferenceServiceReq)
+	assertion.Nil(err)
+	_, err = client.PutExecutionType(context.Background(), &serveModelReq)
+	assertion.Nil(err)
+
+	// check empty props
+	regModelResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: registeredModelTypeName,
+	})
+	modelVersionResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: modelVersionTypeName,
+	})
+	modelArtifactResp, _ := client.GetArtifactType(ctx, &proto.GetArtifactTypeRequest{
+		TypeName: modelArtifactTypeName,
+	})
+	servingEnvResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: servingEnvironmentTypeName,
+	})
+	inferenceServiceResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: inferenceServiceTypeName,
+	})
+	serveModelResp, _ := client.GetExecutionType(ctx, &proto.GetExecutionTypeRequest{
+		TypeName: serveModelTypeName,
+	})
+
+	assertion.Equal(0, len(regModelResp.ContextType.Properties))
+	assertion.Equal(0, len(modelVersionResp.ContextType.Properties))
+	assertion.Equal(0, len(modelArtifactResp.ArtifactType.Properties))
+	assertion.Equal(0, len(servingEnvResp.ContextType.Properties))
+	assertion.Equal(0, len(inferenceServiceResp.ContextType.Properties))
+	assertion.Equal(0, len(serveModelResp.ExecutionType.Properties))
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.Nil(err)
+
+	// assure the types have been correctly setup at startup
+	// check NOT empty props
+	regModelResp, _ = client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: registeredModelTypeName,
+	})
+	assertion.NotNilf(regModelResp.ContextType, "registered model type %s should exists", *registeredModelTypeName)
+	assertion.Equal(*registeredModelTypeName, *regModelResp.ContextType.Name)
+	assertion.Equal(1, len(regModelResp.ContextType.Properties))
+
+	modelVersionResp, _ = client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: modelVersionTypeName,
+	})
+	assertion.NotNilf(modelVersionResp.ContextType, "model version type %s should exists", *modelVersionTypeName)
+	assertion.Equal(*modelVersionTypeName, *modelVersionResp.ContextType.Name)
+	assertion.Equal(4, len(modelVersionResp.ContextType.Properties))
+
+	modelArtifactResp, _ = client.GetArtifactType(ctx, &proto.GetArtifactTypeRequest{
+		TypeName: modelArtifactTypeName,
+	})
+	assertion.NotNilf(modelArtifactResp.ArtifactType, "model artifact type %s should exists", *modelArtifactTypeName)
+	assertion.Equal(*modelArtifactTypeName, *modelArtifactResp.ArtifactType.Name)
+	assertion.Equal(6, len(modelArtifactResp.ArtifactType.Properties))
+
+	servingEnvResp, _ = client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: servingEnvironmentTypeName,
+	})
+	assertion.NotNilf(servingEnvResp.ContextType, "serving environment type %s should exists", *servingEnvironmentTypeName)
+	assertion.Equal(*servingEnvironmentTypeName, *servingEnvResp.ContextType.Name)
+	assertion.Equal(1, len(servingEnvResp.ContextType.Properties))
+
+	inferenceServiceResp, _ = client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: inferenceServiceTypeName,
+	})
+	assertion.NotNilf(inferenceServiceResp.ContextType, "inference service type %s should exists", *inferenceServiceTypeName)
+	assertion.Equal(*inferenceServiceTypeName, *inferenceServiceResp.ContextType.Name)
+	assertion.Equal(5, len(inferenceServiceResp.ContextType.Properties))
+
+	serveModelResp, _ = client.GetExecutionType(ctx, &proto.GetExecutionTypeRequest{
+		TypeName: serveModelTypeName,
+	})
+	assertion.NotNilf(serveModelResp.ExecutionType, "serve model type %s should exists", *serveModelTypeName)
+	assertion.Equal(*serveModelTypeName, *serveModelResp.ExecutionType.Name)
+	assertion.Equal(2, len(serveModelResp.ExecutionType.Properties))
+}
+
 func TestModelRegistryTypes(t *testing.T) {
 	assertion, conn, client, teardown := setup(t)
 	defer teardown(t)
 
-	// create mode registry service
+	// create model registry service
 	_ = initModelRegistryService(assertion, conn)
 
 	// assure the types have been correctly setup at startup
@@ -243,6 +375,161 @@ func TestModelRegistryTypes(t *testing.T) {
 	})
 	assertion.NotNilf(modelArtifactResp.ArtifactType, "model version type %s should exists", *modelArtifactTypeName)
 	assertion.Equal(*modelArtifactTypeName, *modelArtifactResp.ArtifactType.Name)
+
+	servingEnvResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: servingEnvironmentTypeName,
+	})
+	assertion.NotNilf(servingEnvResp.ContextType, "serving environment type %s should exists", *servingEnvironmentTypeName)
+	assertion.Equal(*servingEnvironmentTypeName, *servingEnvResp.ContextType.Name)
+
+	inferenceServiceResp, _ := client.GetContextType(ctx, &proto.GetContextTypeRequest{
+		TypeName: inferenceServiceTypeName,
+	})
+	assertion.NotNilf(inferenceServiceResp.ContextType, "inference service type %s should exists", *inferenceServiceTypeName)
+	assertion.Equal(*inferenceServiceTypeName, *inferenceServiceResp.ContextType.Name)
+
+	serveModelResp, _ := client.GetExecutionType(ctx, &proto.GetExecutionTypeRequest{
+		TypeName: serveModelTypeName,
+	})
+	assertion.NotNilf(serveModelResp.ExecutionType, "serve model type %s should exists", *serveModelTypeName)
+	assertion.Equal(*serveModelTypeName, *serveModelResp.ExecutionType.Name)
+}
+
+func TestModelRegistryFailureForOmittedFieldInRegisteredModel(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	registeredModelReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: registeredModelTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	_, err := client.PutContextType(context.Background(), &registeredModelReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up context type odh.RegisteredModel: rpc error: code = AlreadyExists.*", err.Error())
+}
+
+func TestModelRegistryFailureForOmittedFieldInModelVersion(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	modelVersionReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: modelVersionTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	_, err := client.PutContextType(context.Background(), &modelVersionReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up context type odh.ModelVersion: rpc error: code = AlreadyExists.*", err.Error())
+}
+
+func TestModelRegistryFailureForOmittedFieldInModelArtifact(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	modelArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: canAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: modelArtifactTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	_, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up artifact type odh.ModelArtifact: rpc error: code = AlreadyExists.*", err.Error())
+}
+
+func TestModelRegistryFailureForOmittedFieldInServingEnvironment(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	servingEnvironmentReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: servingEnvironmentTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+	_, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up context type odh.ServingEnvironment: rpc error: code = AlreadyExists.*", err.Error())
+}
+
+func TestModelRegistryFailureForOmittedFieldInInferenceService(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	inferenceServiceReq := proto.PutContextTypeRequest{
+		CanAddFields: canAddFields,
+		ContextType: &proto.ContextType{
+			Name: inferenceServiceTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	_, err := client.PutContextType(context.Background(), &inferenceServiceReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up context type odh.InferenceService: rpc error: code = AlreadyExists.*", err.Error())
+}
+
+func TestModelRegistryFailureForOmittedFieldInServeModel(t *testing.T) {
+	assertion, conn, client, teardown := setup(t)
+	defer teardown(t)
+
+	serveModelReq := proto.PutExecutionTypeRequest{
+		CanAddFields: canAddFields,
+		ExecutionType: &proto.ExecutionType{
+			Name: serveModelTypeName,
+			Properties: map[string]proto.PropertyType{
+				"deprecated": proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	_, err := client.PutExecutionType(context.Background(), &serveModelReq)
+	assertion.Nil(err)
+
+	// create model registry service
+	_, err = NewModelRegistryService(conn)
+	assertion.NotNil(err)
+	assertion.Regexp("error setting up execution type odh.ServeModel: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 // REGISTERED MODELS

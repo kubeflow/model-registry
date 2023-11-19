@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -29,13 +28,13 @@ hostname and port where it listens.'`,
 )
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
-	glog.Infof("Proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
-	glog.Infof("Connecting to MLMD server %s..", mlmdAddr)
+	glog.Infof("connecting to MLMD server %s..", mlmdAddr)
 	conn, err := grpc.DialContext(
 		ctxTimeout,
 		mlmdAddr,
@@ -44,16 +43,14 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("Error dialing connection to mlmd server %s: %v", mlmdAddr, err)
-		return err
+		return fmt.Errorf("error dialing connection to mlmd server %s: %v", mlmdAddr, err)
 	}
 	defer conn.Close()
-	glog.Infof("Connected to MLMD server")
+	glog.Infof("connected to MLMD server")
 
 	service, err := core.NewModelRegistryService(conn)
 	if err != nil {
-		log.Fatalf("Error creating core service: %v", err)
-		return err
+		return fmt.Errorf("error creating core service: %v", err)
 	}
 
 	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
@@ -61,7 +58,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 	router := openapi.NewRouter(ModelRegistryServiceAPIController)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
+	glog.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
 	return nil
 }
 
