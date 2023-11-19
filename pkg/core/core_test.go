@@ -706,6 +706,18 @@ func TestGetRegisteredModelById(t *testing.T) {
 	assertion.Equal(*registeredModel.CustomProperties, *getModelById.CustomProperties, "saved model custom props should match the original one")
 }
 
+func TestGetRegisteredModelByParamsWithNoResults(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	_, err := service.GetRegisteredModelByParams(of("not-present"), nil)
+	assertion.NotNil(err)
+	assertion.Equal("no registered models found for name=not-present, externalId=", err.Error())
+}
+
 func TestGetRegisteredModelByParamsName(t *testing.T) {
 	assertion, conn, _, teardown := setup(t)
 	defer teardown(t)
@@ -1196,6 +1208,20 @@ func TestGetModelVersionById(t *testing.T) {
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getById.Name), *ctx.Name, "saved model name should match the provided one")
 	assertion.Equal(*getById.ExternalID, *modelVersion.ExternalID, "saved external id should match the provided one")
 	assertion.Equal(*(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, author, "saved author custom property should match the provided one")
+}
+
+func TestGetModelVersionByParamsWithNoResults(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	registeredModelId := registerModel(assertion, service, nil, nil)
+
+	_, err := service.GetModelVersionByParams(of("not-present"), &registeredModelId, nil)
+	assertion.NotNil(err)
+	assertion.Equal("no model versions found for versionName=not-present, parentResourceId=1, externalId=", err.Error())
 }
 
 func TestGetModelVersionByParamsName(t *testing.T) {
@@ -1726,6 +1752,20 @@ func TestGetModelArtifactByEmptyParams(t *testing.T) {
 	assertion.Equal("invalid parameters call, supply either (artifactName and parentResourceId), or externalId", err.Error())
 }
 
+func TestGetModelArtifactByParamsWithNoResults(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	modelVersionId := registerModelVersion(assertion, service, nil, nil, nil, nil)
+
+	_, err := service.GetModelArtifactByParams(of("not-present"), &modelVersionId, nil)
+	assertion.NotNil(err)
+	assertion.Equal("no model artifacts found for artifactName=not-present, parentResourceId=2, externalId=", err.Error())
+}
+
 func TestGetModelArtifacts(t *testing.T) {
 	assertion, conn, _, teardown := setup(t)
 	defer teardown(t)
@@ -1987,6 +2027,18 @@ func TestGetServingEnvironmentById(t *testing.T) {
 	assertion.Equal(*eut.Name, *getEntityById.Name, "saved name should match the original one")
 	assertion.Equal(*eut.ExternalID, *getEntityById.ExternalID, "saved external id should match the original one")
 	assertion.Equal(*eut.CustomProperties, *getEntityById.CustomProperties, "saved custom props should match the original one")
+}
+
+func TestGetServingEnvironmentByParamsWithNoResults(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	_, err := service.GetServingEnvironmentByParams(of("not-present"), nil)
+	assertion.NotNil(err)
+	assertion.Equal("no serving environments found for name=not-present, externalId=", err.Error())
 }
 
 func TestGetServingEnvironmentByParamsName(t *testing.T) {
@@ -2593,6 +2645,20 @@ func TestGetModelVersionByInferenceServiceId(t *testing.T) {
 	getVModel, err = service.GetModelVersionByInferenceService(*createdEntity.Id)
 	assertion.Nilf(err, "error getting using id %d", *createdEntityId)
 	assertion.Equal(createdVersion1Id, *getVModel.Id, "returned id shall be the specified one")
+}
+
+func TestGetInferenceServiceByParamsWithNoResults(t *testing.T) {
+	assertion, conn, _, teardown := setup(t)
+	defer teardown(t)
+
+	// create mode registry service
+	service := initModelRegistryService(assertion, conn)
+
+	parentResourceId := registerServingEnvironment(assertion, service, nil, nil)
+
+	_, err := service.GetInferenceServiceByParams(of("not-present"), &parentResourceId, nil)
+	assertion.NotNil(err)
+	assertion.Equal("no inference services found for name=not-present, parentResourceId=1, externalId=", err.Error())
 }
 
 func TestGetInferenceServiceByParamsName(t *testing.T) {

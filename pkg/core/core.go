@@ -699,9 +699,15 @@ func (serv *modelRegistryService) GetModelArtifactByParams(artifactName *string,
 	if err != nil {
 		return nil, err
 	}
+
 	if len(artifactsResponse.Artifacts) > 1 {
-		return nil, fmt.Errorf("more than an artifact detected matching criteria: %v", artifactsResponse.Artifacts)
+		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
+
+	if len(artifactsResponse.Artifacts) == 0 {
+		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+	}
+
 	artifact0 = artifactsResponse.Artifacts[0]
 
 	result, err := serv.mapper.MapToModelArtifact(artifact0)
@@ -1072,11 +1078,11 @@ func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, pare
 	}
 
 	if len(getByParamsResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple inference services found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple inference services found for name=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	if len(getByParamsResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no inference services found for versionName=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no inference services found for name=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByParamsResp.Contexts[0])
