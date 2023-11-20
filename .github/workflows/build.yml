@@ -51,4 +51,11 @@ jobs:
               exit 1
           fi
       - name: Unit tests
-        run: make test
+        run: make test-cover
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3.1.4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: coverage.txt
+          fail_ci_if_error: true
