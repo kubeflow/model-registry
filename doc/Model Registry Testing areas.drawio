@@ -1,0 +1,105 @@
+<mxfile host="app.diagrams.net" modified="2023-11-20T13:15:39.908Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" etag="olFk2uIk9ijdC2VX0xAC" version="22.1.3" type="device">
+  <diagram name="Page-1" id="6PV3qm19fPyXs5det3sB">
+    <mxGraphModel dx="1434" dy="822" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-2" value="Google&#39;s ML Metadata" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="640" width="760" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-3" value="gRPC" style="html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="380" y="620" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-4" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" edge="1" source="El_kY7I2ZMZImhtPKoh1-3" target="El_kY7I2ZMZImhtPKoh1-5" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-5" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" vertex="1" parent="1">
+          <mxGeometry x="416" y="600" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-7" value="&quot;Core Go layer&quot;&lt;br&gt;logical schema mapping&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;pkg/core/core.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="440" width="160" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-8" value="Unit testing&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;**/*_test.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="510" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-9" value="Integration testing&lt;br&gt;(using Testcontainers)&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;pkg/core/core_test.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-10" value="&quot;MR REST API&quot;&lt;br&gt;implemented in Go&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;internal/server/openapi/routers.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="289" width="330" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-11" value="&quot;MR Python client&quot;&lt;br&gt;including logical schema mapping&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;clients/python/&lt;br&gt;src/model_registry/&lt;br&gt;client.py&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="440" width="160" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-12" value="Testing&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;clients/python/tests/&lt;br&gt;**/*.py&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="630" y="440" width="160" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-14" value="Python" style="html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="505" y="420" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-15" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" edge="1" source="El_kY7I2ZMZImhtPKoh1-14" target="El_kY7I2ZMZImhtPKoh1-16" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-16" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" vertex="1" parent="1">
+          <mxGeometry x="536" y="400" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-17" value="REST" style="html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="180" y="269" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-18" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" edge="1" source="El_kY7I2ZMZImhtPKoh1-17" target="El_kY7I2ZMZImhtPKoh1-19" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-19" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" vertex="1" parent="1">
+          <mxGeometry x="211" y="249" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-20" value="User Story testing (using RobotFramework)&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;test/robot/UserStory.robot&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="120" y="90" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-21" value="Data Mapping testing (using RobotFramework)&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;test/robot/MRandLogicalModel.robot&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="440" y="90" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-22" value="K8s operators, controllers, ..." style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="340" width="100" height="41" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-24" value="Go" style="html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="420" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-25" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" edge="1" source="El_kY7I2ZMZImhtPKoh1-24" target="El_kY7I2ZMZImhtPKoh1-26" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-26" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" vertex="1" parent="1">
+          <mxGeometry x="296" y="400" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-30" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.125;entryY=0.625;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=1;strokeColor=default;dashed=1;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-22" target="El_kY7I2ZMZImhtPKoh1-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-33" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.875;entryY=0.75;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-27" target="El_kY7I2ZMZImhtPKoh1-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-34" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=-0.125;entryY=0.75;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-28" target="El_kY7I2ZMZImhtPKoh1-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-39" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.375;entryY=-0.125;entryDx=0;entryDy=0;entryPerimeter=0;elbow=vertical;strokeColor=#ff0000;strokeWidth=1;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-20" target="El_kY7I2ZMZImhtPKoh1-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-40" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=-0.625;entryDx=0;entryDy=0;entryPerimeter=0;elbow=vertical;strokeWidth=1;strokeColor=#ff0000;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-21" target="El_kY7I2ZMZImhtPKoh1-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-41" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=-0.125;entryY=0.625;entryDx=0;entryDy=0;entryPerimeter=0;elbow=vertical;strokeWidth=1;strokeColor=#ff0000;" edge="1" parent="1" source="El_kY7I2ZMZImhtPKoh1-21" target="El_kY7I2ZMZImhtPKoh1-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-43" value="Model Registry" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="760" height="560" as="geometry">
+            <mxRectangle x="40" y="57" width="130" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-27" value="GUI, ..." style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="El_kY7I2ZMZImhtPKoh1-43">
+          <mxGeometry x="-20" y="130" width="100" height="41" as="geometry" />
+        </mxCell>
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-28" value="Jupyter, DSP, ..." style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="El_kY7I2ZMZImhtPKoh1-43">
+          <mxGeometry x="680" y="261" width="100" height="41" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
