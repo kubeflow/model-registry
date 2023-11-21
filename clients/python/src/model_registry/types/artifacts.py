@@ -56,8 +56,8 @@ class BaseArtifact(ProtoBase):
         return Artifact
 
     @override
-    def map(self) -> Artifact:
-        mlmd_obj = super().map()
+    def map(self, type_id: int) -> Artifact:
+        mlmd_obj = super().map(type_id)
         mlmd_obj.uri = self.uri
         mlmd_obj.state = ArtifactState[self.state.name].value
         return mlmd_obj
@@ -108,8 +108,8 @@ class ModelArtifact(BaseArtifact, Prefixable):
             return uuid4().hex
 
     @override
-    def map(self) -> Artifact:
-        mlmd_obj = super().map()
+    def map(self, type_id: int) -> Artifact:
+        mlmd_obj = super().map(type_id)
         props = {
             "modelFormatName": self.model_format_name,
             "modelFormatVersion": self.model_format_version,

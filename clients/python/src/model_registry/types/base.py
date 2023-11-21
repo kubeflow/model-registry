@@ -31,8 +31,11 @@ class Mappable(ABC):
         pass
 
     @abstractmethod
-    def map(self) -> ProtoType:
+    def map(self, type_id: int) -> ProtoType:
         """Map to a proto object.
+
+        Args:
+            type_id (int): ID of the type.
 
         Returns:
             ProtoType: Proto object.
@@ -133,9 +136,10 @@ class ProtoBase(Mappable, ABC):
                 raise Exception(f"Unsupported type: {type(value)}")
 
     @override
-    def map(self) -> ProtoType:
+    def map(self, type_id: int) -> ProtoType:
         mlmd_obj = (self.get_proto_type())()
         mlmd_obj.name = self.proto_name
+        mlmd_obj.type_id = type_id
         if self.id:
             mlmd_obj.id = int(self.id)
         if self.external_id:

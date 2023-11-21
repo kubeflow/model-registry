@@ -45,12 +45,12 @@ def context(store_wrapper: MLMDStore) -> Context:
 
 def test_get_undefined_artifact_type_id(store_wrapper: MLMDStore):
     with raises(TypeNotFoundException):
-        store_wrapper.get_type_id(Artifact(), "undefined")
+        store_wrapper.get_type_id(Artifact, "undefined")
 
 
 def test_get_undefined_context_type_id(store_wrapper: MLMDStore):
     with raises(TypeNotFoundException):
-        store_wrapper.get_type_id(Context(), "undefined")
+        store_wrapper.get_type_id(Context, "undefined")
 
 
 def test_put_invalid_artifact(store_wrapper: MLMDStore, artifact: Artifact):

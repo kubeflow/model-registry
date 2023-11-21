@@ -8,7 +8,7 @@ from ml_metadata.proto import MetadataStoreClientConfig
 from .exceptions import StoreException
 from .store import ProtoType, MLMDStore
 from .types import ModelArtifact, ModelVersion, RegisteredModel, ListOptions
-from .types.base import Mappable
+from .types.base import ProtoBase
 from .types.options import MLMDListOptions
 
 
@@ -43,7 +43,7 @@ class ModelRegistry:
             config.ssl_config.custom_ca = custom_ca
         self._store = MLMDStore(config)
 
-    def _map(self, py_obj: Mappable) -> ProtoType:
+    def _map(self, py_obj: ProtoBase) -> ProtoType:
         """Map a Python object to a proto object.
 
         Helper around the `map` method of the Python object.
@@ -54,11 +54,10 @@ class ModelRegistry:
         Returns:
             ProtoType: Proto object.
         """
-        proto_obj = py_obj.map()
-        proto_obj.type_id = self._store.get_type_id(
-            proto_obj, py_obj.get_proto_type_name()
+        type_id = self._store.get_type_id(
+            py_obj.get_proto_type(), py_obj.get_proto_type_name()
         )
-        return proto_obj
+        return py_obj.map(type_id)
 
     def upsert_registered_model(self, registered_model: RegisteredModel) -> str:
         """Upsert a registered model.
@@ -72,8 +71,7 @@ class ModelRegistry:
         Returns:
             str: ID of the registered model.
         """
-        proto_obj = self._map(registered_model)
-        id = self._store.put_context(proto_obj)
+        id = self._store.put_context(self._map(registered_model))
         new_py_rm = RegisteredModel.unmap(
             self._store.get_context(RegisteredModel.get_proto_type_name(), id)
         )
@@ -164,8 +162,7 @@ class ModelRegistry:
         rm_id = int(registered_model_id)
         # this is not ideal but we need this info for the prefix
         model_version._registered_model_id = rm_id
-        proto_mv = self._map(model_version)
-        id = self._store.put_context(proto_mv)
+        id = self._store.put_context(self._map(model_version))
         self._store.put_context_parent(rm_id, id)
         new_py_mv = ModelVersion.unmap(
             self._store.get_context(ModelVersion.get_proto_type_name(), id)
@@ -284,8 +281,7 @@ class ModelRegistry:
             if "found" not in str(e).lower():
                 raise
         model_artifact._model_version_id = model_version_id
-        proto_ma = self._map(model_artifact)
-        id = self._store.put_artifact(proto_ma)
+        id = self._store.put_artifact(self._map(model_artifact))
         self._store.put_attribution(mv_id, id)
         new_py_ma = ModelArtifact.unmap(
             self._store.get_artifact(ModelArtifact.get_proto_type_name(), id)

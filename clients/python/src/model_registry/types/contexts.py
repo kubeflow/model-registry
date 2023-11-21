@@ -70,8 +70,8 @@ class ModelVersion(BaseContext, Prefixable):
         return self._registered_model_id
 
     @override
-    def map(self) -> Context:
-        mlmd_obj = super().map()
+    def map(self, type_id: int) -> Context:
+        mlmd_obj = super().map(type_id)
         # this should match the name of the registered model
         mlmd_obj.properties["model_name"].string_value = self.model.name
         mlmd_obj.properties["author"].string_value = self.author

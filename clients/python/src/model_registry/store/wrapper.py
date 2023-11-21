@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Optional
+from typing import ClassVar, Optional
 
 from ml_metadata.metadata_store import ListOptions, MetadataStore
 from ml_metadata import errors
@@ -25,7 +25,7 @@ class MLMDStore:
     """MLMD storage backend."""
 
     # cache for MLMD type IDs
-    _type_ids: dict[str, int] = {}
+    _type_ids: ClassVar[dict[str, int]] = {}
 
     def __init__(self, config: MetadataStoreClientConfig):
         """Constructor.
@@ -35,7 +35,7 @@ class MLMDStore:
         """
         self._mlmd_store = MetadataStore(config)
 
-    def get_type_id(self, mlmd_pt: ProtoType, type_name: str) -> int:
+    def get_type_id(self, mlmd_pt: type[ProtoType], type_name: str) -> int:
         """Get backend ID for a type.
 
         Args:
@@ -53,10 +53,10 @@ class MLMDStore:
         if type_name in self._type_ids:
             return self._type_ids[type_name]
 
-        if isinstance(mlmd_pt, Artifact):
+        if mlmd_pt is Artifact:
             mlmd_pt_name = "artifact"
             get_type = self._mlmd_store.get_artifact_type
-        elif isinstance(mlmd_pt, Context):
+        elif mlmd_pt is Context:
             mlmd_pt_name = "context"
             get_type = self._mlmd_store.get_context_type
         else:
@@ -132,10 +132,13 @@ class MLMDStore:
     ) -> Sequence[ProtoType]:
         return [proto for proto in protos if proto.type == type_name]
 
-    def get_context(self, ctx_type_name: str,
-                    id: Optional[int] = None,
-                    name: Optional[str] = None,
-                    external_id: Optional[str] = None) -> Context:
+    def get_context(
+        self,
+        ctx_type_name: str,
+        id: Optional[int] = None,
+        name: Optional[str] = None,
+        external_id: Optional[str] = None,
+    ) -> Context:
         """Get a context from the store.
 
         This gets a context either by ID, name or external ID.

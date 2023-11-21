@@ -15,6 +15,7 @@ from . import Mapped
 def complete_model() -> Mapped:
     proto_model = Artifact()
     proto_model.name = "test_prefix:test_model"
+    proto_model.type_id = 1
     proto_model.external_id = "test_external_id"
     proto_model.state = Artifact.UNKNOWN
     proto_model.uri = "test_uri"
@@ -44,6 +45,7 @@ def complete_model() -> Mapped:
 def minimal_model() -> Mapped:
     proto_model = Artifact()
     proto_model.name = "test_prefix:test_model"
+    proto_model.type_id = 1
     proto_model.state = Artifact.UNKNOWN
     proto_model.uri = "test_uri"
 
@@ -54,9 +56,10 @@ def minimal_model() -> Mapped:
 def test_partial_model_mapping(monkeypatch, minimal_model: Mapped):
     monkeypatch.setattr(ModelArtifact, "mlmd_name_prefix", "test_prefix")
 
-    mapped_model = minimal_model.py.map()
+    mapped_model = minimal_model.py.map(1)
     proto_model = minimal_model.proto
     assert mapped_model.name == proto_model.name
+    assert mapped_model.type_id == proto_model.type_id
     assert mapped_model.state == proto_model.state
     assert mapped_model.uri == proto_model.uri
 
@@ -64,9 +67,10 @@ def test_partial_model_mapping(monkeypatch, minimal_model: Mapped):
 def test_full_model_mapping(monkeypatch, complete_model: Mapped):
     monkeypatch.setattr(ModelArtifact, "mlmd_name_prefix", "test_prefix")
 
-    mapped_model = complete_model.py.map()
+    mapped_model = complete_model.py.map(1)
     proto_model = complete_model.proto
     assert mapped_model.name == proto_model.name
+    assert mapped_model.type_id == proto_model.type_id
     assert mapped_model.state == proto_model.state
     assert mapped_model.uri == proto_model.uri
     assert mapped_model.external_id == proto_model.external_id
@@ -97,6 +101,6 @@ def test_full_model_unmapping(complete_model: Mapped):
 
 
 def test_model_prefix_generation(minimal_model: Mapped):
-    name1 = minimal_model.py.map().name
-    name2 = minimal_model.py.map().name
+    name1 = minimal_model.py.map(1).name
+    name2 = minimal_model.py.map(1).name
     assert name1 != name2
