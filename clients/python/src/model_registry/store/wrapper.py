@@ -10,13 +10,6 @@ from ml_metadata.proto import (
     MetadataStoreClientConfig,
     ParentContext,
 )
-from ml_metadata.proto import (
-    Artifact,
-    Attribution,
-    Context,
-    MetadataStoreClientConfig,
-    ParentContext,
-)
 
 from .base import ProtoType
 from model_registry.exceptions import (
