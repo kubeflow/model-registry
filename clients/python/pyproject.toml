@@ -10,6 +10,7 @@ readme = "README.md"
 python = ">= 3.9, < 3.11"
 attrs = "^21.0"
 ml-metadata = "^1.14.0"
+typing-extensions = "^4.8"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^7.2.6"

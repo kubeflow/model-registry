@@ -8,6 +8,7 @@ from inspect import isabstract
 from typing import Any, ClassVar, Optional
 
 from attrs import define, field
+from typing_extensions import override
 
 from model_registry.store import ProtoType, ScalarType
 
@@ -27,8 +28,7 @@ class Mappable(ABC):
     @property
     @abstractmethod
     def proto_name(self) -> str:
-        """Name of the proto object.
-        """
+        """Name of the proto object."""
         pass
 
     @abstractmethod
@@ -60,11 +60,11 @@ class Prefixable(ABC):
     We use prefixes to ensure that the user can insert more than one instance of the same type
     with the same name/external_id.
     """
+
     @property
     @abstractmethod
     def mlmd_name_prefix(self) -> str:
-        """Prefix to be used in the proto object.
-        """
+        """Prefix to be used in the proto object."""
         pass
 
 
@@ -112,6 +112,7 @@ class ProtoBase(Mappable, ABC):
         return cls._types_map[proto_type_name]
 
     @property
+    @override
     def proto_name(self) -> str:
         if isinstance(self, Prefixable):
             return f"{self.mlmd_name_prefix}:{self.name}"
@@ -152,6 +153,7 @@ class ProtoBase(Mappable, ABC):
             else:
                 raise Exception(f"Unsupported type: {type(value)}")
 
+    @override
     def map(self) -> ProtoType:
         mlmd_obj = (self.get_proto_type())()
         mlmd_obj.name = self.proto_name
@@ -190,13 +192,14 @@ class ProtoBase(Mappable, ABC):
         return py_props
 
     @classmethod
+    @override
     def unmap(cls, mlmd_obj: ProtoType) -> ProtoBase:
         py_obj = cls.__new__(cls)
         py_obj.id = str(mlmd_obj.id)
         if isinstance(py_obj, Prefixable):
             name: str = mlmd_obj.name
-            assert ':' in name, f"Expected {name} to be prefixed"
-            py_obj.name = name.split(':', 1)[1]
+            assert ":" in name, f"Expected {name} to be prefixed"
+            py_obj.name = name.split(":", 1)[1]
         else:
             py_obj.name = mlmd_obj.name
         py_obj.description = mlmd_obj.properties["description"].string_value

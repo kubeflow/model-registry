@@ -16,6 +16,7 @@ from typing import Optional
 
 from attrs import define, field
 from ml_metadata.proto import Context
+from typing_extensions import override
 
 from model_registry.store import ScalarType
 
@@ -28,6 +29,7 @@ class BaseContext(ProtoBase, ABC):
     """Abstract base class for all contexts."""
 
     @classmethod
+    @override
     def get_proto_type(cls) -> type[Context]:
         return Context
 
@@ -60,10 +62,14 @@ class ModelVersion(BaseContext, Prefixable):
         self.name = self.version
 
     @property
+    @override
     def mlmd_name_prefix(self):
-        assert self._registered_model_id is not None, "There's no registered model associated with this version"
+        assert (
+            self._registered_model_id is not None
+        ), "There's no registered model associated with this version"
         return self._registered_model_id
 
+    @override
     def map(self) -> Context:
         mlmd_obj = super().map()
         # this should match the name of the registered model
@@ -75,6 +81,7 @@ class ModelVersion(BaseContext, Prefixable):
         return mlmd_obj
 
     @classmethod
+    @override
     def unmap(cls, mlmd_obj: Context) -> ModelVersion:
         py_obj = super().unmap(mlmd_obj)
         assert isinstance(

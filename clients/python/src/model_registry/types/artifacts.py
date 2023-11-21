@@ -18,6 +18,7 @@ from uuid import uuid4
 
 from attrs import define, field
 from ml_metadata.proto import Artifact
+from typing_extensions import override
 
 from .base import Prefixable, ProtoBase
 
@@ -50,9 +51,11 @@ class BaseArtifact(ProtoBase):
     state: ArtifactState = field(init=False, default=ArtifactState.UNKNOWN)
 
     @classmethod
+    @override
     def get_proto_type(cls) -> type[Artifact]:
         return Artifact
 
+    @override
     def map(self) -> Artifact:
         mlmd_obj = super().map()
         mlmd_obj.uri = self.uri
@@ -60,6 +63,7 @@ class BaseArtifact(ProtoBase):
         return mlmd_obj
 
     @classmethod
+    @override
     def unmap(cls, mlmd_obj: Artifact) -> BaseArtifact:
         py_obj = super().unmap(mlmd_obj)
         assert isinstance(
@@ -96,12 +100,14 @@ class ModelArtifact(BaseArtifact, Prefixable):
     _model_version_id: Optional[str] = field(init=False, default=None)
 
     @property
+    @override
     def mlmd_name_prefix(self) -> str:
         if self._model_version_id:
             return self._model_version_id
         else:
             return uuid4().hex
 
+    @override
     def map(self) -> Artifact:
         mlmd_obj = super().map()
         props = {
@@ -114,6 +120,7 @@ class ModelArtifact(BaseArtifact, Prefixable):
         self._map_props(props, mlmd_obj.properties)
         return mlmd_obj
 
+    @override
     @classmethod
     def unmap(cls, mlmd_obj: Artifact) -> ModelArtifact:
         py_obj = super().unmap(mlmd_obj)
