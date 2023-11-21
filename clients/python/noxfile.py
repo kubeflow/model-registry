@@ -7,7 +7,6 @@ from textwrap import dedent
 
 import nox
 
-
 try:
     from nox_poetry import Session, session
 except ImportError:
@@ -27,6 +26,22 @@ nox.options.sessions = (
     "tests",
     "docs-build",
 )
+
+
+@session(python=python_versions)
+def lint(session: Session) -> None:
+    """lint using ruff and mypy"""
+    session.install(".", "ruff")
+
+    session.run("ruff", "check", "src")
+
+
+@session
+def mypy(session: Session) -> None:
+    """lint using ruff and mypy"""
+    session.install(".", "mypy")
+
+    session.run("mypy", "src")
 
 
 @session(python=python_versions)

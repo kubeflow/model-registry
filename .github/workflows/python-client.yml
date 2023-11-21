@@ -57,6 +57,16 @@ jobs:
           pipx inject --pip-args=--constraint=.github/workflows/constraints.txt nox nox-poetry
           nox --version
 
+      - name: Lint
+        working-directory: clients/python
+        if: matrix.session == 'tests'
+        run: |
+          nox --python=${{ matrix.python }} -s lint
+          nox --python=${{ matrix.python }} -s mypy || failure=true
+          if [[ -n $failure ]]; then
+            echo "::error title='mypy failure'::Check the logs for more details"
+          fi
+
       - name: Run Nox
         working-directory: clients/python
         run: |
