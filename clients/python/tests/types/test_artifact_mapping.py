@@ -8,7 +8,7 @@ from ml_metadata.proto import Artifact
 from model_registry.types import ModelArtifact
 from pytest import fixture
 
-from . import Mapped
+from .. import Mapped
 
 
 @fixture

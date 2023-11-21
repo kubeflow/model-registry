@@ -4,12 +4,11 @@ TODO:
     * should we parametrize the tests?
 """
 
-from pytest import fixture
 from ml_metadata.proto import Context
-
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
+from pytest import fixture
 
-from . import Mapped
+from .. import Mapped
 
 
 @fixture
