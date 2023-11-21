@@ -138,7 +138,7 @@ class ModelRegistry:
         Returns:
             Sequence[RegisteredModel]: Registered models.
         """
-        mlmd_options = options.as_mlmd_list_options() if options else None
+        mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         proto_rms = self._store.get_contexts(
             RegisteredModel.get_proto_type_name(), mlmd_options
         )
