@@ -84,9 +84,9 @@ class ModelArtifact(BaseArtifact, Prefixable):
         external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
         model_format_name (str, optional): Name of the model format.
         model_format_version (str, optional): Version of the model format.
-        storage_key (str, optional): Storage key of the model.
+        storage_key (str, optional): Storage secret name.
         storage_path (str, optional): Storage path of the model.
-        service_account_name (str, optional): Service account name of the model.
+        service_account_name (str, optional): Name of the service account with storage secret.
     """
 
     # TODO: this could be an enum of valid formats
