@@ -1,13 +1,13 @@
-"""Client for the model registry.
-"""
+"""Client for the model registry."""
+from __future__ import annotations
+
 from collections.abc import Sequence
-from typing import Optional
 
 from ml_metadata.proto import MetadataStoreClientConfig
 
 from .exceptions import StoreException
-from .store import ProtoType, MLMDStore
-from .types import ModelArtifact, ModelVersion, RegisteredModel, ListOptions
+from .store import MLMDStore, ProtoType
+from .types import ListOptions, ModelArtifact, ModelVersion, RegisteredModel
 from .types.base import ProtoBase
 from .types.options import MLMDListOptions
 
@@ -19,9 +19,9 @@ class ModelRegistry:
         self,
         server_address: str,
         port: int,
-        client_key: Optional[str] = None,
-        server_cert: Optional[str] = None,
-        custom_ca: Optional[str] = None,
+        client_key: str | None = None,
+        server_cert: str | None = None,
+        custom_ca: str | None = None,
     ):
         """Constructor.
 
@@ -101,7 +101,7 @@ class ModelRegistry:
         return py_rm
 
     def get_registered_model_by_params(
-        self, name: Optional[str] = None, external_id: Optional[str] = None
+        self, name: str | None = None, external_id: str | None = None
     ) -> RegisteredModel:
         """Fetch a registered model by its name or external ID.
 
@@ -113,7 +113,8 @@ class ModelRegistry:
             RegisteredModel: Registered model.
         """
         if name is None and external_id is None:
-            raise StoreException("Either name or external_id must be provided")
+            msg = "Either name or external_id must be provided"
+            raise StoreException(msg)
         py_rm = RegisteredModel.unmap(
             self._store.get_context(
                 RegisteredModel.get_proto_type_name(),
@@ -128,7 +129,7 @@ class ModelRegistry:
         return py_rm
 
     def get_registered_models(
-        self, options: Optional[ListOptions] = None
+        self, options: ListOptions | None = None
     ) -> Sequence[RegisteredModel]:
         """Fetch registered models.
 
@@ -195,7 +196,7 @@ class ModelRegistry:
         return py_mv
 
     def get_model_versions(
-        self, registered_model_id: str, options: Optional[ListOptions] = None
+        self, registered_model_id: str, options: ListOptions | None = None
     ) -> Sequence[ModelVersion]:
         """Fetch model versions by registered model ID.
 
@@ -221,9 +222,9 @@ class ModelRegistry:
 
     def get_model_version_by_params(
         self,
-        registered_model_id: Optional[str] = None,
-        version: Optional[str] = None,
-        external_id: Optional[str] = None,
+        registered_model_id: str | None = None,
+        version: str | None = None,
+        external_id: str | None = None,
     ) -> ModelVersion:
         """Fetch a model version by associated parameters.
 
@@ -242,9 +243,10 @@ class ModelRegistry:
                 ModelVersion.get_proto_type_name(), external_id=external_id
             )
         elif registered_model_id is None or version is None:
-            raise StoreException(
+            msg = (
                 "Either registered_model_id and version or external_id must be provided"
             )
+            raise StoreException(msg)
         else:
             proto_mv = self._store.get_context(
                 ModelVersion.get_proto_type_name(),
@@ -274,9 +276,8 @@ class ModelRegistry:
             self._store.get_attributed_artifact(
                 ModelArtifact.get_proto_type_name(), mv_id
             )
-            raise StoreException(
-                f"Model version with ID {mv_id} already has a model artifact"
-            )
+            msg = f"Model version with ID {mv_id} already has a model artifact"
+            raise StoreException(msg)
         except StoreException as e:
             if "found" not in str(e).lower():
                 raise
@@ -309,7 +310,7 @@ class ModelRegistry:
         return ModelArtifact.unmap(proto_ma)
 
     def get_model_artifact_by_params(
-        self, model_version_id: Optional[str] = None, external_id: Optional[str] = None
+        self, model_version_id: str | None = None, external_id: str | None = None
     ) -> ModelArtifact:
         """Fetch a model artifact either by external ID or by the ID of its associated model version.
 
@@ -325,9 +326,8 @@ class ModelRegistry:
                 ModelArtifact.get_proto_type_name(), external_id=external_id
             )
         elif not model_version_id:
-            raise StoreException(
-                "Either model_version_id or external_id must be provided"
-            )
+            msg = "Either model_version_id or external_id must be provided"
+            raise StoreException(msg)
         else:
             proto_ma = self._store.get_attributed_artifact(
                 ModelArtifact.get_proto_type_name(), int(model_version_id)
@@ -336,8 +336,8 @@ class ModelRegistry:
 
     def get_model_artifacts(
         self,
-        model_version_id: Optional[str] = None,
-        options: Optional[ListOptions] = None,
+        model_version_id: str | None = None,
+        options: ListOptions | None = None,
     ) -> Sequence[ModelArtifact]:
         """Fetches model artifacts.
 

@@ -1,5 +1,4 @@
-"""Exceptions for the model registry.
-"""
+"""Exceptions for the model registry."""
 
 
 class StoreException(Exception):

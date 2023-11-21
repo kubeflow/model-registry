@@ -1,7 +1,6 @@
-"""Model registry types.
-"""
+"""Model registry types."""
 
-from .artifacts import ModelArtifact, ArtifactState
+from .artifacts import ArtifactState, ModelArtifact
 from .contexts import ModelVersion, RegisteredModel
 from .options import ListOptions, OrderByField
 

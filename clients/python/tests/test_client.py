@@ -1,5 +1,6 @@
 """Tests for user facing model registry APIs."""
 
+import pytest
 from attrs import evolve
 from ml_metadata.proto import (
     Artifact,
@@ -14,19 +15,18 @@ from model_registry import ModelRegistry
 from model_registry.exceptions import StoreException
 from model_registry.store import MLMDStore
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
-from pytest import fixture, raises
 
 from . import Mapped
 
 
-@fixture
+@pytest.fixture()
 def model_registry(store_wrapper: MLMDStore) -> ModelRegistry:
     mr = object.__new__(ModelRegistry)
     mr._store = store_wrapper
     return mr
 
 
-@fixture
+@pytest.fixture()
 def model(store_wrapper: MLMDStore) -> Mapped:
     art_type = ArtifactType()
     art_type.name = ModelArtifact.get_proto_type_name()
@@ -50,7 +50,7 @@ def model(store_wrapper: MLMDStore) -> Mapped:
     return Mapped(art, ModelArtifact("model", "uri"))
 
 
-@fixture
+@pytest.fixture()
 def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     ctx_type = ContextType()
     ctx_type.name = ModelVersion.get_proto_type_name()
@@ -73,7 +73,7 @@ def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     return Mapped(ctx, ModelVersion(model.py, "version", "author"))
 
 
-@fixture
+@pytest.fixture()
 def registered_model(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     ctx_type = ContextType()
     ctx_type.name = RegisteredModel.get_proto_type_name()
@@ -373,7 +373,7 @@ def test_upsert_duplicate_model_artifact_with_same_version(
     ma1 = evolve(model.py)
     model_registry.upsert_model_artifact(ma1, mv_id)
     ma2 = evolve(model.py)
-    with raises(StoreException):
+    with pytest.raises(StoreException):
         model_registry.upsert_model_artifact(ma2, mv_id)
 
 
@@ -427,9 +427,7 @@ def test_get_model_artifact_by_external_id(
     assert mlmd_ma.name != model.proto.name
 
 
-def test_get_all_model_artifacts(
-    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
-):
+def test_get_all_model_artifacts(model_registry: ModelRegistry, model: Mapped):
     model.proto.name = "test_prefix:model1"
     ma1_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
     model.proto.name = "test_prefix:model2"

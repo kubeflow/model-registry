@@ -5,14 +5,13 @@ They provide a way to organize and categorize components in a workflow.
 
 Those types are used to map between proto types based on contexts and Python objects.
 
-TODO:
+Todo:
     * Move part of the description to API Reference docs (#120).
 """
 
 from __future__ import annotations
 
 from abc import ABC
-from typing import Optional
 
 from attrs import define, field
 from ml_metadata.proto import Context
@@ -56,7 +55,7 @@ class ModelVersion(BaseContext, Prefixable):
     tags: list[str] = field(init=False, factory=list)
     metadata: dict[str, ScalarType] = field(init=False, factory=dict)
 
-    _registered_model_id: Optional[int] = field(init=False, default=None)
+    _registered_model_id: int | None = field(init=False, default=None)
 
     def __attrs_post_init__(self) -> None:
         self.name = self.version

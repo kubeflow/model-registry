@@ -1,17 +1,17 @@
-"""Tests for artifact type mapping
+"""Tests for artifact type mapping.
 
-TODO:
+Todo:
     * should we parametrize the tests?
 """
 
+import pytest
 from ml_metadata.proto import Artifact
 from model_registry.types import ModelArtifact
-from pytest import fixture
 
 from .. import Mapped
 
 
-@fixture
+@pytest.fixture()
 def complete_model() -> Mapped:
     proto_model = Artifact()
     proto_model.name = "test_prefix:test_model"
@@ -41,7 +41,7 @@ def complete_model() -> Mapped:
     return Mapped(proto_model, py_model)
 
 
-@fixture
+@pytest.fixture()
 def minimal_model() -> Mapped:
     proto_model = Artifact()
     proto_model.name = "test_prefix:test_model"

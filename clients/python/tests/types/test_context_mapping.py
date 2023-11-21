@@ -1,17 +1,17 @@
-"""Tests for context type mapping
+"""Tests for context type mapping.
 
-TODO:
+Todo:
     * should we parametrize the tests?
 """
 
+import pytest
 from ml_metadata.proto import Context
-from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
-from pytest import fixture
+from model_registry.types import ModelArtifact, ModelVersion
 
 from .. import Mapped
 
 
-@fixture
+@pytest.fixture()
 def full_model_version() -> Mapped:
     proto_version = Context()
     proto_version.name = "1:1.0.0"
@@ -46,7 +46,7 @@ def full_model_version() -> Mapped:
     return Mapped(proto_version, py_version)
 
 
-@fixture
+@pytest.fixture()
 def minimal_model_version() -> Mapped:
     proto_version = Context()
     proto_version.name = "1:1.0.0"

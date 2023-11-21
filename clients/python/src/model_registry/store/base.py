@@ -1,7 +1,8 @@
+"""Base classes and types for MLMD store."""
+
 from typing import Union
 
 from ml_metadata.proto import Artifact, Context
-
 
 ProtoType = Union[Artifact, Context]
 """Union of all proto types. """

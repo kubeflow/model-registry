@@ -3,10 +3,11 @@
 Provides a thin wrappers around the options classes defined in the MLMD Py lib.
 """
 
-from attrs import define, field
-from enum import Enum
-from typing import Optional
+from __future__ import annotations
 
+from enum import Enum
+
+from attrs import define, field
 from ml_metadata.metadata_store import ListOptions as MLMDListOptions
 from ml_metadata.metadata_store import OrderByField as MLMDOrderByField
 
@@ -29,8 +30,8 @@ class ListOptions:
         is_asc (bool): Whether to order in ascending order. Defaults to True.
     """
 
-    limit: Optional[int] = field(default=None)
-    order_by: Optional[OrderByField] = field(default=None)
+    limit: int | None = field(default=None)
+    order_by: OrderByField | None = field(default=None)
     is_asc: bool = field(default=True)
 
     def as_mlmd_list_options(self) -> MLMDListOptions:

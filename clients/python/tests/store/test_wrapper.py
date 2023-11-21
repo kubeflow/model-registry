@@ -4,6 +4,7 @@ Tests whether the wrapper is properly handling misuses of the MLMD store, as com
 are already covered by the Registry client.
 """
 
+import pytest
 from ml_metadata.proto import (
     Artifact,
     ArtifactType,
@@ -16,10 +17,9 @@ from model_registry.exceptions import (
     TypeNotFoundException,
 )
 from model_registry.store import MLMDStore
-from pytest import fixture, raises
 
 
-@fixture
+@pytest.fixture()
 def artifact(store_wrapper: MLMDStore) -> Artifact:
     art_type = ArtifactType()
     art_type.name = "test_artifact"
@@ -31,7 +31,7 @@ def artifact(store_wrapper: MLMDStore) -> Artifact:
     return art
 
 
-@fixture
+@pytest.fixture()
 def context(store_wrapper: MLMDStore) -> Context:
     ctx_type = ContextType()
     ctx_type.name = "test_context"
@@ -44,39 +44,39 @@ def context(store_wrapper: MLMDStore) -> Context:
 
 
 def test_get_undefined_artifact_type_id(store_wrapper: MLMDStore):
-    with raises(TypeNotFoundException):
+    with pytest.raises(TypeNotFoundException):
         store_wrapper.get_type_id(Artifact, "undefined")
 
 
 def test_get_undefined_context_type_id(store_wrapper: MLMDStore):
-    with raises(TypeNotFoundException):
+    with pytest.raises(TypeNotFoundException):
         store_wrapper.get_type_id(Context, "undefined")
 
 
 def test_put_invalid_artifact(store_wrapper: MLMDStore, artifact: Artifact):
     artifact.properties["null"].int_value = 0
 
-    with raises(StoreException):
+    with pytest.raises(StoreException):
         store_wrapper.put_artifact(artifact)
 
 
 def test_put_duplicate_artifact(store_wrapper: MLMDStore, artifact: Artifact):
     store_wrapper._mlmd_store.put_artifacts([artifact])
-    with raises(DuplicateException):
+    with pytest.raises(DuplicateException):
         store_wrapper.put_artifact(artifact)
 
 
 def test_put_invalid_context(store_wrapper: MLMDStore, context: Context):
     context.properties["null"].int_value = 0
 
-    with raises(StoreException):
+    with pytest.raises(StoreException):
         store_wrapper.put_context(context)
 
 
 def test_put_duplicate_context(store_wrapper: MLMDStore, context: Context):
     store_wrapper._mlmd_store.put_contexts([context])
 
-    with raises(DuplicateException):
+    with pytest.raises(DuplicateException):
         store_wrapper.put_context(context)
 
 
@@ -85,7 +85,7 @@ def test_put_attribution_with_invalid_context(
 ):
     art_id = store_wrapper._mlmd_store.put_artifacts([artifact])[0]
 
-    with raises(StoreException) as store_error:
+    with pytest.raises(StoreException) as store_error:
         store_wrapper.put_attribution(0, art_id)
 
     assert "context" in str(store_error.value).lower()
@@ -96,17 +96,17 @@ def test_put_attribution_with_invalid_artifact(
 ):
     ctx_id = store_wrapper._mlmd_store.put_contexts([context])[0]
 
-    with raises(StoreException) as store_error:
+    with pytest.raises(StoreException) as store_error:
         store_wrapper.put_attribution(ctx_id, 0)
 
     assert "artifact" in str(store_error.value).lower()
 
 
 def test_get_undefined_artifact_by_id(store_wrapper: MLMDStore):
-    with raises(StoreException):
+    with pytest.raises(StoreException):
         store_wrapper.get_artifact("dup", 0)
 
 
 def test_get_undefined_context_by_id(store_wrapper: MLMDStore):
-    with raises(StoreException):
+    with pytest.raises(StoreException):
         store_wrapper.get_context("dup", 0)

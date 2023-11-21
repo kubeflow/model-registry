@@ -1,8 +1,12 @@
-from collections.abc import Sequence
-from typing import ClassVar, Optional
+"""MLMD storage backend wrapper."""
 
-from ml_metadata.metadata_store import ListOptions, MetadataStore
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import ClassVar
+
 from ml_metadata import errors
+from ml_metadata.metadata_store import ListOptions, MetadataStore
 from ml_metadata.proto import (
     Artifact,
     Attribution,
@@ -11,7 +15,6 @@ from ml_metadata.proto import (
     ParentContext,
 )
 
-from .base import ProtoType
 from model_registry.exceptions import (
     DuplicateException,
     ServerException,
@@ -19,6 +22,8 @@ from model_registry.exceptions import (
     TypeNotFoundException,
     UnsupportedTypeException,
 )
+
+from .base import ProtoType
 
 
 class MLMDStore:
@@ -60,18 +65,17 @@ class MLMDStore:
             mlmd_pt_name = "context"
             get_type = self._mlmd_store.get_context_type
         else:
-            raise UnsupportedTypeException(f"Unsupported type: {mlmd_pt}")
+            msg = f"Unsupported type: {mlmd_pt}"
+            raise UnsupportedTypeException(msg)
 
         try:
             _type = get_type(type_name)
         except errors.NotFoundError as e:
-            raise TypeNotFoundException(
-                f"{mlmd_pt_name} type {type_name} does not exist"
-            ) from e
+            msg = f"{mlmd_pt_name} type {type_name} does not exist"
+            raise TypeNotFoundException(msg) from e
         except errors.InternalError as e:
-            raise ServerException(
-                f"Couldn't get {mlmd_pt_name} type {type_name} from MLMD store"
-            ) from e
+            msg = f"Couldn't get {mlmd_pt_name} type {type_name} from MLMD store"
+            raise ServerException(msg) from e
 
         self._type_ids[type_name] = _type.id
 
@@ -94,13 +98,14 @@ class MLMDStore:
         try:
             return self._mlmd_store.put_artifacts([artifact])[0]
         except errors.AlreadyExistsError as e:
-            raise DuplicateException(f"Artifact {artifact.name} already exists") from e
+            msg = f"Artifact {artifact.name} already exists"
+            raise DuplicateException(msg) from e
         except errors.InvalidArgumentError as e:
-            raise StoreException("Artifact has invalid properties") from e
+            msg = "Artifact has invalid properties"
+            raise StoreException(msg) from e
         except errors.NotFoundError as e:
-            raise TypeNotFoundException(
-                f"Artifact type {artifact.type} does not exist"
-            ) from e
+            msg = f"Artifact type {artifact.type} does not exist"
+            raise TypeNotFoundException(msg) from e
 
     def put_context(self, context: Context) -> int:
         """Put a context in the store.
@@ -119,13 +124,14 @@ class MLMDStore:
         try:
             return self._mlmd_store.put_contexts([context])[0]
         except errors.AlreadyExistsError as e:
-            raise DuplicateException(f"Context {context.name} already exists") from e
+            msg = f"Context {context.name} already exists"
+            raise DuplicateException(msg) from e
         except errors.InvalidArgumentError as e:
-            raise StoreException("Context has invalid properties") from e
+            msg = "Context has invalid properties"
+            raise StoreException(msg) from e
         except errors.NotFoundError as e:
-            raise TypeNotFoundException(
-                f"Context type {context.type} does not exist"
-            ) from e
+            msg = f"Context type {context.type} does not exist"
+            raise TypeNotFoundException(msg) from e
 
     def _filter_type(
         self, type_name: str, protos: Sequence[ProtoType]
@@ -135,9 +141,9 @@ class MLMDStore:
     def get_context(
         self,
         ctx_type_name: str,
-        id: Optional[int] = None,
-        name: Optional[str] = None,
-        external_id: Optional[str] = None,
+        id: int | None = None,
+        name: str | None = None,
+        external_id: str | None = None,
     ) -> Context:
         """Get a context from the store.
 
@@ -164,32 +170,46 @@ class MLMDStore:
         elif external_id is not None:
             contexts = self._mlmd_store.get_contexts_by_external_ids([external_id])
         else:
-            raise StoreException("Either id, name or external_id must be provided")
+            msg = "Either id, name or external_id must be provided"
+            raise StoreException(msg)
 
         contexts = self._filter_type(ctx_type_name, contexts)
         if contexts:
             return contexts[0]
 
-        raise StoreException(f"Context with ID {id} does not exist")
+        msg = f"Context with ID {id} does not exist"
+        raise StoreException(msg)
 
     def get_contexts(
         self, ctx_type_name: str, options: ListOptions
     ) -> Sequence[Context]:
+        """Get contexts from the store.
+
+        Args:
+            ctx_type_name (str): Name of the context type.
+            options (ListOptions): List options.
+
+        Returns:
+            Sequence[Context]: Contexts.
+        """
         # TODO: should we make options optional?
         # if options is not None:
         try:
             contexts = self._mlmd_store.get_contexts(options)
         except errors.InvalidArgumentError as e:
-            raise StoreException(f"Invalid arguments for get_contexts: {e}") from e
+            msg = f"Invalid arguments for get_contexts: {e}"
+            raise StoreException(msg) from e
         except errors.InternalError as e:
-            raise ServerException("Couldn't get contexts from MLMD store") from e
+            msg = "Couldn't get contexts from MLMD store"
+            raise ServerException(msg) from e
 
         contexts = self._filter_type(ctx_type_name, contexts)
         # else:
         #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
 
         if not contexts:
-            raise StoreException(f"Context type {ctx_type_name} does not exist")
+            msg = f"Context type {ctx_type_name} does not exist"
+            raise StoreException(msg)
 
         return contexts
 
@@ -209,13 +229,11 @@ class MLMDStore:
                 [ParentContext(parent_id=parent_id, child_id=child_id)]
             )
         except errors.AlreadyExistsError as e:
-            raise StoreException(
-                f"Parent context {parent_id} already exists for context {child_id}"
-            ) from e
+            msg = f"Parent context {parent_id} already exists for context {child_id}"
+            raise StoreException(msg) from e
         except errors.InternalError as e:
-            raise ServerException(
-                f"Couldn't put parent context {parent_id} for context {child_id}"
-            ) from e
+            msg = f"Couldn't put parent context {parent_id} for context {child_id}"
+            raise ServerException(msg) from e
 
     def put_attribution(self, context_id: int, artifact_id: int):
         """Put an attribution relationship between a context and an artifact.
@@ -232,28 +250,32 @@ class MLMDStore:
             self._mlmd_store.put_attributions_and_associations([attribution], [])
         except errors.InvalidArgumentError as e:
             if "artifact" in str(e).lower():
-                raise StoreException(
-                    f"Artifact with ID {artifact_id} does not exist"
-                ) from e
-            elif "context" in str(e).lower():
-                raise StoreException(
-                    f"Context with ID {context_id} does not exist"
-                ) from e
-            else:
-                raise StoreException(f"Invalid argument: {e}") from e
+                msg = f"Artifact with ID {artifact_id} does not exist"
+                raise StoreException(msg) from e
+
+            if "context" in str(e).lower():
+                msg = f"Context with ID {context_id} does not exist"
+                raise StoreException(msg) from e
+
+            msg = f"Invalid argument: {e}"
+            raise StoreException(msg) from e
 
     def get_artifact(
         self,
         art_type_name: str,
-        id: Optional[int] = None,
-        name: Optional[str] = None,
-        external_id: Optional[str] = None,
+        id: int | None = None,
+        name: str | None = None,
+        external_id: str | None = None,
     ) -> Artifact:
         """Get an artifact from the store.
 
+        Gets an artifact either by ID, name or external ID.
+
         Args:
             art_type_name (str): Name of the artifact type.
-            id (int): ID of the artifact.
+            id (int, optional): ID of the artifact.
+            name (str, optional): Name of the artifact.
+            external_id (str, optional): External ID of the artifact.
 
         Returns:
             Artifact: Artifact.
@@ -269,36 +291,61 @@ class MLMDStore:
         elif external_id is not None:
             artifacts = self._mlmd_store.get_artifacts_by_external_ids([external_id])
         else:
-            raise StoreException("Either id, name or external_id must be provided")
+            msg = "Either id, name or external_id must be provided"
+            raise StoreException(msg)
 
         artifacts = self._filter_type(art_type_name, artifacts)
         if artifacts:
             return artifacts[0]
 
-        raise StoreException(f"Artifact with ID {id} does not exist")
+        msg = f"Artifact with ID {id} does not exist"
+        raise StoreException(msg)
 
     def get_attributed_artifact(self, art_type_name: str, ctx_id: int) -> Artifact:
+        """Get an artifact from the store by its attributed context.
+
+        Args:
+            art_type_name (str): Name of the artifact type.
+            ctx_id (int): ID of the context.
+
+        Returns:
+            Artifact: Artifact.
+        """
         try:
             artifacts = self._mlmd_store.get_artifacts_by_context(ctx_id)
         except errors.InternalError as e:
-            raise ServerException(f"Couldn't get artifacts by context {ctx_id}") from e
+            msg = f"Couldn't get artifacts by context {ctx_id}"
+            raise ServerException(msg) from e
         artifacts = self._filter_type(art_type_name, artifacts)
         if artifacts:
             return artifacts[0]
-        raise StoreException("No artifacts found")
+        msg = "No artifacts found"
+        raise StoreException(msg)
 
     def get_artifacts(
         self, art_type_name: str, options: ListOptions
     ) -> Sequence[Artifact]:
+        """Get artifacts from the store.
+
+        Args:
+            art_type_name (str): Name of the artifact type.
+            options (ListOptions): List options.
+
+        Returns:
+            Sequence[Artifact]: Artifacts.
+        """
         try:
             artifacts = self._mlmd_store.get_artifacts(options)
         except errors.InvalidArgumentError as e:
-            raise StoreException(f"Invalid arguments for get_artifacts: {e}") from e
+            msg = f"Invalid arguments for get_artifacts: {e}"
+            raise StoreException(msg) from e
         except errors.InternalError as e:
-            raise ServerException("Couldn't get artifacts from MLMD store") from e
+            msg = "Couldn't get artifacts from MLMD store"
+            raise ServerException(msg) from e
 
         artifacts = self._filter_type(art_type_name, artifacts)
         if not artifacts:
-            raise StoreException(f"Artifact type {art_type_name} does not exist")
+            msg = f"Artifact type {art_type_name} does not exist"
+            raise StoreException(msg)
 
         return artifacts

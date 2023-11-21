@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 from attrs import define, field
 from typing_extensions import override
@@ -17,7 +17,7 @@ class Mappable(ABC):
 
     @classmethod
     def get_proto_type_name(cls) -> str:
-        """Name of the proto type
+        """Name of the proto type.
 
         Returns:
             str: Name of the class prefixed with `odh.`
@@ -48,7 +48,7 @@ class Mappable(ABC):
         """Map from a proto object.
 
         Args:
-            ProtoType: Proto object.
+            mlmd_obj (ProtoType): Proto object.
 
         Returns:
             Mappable: Python object.
@@ -72,7 +72,7 @@ class Prefixable(ABC):
 
 @define(slots=False, init=False)
 class ProtoBase(Mappable, ABC):
-    """Abstract base type for protos
+    """Abstract base type for protos.
 
     This is a type defining common functionality for all types representing Model Registry protos,
     such as Artifacts, Contexts, and Executions.
@@ -87,11 +87,11 @@ class ProtoBase(Mappable, ABC):
     """
 
     name: str = field(init=False)
-    id: Optional[str] = field(init=False, default=None)
-    description: Optional[str] = field(kw_only=True, default=None)
-    external_id: Optional[str] = field(kw_only=True, default=None)
-    create_time_since_epoch: Optional[int] = field(init=False, default=None)
-    last_update_time_since_epoch: Optional[int] = field(init=False, default=None)
+    id: str | None = field(init=False, default=None)
+    description: str | None = field(kw_only=True, default=None)
+    external_id: str | None = field(kw_only=True, default=None)
+    create_time_since_epoch: int | None = field(init=False, default=None)
+    last_update_time_since_epoch: int | None = field(init=False, default=None)
 
     @property
     @override
@@ -112,7 +112,7 @@ class ProtoBase(Mappable, ABC):
 
     @staticmethod
     def _map_props(
-        py_props: Mapping[str, Optional[ScalarType]], mlmd_props: dict[str, Any]
+        py_props: Mapping[str, ScalarType | None], mlmd_props: dict[str, Any]
     ):
         """Map properties from Python to proto.
 
@@ -133,7 +133,8 @@ class ProtoBase(Mappable, ABC):
             elif isinstance(value, str):
                 mlmd_props[key].string_value = value
             else:
-                raise Exception(f"Unsupported type: {type(value)}")
+                msg = f"Unsupported type: {type(value)}"
+                raise Exception(msg)
 
     @override
     def map(self, type_id: int) -> ProtoType:
@@ -170,7 +171,8 @@ class ProtoBase(Mappable, ABC):
             elif value.HasField("string_value"):
                 py_props[key] = value.string_value
             else:
-                raise Exception(f"Unsupported type: {type(value)}")
+                msg = f"Unsupported type: {type(value)}"
+                raise Exception(msg)
 
         return py_props
 

@@ -1,10 +1,10 @@
-"""Model registry storage backends.
-"""
+"""Model registry storage backends."""
 
 from .base import ProtoType, ScalarType
 from .wrapper import MLMDStore
 
 __all__ = [
-    "ProtoType", "ScalarType",
+    "ProtoType",
+    "ScalarType",
     "MLMDStore",
 ]

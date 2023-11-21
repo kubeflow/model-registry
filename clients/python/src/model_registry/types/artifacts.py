@@ -6,14 +6,13 @@ execution, such as an experiment run.
 
 Those types are used to map between proto types based on artifacts and Python objects.
 
-TODO:
+Todo:
     * Move part of the description to API Reference docs (#120).
 """
 
 from __future__ import annotations
 
 from enum import Enum, unique
-from typing import Optional
 from uuid import uuid4
 
 from attrs import define, field
@@ -91,21 +90,18 @@ class ModelArtifact(BaseArtifact, Prefixable):
     """
 
     # TODO: this could be an enum of valid formats
-    model_format_name: Optional[str] = field(kw_only=True, default=None)
-    model_format_version: Optional[str] = field(kw_only=True, default=None)
-    storage_key: Optional[str] = field(kw_only=True, default=None)
-    storage_path: Optional[str] = field(kw_only=True, default=None)
-    service_account_name: Optional[str] = field(kw_only=True, default=None)
+    model_format_name: str | None = field(kw_only=True, default=None)
+    model_format_version: str | None = field(kw_only=True, default=None)
+    storage_key: str | None = field(kw_only=True, default=None)
+    storage_path: str | None = field(kw_only=True, default=None)
+    service_account_name: str | None = field(kw_only=True, default=None)
 
-    _model_version_id: Optional[str] = field(init=False, default=None)
+    _model_version_id: str | None = field(init=False, default=None)
 
     @property
     @override
     def mlmd_name_prefix(self) -> str:
-        if self._model_version_id:
-            return self._model_version_id
-        else:
-            return uuid4().hex
+        return self._model_version_id if self._model_version_id else uuid4().hex
 
     @override
     def map(self, type_id: int) -> Artifact:
