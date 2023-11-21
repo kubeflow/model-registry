@@ -3,14 +3,12 @@
 from collections.abc import Sequence
 from typing import Optional
 
-from ml_metadata.proto import Artifact, Context, MetadataStoreClientConfig
+from ml_metadata.proto import MetadataStoreClientConfig
 
 from .exceptions import StoreException
 from .store import ProtoType, MLMDStore
 from .types import ModelArtifact, ModelVersion, RegisteredModel, ListOptions
-from .types.artifacts import BaseArtifact
 from .types.base import Mappable
-from .types.contexts import BaseContext
 from .types.options import MLMDListOptions
 
 
@@ -62,29 +60,6 @@ class ModelRegistry:
         )
         return proto_obj
 
-    def _unmap(self, proto_obj: ProtoType) -> Mappable:
-        """Map a proto object to a Python object.
-
-        Helper around the `unmap` method, fetches the correct Python type to use.
-
-        Args:
-            proto_obj (ProtoType): Proto object.
-
-        Returns:
-            Mappable: Python object.
-        """
-        type_name = proto_obj.type
-        try:
-            if isinstance(proto_obj, Artifact):
-                py_type = BaseArtifact.get_subclass(type_name)
-            elif isinstance(proto_obj, Context):
-                py_type = BaseContext.get_subclass(type_name)
-            else:
-                raise StoreException(f"Unknown proto type: {type_name}")
-        except Exception:
-            raise
-        return py_type.unmap(proto_obj)
-
     def upsert_registered_model(self, registered_model: RegisteredModel) -> str:
         """Upsert a registered model.
 
@@ -99,11 +74,10 @@ class ModelRegistry:
         """
         proto_obj = self._map(registered_model)
         id = self._store.put_context(proto_obj)
-        new_py_rm = self._unmap(
+        new_py_rm = RegisteredModel.unmap(
             self._store.get_context(RegisteredModel.get_proto_type_name(), id)
         )
         id = str(id)
-        assert isinstance(new_py_rm, RegisteredModel), "Expected a registered model"
         registered_model.id = id
         registered_model.create_time_since_epoch = new_py_rm.create_time_since_epoch
         registered_model.last_update_time_since_epoch = (
@@ -120,11 +94,9 @@ class ModelRegistry:
         Returns:
             RegisteredModel: Registered model.
         """
-        proto_rm = self._store.get_context(
-            RegisteredModel.get_proto_type_name(), id=int(id)
+        py_rm = RegisteredModel.unmap(
+            self._store.get_context(RegisteredModel.get_proto_type_name(), id=int(id))
         )
-        py_rm = self._unmap(proto_rm)
-        assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
         versions = self.get_model_versions(id)
         assert isinstance(versions, list), "Expected a list"
         py_rm.versions = versions
@@ -144,11 +116,13 @@ class ModelRegistry:
         """
         if name is None and external_id is None:
             raise StoreException("Either name or external_id must be provided")
-        proto_rm = self._store.get_context(
-            RegisteredModel.get_proto_type_name(), name=name, external_id=external_id
+        py_rm = RegisteredModel.unmap(
+            self._store.get_context(
+                RegisteredModel.get_proto_type_name(),
+                name=name,
+                external_id=external_id,
+            )
         )
-        py_rm = self._unmap(proto_rm)
-        assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
         assert py_rm.id is not None
         versions = self.get_model_versions(py_rm.id)
         assert isinstance(versions, list), "Expected a list"
@@ -170,14 +144,7 @@ class ModelRegistry:
         proto_rms = self._store.get_contexts(
             RegisteredModel.get_proto_type_name(), mlmd_options
         )
-        # using a list comprehension will generate a warning as it can't infer the type for every
-        # element on the list
-        py_rms: list[RegisteredModel] = []
-        for proto_rm in proto_rms:
-            py_rm = self._unmap(proto_rm)
-            assert isinstance(py_rm, RegisteredModel), "Expected a registered model"
-            py_rms.append(py_rm)
-        return py_rms
+        return [RegisteredModel.unmap(proto_rm) for proto_rm in proto_rms]
 
     def upsert_model_version(
         self, model_version: ModelVersion, registered_model_id: str
@@ -200,10 +167,9 @@ class ModelRegistry:
         proto_mv = self._map(model_version)
         id = self._store.put_context(proto_mv)
         self._store.put_context_parent(rm_id, id)
-        new_py_mv = self._unmap(
+        new_py_mv = ModelVersion.unmap(
             self._store.get_context(ModelVersion.get_proto_type_name(), id)
         )
-        assert isinstance(new_py_mv, ModelVersion), "Expected a model version"
         id = str(id)
         model_version.id = id
         model_version.create_time_since_epoch = new_py_mv.create_time_since_epoch
@@ -221,11 +187,11 @@ class ModelRegistry:
         Returns:
             ModelVersion: Model version.
         """
-        proto_mv = self._store.get_context(
-            ModelVersion.get_proto_type_name(), id=int(model_version_id)
+        py_mv = ModelVersion.unmap(
+            self._store.get_context(
+                ModelVersion.get_proto_type_name(), id=int(model_version_id)
+            )
         )
-        py_mv = self._unmap(proto_mv)
-        assert isinstance(py_mv, ModelVersion), "Expected a model version"
         py_mv.model = self.get_model_artifact_by_params(
             model_version_id=model_version_id
         )
@@ -250,8 +216,7 @@ class ModelRegistry:
         )
         py_mvs: list[ModelVersion] = []
         for proto_mv in proto_mvs:
-            py_mv = self._unmap(proto_mv)
-            assert isinstance(py_mv, ModelVersion), "Expected a model version"
+            py_mv = ModelVersion.unmap(proto_mv)
             assert py_mv.id is not None, "Model version ID is None"
             py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
             py_mvs.append(py_mv)
@@ -288,8 +253,7 @@ class ModelRegistry:
                 ModelVersion.get_proto_type_name(),
                 name=f"{registered_model_id}:{version}",
             )
-        py_mv = self._unmap(proto_mv)
-        assert isinstance(py_mv, ModelVersion), "Expected a model version"
+        py_mv = ModelVersion.unmap(proto_mv)
         py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
         return py_mv
 
@@ -323,10 +287,9 @@ class ModelRegistry:
         proto_ma = self._map(model_artifact)
         id = self._store.put_artifact(proto_ma)
         self._store.put_attribution(mv_id, id)
-        new_py_ma = self._unmap(
+        new_py_ma = ModelArtifact.unmap(
             self._store.get_artifact(ModelArtifact.get_proto_type_name(), id)
         )
-        assert isinstance(new_py_ma, ModelArtifact), "Expected a model artifact"
         id = str(id)
         model_artifact.id = id
         model_artifact.create_time_since_epoch = new_py_ma.create_time_since_epoch
@@ -347,9 +310,7 @@ class ModelRegistry:
         proto_ma = self._store.get_artifact(
             ModelArtifact.get_proto_type_name(), int(id)
         )
-        py_ma = self._unmap(proto_ma)
-        assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
-        return py_ma
+        return ModelArtifact.unmap(proto_ma)
 
     def get_model_artifact_by_params(
         self, model_version_id: Optional[str] = None, external_id: Optional[str] = None
@@ -375,9 +336,7 @@ class ModelRegistry:
             proto_ma = self._store.get_attributed_artifact(
                 ModelArtifact.get_proto_type_name(), int(model_version_id)
             )
-        py_ma = self._unmap(proto_ma)
-        assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
-        return py_ma
+        return ModelArtifact.unmap(proto_ma)
 
     def get_model_artifacts(
         self,
@@ -400,11 +359,4 @@ class ModelRegistry:
         proto_mas = self._store.get_artifacts(
             ModelArtifact.get_proto_type_name(), mlmd_options
         )
-        # using a list comprehension will generate a warning as it can't infer the type for every
-        # element on the list
-        py_mas: list[ModelArtifact] = []
-        for proto_ma in proto_mas:
-            py_ma = self._unmap(proto_ma)
-            assert isinstance(py_ma, ModelArtifact), "Expected a model artifact"
-            py_mas.append(py_ma)
-        return py_mas
+        return [ModelArtifact.unmap(proto_ma) for proto_ma in proto_mas]

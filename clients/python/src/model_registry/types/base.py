@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from inspect import isabstract
-from typing import Any, ClassVar, Optional
+from typing import Any, Optional, TypeVar
 
 from attrs import define, field
 from typing_extensions import override
@@ -91,26 +90,6 @@ class ProtoBase(Mappable, ABC):
     create_time_since_epoch: Optional[int] = field(init=False, default=None)
     last_update_time_since_epoch: Optional[int] = field(init=False, default=None)
 
-    _types_map: ClassVar[dict[str, ProtoBase]] = {}
-
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        if isabstract(cls):
-            return
-        cls._types_map[cls.get_proto_type_name()] = cls
-
-    @classmethod
-    def get_subclass(cls, proto_type_name: str) -> Mappable:
-        """Get a subclass by proto type name.
-
-        Args:
-            proto_type_name (str): Name of the proto type.
-
-        Returns:
-            Mappable: Subclass.
-        """
-        return cls._types_map[proto_type_name]
-
     @property
     @override
     def proto_name(self) -> str:
@@ -191,9 +170,11 @@ class ProtoBase(Mappable, ABC):
 
         return py_props
 
+    T = TypeVar("T", bound="ProtoBase")
+
     @classmethod
     @override
-    def unmap(cls, mlmd_obj: ProtoType) -> ProtoBase:
+    def unmap(cls: type[T], mlmd_obj: ProtoType) -> T:
         py_obj = cls.__new__(cls)
         py_obj.id = str(mlmd_obj.id)
         if isinstance(py_obj, Prefixable):

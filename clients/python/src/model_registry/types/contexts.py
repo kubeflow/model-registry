@@ -110,3 +110,12 @@ class RegisteredModel(BaseContext):
 
     name: str
     versions: list[ModelVersion] = field(init=False, factory=list)
+
+    @classmethod
+    @override
+    def unmap(cls, mlmd_obj: Context) -> RegisteredModel:
+        py_obj = super().unmap(mlmd_obj)
+        assert isinstance(
+            py_obj, RegisteredModel
+        ), f"Expected RegisteredModel, got {type(py_obj)}"
+        return py_obj
