@@ -102,7 +102,7 @@ func (m *Mapper) MapFromServingEnvironment(servingEnvironment *openapi.ServingEn
 	return ctx, nil
 }
 
-func (m *Mapper) MapFromInferenceService(inferenceService *openapi.InferenceService, servingEnvironmentId string, servingEnvironmentName *string) (*proto.Context, error) {
+func (m *Mapper) MapFromInferenceService(inferenceService *openapi.InferenceService, servingEnvironmentId string) (*proto.Context, error) {
 	ctx, err := m.OpenAPIConverter.ConvertInferenceService(&converter.OpenAPIModelWrapper[openapi.InferenceService]{
 		TypeId:           m.InferenceServiceTypeId,
 		Model:            inferenceService,

@@ -2594,7 +2594,7 @@ func TestGetRegisteredModelByInferenceServiceId(t *testing.T) {
 func TestGetModelVersionByInferenceServiceId(t *testing.T) {
 	assertion, conn, _, teardown := setup(t)
 	defer teardown(t)
-	// todo
+
 	// create mode registry service
 	service := initModelRegistryService(assertion, conn)
 

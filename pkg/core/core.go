@@ -24,8 +24,8 @@ var (
 	canAddFields               = of(true)
 )
 
-// modelRegistryService is the core library of the model registry
-type modelRegistryService struct {
+// ModelRegistryService is the core library of the model registry
+type ModelRegistryService struct {
 	mlmdClient proto.MetadataStoreServiceClient
 	mapper     *mapper.Mapper
 }
@@ -141,7 +141,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 		return nil, fmt.Errorf("error setting up execution type %s: %v", *serveModelTypeName, err)
 	}
 
-	return &modelRegistryService{
+	return &ModelRegistryService{
 		mlmdClient: client,
 		mapper: mapper.NewMapper(
 			registeredModelResp.GetTypeId(),
@@ -156,14 +156,14 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 
 // REGISTERED MODELS
 
-func (serv *modelRegistryService) UpsertRegisteredModel(registeredModel *openapi.RegisteredModel) (*openapi.RegisteredModel, error) {
+func (serv *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.RegisteredModel) (*openapi.RegisteredModel, error) {
 	var err error
 	var existing *openapi.RegisteredModel
 
 	if registeredModel.Id == nil {
 		glog.Info("Creating new registered model")
 	} else {
-		glog.Info("Updating registered model %s", *registeredModel.Id)
+		glog.Infof("Updating registered model %s", *registeredModel.Id)
 		existing, err = serv.GetRegisteredModelById(*registeredModel.Id)
 		if err != nil {
 			return nil, err
@@ -200,8 +200,8 @@ func (serv *modelRegistryService) UpsertRegisteredModel(registeredModel *openapi
 	return model, nil
 }
 
-func (serv *modelRegistryService) GetRegisteredModelById(id string) (*openapi.RegisteredModel, error) {
-	glog.Info("Getting registered model %s", id)
+func (serv *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.RegisteredModel, error) {
+	glog.Infof("Getting registered model %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -231,7 +231,7 @@ func (serv *modelRegistryService) GetRegisteredModelById(id string) (*openapi.Re
 	return regModel, nil
 }
 
-func (serv *modelRegistryService) GetRegisteredModelByInferenceService(inferenceServiceId string) (*openapi.RegisteredModel, error) {
+func (serv *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceServiceId string) (*openapi.RegisteredModel, error) {
 	is, err := serv.GetInferenceServiceById(inferenceServiceId)
 	if err != nil {
 		return nil, err
@@ -239,8 +239,8 @@ func (serv *modelRegistryService) GetRegisteredModelByInferenceService(inference
 	return serv.GetRegisteredModelById(is.RegisteredModelId)
 }
 
-func (serv *modelRegistryService) getRegisteredModelByVersionId(id string) (*openapi.RegisteredModel, error) {
-	glog.Info("Getting registered model for model version %s", id)
+func (serv *ModelRegistryService) getRegisteredModelByVersionId(id string) (*openapi.RegisteredModel, error) {
+	glog.Infof("Getting registered model for model version %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -270,8 +270,8 @@ func (serv *modelRegistryService) getRegisteredModelByVersionId(id string) (*ope
 	return regModel, nil
 }
 
-func (serv *modelRegistryService) GetRegisteredModelByParams(name *string, externalId *string) (*openapi.RegisteredModel, error) {
-	glog.Info("Getting registered model by params name=%v, externalId=%v", name, externalId)
+func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, externalId *string) (*openapi.RegisteredModel, error) {
+	glog.Infof("Getting registered model by params name=%v, externalId=%v", name, externalId)
 
 	filterQuery := ""
 	if name != nil {
@@ -307,7 +307,7 @@ func (serv *modelRegistryService) GetRegisteredModelByParams(name *string, exter
 	return regModel, nil
 }
 
-func (serv *modelRegistryService) GetRegisteredModels(listOptions api.ListOptions) (*openapi.RegisteredModelList, error) {
+func (serv *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) (*openapi.RegisteredModelList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
@@ -340,7 +340,7 @@ func (serv *modelRegistryService) GetRegisteredModels(listOptions api.ListOption
 
 // MODEL VERSIONS
 
-func (serv *modelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *string) (*openapi.ModelVersion, error) {
+func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *string) (*openapi.ModelVersion, error) {
 	var err error
 	var existing *openapi.ModelVersion
 	var registeredModel *openapi.RegisteredModel
@@ -357,7 +357,7 @@ func (serv *modelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 		}
 	} else {
 		// update
-		glog.Info("Updating model version %s", *modelVersion.Id)
+		glog.Infof("Updating model version %s", *modelVersion.Id)
 		existing, err = serv.GetModelVersionById(*modelVersion.Id)
 		if err != nil {
 			return nil, err
@@ -416,7 +416,7 @@ func (serv *modelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 	return model, nil
 }
 
-func (serv *modelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
+func (serv *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
 		return nil, err
@@ -445,7 +445,7 @@ func (serv *modelRegistryService) GetModelVersionById(id string) (*openapi.Model
 	return modelVer, nil
 }
 
-func (serv *modelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
+func (serv *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
 	is, err := serv.GetInferenceServiceById(inferenceServiceId)
 	if err != nil {
 		return nil, err
@@ -466,8 +466,8 @@ func (serv *modelRegistryService) GetModelVersionByInferenceService(inferenceSer
 	return &versions.Items[0], nil
 }
 
-func (serv *modelRegistryService) getModelVersionByArtifactId(id string) (*openapi.ModelVersion, error) {
-	glog.Info("Getting model version for model artifact %s", id)
+func (serv *ModelRegistryService) getModelVersionByArtifactId(id string) (*openapi.ModelVersion, error) {
+	glog.Infof("Getting model version for model artifact %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -497,7 +497,7 @@ func (serv *modelRegistryService) getModelVersionByArtifactId(id string) (*opena
 	return modelVersion, nil
 }
 
-func (serv *modelRegistryService) GetModelVersionByParams(versionName *string, parentResourceId *string, externalId *string) (*openapi.ModelVersion, error) {
+func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, parentResourceId *string, externalId *string) (*openapi.ModelVersion, error) {
 	filterQuery := ""
 	if versionName != nil && parentResourceId != nil {
 		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(parentResourceId, *versionName))
@@ -532,7 +532,7 @@ func (serv *modelRegistryService) GetModelVersionByParams(versionName *string, p
 	return modelVer, nil
 }
 
-func (serv *modelRegistryService) GetModelVersions(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelVersionList, error) {
+func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelVersionList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
@@ -571,7 +571,7 @@ func (serv *modelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 
 // MODEL ARTIFACTS
 
-func (serv *modelRegistryService) UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *string) (*openapi.ModelArtifact, error) {
+func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *string) (*openapi.ModelArtifact, error) {
 	var err error
 	var existing *openapi.ModelArtifact
 
@@ -587,7 +587,7 @@ func (serv *modelRegistryService) UpsertModelArtifact(modelArtifact *openapi.Mod
 		}
 	} else {
 		// update
-		glog.Info("Updating model artifact %s", *modelArtifact.Id)
+		glog.Infof("Updating model artifact %s", *modelArtifact.Id)
 		existing, err = serv.GetModelArtifactById(*modelArtifact.Id)
 		if err != nil {
 			return nil, err
@@ -649,7 +649,7 @@ func (serv *modelRegistryService) UpsertModelArtifact(modelArtifact *openapi.Mod
 	return mapped, nil
 }
 
-func (serv *modelRegistryService) GetModelArtifactById(id string) (*openapi.ModelArtifact, error) {
+func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.ModelArtifact, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
 		return nil, err
@@ -678,7 +678,7 @@ func (serv *modelRegistryService) GetModelArtifactById(id string) (*openapi.Mode
 	return result, nil
 }
 
-func (serv *modelRegistryService) GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error) {
+func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error) {
 	var artifact0 *proto.Artifact
 
 	filterQuery := ""
@@ -718,7 +718,7 @@ func (serv *modelRegistryService) GetModelArtifactByParams(artifactName *string,
 	return result, nil
 }
 
-func (serv *modelRegistryService) GetModelArtifacts(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error) {
+func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
@@ -772,14 +772,14 @@ func (serv *modelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 
 // SERVING ENVIRONMENT
 
-func (serv *modelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
+func (serv *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
 	var err error
 	var existing *openapi.ServingEnvironment
 
 	if servingEnvironment.Id == nil {
 		glog.Info("Creating new serving environment")
 	} else {
-		glog.Info("Updating serving environment %s", *servingEnvironment.Id)
+		glog.Infof("Updating serving environment %s", *servingEnvironment.Id)
 		existing, err = serv.GetServingEnvironmentById(*servingEnvironment.Id)
 		if err != nil {
 			return nil, err
@@ -816,8 +816,8 @@ func (serv *modelRegistryService) UpsertServingEnvironment(servingEnvironment *o
 	return openapiModel, nil
 }
 
-func (serv *modelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
-	glog.Info("Getting serving environment %s", id)
+func (serv *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
+	glog.Infof("Getting serving environment %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -847,8 +847,8 @@ func (serv *modelRegistryService) GetServingEnvironmentById(id string) (*openapi
 	return openapiModel, nil
 }
 
-func (serv *modelRegistryService) GetServingEnvironmentByParams(name *string, externalId *string) (*openapi.ServingEnvironment, error) {
-	glog.Info("Getting serving environment by params name=%v, externalId=%v", name, externalId)
+func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, externalId *string) (*openapi.ServingEnvironment, error) {
+	glog.Infof("Getting serving environment by params name=%v, externalId=%v", name, externalId)
 
 	filterQuery := ""
 	if name != nil {
@@ -884,7 +884,7 @@ func (serv *modelRegistryService) GetServingEnvironmentByParams(name *string, ex
 	return openapiModel, nil
 }
 
-func (serv *modelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
+func (serv *ModelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
@@ -917,7 +917,7 @@ func (serv *modelRegistryService) GetServingEnvironments(listOptions api.ListOpt
 
 // INFERENCE SERVICE
 
-func (serv *modelRegistryService) UpsertInferenceService(inferenceService *openapi.InferenceService) (*openapi.InferenceService, error) {
+func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.InferenceService) (*openapi.InferenceService, error) {
 	var err error
 	var existing *openapi.InferenceService
 	var servingEnvironment *openapi.ServingEnvironment
@@ -933,7 +933,7 @@ func (serv *modelRegistryService) UpsertInferenceService(inferenceService *opena
 		}
 	} else {
 		// update
-		glog.Info("Updating InferenceService %s", *inferenceService.Id)
+		glog.Infof("Updating InferenceService %s", *inferenceService.Id)
 		existing, err = serv.GetInferenceServiceById(*inferenceService.Id)
 		if err != nil {
 			return nil, err
@@ -956,7 +956,7 @@ func (serv *modelRegistryService) UpsertInferenceService(inferenceService *opena
 		inferenceService.Name = existing.Name
 	}
 
-	protoCtx, err := serv.mapper.MapFromInferenceService(inferenceService, *servingEnvironment.Id, servingEnvironment.Name)
+	protoCtx, err := serv.mapper.MapFromInferenceService(inferenceService, *servingEnvironment.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -997,8 +997,8 @@ func (serv *modelRegistryService) UpsertInferenceService(inferenceService *opena
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) getServingEnvironmentByInferenceServiceId(id string) (*openapi.ServingEnvironment, error) {
-	glog.Info("Getting ServingEnvironment for InferenceService %s", id)
+func (serv *ModelRegistryService) getServingEnvironmentByInferenceServiceId(id string) (*openapi.ServingEnvironment, error) {
+	glog.Infof("Getting ServingEnvironment for InferenceService %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -1028,7 +1028,9 @@ func (serv *modelRegistryService) getServingEnvironmentByInferenceServiceId(id s
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
+func (serv *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
+	glog.Infof("Getting InferenceService by id %s", id)
+
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
 		return nil, err
@@ -1057,7 +1059,7 @@ func (serv *modelRegistryService) GetInferenceServiceById(id string) (*openapi.I
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
+func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
 	filterQuery := ""
 	if name != nil && parentResourceId != nil {
 		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(parentResourceId, *name))
@@ -1092,7 +1094,7 @@ func (serv *modelRegistryService) GetInferenceServiceByParams(name *string, pare
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) GetInferenceServices(listOptions api.ListOptions, parentResourceId *string) (*openapi.InferenceServiceList, error) {
+func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions, parentResourceId *string) (*openapi.InferenceServiceList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
@@ -1131,7 +1133,7 @@ func (serv *modelRegistryService) GetInferenceServices(listOptions api.ListOptio
 
 // SERVE MODEL
 
-func (serv *modelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, parentResourceId *string) (*openapi.ServeModel, error) {
+func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, parentResourceId *string) (*openapi.ServeModel, error) {
 	var err error
 	var existing *openapi.ServeModel
 
@@ -1147,7 +1149,7 @@ func (serv *modelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 		}
 	} else {
 		// update
-		glog.Info("Updating ServeModel %s", *serveModel.Id)
+		glog.Infof("Updating ServeModel %s", *serveModel.Id)
 		existing, err = serv.GetServeModelById(*serveModel.Id)
 		if err != nil {
 			return nil, err
@@ -1211,8 +1213,8 @@ func (serv *modelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 	return mapped, nil
 }
 
-func (serv *modelRegistryService) getInferenceServiceByServeModel(id string) (*openapi.InferenceService, error) {
-	glog.Info("Getting InferenceService for ServeModel %s", id)
+func (serv *ModelRegistryService) getInferenceServiceByServeModel(id string) (*openapi.InferenceService, error) {
+	glog.Infof("Getting InferenceService for ServeModel %s", id)
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
@@ -1242,7 +1244,7 @@ func (serv *modelRegistryService) getInferenceServiceByServeModel(id string) (*o
 	return toReturn, nil
 }
 
-func (serv *modelRegistryService) GetServeModelById(id string) (*openapi.ServeModel, error) {
+func (serv *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeModel, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
 		return nil, err
@@ -1271,7 +1273,7 @@ func (serv *modelRegistryService) GetServeModelById(id string) (*openapi.ServeMo
 	return result, nil
 }
 
-func (serv *modelRegistryService) GetServeModels(listOptions api.ListOptions, parentResourceId *string) (*openapi.ServeModelList, error) {
+func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, parentResourceId *string) (*openapi.ServeModelList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
