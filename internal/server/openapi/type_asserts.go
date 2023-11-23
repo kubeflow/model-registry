@@ -287,6 +287,16 @@ func AssertInferenceServiceListConstraints(obj model.InferenceServiceList) error
 	return nil
 }
 
+// AssertInferenceServiceStateRequired checks if the required fields are not zero-ed
+func AssertInferenceServiceStateRequired(obj model.InferenceServiceState) error {
+	return nil
+}
+
+// AssertInferenceServiceStateConstraints checks if the values respects the defined constraints
+func AssertInferenceServiceStateConstraints(obj model.InferenceServiceState) error {
+	return nil
+}
+
 // AssertInferenceServiceUpdateRequired checks if the required fields are not zero-ed
 func AssertInferenceServiceUpdateRequired(obj model.InferenceServiceUpdate) error {
 	return nil
@@ -487,6 +497,16 @@ func AssertModelVersionListConstraints(obj model.ModelVersionList) error {
 	return nil
 }
 
+// AssertModelVersionStateRequired checks if the required fields are not zero-ed
+func AssertModelVersionStateRequired(obj model.ModelVersionState) error {
+	return nil
+}
+
+// AssertModelVersionStateConstraints checks if the values respects the defined constraints
+func AssertModelVersionStateConstraints(obj model.ModelVersionState) error {
+	return nil
+}
+
 // AssertModelVersionUpdateRequired checks if the required fields are not zero-ed
 func AssertModelVersionUpdateRequired(obj model.ModelVersionUpdate) error {
 	return nil
@@ -550,6 +570,16 @@ func AssertRegisteredModelListRequired(obj model.RegisteredModelList) error {
 
 // AssertRegisteredModelListConstraints checks if the values respects the defined constraints
 func AssertRegisteredModelListConstraints(obj model.RegisteredModelList) error {
+	return nil
+}
+
+// AssertRegisteredModelStateRequired checks if the required fields are not zero-ed
+func AssertRegisteredModelStateRequired(obj model.RegisteredModelState) error {
+	return nil
+}
+
+// AssertRegisteredModelStateConstraints checks if the values respects the defined constraints
+func AssertRegisteredModelStateConstraints(obj model.RegisteredModelState) error {
 	return nil
 }
 
