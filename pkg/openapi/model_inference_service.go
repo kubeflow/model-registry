@@ -36,7 +36,8 @@ type InferenceService struct {
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
 	// Model runtime.
-	Runtime *string `json:"runtime,omitempty"`
+	Runtime *string                `json:"runtime,omitempty"`
+	State   *InferenceServiceState `json:"state,omitempty"`
 	// ID of the `RegisteredModel` to serve.
 	RegisteredModelId string `json:"registeredModelId"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
@@ -49,6 +50,8 @@ type InferenceService struct {
 // will change when the set of required properties is changed
 func NewInferenceService(registeredModelId string, servingEnvironmentId string) *InferenceService {
 	this := InferenceService{}
+	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.State = &state
 	this.RegisteredModelId = registeredModelId
 	this.ServingEnvironmentId = servingEnvironmentId
 	return &this
@@ -59,6 +62,8 @@ func NewInferenceService(registeredModelId string, servingEnvironmentId string) 
 // but it doesn't guarantee that properties required by API are set
 func NewInferenceServiceWithDefaults() *InferenceService {
 	this := InferenceService{}
+	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.State = &state
 	return &this
 }
 
@@ -350,6 +355,38 @@ func (o *InferenceService) SetRuntime(v string) {
 	o.Runtime = &v
 }
 
+// GetState returns the State field value if set, zero value otherwise.
+func (o *InferenceService) GetState() InferenceServiceState {
+	if o == nil || IsNil(o.State) {
+		var ret InferenceServiceState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetStateOk() (*InferenceServiceState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *InferenceService) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given InferenceServiceState and assigns it to the State field.
+func (o *InferenceService) SetState(v InferenceServiceState) {
+	o.State = &v
+}
+
 // GetRegisteredModelId returns the RegisteredModelId field value
 func (o *InferenceService) GetRegisteredModelId() string {
 	if o == nil {
@@ -434,6 +471,9 @@ func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Runtime) {
 		toSerialize["runtime"] = o.Runtime
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
 	toSerialize["servingEnvironmentId"] = o.ServingEnvironmentId

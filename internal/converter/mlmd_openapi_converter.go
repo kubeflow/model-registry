@@ -15,10 +15,12 @@ import (
 // goverter:extend MapMLMDCustomProperties
 type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
+	// goverter:map . State | MapRegisteredModelState
 	ConvertRegisteredModel(source *proto.Context) (*openapi.RegisteredModel, error)
 
 	// goverter:map Name | MapNameFromOwned
 	// goverter:map Properties Description | MapDescription
+	// goverter:map . State | MapModelVersionState
 	ConvertModelVersion(source *proto.Context) (*openapi.ModelVersion, error)
 
 	// goverter:map Name | MapNameFromOwned
@@ -42,6 +44,7 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties ModelVersionId | MapPropertyModelVersionId
 	// goverter:map Properties RegisteredModelId | MapPropertyRegisteredModelId
 	// goverter:map Properties ServingEnvironmentId | MapPropertyServingEnvironmentId
+	// goverter:map . State | MapInferenceServiceState
 	ConvertInferenceService(source *proto.Context) (*openapi.InferenceService, error)
 
 	// goverter:map Name | MapNameFromOwned

@@ -49,6 +49,12 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.Inf
 			pString5 = &xstring5
 		}
 		openapiInferenceService.Runtime = pString5
+		var pOpenapiInferenceServiceState *openapi.InferenceServiceState
+		if (*source).State != nil {
+			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).State)
+			pOpenapiInferenceServiceState = &openapiInferenceServiceState
+		}
+		openapiInferenceService.State = pOpenapiInferenceServiceState
 		openapiInferenceService.RegisteredModelId = (*source).RegisteredModelId
 		openapiInferenceService.ServingEnvironmentId = (*source).ServingEnvironmentId
 		pOpenapiInferenceService = &openapiInferenceService
@@ -92,6 +98,12 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 			pString4 = &xstring4
 		}
 		openapiInferenceService.Runtime = pString4
+		var pOpenapiInferenceServiceState *openapi.InferenceServiceState
+		if (*source).State != nil {
+			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).State)
+			pOpenapiInferenceServiceState = &openapiInferenceServiceState
+		}
+		openapiInferenceService.State = pOpenapiInferenceServiceState
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
@@ -275,6 +287,12 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 			pString3 = &xstring3
 		}
 		openapiModelVersion.Name = pString3
+		var pOpenapiModelVersionState *openapi.ModelVersionState
+		if (*source).State != nil {
+			openapiModelVersionState := openapi.ModelVersionState(*(*source).State)
+			pOpenapiModelVersionState = &openapiModelVersionState
+		}
+		openapiModelVersion.State = pOpenapiModelVersionState
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
@@ -304,6 +322,12 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVe
 			pString2 = &xstring2
 		}
 		openapiModelVersion.ExternalID = pString2
+		var pOpenapiModelVersionState *openapi.ModelVersionState
+		if (*source).State != nil {
+			openapiModelVersionState := openapi.ModelVersionState(*(*source).State)
+			pOpenapiModelVersionState = &openapiModelVersionState
+		}
+		openapiModelVersion.State = pOpenapiModelVersionState
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
@@ -339,6 +363,12 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 			pString3 = &xstring3
 		}
 		openapiRegisteredModel.Name = pString3
+		var pOpenapiRegisteredModelState *openapi.RegisteredModelState
+		if (*source).State != nil {
+			openapiRegisteredModelState := openapi.RegisteredModelState(*(*source).State)
+			pOpenapiRegisteredModelState = &openapiRegisteredModelState
+		}
+		openapiRegisteredModel.State = pOpenapiRegisteredModelState
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil
@@ -368,6 +398,12 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 			pString2 = &xstring2
 		}
 		openapiRegisteredModel.ExternalID = pString2
+		var pOpenapiRegisteredModelState *openapi.RegisteredModelState
+		if (*source).State != nil {
+			openapiRegisteredModelState := openapi.RegisteredModelState(*(*source).State)
+			pOpenapiRegisteredModelState = &openapiRegisteredModelState
+		}
+		openapiRegisteredModel.State = pOpenapiRegisteredModelState
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil

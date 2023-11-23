@@ -32,7 +32,8 @@ type RegisteredModel struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	LastUpdateTimeSinceEpoch *string               `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	State                    *RegisteredModelState `json:"state,omitempty"`
 }
 
 // NewRegisteredModel instantiates a new RegisteredModel object
@@ -41,6 +42,8 @@ type RegisteredModel struct {
 // will change when the set of required properties is changed
 func NewRegisteredModel() *RegisteredModel {
 	this := RegisteredModel{}
+	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -49,6 +52,8 @@ func NewRegisteredModel() *RegisteredModel {
 // but it doesn't guarantee that properties required by API are set
 func NewRegisteredModelWithDefaults() *RegisteredModel {
 	this := RegisteredModel{}
+	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -276,6 +281,38 @@ func (o *RegisteredModel) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetState returns the State field value if set, zero value otherwise.
+func (o *RegisteredModel) GetState() RegisteredModelState {
+	if o == nil || IsNil(o.State) {
+		var ret RegisteredModelState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModel) GetStateOk() (*RegisteredModelState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *RegisteredModel) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
+func (o *RegisteredModel) SetState(v RegisteredModelState) {
+	o.State = &v
+}
+
 func (o RegisteredModel) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -306,6 +343,9 @@ func (o RegisteredModel) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

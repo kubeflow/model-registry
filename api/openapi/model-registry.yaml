@@ -1017,6 +1017,35 @@ components:
         - ABANDONED
         - REFERENCE
       type: string
+    RegisteredModelState:
+      description: |-
+        - LIVE: A state indicating that the `RegisteredModel` exists
+        - ARCHIVED: A state indicating that the `RegisteredModel` has been archived.
+      default: LIVE
+      enum:
+        - LIVE
+        - ARCHIVED
+      type: string
+    ModelVersionState:
+      description: |-
+        - LIVE: A state indicating that the `ModelVersion` exists
+        - ARCHIVED: A state indicating that the `ModelVersion` has been archived.
+      default: LIVE
+      enum:
+        - LIVE
+        - ARCHIVED
+      type: string
+    InferenceServiceState:
+      description: |-
+        - DEPLOYED: A state indicating that the `InferenceService` should be deployed.
+        - UNDEPLOYED: A state indicating that the `InferenceService` should be un-deployed.
+        The state indicates the desired state of inference service.
+        See the associated `ServeModel` for the actual status of service deployment action.
+      default: DEPLOYED
+      enum:
+        - DEPLOYED
+        - UNDEPLOYED
+      type: string
     ExecutionState:
       description: |-
         The state of the Execution. The state transitions are
@@ -1103,6 +1132,11 @@ components:
       allOf:
         -
           $ref: '#/components/schemas/BaseResourceUpdate'
+        -
+          type: object
+          properties:
+            state:
+              $ref: '#/components/schemas/RegisteredModelState'
     ModelVersion:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       allOf:
@@ -1128,6 +1162,11 @@ components:
       allOf:
         -
           $ref: '#/components/schemas/BaseResourceUpdate'
+        -
+          type: object
+          properties:
+            state:
+              $ref: '#/components/schemas/ModelVersionState'
     BaseArtifactCreate:
       allOf:
         -
@@ -1534,6 +1573,8 @@ components:
             runtime:
               description: Model runtime.
               type: string
+            state:
+              $ref: '#/components/schemas/InferenceServiceState'
     InferenceServiceCreate:
       description: >-
         An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion`

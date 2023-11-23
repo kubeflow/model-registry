@@ -84,6 +84,45 @@ func MapArtifactType(source *proto.Artifact) (string, error) {
 	return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
 }
 
+func MapRegisteredModelState(source *proto.Context) *openapi.RegisteredModelState {
+	if source == nil || source.GetProperties() == nil {
+		return nil
+	}
+
+	state, ok := source.GetProperties()["state"]
+	if !ok {
+		return nil
+	}
+	str := state.GetStringValue()
+	return (*openapi.RegisteredModelState)(&str)
+}
+
+func MapModelVersionState(source *proto.Context) *openapi.ModelVersionState {
+	if source == nil || source.GetProperties() == nil {
+		return nil
+	}
+
+	state, ok := source.GetProperties()["state"]
+	if !ok {
+		return nil
+	}
+	str := state.GetStringValue()
+	return (*openapi.ModelVersionState)(&str)
+}
+
+func MapInferenceServiceState(source *proto.Context) *openapi.InferenceServiceState {
+	if source == nil || source.GetProperties() == nil {
+		return nil
+	}
+
+	state, ok := source.GetProperties()["state"]
+	if !ok {
+		return nil
+	}
+	str := state.GetStringValue()
+	return (*openapi.InferenceServiceState)(&str)
+}
+
 func MapMLMDModelArtifactState(source *proto.Artifact_State) *openapi.ArtifactState {
 	if source == nil {
 		return nil

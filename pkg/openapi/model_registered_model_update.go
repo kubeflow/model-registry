@@ -24,7 +24,8 @@ type RegisteredModelUpdate struct {
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalID *string `json:"externalID,omitempty"`
+	ExternalID *string               `json:"externalID,omitempty"`
+	State      *RegisteredModelState `json:"state,omitempty"`
 }
 
 // NewRegisteredModelUpdate instantiates a new RegisteredModelUpdate object
@@ -33,6 +34,8 @@ type RegisteredModelUpdate struct {
 // will change when the set of required properties is changed
 func NewRegisteredModelUpdate() *RegisteredModelUpdate {
 	this := RegisteredModelUpdate{}
+	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -41,6 +44,8 @@ func NewRegisteredModelUpdate() *RegisteredModelUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewRegisteredModelUpdateWithDefaults() *RegisteredModelUpdate {
 	this := RegisteredModelUpdate{}
+	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -140,6 +145,38 @@ func (o *RegisteredModelUpdate) SetExternalID(v string) {
 	o.ExternalID = &v
 }
 
+// GetState returns the State field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetState() RegisteredModelState {
+	if o == nil || IsNil(o.State) {
+		var ret RegisteredModelState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetStateOk() (*RegisteredModelState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
+func (o *RegisteredModelUpdate) SetState(v RegisteredModelState) {
+	o.State = &v
+}
+
 func (o RegisteredModelUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -158,6 +195,9 @@ func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalID) {
 		toSerialize["externalID"] = o.ExternalID
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

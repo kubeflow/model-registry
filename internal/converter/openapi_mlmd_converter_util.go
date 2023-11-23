@@ -129,6 +129,14 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 				},
 			}
 		}
+
+		if source.State != nil {
+			props["state"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*source.State),
+				},
+			}
+		}
 	}
 	return props, nil
 }
@@ -163,6 +171,15 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 				StringValue: *(*source.Model).Name,
 			},
 		}
+
+		if (*source.Model).State != nil {
+			props["state"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*(*source.Model).State),
+				},
+			}
+		}
+
 		// TODO: not available for now
 		props["author"] = &proto.Value{
 			Value: &proto.Value_StringValue{
@@ -313,6 +330,14 @@ func MapInferenceServiceProperties(source *openapi.InferenceService) (map[string
 			props["runtime"] = &proto.Value{
 				Value: &proto.Value_StringValue{
 					StringValue: *source.Runtime,
+				},
+			}
+		}
+
+		if source.State != nil {
+			props["state"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*source.State),
 				},
 			}
 		}

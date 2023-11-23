@@ -538,6 +538,54 @@ func TestMapMLMDModelArtifactState(t *testing.T) {
 	assertion.Nil(artifactState)
 }
 
+func TestMapRegisteredModelState(t *testing.T) {
+	assertion := setup(t)
+
+	state := MapRegisteredModelState(&proto.Context{Properties: map[string]*proto.Value{
+		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.REGISTEREDMODELSTATE_LIVE)}},
+	}})
+	assertion.NotNil(state)
+	assertion.Equal(openapi.REGISTEREDMODELSTATE_LIVE, *state)
+
+	state = MapRegisteredModelState(&proto.Context{Properties: map[string]*proto.Value{}})
+	assertion.Nil(state)
+
+	state = MapRegisteredModelState(nil)
+	assertion.Nil(state)
+}
+
+func TestMapModelVersionState(t *testing.T) {
+	assertion := setup(t)
+
+	state := MapModelVersionState(&proto.Context{Properties: map[string]*proto.Value{
+		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.MODELVERSIONSTATE_LIVE)}},
+	}})
+	assertion.NotNil(state)
+	assertion.Equal(openapi.MODELVERSIONSTATE_LIVE, *state)
+
+	state = MapModelVersionState(&proto.Context{Properties: map[string]*proto.Value{}})
+	assertion.Nil(state)
+
+	state = MapModelVersionState(nil)
+	assertion.Nil(state)
+}
+
+func TestMapInferenceServiceState(t *testing.T) {
+	assertion := setup(t)
+
+	state := MapInferenceServiceState(&proto.Context{Properties: map[string]*proto.Value{
+		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.INFERENCESERVICESTATE_DEPLOYED)}},
+	}})
+	assertion.NotNil(state)
+	assertion.Equal(openapi.INFERENCESERVICESTATE_DEPLOYED, *state)
+
+	state = MapInferenceServiceState(&proto.Context{Properties: map[string]*proto.Value{}})
+	assertion.Nil(state)
+
+	state = MapInferenceServiceState(nil)
+	assertion.Nil(state)
+}
+
 func TestMapServingEnvironmentType(t *testing.T) {
 	assertion := setup(t)
 

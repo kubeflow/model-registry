@@ -26,7 +26,8 @@ type ModelVersion struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalID *string `json:"externalID,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
+	Name  *string            `json:"name,omitempty"`
+	State *ModelVersionState `json:"state,omitempty"`
 	// Output only. The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
@@ -41,6 +42,8 @@ type ModelVersion struct {
 // will change when the set of required properties is changed
 func NewModelVersion() *ModelVersion {
 	this := ModelVersion{}
+	var state ModelVersionState = MODELVERSIONSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -49,6 +52,8 @@ func NewModelVersion() *ModelVersion {
 // but it doesn't guarantee that properties required by API are set
 func NewModelVersionWithDefaults() *ModelVersion {
 	this := ModelVersion{}
+	var state ModelVersionState = MODELVERSIONSTATE_LIVE
+	this.State = &state
 	return &this
 }
 
@@ -180,6 +185,38 @@ func (o *ModelVersion) SetName(v string) {
 	o.Name = &v
 }
 
+// GetState returns the State field value if set, zero value otherwise.
+func (o *ModelVersion) GetState() ModelVersionState {
+	if o == nil || IsNil(o.State) {
+		var ret ModelVersionState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelVersion) GetStateOk() (*ModelVersionState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *ModelVersion) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given ModelVersionState and assigns it to the State field.
+func (o *ModelVersion) SetState(v ModelVersionState) {
+	o.State = &v
+}
+
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *ModelVersion) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -297,6 +334,9 @@ func (o ModelVersion) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id

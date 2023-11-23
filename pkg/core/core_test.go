@@ -311,14 +311,14 @@ func TestModelRegistryStartupWithExistingEmptyTypes(t *testing.T) {
 	})
 	assertion.NotNilf(regModelResp.ContextType, "registered model type %s should exists", *registeredModelTypeName)
 	assertion.Equal(*registeredModelTypeName, *regModelResp.ContextType.Name)
-	assertion.Equal(1, len(regModelResp.ContextType.Properties))
+	assertion.Equal(2, len(regModelResp.ContextType.Properties))
 
 	modelVersionResp, _ = client.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: modelVersionTypeName,
 	})
 	assertion.NotNilf(modelVersionResp.ContextType, "model version type %s should exists", *modelVersionTypeName)
 	assertion.Equal(*modelVersionTypeName, *modelVersionResp.ContextType.Name)
-	assertion.Equal(4, len(modelVersionResp.ContextType.Properties))
+	assertion.Equal(5, len(modelVersionResp.ContextType.Properties))
 
 	modelArtifactResp, _ = client.GetArtifactType(ctx, &proto.GetArtifactTypeRequest{
 		TypeName: modelArtifactTypeName,
@@ -339,7 +339,7 @@ func TestModelRegistryStartupWithExistingEmptyTypes(t *testing.T) {
 	})
 	assertion.NotNilf(inferenceServiceResp.ContextType, "inference service type %s should exists", *inferenceServiceTypeName)
 	assertion.Equal(*inferenceServiceTypeName, *inferenceServiceResp.ContextType.Name)
-	assertion.Equal(5, len(inferenceServiceResp.ContextType.Properties))
+	assertion.Equal(6, len(inferenceServiceResp.ContextType.Properties))
 
 	serveModelResp, _ = client.GetExecutionType(ctx, &proto.GetExecutionTypeRequest{
 		TypeName: serveModelTypeName,
@@ -541,11 +541,13 @@ func TestCreateRegisteredModel(t *testing.T) {
 	// create mode registry service
 	service := initModelRegistryService(assertion, conn)
 
+	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
 		Name:        &modelName,
 		ExternalID:  &modelExternalId,
 		Description: &modelDescription,
+		State:       &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -574,6 +576,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 	assertion.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	assertion.Equal(modelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
 	assertion.Equal(modelDescription, ctx.Properties["description"].GetStringValue(), "saved description should match the provided one")
+	assertion.Equal(string(state), ctx.Properties["state"].GetStringValue(), "saved state should match the provided one")
 	assertion.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
@@ -678,10 +681,12 @@ func TestGetRegisteredModelById(t *testing.T) {
 	// create mode registry service
 	service := initModelRegistryService(assertion, conn)
 
+	state := openapi.REGISTEREDMODELSTATE_LIVE
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
 		Name:       &modelName,
 		ExternalID: &modelExternalId,
+		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -703,6 +708,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 	// checks created model matches original one except for Id
 	assertion.Equal(*registeredModel.Name, *getModelById.Name, "saved model name should match the original one")
 	assertion.Equal(*registeredModel.ExternalID, *getModelById.ExternalID, "saved model external id should match the original one")
+	assertion.Equal(*registeredModel.State, *getModelById.State, "saved model state should match the original one")
 	assertion.Equal(*registeredModel.CustomProperties, *getModelById.CustomProperties, "saved model custom props should match the original one")
 }
 
@@ -965,10 +971,12 @@ func TestCreateModelVersion(t *testing.T) {
 
 	registeredModelId := registerModel(assertion, service, nil, nil)
 
+	state := openapi.MODELVERSIONSTATE_LIVE
 	modelVersion := &openapi.ModelVersion{
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
+		State:       &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -998,6 +1006,7 @@ func TestCreateModelVersion(t *testing.T) {
 	assertion.Equal(versionExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
 	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
 	assertion.Equal(modelVersionDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
+	assertion.Equal(string(state), byId.Contexts[0].Properties["state"].GetStringValue(), "saved state should match the provided one")
 	assertion.Equalf(*modelVersionTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *modelVersionTypeName)
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
@@ -1175,9 +1184,11 @@ func TestGetModelVersionById(t *testing.T) {
 
 	registeredModelId := registerModel(assertion, service, nil, nil)
 
+	state := openapi.MODELVERSIONSTATE_ARCHIVED
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
+		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -1204,10 +1215,11 @@ func TestGetModelVersionById(t *testing.T) {
 	assertion.Nilf(err, "error retrieving context by type and name, not related to the test itself: %v", err)
 
 	ctx := ctxById.Contexts[0]
-	assertion.Equal(*getById.Id, *converter.Int64ToString(ctx.Id), "returned model version id should match the mlmd context one")
-	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getById.Name), *ctx.Name, "saved model name should match the provided one")
-	assertion.Equal(*getById.ExternalID, *modelVersion.ExternalID, "saved external id should match the provided one")
-	assertion.Equal(*(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, author, "saved author custom property should match the provided one")
+	assertion.Equal(*converter.Int64ToString(ctx.Id), *getById.Id, "returned model version id should match the mlmd context one")
+	assertion.Equal(*modelVersion.Name, *getById.Name, "saved model name should match the provided one")
+	assertion.Equal(*modelVersion.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
+	assertion.Equal(*modelVersion.State, *getById.State, "saved model state should match the original one")
+	assertion.Equal(author, *(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
 }
 
 func TestGetModelVersionByParamsWithNoResults(t *testing.T) {
@@ -2289,6 +2301,7 @@ func TestCreateInferenceService(t *testing.T) {
 	parentResourceId := registerServingEnvironment(assertion, service, nil, nil)
 	registeredModelId := registerModel(assertion, service, nil, nil)
 	runtime := "model-server"
+	state := openapi.INFERENCESERVICESTATE_DEPLOYED
 
 	eut := &openapi.InferenceService{
 		Name:                 &entityName,
@@ -2297,6 +2310,7 @@ func TestCreateInferenceService(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		Runtime:              &runtime,
+		State:                &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -2327,6 +2341,7 @@ func TestCreateInferenceService(t *testing.T) {
 	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
 	assertion.Equal(entityDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
 	assertion.Equal(runtime, byId.Contexts[0].Properties["runtime"].GetStringValue(), "saved runtime should match the provided one")
+	assertion.Equal(string(state), byId.Contexts[0].Properties["state"].GetStringValue(), "saved state should match the provided one")
 	assertion.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
@@ -2518,12 +2533,14 @@ func TestGetInferenceServiceById(t *testing.T) {
 	parentResourceId := registerServingEnvironment(assertion, service, nil, nil)
 	registeredModelId := registerModel(assertion, service, nil, nil)
 
+	state := openapi.INFERENCESERVICESTATE_UNDEPLOYED
 	eut := &openapi.InferenceService{
 		Name:                 &entityName,
 		ExternalID:           &entityExternalId2,
 		Description:          &entityDescription,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
+		State:                &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"author": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -2551,8 +2568,9 @@ func TestGetInferenceServiceById(t *testing.T) {
 
 	ctx := ctxById.Contexts[0]
 	assertion.Equal(*getById.Id, *converter.Int64ToString(ctx.Id), "returned id should match the mlmd context one")
-	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getById.Name), *ctx.Name, "saved name should match the provided one")
-	assertion.Equal(*getById.ExternalID, *eut.ExternalID, "saved external id should match the provided one")
+	assertion.Equal(*eut.Name, *getById.Name, "saved name should match the provided one")
+	assertion.Equal(*eut.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
+	assertion.Equal(*eut.State, *getById.State, "saved state should match the provided one")
 	assertion.Equal(*(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, author, "saved author custom property should match the provided one")
 }
 

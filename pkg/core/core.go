@@ -43,6 +43,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 			Name: registeredModelTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
+				"state":       proto.PropertyType_STRING,
 			},
 		},
 	}
@@ -56,6 +57,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 				"model_name":  proto.PropertyType_STRING,
 				"version":     proto.PropertyType_STRING,
 				"author":      proto.PropertyType_STRING,
+				"state":       proto.PropertyType_STRING,
 			},
 		},
 	}
@@ -96,6 +98,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 				// same information tracked using ParentContext association
 				"serving_environment_id": proto.PropertyType_INT,
 				"runtime":                proto.PropertyType_STRING,
+				"state":                  proto.PropertyType_STRING,
 			},
 		},
 	}
