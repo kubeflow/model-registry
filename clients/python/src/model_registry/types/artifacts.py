@@ -40,9 +40,9 @@ class BaseArtifact(ProtoBase):
     """Abstract base class for all artifacts.
 
     Attributes:
-        name (str): Name of the artifact.
-        uri (str): URI of the artifact.
-        state (ArtifactState): State of the artifact.
+        name: Name of the artifact.
+        uri: URI of the artifact.
+        state: State of the artifact.
     """
 
     name: str
@@ -78,15 +78,15 @@ class ModelArtifact(BaseArtifact, Prefixable):
     """Represents a Model.
 
     Attributes:
-        name (str): Name of the model.
-        uri (str): URI of the model.
-        description (str, optional): Description of the object.
-        external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
-        model_format_name (str, optional): Name of the model format.
-        model_format_version (str, optional): Version of the model format.
-        storage_key (str, optional): Storage secret name.
-        storage_path (str, optional): Storage path of the model.
-        service_account_name (str, optional): Name of the service account with storage secret.
+        name: Name of the model.
+        uri: URI of the model.
+        description: Description of the object.
+        external_id: Customizable ID. Has to be unique among instances of the same type.
+        model_format_name: Name of the model format.
+        model_format_version: Version of the model format.
+        storage_key: Storage secret name.
+        storage_path: Storage path of the model.
+        service_account_name: Name of the service account with storage secret.
     """
 
     # TODO: this could be an enum of valid formats

@@ -26,11 +26,11 @@ class ModelRegistry:
         """Constructor.
 
         Args:
-            server_address (str): Server address.
-            port (int): Server port.
-            client_key (str, optional): The PEM-encoded private key as a byte string.
-            server_cert (str, optional): The PEM-encoded certificate as a byte string.
-            custom_ca (str, optional): The PEM-encoded root certificates as a byte string.
+            server_address: Server address.
+            port: Server port.
+            client_key: The PEM-encoded private key as a byte string.
+            server_cert: The PEM-encoded certificate as a byte string.
+            custom_ca: The PEM-encoded root certificates as a byte string.
         """
         config = MetadataStoreClientConfig()
         config.host = server_address
@@ -49,10 +49,10 @@ class ModelRegistry:
         Helper around the `map` method of the Python object.
 
         Args:
-            py_obj (Mappable): Python object.
+            py_obj: Python object.
 
         Returns:
-            ProtoType: Proto object.
+            Proto object.
         """
         type_id = self._store.get_type_id(
             py_obj.get_proto_type(), py_obj.get_proto_type_name()
@@ -66,10 +66,10 @@ class ModelRegistry:
         This updates the registered_model instance passed in with new data from the servers.
 
         Args:
-            registered_model (RegisteredModel): Registered model.
+            registered_model: Registered model.
 
         Returns:
-            str: ID of the registered model.
+            ID of the registered model.
         """
         id = self._store.put_context(self._map(registered_model))
         new_py_rm = RegisteredModel.unmap(
@@ -87,10 +87,10 @@ class ModelRegistry:
         """Fetch a registered model by its ID.
 
         Args:
-            id (str): Registered model ID.
+            id: Registered model ID.
 
         Returns:
-            RegisteredModel: Registered model.
+            Registered model.
         """
         py_rm = RegisteredModel.unmap(
             self._store.get_context(RegisteredModel.get_proto_type_name(), id=int(id))
@@ -106,11 +106,11 @@ class ModelRegistry:
         """Fetch a registered model by its name or external ID.
 
         Args:
-            name (str, optional): Registered model name.
-            external_id (str, optional): Registered model external ID.
+            name: Registered model name.
+            external_id: Registered model external ID.
 
         Returns:
-            RegisteredModel: Registered model.
+            Registered model.
         """
         if name is None and external_id is None:
             msg = "Either name or external_id must be provided"
@@ -134,10 +134,10 @@ class ModelRegistry:
         """Fetch registered models.
 
         Args:
-            options (ListOptions, optional): Options for listing registered models.
+            options: Options for listing registered models.
 
         Returns:
-            Sequence[RegisteredModel]: Registered models.
+            Registered models.
         """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         proto_rms = self._store.get_contexts(
@@ -154,11 +154,11 @@ class ModelRegistry:
         This updates the model_version instance passed in with new data from the servers.
 
         Args:
-            model_version (ModelVersion): Model version to upsert.
-            registered_model_id (str): ID of the registered model this version will be associated to.
+            model_version: Model version to upsert.
+            registered_model_id: ID of the registered model this version will be associated to.
 
         Returns:
-            str: ID of the model version.
+            ID of the model version.
         """
         rm_id = int(registered_model_id)
         # this is not ideal but we need this info for the prefix
@@ -180,10 +180,10 @@ class ModelRegistry:
         """Fetch a model version by its ID.
 
         Args:
-            model_version_id (str): Model version ID.
+            model_version_id: Model version ID.
 
         Returns:
-            ModelVersion: Model version.
+            Model version.
         """
         py_mv = ModelVersion.unmap(
             self._store.get_context(
@@ -201,11 +201,11 @@ class ModelRegistry:
         """Fetch model versions by registered model ID.
 
         Args:
-            registered_model_id (str): Registered model ID.
-            options (ListOptions, optional): Options for listing model versions.
+            registered_model_id: Registered model ID.
+            options: Options for listing model versions.
 
         Returns:
-            Sequence[ModelVersion]: Model versions.
+            Model versions.
         """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         mlmd_options.filter_query = f"parent_contexts_a.id = {registered_model_id}"
@@ -231,12 +231,12 @@ class ModelRegistry:
         Either fetches by using external ID or by using registered model ID and version.
 
         Args:
-            registered_model_id (str, optional): Registered model ID.
-            version (str, optional): Model version.
-            external_id (str, optional): Model version external ID.
+            registered_model_id: Registered model ID.
+            version: Model version.
+            external_id: Model version external ID.
 
         Returns:
-            ModelVersion: Model version.
+            Model version.
         """
         if external_id is not None:
             proto_mv = self._store.get_context(
@@ -265,11 +265,11 @@ class ModelRegistry:
         This updates the model_artifact instance passed in with new data from the servers.
 
         Args:
-            model_artifact (ModelArtifact): Model artifact to upsert.
-            model_version_id (str): ID of the model version this artifact will be associated to.
+            model_artifact: Model artifact to upsert.
+            model_version_id: ID of the model version this artifact will be associated to.
 
         Returns:
-            str: ID of the model artifact.
+            ID of the model artifact.
         """
         mv_id = int(model_version_id)
         try:
@@ -299,10 +299,10 @@ class ModelRegistry:
         """Fetch a model artifact by its ID.
 
         Args:
-            id (str): Model artifact ID.
+            id: Model artifact ID.
 
         Returns:
-            ModelArtifact: Model artifact.
+            Model artifact.
         """
         proto_ma = self._store.get_artifact(
             ModelArtifact.get_proto_type_name(), int(id)
@@ -315,11 +315,11 @@ class ModelRegistry:
         """Fetch a model artifact either by external ID or by the ID of its associated model version.
 
         Args:
-            model_version_id (str, optional): ID of the associated model version.
-            external_id (str, optional): Model artifact external ID.
+            model_version_id: ID of the associated model version.
+            external_id: Model artifact external ID.
 
         Returns:
-            ModelArtifact: Model artifact.
+            Model artifact.
         """
         if external_id:
             proto_ma = self._store.get_artifact(
@@ -342,11 +342,11 @@ class ModelRegistry:
         """Fetches model artifacts.
 
         Args:
-            model_version_id (str, optional): ID of the associated model version.
-            options (ListOptions, optional): Options for listing model artifacts.
+            model_version_id: ID of the associated model version.
+            options: Options for listing model artifacts.
 
         Returns:
-            Sequence[ModelArtifact]: Model artifacts.
+            Model artifacts.
         """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         if model_version_id is not None:

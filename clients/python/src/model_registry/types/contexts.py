@@ -38,14 +38,14 @@ class ModelVersion(BaseContext, Prefixable):
     """Represents a model version.
 
     Attributes:
-        model (ModelArtifact): Model associated with this version.
-        version (str): Version of the model.
-        author (str): Author of the model version.
-        description (str, optional): Description of the object.
-        external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
-        artifacts (list[BaseArtifact]): Artifacts associated with this version.
-        tags (list[str]): Tags associated with this version.
-        metadata (dict[str, ScalarType]): Metadata associated with this version.
+        model: Model associated with this version.
+        version: Version of the model.
+        author: Author of the model version.
+        description: Description of the object.
+        external_id: Customizable ID. Has to be unique among instances of the same type.
+        artifacts: Artifacts associated with this version.
+        tags: Tags associated with this version.
+        metadata: Metadata associated with this version.
     """
 
     model: ModelArtifact
@@ -101,10 +101,10 @@ class RegisteredModel(BaseContext):
     """Represents a registered model.
 
     Attributes:
-        name (str): Registered model name.
-        description (str, optional): Description of the object.
-        external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
-        versions (list[ModelVersion]): Versions associated with this model.
+        name: Registered model name.
+        description: Description of the object.
+        external_id: Customizable ID. Has to be unique among instances of the same type.
+        versions: Versions associated with this model.
     """
 
     name: str

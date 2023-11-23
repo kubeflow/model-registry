@@ -20,7 +20,7 @@ class Mappable(ABC):
         """Name of the proto type.
 
         Returns:
-            str: Name of the class prefixed with `odh.`
+            Name of the class prefixed with `odh.`
         """
         return f"odh.{cls.__name__}"
 
@@ -38,7 +38,7 @@ class Mappable(ABC):
             type_id (int): ID of the type.
 
         Returns:
-            ProtoType: Proto object.
+            Proto object.
         """
         pass
 
@@ -48,10 +48,10 @@ class Mappable(ABC):
         """Map from a proto object.
 
         Args:
-            mlmd_obj (ProtoType): Proto object.
+            mlmd_obj: Proto object.
 
         Returns:
-            Mappable: Python object.
+            Python object.
         """
         pass
 
@@ -78,12 +78,12 @@ class ProtoBase(Mappable, ABC):
     such as Artifacts, Contexts, and Executions.
 
     Attributes:
-        id (str): Protobuf object ID. Auto-assigned when put on the server.
-        name (str): Name of the object.
-        description (str, optional): Description of the object.
-        external_id (str, optional): Customizable ID. Has to be unique among instances of the same type.
-        create_time_since_epoch (int): Seconds elapsed since object creation time, measured against epoch.
-        last_update_time_since_epoch (int): Seconds elapsed since object last update time, measured against epoch.
+        id: Protobuf object ID. Auto-assigned when put on the server.
+        name: Name of the object.
+        description: Description of the object.
+        external_id: Customizable ID. Has to be unique among instances of the same type.
+        create_time_since_epoch: Seconds elapsed since object creation time, measured against epoch.
+        last_update_time_since_epoch: Seconds elapsed since object last update time, measured against epoch.
     """
 
     name: str = field(init=False)
@@ -106,7 +106,7 @@ class ProtoBase(Mappable, ABC):
         """Proto type associated with this class.
 
         Returns:
-            ProtoType: Proto type.
+            Proto type.
         """
         pass
 
@@ -117,8 +117,8 @@ class ProtoBase(Mappable, ABC):
         """Map properties from Python to proto.
 
         Args:
-            py_props (dict[str, ScalarType]): Python properties.
-            mlmd_props (dict[str, Any]): Proto properties, will be modified in place.
+            py_props: Python properties.
+            mlmd_props: Proto properties, will be modified in place.
         """
         for key, value in py_props.items():
             if value is None:
@@ -154,10 +154,10 @@ class ProtoBase(Mappable, ABC):
         """Map properties from proto to Python.
 
         Args:
-            mlmd_props (dict[str, Any]): Proto properties.
+            mlmd_props: Proto properties.
 
         Returns:
-            dict[str, ScalarType]: Python properties.
+            Python properties.
         """
         py_props: dict[str, ScalarType] = {}
         for key, value in mlmd_props.items():

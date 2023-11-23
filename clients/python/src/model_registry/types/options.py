@@ -25,9 +25,9 @@ class ListOptions:
     """Options for listing objects.
 
     Attributes:
-        limit (int): Maximum number of objects to return.
-        order_by (OrderByField, optional): Field to order by.
-        is_asc (bool): Whether to order in ascending order. Defaults to True.
+        limit: Maximum number of objects to return.
+        order_by: Field to order by.
+        is_asc: Whether to order in ascending order. Defaults to True.
     """
 
     limit: int | None = field(default=None)
@@ -38,7 +38,7 @@ class ListOptions:
         """Convert to MLMD ListOptions.
 
         Returns:
-            ListOptions: MLMD ListOptions.
+            MLMD ListOptions.
         """
         return MLMDListOptions(
             limit=self.limit,

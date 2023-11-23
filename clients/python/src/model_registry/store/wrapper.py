@@ -36,7 +36,7 @@ class MLMDStore:
         """Constructor.
 
         Args:
-            config (MetadataStoreClientConfig): MLMD config.
+            config: MLMD config.
         """
         self._mlmd_store = MetadataStore(config)
 
@@ -44,11 +44,11 @@ class MLMDStore:
         """Get backend ID for a type.
 
         Args:
-            mlmd_pt (ProtoType): Proto type.
-            type_name (str): Name of the type.
+            mlmd_pt: Proto type.
+            type_name: Name of the type.
 
         Returns:
-            int: Backend ID.
+            Backend ID.
 
         Raises:
             TypeNotFoundException: If the type doesn't exist.
@@ -85,10 +85,10 @@ class MLMDStore:
         """Put an artifact in the store.
 
         Args:
-            artifact (Artifact): Artifact to put.
+            artifact: Artifact to put.
 
         Returns:
-            int: ID of the artifact.
+            ID of the artifact.
 
         Raises:
             DuplicateException: If an artifact with the same name or external id already exists.
@@ -111,10 +111,10 @@ class MLMDStore:
         """Put a context in the store.
 
         Args:
-            context (Context): Context to put.
+            context: Context to put.
 
         Returns:
-            int: ID of the context.
+            ID of the context.
 
         Raises:
             DuplicateException: If a context with the same name or external id already exists.
@@ -151,13 +151,13 @@ class MLMDStore:
         If multiple arguments are provided, the simplest query will be performed.
 
         Args:
-            ctx_type_name (str): Name of the context type.
-            id (int, optional): ID of the context.
-            name (str, optional): Name of the context.
-            external_id (str, optional): External ID of the context.
+            ctx_type_name: Name of the context type.
+            id: ID of the context.
+            name: Name of the context.
+            external_id: External ID of the context.
 
         Returns:
-            Context: Context.
+            Context.
 
         Raises:
             StoreException: If the context doesn't exist.
@@ -186,11 +186,11 @@ class MLMDStore:
         """Get contexts from the store.
 
         Args:
-            ctx_type_name (str): Name of the context type.
-            options (ListOptions): List options.
+            ctx_type_name: Name of the context type.
+            options: List options.
 
         Returns:
-            Sequence[Context]: Contexts.
+            Contexts.
         """
         # TODO: should we make options optional?
         # if options is not None:
@@ -217,8 +217,8 @@ class MLMDStore:
         """Put a parent-child relationship between two contexts.
 
         Args:
-            parent_id (int): ID of the parent context.
-            child_id (int): ID of the child context.
+            parent_id: ID of the parent context.
+            child_id: ID of the child context.
 
         Raises:
             StoreException: If the parent context doesn't exist.
@@ -239,8 +239,8 @@ class MLMDStore:
         """Put an attribution relationship between a context and an artifact.
 
         Args:
-            context_id (int): ID of the context.
-            artifact_id (int): ID of the artifact.
+            context_id: ID of the context.
+            artifact_id: ID of the artifact.
 
         Raises:
             StoreException: Invalid argument.
@@ -272,13 +272,13 @@ class MLMDStore:
         Gets an artifact either by ID, name or external ID.
 
         Args:
-            art_type_name (str): Name of the artifact type.
-            id (int, optional): ID of the artifact.
-            name (str, optional): Name of the artifact.
-            external_id (str, optional): External ID of the artifact.
+            art_type_name: Name of the artifact type.
+            id: ID of the artifact.
+            name: Name of the artifact.
+            external_id: External ID of the artifact.
 
         Returns:
-            Artifact: Artifact.
+            Artifact.
 
         Raises:
             StoreException: If the context doesn't exist.
@@ -305,11 +305,11 @@ class MLMDStore:
         """Get an artifact from the store by its attributed context.
 
         Args:
-            art_type_name (str): Name of the artifact type.
-            ctx_id (int): ID of the context.
+            art_type_name: Name of the artifact type.
+            ctx_id: ID of the context.
 
         Returns:
-            Artifact: Artifact.
+            Artifact.
         """
         try:
             artifacts = self._mlmd_store.get_artifacts_by_context(ctx_id)
@@ -328,11 +328,11 @@ class MLMDStore:
         """Get artifacts from the store.
 
         Args:
-            art_type_name (str): Name of the artifact type.
-            options (ListOptions): List options.
+            art_type_name: Name of the artifact type.
+            options: List options.
 
         Returns:
-            Sequence[Artifact]: Artifacts.
+            Artifacts.
         """
         try:
             artifacts = self._mlmd_store.get_artifacts(options)
