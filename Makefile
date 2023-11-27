@@ -112,7 +112,7 @@ bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
 
 bin/goverter:
-	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v1.0.0
+	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v1.1.1
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"

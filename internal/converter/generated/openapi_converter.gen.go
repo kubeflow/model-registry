@@ -2,7 +2,10 @@
 
 package generated
 
-import openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+import (
+	converter "github.com/opendatahub-io/model-registry/internal/converter"
+	openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+)
 
 type OpenAPIConverterImpl struct{}
 
@@ -548,6 +551,126 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.S
 		pOpenapiServingEnvironment = &openapiServingEnvironment
 	}
 	return pOpenapiServingEnvironment, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source converter.OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error) {
+	openapiInferenceService := converter.InitInferenceServiceWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiInferenceService.Name = pString2
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = &source.Existing.RegisteredModelId
+	}
+	var xstring2 string
+	if pString3 != nil {
+		xstring2 = *pString3
+	}
+	openapiInferenceService.RegisteredModelId = xstring2
+	var pString4 *string
+	if source.Existing != nil {
+		pString4 = &source.Existing.ServingEnvironmentId
+	}
+	var xstring3 string
+	if pString4 != nil {
+		xstring3 = *pString4
+	}
+	openapiInferenceService.ServingEnvironmentId = xstring3
+	return openapiInferenceService, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source converter.OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error) {
+	openapiModelArtifact := converter.InitModelArtifactWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiModelArtifact.Name = pString2
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = &source.Existing.ArtifactType
+	}
+	var xstring2 string
+	if pString3 != nil {
+		xstring2 = *pString3
+	}
+	openapiModelArtifact.ArtifactType = xstring2
+	return openapiModelArtifact, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source converter.OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error) {
+	openapiModelVersion := converter.InitModelVersionWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiModelVersion.Name = pString2
+	return openapiModelVersion, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source converter.OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error) {
+	openapiRegisteredModel := converter.InitRegisteredModelWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiRegisteredModel.Name = pString2
+	return openapiRegisteredModel, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForServeModel(source converter.OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error) {
+	openapiServeModel := converter.InitServeModelWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiServeModel.Name = pString2
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = &source.Existing.ModelVersionId
+	}
+	var xstring2 string
+	if pString3 != nil {
+		xstring2 = *pString3
+	}
+	openapiServeModel.ModelVersionId = xstring2
+	return openapiServeModel, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForServingEnvironment(source converter.OpenapiUpdateWrapper[openapi.ServingEnvironment]) (openapi.ServingEnvironment, error) {
+	openapiServingEnvironment := converter.InitServingEnvironmentWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	var pString2 *string
+	if pString != nil {
+		xstring := *pString
+		pString2 = &xstring
+	}
+	openapiServingEnvironment.Name = pString2
+	return openapiServingEnvironment, nil
 }
 func (c *OpenAPIConverterImpl) openapiMetadataValueToOpenapiMetadataValue(source openapi.MetadataValue) openapi.MetadataValue {
 	var openapiMetadataValue openapi.MetadataValue

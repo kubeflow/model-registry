@@ -7,6 +7,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
+	"github.com/opendatahub-io/model-registry/internal/converter/generated"
 	"github.com/opendatahub-io/model-registry/internal/mapper"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/pkg/api"
@@ -26,8 +27,9 @@ var (
 
 // ModelRegistryService is the core library of the model registry
 type ModelRegistryService struct {
-	mlmdClient proto.MetadataStoreServiceClient
-	mapper     *mapper.Mapper
+	mlmdClient  proto.MetadataStoreServiceClient
+	mapper      *mapper.Mapper
+	openapiConv *generated.OpenAPIConverterImpl
 }
 
 // NewModelRegistryService create a fresh instance of ModelRegistryService, taking care of setting up needed MLMD Types
@@ -154,6 +156,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 			inferenceServiceResp.GetTypeId(),
 			serveModelResp.GetTypeId(),
 		),
+		openapiConv: &generated.OpenAPIConverterImpl{},
 	}, nil
 }
 
@@ -171,13 +174,12 @@ func (serv *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	// if already existing assure the name is the same
-	if existing != nil && registeredModel.Name == nil {
-		// user did not provide it
-		// need to set it to avoid mlmd error "context name should not be empty"
-		registeredModel.Name = existing.Name
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
+		if err != nil {
+			return nil, err
+		}
+		registeredModel = &withNotEditable
 	}
 
 	modelCtx, err := serv.mapper.MapFromRegisteredModel(registeredModel)
@@ -365,17 +367,17 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 		if err != nil {
 			return nil, err
 		}
+
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+		if err != nil {
+			return nil, err
+		}
+		modelVersion = &withNotEditable
+
 		registeredModel, err = serv.getRegisteredModelByVersionId(*modelVersion.Id)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// if already existing assure the name is the same
-	if existing != nil && modelVersion.Name == nil {
-		// user did not provide it
-		// need to set it to avoid mlmd error "context name should not be empty"
-		modelVersion.Name = existing.Name
 	}
 
 	modelCtx, err := serv.mapper.MapFromModelVersion(modelVersion, *registeredModel.Id, registeredModel.Name)
@@ -595,18 +597,16 @@ func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.Mod
 		if err != nil {
 			return nil, err
 		}
-		_, err = serv.getModelVersionByArtifactId(*modelArtifact.Id)
+
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, modelArtifact))
 		if err != nil {
 			return nil, err
 		}
-	}
+		modelArtifact = &withNotEditable
 
-	// if already existing assure the name is the same
-	if existing != nil {
-		if modelArtifact.Name == nil {
-			// user did not provide it
-			// need to set it to avoid mlmd error "artifact name should not be empty"
-			modelArtifact.Name = existing.Name
+		_, err = serv.getModelVersionByArtifactId(*modelArtifact.Id)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -787,13 +787,12 @@ func (serv *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *o
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	// if already existing assure the name is the same
-	if existing != nil && servingEnvironment.Name == nil {
-		// user did not provide it
-		// need to set it to avoid mlmd error "context name should not be empty"
-		servingEnvironment.Name = existing.Name
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
+		if err != nil {
+			return nil, err
+		}
+		servingEnvironment = &withNotEditable
 	}
 
 	protoCtx, err := serv.mapper.MapFromServingEnvironment(servingEnvironment)
@@ -937,10 +936,18 @@ func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *opena
 	} else {
 		// update
 		glog.Infof("Updating InferenceService %s", *inferenceService.Id)
+
 		existing, err = serv.GetInferenceServiceById(*inferenceService.Id)
 		if err != nil {
 			return nil, err
 		}
+
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
+		if err != nil {
+			return nil, err
+		}
+		inferenceService = &withNotEditable
+
 		servingEnvironment, err = serv.getServingEnvironmentByInferenceServiceId(*inferenceService.Id)
 		if err != nil {
 			return nil, err
@@ -1153,10 +1160,18 @@ func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 	} else {
 		// update
 		glog.Infof("Updating ServeModel %s", *serveModel.Id)
+
 		existing, err = serv.GetServeModelById(*serveModel.Id)
 		if err != nil {
 			return nil, err
 		}
+
+		withNotEditable, err := serv.openapiConv.OverrideNotEditableForServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
+		if err != nil {
+			return nil, err
+		}
+		serveModel = &withNotEditable
+
 		_, err = serv.getInferenceServiceByServeModel(*serveModel.Id)
 		if err != nil {
 			return nil, err

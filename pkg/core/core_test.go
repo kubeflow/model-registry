@@ -2447,7 +2447,6 @@ func TestUpdateInferenceService(t *testing.T) {
 
 	getAllResp, err := client.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	assertion.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
-	fmt.Printf("%+v", getAllResp.Contexts)
 	assertion.Equal(3, len(getAllResp.Contexts), "there should be 3 contexts saved in mlmd")
 
 	// update with nil name
@@ -2474,6 +2473,14 @@ func TestUpdateInferenceService(t *testing.T) {
 	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
 	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
 	assertion.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
+
+	// update with empty registeredModelId
+	newExternalId = "org.my_awesome_entity_@v1"
+	prevRegModelId := updatedEntity.RegisteredModelId
+	updatedEntity.RegisteredModelId = ""
+	updatedEntity, err = service.UpsertInferenceService(updatedEntity)
+	assertion.Nil(err)
+	assertion.Equal(prevRegModelId, updatedEntity.RegisteredModelId)
 }
 
 func TestUpdateInferenceServiceFailure(t *testing.T) {
@@ -3096,6 +3103,13 @@ func TestUpdateServeModel(t *testing.T) {
 	assertion.Equal(string(newState), getById.Executions[0].LastKnownState.String())
 	assertion.Equal(*createdVersionIdAsInt, getById.Executions[0].Properties["model_version_id"].GetIntValue())
 	assertion.Equal(*(*createdEntity.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["author"].GetStringValue())
+
+	prevModelVersionId := updatedEntity.ModelVersionId
+	updatedEntity.ModelVersionId = ""
+	updatedEntity, err = service.UpsertServeModel(updatedEntity, &inferenceServiceId)
+	assertion.Nilf(err, "error updating entity for %d: %v", inferenceServiceId, err)
+	assertion.Equal(prevModelVersionId, updatedEntity.ModelVersionId)
+
 }
 
 func TestUpdateServeModelFailure(t *testing.T) {
