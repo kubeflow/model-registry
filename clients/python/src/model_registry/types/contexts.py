@@ -105,11 +105,9 @@ class RegisteredModel(BaseContext):
         name: Registered model name.
         description: Description of the object.
         external_id: Customizable ID. Has to be unique among instances of the same type.
-        versions: Versions associated with this model.
     """
 
     name: str
-    versions: list[ModelVersion] = field(init=False, factory=list)
 
     @classmethod
     @override

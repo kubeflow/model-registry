@@ -92,13 +92,9 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        py_rm = RegisteredModel.unmap(
+        return RegisteredModel.unmap(
             self._store.get_context(RegisteredModel.get_proto_type_name(), id=int(id))
         )
-        versions = self.get_model_versions(id)
-        assert isinstance(versions, list), "Expected a list"
-        py_rm.versions = versions
-        return py_rm
 
     def get_registered_model_by_params(
         self, name: str | None = None, external_id: str | None = None
@@ -115,18 +111,13 @@ class ModelRegistry:
         if name is None and external_id is None:
             msg = "Either name or external_id must be provided"
             raise StoreException(msg)
-        py_rm = RegisteredModel.unmap(
+        return RegisteredModel.unmap(
             self._store.get_context(
                 RegisteredModel.get_proto_type_name(),
                 name=name,
                 external_id=external_id,
             )
         )
-        assert py_rm.id is not None
-        versions = self.get_model_versions(py_rm.id)
-        assert isinstance(versions, list), "Expected a list"
-        py_rm.versions = versions
-        return py_rm
 
     def get_registered_models(
         self, options: ListOptions | None = None

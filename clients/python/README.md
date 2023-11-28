@@ -70,9 +70,6 @@ another_model = registry.get_registered_model_by_id("another-model-id")
 
 another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
 
-# fetching a version will also fetch its associated model artifact
-model_artifact = another_version.model
-
 another_trained_model = registry.get_model_artifact_by_id("another-model-artifact-id")
 ```
 

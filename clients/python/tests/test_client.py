@@ -103,16 +103,8 @@ def test_upsert_registered_model(
 def test_get_registered_model_by_id(
     model_registry: ModelRegistry,
     registered_model: Mapped,
-    model_version: Mapped,
 ):
-    model_version.proto.name = f"1:{model_version.proto.name}"
-    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
-
-    model_registry._store._mlmd_store.put_parent_contexts(
-        [ParentContext(parent_id=rm_id, child_id=mv_id)]
-    )
 
     mlmd_rm = model_registry.get_registered_model_by_id(str(rm_id))
     assert mlmd_rm.id == str(rm_id)
@@ -123,16 +115,8 @@ def test_get_registered_model_by_id(
 def test_get_registered_model_by_name(
     model_registry: ModelRegistry,
     registered_model: Mapped,
-    model_version: Mapped,
 ):
-    model_version.proto.name = f"1:{model_version.proto.name}"
-    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
-
-    model_registry._store._mlmd_store.put_parent_contexts(
-        [ParentContext(parent_id=rm_id, child_id=mv_id)]
-    )
 
     mlmd_rm = model_registry.get_registered_model_by_params(
         name=registered_model.py.name
@@ -145,19 +129,10 @@ def test_get_registered_model_by_name(
 def test_get_registered_model_by_external_id(
     model_registry: ModelRegistry,
     registered_model: Mapped,
-    model_version: Mapped,
 ):
-    model_version.proto.name = f"1:{model_version.proto.name}"
-    mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
     registered_model.py.external_id = "external_id"
     registered_model.proto.external_id = "external_id"
-
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
-
-    model_registry._store._mlmd_store.put_parent_contexts(
-        [ParentContext(parent_id=rm_id, child_id=mv_id)]
-    )
 
     mlmd_rm = model_registry.get_registered_model_by_params(
         external_id=registered_model.py.external_id
