@@ -20,11 +20,11 @@ def complete_model() -> Mapped:
     proto_model.state = Artifact.UNKNOWN
     proto_model.uri = "test_uri"
     proto_model.properties["description"].string_value = "test description"
-    proto_model.properties["modelFormatName"].string_value = "test_format"
-    proto_model.properties["modelFormatVersion"].string_value = "test_format_version"
-    proto_model.properties["storageKey"].string_value = "test_storage_key"
-    proto_model.properties["storagePath"].string_value = "test_storage_path"
-    proto_model.properties["serviceAccountName"].string_value = "test_account_name"
+    proto_model.properties["model_format_name"].string_value = "test_format"
+    proto_model.properties["model_format_version"].string_value = "test_format_version"
+    proto_model.properties["storage_key"].string_value = "test_storage_key"
+    proto_model.properties["storage_path"].string_value = "test_storage_path"
+    proto_model.properties["service_account_name"].string_value = "test_account_name"
 
     py_model = ModelArtifact(
         "test_model",

@@ -107,11 +107,11 @@ class ModelArtifact(BaseArtifact, Prefixable):
     def map(self, type_id: int) -> Artifact:
         mlmd_obj = super().map(type_id)
         props = {
-            "modelFormatName": self.model_format_name,
-            "modelFormatVersion": self.model_format_version,
-            "storageKey": self.storage_key,
-            "storagePath": self.storage_path,
-            "serviceAccountName": self.service_account_name,
+            "model_format_name": self.model_format_name,
+            "model_format_version": self.model_format_version,
+            "storage_key": self.storage_key,
+            "storage_path": self.storage_path,
+            "service_account_name": self.service_account_name,
         }
         self._map_props(props, mlmd_obj.properties)
         return mlmd_obj
@@ -123,13 +123,13 @@ class ModelArtifact(BaseArtifact, Prefixable):
         assert isinstance(
             py_obj, ModelArtifact
         ), f"Expected ModelArtifact, got {type(py_obj)}"
-        py_obj.model_format_name = mlmd_obj.properties["modelFormatName"].string_value
+        py_obj.model_format_name = mlmd_obj.properties["model_format_name"].string_value
         py_obj.model_format_version = mlmd_obj.properties[
-            "modelFormatVersion"
+            "model_format_version"
         ].string_value
-        py_obj.storage_key = mlmd_obj.properties["storageKey"].string_value
-        py_obj.storage_path = mlmd_obj.properties["storagePath"].string_value
+        py_obj.storage_key = mlmd_obj.properties["storage_key"].string_value
+        py_obj.storage_path = mlmd_obj.properties["storage_path"].string_value
         py_obj.service_account_name = mlmd_obj.properties[
-            "serviceAccountName"
+            "service_account_name"
         ].string_value
         return py_obj

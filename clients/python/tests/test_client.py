@@ -32,11 +32,11 @@ def model(store_wrapper: MLMDStore) -> Mapped:
     art_type.name = ModelArtifact.get_proto_type_name()
     props = [
         "description",
-        "modelFormatName",
-        "modelFormatVersion",
-        "storageKey",
-        "storagePath",
-        "serviceAccountName",
+        "model_format_name",
+        "model_format_version",
+        "storage_key",
+        "storage_path",
+        "service_account_name",
     ]
     for key in props:
         art_type.properties[key] = metadata_store_pb2.STRING
