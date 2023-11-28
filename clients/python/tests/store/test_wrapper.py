@@ -103,10 +103,8 @@ def test_put_attribution_with_invalid_artifact(
 
 
 def test_get_undefined_artifact_by_id(store_wrapper: MLMDStore):
-    with pytest.raises(StoreException):
-        store_wrapper.get_artifact("dup", 0)
+    assert store_wrapper.get_artifact("dup", 0) is None
 
 
 def test_get_undefined_context_by_id(store_wrapper: MLMDStore):
-    with pytest.raises(StoreException):
-        store_wrapper.get_context("dup", 0)
+    assert store_wrapper.get_context("dup", 0) is None

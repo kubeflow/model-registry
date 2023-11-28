@@ -83,7 +83,7 @@ class ModelRegistry:
         )
         return id
 
-    def get_registered_model_by_id(self, id: str) -> RegisteredModel:
+    def get_registered_model_by_id(self, id: str) -> RegisteredModel | None:
         """Fetch a registered model by its ID.
 
         Args:
@@ -92,13 +92,17 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        return RegisteredModel.unmap(
-            self._store.get_context(RegisteredModel.get_proto_type_name(), id=int(id))
+        proto_rm = self._store.get_context(
+            RegisteredModel.get_proto_type_name(), id=int(id)
         )
+        if proto_rm is not None:
+            return RegisteredModel.unmap(proto_rm)
+
+        return None
 
     def get_registered_model_by_params(
         self, name: str | None = None, external_id: str | None = None
-    ) -> RegisteredModel:
+    ) -> RegisteredModel | None:
         """Fetch a registered model by its name or external ID.
 
         Args:
@@ -111,13 +115,15 @@ class ModelRegistry:
         if name is None and external_id is None:
             msg = "Either name or external_id must be provided"
             raise StoreException(msg)
-        return RegisteredModel.unmap(
-            self._store.get_context(
-                RegisteredModel.get_proto_type_name(),
-                name=name,
-                external_id=external_id,
-            )
+        proto_rm = self._store.get_context(
+            RegisteredModel.get_proto_type_name(),
+            name=name,
+            external_id=external_id,
         )
+        if proto_rm is not None:
+            return RegisteredModel.unmap(proto_rm)
+
+        return None
 
     def get_registered_models(
         self, options: ListOptions | None = None
@@ -176,11 +182,13 @@ class ModelRegistry:
         Returns:
             Model version.
         """
-        return ModelVersion.unmap(
-            self._store.get_context(
-                ModelVersion.get_proto_type_name(), id=int(model_version_id)
-            )
+        proto_mv = self._store.get_context(
+            ModelVersion.get_proto_type_name(), id=int(model_version_id)
         )
+        if proto_mv is not None:
+            return ModelVersion.unmap(proto_mv)
+
+        return None
 
     def get_model_versions(
         self, registered_model_id: str, options: ListOptions | None = None
@@ -208,7 +216,7 @@ class ModelRegistry:
         registered_model_id: str | None = None,
         version: str | None = None,
         external_id: str | None = None,
-    ) -> ModelVersion:
+    ) -> ModelVersion | None:
         """Fetch a model version by associated parameters.
 
         Either fetches by using external ID or by using registered model ID and version.
@@ -235,7 +243,10 @@ class ModelRegistry:
                 ModelVersion.get_proto_type_name(),
                 name=f"{registered_model_id}:{version}",
             )
-        return ModelVersion.unmap(proto_mv)
+        if proto_mv is not None:
+            return ModelVersion.unmap(proto_mv)
+
+        return None
 
     def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str
@@ -276,7 +287,7 @@ class ModelRegistry:
         )
         return id
 
-    def get_model_artifact_by_id(self, id: str) -> ModelArtifact:
+    def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
         """Fetch a model artifact by its ID.
 
         Args:
@@ -288,11 +299,14 @@ class ModelRegistry:
         proto_ma = self._store.get_artifact(
             ModelArtifact.get_proto_type_name(), int(id)
         )
-        return ModelArtifact.unmap(proto_ma)
+        if proto_ma is not None:
+            return ModelArtifact.unmap(proto_ma)
+
+        return None
 
     def get_model_artifact_by_params(
         self, model_version_id: str | None = None, external_id: str | None = None
-    ) -> ModelArtifact:
+    ) -> ModelArtifact | None:
         """Fetch a model artifact either by external ID or by the ID of its associated model version.
 
         Args:
@@ -313,7 +327,10 @@ class ModelRegistry:
             proto_ma = self._store.get_attributed_artifact(
                 ModelArtifact.get_proto_type_name(), int(model_version_id)
             )
-        return ModelArtifact.unmap(proto_ma)
+        if proto_ma is not None:
+            return ModelArtifact.unmap(proto_ma)
+
+        return None
 
     def get_model_artifacts(
         self,

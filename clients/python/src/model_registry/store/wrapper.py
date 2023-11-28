@@ -144,7 +144,7 @@ class MLMDStore:
         id: int | None = None,
         name: str | None = None,
         external_id: str | None = None,
-    ) -> Context:
+    ) -> Context | None:
         """Get a context from the store.
 
         This gets a context either by ID, name or external ID.
@@ -160,7 +160,7 @@ class MLMDStore:
             Context.
 
         Raises:
-            StoreException: If the context doesn't exist.
+            StoreException: Invalid arguments.
         """
         if name is not None:
             return self._mlmd_store.get_context_by_type_and_name(ctx_type_name, name)
@@ -177,8 +177,7 @@ class MLMDStore:
         if contexts:
             return contexts[0]
 
-        msg = f"Context with ID {id} does not exist"
-        raise StoreException(msg)
+        return None
 
     def get_contexts(
         self, ctx_type_name: str, options: ListOptions
@@ -266,7 +265,7 @@ class MLMDStore:
         id: int | None = None,
         name: str | None = None,
         external_id: str | None = None,
-    ) -> Artifact:
+    ) -> Artifact | None:
         """Get an artifact from the store.
 
         Gets an artifact either by ID, name or external ID.
@@ -281,7 +280,7 @@ class MLMDStore:
             Artifact.
 
         Raises:
-            StoreException: If the context doesn't exist.
+            StoreException: Invalid arguments.
         """
         if name is not None:
             return self._mlmd_store.get_artifact_by_type_and_name(art_type_name, name)
@@ -298,8 +297,7 @@ class MLMDStore:
         if artifacts:
             return artifacts[0]
 
-        msg = f"Artifact with ID {id} does not exist"
-        raise StoreException(msg)
+        return None
 
     def get_attributed_artifact(self, art_type_name: str, ctx_id: int) -> Artifact:
         """Get an artifact from the store by its attributed context.
