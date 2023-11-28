@@ -7,8 +7,11 @@ from ml_metadata.proto import (
     ContextType,
     metadata_store_pb2,
 )
+from model_registry.core import ModelRegistryAPIClient
 from model_registry.store.wrapper import MLMDStore
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
+
+ProtoTypeType = Union[ArtifactType, ContextType]
 
 
 @pytest.fixture()
@@ -18,9 +21,7 @@ def plain_wrapper() -> MLMDStore:
     return MLMDStore(config)
 
 
-def set_type_attrs(
-    mlmd_obj: Union[ArtifactType, ContextType], name: str, props: list[str]
-):
+def set_type_attrs(mlmd_obj: ProtoTypeType, name: str, props: list[str]):
     mlmd_obj.name = name
     for key in props:
         mlmd_obj.properties[key] = metadata_store_pb2.STRING
@@ -68,3 +69,10 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
     plain_wrapper._mlmd_store.put_context_type(rm_type)
 
     return plain_wrapper
+
+
+@pytest.fixture()
+def mr_api(store_wrapper: MLMDStore) -> ModelRegistryAPIClient:
+    mr = object.__new__(ModelRegistryAPIClient)
+    mr._store = store_wrapper
+    return mr

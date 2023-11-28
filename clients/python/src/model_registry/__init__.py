@@ -2,11 +2,8 @@
 
 __version__ = "0.1.0"
 
-from .client import ModelRegistry
-from .types import ListOptions, OrderByField
+from ._client import ModelRegistry
 
 __all__ = [
     "ModelRegistry",
-    "ListOptions",
-    "OrderByField",
 ]

@@ -1,4 +1,7 @@
-"""Model registry types."""
+"""Model registry types.
+
+Types are based on [ML Metadata](https://github.com/google/ml-metadata), with Pythonic class wrappers.
+"""
 
 from .artifacts import ArtifactState, ModelArtifact
 from .contexts import ModelVersion, RegisteredModel

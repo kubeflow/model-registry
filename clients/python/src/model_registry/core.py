@@ -12,8 +12,8 @@ from .types.base import ProtoBase
 from .types.options import MLMDListOptions
 
 
-class ModelRegistry:
-    """Model registry client."""
+class ModelRegistryAPIClient:
+    """Model registry API."""
 
     def __init__(
         self,
