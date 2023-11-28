@@ -4,12 +4,9 @@ import pytest
 from attrs import evolve
 from ml_metadata.proto import (
     Artifact,
-    ArtifactType,
     Attribution,
     Context,
-    ContextType,
     ParentContext,
-    metadata_store_pb2,
 )
 from model_registry import ModelRegistry
 from model_registry.exceptions import StoreException
@@ -28,23 +25,12 @@ def model_registry(store_wrapper: MLMDStore) -> ModelRegistry:
 
 @pytest.fixture()
 def model(store_wrapper: MLMDStore) -> Mapped:
-    art_type = ArtifactType()
-    art_type.name = ModelArtifact.get_proto_type_name()
-    props = [
-        "description",
-        "model_format_name",
-        "model_format_version",
-        "storage_key",
-        "storage_path",
-        "service_account_name",
-    ]
-    for key in props:
-        art_type.properties[key] = metadata_store_pb2.STRING
-
     art = Artifact()
     # we can't test the name directly as it's prefixed
     art.name = "model"
-    art.type_id = store_wrapper._mlmd_store.put_artifact_type(art_type)
+    art.type_id = store_wrapper.get_type_id(
+        Artifact, ModelArtifact.get_proto_type_name()
+    )
     art.uri = "uri"
 
     return Mapped(art, ModelArtifact("model", "uri"))
@@ -52,21 +38,10 @@ def model(store_wrapper: MLMDStore) -> Mapped:
 
 @pytest.fixture()
 def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
-    ctx_type = ContextType()
-    ctx_type.name = ModelVersion.get_proto_type_name()
-    props = [
-        "author",
-        "description",
-        "model_name",
-        "tags",
-    ]
-    for key in props:
-        ctx_type.properties[key] = metadata_store_pb2.STRING
-
     ctx = Context()
     # we can't test the name directly as it's prefixed
     ctx.name = "version"
-    ctx.type_id = store_wrapper._mlmd_store.put_context_type(ctx_type)
+    ctx.type_id = store_wrapper.get_type_id(Context, ModelVersion.get_proto_type_name())
     ctx.properties["author"].string_value = "author"
     ctx.properties["model_name"].string_value = model.py.name
 
@@ -75,13 +50,11 @@ def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
 
 @pytest.fixture()
 def registered_model(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
-    ctx_type = ContextType()
-    ctx_type.name = RegisteredModel.get_proto_type_name()
-    ctx_type.properties["description"] = metadata_store_pb2.STRING
-
     ctx = Context()
     ctx.name = model.py.name
-    ctx.type_id = store_wrapper._mlmd_store.put_context_type(ctx_type)
+    ctx.type_id = store_wrapper.get_type_id(
+        Context, RegisteredModel.get_proto_type_name()
+    )
 
     return Mapped(ctx, RegisteredModel(model.py.name))
 

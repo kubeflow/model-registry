@@ -20,91 +20,91 @@ from model_registry.store import MLMDStore
 
 
 @pytest.fixture()
-def artifact(store_wrapper: MLMDStore) -> Artifact:
+def artifact(plain_wrapper: MLMDStore) -> Artifact:
     art_type = ArtifactType()
     art_type.name = "test_artifact"
 
     art = Artifact()
     art.name = "test_artifact"
-    art.type_id = store_wrapper._mlmd_store.put_artifact_type(art_type)
+    art.type_id = plain_wrapper._mlmd_store.put_artifact_type(art_type)
 
     return art
 
 
 @pytest.fixture()
-def context(store_wrapper: MLMDStore) -> Context:
+def context(plain_wrapper: MLMDStore) -> Context:
     ctx_type = ContextType()
     ctx_type.name = "test_context"
 
     ctx = Context()
     ctx.name = "test_context"
-    ctx.type_id = store_wrapper._mlmd_store.put_context_type(ctx_type)
+    ctx.type_id = plain_wrapper._mlmd_store.put_context_type(ctx_type)
 
     return ctx
 
 
-def test_get_undefined_artifact_type_id(store_wrapper: MLMDStore):
+def test_get_undefined_artifact_type_id(plain_wrapper: MLMDStore):
     with pytest.raises(TypeNotFoundException):
-        store_wrapper.get_type_id(Artifact, "undefined")
+        plain_wrapper.get_type_id(Artifact, "undefined")
 
 
-def test_get_undefined_context_type_id(store_wrapper: MLMDStore):
+def test_get_undefined_context_type_id(plain_wrapper: MLMDStore):
     with pytest.raises(TypeNotFoundException):
-        store_wrapper.get_type_id(Context, "undefined")
+        plain_wrapper.get_type_id(Context, "undefined")
 
 
-def test_put_invalid_artifact(store_wrapper: MLMDStore, artifact: Artifact):
+def test_put_invalid_artifact(plain_wrapper: MLMDStore, artifact: Artifact):
     artifact.properties["null"].int_value = 0
 
     with pytest.raises(StoreException):
-        store_wrapper.put_artifact(artifact)
+        plain_wrapper.put_artifact(artifact)
 
 
-def test_put_duplicate_artifact(store_wrapper: MLMDStore, artifact: Artifact):
-    store_wrapper._mlmd_store.put_artifacts([artifact])
+def test_put_duplicate_artifact(plain_wrapper: MLMDStore, artifact: Artifact):
+    plain_wrapper._mlmd_store.put_artifacts([artifact])
     with pytest.raises(DuplicateException):
-        store_wrapper.put_artifact(artifact)
+        plain_wrapper.put_artifact(artifact)
 
 
-def test_put_invalid_context(store_wrapper: MLMDStore, context: Context):
+def test_put_invalid_context(plain_wrapper: MLMDStore, context: Context):
     context.properties["null"].int_value = 0
 
     with pytest.raises(StoreException):
-        store_wrapper.put_context(context)
+        plain_wrapper.put_context(context)
 
 
-def test_put_duplicate_context(store_wrapper: MLMDStore, context: Context):
-    store_wrapper._mlmd_store.put_contexts([context])
+def test_put_duplicate_context(plain_wrapper: MLMDStore, context: Context):
+    plain_wrapper._mlmd_store.put_contexts([context])
 
     with pytest.raises(DuplicateException):
-        store_wrapper.put_context(context)
+        plain_wrapper.put_context(context)
 
 
 def test_put_attribution_with_invalid_context(
-    store_wrapper: MLMDStore, artifact: Artifact
+    plain_wrapper: MLMDStore, artifact: Artifact
 ):
-    art_id = store_wrapper._mlmd_store.put_artifacts([artifact])[0]
+    art_id = plain_wrapper._mlmd_store.put_artifacts([artifact])[0]
 
     with pytest.raises(StoreException) as store_error:
-        store_wrapper.put_attribution(0, art_id)
+        plain_wrapper.put_attribution(0, art_id)
 
     assert "context" in str(store_error.value).lower()
 
 
 def test_put_attribution_with_invalid_artifact(
-    store_wrapper: MLMDStore, context: Context
+    plain_wrapper: MLMDStore, context: Context
 ):
-    ctx_id = store_wrapper._mlmd_store.put_contexts([context])[0]
+    ctx_id = plain_wrapper._mlmd_store.put_contexts([context])[0]
 
     with pytest.raises(StoreException) as store_error:
-        store_wrapper.put_attribution(ctx_id, 0)
+        plain_wrapper.put_attribution(ctx_id, 0)
 
     assert "artifact" in str(store_error.value).lower()
 
 
-def test_get_undefined_artifact_by_id(store_wrapper: MLMDStore):
-    assert store_wrapper.get_artifact("dup", 0) is None
+def test_get_undefined_artifact_by_id(plain_wrapper: MLMDStore):
+    assert plain_wrapper.get_artifact("dup", 0) is None
 
 
-def test_get_undefined_context_by_id(store_wrapper: MLMDStore):
-    assert store_wrapper.get_context("dup", 0) is None
+def test_get_undefined_context_by_id(plain_wrapper: MLMDStore):
+    assert plain_wrapper.get_context("dup", 0) is None
