@@ -19,7 +19,7 @@ from typing_extensions import override
 
 from model_registry.store import ScalarType
 
-from .artifacts import BaseArtifact, ModelArtifact
+from .artifacts import BaseArtifact
 from .base import Prefixable, ProtoBase
 
 
@@ -38,7 +38,7 @@ class ModelVersion(BaseContext, Prefixable):
     """Represents a model version.
 
     Attributes:
-        model: Model associated with this version.
+        model_name: Name of the model associated with this version.
         version: Version of the model.
         author: Author of the model version.
         description: Description of the object.
@@ -48,7 +48,7 @@ class ModelVersion(BaseContext, Prefixable):
         metadata: Metadata associated with this version.
     """
 
-    model: ModelArtifact
+    model_name: str
     version: str
     author: str
     artifacts: list[BaseArtifact] = field(init=False, factory=list)
@@ -72,7 +72,7 @@ class ModelVersion(BaseContext, Prefixable):
     def map(self, type_id: int) -> Context:
         mlmd_obj = super().map(type_id)
         # this should match the name of the registered model
-        mlmd_obj.properties["model_name"].string_value = self.model.name
+        mlmd_obj.properties["model_name"].string_value = self.model_name
         mlmd_obj.properties["author"].string_value = self.author
         if self.tags:
             mlmd_obj.properties["tags"].string_value = ",".join(self.tags)
@@ -87,6 +87,7 @@ class ModelVersion(BaseContext, Prefixable):
             py_obj, ModelVersion
         ), f"Expected ModelVersion, got {type(py_obj)}"
         py_obj.version = py_obj.name
+        py_obj.model_name = mlmd_obj.properties["model_name"].string_value
         py_obj.author = mlmd_obj.properties["author"].string_value
         tags = mlmd_obj.properties["tags"].string_value
         if tags:

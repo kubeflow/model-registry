@@ -185,19 +185,15 @@ class ModelRegistry:
         Returns:
             Model version.
         """
-        py_mv = ModelVersion.unmap(
+        return ModelVersion.unmap(
             self._store.get_context(
                 ModelVersion.get_proto_type_name(), id=int(model_version_id)
             )
         )
-        py_mv.model = self.get_model_artifact_by_params(
-            model_version_id=model_version_id
-        )
-        return py_mv
 
     def get_model_versions(
         self, registered_model_id: str, options: ListOptions | None = None
-    ) -> Sequence[ModelVersion]:
+    ) -> list[ModelVersion]:
         """Fetch model versions by registered model ID.
 
         Args:
@@ -209,16 +205,12 @@ class ModelRegistry:
         """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
         mlmd_options.filter_query = f"parent_contexts_a.id = {registered_model_id}"
-        proto_mvs = self._store.get_contexts(
-            ModelVersion.get_proto_type_name(), mlmd_options
-        )
-        py_mvs: list[ModelVersion] = []
-        for proto_mv in proto_mvs:
-            py_mv = ModelVersion.unmap(proto_mv)
-            assert py_mv.id is not None, "Model version ID is None"
-            py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
-            py_mvs.append(py_mv)
-        return py_mvs
+        return [
+            ModelVersion.unmap(proto_mv)
+            for proto_mv in self._store.get_contexts(
+                ModelVersion.get_proto_type_name(), mlmd_options
+            )
+        ]
 
     def get_model_version_by_params(
         self,
@@ -252,9 +244,7 @@ class ModelRegistry:
                 ModelVersion.get_proto_type_name(),
                 name=f"{registered_model_id}:{version}",
             )
-        py_mv = ModelVersion.unmap(proto_mv)
-        py_mv.model = self.get_model_artifact_by_params(model_version_id=py_mv.id)
-        return py_mv
+        return ModelVersion.unmap(proto_mv)
 
     def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str

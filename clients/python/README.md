@@ -68,9 +68,6 @@ To query objects using IDs, do
 ```py
 another_model = registry.get_registered_model_by_id("another-model-id")
 
-# fetching a registered_model will also fetch its associated versions
-versions = another_model.versions
-
 another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
 
 # fetching a version will also fetch its associated model artifact
@@ -134,10 +131,7 @@ models = registry.get_registered_models()
 
 versions = registry.get_model_versions("registered_model_id")
 
-# We can get associated model artifacts with the versions
-model_artifacts = [version.model for version in versions]
-
-# We can also get a list of all model artifacts
+# We can get a list of all model artifacts
 all_model_artifacts = registry.get_model_artifacts()
 ```
 

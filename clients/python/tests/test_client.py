@@ -70,7 +70,7 @@ def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     ctx.properties["author"].string_value = "author"
     ctx.properties["model_name"].string_value = model.py.name
 
-    return Mapped(ctx, ModelVersion(model.py, "version", "author"))
+    return Mapped(ctx, ModelVersion(model.py.name, "version", "author"))
 
 
 @pytest.fixture()
@@ -104,17 +104,9 @@ def test_get_registered_model_by_id(
     model_registry: ModelRegistry,
     registered_model: Mapped,
     model_version: Mapped,
-    model: Mapped,
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     model_version.proto.name = f"1:{model_version.proto.name}"
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
-    )
 
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
@@ -132,17 +124,9 @@ def test_get_registered_model_by_name(
     model_registry: ModelRegistry,
     registered_model: Mapped,
     model_version: Mapped,
-    model: Mapped,
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     model_version.proto.name = f"1:{model_version.proto.name}"
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
-    )
 
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
@@ -162,17 +146,9 @@ def test_get_registered_model_by_external_id(
     model_registry: ModelRegistry,
     registered_model: Mapped,
     model_version: Mapped,
-    model: Mapped,
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     model_version.proto.name = f"1:{model_version.proto.name}"
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
-    )
 
     registered_model.py.external_id = "external_id"
     registered_model.proto.external_id = "external_id"
@@ -217,18 +193,9 @@ def test_upsert_model_version(
     assert model_version.py.version != mv_proto.name
 
 
-def test_get_model_version_by_id(
-    model_registry: ModelRegistry, model: Mapped, model_version: Mapped
-):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    art_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
+def test_get_model_version_by_id(model_registry: ModelRegistry, model_version: Mapped):
     model_version.proto.name = f"1:{model_version.proto.name}"
     ctx_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=ctx_id, artifact_id=art_id)], []
-    )
 
     id = str(ctx_id)
     mlmd_mv = model_registry.get_model_version_by_id(id)
@@ -238,51 +205,31 @@ def test_get_model_version_by_id(
 
 
 def test_get_model_version_by_name(
-    model_registry: ModelRegistry, model_version: Mapped, model: Mapped
+    model_registry: ModelRegistry, model_version: Mapped
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     model_version.proto.name = f"1:{model_version.proto.name}"
-
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
-    )
-
-    id = str(mv_id)
 
     mlmd_mv = model_registry.get_model_version_by_params(
         registered_model_id="1", version=model_version.py.name
     )
-    assert mlmd_mv.id == id
+    assert mlmd_mv.id == str(mv_id)
     assert mlmd_mv.name == model_version.py.name
     assert mlmd_mv.name != model_version.proto.name
 
 
 def test_get_model_version_by_external_id(
-    model_registry: ModelRegistry, model_version: Mapped, model: Mapped
+    model_registry: ModelRegistry, model_version: Mapped
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     model_version.proto.name = f"1:{model_version.proto.name}"
     model_version.proto.external_id = "external_id"
     model_version.py.external_id = "external_id"
-
     mv_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [Attribution(context_id=mv_id, artifact_id=ma_id)], []
-    )
-
-    id = str(mv_id)
 
     mlmd_mv = model_registry.get_model_version_by_params(
         external_id=model_version.py.external_id
     )
-    assert mlmd_mv.id == id
+    assert mlmd_mv.id == str(mv_id)
     assert mlmd_mv.name == model_version.py.name
     assert mlmd_mv.name != model_version.proto.name
 
@@ -291,25 +238,13 @@ def test_get_model_versions(
     model_registry: ModelRegistry,
     model_version: Mapped,
     registered_model: Mapped,
-    model: Mapped,
 ):
-    model.proto.name = f"test_prefix:{model.proto.name}"
-    ma_id = model_registry._store._mlmd_store.put_artifacts([model.proto])[0]
-
     rm_id = model_registry._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
     model_version.proto.name = f"{rm_id}:version"
     mv1_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
     model_version.proto.name = f"{rm_id}:version2"
     mv2_id = model_registry._store._mlmd_store.put_contexts([model_version.proto])[0]
-
-    model_registry._store._mlmd_store.put_attributions_and_associations(
-        [
-            Attribution(context_id=mv1_id, artifact_id=ma_id),
-            Attribution(context_id=mv2_id, artifact_id=ma_id),
-        ],
-        [],
-    )
 
     model_registry._store._mlmd_store.put_parent_contexts(
         [
