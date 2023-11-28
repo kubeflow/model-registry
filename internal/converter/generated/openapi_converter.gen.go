@@ -296,6 +296,12 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 			pOpenapiModelVersionState = &openapiModelVersionState
 		}
 		openapiModelVersion.State = pOpenapiModelVersionState
+		var pString4 *string
+		if (*source).Author != nil {
+			xstring4 := *(*source).Author
+			pString4 = &xstring4
+		}
+		openapiModelVersion.Author = pString4
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
@@ -331,6 +337,12 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVe
 			pOpenapiModelVersionState = &openapiModelVersionState
 		}
 		openapiModelVersion.State = pOpenapiModelVersionState
+		var pString3 *string
+		if (*source).Author != nil {
+			xstring3 := *(*source).Author
+			pString3 = &xstring3
+		}
+		openapiModelVersion.Author = pString3
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil

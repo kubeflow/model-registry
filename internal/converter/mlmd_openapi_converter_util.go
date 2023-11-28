@@ -75,6 +75,10 @@ func MapNameFromOwned(source *string) *string {
 
 // MODEL VERSION
 
+func MapPropertyAuthor(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "author")
+}
+
 // MODEL ARTIFACT
 
 func MapArtifactType(source *proto.Artifact) (string, error) {

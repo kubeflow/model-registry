@@ -28,6 +28,8 @@ type ModelVersion struct {
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name  *string            `json:"name,omitempty"`
 	State *ModelVersionState `json:"state,omitempty"`
+	// Name of the author.
+	Author *string `json:"author,omitempty"`
 	// Output only. The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
@@ -217,6 +219,38 @@ func (o *ModelVersion) SetState(v ModelVersionState) {
 	o.State = &v
 }
 
+// GetAuthor returns the Author field value if set, zero value otherwise.
+func (o *ModelVersion) GetAuthor() string {
+	if o == nil || IsNil(o.Author) {
+		var ret string
+		return ret
+	}
+	return *o.Author
+}
+
+// GetAuthorOk returns a tuple with the Author field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelVersion) GetAuthorOk() (*string, bool) {
+	if o == nil || IsNil(o.Author) {
+		return nil, false
+	}
+	return o.Author, true
+}
+
+// HasAuthor returns a boolean if a field has been set.
+func (o *ModelVersion) HasAuthor() bool {
+	if o != nil && !IsNil(o.Author) {
+		return true
+	}
+
+	return false
+}
+
+// SetAuthor gets a reference to the given string and assigns it to the Author field.
+func (o *ModelVersion) SetAuthor(v string) {
+	o.Author = &v
+}
+
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *ModelVersion) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -337,6 +371,9 @@ func (o ModelVersion) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
+	}
+	if !IsNil(o.Author) {
+		toSerialize["author"] = o.Author
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id

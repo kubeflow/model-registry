@@ -220,12 +220,14 @@ func TestMapModelVersionProperties(t *testing.T) {
 		Model: &openapi.ModelVersion{
 			Name:        of("v1"),
 			Description: of("my model version description"),
+			Author:      of("John Doe"),
 		},
 	})
 	assertion.Nil(err)
 	assertion.Equal(4, len(props))
 	assertion.Equal("my model version description", props["description"].GetStringValue())
 	assertion.Equal("v1", props["version"].GetStringValue())
+	assertion.Equal("John Doe", props["author"].GetStringValue())
 }
 
 func TestMapModelVersionType(t *testing.T) {

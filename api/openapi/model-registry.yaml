@@ -1167,6 +1167,9 @@ components:
           properties:
             state:
               $ref: '#/components/schemas/ModelVersionState'
+            author:
+              description: Name of the author.
+              type: string
     BaseArtifactCreate:
       allOf:
         -

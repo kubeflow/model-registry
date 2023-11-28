@@ -21,6 +21,7 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Name | MapNameFromOwned
 	// goverter:map Properties Description | MapDescription
 	// goverter:map . State | MapModelVersionState
+	// goverter:map Properties Author | MapPropertyAuthor
 	ConvertModelVersion(source *proto.Context) (*openapi.ModelVersion, error)
 
 	// goverter:map Name | MapNameFromOwned

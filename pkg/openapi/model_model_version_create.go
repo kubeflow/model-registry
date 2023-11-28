@@ -30,6 +30,8 @@ type ModelVersionCreate struct {
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name  *string            `json:"name,omitempty"`
 	State *ModelVersionState `json:"state,omitempty"`
+	// Name of the author.
+	Author *string `json:"author,omitempty"`
 }
 
 // NewModelVersionCreate instantiates a new ModelVersionCreate object
@@ -237,6 +239,38 @@ func (o *ModelVersionCreate) SetState(v ModelVersionState) {
 	o.State = &v
 }
 
+// GetAuthor returns the Author field value if set, zero value otherwise.
+func (o *ModelVersionCreate) GetAuthor() string {
+	if o == nil || IsNil(o.Author) {
+		var ret string
+		return ret
+	}
+	return *o.Author
+}
+
+// GetAuthorOk returns a tuple with the Author field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelVersionCreate) GetAuthorOk() (*string, bool) {
+	if o == nil || IsNil(o.Author) {
+		return nil, false
+	}
+	return o.Author, true
+}
+
+// HasAuthor returns a boolean if a field has been set.
+func (o *ModelVersionCreate) HasAuthor() bool {
+	if o != nil && !IsNil(o.Author) {
+		return true
+	}
+
+	return false
+}
+
+// SetAuthor gets a reference to the given string and assigns it to the Author field.
+func (o *ModelVersionCreate) SetAuthor(v string) {
+	o.Author = &v
+}
+
 func (o ModelVersionCreate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -262,6 +296,9 @@ func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
+	}
+	if !IsNil(o.Author) {
+		toSerialize["author"] = o.Author
 	}
 	return toSerialize, nil
 }

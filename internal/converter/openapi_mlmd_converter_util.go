@@ -180,11 +180,12 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 			}
 		}
 
-		// TODO: not available for now
-		props["author"] = &proto.Value{
-			Value: &proto.Value_StringValue{
-				StringValue: "",
-			},
+		if (*source.Model).Author != nil {
+			props["author"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *(*source.Model).Author,
+				},
+			}
 		}
 	}
 	return props, nil

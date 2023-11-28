@@ -19,6 +19,7 @@ var (
 	// generic
 	ascOrderDirection  string
 	descOrderDirection string
+	customString       string
 	// registered models
 	modelName        string
 	modelDescription string
@@ -53,6 +54,7 @@ func setup(t *testing.T) (*assert.Assertions, *grpc.ClientConn, proto.MetadataSt
 	// initialize test variable before each test
 	ascOrderDirection = "ASC"
 	descOrderDirection = "DESC"
+	customString = "this is a customString value"
 	modelName = "MyAwesomeModel"
 	modelDescription = "reg model description"
 	modelExternalId = "org.myawesomemodel"
@@ -160,13 +162,7 @@ func registerModelVersion(
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 
 	if overrideVersionName != nil {
@@ -977,13 +973,7 @@ func TestCreateModelVersion(t *testing.T) {
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
 		State:       &state,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1004,7 +994,7 @@ func TestCreateModelVersion(t *testing.T) {
 	assertion.Equal(*createdVersionId, *byId.Contexts[0].Id, "returned model id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, modelVersionName), *byId.Contexts[0].Name, "saved model name should match the provided one")
 	assertion.Equal(versionExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(author, byId.Contexts[0].Properties["author"].GetStringValue(), "saved author property should match the provided one")
 	assertion.Equal(modelVersionDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
 	assertion.Equal(string(state), byId.Contexts[0].Properties["state"].GetStringValue(), "saved state should match the provided one")
 	assertion.Equalf(*modelVersionTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *modelVersionTypeName)
@@ -1026,13 +1016,7 @@ func TestCreateModelVersionFailure(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	_, err := service.UpsertModelVersion(modelVersion, nil)
@@ -1056,13 +1040,7 @@ func TestUpdateModelVersion(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1098,7 +1076,7 @@ func TestUpdateModelVersion(t *testing.T) {
 	assertion.Equal(*updateVersionId, *byId.Contexts[0].Id, "returned model id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, modelVersionName), *byId.Contexts[0].Name, "saved model name should match the provided one")
 	assertion.Equal(newExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(author, byId.Contexts[0].Properties["author"].GetStringValue(), "saved author property should match the provided one")
 	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
 	assertion.Equalf(*modelVersionTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *modelVersionTypeName)
 
@@ -1128,7 +1106,7 @@ func TestUpdateModelVersion(t *testing.T) {
 	assertion.Equal(*updateVersionId, *byId.Contexts[0].Id, "returned model id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, modelVersionName), *byId.Contexts[0].Name, "saved model name should match the provided one")
 	assertion.Equal(newExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(author, byId.Contexts[0].Properties["author"].GetStringValue(), "saved author property should match the provided one")
 	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
 	assertion.Equalf(*modelVersionTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *modelVersionTypeName)
 }
@@ -1145,13 +1123,7 @@ func TestUpdateModelVersionFailure(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1189,13 +1161,7 @@ func TestGetModelVersionById(t *testing.T) {
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
 		State:      &state,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1219,7 +1185,7 @@ func TestGetModelVersionById(t *testing.T) {
 	assertion.Equal(*modelVersion.Name, *getById.Name, "saved model name should match the provided one")
 	assertion.Equal(*modelVersion.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
 	assertion.Equal(*modelVersion.State, *getById.State, "saved model state should match the original one")
-	assertion.Equal(author, *(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+	assertion.Equal(*getById.Author, author, "saved author property should match the provided one")
 }
 
 func TestGetModelVersionByParamsWithNoResults(t *testing.T) {
@@ -1248,13 +1214,7 @@ func TestGetModelVersionByParamsName(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1277,7 +1237,7 @@ func TestGetModelVersionByParamsName(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(ctx.Id), *getByName.Id, "returned model version id should match the mlmd context one")
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getByName.Name), *ctx.Name, "saved model name should match the provided one")
 	assertion.Equal(*ctx.ExternalId, *getByName.ExternalID, "saved external id should match the provided one")
-	assertion.Equal(ctx.CustomProperties["author"].GetStringValue(), *(*getByName.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+	assertion.Equal(ctx.Properties["author"].GetStringValue(), *getByName.Author, "saved author property should match the provided one")
 }
 
 func TestGetModelVersionByParamsExternalId(t *testing.T) {
@@ -1292,13 +1252,7 @@ func TestGetModelVersionByParamsExternalId(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1321,7 +1275,7 @@ func TestGetModelVersionByParamsExternalId(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(ctx.Id), *getByExternalId.Id, "returned model version id should match the mlmd context one")
 	assertion.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getByExternalId.Name), *ctx.Name, "saved model name should match the provided one")
 	assertion.Equal(*ctx.ExternalId, *getByExternalId.ExternalID, "saved external id should match the provided one")
-	assertion.Equal(ctx.CustomProperties["author"].GetStringValue(), *(*getByExternalId.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+	assertion.Equal(ctx.Properties["author"].GetStringValue(), *getByExternalId.Author, "saved author property should match the provided one")
 }
 
 func TestGetModelVersionByEmptyParams(t *testing.T) {
@@ -1336,13 +1290,7 @@ func TestGetModelVersionByEmptyParams(t *testing.T) {
 	modelVersion := &openapi.ModelVersion{
 		Name:       &modelVersionName,
 		ExternalID: &versionExternalId,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:     &author,
 	}
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
@@ -1475,9 +1423,9 @@ func TestCreateModelArtifact(t *testing.T) {
 		StorageKey:         of("aws-connection-models"),
 		StoragePath:        of("bucket"),
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1496,7 +1444,7 @@ func TestCreateModelArtifact(t *testing.T) {
 	assertion.Equal("1", *createdArtifact.ModelFormatVersion)
 	assertion.Equal("aws-connection-models", *createdArtifact.StorageKey)
 	assertion.Equal("bucket", *createdArtifact.StoragePath)
-	assertion.Equal(author, *(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*createdArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	createdArtifactId, _ := converter.StringToInt64(createdArtifact.Id)
 	getById, err := client.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
@@ -1513,7 +1461,7 @@ func TestCreateModelArtifact(t *testing.T) {
 	assertion.Equal(*createdArtifact.ModelFormatVersion, getById.Artifacts[0].Properties["model_format_version"].GetStringValue())
 	assertion.Equal(*createdArtifact.StorageKey, getById.Artifacts[0].Properties["storage_key"].GetStringValue())
 	assertion.Equal(*createdArtifact.StoragePath, getById.Artifacts[0].Properties["storage_path"].GetStringValue())
-	assertion.Equal(*(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["author"].GetStringValue())
+	assertion.Equal(*(*createdArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
 
 	modelVersionIdAsInt, _ := converter.StringToInt64(&modelVersionId)
 	byCtx, _ := client.GetArtifactsByContext(context.Background(), &proto.GetArtifactsByContextRequest{
@@ -1537,9 +1485,9 @@ func TestCreateModelArtifactFailure(t *testing.T) {
 		State: (*openapi.ArtifactState)(&artifactState),
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1568,9 +1516,9 @@ func TestUpdateModelArtifact(t *testing.T) {
 		State: (*openapi.ArtifactState)(&artifactState),
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1597,7 +1545,7 @@ func TestUpdateModelArtifact(t *testing.T) {
 	assertion.Equal(fmt.Sprintf("%s:%s", modelVersionId, *createdArtifact.Name), *getById.Artifacts[0].Name)
 	assertion.Equal(string(newState), getById.Artifacts[0].State.String())
 	assertion.Equal(*createdArtifact.Uri, *getById.Artifacts[0].Uri)
-	assertion.Equal(*(*createdArtifact.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["author"].GetStringValue())
+	assertion.Equal(*(*createdArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
 }
 
 func TestUpdateModelArtifactFailure(t *testing.T) {
@@ -1614,9 +1562,9 @@ func TestUpdateModelArtifactFailure(t *testing.T) {
 		State: (*openapi.ArtifactState)(&artifactState),
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1652,9 +1600,9 @@ func TestGetModelArtifactById(t *testing.T) {
 		State: (*openapi.ArtifactState)(&artifactState),
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1673,7 +1621,7 @@ func TestGetModelArtifactById(t *testing.T) {
 	assertion.Equal(artifactName, *getById.Name)
 	assertion.Equal(*state, *getById.State)
 	assertion.Equal(artifactUri, *getById.Uri)
-	assertion.Equal(author, *(*getById.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	assertion.Equal(*createdArtifact, *getById, "artifacts returned during creation and on get by id should be equal")
 }
@@ -1693,9 +1641,9 @@ func TestGetModelArtifactByParams(t *testing.T) {
 		Uri:        &artifactUri,
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1716,7 +1664,7 @@ func TestGetModelArtifactByParams(t *testing.T) {
 	assertion.Equal(artifactExtId, *getByName.ExternalID)
 	assertion.Equal(*state, *getByName.State)
 	assertion.Equal(artifactUri, *getByName.Uri)
-	assertion.Equal(author, *(*getByName.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	assertion.Equal(*createdArtifact, *getByName, "artifacts returned during creation and on get by name should be equal")
 
@@ -1728,7 +1676,7 @@ func TestGetModelArtifactByParams(t *testing.T) {
 	assertion.Equal(artifactExtId, *getByExtId.ExternalID)
 	assertion.Equal(*state, *getByExtId.State)
 	assertion.Equal(artifactUri, *getByExtId.Uri)
-	assertion.Equal(author, *(*getByExtId.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*getByExtId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	assertion.Equal(*createdArtifact, *getByExtId, "artifacts returned during creation and on get by ext id should be equal")
 }
@@ -1748,9 +1696,9 @@ func TestGetModelArtifactByEmptyParams(t *testing.T) {
 		Uri:        &artifactUri,
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1793,9 +1741,9 @@ func TestGetModelArtifacts(t *testing.T) {
 		Uri:        &artifactUri,
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1810,9 +1758,9 @@ func TestGetModelArtifacts(t *testing.T) {
 		Uri:        &secondArtifactUri,
 		ExternalID: &secondArtifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -1827,9 +1775,9 @@ func TestGetModelArtifacts(t *testing.T) {
 		Uri:        &thirdArtifactUri,
 		ExternalID: &thirdArtifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2312,9 +2260,9 @@ func TestCreateInferenceService(t *testing.T) {
 		Runtime:              &runtime,
 		State:                &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2338,7 +2286,7 @@ func TestCreateInferenceService(t *testing.T) {
 	assertion.Equal(*createdEntityId, *byId.Contexts[0].Id, "returned id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, entityName), *byId.Contexts[0].Name, "saved name should match the provided one")
 	assertion.Equal(entityExternalId2, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(customString, byId.Contexts[0].CustomProperties["custom_string_prop"].GetStringValue(), "saved custom_string_prop custom property should match the provided one")
 	assertion.Equal(entityDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
 	assertion.Equal(runtime, byId.Contexts[0].Properties["runtime"].GetStringValue(), "saved runtime should match the provided one")
 	assertion.Equal(string(state), byId.Contexts[0].Properties["state"].GetStringValue(), "saved state should match the provided one")
@@ -2362,9 +2310,9 @@ func TestCreateInferenceServiceFailure(t *testing.T) {
 		ServingEnvironmentId: "9999",
 		RegisteredModelId:    "9998",
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2399,9 +2347,9 @@ func TestUpdateInferenceService(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2441,7 +2389,7 @@ func TestUpdateInferenceService(t *testing.T) {
 	assertion.Equal(*updateEntityId, *byId.Contexts[0].Id, "returned id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, *eut.Name), *byId.Contexts[0].Name, "saved name should match the provided one")
 	assertion.Equal(newExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(customString, byId.Contexts[0].CustomProperties["custom_string_prop"].GetStringValue(), "saved custom_string_prop custom property should match the provided one")
 	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
 	assertion.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
 
@@ -2470,7 +2418,7 @@ func TestUpdateInferenceService(t *testing.T) {
 	assertion.Equal(*updateEntityId, *byId.Contexts[0].Id, "returned id should match the mlmd one")
 	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, *eut.Name), *byId.Contexts[0].Name, "saved name should match the provided one")
 	assertion.Equal(newExternalId, *byId.Contexts[0].ExternalId, "saved external id should match the provided one")
-	assertion.Equal(author, byId.Contexts[0].CustomProperties["author"].GetStringValue(), "saved author custom property should match the provided one")
+	assertion.Equal(customString, byId.Contexts[0].CustomProperties["custom_string_prop"].GetStringValue(), "saved custom_string_prop custom property should match the provided one")
 	assertion.Equal(newScore, byId.Contexts[0].CustomProperties["score"].GetDoubleValue(), "saved score custom property should match the provided one")
 	assertion.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
 
@@ -2500,9 +2448,9 @@ func TestUpdateInferenceServiceFailure(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2549,9 +2497,9 @@ func TestGetInferenceServiceById(t *testing.T) {
 		RegisteredModelId:    registeredModelId,
 		State:                &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2578,7 +2526,7 @@ func TestGetInferenceServiceById(t *testing.T) {
 	assertion.Equal(*eut.Name, *getById.Name, "saved name should match the provided one")
 	assertion.Equal(*eut.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
 	assertion.Equal(*eut.State, *getById.State, "saved state should match the provided one")
-	assertion.Equal(*(*getById.CustomProperties)["author"].MetadataStringValue.StringValue, author, "saved author custom property should match the provided one")
+	assertion.Equal(*(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, customString, "saved custom_string_prop custom property should match the provided one")
 }
 
 func TestGetRegisteredModelByInferenceServiceId(t *testing.T) {
@@ -2598,9 +2546,9 @@ func TestGetRegisteredModelByInferenceServiceId(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2647,9 +2595,9 @@ func TestGetModelVersionByInferenceServiceId(t *testing.T) {
 		RegisteredModelId:    registeredModelId,
 		ModelVersionId:       nil, // first we test by unspecified
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2703,9 +2651,9 @@ func TestGetInferenceServiceByParamsName(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2731,7 +2679,7 @@ func TestGetInferenceServiceByParamsName(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(ctx.Id), *getByName.Id, "returned id should match the mlmd context one")
 	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getByName.Name), *ctx.Name, "saved name should match the provided one")
 	assertion.Equal(*ctx.ExternalId, *getByName.ExternalID, "saved external id should match the provided one")
-	assertion.Equal(ctx.CustomProperties["author"].GetStringValue(), *(*getByName.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+	assertion.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), *(*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
 }
 
 func TestGetInfernenceServiceByParamsExternalId(t *testing.T) {
@@ -2751,9 +2699,9 @@ func TestGetInfernenceServiceByParamsExternalId(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2779,7 +2727,7 @@ func TestGetInfernenceServiceByParamsExternalId(t *testing.T) {
 	assertion.Equal(*converter.Int64ToString(ctx.Id), *getByExternalId.Id, "returned id should match the mlmd context one")
 	assertion.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getByExternalId.Name), *ctx.Name, "saved name should match the provided one")
 	assertion.Equal(*ctx.ExternalId, *getByExternalId.ExternalID, "saved external id should match the provided one")
-	assertion.Equal(ctx.CustomProperties["author"].GetStringValue(), *(*getByExternalId.CustomProperties)["author"].MetadataStringValue.StringValue, "saved author custom property should match the provided one")
+	assertion.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), *(*getByExternalId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
 }
 
 func TestGetInferenceServiceByEmptyParams(t *testing.T) {
@@ -2799,9 +2747,9 @@ func TestGetInferenceServiceByEmptyParams(t *testing.T) {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2942,13 +2890,7 @@ func TestCreateServeModel(t *testing.T) {
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	assertion.Nilf(err, "error creating new model version for %d", registeredModelId)
@@ -2963,9 +2905,9 @@ func TestCreateServeModel(t *testing.T) {
 		Name:           &entityName,
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -2980,7 +2922,7 @@ func TestCreateServeModel(t *testing.T) {
 	assertion.Equal(*state, *createdEntity.LastKnownState)
 	assertion.Equal(createdVersionId, createdEntity.ModelVersionId)
 	assertion.Equal(entityDescription, *createdEntity.Description)
-	assertion.Equal(author, *(*createdEntity.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	createdEntityId, _ := converter.StringToInt64(createdEntity.Id)
 	getById, err := client.GetExecutionsByID(context.Background(), &proto.GetExecutionsByIDRequest{
@@ -2993,7 +2935,7 @@ func TestCreateServeModel(t *testing.T) {
 	assertion.Equal(string(*createdEntity.LastKnownState), getById.Executions[0].LastKnownState.String())
 	assertion.Equal(*createdVersionIdAsInt, getById.Executions[0].Properties["model_version_id"].GetIntValue())
 	assertion.Equal(*createdEntity.Description, getById.Executions[0].Properties["description"].GetStringValue())
-	assertion.Equal(*(*createdEntity.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["author"].GetStringValue())
+	assertion.Equal(*(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
 
 	inferenceServiceIdAsInt, _ := converter.StringToInt64(&inferenceServiceId)
 	byCtx, _ := client.GetExecutionsByContext(context.Background(), &proto.GetExecutionsByContextRequest{
@@ -3021,9 +2963,9 @@ func TestCreateServeModelFailure(t *testing.T) {
 		Name:           &entityName,
 		ModelVersionId: "9998",
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3052,13 +2994,7 @@ func TestUpdateServeModel(t *testing.T) {
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	assertion.Nilf(err, "error creating new model version for %d", registeredModelId)
@@ -3073,9 +3009,9 @@ func TestUpdateServeModel(t *testing.T) {
 		Name:           &entityName,
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3102,14 +3038,13 @@ func TestUpdateServeModel(t *testing.T) {
 	assertion.Equal(fmt.Sprintf("%s:%s", inferenceServiceId, *createdEntity.Name), *getById.Executions[0].Name)
 	assertion.Equal(string(newState), getById.Executions[0].LastKnownState.String())
 	assertion.Equal(*createdVersionIdAsInt, getById.Executions[0].Properties["model_version_id"].GetIntValue())
-	assertion.Equal(*(*createdEntity.CustomProperties)["author"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["author"].GetStringValue())
+	assertion.Equal(*(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
 
 	prevModelVersionId := updatedEntity.ModelVersionId
 	updatedEntity.ModelVersionId = ""
 	updatedEntity, err = service.UpsertServeModel(updatedEntity, &inferenceServiceId)
 	assertion.Nilf(err, "error updating entity for %d: %v", inferenceServiceId, err)
 	assertion.Equal(prevModelVersionId, updatedEntity.ModelVersionId)
-
 }
 
 func TestUpdateServeModelFailure(t *testing.T) {
@@ -3126,13 +3061,7 @@ func TestUpdateServeModelFailure(t *testing.T) {
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	assertion.Nilf(err, "error creating new model version for %d", registeredModelId)
@@ -3146,9 +3075,9 @@ func TestUpdateServeModelFailure(t *testing.T) {
 		Name:           &entityName,
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3184,13 +3113,7 @@ func TestGetServeModelById(t *testing.T) {
 		Name:        &modelVersionName,
 		ExternalID:  &versionExternalId,
 		Description: &modelVersionDescription,
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
-				},
-			},
-		},
+		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	assertion.Nilf(err, "error creating new model version for %d", registeredModelId)
@@ -3204,9 +3127,9 @@ func TestGetServeModelById(t *testing.T) {
 		Name:           &entityName,
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3223,7 +3146,7 @@ func TestGetServeModelById(t *testing.T) {
 	assertion.Equal(entityName, *getById.Name)
 	assertion.Equal(*state, *getById.LastKnownState)
 	assertion.Equal(createdVersionId, getById.ModelVersionId)
-	assertion.Equal(author, *(*getById.CustomProperties)["author"].MetadataStringValue.StringValue)
+	assertion.Equal(customString, *(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	assertion.Equal(*createdEntity, *getById, "artifacts returned during creation and on get by id should be equal")
 }
@@ -3264,9 +3187,9 @@ func TestGetServeModels(t *testing.T) {
 		Name:           &eut1Name,
 		ModelVersionId: createdVersion1Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3279,9 +3202,9 @@ func TestGetServeModels(t *testing.T) {
 		Name:           &eut2Name,
 		ModelVersionId: createdVersion2Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},
@@ -3294,9 +3217,9 @@ func TestGetServeModels(t *testing.T) {
 		Name:           &eut3Name,
 		ModelVersionId: createdVersion3Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"author": {
+			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &author,
+					StringValue: &customString,
 				},
 			},
 		},

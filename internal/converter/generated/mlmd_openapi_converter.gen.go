@@ -99,6 +99,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 		openapiModelVersion.ExternalID = pString
 		openapiModelVersion.Name = converter.MapNameFromOwned((*source).Name)
 		openapiModelVersion.State = converter.MapModelVersionState(source)
+		openapiModelVersion.Author = converter.MapPropertyAuthor((*source).Properties)
 		openapiModelVersion.Id = converter.Int64ToString((*source).Id)
 		openapiModelVersion.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiModelVersion.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
