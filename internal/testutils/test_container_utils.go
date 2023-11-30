@@ -21,7 +21,12 @@ const (
 	testConfigFolder = "test/config/ml-metadata"
 )
 
-func clearMetadataSqliteDB(wd string) error {
+func ClearMetadataSqliteDB() error {
+	wd, err := getTestConfigWorkingDir()
+	if err != nil {
+		return err
+	}
+
 	if err := os.Remove(fmt.Sprintf("%s/%s", wd, sqliteFile)); err != nil {
 		return fmt.Errorf("expected to clear sqlite file but didn't find: %v", err)
 	}
@@ -39,19 +44,25 @@ func fileExists(filePath string) (bool, error) {
 	return false, err
 }
 
-// SetupMLMDTestContainer creates a MLMD gRPC test container
-// Returns
-//   - gRPC client connection to the test container
-//   - ml-metadata client used to double check the database
-//   - teardown function
-func SetupMLMDTestContainer(t *testing.T) (*grpc.ClientConn, proto.MetadataStoreServiceClient, func(t *testing.T)) {
-	ctx := context.Background()
+func getTestConfigWorkingDir() (string, error) {
 	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/../../%s", wd, testConfigFolder), nil
+}
+
+// SetupMLMetadataTestContainer setup a test container for MLMD server exposing gRPC interface
+// Returns:
+//   - The test container gRPC address <host>:<port>
+//   - The teardown function to close and teardown the test container
+func SetupMLMetadataTestContainer(t *testing.T) (*grpc.ClientConn, proto.MetadataStoreServiceClient, func(t *testing.T)) {
+	ctx := context.Background()
+	wd, err := getTestConfigWorkingDir()
 	if err != nil {
 		t.Errorf("error getting working directory: %v", err)
 	}
-	wd = fmt.Sprintf("%s/../../%s", wd, testConfigFolder)
-	t.Logf("using working directory: %s", wd)
+	// t.Logf("using working directory: %s", wd)
 
 	// when unhandled panics or other hard failures, could leave the DB in the directory
 	// here we make sure it's not existing already, and that it was really cleanup by previous runs
@@ -99,8 +110,9 @@ func SetupMLMDTestContainer(t *testing.T) (*grpc.ClientConn, proto.MetadataStore
 	if err != nil {
 		t.Error(err)
 	}
+
 	mlmdAddr := fmt.Sprintf("%s:%s", mappedHost, mappedPort.Port())
-	t.Log("MLMD test container setup at: ", mlmdAddr)
+	t.Log("MLMD test container running at: ", mlmdAddr)
 
 	// setup grpc connection
 	conn, err := grpc.DialContext(
@@ -121,9 +133,6 @@ func SetupMLMDTestContainer(t *testing.T) (*grpc.ClientConn, proto.MetadataStore
 			t.Error(err)
 		}
 		if err := mlmdgrpc.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-		if err := clearMetadataSqliteDB(wd); err != nil {
 			t.Error(err)
 		}
 	}
