@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/opendatahub-io/model-registry/internal/apiutils"
@@ -681,6 +682,25 @@ func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.Mode
 	return result, nil
 }
 
+func (serv *ModelRegistryService) GetModelArtifactByInferenceService(inferenceServiceId string) (*openapi.ModelArtifact, error) {
+
+	mv, err := serv.GetModelVersionByInferenceService(inferenceServiceId)
+	if err != nil {
+		return nil, err
+	}
+
+	artifactList, err := serv.GetModelArtifacts(api.ListOptions{}, mv.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if artifactList.Size == 0 {
+		return nil, fmt.Errorf("no artifacts found for model version %s", *mv.Id)
+	}
+
+	return &artifactList.Items[0], nil
+}
+
 func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error) {
 	var artifact0 *proto.Artifact
 
@@ -1104,16 +1124,25 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, pare
 	return toReturn, nil
 }
 
-func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions, parentResourceId *string) (*openapi.InferenceServiceList, error) {
+func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions, parentResourceId *string, runtime *string) (*openapi.InferenceServiceList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
 
+	queries := []string{}
 	if parentResourceId != nil {
 		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *parentResourceId)
-		listOperationOptions.FilterQuery = &queryParentCtxId
+		queries = append(queries, queryParentCtxId)
 	}
+
+	if runtime != nil {
+		queryRuntimeProp := fmt.Sprintf("properties.runtime.string_value = \"%s\"", *runtime)
+		queries = append(queries, queryRuntimeProp)
+	}
+
+	query := strings.Join(queries, " and ")
+	listOperationOptions.FilterQuery = &query
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: inferenceServiceTypeName,

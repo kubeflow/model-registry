@@ -236,7 +236,7 @@ func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx con
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(listOpts, &servingenvironmentId)
+	result, err := s.coreApi.GetInferenceServices(listOpts, &servingenvironmentId, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -299,7 +299,7 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Contex
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(listOpts, nil)
+	result, err := s.coreApi.GetInferenceServices(listOpts, nil, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}

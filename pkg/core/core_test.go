@@ -2417,10 +2417,9 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
 	createdEntity, err := service.UpsertInferenceService(eut)
 	suite.Nilf(err, "error creating new eut for %v", parentResourceId)
 	suite.NotNilf(createdEntity.Id, "created eut should not have nil Id")
-	createdEntityId, _ := converter.StringToInt64(createdEntity.Id)
 
 	getRM, err := service.GetRegisteredModelByInferenceService(*createdEntity.Id)
-	suite.Nilf(err, "error getting using id %d", *createdEntityId)
+	suite.Nilf(err, "error getting using id %s", *createdEntity.Id)
 
 	suite.Equal(registeredModelId, *getRM.Id, "returned id should match the original registeredModelId")
 }
@@ -2462,10 +2461,9 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 	}
 	createdEntity, err := service.UpsertInferenceService(eut)
 	suite.Nilf(err, "error creating new eut for %v", parentResourceId)
-	createdEntityId, _ := converter.StringToInt64(createdEntity.Id)
 
 	getVModel, err := service.GetModelVersionByInferenceService(*createdEntity.Id)
-	suite.Nilf(err, "error getting using id %d", *createdEntityId)
+	suite.Nilf(err, "error getting using id %s", *createdEntity.Id)
 	suite.Equal(createdVersion2Id, *getVModel.Id, "returned id shall be the latest ModelVersion by creation order")
 
 	// here we used the returned entity (so ID is populated), and we update to specify the "ID of the ModelVersion to serve"
@@ -2474,8 +2472,59 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 	suite.Nilf(err, "error updating eut for %v", parentResourceId)
 
 	getVModel, err = service.GetModelVersionByInferenceService(*createdEntity.Id)
-	suite.Nilf(err, "error getting using id %d", *createdEntityId)
+	suite.Nilf(err, "error getting using id %s", *createdEntity.Id)
 	suite.Equal(createdVersion1Id, *getVModel.Id, "returned id shall be the specified one")
+}
+
+func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	modelVersion1Name := "v1"
+	modelVersion1 := &openapi.ModelVersion{Name: &modelVersion1Name, Description: &modelVersionDescription}
+	createdVersion1, err := service.UpsertModelVersion(modelVersion1, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
+	modelArtifact1Name := "v1-artifact"
+	modelArtifact1 := &openapi.ModelArtifact{Name: &modelArtifact1Name}
+	createdArtifact1, err := service.UpsertModelArtifact(modelArtifact1, createdVersion1.Id)
+	suite.Nilf(err, "error creating new model artifact for %s", *createdVersion1.Id)
+
+	modelVersion2Name := "v2"
+	modelVersion2 := &openapi.ModelVersion{Name: &modelVersion2Name, Description: &modelVersionDescription}
+	createdVersion2, err := service.UpsertModelVersion(modelVersion2, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
+	modelArtifact2Name := "v2-artifact"
+	modelArtifact2 := &openapi.ModelArtifact{Name: &modelArtifact2Name}
+	createdArtifact2, err := service.UpsertModelArtifact(modelArtifact2, createdVersion2.Id)
+	suite.Nilf(err, "error creating new model artifact for %s", *createdVersion2.Id)
+	// end of data preparation
+
+	eut := &openapi.InferenceService{
+		Name:                 &entityName,
+		ExternalID:           &entityExternalId2,
+		Description:          &entityDescription,
+		ServingEnvironmentId: parentResourceId,
+		RegisteredModelId:    registeredModelId,
+		ModelVersionId:       nil, // first we test by unspecified
+	}
+	createdEntity, err := service.UpsertInferenceService(eut)
+	suite.Nilf(err, "error creating new eut for %v", parentResourceId)
+
+	getModelArt, err := service.GetModelArtifactByInferenceService(*createdEntity.Id)
+	suite.Nilf(err, "error getting using id %s", *createdEntity.Id)
+	suite.Equal(*createdArtifact2.Id, *getModelArt.Id, "returned id shall be the latest ModelVersion by creation order")
+
+	// here we used the returned entity (so ID is populated), and we update to specify the "ID of the ModelVersion to serve"
+	createdEntity.ModelVersionId = createdVersion1.Id
+	_, err = service.UpsertInferenceService(createdEntity)
+	suite.Nilf(err, "error updating eut for %v", parentResourceId)
+
+	getModelArt, err = service.GetModelArtifactByInferenceService(*createdEntity.Id)
+	suite.Nilf(err, "error getting using id %s", *createdEntity.Id)
+	suite.Equal(*createdArtifact1.Id, *getModelArt.Id, "returned id shall be the specified one")
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
@@ -2623,6 +2672,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &entityExternalId2,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
+		Runtime:              of("model-server0"),
 	}
 
 	secondName := "v2"
@@ -2632,6 +2682,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &secondExtId,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
+		Runtime:              of("model-server1"),
 	}
 
 	thirdName := "v3"
@@ -2641,6 +2692,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &thirdExtId,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
+		Runtime:              of("model-server2"),
 	}
 
 	createdEntity1, err := service.UpsertInferenceService(eut1)
@@ -2663,6 +2715,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &anotherExtId,
 		ServingEnvironmentId: anotherParentResourceId,
 		RegisteredModelId:    registeredModelId,
+		Runtime:              of("model-server3"),
 	}
 
 	_, err = service.UpsertInferenceService(eutAnother)
@@ -2672,11 +2725,11 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 	createdId2, _ := converter.StringToInt64(createdEntity2.Id)
 	createdId3, _ := converter.StringToInt64(createdEntity3.Id)
 
-	getAll, err := service.GetInferenceServices(api.ListOptions{}, nil)
+	getAll, err := service.GetInferenceServices(api.ListOptions{}, nil, nil)
 	suite.Nilf(err, "error getting all")
 	suite.Equal(int32(4), getAll.Size, "expected 4 across all parent resources")
 
-	getAllByParentResource, err := service.GetInferenceServices(api.ListOptions{}, &parentResourceId)
+	getAllByParentResource, err := service.GetInferenceServices(api.ListOptions{}, &parentResourceId, nil)
 	suite.Nilf(err, "error getting all")
 	suite.Equalf(int32(3), getAllByParentResource.Size, "expected 3 for parent resource %d", parentResourceId)
 
@@ -2684,12 +2737,19 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 	suite.Equal(*converter.Int64ToString(createdId2), *getAllByParentResource.Items[1].Id)
 	suite.Equal(*converter.Int64ToString(createdId3), *getAllByParentResource.Items[2].Id)
 
+	modelServer := "model-server1"
+	getAllByParentResourceAndRuntime, err := service.GetInferenceServices(api.ListOptions{}, &parentResourceId, &modelServer)
+	suite.Nilf(err, "error getting all")
+	suite.Equalf(int32(1), getAllByParentResourceAndRuntime.Size, "expected 1 for parent resource %s and runtime %s", parentResourceId, modelServer)
+
+	suite.Equal(*converter.Int64ToString(createdId1), *getAllByParentResource.Items[0].Id)
+
 	// order by last update time, expecting last created as first
 	orderByLastUpdate := "LAST_UPDATE_TIME"
 	getAllByParentResource, err = service.GetInferenceServices(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
-	}, &parentResourceId)
+	}, &parentResourceId, nil)
 	suite.Nilf(err, "error getting all")
 	suite.Equalf(int32(3), getAllByParentResource.Size, "expected 3 for parent resource %d", parentResourceId)
 
@@ -2708,7 +2768,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 	getAllByParentResource, err = service.GetInferenceServices(api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
-	}, &parentResourceId)
+	}, &parentResourceId, nil)
 	suite.Nilf(err, "error getting all")
 	suite.Equalf(int32(3), getAllByParentResource.Size, "expected 3 for parent resource %d", parentResourceId)
 

@@ -57,6 +57,9 @@ type ModelRegistryApi interface {
 	// GetModelArtifactById retrieve ModelArtifact by id
 	GetModelArtifactById(id string) (*openapi.ModelArtifact, error)
 
+	// GetModelArtifactByInferenceService retrieve a ModelArtifact by inference service id
+	GetModelArtifactByInferenceService(inferenceServiceId string) (*openapi.ModelArtifact, error)
+
 	// GetModelArtifactByParams find ModelArtifact instances that match the provided optional params
 	GetModelArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.ModelArtifact, error)
 
@@ -95,7 +98,8 @@ type ModelRegistryApi interface {
 
 	// GetInferenceServices return all InferenceService properly ordered and sized based on listOptions param
 	// if servingEnvironmentId is provided, return all InferenceService instances belonging to a specific ServingEnvironment
-	GetInferenceServices(listOptions ListOptions, servingEnvironmentId *string) (*openapi.InferenceServiceList, error)
+	// if runtime is provided, filter those InferenceService having that runtime
+	GetInferenceServices(listOptions ListOptions, servingEnvironmentId *string, runtime *string) (*openapi.InferenceServiceList, error)
 
 	// SERVE MODEL
 
