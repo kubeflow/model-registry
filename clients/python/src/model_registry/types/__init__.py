@@ -4,7 +4,7 @@ Types are based on [ML Metadata](https://github.com/google/ml-metadata), with Py
 """
 
 from .artifacts import ArtifactState, ModelArtifact
-from .contexts import ModelVersion, RegisteredModel
+from .contexts import ContextState, ModelVersion, RegisteredModel
 from .options import ListOptions, OrderByField
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     # Contexts
     "ModelVersion",
     "RegisteredModel",
+    "ContextState",
     # Options
     "ListOptions",
     "OrderByField",

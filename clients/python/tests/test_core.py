@@ -38,6 +38,7 @@ def model_version(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     ctx.type_id = store_wrapper.get_type_id(Context, ModelVersion.get_proto_type_name())
     ctx.properties["author"].string_value = "author"
     ctx.properties["model_name"].string_value = model.py.name
+    ctx.properties["state"].string_value = "LIVE"
 
     return Mapped(ctx, ModelVersion(model.py.name, "version", "author"))
 
@@ -49,6 +50,7 @@ def registered_model(store_wrapper: MLMDStore, model: Mapped) -> Mapped:
     ctx.type_id = store_wrapper.get_type_id(
         Context, RegisteredModel.get_proto_type_name()
     )
+    ctx.properties["state"].string_value = "LIVE"
 
     return Mapped(ctx, RegisteredModel(model.py.name))
 

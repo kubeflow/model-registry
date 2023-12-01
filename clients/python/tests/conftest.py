@@ -52,6 +52,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
             "author",
             "description",
             "model_name",
+            "state",
             "tags",
         ],
     )
@@ -63,6 +64,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
         RegisteredModel.get_proto_type_name(),
         [
             "description",
+            "state",
         ],
     )
 

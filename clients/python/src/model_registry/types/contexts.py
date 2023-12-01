@@ -12,6 +12,7 @@ Todo:
 from __future__ import annotations
 
 from abc import ABC
+from enum import Enum, unique
 
 from attrs import define, field
 from ml_metadata.proto import Context
@@ -23,9 +24,39 @@ from .artifacts import BaseArtifact
 from .base import Prefixable, ProtoBase
 
 
+@unique
+class ContextState(Enum):
+    """State of the context.
+
+    LIVE: The context is live and can be used.
+    ARCHIVED: The context is archived and can't be used.
+    """
+
+    LIVE = "LIVE"
+    ARCHIVED = "ARCHIVED"
+
+
 @define(slots=False, init=False)
 class BaseContext(ProtoBase, ABC):
     """Abstract base class for all contexts."""
+
+    state: ContextState = field(init=False, default=ContextState.LIVE)
+
+    @override
+    def map(self, type_id: int) -> Context:
+        mlmd_obj = super().map(type_id)
+        mlmd_obj.properties["state"].string_value = self.state.value
+        return mlmd_obj
+
+    @classmethod
+    @override
+    def unmap(cls, mlmd_obj: Context) -> BaseContext:
+        py_obj = super().unmap(mlmd_obj)
+        assert isinstance(
+            py_obj, BaseContext
+        ), f"Expected BaseContext, got {type(py_obj)}"
+        py_obj.state = ContextState(mlmd_obj.properties["state"].string_value)
+        return py_obj
 
     @classmethod
     @override

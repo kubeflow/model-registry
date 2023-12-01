@@ -58,7 +58,7 @@ class BaseArtifact(ProtoBase):
     def map(self, type_id: int) -> Artifact:
         mlmd_obj = super().map(type_id)
         mlmd_obj.uri = self.uri
-        mlmd_obj.state = ArtifactState[self.state.name].value
+        mlmd_obj.state = self.state.value
         return mlmd_obj
 
     @classmethod
