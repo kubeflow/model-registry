@@ -1147,7 +1147,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
 
 	_, err := service.GetModelVersionByParams(of("not-present"), &registeredModelId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model versions found for versionName=not-present, parentResourceId=1, externalId=", err.Error())
+	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
@@ -1238,7 +1238,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
 
 	_, err = service.GetModelVersionByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (versionName and parentResourceId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (versionName and registeredModelId), or externalId", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersions() {
@@ -1624,7 +1624,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 
 	_, err = service.GetModelArtifactByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (artifactName and parentResourceId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
@@ -1635,7 +1635,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 
 	_, err := service.GetModelArtifactByParams(of("not-present"), &modelVersionId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model artifacts found for artifactName=not-present, parentResourceId=2, externalId=", err.Error())
+	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifacts() {
@@ -2535,7 +2535,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 
 	_, err := service.GetInferenceServiceByParams(of("not-present"), &parentResourceId, nil)
 	suite.NotNil(err)
-	suite.Equal("no inference services found for name=not-present, parentResourceId=1, externalId=", err.Error())
+	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
@@ -2657,7 +2657,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 
 	_, err = service.GetInferenceServiceByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (name and parentResourceId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (name and servingEnvironmentId), or externalId", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServices() {
@@ -2870,7 +2870,7 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 
 	_, err := service.UpsertServeModel(eut, nil)
 	suite.NotNil(err)
-	suite.Equal("missing parentResourceId, cannot create ServeModel without parent resource InferenceService", err.Error())
+	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService", err.Error())
 
 	_, err = service.UpsertServeModel(eut, &inferenceServiceId)
 	suite.NotNil(err)

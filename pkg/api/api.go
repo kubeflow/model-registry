@@ -2,11 +2,13 @@ package api
 
 import "github.com/opendatahub-io/model-registry/pkg/openapi"
 
+// ListOptions provides options for listing entities with pagination and sorting.
+// It includes parameters such as PageSize, OrderBy, SortOrder, and NextPageToken.
 type ListOptions struct {
-	PageSize      *int32
-	OrderBy       *string
-	SortOrder     *string
-	NextPageToken *string
+	PageSize      *int32  // The maximum number of entities to be returned per page.
+	OrderBy       *string // The field by which entities are ordered.
+	SortOrder     *string // The sorting order, which can be "ASC" (ascending) or "DESC" (descending).
+	NextPageToken *string // A token to retrieve the next page of entities in a paginated result set.
 }
 
 // ModelRegistryApi defines the external API for the Model Registry library

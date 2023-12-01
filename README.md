@@ -34,7 +34,7 @@ It provides a model registry domain-specific [api](internal/core/api.go) that is
 
 ### Model registry library
 
-TODO
+For more background on Model Registry Go core library and instructions on using it, please check [getting started guide](./doc/mr_go_library.md).
 
 ## Development
 
