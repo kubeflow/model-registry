@@ -10,13 +10,14 @@ This library provides a high level interface for interacting with a model regist
 ```py
 from model_registry import ModelRegistry
 
-registry = ModelRegistry(address="server-address", port="port", author="author")
+registry = ModelRegistry(server_address="server-address", port=9090, author="author")
 
 model = registry.register_model("my-model",
                                 "s3://path/to/model",
-                                format_name="onnx",
-                                format_version="v1",
-                                secret_account_name="access",
+                                model_format_name="onnx",
+                                model_format_version="1",
+                                storage_key="aws-connection-path",
+                                storage_path="to/model",
                                 version="v2.0",
                                 description="lorem ipsum",
                                 )
