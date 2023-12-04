@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/opendatahub-io/model-registry/internal/apiutils"
+	"github.com/opendatahub-io/model-registry/internal/constants"
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/converter/generated"
 	"github.com/opendatahub-io/model-registry/internal/mapper"
@@ -17,18 +18,19 @@ import (
 )
 
 var (
-	registeredModelTypeName    = of(converter.RegisteredModelTypeName)
-	modelVersionTypeName       = of(converter.ModelVersionTypeName)
-	modelArtifactTypeName      = of(converter.ModelArtifactTypeName)
-	servingEnvironmentTypeName = of(converter.ServingEnvironmentTypeName)
-	inferenceServiceTypeName   = of(converter.InferenceServiceTypeName)
-	serveModelTypeName         = of(converter.ServeModelTypeName)
+	registeredModelTypeName    = of(constants.RegisteredModelTypeName)
+	modelVersionTypeName       = of(constants.ModelVersionTypeName)
+	modelArtifactTypeName      = of(constants.ModelArtifactTypeName)
+	servingEnvironmentTypeName = of(constants.ServingEnvironmentTypeName)
+	inferenceServiceTypeName   = of(constants.InferenceServiceTypeName)
+	serveModelTypeName         = of(constants.ServeModelTypeName)
 	canAddFields               = of(true)
 )
 
 // ModelRegistryService is the core library of the model registry
 type ModelRegistryService struct {
 	mlmdClient  proto.MetadataStoreServiceClient
+	typesMap    map[string]int64
 	mapper      *mapper.Mapper
 	openapiConv *generated.OpenAPIConverterImpl
 }
@@ -151,17 +153,19 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 		return nil, fmt.Errorf("error setting up execution type %s: %v", *serveModelTypeName, err)
 	}
 
+	typesMap := map[string]int64{
+		constants.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
+		constants.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
+		constants.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
+		constants.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
+		constants.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
+		constants.ServeModelTypeName:         serveModelResp.GetTypeId(),
+	}
 	return &ModelRegistryService{
-		mlmdClient: client,
-		mapper: mapper.NewMapper(
-			registeredModelResp.GetTypeId(),
-			modelVersionResp.GetTypeId(),
-			modelArtifactResp.GetTypeId(),
-			servingEnvironmentResp.GetTypeId(),
-			inferenceServiceResp.GetTypeId(),
-			serveModelResp.GetTypeId(),
-		),
+		mlmdClient:  client,
+		typesMap:    typesMap,
 		openapiConv: &generated.OpenAPIConverterImpl{},
+		mapper:      mapper.NewMapper(typesMap),
 	}, nil
 }
 

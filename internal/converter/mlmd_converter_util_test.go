@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/opendatahub-io/model-registry/internal/constants"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -207,7 +208,7 @@ func TestMapRegisteredModelType(t *testing.T) {
 
 	typeName := MapRegisteredModelType(&openapi.RegisteredModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(RegisteredModelTypeName, *typeName)
+	assertion.Equal(constants.RegisteredModelTypeName, *typeName)
 }
 
 func TestMapModelVersionProperties(t *testing.T) {
@@ -235,7 +236,7 @@ func TestMapModelVersionType(t *testing.T) {
 
 	typeName := MapModelVersionType(&openapi.ModelVersion{})
 	assertion.NotNil(typeName)
-	assertion.Equal(ModelVersionTypeName, *typeName)
+	assertion.Equal(constants.ModelVersionTypeName, *typeName)
 }
 
 func TestMapModelVersionName(t *testing.T) {
@@ -286,7 +287,7 @@ func TestMapModelArtifactType(t *testing.T) {
 
 	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
 	assertion.NotNil(typeName)
-	assertion.Equal(ModelArtifactTypeName, *typeName)
+	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
 }
 
 func TestMapModelArtifactName(t *testing.T) {
@@ -517,7 +518,7 @@ func TestMapArtifactType(t *testing.T) {
 	assertion := setup(t)
 
 	artifactType, err := MapArtifactType(&proto.Artifact{
-		Type: of(ModelArtifactTypeName),
+		Type: of(constants.ModelArtifactTypeName),
 	})
 	assertion.Nil(err)
 	assertion.Equal("model-artifact", artifactType)
@@ -593,7 +594,7 @@ func TestMapServingEnvironmentType(t *testing.T) {
 
 	typeName := MapServingEnvironmentType(&openapi.ServingEnvironment{})
 	assertion.NotNil(typeName)
-	assertion.Equal(ServingEnvironmentTypeName, *typeName)
+	assertion.Equal(constants.ServingEnvironmentTypeName, *typeName)
 }
 
 func TestMapInferenceServiceType(t *testing.T) {
@@ -601,7 +602,7 @@ func TestMapInferenceServiceType(t *testing.T) {
 
 	typeName := MapInferenceServiceType(&openapi.InferenceService{})
 	assertion.NotNil(typeName)
-	assertion.Equal(InferenceServiceTypeName, *typeName)
+	assertion.Equal(constants.InferenceServiceTypeName, *typeName)
 }
 
 func TestMapInferenceServiceProperties(t *testing.T) {
@@ -623,9 +624,18 @@ func TestMapInferenceServiceProperties(t *testing.T) {
 	assertion.Equal(int64(3), props["serving_environment_id"].GetIntValue())
 
 	// serving and model id must be provided and must be a valid numeric id
-	props, err = MapInferenceServiceProperties(&openapi.InferenceService{})
+	_, err = MapInferenceServiceProperties(&openapi.InferenceService{})
 	assertion.NotNil(err)
-	assertion.Equal(0, len(props))
+	assertion.Equal("missing required RegisteredModelId field", err.Error())
+
+	_, err = MapInferenceServiceProperties(&openapi.InferenceService{RegisteredModelId: "1"})
+	assertion.NotNil(err)
+	assertion.Equal("missing required ServingEnvironmentId field", err.Error())
+
+	// invalid int
+	_, err = MapInferenceServiceProperties(&openapi.InferenceService{RegisteredModelId: "aa"})
+	assertion.NotNil(err)
+	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"aa\": invalid syntax", err.Error())
 }
 
 func TestMapServeModelType(t *testing.T) {
@@ -633,7 +643,7 @@ func TestMapServeModelType(t *testing.T) {
 
 	typeName := MapServeModelType(&openapi.ServeModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(ServeModelTypeName, *typeName)
+	assertion.Equal(constants.ServeModelTypeName, *typeName)
 }
 
 func TestMapServeModelProperties(t *testing.T) {
@@ -648,10 +658,15 @@ func TestMapServeModelProperties(t *testing.T) {
 	assertion.Equal("my custom description", props["description"].GetStringValue())
 	assertion.Equal(int64(1), props["model_version_id"].GetIntValue())
 
-	// serving and model id must be provided and must be a valid numeric id
-	props, err = MapServeModelProperties(&openapi.ServeModel{})
+	// model version id must be provided
+	_, err = MapServeModelProperties(&openapi.ServeModel{})
 	assertion.NotNil(err)
-	assertion.Equal(0, len(props))
+	assertion.Equal("missing required ModelVersionId field", err.Error())
+
+	// model version id must be a valid numeric
+	_, err = MapServeModelProperties(&openapi.ServeModel{ModelVersionId: "bb"})
+	assertion.NotNil(err)
+	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"bb\": invalid syntax", err.Error())
 }
 
 func TestMapServingEnvironmentProperties(t *testing.T) {

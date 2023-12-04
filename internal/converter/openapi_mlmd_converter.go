@@ -5,15 +5,6 @@ import (
 	"github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
-const (
-	RegisteredModelTypeName    = "odh.RegisteredModel"
-	ModelVersionTypeName       = "odh.ModelVersion"
-	ModelArtifactTypeName      = "odh.ModelArtifact"
-	ServingEnvironmentTypeName = "odh.ServingEnvironment"
-	InferenceServiceTypeName   = "odh.InferenceService"
-	ServeModelTypeName         = "odh.ServeModel"
-)
-
 type OpenAPIModelWrapper[
 	M openapi.RegisteredModel |
 		openapi.ModelVersion |

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/opendatahub-io/model-registry/internal/constants"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/pkg/openapi"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -20,7 +21,7 @@ func StringToInt64(id *string) (*int64, error) {
 
 	idAsInt, err := strconv.Atoi(*id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid numeric string: %v", err)
 	}
 
 	idInt64 := int64(idAsInt)
@@ -143,7 +144,7 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 
 // MapRegisteredModelType return RegisteredModel corresponding MLMD context type
 func MapRegisteredModelType(_ *openapi.RegisteredModel) *string {
-	return of(RegisteredModelTypeName)
+	return of(constants.RegisteredModelTypeName)
 }
 
 // MODEL VERSION
@@ -193,7 +194,7 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 
 // MapModelVersionType return ModelVersion corresponding MLMD context type
 func MapModelVersionType(_ *openapi.ModelVersion) *string {
-	return of(ModelVersionTypeName)
+	return of(constants.ModelVersionTypeName)
 }
 
 // MapModelVersionName maps the user-provided name into MLMD one, i.e., prefixing it with
@@ -256,7 +257,7 @@ func MapModelArtifactProperties(source *openapi.ModelArtifact) (map[string]*prot
 
 // MapModelArtifactType return ModelArtifact corresponding MLMD context type
 func MapModelArtifactType(_ *openapi.ModelArtifact) *string {
-	return of(ModelArtifactTypeName)
+	return of(constants.ModelArtifactTypeName)
 }
 
 // MapModelArtifactName maps the user-provided name into MLMD one, i.e., prefixing it with
@@ -290,7 +291,7 @@ func MapOpenAPIModelArtifactState(source *openapi.ArtifactState) (*proto.Artifac
 
 // MapServingEnvironmentType return ServingEnvironment corresponding MLMD context type
 func MapServingEnvironmentType(_ *openapi.ServingEnvironment) *string {
-	return of(ServingEnvironmentTypeName)
+	return of(constants.ServingEnvironmentTypeName)
 }
 
 // MapServingEnvironmentProperties maps ServingEnvironment fields to specific MLMD properties
@@ -312,7 +313,7 @@ func MapServingEnvironmentProperties(source *openapi.ServingEnvironment) (map[st
 
 // MapInferenceServiceType return InferenceService corresponding MLMD context type
 func MapInferenceServiceType(_ *openapi.InferenceService) *string {
-	return of(InferenceServiceTypeName)
+	return of(constants.InferenceServiceTypeName)
 }
 
 // MapInferenceServiceProperties maps InferenceService fields to specific MLMD properties
@@ -343,24 +344,32 @@ func MapInferenceServiceProperties(source *openapi.InferenceService) (map[string
 			}
 		}
 
-		registeredModelId, err := StringToInt64(&source.RegisteredModelId)
-		if err != nil {
-			return nil, err
-		}
-		props["registered_model_id"] = &proto.Value{
-			Value: &proto.Value_IntValue{
-				IntValue: *registeredModelId,
-			},
+		if source.RegisteredModelId != "" {
+			registeredModelId, err := StringToInt64(&source.RegisteredModelId)
+			if err != nil {
+				return nil, err
+			}
+			props["registered_model_id"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: *registeredModelId,
+				},
+			}
+		} else {
+			return nil, fmt.Errorf("missing required RegisteredModelId field")
 		}
 
-		servingEnvironmentId, err := StringToInt64(&source.ServingEnvironmentId)
-		if err != nil {
-			return nil, err
-		}
-		props["serving_environment_id"] = &proto.Value{
-			Value: &proto.Value_IntValue{
-				IntValue: *servingEnvironmentId,
-			},
+		if source.ServingEnvironmentId != "" {
+			servingEnvironmentId, err := StringToInt64(&source.ServingEnvironmentId)
+			if err != nil {
+				return nil, err
+			}
+			props["serving_environment_id"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: *servingEnvironmentId,
+				},
+			}
+		} else {
+			return nil, fmt.Errorf("missing required ServingEnvironmentId field")
 		}
 
 		if source.ModelVersionId != nil {
@@ -390,7 +399,7 @@ func MapInferenceServiceName(source *OpenAPIModelWrapper[openapi.InferenceServic
 
 // MapServeModelType return ServeModel corresponding MLMD context type
 func MapServeModelType(_ *openapi.ServeModel) *string {
-	return of(ServeModelTypeName)
+	return of(constants.ServeModelTypeName)
 }
 
 // MapServeModelProperties maps ServeModel fields to specific MLMD properties
@@ -405,16 +414,19 @@ func MapServeModelProperties(source *openapi.ServeModel) (map[string]*proto.Valu
 			}
 		}
 
-		modelVersionId, err := StringToInt64(&source.ModelVersionId)
-		if err != nil {
-			return nil, err
+		if source.ModelVersionId != "" {
+			modelVersionId, err := StringToInt64(&source.ModelVersionId)
+			if err != nil {
+				return nil, err
+			}
+			props["model_version_id"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: *modelVersionId,
+				},
+			}
+		} else {
+			return nil, fmt.Errorf("missing required ModelVersionId field")
 		}
-		props["model_version_id"] = &proto.Value{
-			Value: &proto.Value_IntValue{
-				IntValue: *modelVersionId,
-			},
-		}
-
 	}
 	return props, nil
 }

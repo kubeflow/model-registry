@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/opendatahub-io/model-registry/internal/constants"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"github.com/opendatahub-io/model-registry/pkg/openapi"
 )
@@ -82,7 +83,7 @@ func MapPropertyAuthor(properties map[string]*proto.Value) *string {
 // MODEL ARTIFACT
 
 func MapArtifactType(source *proto.Artifact) (string, error) {
-	if source.Type != nil && *source.Type == ModelArtifactTypeName {
+	if source.Type != nil && *source.Type == constants.ModelArtifactTypeName {
 		return "model-artifact", nil
 	}
 	return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
