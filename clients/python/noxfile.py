@@ -33,7 +33,7 @@ def lint(session: Session) -> None:
     """Lint using ruff."""
     session.install("ruff")
 
-    session.run("ruff", "check", "src")
+    session.run("ruff", "check", ".")
 
 
 @session(python=python_versions)
