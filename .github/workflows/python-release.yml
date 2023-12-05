@@ -1,0 +1,53 @@
+name: Release Python client
+
+on:
+  push:
+    tags:
+      - py-v*
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    env:
+      FORCE_COLOR: "1"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+
+      - name: Install Poetry
+        run: |
+          pipx install --pip-args=--constraint=.github/workflows/constraints.txt poetry
+          poetry --version
+
+      - name: Check version
+        run: |
+          set -o pipefail
+          [[ $(poetry version | cut -d' ' -f1) == $(grep -o '[0-9\.]*' <<< "$GITHUB_REF") ]] ||\
+            echo "::error title='$GITHUB_REF tag does not match project version'::"
+
+      - name: Build package
+        working-directory: clients/python
+        run: |
+          poetry build --ansi
+
+      - name: Publish package on PyPI
+        if: github.event_name == 'release'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: clients/python/dist/
