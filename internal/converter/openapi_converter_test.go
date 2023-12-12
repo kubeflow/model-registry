@@ -134,9 +134,11 @@ func checkEntity(entity *oapiEntity) []string {
 
 // test
 
-var converterMethodPattern *regexp.Regexp = regexp.MustCompile(`Convert(?P<entity>\w+)Update`)
-var overrideNotEditableMethodPattern *regexp.Regexp = regexp.MustCompile(`OverrideNotEditableFor(?P<entity>\w+)`)
-var ignoreDirectivePattern *regexp.Regexp = regexp.MustCompile(`// goverter:ignore (?P<fields>.+)`)
+var (
+	converterMethodPattern           *regexp.Regexp = regexp.MustCompile(`Convert(?P<entity>\w+)Update`)
+	overrideNotEditableMethodPattern *regexp.Regexp = regexp.MustCompile(`OverrideNotEditableFor(?P<entity>\w+)`)
+	ignoreDirectivePattern           *regexp.Regexp = regexp.MustCompile(`// goverter:ignore (?P<fields>.+)`)
+)
 
 func TestOverrideNotEditableFields(t *testing.T) {
 	_ = setup(t)
@@ -146,7 +148,7 @@ func TestOverrideNotEditableFields(t *testing.T) {
 	if err != nil {
 		t.Errorf("error getting current working directory")
 	}
-	filePath := fmt.Sprintf("%s/opeanpi_converter.go", wd)
+	filePath := fmt.Sprintf("%s/openapi_converter.go", wd)
 	f, _ := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 
 	v := newVisitor(t, f)
