@@ -39,8 +39,11 @@ jobs:
         working-directory: clients/python
         run: |
           set -o pipefail
-          [[ $(poetry version | cut -d' ' -f1) == $(grep -o '[0-9\.]*' <<< "$GITHUB_REF") ]] ||\
-            echo "::error title='$GITHUB_REF tag does not match project version'::"
+          LATEST_TAG=$(git describe --tags --match="py-v*")
+          if [[ "$LATEST_TAG" =~ $(poetry version | cut -d' ' -f1) ]]; then
+            echo "::error title='$LATEST_TAG tag does not match project version'::"
+            exit 1
+          fi
 
       - name: Build package
         working-directory: clients/python
