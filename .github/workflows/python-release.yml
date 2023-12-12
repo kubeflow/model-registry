@@ -36,6 +36,7 @@ jobs:
           poetry --version
 
       - name: Check version
+        working-directory: clients/python
         run: |
           set -o pipefail
           [[ $(poetry version | cut -d' ' -f1) == $(grep -o '[0-9\.]*' <<< "$GITHUB_REF") ]] ||\
