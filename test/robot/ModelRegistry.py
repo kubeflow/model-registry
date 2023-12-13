@@ -13,14 +13,14 @@ class ModelRegistry(mr.core.ModelRegistryAPIClient):
         super().__init__(host, port)
 
     def upsert_registered_model(self, registered_model) -> str:
-        p = RegisteredModel(None)
+        p = RegisteredModel("")
         for key, value in registered_model.items():
             setattr(p, key, value)
         return super().upsert_registered_model(p)
 
     def upsert_model_version(self, model_version, registered_model_id: str) -> str:
         write_to_console(model_version)
-        p = ModelVersion(ModelArtifact("", ""), "", "")
+        p = ModelVersion("", "", "")
         for key, value in model_version.items():
             setattr(p, key, value)
         write_to_console(p)
@@ -28,7 +28,7 @@ class ModelRegistry(mr.core.ModelRegistryAPIClient):
 
     def upsert_model_artifact(self, model_artifact, model_version_id: str) -> str:
         write_to_console(model_artifact)
-        p = ModelArtifact(None, None)
+        p = ModelArtifact("", "")
         for key, value in model_artifact.items():
             setattr(p, key, value)
         write_to_console(p)
