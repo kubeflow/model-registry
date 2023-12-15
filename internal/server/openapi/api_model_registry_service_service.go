@@ -185,7 +185,7 @@ func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Contex
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalID string, parentResourceID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelArtifactByParams(&name, &externalID, &parentResourceID)
+	result, err := s.coreApi.GetModelArtifactByParams(&name, &parentResourceID, &externalID)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -197,7 +197,7 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 
 // FindModelVersion - Get a ModelVersion that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalID string, registeredModelID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelVersionByParams(&name, &externalID, &registeredModelID)
+	result, err := s.coreApi.GetModelVersionByParams(&name, &registeredModelID, &externalID)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
