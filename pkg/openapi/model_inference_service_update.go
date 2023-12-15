@@ -28,8 +28,8 @@ type InferenceServiceUpdate struct {
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
 	// Model runtime.
-	Runtime *string                `json:"runtime,omitempty"`
-	State   *InferenceServiceState `json:"state,omitempty"`
+	Runtime      *string                `json:"runtime,omitempty"`
+	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 }
 
 // NewInferenceServiceUpdate instantiates a new InferenceServiceUpdate object
@@ -38,8 +38,8 @@ type InferenceServiceUpdate struct {
 // will change when the set of required properties is changed
 func NewInferenceServiceUpdate() *InferenceServiceUpdate {
 	this := InferenceServiceUpdate{}
-	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
-	this.State = &state
+	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.DesiredState = &desiredState
 	return &this
 }
 
@@ -48,8 +48,8 @@ func NewInferenceServiceUpdate() *InferenceServiceUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewInferenceServiceUpdateWithDefaults() *InferenceServiceUpdate {
 	this := InferenceServiceUpdate{}
-	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
-	this.State = &state
+	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.DesiredState = &desiredState
 	return &this
 }
 
@@ -213,36 +213,36 @@ func (o *InferenceServiceUpdate) SetRuntime(v string) {
 	o.Runtime = &v
 }
 
-// GetState returns the State field value if set, zero value otherwise.
-func (o *InferenceServiceUpdate) GetState() InferenceServiceState {
-	if o == nil || IsNil(o.State) {
+// GetDesiredState returns the DesiredState field value if set, zero value otherwise.
+func (o *InferenceServiceUpdate) GetDesiredState() InferenceServiceState {
+	if o == nil || IsNil(o.DesiredState) {
 		var ret InferenceServiceState
 		return ret
 	}
-	return *o.State
+	return *o.DesiredState
 }
 
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// GetDesiredStateOk returns a tuple with the DesiredState field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *InferenceServiceUpdate) GetStateOk() (*InferenceServiceState, bool) {
-	if o == nil || IsNil(o.State) {
+func (o *InferenceServiceUpdate) GetDesiredStateOk() (*InferenceServiceState, bool) {
+	if o == nil || IsNil(o.DesiredState) {
 		return nil, false
 	}
-	return o.State, true
+	return o.DesiredState, true
 }
 
-// HasState returns a boolean if a field has been set.
-func (o *InferenceServiceUpdate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
+// HasDesiredState returns a boolean if a field has been set.
+func (o *InferenceServiceUpdate) HasDesiredState() bool {
+	if o != nil && !IsNil(o.DesiredState) {
 		return true
 	}
 
 	return false
 }
 
-// SetState gets a reference to the given InferenceServiceState and assigns it to the State field.
-func (o *InferenceServiceUpdate) SetState(v InferenceServiceState) {
-	o.State = &v
+// SetDesiredState gets a reference to the given InferenceServiceState and assigns it to the DesiredState field.
+func (o *InferenceServiceUpdate) SetDesiredState(v InferenceServiceState) {
+	o.DesiredState = &v
 }
 
 func (o InferenceServiceUpdate) MarshalJSON() ([]byte, error) {
@@ -270,8 +270,8 @@ func (o InferenceServiceUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Runtime) {
 		toSerialize["runtime"] = o.Runtime
 	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
+	if !IsNil(o.DesiredState) {
+		toSerialize["desiredState"] = o.DesiredState
 	}
 	return toSerialize, nil
 }

@@ -544,13 +544,13 @@ func TestMapMLMDModelArtifactState(t *testing.T) {
 func TestMapRegisteredModelState(t *testing.T) {
 	assertion := setup(t)
 
-	state := MapRegisteredModelState(&proto.Context{Properties: map[string]*proto.Value{
+	state := MapRegisteredModelState(map[string]*proto.Value{
 		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.REGISTEREDMODELSTATE_LIVE)}},
-	}})
+	})
 	assertion.NotNil(state)
 	assertion.Equal(openapi.REGISTEREDMODELSTATE_LIVE, *state)
 
-	state = MapRegisteredModelState(&proto.Context{Properties: map[string]*proto.Value{}})
+	state = MapRegisteredModelState(map[string]*proto.Value{})
 	assertion.Nil(state)
 
 	state = MapRegisteredModelState(nil)
@@ -560,13 +560,13 @@ func TestMapRegisteredModelState(t *testing.T) {
 func TestMapModelVersionState(t *testing.T) {
 	assertion := setup(t)
 
-	state := MapModelVersionState(&proto.Context{Properties: map[string]*proto.Value{
+	state := MapModelVersionState(map[string]*proto.Value{
 		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.MODELVERSIONSTATE_LIVE)}},
-	}})
+	})
 	assertion.NotNil(state)
 	assertion.Equal(openapi.MODELVERSIONSTATE_LIVE, *state)
 
-	state = MapModelVersionState(&proto.Context{Properties: map[string]*proto.Value{}})
+	state = MapModelVersionState(map[string]*proto.Value{})
 	assertion.Nil(state)
 
 	state = MapModelVersionState(nil)
@@ -576,16 +576,16 @@ func TestMapModelVersionState(t *testing.T) {
 func TestMapInferenceServiceState(t *testing.T) {
 	assertion := setup(t)
 
-	state := MapInferenceServiceState(&proto.Context{Properties: map[string]*proto.Value{
-		"state": {Value: &proto.Value_StringValue{StringValue: string(openapi.INFERENCESERVICESTATE_DEPLOYED)}},
-	}})
+	state := MapInferenceServiceDesiredState(map[string]*proto.Value{
+		"desired_state": {Value: &proto.Value_StringValue{StringValue: string(openapi.INFERENCESERVICESTATE_DEPLOYED)}},
+	})
 	assertion.NotNil(state)
 	assertion.Equal(openapi.INFERENCESERVICESTATE_DEPLOYED, *state)
 
-	state = MapInferenceServiceState(&proto.Context{Properties: map[string]*proto.Value{}})
+	state = MapInferenceServiceDesiredState(map[string]*proto.Value{})
 	assertion.Nil(state)
 
-	state = MapInferenceServiceState(nil)
+	state = MapInferenceServiceDesiredState(nil)
 	assertion.Nil(state)
 }
 
@@ -614,14 +614,16 @@ func TestMapInferenceServiceProperties(t *testing.T) {
 		Runtime:              of("my-runtime"),
 		RegisteredModelId:    "2",
 		ServingEnvironmentId: "3",
+		DesiredState:         openapi.INFERENCESERVICESTATE_DEPLOYED.Ptr(),
 	})
 	assertion.Nil(err)
-	assertion.Equal(5, len(props))
+	assertion.Equal(6, len(props))
 	assertion.Equal("my custom description", props["description"].GetStringValue())
 	assertion.Equal(int64(1), props["model_version_id"].GetIntValue())
 	assertion.Equal("my-runtime", props["runtime"].GetStringValue())
 	assertion.Equal(int64(2), props["registered_model_id"].GetIntValue())
 	assertion.Equal(int64(3), props["serving_environment_id"].GetIntValue())
+	assertion.Equal("DEPLOYED", props["desired_state"].GetStringValue())
 
 	// serving and model id must be provided and must be a valid numeric id
 	_, err = MapInferenceServiceProperties(&openapi.InferenceService{})

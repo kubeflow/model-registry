@@ -76,7 +76,7 @@ type OpenAPIConverter interface {
 	// Ignore all fields that ARE editable
 	// goverter:default InitInferenceServiceWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalID CustomProperties ModelVersionId Runtime State
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalID CustomProperties ModelVersionId Runtime DesiredState
 	OverrideNotEditableForInferenceService(source OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error)
 
 	// Ignore all fields that ARE editable

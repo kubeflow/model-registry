@@ -336,10 +336,10 @@ func MapInferenceServiceProperties(source *openapi.InferenceService) (map[string
 			}
 		}
 
-		if source.State != nil {
-			props["state"] = &proto.Value{
+		if source.DesiredState != nil {
+			props["desired_state"] = &proto.Value{
 				Value: &proto.Value_StringValue{
-					StringValue: string(*source.State),
+					StringValue: string(*source.DesiredState),
 				},
 			}
 		}

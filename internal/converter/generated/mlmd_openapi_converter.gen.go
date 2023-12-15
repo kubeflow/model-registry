@@ -33,7 +33,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Conte
 		openapiInferenceService.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		openapiInferenceService.ModelVersionId = converter.MapPropertyModelVersionId((*source).Properties)
 		openapiInferenceService.Runtime = converter.MapPropertyRuntime((*source).Properties)
-		openapiInferenceService.State = converter.MapInferenceServiceState(source)
+		openapiInferenceService.DesiredState = converter.MapInferenceServiceDesiredState((*source).Properties)
 		openapiInferenceService.RegisteredModelId = converter.MapPropertyRegisteredModelId((*source).Properties)
 		openapiInferenceService.ServingEnvironmentId = converter.MapPropertyServingEnvironmentId((*source).Properties)
 		pOpenapiInferenceService = &openapiInferenceService
@@ -98,7 +98,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 		}
 		openapiModelVersion.ExternalID = pString
 		openapiModelVersion.Name = converter.MapNameFromOwned((*source).Name)
-		openapiModelVersion.State = converter.MapModelVersionState(source)
+		openapiModelVersion.State = converter.MapModelVersionState((*source).Properties)
 		openapiModelVersion.Author = converter.MapPropertyAuthor((*source).Properties)
 		openapiModelVersion.Id = converter.Int64ToString((*source).Id)
 		openapiModelVersion.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
@@ -132,7 +132,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Contex
 		openapiRegisteredModel.Id = converter.Int64ToString((*source).Id)
 		openapiRegisteredModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiRegisteredModel.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		openapiRegisteredModel.State = converter.MapRegisteredModelState(source)
+		openapiRegisteredModel.State = converter.MapRegisteredModelState((*source).Properties)
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil

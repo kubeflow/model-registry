@@ -30,8 +30,8 @@ type InferenceServiceCreate struct {
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
 	// Model runtime.
-	Runtime *string                `json:"runtime,omitempty"`
-	State   *InferenceServiceState `json:"state,omitempty"`
+	Runtime      *string                `json:"runtime,omitempty"`
+	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// ID of the `RegisteredModel` to serve.
 	RegisteredModelId string `json:"registeredModelId"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
@@ -44,8 +44,8 @@ type InferenceServiceCreate struct {
 // will change when the set of required properties is changed
 func NewInferenceServiceCreate(registeredModelId string, servingEnvironmentId string) *InferenceServiceCreate {
 	this := InferenceServiceCreate{}
-	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
-	this.State = &state
+	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.DesiredState = &desiredState
 	this.RegisteredModelId = registeredModelId
 	this.ServingEnvironmentId = servingEnvironmentId
 	return &this
@@ -56,8 +56,8 @@ func NewInferenceServiceCreate(registeredModelId string, servingEnvironmentId st
 // but it doesn't guarantee that properties required by API are set
 func NewInferenceServiceCreateWithDefaults() *InferenceServiceCreate {
 	this := InferenceServiceCreate{}
-	var state InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
-	this.State = &state
+	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
+	this.DesiredState = &desiredState
 	return &this
 }
 
@@ -253,36 +253,36 @@ func (o *InferenceServiceCreate) SetRuntime(v string) {
 	o.Runtime = &v
 }
 
-// GetState returns the State field value if set, zero value otherwise.
-func (o *InferenceServiceCreate) GetState() InferenceServiceState {
-	if o == nil || IsNil(o.State) {
+// GetDesiredState returns the DesiredState field value if set, zero value otherwise.
+func (o *InferenceServiceCreate) GetDesiredState() InferenceServiceState {
+	if o == nil || IsNil(o.DesiredState) {
 		var ret InferenceServiceState
 		return ret
 	}
-	return *o.State
+	return *o.DesiredState
 }
 
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// GetDesiredStateOk returns a tuple with the DesiredState field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *InferenceServiceCreate) GetStateOk() (*InferenceServiceState, bool) {
-	if o == nil || IsNil(o.State) {
+func (o *InferenceServiceCreate) GetDesiredStateOk() (*InferenceServiceState, bool) {
+	if o == nil || IsNil(o.DesiredState) {
 		return nil, false
 	}
-	return o.State, true
+	return o.DesiredState, true
 }
 
-// HasState returns a boolean if a field has been set.
-func (o *InferenceServiceCreate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
+// HasDesiredState returns a boolean if a field has been set.
+func (o *InferenceServiceCreate) HasDesiredState() bool {
+	if o != nil && !IsNil(o.DesiredState) {
 		return true
 	}
 
 	return false
 }
 
-// SetState gets a reference to the given InferenceServiceState and assigns it to the State field.
-func (o *InferenceServiceCreate) SetState(v InferenceServiceState) {
-	o.State = &v
+// SetDesiredState gets a reference to the given InferenceServiceState and assigns it to the DesiredState field.
+func (o *InferenceServiceCreate) SetDesiredState(v InferenceServiceState) {
+	o.DesiredState = &v
 }
 
 // GetRegisteredModelId returns the RegisteredModelId field value
@@ -361,8 +361,8 @@ func (o InferenceServiceCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Runtime) {
 		toSerialize["runtime"] = o.Runtime
 	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
+	if !IsNil(o.DesiredState) {
+		toSerialize["desiredState"] = o.DesiredState
 	}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
 	toSerialize["servingEnvironmentId"] = o.ServingEnvironmentId

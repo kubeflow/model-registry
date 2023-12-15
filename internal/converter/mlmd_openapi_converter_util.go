@@ -89,12 +89,8 @@ func MapArtifactType(source *proto.Artifact) (string, error) {
 	return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
 }
 
-func MapRegisteredModelState(source *proto.Context) *openapi.RegisteredModelState {
-	if source == nil || source.GetProperties() == nil {
-		return nil
-	}
-
-	state, ok := source.GetProperties()["state"]
+func MapRegisteredModelState(properties map[string]*proto.Value) *openapi.RegisteredModelState {
+	state, ok := properties["state"]
 	if !ok {
 		return nil
 	}
@@ -102,12 +98,8 @@ func MapRegisteredModelState(source *proto.Context) *openapi.RegisteredModelStat
 	return (*openapi.RegisteredModelState)(&str)
 }
 
-func MapModelVersionState(source *proto.Context) *openapi.ModelVersionState {
-	if source == nil || source.GetProperties() == nil {
-		return nil
-	}
-
-	state, ok := source.GetProperties()["state"]
+func MapModelVersionState(properties map[string]*proto.Value) *openapi.ModelVersionState {
+	state, ok := properties["state"]
 	if !ok {
 		return nil
 	}
@@ -115,12 +107,8 @@ func MapModelVersionState(source *proto.Context) *openapi.ModelVersionState {
 	return (*openapi.ModelVersionState)(&str)
 }
 
-func MapInferenceServiceState(source *proto.Context) *openapi.InferenceServiceState {
-	if source == nil || source.GetProperties() == nil {
-		return nil
-	}
-
-	state, ok := source.GetProperties()["state"]
+func MapInferenceServiceDesiredState(properties map[string]*proto.Value) *openapi.InferenceServiceState {
+	state, ok := properties["desired_state"]
 	if !ok {
 		return nil
 	}

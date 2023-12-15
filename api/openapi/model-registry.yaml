@@ -1576,7 +1576,7 @@ components:
             runtime:
               description: Model runtime.
               type: string
-            state:
+            desiredState:
               $ref: '#/components/schemas/InferenceServiceState'
     InferenceServiceCreate:
       description: >-

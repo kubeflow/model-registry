@@ -107,7 +107,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi,
 				// same information tracked using ParentContext association
 				"serving_environment_id": proto.PropertyType_INT,
 				"runtime":                proto.PropertyType_STRING,
-				"state":                  proto.PropertyType_STRING,
+				"desired_state":          proto.PropertyType_STRING,
 			},
 		},
 	}

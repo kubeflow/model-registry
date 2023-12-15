@@ -2125,7 +2125,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 	runtime := "model-server"
-	state := openapi.INFERENCESERVICESTATE_DEPLOYED
+	desiredState := openapi.INFERENCESERVICESTATE_DEPLOYED
 
 	eut := &openapi.InferenceService{
 		Name:                 &entityName,
@@ -2134,7 +2134,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
 		Runtime:              &runtime,
-		State:                &state,
+		DesiredState:         &desiredState,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -2165,7 +2165,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 	suite.Equal(customString, byId.Contexts[0].CustomProperties["custom_string_prop"].GetStringValue(), "saved custom_string_prop custom property should match the provided one")
 	suite.Equal(entityDescription, byId.Contexts[0].Properties["description"].GetStringValue(), "saved description should match the provided one")
 	suite.Equal(runtime, byId.Contexts[0].Properties["runtime"].GetStringValue(), "saved runtime should match the provided one")
-	suite.Equal(string(state), byId.Contexts[0].Properties["state"].GetStringValue(), "saved state should match the provided one")
+	suite.Equal(string(desiredState), byId.Contexts[0].Properties["desired_state"].GetStringValue(), "saved state should match the provided one")
 	suite.Equalf(*inferenceServiceTypeName, *byId.Contexts[0].Type, "saved context should be of type of %s", *inferenceServiceTypeName)
 
 	getAllResp, err := suite.mlmdClient.GetContexts(context.Background(), &proto.GetContextsRequest{})
@@ -2359,7 +2359,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 		Description:          &entityDescription,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
-		State:                &state,
+		DesiredState:         &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -2389,7 +2389,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 	suite.Equal(*getById.Id, *converter.Int64ToString(ctx.Id), "returned id should match the mlmd context one")
 	suite.Equal(*eut.Name, *getById.Name, "saved name should match the provided one")
 	suite.Equal(*eut.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
-	suite.Equal(*eut.State, *getById.State, "saved state should match the provided one")
+	suite.Equal(*eut.DesiredState, *getById.DesiredState, "saved state should match the provided one")
 	suite.Equal(*(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, customString, "saved custom_string_prop custom property should match the provided one")
 }
 

@@ -53,11 +53,11 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.Inf
 		}
 		openapiInferenceService.Runtime = pString5
 		var pOpenapiInferenceServiceState *openapi.InferenceServiceState
-		if (*source).State != nil {
-			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).State)
+		if (*source).DesiredState != nil {
+			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).DesiredState)
 			pOpenapiInferenceServiceState = &openapiInferenceServiceState
 		}
-		openapiInferenceService.State = pOpenapiInferenceServiceState
+		openapiInferenceService.DesiredState = pOpenapiInferenceServiceState
 		openapiInferenceService.RegisteredModelId = (*source).RegisteredModelId
 		openapiInferenceService.ServingEnvironmentId = (*source).ServingEnvironmentId
 		pOpenapiInferenceService = &openapiInferenceService
@@ -102,11 +102,11 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 		}
 		openapiInferenceService.Runtime = pString4
 		var pOpenapiInferenceServiceState *openapi.InferenceServiceState
-		if (*source).State != nil {
-			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).State)
+		if (*source).DesiredState != nil {
+			openapiInferenceServiceState := openapi.InferenceServiceState(*(*source).DesiredState)
 			pOpenapiInferenceServiceState = &openapiInferenceServiceState
 		}
-		openapiInferenceService.State = pOpenapiInferenceServiceState
+		openapiInferenceService.DesiredState = pOpenapiInferenceServiceState
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
