@@ -10,6 +10,10 @@ readme = "README.md"
 python = ">= 3.9, < 3.11"
 attrs = "^21.0"
 ml-metadata = "^1.14.0"
+# Testcontainers for python, remote mlmd grpc tested with:
+# ml-metadata = { url = "https://github.com/tarilabs/ml-metadata/releases/download/1.14.0/ml_metadata-1.14.0-py3-none-any.whl" }
+# or might consider as well:
+# ml-metadata = { url = "https://github.com/tarilabs/ml-metadata-remote/releases/download/1.14.0/ml_metadata-1.14.0-py3-none-any.whl" }
 typing-extensions = "^4.8"
 
 [tool.poetry.group.dev.dependencies]
@@ -22,6 +26,7 @@ pytest-cov = "^4.1.0"
 sphinx-autobuild = "^2021.3.14"
 ruff = "^0.1.6"
 mypy = "^1.7.0"
+testcontainers = "^3.7.1"
 
 [tool.coverage.run]
 branch = true
