@@ -160,11 +160,10 @@ class ModelRegistryAPIClient:
         Returns:
             ID of the model version.
         """
-        rm_id = int(registered_model_id)
         # this is not ideal but we need this info for the prefix
-        model_version._registered_model_id = rm_id
+        model_version._registered_model_id = registered_model_id
         id = self._store.put_context(self._map(model_version))
-        self._store.put_context_parent(rm_id, id)
+        self._store.put_context_parent(int(registered_model_id), id)
         new_py_mv = ModelVersion.unmap(
             self._store.get_context(ModelVersion.get_proto_type_name(), id)
         )

@@ -34,7 +34,7 @@ def full_model_version() -> Mapped:
         external_id="test_external_id",
         description="test description",
     )
-    py_version._registered_model_id = 1
+    py_version._registered_model_id = "1"
     py_version.tags = ["test_tag1", "test_tag2"]
     py_version.metadata = {
         "int_key": 1,
@@ -56,7 +56,7 @@ def minimal_model_version() -> Mapped:
     proto_version.properties["state"].string_value = "LIVE"
 
     py_version = ModelVersion("test_model", "1.0.0", "test_author")
-    py_version._registered_model_id = 1
+    py_version._registered_model_id = "1"
     return Mapped(proto_version, py_version)
 
 

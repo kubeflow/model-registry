@@ -86,14 +86,14 @@ class ModelVersion(BaseContext, Prefixable):
     tags: list[str] = field(init=False, factory=list)
     metadata: dict[str, ScalarType] = field(init=False, factory=dict)
 
-    _registered_model_id: int | None = field(init=False, default=None)
+    _registered_model_id: str | None = field(init=False, default=None)
 
     def __attrs_post_init__(self) -> None:
         self.name = self.version
 
     @property
     @override
-    def mlmd_name_prefix(self):
+    def mlmd_name_prefix(self) -> str:
         assert (
             self._registered_model_id is not None
         ), "There's no registered model associated with this version"
