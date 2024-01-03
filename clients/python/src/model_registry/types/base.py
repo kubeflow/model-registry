@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, get_args
 
 from attrs import define, field
 from typing_extensions import override
@@ -160,19 +160,12 @@ class ProtoBase(Mappable, ABC):
             Python properties.
         """
         py_props: dict[str, ScalarType] = {}
-        for key, value in mlmd_props.items():
-            # TODO: use pattern matching here (3.10)
-            if value.HasField("bool_value"):
-                py_props[key] = value.bool_value
-            elif value.HasField("int_value"):
-                py_props[key] = value.int_value
-            elif value.HasField("double_value"):
-                py_props[key] = value.double_value
-            elif value.HasField("string_value"):
-                py_props[key] = value.string_value
-            else:
-                msg = f"Unsupported type: {type(value)}"
+        for key, prop in mlmd_props.items():
+            _, value = prop.ListFields()[0]
+            if not isinstance(value, get_args(ScalarType)):
+                msg = f"Unsupported type {type(value)} on key {key}"
                 raise Exception(msg)
+            py_props[key] = value
 
         return py_props
 
