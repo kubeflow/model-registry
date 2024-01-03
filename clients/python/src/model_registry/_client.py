@@ -1,6 +1,9 @@
 """Standard client for the model registry."""
 from __future__ import annotations
 
+from typing import get_args
+from warnings import warn
+
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreException
 from .store import ScalarType
@@ -119,6 +122,98 @@ class ModelRegistry:
         )
 
         return rm
+
+    def register_hf_model(
+        self,
+        repo: str,
+        path: str,
+        *,
+        version: str,
+        model_format_name: str,
+        model_format_version: str,
+        author: str | None = None,
+        model_name: str | None = None,
+        description: str | None = None,
+        git_ref: str = "main",
+    ) -> RegisteredModel:
+        """Register a Hugging Face model.
+
+        This imports a model from Hugging Face hub and registers it in the model registry.
+        Note that the model is not downloaded.
+
+        Args:
+            repo: Name of the repository from Hugging Face hub.
+            path: URI of the model.
+
+        Keyword Args:
+            version: Version of the model. Has to be unique.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            author: Author of the model. Defaults to repo owner.
+            model_name: Name of the model. Defaults to the repo name.
+            description: Description of the model.
+            git_ref: Git reference to use. Defaults to `main`.
+
+        Returns:
+            Registered model.
+        """
+        try:
+            from huggingface_hub import HfApi, hf_hub_url, utils
+        except ImportError as e:
+            msg = "huggingface_hub is not installed"
+            raise StoreException(msg) from e
+
+        api = HfApi()
+        try:
+            model_info = api.model_info(repo, revision=git_ref)
+        except utils.RepositoryNotFoundError as e:
+            msg = f"Repository {repo} does not exist"
+            raise StoreException(msg) from e
+        except utils.RevisionNotFoundError as e:
+            # TODO: as all hf-hub client calls default to using main, should we provide a tip?
+            msg = f"Revision {git_ref} does not exist"
+            raise StoreException(msg) from e
+
+        if not author:
+            # model author can be None if the repo is in a "global" namespace (i.e. no / in repo).
+            if model_info.author is None:
+                model_author = "unknown"
+                warn(
+                    "Model author is unknown. This is likely because the model is in a global namespace.",
+                    stacklevel=2,
+                )
+            else:
+                model_author = model_info.author
+        else:
+            model_author = author
+        source_uri = hf_hub_url(repo, path, revision=git_ref)
+        metadata = {
+            "repo": repo,
+            "source_uri": source_uri,
+            "model_origin": "huggingface_hub",
+            "model_author": model_author,
+        }
+        # card_data is the new field, but let's use the old one for backwards compatibility.
+        if card_data := model_info.cardData:
+            metadata.update(
+                {
+                    k: v
+                    for k, v in card_data.to_dict().items()
+                    # TODO: (#151) preserve tags, possibly other complex metadata
+                    if isinstance(v, get_args(ScalarType))
+                }
+            )
+        return self.register_model(
+            model_name or model_info.id,
+            source_uri,
+            author=author or model_author,
+            version=version,
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            description=description,
+            storage_path=path,
+            metadata=metadata,
+        )
 
     def get_registered_model(self, name: str) -> RegisteredModel | None:
         """Get a registered model.

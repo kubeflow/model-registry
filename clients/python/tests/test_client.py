@@ -66,3 +66,37 @@ def test_get(mr_client: ModelRegistry):
     assert mv.id == _mv.id
     assert (_ma := mr_client.get_model_artifact(name, version))
     assert ma.id == _ma.id
+
+
+def test_hf_import(mr_client: ModelRegistry):
+    pytest.importorskip("huggingface_hub")
+    name = "gpt2"
+    version = "1.2.3"
+
+    assert mr_client.register_hf_model(
+        name,
+        "onnx/decoder_model.onnx",
+        author="test author",
+        version=version,
+        model_format_name="test format",
+        model_format_version="test version",
+    )
+    assert mr_client.get_model_version(name, version)
+    assert mr_client.get_model_artifact(name, version)
+
+
+def test_hf_import_missing_author(mr_client: ModelRegistry):
+    pytest.importorskip("huggingface_hub")
+    name = "gpt2"
+    version = "1.2.3"
+
+    with pytest.warns(match=r".*author is unknown.*"):
+        assert mr_client.register_hf_model(
+            name,
+            "onnx/decoder_model.onnx",
+            version=version,
+            model_format_name="test format",
+            model_format_version="test version",
+        )
+    assert (mv := mr_client.get_model_version(name, version))
+    assert mv.author == "unknown"
