@@ -13,10 +13,11 @@ from .. import Mapped
 
 @pytest.fixture()
 def full_model_version() -> Mapped:
-    proto_version = Context()
-    proto_version.name = "1:1.0.0"
-    proto_version.type_id = 2
-    proto_version.external_id = "test_external_id"
+    proto_version = Context(
+        name="1:1.0.0",
+        type_id=2,
+        external_id="test_external_id",
+    )
     proto_version.properties["description"].string_value = "test description"
     proto_version.properties["model_name"].string_value = "test_model"
     proto_version.properties["author"].string_value = "test_author"
@@ -32,23 +33,21 @@ def full_model_version() -> Mapped:
         "test_author",
         external_id="test_external_id",
         description="test description",
+        metadata={
+            "int_key": 1,
+            "float_key": 1.0,
+            "bool_key": True,
+            "str_key": "test_str",
+        },
     )
     py_version._registered_model_id = "1"
-    py_version.metadata = {
-        "int_key": 1,
-        "float_key": 1.0,
-        "bool_key": True,
-        "str_key": "test_str",
-    }
     py_version.state = ContextState.ARCHIVED
     return Mapped(proto_version, py_version)
 
 
 @pytest.fixture()
 def minimal_model_version() -> Mapped:
-    proto_version = Context()
-    proto_version.name = "1:1.0.0"
-    proto_version.type_id = 2
+    proto_version = Context(name="1:1.0.0", type_id=2)
     proto_version.properties["model_name"].string_value = "test_model"
     proto_version.properties["author"].string_value = "test_author"
     proto_version.properties["state"].string_value = "LIVE"

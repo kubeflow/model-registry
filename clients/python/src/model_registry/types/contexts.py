@@ -81,8 +81,8 @@ class ModelVersion(BaseContext, Prefixable):
     model_name: str
     version: str
     author: str
+    metadata: dict[str, ScalarType] = field(factory=dict)
     artifacts: list[BaseArtifact] = field(init=False, factory=list)
-    metadata: dict[str, ScalarType] = field(init=False, factory=dict)
 
     _registered_model_id: str | None = field(init=False, default=None)
 

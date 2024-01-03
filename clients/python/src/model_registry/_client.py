@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreException
+from .store import ScalarType
 from .types import ModelArtifact, ModelVersion, RegisteredModel
 
 
@@ -43,14 +44,14 @@ class ModelRegistry:
         return rm
 
     def _register_new_version(
-        self, rm: RegisteredModel, version: str, /, description: str | None
+        self, rm: RegisteredModel, version: str, author: str, /, **kwargs
     ) -> ModelVersion:
         assert rm.id is not None, "Registered model must have an ID"
         if self._api.get_model_version_by_params(rm.id, version):
             msg = f"Version {version} already exists"
             raise StoreException(msg)
 
-        mv = ModelVersion(rm.name, version, self._author, description=description)
+        mv = ModelVersion(rm.name, version, author, **kwargs)
         self._api.upsert_model_version(mv, rm.id)
         return mv
 
@@ -70,10 +71,12 @@ class ModelRegistry:
         model_format_name: str,
         model_format_version: str,
         version: str,
+        author: str | None = None,
         description: str | None = None,
         storage_key: str | None = None,
         storage_path: str | None = None,
         service_account_name: str | None = None,
+        metadata: dict[str, ScalarType] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
@@ -84,19 +87,27 @@ class ModelRegistry:
             uri: URI of the model.
 
         Keyword Args:
+            version: Version of the model. Has to be unique.
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
-            version: Version of the model. Has to be unique.
             description: Description of the model.
+            author: Author of the model. Defaults to the client author.
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
+            metadata: Additional version metadata.
 
         Returns:
             Registered model.
         """
         rm = self._register_model(name)
-        mv = self._register_new_version(rm, version, description=description)
+        mv = self._register_new_version(
+            rm,
+            version,
+            author or self._author,
+            description=description,
+            metadata=metadata or {},
+        )
         self._register_model_artifact(
             mv,
             uri,

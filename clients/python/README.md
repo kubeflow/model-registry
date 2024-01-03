@@ -12,15 +12,23 @@ from model_registry import ModelRegistry
 
 registry = ModelRegistry(server_address="server-address", port=9090, author="author")
 
-model = registry.register_model("my-model",
-                                "s3://path/to/model",
-                                model_format_name="onnx",
-                                model_format_version="1",
-                                storage_key="aws-connection-path",
-                                storage_path="to/model",
-                                version="v2.0",
-                                description="lorem ipsum",
-                                )
+model = registry.register_model(
+    "my-model",  # model name
+    "s3://path/to/model",  # model URI
+    version="2.0.0",
+    description="lorem ipsum",
+    model_format_name="onnx",
+    model_format_version="1",
+    storage_key="aws-connection-path",
+    storage_path="path/to/model",
+    metadata={
+        # can be one of the following types
+        "int_key": 1,
+        "bool_key": False,
+        "float_key": 3.14,
+        "str_key": "str_value",
+    }
+)
 
 model = registry.get_registered_model("my-model")
 
