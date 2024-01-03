@@ -55,11 +55,14 @@ def test_get(mr_client: ModelRegistry):
         version=version,
     )
 
-    assert rm.id == mr_client.get_registered_model(name).id
+    assert (_rm := mr_client.get_registered_model(name))
+    assert rm.id == _rm.id
 
     mr_api = mr_client._api
-    mv = mr_api.get_model_version_by_params(rm.id, version)
-    ma = mr_api.get_model_artifact_by_params(mv.id)
+    assert (mv := mr_api.get_model_version_by_params(rm.id, version))
+    assert (ma := mr_api.get_model_artifact_by_params(mv.id))
 
-    assert mv.id == mr_client.get_model_version(name, version).id
-    assert ma.id == mr_client.get_model_artifact(name, version).id
+    assert (_mv := mr_client.get_model_version(name, version))
+    assert mv.id == _mv.id
+    assert (_ma := mr_client.get_model_artifact(name, version))
+    assert ma.id == _ma.id

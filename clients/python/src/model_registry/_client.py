@@ -21,12 +21,12 @@ class ModelRegistry:
         """Constructor.
 
         Args:
-            server_address (str): Server address.
-            port (int): Server port.
-            author (str): Name of the author.
-            client_key (str, optional): The PEM-encoded private key as a byte string.
-            server_cert (str, optional): The PEM-encoded certificate as a byte string.
-            custom_ca (str, optional): The PEM-encoded root certificates as a byte string.
+            server_address: Server address.
+            port: Server port.
+            author: Name of the author.
+            client_key: The PEM-encoded private key as a byte string.
+            server_cert: The PEM-encoded certificate as a byte string.
+            custom_ca: The PEM-encoded root certificates as a byte string.
         """
         # TODO: get args from env
         self._author = author
@@ -77,24 +77,23 @@ class ModelRegistry:
     ) -> RegisteredModel:
         """Register a model.
 
-        Version has to be unique for the model.
         Either `storage_key` and `storage_path`, or `service_account_name` must be provided.
 
         Args:
-            name (str): Name of the model.
-            uri (str): URI of the model.
+            name: Name of the model.
+            uri: URI of the model.
 
         Keyword Args:
-            model_format_name (str): Name of the model format.
-            model_format_version (str): Version of the model format.
-            version (str): Version of the model.
-            description (str, optional): Description of the model.
-            storage_key (str, optional): Storage key.
-            storage_path (str, optional): Storage path.
-            service_account_name (str, optional): Service account name.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            version: Version of the model. Has to be unique.
+            description: Description of the model.
+            storage_key: Storage key.
+            storage_path: Storage path.
+            service_account_name: Service account name.
 
         Returns:
-            RegisteredModel: Registered model.
+            Registered model.
         """
         rm = self._register_model(name)
         mv = self._register_new_version(rm, version, description=description)
@@ -110,39 +109,49 @@ class ModelRegistry:
 
         return rm
 
-    def get_registered_model(self, name: str) -> RegisteredModel:
+    def get_registered_model(self, name: str) -> RegisteredModel | None:
         """Get a registered model.
 
         Args:
-            name (str): Name of the model.
+            name: Name of the model.
 
         Returns:
-            RegisteredModel: Registered model.
+            Registered model.
         """
         return self._api.get_registered_model_by_params(name)
 
-    def get_model_version(self, name: str, version: str) -> ModelVersion:
+    def get_model_version(self, name: str, version: str) -> ModelVersion | None:
         """Get a model version.
 
         Args:
-            name (str): Name of the model.
-            version (str): Version of the model.
+            name: Name of the model.
+            version: Version of the model.
 
         Returns:
-            ModelVersion: Model version.
+            Model version.
+
+        Raises:
+            StoreException: If the model does not exist.
         """
-        rm = self._api.get_registered_model_by_params(name)
+        if not (rm := self._api.get_registered_model_by_params(name)):
+            msg = f"Model {name} does not exist"
+            raise StoreException(msg)
         return self._api.get_model_version_by_params(rm.id, version)
 
-    def get_model_artifact(self, name: str, version: str) -> ModelArtifact:
+    def get_model_artifact(self, name: str, version: str) -> ModelArtifact | None:
         """Get a model artifact.
 
         Args:
-            name (str): Name of the model.
-            version (str): Version of the model.
+            name: Name of the model.
+            version: Version of the model.
 
         Returns:
-            ModelArtifact: Model artifact.
+            Model artifact.
+
+        Raises:
+            StoreException: If either the model or the version don't exist.
         """
-        mv = self.get_model_version(name, version)
+        if not (mv := self.get_model_version(name, version)):
+            msg = f"Version {version} does not exist"
+            raise StoreException(msg)
         return self._api.get_model_artifact_by_params(mv.id)

@@ -75,7 +75,7 @@ def test_get_registered_model_by_id(
 ):
     rm_id = mr_api._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
-    mlmd_rm = mr_api.get_registered_model_by_id(str(rm_id))
+    assert (mlmd_rm := mr_api.get_registered_model_by_id(str(rm_id)))
     assert mlmd_rm.id == str(rm_id)
     assert mlmd_rm.name == registered_model.py.name
     assert mlmd_rm.name == registered_model.proto.name
@@ -87,7 +87,9 @@ def test_get_registered_model_by_name(
 ):
     rm_id = mr_api._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
-    mlmd_rm = mr_api.get_registered_model_by_params(name=registered_model.py.name)
+    assert (
+        mlmd_rm := mr_api.get_registered_model_by_params(name=registered_model.py.name)
+    )
     assert mlmd_rm.id == str(rm_id)
     assert mlmd_rm.name == registered_model.py.name
     assert mlmd_rm.name == registered_model.proto.name
@@ -101,8 +103,10 @@ def test_get_registered_model_by_external_id(
     registered_model.proto.external_id = "external_id"
     rm_id = mr_api._store._mlmd_store.put_contexts([registered_model.proto])[0]
 
-    mlmd_rm = mr_api.get_registered_model_by_params(
-        external_id=registered_model.py.external_id
+    assert (
+        mlmd_rm := mr_api.get_registered_model_by_params(
+            external_id=registered_model.py.external_id
+        )
     )
     assert mlmd_rm.id == str(rm_id)
     assert mlmd_rm.name == registered_model.py.name
@@ -144,7 +148,7 @@ def test_get_model_version_by_id(mr_api: ModelRegistryAPIClient, model_version: 
     ctx_id = mr_api._store._mlmd_store.put_contexts([model_version.proto])[0]
 
     id = str(ctx_id)
-    mlmd_mv = mr_api.get_model_version_by_id(id)
+    assert (mlmd_mv := mr_api.get_model_version_by_id(id))
     assert mlmd_mv.id == id
     assert mlmd_mv.name == model_version.py.name
     assert mlmd_mv.version != model_version.proto.name
@@ -156,8 +160,10 @@ def test_get_model_version_by_name(
     model_version.proto.name = f"1:{model_version.proto.name}"
     mv_id = mr_api._store._mlmd_store.put_contexts([model_version.proto])[0]
 
-    mlmd_mv = mr_api.get_model_version_by_params(
-        registered_model_id="1", version=model_version.py.name
+    assert (
+        mlmd_mv := mr_api.get_model_version_by_params(
+            registered_model_id="1", version=model_version.py.name
+        )
     )
     assert mlmd_mv.id == str(mv_id)
     assert mlmd_mv.name == model_version.py.name
@@ -172,8 +178,10 @@ def test_get_model_version_by_external_id(
     model_version.py.external_id = "external_id"
     mv_id = mr_api._store._mlmd_store.put_contexts([model_version.proto])[0]
 
-    mlmd_mv = mr_api.get_model_version_by_params(
-        external_id=model_version.py.external_id
+    assert (
+        mlmd_mv := mr_api.get_model_version_by_params(
+            external_id=model_version.py.external_id
+        )
     )
     assert mlmd_mv.id == str(mv_id)
     assert mlmd_mv.name == model_version.py.name
@@ -266,8 +274,7 @@ def test_get_model_artifact_by_id(mr_api: ModelRegistryAPIClient, model: Mapped)
     id = mr_api._store._mlmd_store.put_artifacts([model.proto])[0]
     id = str(id)
 
-    mlmd_ma = mr_api.get_model_artifact_by_id(id)
-
+    assert (mlmd_ma := mr_api.get_model_artifact_by_id(id))
     assert mlmd_ma.id == id
     assert mlmd_ma.name == model.py.name
     assert mlmd_ma.name != model.proto.name
@@ -285,8 +292,7 @@ def test_get_model_artifact_by_model_version_id(
         [Attribution(context_id=mv_id, artifact_id=ma_id)], []
     )
 
-    mlmd_ma = mr_api.get_model_artifact_by_params(model_version_id=str(mv_id))
-
+    assert (mlmd_ma := mr_api.get_model_artifact_by_params(model_version_id=str(mv_id)))
     assert mlmd_ma.id == str(ma_id)
     assert mlmd_ma.name == model.py.name
     assert mlmd_ma.name != model.proto.name
@@ -302,8 +308,9 @@ def test_get_model_artifact_by_external_id(
     id = mr_api._store._mlmd_store.put_artifacts([model.proto])[0]
     id = str(id)
 
-    mlmd_ma = mr_api.get_model_artifact_by_params(external_id=model.py.external_id)
-
+    assert (
+        mlmd_ma := mr_api.get_model_artifact_by_params(external_id=model.py.external_id)
+    )
     assert mlmd_ma.id == id
     assert mlmd_ma.name == model.py.name
     assert mlmd_ma.name != model.proto.name

@@ -317,8 +317,8 @@ class MLMDStore:
         artifacts = self._filter_type(art_type_name, artifacts)
         if artifacts:
             return artifacts[0]
-        msg = "No artifacts found"
-        raise StoreException(msg)
+
+        return None
 
     def get_artifacts(
         self, art_type_name: str, options: ListOptions
