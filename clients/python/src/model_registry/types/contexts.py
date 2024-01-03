@@ -75,7 +75,6 @@ class ModelVersion(BaseContext, Prefixable):
         description: Description of the object.
         external_id: Customizable ID. Has to be unique among instances of the same type.
         artifacts: Artifacts associated with this version.
-        tags: Tags associated with this version.
         metadata: Metadata associated with this version.
     """
 
@@ -83,7 +82,6 @@ class ModelVersion(BaseContext, Prefixable):
     version: str
     author: str
     artifacts: list[BaseArtifact] = field(init=False, factory=list)
-    tags: list[str] = field(init=False, factory=list)
     metadata: dict[str, ScalarType] = field(init=False, factory=dict)
 
     _registered_model_id: str | None = field(init=False, default=None)
@@ -103,10 +101,11 @@ class ModelVersion(BaseContext, Prefixable):
     def map(self, type_id: int) -> Context:
         mlmd_obj = super().map(type_id)
         # this should match the name of the registered model
-        mlmd_obj.properties["model_name"].string_value = self.model_name
-        mlmd_obj.properties["author"].string_value = self.author
-        if self.tags:
-            mlmd_obj.properties["tags"].string_value = ",".join(self.tags)
+        props = {
+            "model_name": self.model_name,
+            "author": self.author,
+        }
+        self._map_props(props, mlmd_obj.properties)
         self._map_props(self.metadata, mlmd_obj.custom_properties)
         return mlmd_obj
 
@@ -120,10 +119,6 @@ class ModelVersion(BaseContext, Prefixable):
         py_obj.version = py_obj.name
         py_obj.model_name = mlmd_obj.properties["model_name"].string_value
         py_obj.author = mlmd_obj.properties["author"].string_value
-        tags = mlmd_obj.properties["tags"].string_value
-        if tags:
-            tags = tags.split(",")
-        py_obj.tags = tags or []
         py_obj.metadata = cls._unmap_props(mlmd_obj.custom_properties)
         return py_obj
 

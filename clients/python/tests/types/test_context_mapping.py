@@ -20,7 +20,6 @@ def full_model_version() -> Mapped:
     proto_version.properties["description"].string_value = "test description"
     proto_version.properties["model_name"].string_value = "test_model"
     proto_version.properties["author"].string_value = "test_author"
-    proto_version.properties["tags"].string_value = "test_tag1,test_tag2"
     proto_version.properties["state"].string_value = "ARCHIVED"
     proto_version.custom_properties["int_key"].int_value = 1
     proto_version.custom_properties["float_key"].double_value = 1.0
@@ -35,7 +34,6 @@ def full_model_version() -> Mapped:
         description="test description",
     )
     py_version._registered_model_id = "1"
-    py_version.tags = ["test_tag1", "test_tag2"]
     py_version.metadata = {
         "int_key": 1,
         "float_key": 1.0,
@@ -75,7 +73,6 @@ def test_partial_model_version_unmapping(minimal_model_version: Mapped):
     assert unmapped_version.model_name == py_version.model_name
     assert unmapped_version.author == py_version.author
     assert unmapped_version.state == py_version.state
-    assert unmapped_version.tags == py_version.tags
     assert unmapped_version.metadata == py_version.metadata
 
 
@@ -98,5 +95,4 @@ def test_full_model_version_unmapping(full_model_version: Mapped):
     assert unmapped_version.model_name == py_version.model_name
     assert unmapped_version.author == py_version.author
     assert unmapped_version.state == py_version.state
-    assert unmapped_version.tags == py_version.tags
     assert unmapped_version.metadata == py_version.metadata
