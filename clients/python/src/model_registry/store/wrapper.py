@@ -20,7 +20,6 @@ from model_registry.exceptions import (
     ServerException,
     StoreException,
     TypeNotFoundException,
-    UnsupportedTypeException,
 )
 
 from .base import ProtoType
@@ -40,11 +39,11 @@ class MLMDStore:
         """
         self._mlmd_store = MetadataStore(config)
 
-    def get_type_id(self, mlmd_pt: type[ProtoType], type_name: str) -> int:
+    def get_type_id(self, pt: type[ProtoType], type_name: str) -> int:
         """Get backend ID for a type.
 
         Args:
-            mlmd_pt: Proto type.
+            pt: Proto type.
             type_name: Name of the type.
 
         Returns:
@@ -53,32 +52,22 @@ class MLMDStore:
         Raises:
             TypeNotFoundException: If the type doesn't exist.
             ServerException: If there was an error getting the type.
-            UnsupportedTypeException: If the type is not supported.
         """
         if type_name in self._type_ids:
             return self._type_ids[type_name]
 
-        if mlmd_pt is Artifact:
-            mlmd_pt_name = "artifact"
-            get_type = self._mlmd_store.get_artifact_type
-        elif mlmd_pt is Context:
-            mlmd_pt_name = "context"
-            get_type = self._mlmd_store.get_context_type
-        else:
-            msg = f"Unsupported type: {mlmd_pt}"
-            raise UnsupportedTypeException(msg)
+        pt_name = pt.__name__.lower()
 
         try:
-            _type = get_type(type_name)
+            _type = getattr(self._mlmd_store, f"get_{pt_name}_type")(type_name)
         except errors.NotFoundError as e:
-            msg = f"{mlmd_pt_name} type {type_name} does not exist"
+            msg = f"{pt_name} type {type_name} does not exist"
             raise TypeNotFoundException(msg) from e
         except errors.InternalError as e:
-            msg = f"Couldn't get {mlmd_pt_name} type {type_name} from MLMD store"
+            msg = f"Couldn't get {pt_name} type {type_name} from MLMD store"
             raise ServerException(msg) from e
 
         self._type_ids[type_name] = _type.id
-
         return _type.id
 
     def put_artifact(self, artifact: Artifact) -> int:
