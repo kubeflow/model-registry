@@ -9,6 +9,10 @@ COPY ["go.mod", "go.sum", "./"]
 RUN go mod download
 
 USER root
+# default NodeJS 14 is not enough for openapi-generator-cli, switch to Node JS currently supported
+RUN yum remove -y nodejs npm
+RUN yum module -y reset nodejs
+RUN yum module -y enable nodejs:18
 # install npm and java for openapi-generator-cli
 RUN yum install -y nodejs npm java-11
 
