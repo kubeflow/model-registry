@@ -33,7 +33,7 @@ jobs:
       # Install defined Python version to run Robot Framework tests
       - name: Install Python 3.9.x
         # Get setup-python action to install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           # Set Python version to install
           python-version: '3.9'
