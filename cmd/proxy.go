@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/opendatahub-io/model-registry/internal/mlmdtypes"
 	"github.com/opendatahub-io/model-registry/internal/server/openapi"
 	"github.com/opendatahub-io/model-registry/pkg/core"
 	"github.com/spf13/cobra"
@@ -48,6 +49,10 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	defer conn.Close()
 	glog.Infof("connected to MLMD server")
 
+	_, err = mlmdtypes.CreateMLMDTypes(conn)
+	if err != nil {
+		return fmt.Errorf("error creating MLMD types: %v", err)
+	}
 	service, err := core.NewModelRegistryService(conn)
 	if err != nil {
 		return fmt.Errorf("error creating core service: %v", err)

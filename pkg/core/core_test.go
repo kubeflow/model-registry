@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
 	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/internal/mlmdtypes"
 	"github.com/opendatahub-io/model-registry/internal/testutils"
 	"github.com/opendatahub-io/model-registry/pkg/api"
 	"github.com/opendatahub-io/model-registry/pkg/openapi"
@@ -50,6 +52,10 @@ type CoreTestSuite struct {
 	grpcConn   *grpc.ClientConn
 	mlmdClient proto.MetadataStoreServiceClient
 }
+
+var (
+	canAddFields = apiutils.Of(true)
+)
 
 func TestRunCoreTestSuite(t *testing.T) {
 	// before all
@@ -98,6 +104,8 @@ func (suite *CoreTestSuite) AfterTest(suiteName, testName string) {
 }
 
 func (suite *CoreTestSuite) setupModelRegistryService() *ModelRegistryService {
+	_, err := mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	suite.Nilf(err, "error creating MLMD types: %v", err)
 	// setup model registry service
 	service, err := NewModelRegistryService(suite.grpcConn)
 	suite.Nilf(err, "error creating core service: %v", err)
@@ -315,8 +323,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	suite.Equal(0, len(serveModelResp.ExecutionType.Properties))
 
 	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
-	suite.Nil(err)
+	_ = suite.setupModelRegistryService()
 
 	// assure the types have been correctly setup at startup
 	// check NOT empty props
@@ -420,8 +427,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInRegisteredM
 	_, err := suite.mlmdClient.PutContextType(context.Background(), &registeredModelReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up context type odh.RegisteredModel: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -440,8 +447,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelVersio
 	_, err := suite.mlmdClient.PutContextType(context.Background(), &modelVersionReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up context type odh.ModelVersion: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -460,8 +467,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelArtifa
 	_, err := suite.mlmdClient.PutArtifactType(context.Background(), &modelArtifactReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up artifact type odh.ModelArtifact: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -479,8 +486,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServingEnvi
 	_, err := suite.mlmdClient.PutContextType(context.Background(), &servingEnvironmentReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up context type odh.ServingEnvironment: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -499,8 +506,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInInferenceSe
 	_, err := suite.mlmdClient.PutContextType(context.Background(), &inferenceServiceReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up context type odh.InferenceService: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -519,8 +526,8 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServeModel(
 	_, err := suite.mlmdClient.PutExecutionType(context.Background(), &serveModelReq)
 	suite.Nil(err)
 
-	// create model registry service
-	_, err = NewModelRegistryService(suite.grpcConn)
+	// steps to create model registry service
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
 	suite.Regexp("error setting up execution type odh.ServeModel: rpc error: code = AlreadyExists.*", err.Error())
 }
@@ -700,7 +707,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsWithNoResults() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	_, err := service.GetRegisteredModelByParams(of("not-present"), nil)
+	_, err := service.GetRegisteredModelByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
 	suite.Equal("no registered models found for name=not-present, externalId=", err.Error())
 }
@@ -1145,7 +1152,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
 
 	registeredModelId := suite.registerModel(service, nil, nil)
 
-	_, err := service.GetModelVersionByParams(of("not-present"), &registeredModelId, nil)
+	_, err := service.GetModelVersionByParams(apiutils.Of("not-present"), &registeredModelId, nil)
 	suite.NotNil(err)
 	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=", err.Error())
 }
@@ -1351,10 +1358,10 @@ func (suite *CoreTestSuite) TestCreateModelArtifact() {
 		State:              (*openapi.ArtifactState)(&artifactState),
 		Uri:                &artifactUri,
 		Description:        &artifactDescription,
-		ModelFormatName:    of("onnx"),
-		ModelFormatVersion: of("1"),
-		StorageKey:         of("aws-connection-models"),
-		StoragePath:        of("bucket"),
+		ModelFormatName:    apiutils.Of("onnx"),
+		ModelFormatVersion: apiutils.Of("1"),
+		StorageKey:         apiutils.Of("aws-connection-models"),
+		StoragePath:        apiutils.Of("bucket"),
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
@@ -1633,7 +1640,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
 
-	_, err := service.GetModelArtifactByParams(of("not-present"), &modelVersionId, nil)
+	_, err := service.GetModelArtifactByParams(apiutils.Of("not-present"), &modelVersionId, nil)
 	suite.NotNil(err)
 	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=", err.Error())
 }
@@ -1893,7 +1900,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsWithNoResults() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	_, err := service.GetServingEnvironmentByParams(of("not-present"), nil)
+	_, err := service.GetServingEnvironmentByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
 	suite.Equal("no serving environments found for name=not-present, externalId=", err.Error())
 }
@@ -2533,7 +2540,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 
 	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
 
-	_, err := service.GetInferenceServiceByParams(of("not-present"), &parentResourceId, nil)
+	_, err := service.GetInferenceServiceByParams(apiutils.Of("not-present"), &parentResourceId, nil)
 	suite.NotNil(err)
 	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=", err.Error())
 }
@@ -2672,7 +2679,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &entityExternalId2,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
-		Runtime:              of("model-server0"),
+		Runtime:              apiutils.Of("model-server0"),
 	}
 
 	secondName := "v2"
@@ -2682,7 +2689,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &secondExtId,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
-		Runtime:              of("model-server1"),
+		Runtime:              apiutils.Of("model-server1"),
 	}
 
 	thirdName := "v3"
@@ -2692,7 +2699,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &thirdExtId,
 		ServingEnvironmentId: parentResourceId,
 		RegisteredModelId:    registeredModelId,
-		Runtime:              of("model-server2"),
+		Runtime:              apiutils.Of("model-server2"),
 	}
 
 	createdEntity1, err := service.UpsertInferenceService(eut1)
@@ -2715,7 +2722,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 		ExternalID:           &anotherExtId,
 		ServingEnvironmentId: anotherParentResourceId,
 		RegisteredModelId:    registeredModelId,
-		Runtime:              of("model-server3"),
+		Runtime:              apiutils.Of("model-server3"),
 	}
 
 	_, err = service.UpsertInferenceService(eutAnother)

@@ -18,13 +18,12 @@ import (
 )
 
 var (
-	registeredModelTypeName    = of(constants.RegisteredModelTypeName)
-	modelVersionTypeName       = of(constants.ModelVersionTypeName)
-	modelArtifactTypeName      = of(constants.ModelArtifactTypeName)
-	servingEnvironmentTypeName = of(constants.ServingEnvironmentTypeName)
-	inferenceServiceTypeName   = of(constants.InferenceServiceTypeName)
-	serveModelTypeName         = of(constants.ServeModelTypeName)
-	canAddFields               = of(true)
+	registeredModelTypeName    = apiutils.Of(constants.RegisteredModelTypeName)
+	modelVersionTypeName       = apiutils.Of(constants.ModelVersionTypeName)
+	modelArtifactTypeName      = apiutils.Of(constants.ModelArtifactTypeName)
+	servingEnvironmentTypeName = apiutils.Of(constants.ServingEnvironmentTypeName)
+	inferenceServiceTypeName   = apiutils.Of(constants.InferenceServiceTypeName)
+	serveModelTypeName         = apiutils.Of(constants.ServeModelTypeName)
 )
 
 // ModelRegistryService is the core library of the model registry
@@ -36,137 +35,81 @@ type ModelRegistryService struct {
 }
 
 // NewModelRegistryService creates a new instance of the ModelRegistryService, initializing it with the provided gRPC client connection.
-// It sets up the necessary context and artifact types in the MLMD service.
+// It _assumes_ the necessary MLMD's Context, Artifact, Execution types etc. are already setup in the underlying MLMD service.
 //
 // Parameters:
 //   - cc: A gRPC client connection to the underlying MLMD service
 func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi, error) {
+	typesMap, err := BuildTypesMap(cc)
+	if err != nil { // early return in case type Ids cannot be retrieved
+		return nil, err
+	}
 
 	client := proto.NewMetadataStoreServiceClient(cc)
 
-	// Setup the needed Type instances if not existing already
-
-	registeredModelReq := proto.PutContextTypeRequest{
-		CanAddFields: canAddFields,
-		ContextType: &proto.ContextType{
-			Name: registeredModelTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description": proto.PropertyType_STRING,
-				"state":       proto.PropertyType_STRING,
-			},
-		},
-	}
-
-	modelVersionReq := proto.PutContextTypeRequest{
-		CanAddFields: canAddFields,
-		ContextType: &proto.ContextType{
-			Name: modelVersionTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description": proto.PropertyType_STRING,
-				"model_name":  proto.PropertyType_STRING,
-				"version":     proto.PropertyType_STRING,
-				"author":      proto.PropertyType_STRING,
-				"state":       proto.PropertyType_STRING,
-			},
-		},
-	}
-
-	modelArtifactReq := proto.PutArtifactTypeRequest{
-		CanAddFields: canAddFields,
-		ArtifactType: &proto.ArtifactType{
-			Name: modelArtifactTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description":          proto.PropertyType_STRING,
-				"model_format_name":    proto.PropertyType_STRING,
-				"model_format_version": proto.PropertyType_STRING,
-				"storage_key":          proto.PropertyType_STRING,
-				"storage_path":         proto.PropertyType_STRING,
-				"service_account_name": proto.PropertyType_STRING,
-			},
-		},
-	}
-
-	servingEnvironmentReq := proto.PutContextTypeRequest{
-		CanAddFields: canAddFields,
-		ContextType: &proto.ContextType{
-			Name: servingEnvironmentTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description": proto.PropertyType_STRING,
-			},
-		},
-	}
-
-	inferenceServiceReq := proto.PutContextTypeRequest{
-		CanAddFields: canAddFields,
-		ContextType: &proto.ContextType{
-			Name: inferenceServiceTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description":         proto.PropertyType_STRING,
-				"model_version_id":    proto.PropertyType_INT,
-				"registered_model_id": proto.PropertyType_INT,
-				// same information tracked using ParentContext association
-				"serving_environment_id": proto.PropertyType_INT,
-				"runtime":                proto.PropertyType_STRING,
-				"desired_state":          proto.PropertyType_STRING,
-			},
-		},
-	}
-
-	serveModelReq := proto.PutExecutionTypeRequest{
-		CanAddFields: canAddFields,
-		ExecutionType: &proto.ExecutionType{
-			Name: serveModelTypeName,
-			Properties: map[string]proto.PropertyType{
-				"description":      proto.PropertyType_STRING,
-				"model_version_id": proto.PropertyType_INT,
-			},
-		},
-	}
-
-	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", *registeredModelTypeName, err)
-	}
-
-	modelVersionResp, err := client.PutContextType(context.Background(), &modelVersionReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", *modelVersionTypeName, err)
-	}
-
-	modelArtifactResp, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up artifact type %s: %v", *modelArtifactTypeName, err)
-	}
-
-	servingEnvironmentResp, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", *servingEnvironmentTypeName, err)
-	}
-
-	inferenceServiceResp, err := client.PutContextType(context.Background(), &inferenceServiceReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", *inferenceServiceTypeName, err)
-	}
-
-	serveModelResp, err := client.PutExecutionType(context.Background(), &serveModelReq)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up execution type %s: %v", *serveModelTypeName, err)
-	}
-
-	typesMap := map[string]int64{
-		constants.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
-		constants.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
-		constants.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
-		constants.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
-		constants.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
-		constants.ServeModelTypeName:         serveModelResp.GetTypeId(),
-	}
 	return &ModelRegistryService{
 		mlmdClient:  client,
 		typesMap:    typesMap,
 		openapiConv: &generated.OpenAPIConverterImpl{},
 		mapper:      mapper.NewMapper(typesMap),
 	}, nil
+}
+
+func BuildTypesMap(cc grpc.ClientConnInterface) (map[string]int64, error) {
+	client := proto.NewMetadataStoreServiceClient(cc)
+
+	registeredModelContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: registeredModelTypeName,
+	}
+	registeredModelResp, err := client.GetContextType(context.Background(), &registeredModelContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %v", *registeredModelTypeName, err)
+	}
+	modelVersionContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: modelVersionTypeName,
+	}
+	modelVersionResp, err := client.GetContextType(context.Background(), &modelVersionContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %v", *modelVersionTypeName, err)
+	}
+	modelArtifactArtifactTypeReq := proto.GetArtifactTypeRequest{
+		TypeName: modelArtifactTypeName,
+	}
+	modelArtifactResp, err := client.GetArtifactType(context.Background(), &modelArtifactArtifactTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %v", *modelArtifactTypeName, err)
+	}
+	servingEnvironmentContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: servingEnvironmentTypeName,
+	}
+	servingEnvironmentResp, err := client.GetContextType(context.Background(), &servingEnvironmentContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %v", *servingEnvironmentTypeName, err)
+	}
+	inferenceServiceContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: inferenceServiceTypeName,
+	}
+	inferenceServiceResp, err := client.GetContextType(context.Background(), &inferenceServiceContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %v", *inferenceServiceTypeName, err)
+	}
+	serveModelExecutionReq := proto.GetExecutionTypeRequest{
+		TypeName: serveModelTypeName,
+	}
+	serveModelResp, err := client.GetExecutionType(context.Background(), &serveModelExecutionReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting execution type %s: %v", *serveModelTypeName, err)
+	}
+
+	typesMap := map[string]int64{
+		constants.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
+		constants.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
+		constants.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
+		constants.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
+		constants.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
+		constants.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),
+	}
+	return typesMap, nil
 }
 
 // REGISTERED MODELS
@@ -1419,9 +1362,4 @@ func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, in
 		Items:         results,
 	}
 	return &toReturn, nil
-}
-
-// of returns a pointer to the provided literal/const input
-func of[E any](e E) *E {
-	return &e
 }

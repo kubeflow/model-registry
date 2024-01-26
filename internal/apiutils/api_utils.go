@@ -46,6 +46,11 @@ func ZeroIfNil[T any](input *T) T {
 	return *new(T)
 }
 
+// of returns a pointer to the provided literal/const input
+func Of[E any](e E) *E {
+	return &e
+}
+
 func BuildListOption(pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (api.ListOptions, error) {
 	var pageSizeInt32 *int32
 	if pageSize != "" {
