@@ -99,6 +99,10 @@ vet:
 clean:
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
 
+.PHONY: clean/odh
+clean/odh:
+	rm -Rf ./model-registry
+
 bin/go-enum:
 	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
 
@@ -147,12 +151,16 @@ vendor:
 build: gen vet lint
 	go build
 
+.PHONY: build/odh
+build/odh: vet lint
+	go build
+
 .PHONY: gen
 gen: deps gen/grpc gen/openapi gen/converter
 	go generate ./...
 
 .PHONY: lint
-lint: gen
+lint:
 	golangci-lint run main.go
 	golangci-lint run cmd/... internal/... ./pkg/...
 
