@@ -1,4 +1,4 @@
-name: Test container image build
+name: Test container image build and deployment
 
 on:
   pull_request:
@@ -15,9 +15,10 @@ on:
 env:
   QUAY_IMG_REPO: model-registry
   PUSH_IMAGE: false
+  BRANCH: ${{ github.base_ref }}
 
 jobs:
-  build-image:
+  build-and-test-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,3 +34,31 @@ jobs:
         env:
           VERSION: ${{ steps.tags.outputs.tag }}
         run: ./scripts/build_deploy.sh
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.4.0
+      - name: Load Local Registry Test Image
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          kind load docker-image -n chart-testing ${IMG}
+      - name: Deploy Operator With Test Image
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          echo "Deploying operator from model-registry-operator branch ${BRANCH}"
+          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/default?ref=${BRANCH}"
+          kubectl set env -n model-registry-operator-system deployment/model-registry-operator-controller-manager REST_IMAGE="${IMG}"
+      - name: Create Test Registry
+        run: |
+          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/samples?ref=${BRANCH}"
+          kubectl get mr
+      - name: Wait for Test Registry Deployment
+        timeout-minutes: 5
+        run: |
+          CONDITION="false"
+          while [ "${CONDITION}" != "True" ]
+          do
+            sleep 5
+            CONDITION="`kubectl get mr modelregistry-sample --output=jsonpath='{.status.conditions[?(@.type=="Available")].status}'`"
+            echo "Registry Available=${CONDITION}"
+          done
