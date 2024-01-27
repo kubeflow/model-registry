@@ -1,0 +1,71 @@
+name: Container image build and tag
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths-ignore:
+      - 'LICENSE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
+
+env:
+  QUAY_ORG: opendatahub
+  QUAY_IMG_REPO: model-registry
+  QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+  QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+  PUSH_IMAGE: true
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      # Assign context variable for various action contexts (tag, main, CI)
+      - name: Assigning tag context
+        if: github.head_ref == '' && startsWith(github.ref, 'refs/tags/v')
+        run: echo "BUILD_CONTEXT=tag" >> $GITHUB_ENV
+      - name: Assigning main context
+        if: github.head_ref == '' && github.ref == 'refs/heads/main'
+        run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
+      # checkout branch
+      - uses: actions/checkout@v4
+      # set image version
+      - name: Set main-branch environment
+        if: env.BUILD_CONTEXT == 'main'
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "VERSION=${tag}" >> $GITHUB_ENV
+      - name: Set tag environment
+        if: env.BUILD_CONTEXT == 'tag'
+        run: |
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Build and Push Image
+        shell: bash
+        run: ./scripts/build_deploy.sh
+      - name: Tag Latest
+        if: env.BUILD_CONTEXT == 'main'
+        shell: bash
+        env:
+          IMG: quay.io/${{ env.QUAY_ORG }}/${{ env.QUAY_IMG_REPO }}
+          BUILD_IMAGE: false
+        run: |
+          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
+          # BUILD_IMAGE=false skip the build
+          ./scripts/build_deploy.sh
+      - name: Tag Main
+        if: env.BUILD_CONTEXT == 'main'
+        shell: bash
+        env:
+          IMG: quay.io/${{ env.QUAY_ORG }}/${{ env.QUAY_IMG_REPO }}
+          BUILD_IMAGE: false
+        run: |
+          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
+          # BUILD_IMAGE=false skip the build
+          ./scripts/build_deploy.sh

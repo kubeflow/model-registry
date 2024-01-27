@@ -34,7 +34,7 @@ It provides a model registry domain-specific [api](internal/core/api.go) that is
 
 ### Model registry library
 
-For more background on Model Registry Go core library and instructions on using it, please check [getting started guide](./doc/mr_go_library.md).
+For more background on Model Registry Go core library and instructions on using it, please check [getting started guide](./docs/mr_go_library.md).
 
 ## Development
 
@@ -114,7 +114,7 @@ When shutting down the docker compose, you might want to clean-up the SQLite db 
 
 The following diagram illustrate testing strategy for the several components in Model Registry project:
 
-![](/doc/Model%20Registry%20Testing%20areas.png)
+![](/docs/Model%20Registry%20Testing%20areas.png)
 
 Go layers components are tested with Unit Tests written in Go, as well as Integration Tests leveraging Testcontainers.
 This allows to verify the expected "Core layer" of logical data mapping developed implemented in Go, matches technical expectations.

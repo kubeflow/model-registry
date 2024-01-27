@@ -170,11 +170,11 @@ As all the wheels are x86 specific: https://pypi.org/project/ml-metadata/1.14.0/
 
 So it's not even possible to receive code assists. However, after clicking to re-open the project inside an (emulated) DevContainer:
 
-![](doc/Screenshot%202023-11-29%20at%2014.08.12.png)
+![](docs/Screenshot%202023-11-29%20at%2014.08.12.png)
 
 Then with the given setup MLMD is already installed inside the DevContainer:
 
-![](doc/Screenshot%202023-11-29%20at%2014.10.14.png)
+![](docs/Screenshot%202023-11-29%20at%2014.10.14.png)
 
 At this point Poetry is already installed as well and can be used to build and run test of the Model Registry Python client.
 
