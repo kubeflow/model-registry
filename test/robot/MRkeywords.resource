@@ -21,7 +21,7 @@ I create a RegisteredModel having
         ${result}    Upsert Registered Model    ${data}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I create a RegisteredModel
@@ -34,7 +34,7 @@ I create a RegisteredModel
         ${result}    Upsert Registered Model    ${payload}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I create a child ModelVersion having
@@ -49,7 +49,7 @@ I create a child ModelVersion having
         ${result}    Upsert Model Version    ${data}     ${registeredModelID}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I create a child ModelVersion
@@ -63,7 +63,7 @@ I create a child ModelVersion
         ${result}    Upsert Model Version    ${payload}     ${registeredModelID}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I create a child ModelArtifact having
@@ -79,7 +79,7 @@ I create a child ModelArtifact having
         ${result}    Upsert Model Artifact    ${data}    ${modelversionId}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I create a child ModelArtifact
@@ -92,7 +92,7 @@ I create a child ModelArtifact
         ${result}    Upsert Model Artifact    ${payload}    ${modelversionId}
         Log to console    ${result}
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I get RegisteredModelByID
@@ -105,7 +105,7 @@ I get RegisteredModelByID
         Log to console    ${MODE}
         Fail    Not Implemented
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I get ModelVersionByID
@@ -118,7 +118,7 @@ I get ModelVersionByID
         Log to console    ${MODE}
         Fail    Not Implemented
     END
-    [return]    ${result}
+    RETURN    ${result}
 
 
 I get ModelArtifactByID
@@ -131,4 +131,4 @@ I get ModelArtifactByID
         Log to console    ${MODE}
         Fail    Not Implemented
     END
-    [return]    ${result}
+    RETURN    ${result}
