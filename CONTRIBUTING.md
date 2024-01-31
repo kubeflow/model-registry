@@ -83,6 +83,17 @@ This colima setups allows to:
 - launch Integration tests in Go (used in Core go layer) with Testcontainers for Go
 - launch DevContainer to be able to install MLMD python wheel dependency (which is x86 specific)
 
+## Remote-only MLMD Python library
+
+The Model Registry Python client wraps `ml-metadata` python dependency (which is [x86 specific](https://pypi.org/project/ml-metadata/#files)).
+
+When developing and contributing to the Model Registry Python client using Apple-silicon/ARM-based computers,
+it can be helpful to evaluate using locally this soft-fork of the upstream MLMD library supporting only remote gRPC connections:
+https://github.com/opendatahub-io/ml-metadata/releases/tag/v1.14.0%2Bremote.1
+
+This dependency can be substituted in the [clients/python/pyproject.toml](clients/python/pyproject.toml) and installed locally with `poetry lock`.
+It is recommended not to check-in this substitution, only helpful for local development while using Apple-silicon/ARM-based computers.
+
 ## DevContainer
 
 Using a [DevContainer](https://containers.dev) is helpful to develop with the Model Registry Python client, since it needs to wrap MLMD python dependency (which is [x86 specific](https://pypi.org/project/ml-metadata/#files)).
