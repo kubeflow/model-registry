@@ -14,5 +14,5 @@ services:
     command: ["proxy", "--mlmd-hostname", "localhost", "--mlmd-port", "9090"]
     container_name: model-registry
     network_mode: host
-    depends_on: 
+    depends_on:
       - mlmd-server

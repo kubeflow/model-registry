@@ -29,7 +29,7 @@ The proxy service implements the OpenAPI defined in [model-registry.yaml](api/op
 
 ## Model Registry Core
 
-The model registry core is the layer which implements the core/business logic by interacting with the underlying ml-metadata server. 
+The model registry core is the layer which implements the core/business logic by interacting with the underlying ml-metadata server.
 It provides a model registry domain-specific [api](internal/core/api.go) that is in charge to proxy all, appropriately transformed, requests to ml-metadata using gRPC calls.
 
 ### Model registry library
@@ -89,11 +89,11 @@ Subsequent builds will re-use the cached tools layer.
 The following command starts the proxy server:
 
 ```shell
-docker run -d -p <hostname>:<port>:8080 --user <uid>:<gid> --name server model-registry proxy -n 0.0.0.0 
+docker run -d -p <hostname>:<port>:8080 --user <uid>:<gid> --name server model-registry proxy -n 0.0.0.0
 ```
 
-Where, `<uid>`, `<gid>`, and `<host-path>` are the same as in the migrate command above. 
-And `<hostname>` and `<port>` are the local ip and port to use to expose the container's default `8080` listening port. 
+Where, `<uid>`, `<gid>`, and `<host-path>` are the same as in the migrate command above.
+And `<hostname>` and `<port>` are the local ip and port to use to expose the container's default `8080` listening port.
 The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allows the server port to be exposed.
 
 #### Running model registry & ml-metadata

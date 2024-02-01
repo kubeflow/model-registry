@@ -1,5 +1,4 @@
 name: Test container image build and deployment
-
 on:
   pull_request:
     paths-ignore:
@@ -11,12 +10,10 @@ on:
       - '.github/dependabot.yml'
       - 'docs/**'
       - 'clients/python/**'
-
 env:
   QUAY_IMG_REPO: model-registry
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
-
 jobs:
   build-and-test-image:
     runs-on: ubuntu-latest

@@ -1,5 +1,4 @@
 name: Container image build and tag
-
 on:
   push:
     branches:
@@ -14,14 +13,12 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/dependabot.yml'
       - 'docs/**'
-
 env:
   QUAY_ORG: opendatahub
   QUAY_IMG_REPO: model-registry
   QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
   QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
   PUSH_IMAGE: true
-
 jobs:
   build-image:
     runs-on: ubuntu-latest

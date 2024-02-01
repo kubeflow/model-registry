@@ -26,7 +26,7 @@ IMG := ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
 model-registry: build
 
 # clean the ml-metadata protos and trigger a fresh new build which downloads
-# ml-metadata protos based on specified MLMD_VERSION 
+# ml-metadata protos based on specified MLMD_VERSION
 .PHONY: update/ml_metadata
 update/ml_metadata: clean/ml_metadata clean build
 

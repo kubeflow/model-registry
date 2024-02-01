@@ -73,7 +73,7 @@ colima start --vz-rosetta --vm-type vz --arch x86_64 --cpu 4 --memory 8
 To use with *Testcontainers for Go* you can use these commands:
 
 ```
-export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock" 
+export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/var/run/docker.sock"
 ```
 

@@ -1,11 +1,9 @@
 name: Python workflows
-
 on:
   push:
     branches:
       - "main"
   pull_request:
-
 jobs:
   tests:
     name: ${{ matrix.session }} ${{ matrix.python }}
@@ -18,26 +16,21 @@ jobs:
         include:
           - python: "3.9"
             session: tests
-
     env:
       NOXSESSION: ${{ matrix.session }}
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
-
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
-
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-
       - name: Upgrade pip
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
-
       - name: Upgrade pip in virtual environments
         shell: python
         run: |
@@ -46,18 +39,15 @@ jobs:
 
           with open(os.environ["GITHUB_ENV"], mode="a") as io:
               print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-
       - name: Install Poetry
         run: |
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt poetry
           poetry --version
-
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
           pipx inject --pip-args=--constraint=.github/workflows/constraints.txt nox nox-poetry
           nox --version
-
       - name: Run Nox
         working-directory: clients/python
         run: |
@@ -69,7 +59,6 @@ jobs:
           else
             nox --python=${{ matrix.python }}
           fi
-
       - name: Upload coverage report
         uses: codecov/codecov-action@v4.0.1
         if: always() && matrix.session == 'tests'
@@ -78,7 +67,6 @@ jobs:
         with:
           files: coverage.xml
           fail_ci_if_error: true
-
       - name: Upload documentation
         if: matrix.session == 'docs-build'
         uses: actions/upload-artifact@v4

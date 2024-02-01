@@ -4,7 +4,7 @@
 
 Google’s ML Metadata (MLMD) is a project composed of a C++ server, and a Python client library.
 The server exposes a gRPC interface, and is only distributed for x86-64 architectures.
-It is embedded in the client's wheel binary, providing an additional convenience [method for running the server locally (in memory)](https://www.tensorflow.org/tfx/guide/mlmd#metadata_storage_backends_and_store_connection_configuration), 
+It is embedded in the client's wheel binary, providing an additional convenience [method for running the server locally (in memory)](https://www.tensorflow.org/tfx/guide/mlmd#metadata_storage_backends_and_store_connection_configuration),
 whilst also making it [architecture specific](https://pypi.org/project/ml-metadata/1.14.0/#files).
 
 The [Model Registry project](https://docs.google.com/document/d/1G-pjdGaS2kLELsB5kYk_D4AmH-fTfnCnJOhJ8xENjx0/edit?usp=sharing) (MR) is built on top of MLMD.

@@ -1,11 +1,10 @@
-import grpc
-import ml_metadata as mlmd
-import ml_metadata.metadata_store.pywrap.metadata_store_extension.metadata_store
 from grpc import insecure_channel
+
 # from ml_metadata.metadata_store import metadata_store
 from ml_metadata.proto import metadata_store_pb2
 from ml_metadata.proto import metadata_store_service_pb2
 from ml_metadata.proto import metadata_store_service_pb2_grpc
+
 
 def main():
     # connection_config = metadata_store_pb2.ConnectionConfig()
@@ -21,7 +20,7 @@ def main():
     # connection_config.mysql.password = 'my-secret-pw'
     # store = metadata_store.MetadataStore(connection_config, enable_upgrade_migration=True)
 
-    channel = insecure_channel('localhost:8080')
+    channel = insecure_channel("localhost:8080")
     store = metadata_store_service_pb2_grpc.MetadataStoreServiceStub(channel)
 
     # Create ArtifactTypes, e.g., Data and Model
@@ -62,22 +61,22 @@ def main():
     request = metadata_store_service_pb2.PutExecutionTypeRequest()
     request.execution_type.CopyFrom(trainer_type)
     response = store.PutExecutionType(request)
-    trainer_type_id = response.type_id
+    # trainer_type_id = response.type_id
 
     # # Query a registered Execution type with the returned id
     # [registered_type] = store.GetExecutionTypesByID([trainer_type_id])
 
     # Create an input artifact of type DataSet
     data_artifact = metadata_store_pb2.Artifact()
-    data_artifact.uri = 'path/to/data'
+    data_artifact.uri = "path/to/data"
     data_artifact.properties["day"].int_value = 1
-    data_artifact.properties["split"].string_value = 'train'
+    data_artifact.properties["split"].string_value = "train"
     data_artifact.type_id = data_type_id
 
     request = metadata_store_service_pb2.PutArtifactsRequest()
     request.artifacts.extend([data_artifact])
     response = store.PutArtifacts(request)
-    data_artifact_id = response.artifact_ids[0]
+    # data_artifact_id = response.artifact_ids[0]
 
     # # Query all registered Artifacts
     # artifacts = store.GetArtifacts()
@@ -139,7 +138,7 @@ def main():
     request = metadata_store_service_pb2.PutContextTypeRequest()
     request.context_type.CopyFrom(experiment_type)
     response = store.PutContextType(request)
-    experiment_type_id = response.type_id
+    # experiment_type_id = response.type_id
 
     # # Group the model and the trainer run to an experiment.
     # my_experiment = metadata_store_pb2.Context()
@@ -172,5 +171,6 @@ def main():
     #     list_options = mlmd.ListOptions(
     #         filter_query=('contexts_a.id = {}'.format(experiment_id))))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

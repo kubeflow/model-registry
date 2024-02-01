@@ -22,7 +22,7 @@ var (
 		Short: "Starts the ml-metadata go OpenAPI proxy",
 		Long: `This command launches the ml-metadata go OpenAPI proxy server.
 
-The server connects to a mlmd CPP server. It supports options to customize the 
+The server connects to a mlmd CPP server. It supports options to customize the
 hostname and port where it listens.'`,
 		RunE: runProxyServer,
 	}

@@ -1,5 +1,4 @@
 name: Build
-
 on:
   push:
     branches:
@@ -15,7 +14,6 @@ on:
       - '.github/dependabot.yml'
       - 'docs/**'
       - 'scripts/**'
-
 jobs:
   build:
     runs-on: ubuntu-latest

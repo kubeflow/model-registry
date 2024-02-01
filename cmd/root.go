@@ -19,14 +19,14 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "model-registry",
 	Short: "A go server for ml-metadata",
-	Long: `The model-registry is a gRPC server that stores metadata 
-for ML applications. 
+	Long: `The model-registry is a gRPC server that stores metadata
+for ML applications.
 
-It's based on the ml-metadata project that provides a python client library 
-for ML applications to record metadata about metadata such as Artifacts, 
-Executions and Contexts. 
-This go server is an alternative to the CPP gRPC service provided by the 
-ml-metadata project. It's meant to provide extra features such as loading 
+It's based on the ml-metadata project that provides a python client library
+for ML applications to record metadata about metadata such as Artifacts,
+Executions and Contexts.
+This go server is an alternative to the CPP gRPC service provided by the
+ml-metadata project. It's meant to provide extra features such as loading
 custom metadata libraries, exposing a higher level GraphQL API, RBAC, etc.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

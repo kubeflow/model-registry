@@ -20,7 +20,7 @@ Test Setup with dummy data
 
 
 *** Variables ***
-&{registered_model}    
-&{model_version}    
+&{registered_model}
+&{model_version}
 &{model_artifact}
 ${name}

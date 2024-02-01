@@ -11,7 +11,7 @@ You can switch between REST and Python flow by environment variables,
 as documented in the keyword implementation
 
 
-*** Test Cases ***              
+*** Test Cases ***
 Verify basic logical mapping between MR and MLMD
     Comment    This test ensures basic logical mapping bewteen MR entities and MLMD entities
     ...    based on the MR logical mapping:
@@ -20,7 +20,7 @@ Verify basic logical mapping between MR and MLMD
     ...    ModelArtifact shall result in a MLMD Artifact and Attribution(to the parent Context of ModelVersion)
 
     ${rId}    Given I create a RegisteredModel having    name=${name}
-    ${vId}    And I create a child ModelVersion having    registeredModelID=${rId}    name=v1  
+    ${vId}    And I create a child ModelVersion having    registeredModelID=${rId}    name=v1
     ${aId}    And I create a child ModelArtifact having    modelversionId=${vId}  uri=s3://12345
     ${rId}    Convert To Integer    ${rId}
     ${vId}    Convert To Integer    ${vId}
@@ -55,7 +55,7 @@ Verify logical mapping of description property between MR and MLMD
     ...    being implemented as a custom_property
 
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}
-    Set To Dictionary    ${model_version}    description=consectetur adipiscing elit  
+    Set To Dictionary    ${model_version}    description=consectetur adipiscing elit
     Set To Dictionary    ${model_artifact}    description=sed do eiusmod tempor incididunt
     ${rId}  Given I create a RegisteredModel    payload=${registered_model}
     ${vId}  And I create a child ModelVersion    registeredModelID=${rId}  payload=&{model_version}
