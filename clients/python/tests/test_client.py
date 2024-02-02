@@ -70,7 +70,7 @@ def test_get(mr_client: ModelRegistry):
 
 def test_hf_import(mr_client: ModelRegistry):
     pytest.importorskip("huggingface_hub")
-    name = "gpt2"
+    name = "openai-community/gpt2"
     version = "1.2.3"
 
     assert mr_client.register_hf_model(
@@ -87,13 +87,13 @@ def test_hf_import(mr_client: ModelRegistry):
 
 def test_hf_import_missing_author(mr_client: ModelRegistry):
     pytest.importorskip("huggingface_hub")
-    name = "gpt2"
+    name = "bert-base-uncased"
     version = "1.2.3"
 
     with pytest.warns(match=r".*author is unknown.*"):
         assert mr_client.register_hf_model(
             name,
-            "onnx/decoder_model.onnx",
+            "model.onnx",
             version=version,
             model_format_name="test format",
             model_format_version="test version",
