@@ -323,15 +323,15 @@ func TestMapModelArtifactName(t *testing.T) {
 	assertion.Regexp(".*:v1", *name)
 }
 
-func TestMapOpenAPIModelArtifactState(t *testing.T) {
+func TestMapOpenAPIArtifactState(t *testing.T) {
 	assertion := setup(t)
 
-	state, err := MapOpenAPIModelArtifactState(of(openapi.ARTIFACTSTATE_LIVE))
+	state, err := MapOpenAPIArtifactState(of(openapi.ARTIFACTSTATE_LIVE))
 	assertion.Nil(err)
 	assertion.NotNil(state)
 	assertion.Equal(string(openapi.ARTIFACTSTATE_LIVE), state.String())
 
-	state, err = MapOpenAPIModelArtifactState(nil)
+	state, err = MapOpenAPIArtifactState(nil)
 	assertion.Nil(err)
 	assertion.Nil(state)
 }
@@ -530,14 +530,14 @@ func TestMapArtifactType(t *testing.T) {
 	assertion.Equal("", artifactType)
 }
 
-func TestMapMLMDModelArtifactState(t *testing.T) {
+func TestMapMLMDArtifactState(t *testing.T) {
 	assertion := setup(t)
 
-	artifactState := MapMLMDModelArtifactState(proto.Artifact_LIVE.Enum())
+	artifactState := MapMLMDArtifactState(proto.Artifact_LIVE.Enum())
 	assertion.NotNil(artifactState)
 	assertion.Equal("LIVE", string(*artifactState))
 
-	artifactState = MapMLMDModelArtifactState(nil)
+	artifactState = MapMLMDArtifactState(nil)
 	assertion.Nil(artifactState)
 }
 

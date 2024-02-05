@@ -203,6 +203,21 @@ func MapModelVersionName(source *OpenAPIModelWrapper[openapi.ModelVersion]) *str
 	return of(PrefixWhenOwned(source.ParentResourceId, *(*source).Model.Name))
 }
 
+// ARTIFACT
+
+func MapOpenAPIArtifactState(source *openapi.ArtifactState) (*proto.Artifact_State, error) {
+	if source == nil {
+		return nil, nil
+	}
+
+	val, ok := proto.Artifact_State_value[string(*source)]
+	if !ok {
+		return nil, fmt.Errorf("invalid artifact state: %s", string(*source))
+	}
+
+	return (*proto.Artifact_State)(&val), nil
+}
+
 // MODEL ARTIFACT
 
 // MapModelArtifactProperties maps ModelArtifact fields to specific MLMD properties
@@ -272,19 +287,6 @@ func MapModelArtifactName(source *OpenAPIModelWrapper[openapi.ModelArtifact]) *s
 		artifactName = uuid.New().String()
 	}
 	return of(PrefixWhenOwned(source.ParentResourceId, artifactName))
-}
-
-func MapOpenAPIModelArtifactState(source *openapi.ArtifactState) (*proto.Artifact_State, error) {
-	if source == nil {
-		return nil, nil
-	}
-
-	val, ok := proto.Artifact_State_value[string(*source)]
-	if !ok {
-		return nil, fmt.Errorf("invalid artifact state: %s", string(*source))
-	}
-
-	return (*proto.Artifact_State)(&val), nil
 }
 
 // SERVING ENVIRONMENT

@@ -111,7 +111,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertModelArtifact(source *converter.Open
 		if (*source).Model != nil {
 			pOpenapiArtifactState = (*source).Model.State
 		}
-		pProtoArtifact_State, err := converter.MapOpenAPIModelArtifactState(pOpenapiArtifactState)
+		pProtoArtifact_State, err := converter.MapOpenAPIArtifactState(pOpenapiArtifactState)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field State: %w", err)
 		}

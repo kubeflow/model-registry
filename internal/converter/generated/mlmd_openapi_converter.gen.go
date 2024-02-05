@@ -62,7 +62,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 			pString2 = &xstring2
 		}
 		openapiModelArtifact.Uri = pString2
-		openapiModelArtifact.State = converter.MapMLMDModelArtifactState((*source).State)
+		openapiModelArtifact.State = converter.MapMLMDArtifactState((*source).State)
 		openapiModelArtifact.Name = converter.MapNameFromOwned((*source).Name)
 		openapiModelArtifact.Id = converter.Int64ToString((*source).Id)
 		openapiModelArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)

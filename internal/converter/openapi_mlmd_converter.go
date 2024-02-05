@@ -45,7 +45,7 @@ type OpenAPIToMLMDConverter interface {
 	// goverter:map . Name | MapModelArtifactName
 	// goverter:map Model Type | MapModelArtifactType
 	// goverter:map Model Properties | MapModelArtifactProperties
-	// goverter:map Model.State State | MapOpenAPIModelArtifactState
+	// goverter:map Model.State State | MapOpenAPIArtifactState
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertModelArtifact(source *OpenAPIModelWrapper[openapi.ModelArtifact]) (*proto.Artifact, error)
 

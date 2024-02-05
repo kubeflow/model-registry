@@ -116,7 +116,7 @@ func MapInferenceServiceDesiredState(properties map[string]*proto.Value) *openap
 	return (*openapi.InferenceServiceState)(&str)
 }
 
-func MapMLMDModelArtifactState(source *proto.Artifact_State) *openapi.ArtifactState {
+func MapMLMDArtifactState(source *proto.Artifact_State) (st *openapi.ArtifactState) {
 	if source == nil {
 		return nil
 	}
