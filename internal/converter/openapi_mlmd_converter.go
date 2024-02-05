@@ -6,12 +6,7 @@ import (
 )
 
 type OpenAPIModelWrapper[
-	M openapi.RegisteredModel |
-		openapi.ModelVersion |
-		openapi.ModelArtifact |
-		openapi.ServingEnvironment |
-		openapi.InferenceService |
-		openapi.ServeModel,
+	M OpenAPIModel,
 ] struct {
 	TypeId           int64
 	Model            *M

@@ -2,25 +2,24 @@ package converter
 
 import "github.com/opendatahub-io/model-registry/pkg/openapi"
 
-type OpenapiUpdateWrapper[
-	M openapi.RegisteredModel |
+type OpenAPIModel interface {
+	openapi.RegisteredModel |
 		openapi.ModelVersion |
 		openapi.ModelArtifact |
 		openapi.ServingEnvironment |
 		openapi.InferenceService |
-		openapi.ServeModel,
+		openapi.ServeModel
+}
+
+type OpenapiUpdateWrapper[
+	M OpenAPIModel,
 ] struct {
 	Existing *M
 	Update   *M
 }
 
 func NewOpenapiUpdateWrapper[
-	M openapi.RegisteredModel |
-		openapi.ModelVersion |
-		openapi.ModelArtifact |
-		openapi.ServingEnvironment |
-		openapi.InferenceService |
-		openapi.ServeModel,
+	M OpenAPIModel,
 ](existing *M, update *M) OpenapiUpdateWrapper[M] {
 	return OpenapiUpdateWrapper[M]{
 		Existing: existing,
