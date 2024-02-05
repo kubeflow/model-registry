@@ -11,6 +11,42 @@ import (
 
 type MLMDToOpenAPIConverterImpl struct{}
 
+func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) (*openapi.DocArtifact, error) {
+	var pOpenapiDocArtifact *openapi.DocArtifact
+	if source != nil {
+		var openapiDocArtifact openapi.DocArtifact
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, err
+		}
+		openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiDocArtifact.Description = converter.MapDescription((*source).Properties)
+		var pString *string
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			pString = &xstring
+		}
+		openapiDocArtifact.ExternalID = pString
+		var pString2 *string
+		if (*source).Uri != nil {
+			xstring2 := *(*source).Uri
+			pString2 = &xstring2
+		}
+		openapiDocArtifact.Uri = pString2
+		openapiDocArtifact.State = converter.MapMLMDArtifactState((*source).State)
+		openapiDocArtifact.Name = converter.MapNameFromOwned((*source).Name)
+		openapiDocArtifact.Id = converter.Int64ToString((*source).Id)
+		openapiDocArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiDocArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		xstring3, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiDocArtifact.ArtifactType = xstring3
+		pOpenapiDocArtifact = &openapiDocArtifact
+	}
+	return pOpenapiDocArtifact, nil
+}
 func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Context) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
 	if source != nil {

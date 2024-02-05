@@ -11,8 +11,6 @@ package openapi
 
 import (
 	"context"
-	"errors"
-	"net/http"
 
 	"github.com/opendatahub-io/model-registry/internal/apiutils"
 	"github.com/opendatahub-io/model-registry/internal/converter"
@@ -111,17 +109,12 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 
 // CreateModelVersionArtifact - Create an Artifact in a ModelVersion
 func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
-	if artifact.ModelArtifact == nil {
-		return Response(http.StatusNotImplemented, nil), errors.New("unsupported artifactType")
-	}
-	result, err := s.coreApi.UpsertModelArtifact(artifact.ModelArtifact, &modelversionId)
+	result, err := s.coreApi.UpsertArtifact(&artifact, &modelversionId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	artifactResult := model.Artifact{
-		ModelArtifact: result,
-	}
-	return Response(201, artifactResult), nil
+	return Response(201, result), nil
+	// return Response(http.StatusNotImplemented, nil), errors.New("unsupported artifactType")
 	// TODO return Response(200, Artifact{}), nil
 	// TODO return Response(401, Error{}), nil
 	// TODO return Response(404, Error{}), nil
@@ -354,7 +347,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelArtifacts(listOpts, &modelversionId)
+	result, err := s.coreApi.GetArtifacts(listOpts, &modelversionId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}

@@ -45,6 +45,14 @@ type OpenAPIToMLMDConverter interface {
 	ConvertModelArtifact(source *OpenAPIModelWrapper[openapi.ModelArtifact]) (*proto.Artifact, error)
 
 	// goverter:autoMap Model
+	// goverter:map . Name | MapDocArtifactName
+	// goverter:map Model Type | MapDocArtifactType
+	// goverter:map Model Properties | MapDocArtifactProperties
+	// goverter:map Model.State State | MapOpenAPIArtifactState
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertDocArtifact(source *OpenAPIModelWrapper[openapi.DocArtifact]) (*proto.Artifact, error)
+
+	// goverter:autoMap Model
 	// goverter:map Model Type | MapServingEnvironmentType
 	// goverter:map Model Properties | MapServingEnvironmentProperties
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch

@@ -30,6 +30,9 @@ func newVisitor(t *testing.T, f *ast.File) visitor {
 			"ModelVersion": {
 				obj: openapi.ModelVersion{},
 			},
+			"DocArtifact": {
+				obj: openapi.DocArtifact{},
+			},
 			"ModelArtifact": {
 				obj: openapi.ModelArtifact{},
 			},

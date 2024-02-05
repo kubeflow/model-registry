@@ -14,6 +14,7 @@ var (
 	registeredModelTypeName    = apiutils.Of(constants.RegisteredModelTypeName)
 	modelVersionTypeName       = apiutils.Of(constants.ModelVersionTypeName)
 	modelArtifactTypeName      = apiutils.Of(constants.ModelArtifactTypeName)
+	docArtifactTypeName        = apiutils.Of(constants.DocArtifactTypeName)
 	servingEnvironmentTypeName = apiutils.Of(constants.ServingEnvironmentTypeName)
 	inferenceServiceTypeName   = apiutils.Of(constants.InferenceServiceTypeName)
 	serveModelTypeName         = apiutils.Of(constants.ServeModelTypeName)
@@ -46,6 +47,16 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface) (map[string]int64, error) {
 				"version":     proto.PropertyType_STRING,
 				"author":      proto.PropertyType_STRING,
 				"state":       proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	docArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: canAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: docArtifactTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
 			},
 		},
 	}
@@ -112,6 +123,11 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface) (map[string]int64, error) {
 		return nil, fmt.Errorf("error setting up context type %s: %v", *modelVersionTypeName, err)
 	}
 
+	docArtifactResp, err := client.PutArtifactType(context.Background(), &docArtifactReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %v", *docArtifactTypeName, err)
+	}
+
 	modelArtifactResp, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up artifact type %s: %v", *modelArtifactTypeName, err)
@@ -135,6 +151,7 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface) (map[string]int64, error) {
 	typesMap := map[string]int64{
 		constants.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
 		constants.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
+		constants.DocArtifactTypeName:        docArtifactResp.GetTypeId(),
 		constants.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
 		constants.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
 		constants.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),

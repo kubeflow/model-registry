@@ -367,8 +367,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getModelVersionArtifacts
-      summary: List All ModelVersion's artifacts
-      description: Gets a list of all `Artifact` entities for the `ModelVersion`.
+      summary: List all artifacts associated with the `ModelVersion`
     post:
       requestBody:
         description: A new or existing `Artifact` to be associated with the `ModelVersion`.
@@ -979,6 +978,16 @@ components:
             artifactType:
               type: string
               default: "model-artifact"
+    DocArtifact:
+      description: A document.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifact"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1272,10 +1281,12 @@ components:
     Artifact:
       oneOf:
         - $ref: "#/components/schemas/ModelArtifact"
+        - $ref: "#/components/schemas/DocArtifact"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifact"
+          doc-artifact: "#/components/schemas/DocArtifact"
       description: A metadata Artifact Entity.
     BaseArtifact:
       allOf:

@@ -21,6 +21,7 @@ var (
 	registeredModelTypeName    = apiutils.Of(constants.RegisteredModelTypeName)
 	modelVersionTypeName       = apiutils.Of(constants.ModelVersionTypeName)
 	modelArtifactTypeName      = apiutils.Of(constants.ModelArtifactTypeName)
+	docArtifactTypeName        = apiutils.Of(constants.DocArtifactTypeName)
 	servingEnvironmentTypeName = apiutils.Of(constants.ServingEnvironmentTypeName)
 	inferenceServiceTypeName   = apiutils.Of(constants.InferenceServiceTypeName)
 	serveModelTypeName         = apiutils.Of(constants.ServeModelTypeName)
@@ -72,6 +73,12 @@ func BuildTypesMap(cc grpc.ClientConnInterface) (map[string]int64, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting context type %s: %v", *modelVersionTypeName, err)
 	}
+	docArtifactResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: docArtifactTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %v", *docArtifactTypeName, err)
+	}
 	modelArtifactArtifactTypeReq := proto.GetArtifactTypeRequest{
 		TypeName: modelArtifactTypeName,
 	}
@@ -104,6 +111,7 @@ func BuildTypesMap(cc grpc.ClientConnInterface) (map[string]int64, error) {
 	typesMap := map[string]int64{
 		constants.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
 		constants.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
+		constants.DocArtifactTypeName:        docArtifactResp.ArtifactType.GetId(),
 		constants.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
 		constants.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
 		constants.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
@@ -366,7 +374,8 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 		_, err = serv.mlmdClient.PutParentContexts(context.Background(), &proto.PutParentContextsRequest{
 			ParentContexts: []*proto.ParentContext{{
 				ChildId:  modelId,
-				ParentId: registeredModelId}},
+				ParentId: registeredModelId,
+			}},
 			TransactionOptions: &proto.TransactionOptions{},
 		})
 		if err != nil {
@@ -452,11 +461,11 @@ func (serv *ModelRegistryService) getModelVersionByArtifactId(id string) (*opena
 	}
 
 	if len(getParentResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple model versions found for model artifact %s", id)
+		return nil, fmt.Errorf("multiple model versions found for artifact %s", id)
 	}
 
 	if len(getParentResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no model version found for model artifact %s", id)
+		return nil, fmt.Errorf("no model version found for artifact %s", id)
 	}
 
 	modelVersion, err := serv.mapper.MapToModelVersion(getParentResp.Contexts[0])
@@ -542,60 +551,94 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 	return &toReturn, nil
 }
 
-// MODEL ARTIFACTS
+// ARTIFACTS
 
-// UpsertModelArtifact creates a new model artifact if the provided model artifact's ID is nil,
-// or updates an existing model artifact if the ID is provided.
-// If a model version ID is provided and the model artifact is newly created, establishes an
-// explicit attribution between the model version and the created model artifact.
-func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *string) (*openapi.ModelArtifact, error) {
-	var err error
-	var existing *openapi.ModelArtifact
+// UpsertArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
+// ID is provided.
+// A model version ID must be provided to disambiguate between artifacts.
+// Upon creation, new artifacts will be associated with their corresponding model version.
+func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error) {
+	if artifact == nil {
+		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil")
+	}
+	creating := false
+	if ma := artifact.ModelArtifact; ma != nil {
+		if ma.Id == nil {
+			creating = true
+			glog.Info("Creating model artifact")
+			if modelVersionId == nil {
+				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version")
+			}
+			_, err := serv.GetModelVersionById(*modelVersionId)
+			if err != nil {
+				return nil, fmt.Errorf("no model version found for id %s", *modelVersionId)
+			}
+		} else {
+			glog.Info("Updating model artifact")
+			existing, err := serv.GetModelArtifactById(*ma.Id)
+			if err != nil {
+				return nil, err
+			}
 
-	if modelArtifact.Id == nil {
-		// create
-		glog.Info("Creating new model artifact")
-		if modelVersionId == nil {
-			return nil, fmt.Errorf("missing model version id, cannot create model artifact without model version")
+			withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, ma))
+			if err != nil {
+				return nil, err
+			}
+			ma = &withNotEditable
+
+			_, err = serv.getModelVersionByArtifactId(*ma.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
-		_, err = serv.GetModelVersionById(*modelVersionId)
-		if err != nil {
-			return nil, err
+	} else if da := artifact.DocArtifact; da != nil {
+		if da.Id == nil {
+			creating = true
+			glog.Info("Creating doc artifact")
+			if modelVersionId == nil {
+				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version")
+			}
+			_, err := serv.GetModelVersionById(*modelVersionId)
+			if err != nil {
+				return nil, fmt.Errorf("no model version found for id %s", *modelVersionId)
+			}
+		} else {
+			glog.Info("Updating doc artifact")
+			existing, err := serv.GetArtifactById(*da.Id)
+			if err != nil {
+				return nil, err
+			}
+			if existing.DocArtifact == nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact", *da.Id)
+			}
+
+			withNotEditable, err := serv.openapiConv.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
+			if err != nil {
+				return nil, err
+			}
+			da = &withNotEditable
+
+			_, err = serv.getModelVersionByArtifactId(*da.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
-		// update
-		glog.Infof("Updating model artifact %s", *modelArtifact.Id)
-		existing, err = serv.GetModelArtifactById(*modelArtifact.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, modelArtifact))
-		if err != nil {
-			return nil, err
-		}
-		modelArtifact = &withNotEditable
-
-		_, err = serv.getModelVersionByArtifactId(*modelArtifact.Id)
-		if err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact")
 	}
-
-	artifact, err := serv.mapper.MapFromModelArtifact(modelArtifact, modelVersionId)
+	pa, err := serv.mapper.MapFromArtifact(artifact, modelVersionId)
 	if err != nil {
 		return nil, err
 	}
-
 	artifactsResp, err := serv.mlmdClient.PutArtifacts(context.Background(), &proto.PutArtifactsRequest{
-		Artifacts: []*proto.Artifact{artifact},
+		Artifacts: []*proto.Artifact{pa},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// add explicit Attribution between Artifact and ModelVersion
-	if modelVersionId != nil && modelArtifact.Id == nil {
+	if creating {
+		// add explicit Attribution between Artifact and ModelVersion
 		modelVersionId, err := converter.StringToInt64(modelVersionId)
 		if err != nil {
 			return nil, err
@@ -617,15 +660,10 @@ func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.Mod
 	}
 
 	idAsString := converter.Int64ToString(&artifactsResp.ArtifactIds[0])
-	mapped, err := serv.GetModelArtifactById(*idAsString)
-	if err != nil {
-		return nil, err
-	}
-	return mapped, nil
+	return serv.GetArtifactById(*idAsString)
 }
 
-// GetModelArtifactById retrieves a model artifact by its unique identifier (ID).
-func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.ModelArtifact, error) {
+func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
 		return nil, err
@@ -637,26 +675,88 @@ func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.Mode
 	if err != nil {
 		return nil, err
 	}
-
 	if len(artifactsResp.Artifacts) > 1 {
-		return nil, fmt.Errorf("multiple model artifacts found for id %s", id)
+		return nil, fmt.Errorf("multiple artifacts found for id %s", id)
 	}
-
 	if len(artifactsResp.Artifacts) == 0 {
-		return nil, fmt.Errorf("no model artifact found for id %s", id)
+		return nil, fmt.Errorf("no artifact found for id %s", id)
 	}
+	return serv.mapper.MapToArtifact(artifactsResp.Artifacts[0])
+}
 
-	result, err := serv.mapper.MapToModelArtifact(artifactsResp.Artifacts[0])
+func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ArtifactList, error) {
+	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, err
 	}
+	var artifacts []*proto.Artifact
+	var nextPageToken *string
+	if modelVersionId == nil {
+		return nil, fmt.Errorf("missing model version id, cannot get artifacts without model version")
+	}
+	ctxId, err := converter.StringToInt64(modelVersionId)
+	if err != nil {
+		return nil, err
+	}
+	artifactsResp, err := serv.mlmdClient.GetArtifactsByContext(context.Background(), &proto.GetArtifactsByContextRequest{
+		ContextId: ctxId,
+		Options:   listOperationOptions,
+	})
+	if err != nil {
+		return nil, err
+	}
+	artifacts = artifactsResp.Artifacts
+	nextPageToken = artifactsResp.NextPageToken
 
-	return result, nil
+	results := []openapi.Artifact{}
+	for _, a := range artifacts {
+		mapped, err := serv.mapper.MapToArtifact(a)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, *mapped)
+	}
+
+	toReturn := openapi.ArtifactList{
+		NextPageToken: apiutils.ZeroIfNil(nextPageToken),
+		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
+		Size:          int32(len(results)),
+		Items:         results,
+	}
+	return &toReturn, nil
+}
+
+// MODEL ARTIFACTS
+
+// UpsertModelArtifact creates a new model artifact if the provided model artifact's ID is nil,
+// or updates an existing model artifact if the ID is provided.
+// If a model version ID is provided and the model artifact is newly created, establishes an
+// explicit attribution between the model version and the created model artifact.
+func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *string) (*openapi.ModelArtifact, error) {
+	art, err := serv.UpsertArtifact(&openapi.Artifact{
+		ModelArtifact: modelArtifact,
+	}, modelVersionId)
+	if err != nil {
+		return nil, err
+	}
+	return art.ModelArtifact, err
+}
+
+// GetModelArtifactById retrieves a model artifact by its unique identifier (ID).
+func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.ModelArtifact, error) {
+	art, err := serv.GetArtifactById(id)
+	if err != nil {
+		return nil, err
+	}
+	ma := art.ModelArtifact
+	if ma == nil {
+		return nil, fmt.Errorf("artifact with id %s is not a model artifact", id)
+	}
+	return ma, err
 }
 
 // GetModelArtifactByInferenceService retrieves the model artifact associated with the specified inference service ID.
 func (serv *ModelRegistryService) GetModelArtifactByInferenceService(inferenceServiceId string) (*openapi.ModelArtifact, error) {
-
 	mv, err := serv.GetModelVersionByInferenceService(inferenceServiceId)
 	if err != nil {
 		return nil, err
@@ -992,7 +1092,8 @@ func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *opena
 		_, err = serv.mlmdClient.PutParentContexts(context.Background(), &proto.PutParentContextsRequest{
 			ParentContexts: []*proto.ParentContext{{
 				ChildId:  inferenceServiceId,
-				ParentId: servingEnvironmentId}},
+				ParentId: servingEnvironmentId,
+			}},
 			TransactionOptions: &proto.TransactionOptions{},
 		})
 		if err != nil {

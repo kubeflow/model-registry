@@ -50,6 +50,14 @@ type ModelRegistryApi interface {
 	// if registeredModelId is provided, return all ModelVersion instances belonging to a specific RegisteredModel
 	GetModelVersions(listOptions ListOptions, registeredModelId *string) (*openapi.ModelVersionList, error)
 
+	// ARTIFACT
+
+	UpsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error)
+
+	GetArtifactById(id string) (*openapi.Artifact, error)
+
+	GetArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
+
 	// MODEL ARTIFACT
 
 	// UpsertModelArtifact create a new Artifact or update an Artifact associated to a specific

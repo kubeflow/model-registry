@@ -14,15 +14,17 @@ const (
 	invalidTypeId            = int64(9999)
 	registeredModelTypeId    = int64(1)
 	modelVersionTypeId       = int64(2)
-	modelArtifactTypeId      = int64(3)
-	servingEnvironmentTypeId = int64(4)
-	inferenceServiceTypeId   = int64(5)
-	serveModelTypeId         = int64(6)
+	docArtifactTypeId        = int64(3)
+	modelArtifactTypeId      = int64(4)
+	servingEnvironmentTypeId = int64(5)
+	inferenceServiceTypeId   = int64(6)
+	serveModelTypeId         = int64(7)
 )
 
 var typesMap = map[string]int64{
 	constants.RegisteredModelTypeName:    registeredModelTypeId,
 	constants.ModelVersionTypeName:       modelVersionTypeId,
+	constants.DocArtifactTypeName:        docArtifactTypeId,
 	constants.ModelArtifactTypeName:      modelArtifactTypeId,
 	constants.ServingEnvironmentTypeName: servingEnvironmentTypeId,
 	constants.InferenceServiceTypeName:   inferenceServiceTypeId,
@@ -53,10 +55,23 @@ func TestMapFromModelVersion(t *testing.T) {
 	assertion.Equal(modelVersionTypeId, ctx.GetTypeId())
 }
 
+func TestMapFromDocArtifact(t *testing.T) {
+	assertion, m := setup(t)
+
+	ctx, err := m.MapFromArtifact(&openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{Name: of("DocArtifact")},
+	}, of("2"))
+	assertion.Nil(err)
+	assertion.Equal("2:DocArtifact", ctx.GetName())
+	assertion.Equal(docArtifactTypeId, ctx.GetTypeId())
+}
+
 func TestMapFromModelArtifact(t *testing.T) {
 	assertion, m := setup(t)
 
-	ctx, err := m.MapFromModelArtifact(&openapi.ModelArtifact{Name: of("ModelArtifact")}, of("2"))
+	ctx, err := m.MapFromArtifact(&openapi.Artifact{
+		ModelArtifact: &openapi.ModelArtifact{Name: of("ModelArtifact")},
+	}, of("2"))
 	assertion.Nil(err)
 	assertion.Equal("2:ModelArtifact", ctx.GetName())
 	assertion.Equal(modelArtifactTypeId, ctx.GetTypeId())
@@ -167,9 +182,18 @@ func TestMapToModelVersionInvalid(t *testing.T) {
 	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ModelVersionTypeName), err.Error())
 }
 
+func TestMapToDocArtifact(t *testing.T) {
+	assertion, m := setup(t)
+	_, err := m.MapToArtifact(&proto.Artifact{
+		TypeId: of(docArtifactTypeId),
+		Type:   of(constants.DocArtifactTypeName),
+	})
+	assertion.Nil(err)
+}
+
 func TestMapToModelArtifact(t *testing.T) {
 	assertion, m := setup(t)
-	_, err := m.MapToModelArtifact(&proto.Artifact{
+	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(modelArtifactTypeId),
 		Type:   of(constants.ModelArtifactTypeName),
 	})
@@ -178,21 +202,21 @@ func TestMapToModelArtifact(t *testing.T) {
 
 func TestMapToModelArtifactMissingType(t *testing.T) {
 	assertion, m := setup(t)
-	_, err := m.MapToModelArtifact(&proto.Artifact{
+	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(modelArtifactTypeId),
 	})
 	assertion.NotNil(err)
-	assertion.Equal("error setting field ArtifactType: invalid artifact type found: <nil>", err.Error())
+	assertion.Equal("invalid artifact type, can't map from nil", err.Error())
 }
 
-func TestMapToModelArtifactInvalid(t *testing.T) {
+func TestMapToArtifactInvalid(t *testing.T) {
 	assertion, m := setup(t)
-	_, err := m.MapToModelArtifact(&proto.Artifact{
+	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(invalidTypeId),
 		Type:   of("odh.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ModelArtifactTypeName), err.Error())
+	assertion.Equal("unknown artifact type: odh.OtherEntity", err.Error())
 }
 
 func TestMapToServingEnvironment(t *testing.T) {

@@ -14,6 +14,7 @@ model_base_resource.go
 model_base_resource_create.go
 model_base_resource_list.go
 model_base_resource_update.go
+model_doc_artifact.go
 model_error.go
 model_execution_state.go
 model_inference_service.go

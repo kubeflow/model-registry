@@ -218,6 +218,41 @@ func MapOpenAPIArtifactState(source *openapi.ArtifactState) (*proto.Artifact_Sta
 	return (*proto.Artifact_State)(&val), nil
 }
 
+// DOC ARTIFACT
+
+// get DocArtifact MLMD type name
+func MapDocArtifactType(_ *openapi.DocArtifact) *string {
+	return of(constants.DocArtifactTypeName)
+}
+
+func MapDocArtifactProperties(source *openapi.DocArtifact) (map[string]*proto.Value, error) {
+	props := make(map[string]*proto.Value)
+	if source == nil {
+		return nil, nil
+	}
+	if source.Description != nil {
+		props["description"] = &proto.Value{
+			Value: &proto.Value_StringValue{
+				StringValue: *source.Description,
+			},
+		}
+	}
+	return props, nil
+}
+
+// maps the user-provided name into MLMD one, i.e., prefixing it with either the parent resource id or a generated
+// uuid. If not provided, autogenerate the name itself
+func MapDocArtifactName(source *OpenAPIModelWrapper[openapi.DocArtifact]) *string {
+	// openapi.Artifact is defined with optional name, so build arbitrary name for this artifact if missing
+	var artifactName string
+	if (*source).Model.Name != nil {
+		artifactName = *(*source).Model.Name
+	} else {
+		artifactName = uuid.New().String()
+	}
+	return of(PrefixWhenOwned(source.ParentResourceId, artifactName))
+}
+
 // MODEL ARTIFACT
 
 // MapModelArtifactProperties maps ModelArtifact fields to specific MLMD properties

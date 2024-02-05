@@ -80,14 +80,23 @@ func MapPropertyAuthor(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "author")
 }
 
-// MODEL ARTIFACT
+// ARTIFACT
 
 func MapArtifactType(source *proto.Artifact) (string, error) {
-	if source.Type != nil && *source.Type == constants.ModelArtifactTypeName {
-		return "model-artifact", nil
+	if source.Type == nil {
+		return "", fmt.Errorf("artifact type is nil")
 	}
-	return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
+	switch *source.Type {
+	case constants.ModelArtifactTypeName:
+		return "model-artifact", nil
+	case constants.DocArtifactTypeName:
+		return "doc-artifact", nil
+	default:
+		return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
+	}
 }
+
+// MODEL ARTIFACT
 
 func MapRegisteredModelState(properties map[string]*proto.Value) *openapi.RegisteredModelState {
 	state, ok := properties["state"]

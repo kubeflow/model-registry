@@ -11,6 +11,70 @@ import (
 
 type OpenAPIToMLMDConverterImpl struct{}
 
+func (c *OpenAPIToMLMDConverterImpl) ConvertDocArtifact(source *converter.OpenAPIModelWrapper[openapi.DocArtifact]) (*proto.Artifact, error) {
+	var pProtoArtifact *proto.Artifact
+	if source != nil {
+		var protoArtifact proto.Artifact
+		var pString *string
+		if (*source).Model != nil {
+			pString = (*source).Model.Id
+		}
+		pInt64, err := converter.StringToInt64(pString)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Id: %w", err)
+		}
+		protoArtifact.Id = pInt64
+		protoArtifact.Name = converter.MapDocArtifactName(source)
+		pInt642 := (*source).TypeId
+		protoArtifact.TypeId = &pInt642
+		protoArtifact.Type = converter.MapDocArtifactType((*source).Model)
+		var pString2 *string
+		if (*source).Model != nil {
+			pString2 = (*source).Model.Uri
+		}
+		var pString3 *string
+		if pString2 != nil {
+			xstring := *pString2
+			pString3 = &xstring
+		}
+		protoArtifact.Uri = pString3
+		var pString4 *string
+		if (*source).Model != nil {
+			pString4 = (*source).Model.ExternalID
+		}
+		var pString5 *string
+		if pString4 != nil {
+			xstring2 := *pString4
+			pString5 = &xstring2
+		}
+		protoArtifact.ExternalId = pString5
+		mapStringPProtoValue, err := converter.MapDocArtifactProperties((*source).Model)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Properties: %w", err)
+		}
+		protoArtifact.Properties = mapStringPProtoValue
+		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+		if (*source).Model != nil {
+			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+		}
+		mapStringPProtoValue2, err := converter.MapOpenAPICustomProperties(pMapStringOpenapiMetadataValue)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		protoArtifact.CustomProperties = mapStringPProtoValue2
+		var pOpenapiArtifactState *openapi.ArtifactState
+		if (*source).Model != nil {
+			pOpenapiArtifactState = (*source).Model.State
+		}
+		pProtoArtifact_State, err := converter.MapOpenAPIArtifactState(pOpenapiArtifactState)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		protoArtifact.State = pProtoArtifact_State
+		pProtoArtifact = &protoArtifact
+	}
+	return pProtoArtifact, nil
+}
 func (c *OpenAPIToMLMDConverterImpl) ConvertInferenceService(source *converter.OpenAPIModelWrapper[openapi.InferenceService]) (*proto.Context, error) {
 	var pProtoContext *proto.Context
 	if source != nil {

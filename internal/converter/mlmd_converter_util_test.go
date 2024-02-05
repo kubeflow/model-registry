@@ -323,6 +323,65 @@ func TestMapModelArtifactName(t *testing.T) {
 	assertion.Regexp(".*:v1", *name)
 }
 
+func TestMapDocArtifactProperties(t *testing.T) {
+	assertion := setup(t)
+
+	props, err := MapDocArtifactProperties(&openapi.DocArtifact{
+		Name:        of("v1"),
+		Description: of("my model art description"),
+	})
+	assertion.Nil(err)
+	assertion.Equal(1, len(props))
+	assertion.Equal("my model art description", props["description"].GetStringValue())
+
+	props, err = MapModelArtifactProperties(&openapi.ModelArtifact{
+		Name: of("v1"),
+	})
+	assertion.Nil(err)
+	assertion.Equal(0, len(props))
+}
+
+func TestMapDocArtifactType(t *testing.T) {
+	assertion := setup(t)
+
+	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
+	assertion.NotNil(typeName)
+	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
+}
+
+func TestMapDocArtifactName(t *testing.T) {
+	assertion := setup(t)
+
+	name := MapDocArtifactName(&OpenAPIModelWrapper[openapi.DocArtifact]{
+		TypeId:           123,
+		ParentResourceId: of("parent"),
+		Model: &openapi.DocArtifact{
+			Name: of("v1"),
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Equal("parent:v1", *name)
+
+	name = MapDocArtifactName(&OpenAPIModelWrapper[openapi.DocArtifact]{
+		TypeId:           123,
+		ParentResourceId: of("parent"),
+		Model: &openapi.DocArtifact{
+			Name: nil,
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Regexp("parent:.*", *name)
+
+	name = MapDocArtifactName(&OpenAPIModelWrapper[openapi.DocArtifact]{
+		TypeId: 123,
+		Model: &openapi.DocArtifact{
+			Name: of("v1"),
+		},
+	})
+	assertion.NotNil(name)
+	assertion.Regexp(".*:v1", *name)
+}
+
 func TestMapOpenAPIArtifactState(t *testing.T) {
 	assertion := setup(t)
 
@@ -522,6 +581,12 @@ func TestMapArtifactType(t *testing.T) {
 	})
 	assertion.Nil(err)
 	assertion.Equal("model-artifact", artifactType)
+
+	artifactType, err = MapArtifactType(&proto.Artifact{
+		Type: of(constants.DocArtifactTypeName),
+	})
+	assertion.Nil(err)
+	assertion.Equal("doc-artifact", artifactType)
 
 	artifactType, err = MapArtifactType(&proto.Artifact{
 		Type: of("Invalid"),

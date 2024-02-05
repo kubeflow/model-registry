@@ -3682,9 +3682,7 @@ func (r ApiGetModelVersionArtifactsRequest) Execute() (*ArtifactList, *http.Resp
 }
 
 /*
-GetModelVersionArtifacts List All ModelVersion's artifacts
-
-Gets a list of all `Artifact` entities for the `ModelVersion`.
+GetModelVersionArtifacts List all artifacts associated with the `ModelVersion`
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param modelversionId A unique identifier for a `ModelVersion`.

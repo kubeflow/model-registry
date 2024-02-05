@@ -17,7 +17,15 @@ import (
 
 // Artifact - A metadata Artifact Entity.
 type Artifact struct {
+	DocArtifact   *DocArtifact
 	ModelArtifact *ModelArtifact
+}
+
+// DocArtifactAsArtifact is a convenience function that returns DocArtifact wrapped in Artifact
+func DocArtifactAsArtifact(v *DocArtifact) Artifact {
+	return Artifact{
+		DocArtifact: v,
+	}
 }
 
 // ModelArtifactAsArtifact is a convenience function that returns ModelArtifact wrapped in Artifact
@@ -37,6 +45,18 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
+	// check if the discriminator value is 'DocArtifact'
+	if jsonDict["artifactType"] == "DocArtifact" {
+		// try to unmarshal JSON data into DocArtifact
+		err = json.Unmarshal(data, &dst.DocArtifact)
+		if err == nil {
+			return nil // data stored in dst.DocArtifact, return on the first match
+		} else {
+			dst.DocArtifact = nil
+			return fmt.Errorf("failed to unmarshal Artifact as DocArtifact: %s", err.Error())
+		}
+	}
+
 	// check if the discriminator value is 'ModelArtifact'
 	if jsonDict["artifactType"] == "ModelArtifact" {
 		// try to unmarshal JSON data into ModelArtifact
@@ -46,6 +66,18 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		} else {
 			dst.ModelArtifact = nil
 			return fmt.Errorf("failed to unmarshal Artifact as ModelArtifact: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'doc-artifact'
+	if jsonDict["artifactType"] == "doc-artifact" {
+		// try to unmarshal JSON data into DocArtifact
+		err = json.Unmarshal(data, &dst.DocArtifact)
+		if err == nil {
+			return nil // data stored in dst.DocArtifact, return on the first match
+		} else {
+			dst.DocArtifact = nil
+			return fmt.Errorf("failed to unmarshal Artifact as DocArtifact: %s", err.Error())
 		}
 	}
 
@@ -66,6 +98,10 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Artifact) MarshalJSON() ([]byte, error) {
+	if src.DocArtifact != nil {
+		return json.Marshal(&src.DocArtifact)
+	}
+
 	if src.ModelArtifact != nil {
 		return json.Marshal(&src.ModelArtifact)
 	}
@@ -78,6 +114,10 @@ func (obj *Artifact) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
+	if obj.DocArtifact != nil {
+		return obj.DocArtifact
+	}
+
 	if obj.ModelArtifact != nil {
 		return obj.ModelArtifact
 	}

@@ -6,6 +6,7 @@ type OpenAPIModel interface {
 	openapi.RegisteredModel |
 		openapi.ModelVersion |
 		openapi.ModelArtifact |
+		openapi.DocArtifact |
 		openapi.ServingEnvironment |
 		openapi.InferenceService |
 		openapi.ServeModel
@@ -39,6 +40,13 @@ func InitModelVersionWithUpdate(source OpenapiUpdateWrapper[openapi.ModelVersion
 		return *source.Update
 	}
 	return openapi.ModelVersion{}
+}
+
+func InitDocArtifactWithUpdate(source OpenapiUpdateWrapper[openapi.DocArtifact]) openapi.DocArtifact {
+	if source.Update != nil {
+		return *source.Update
+	}
+	return openapi.DocArtifact{}
 }
 
 func InitModelArtifactWithUpdate(source OpenapiUpdateWrapper[openapi.ModelArtifact]) openapi.ModelArtifact {

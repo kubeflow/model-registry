@@ -564,6 +564,11 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.S
 	}
 	return pOpenapiServingEnvironment, nil
 }
+func (c *OpenAPIConverterImpl) OverrideNotEditableForDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
+	openapiDocArtifact := converter.InitDocArtifactWithUpdate(source)
+	_ = source
+	return openapiDocArtifact, nil
+}
 func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source converter.OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error) {
 	openapiInferenceService := converter.InitInferenceServiceWithUpdate(source)
 	var pString *string
