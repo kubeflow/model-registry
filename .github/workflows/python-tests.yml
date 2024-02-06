@@ -71,7 +71,7 @@ jobs:
           fi
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3.1.5
+        uses: codecov/codecov-action@v4.0.1
         if: always() && matrix.session == 'tests'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
