@@ -152,7 +152,7 @@ build: gen vet lint
 	go build
 
 .PHONY: build/odh
-build/odh: vet lint
+build/odh: vet
 	go build
 
 .PHONY: gen
