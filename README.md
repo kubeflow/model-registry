@@ -4,3 +4,5 @@ Model registry provides a central repository for model developers to store and m
 ## Red Hat's Pledge
 - Red Hat drives the project's development through Open Source principles, ensuring transparency, sustainability, and community ownership.
 - Red Hat values the Kubeflow community and commits to providing a minimum of 12 months' notice before ending project maintenance after the initial release.
+
+test
