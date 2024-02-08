@@ -174,7 +174,8 @@ test-nocache: gen
 
 .PHONY: test-cover
 test-cover: gen
-	go test ./internal/... ./pkg/... -cover -count=1 -race -coverprofile=coverage.txt -covermode=atomic
+	go test ./internal/... ./pkg/... -coverprofile=coverage.txt
+	go tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: run/proxy
 run/proxy: gen
