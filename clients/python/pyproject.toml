@@ -5,10 +5,10 @@ description = "Client for Red Hat OpenDataHub Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
 readme = "README.md"
+homepage = "https://github.com/opendatahub-io/model-registry"
 
-[project.urls]
-Homepage = "https://github.com/opendatahub-io/model-registry"
-Issues = "https://github.com/opendatahub-io/model-registry/issues"
+[tool.poetry.urls]
+"Issues" = "https://github.com/opendatahub-io/model-registry/issues"
 
 [tool.poetry.dependencies]
 python = ">= 3.9, < 3.11"
