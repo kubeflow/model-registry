@@ -6,6 +6,10 @@ authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 
+[project.urls]
+Homepage = "https://github.com/opendatahub-io/model-registry"
+Issues = "https://github.com/opendatahub-io/model-registry/issues"
+
 [tool.poetry.dependencies]
 python = ">= 3.9, < 3.11"
 attrs = "^21.0"
