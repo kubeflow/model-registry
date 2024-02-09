@@ -95,6 +95,19 @@ I create a child ModelArtifact
     RETURN    ${result}
 
 
+I create a child Artifact
+    [Arguments]  ${modelversionId}    ${payload}
+    IF  $MODE == "REST"
+        ${resp}=    POST    url=http://${MR_HOST}:8080/api/model_registry/v1alpha1/model_versions/${modelversionId}/artifacts    json=&{payload}    expected_status=201
+        Log to console    ${resp.json()}
+        ${result}    Set Variable    ${resp.json()['id']}
+    ELSE
+        Log to console    ${MODE}
+        Fail    Not Implemented
+    END
+    RETURN    ${result}
+
+
 I get RegisteredModelByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
@@ -125,6 +138,19 @@ I get ModelArtifactByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
         ${resp}=    GET    url=http://${MR_HOST}:8080/api/model_registry/v1alpha1/model_artifacts/${id}    expected_status=200
+        ${result}    Set Variable    ${resp.json()}
+        Log to console    ${resp.json()}
+    ELSE
+        Log to console    ${MODE}
+        Fail    Not Implemented
+    END
+    RETURN    ${result}
+
+
+I get ArtifactsByModelVersionID
+    [Arguments]    ${id}
+    IF  $MODE == "REST"
+        ${resp}=    GET    url=http://${MR_HOST}:8080/api/model_registry/v1alpha1/model_versions/${id}/artifacts    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE

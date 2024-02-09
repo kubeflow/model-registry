@@ -7,3 +7,7 @@ model_artifact:
   artifactType: model-artifact
   name: ModelArtifactName
   uri: s3://12345
+doc_artifact:
+  artifactType: doc-artifact
+  name: README
+  uri: s3://README

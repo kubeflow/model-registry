@@ -17,10 +17,13 @@ Test Setup with dummy data
     Set Test Variable    &model_version    &{model_version}
     &{model_artifact}    Get From Dictionary   ${YAML}    model_artifact
     Set Test Variable    &model_artifact    &{model_artifact}
+    &{doc_artifact}    Get From Dictionary   ${YAML}    doc_artifact
+    Set Test Variable    &doc_artifact    &{doc_artifact}
 
 
 *** Variables ***
 &{registered_model}
 &{model_version}
 &{model_artifact}
+&{doc_artifact}
 ${name}
