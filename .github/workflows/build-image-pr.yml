@@ -32,7 +32,7 @@ jobs:
           VERSION: ${{ steps.tags.outputs.tag }}
         run: ./scripts/build_deploy.sh
       - name: Start Kind Cluster
-        uses: helm/kind-action@v1.8.0
+        uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
         env:
           IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
