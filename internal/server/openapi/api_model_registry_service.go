@@ -482,7 +482,8 @@ func (c *ModelRegistryServiceAPIController) FindInferenceService(w http.Response
 	query := r.URL.Query()
 	nameParam := query.Get("name")
 	externalIDParam := query.Get("externalID")
-	result, err := c.service.FindInferenceService(r.Context(), nameParam, externalIDParam)
+	parentResourceIDParam := query.Get("parentResourceID")
+	result, err := c.service.FindInferenceService(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

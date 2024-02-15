@@ -165,8 +165,8 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 }
 
 // FindInferenceService - Get an InferenceServices that matches search parameters.
-func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetInferenceServiceByParams(&name, nil, &externalID)
+func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalID string, parentResourceID string) (ImplResponse, error) {
+	result, err := s.coreApi.GetInferenceServiceByParams(&name, &parentResourceID, &externalID)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}

@@ -1379,10 +1379,11 @@ func (a *ModelRegistryServiceAPIService) CreateServingEnvironmentExecute(r ApiCr
 }
 
 type ApiFindInferenceServiceRequest struct {
-	ctx        context.Context
-	ApiService *ModelRegistryServiceAPIService
-	name       *string
-	externalID *string
+	ctx              context.Context
+	ApiService       *ModelRegistryServiceAPIService
+	name             *string
+	externalID       *string
+	parentResourceID *string
 }
 
 // Name of entity to search.
@@ -1394,6 +1395,12 @@ func (r ApiFindInferenceServiceRequest) Name(name string) ApiFindInferenceServic
 // External ID of entity to search.
 func (r ApiFindInferenceServiceRequest) ExternalID(externalID string) ApiFindInferenceServiceRequest {
 	r.externalID = &externalID
+	return r
+}
+
+// ID of the parent resource to use for search.
+func (r ApiFindInferenceServiceRequest) ParentResourceID(parentResourceID string) ApiFindInferenceServiceRequest {
+	r.parentResourceID = &parentResourceID
 	return r
 }
 
@@ -1443,6 +1450,9 @@ func (a *ModelRegistryServiceAPIService) FindInferenceServiceExecute(r ApiFindIn
 	}
 	if r.externalID != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	}
+	if r.parentResourceID != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceID", r.parentResourceID, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

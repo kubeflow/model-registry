@@ -482,6 +482,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/name"
       - $ref: "#/components/parameters/externalID"
+      - $ref: "#/components/parameters/parentResourceID"
   "/api/model_registry/v1alpha1/inference_services/{inferenceserviceId}":
     summary: Path used to manage a single InferenceService.
     description: >-
