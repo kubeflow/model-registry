@@ -67,18 +67,18 @@ gen/converter: gen/grpc internal/converter/generated/converter.go
 # validate the openapi schema
 .PHONY: openapi/validate
 openapi/validate: bin/openapi-generator-cli
-	openapi-generator-cli validate -i api/openapi/model-registry.yaml
+	@openapi-generator-cli validate -i api/openapi/model-registry.yaml
 
 # generate the openapi server implementation
-# note: run manually only when model-registry.yaml api changes, for model changes gen/openapi is run automatically
 .PHONY: gen/openapi-server
 gen/openapi-server: bin/openapi-generator-cli openapi/validate
-	openapi-generator-cli generate \
-		-i api/openapi/model-registry.yaml -g go-server -o internal/server/openapi --package-name openapi --global-property models \
-		--ignore-file-override ./.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true \
-		--template-dir ./templates/go-server
-	./scripts/gen_type_asserts.sh
-	gofmt -w internal/server/openapi
+	@if git diff --cached --name-only | grep -q "api/openapi/model-registry.yaml" || \
+		git diff --name-only | grep -q "api/openapi/model-registry.yaml" || \
+		[ -n "${FORCE_SERVER_GENERATION}" ]; then \
+		ROOT_FOLDER="." ./scripts/gen_openapi_server.sh; \
+	else \
+		echo "INFO api/openapi/model-registry.yaml is not staged or modified, will not re-generate server"; \
+	fi
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
@@ -156,7 +156,7 @@ build/odh: vet
 	go build
 
 .PHONY: gen
-gen: deps gen/grpc gen/openapi gen/converter
+gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	go generate ./...
 
 .PHONY: lint

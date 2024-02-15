@@ -191,6 +191,25 @@ func AssertBaseResourceUpdateConstraints(obj model.BaseResourceUpdate) error {
 	return nil
 }
 
+// AssertDocArtifactRequired checks if the required fields are not zero-ed
+func AssertDocArtifactRequired(obj model.DocArtifact) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertDocArtifactConstraints checks if the values respects the defined constraints
+func AssertDocArtifactConstraints(obj model.DocArtifact) error {
+	return nil
+}
+
 // AssertErrorRequired checks if the required fields are not zero-ed
 func AssertErrorRequired(obj model.Error) error {
 	elements := map[string]interface{}{
