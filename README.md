@@ -27,6 +27,10 @@ The proxy service implements the OpenAPI defined in [model-registry.yaml](api/op
 
 > **NOTE** The ml-metadata server must be running and accessible from the environment where model-registry starts up.
 
+### Model registry logical model
+
+For a high-level documentation of the Model Registry _logical model_, please check [this guide](./docs/logical_model.md).
+
 ## Model Registry Core
 
 The model registry core is the layer which implements the core/business logic by interacting with the underlying ml-metadata server.
