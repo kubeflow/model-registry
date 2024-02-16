@@ -1,6 +1,7 @@
 """Standard client for the model registry."""
 from __future__ import annotations
 
+import os
 from typing import get_args
 from warnings import warn
 
@@ -98,7 +99,7 @@ class ModelRegistry:
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
-            metadata: Additional version metadata.
+            metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
 
         Returns:
             Registered model.
@@ -109,7 +110,7 @@ class ModelRegistry:
             version,
             author or self._author,
             description=description,
-            metadata=metadata or {},
+            metadata=metadata or self.default_metadata(),
         )
         self._register_model_artifact(
             mv,
@@ -122,6 +123,19 @@ class ModelRegistry:
         )
 
         return rm
+
+    def default_metadata(self) -> dict[str, ScalarType]:
+        """Default metadata valorisations.
+
+        When not explicitly supplied by the end users, these valorisations will be used
+        by default.
+
+        Returns:
+            default metadata valorisations.
+        """
+        return {
+            key: os.environ[key] for key in ["AWS_S3_ENDPOINT", "AWS_S3_BUCKET", "AWS_DEFAULT_REGION"] if key in os.environ
+        }
 
     def register_hf_model(
         self,
@@ -188,6 +202,7 @@ class ModelRegistry:
             model_author = author
         source_uri = hf_hub_url(repo, path, revision=git_ref)
         metadata = {
+            **self.default_metadata(),
             "repo": repo,
             "source_uri": source_uri,
             "model_origin": "huggingface_hub",

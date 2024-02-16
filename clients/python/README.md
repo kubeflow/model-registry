@@ -37,6 +37,11 @@ version = registry.get_model_version("my-model", "v2.0")
 experiment = registry.get_model_artifact("my-model", "v2.0")
 ```
 
+### Default values for metadata
+
+If not supplied, `metadata` values defaults to a predefined set of conventional values.
+Reference the technical documentation in the pydoc of the client.
+
 ### Importing from Hugging Face Hub
 
 To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
