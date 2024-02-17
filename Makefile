@@ -59,7 +59,7 @@ internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	goverter gen github.com/opendatahub-io/model-registry/internal/converter/
+	${GOVERTER} gen github.com/opendatahub-io/model-registry/internal/converter/
 
 .PHONY: gen/converter
 gen/converter: gen/grpc internal/converter/generated/converter.go
@@ -67,7 +67,7 @@ gen/converter: gen/grpc internal/converter/generated/converter.go
 # validate the openapi schema
 .PHONY: openapi/validate
 openapi/validate: bin/openapi-generator-cli
-	@openapi-generator-cli validate -i api/openapi/model-registry.yaml
+	${OPENAPI_GENERATOR} validate -i api/openapi/model-registry.yaml
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
@@ -86,7 +86,7 @@ gen/openapi: bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
 
 pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 	rm -rf pkg/openapi
-	openapi-generator-cli generate \
+	${OPENAPI_GENERATOR} generate \
 		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
 	gofmt -w pkg/openapi
@@ -112,9 +112,11 @@ bin/protoc-gen-go:
 bin/protoc-gen-go-grpc:
 	GOBIN=$(PROJECT_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
+GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
 
+GOVERTER ?= ${PROJECT_BIN}/goverter
 bin/goverter:
 	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v1.1.1
 
@@ -161,8 +163,8 @@ gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 
 .PHONY: lint
 lint:
-	golangci-lint run main.go
-	golangci-lint run cmd/... internal/... ./pkg/...
+	${GOLANGCI_LINT} run main.go
+	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...
 
 .PHONY: test
 test: gen
