@@ -1,0 +1,59 @@
+name: Build
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    paths-ignore:
+      - 'LICENSE*'
+      - 'DOCKERFILE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
+      - 'scripts/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.19'
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "24.3"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - name: Install makefile dependencies
+        run: make deps
+      - name: Clean
+        run: make clean
+      - name: Build
+        run: make build
+      - name: Check if there are uncommitted file changes
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "Empty git status --porcelain: $clean"
+          else
+              echo "Uncommitted file changes detected: $clean"
+              git diff
+              exit 1
+          fi
+      - name: Unit tests
+        run: make test-cover
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: coverage.txt
+          fail_ci_if_error: true

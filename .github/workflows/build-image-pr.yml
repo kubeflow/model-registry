@@ -1,0 +1,54 @@
+name: Test container image build and deployment
+on:
+  pull_request:
+    paths-ignore:
+      - 'LICENSE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
+      - 'clients/python/**'
+env:
+  QUAY_IMG_REPO: model-registry
+  PUSH_IMAGE: false
+  BRANCH: ${{ github.base_ref }}
+jobs:
+  build-and-test-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Build Image
+        shell: bash
+        env:
+          VERSION: ${{ steps.tags.outputs.tag }}
+        run: ./scripts/build_deploy.sh
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.9.0
+      - name: Load Local Registry Test Image
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          kind load docker-image -n chart-testing ${IMG}
+      - name: Deploy Operator With Test Image
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          echo "Deploying operator from model-registry-operator branch ${BRANCH}"
+          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/default?ref=${BRANCH}"
+          kubectl set env -n model-registry-operator-system deployment/model-registry-operator-controller-manager REST_IMAGE="${IMG}"
+      - name: Create Test Registry
+        run: |
+          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/samples?ref=${BRANCH}"
+          kubectl get mr
+      - name: Wait for Test Registry Deployment
+        run: |
+          kubectl wait --for=condition=Available=true modelregistries/modelregistry-sample --timeout=5m

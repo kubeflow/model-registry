@@ -1,0 +1,112 @@
+{{>partial_header}}
+package {{packageName}}
+
+{{#models}}{{#imports}}
+{{#-first}}import (
+{{/-first}}	"{{import}}"{{#-last}}
+)
+{{/-last}}{{/imports}}
+
+{{#model}}
+
+// Assert{{classname}}Required checks if the required fields are not zero-ed
+func Assert{{classname}}Required(obj model.{{classname}}) error {
+{{#hasRequired}}
+	elements := map[string]interface{}{
+{{#requiredVars}}		"{{baseName}}": obj.{{name}},
+{{/requiredVars}}	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+{{/hasRequired}}
+{{#parent}}
+	{{^isMap}}
+		{{^isArray}}
+	if err := Assert{{{parent}}}Required(obj.{{{parent}}}); err != nil {
+		return err
+	}
+
+		{{/isArray}}
+	{{/isMap}}
+{{/parent}}
+{{#Vars}}
+	{{#isNullable}}
+		{{#isModel}}
+	if obj.{{name}} != nil {
+		{{/isModel}}
+		{{#isArray}}
+			{{#items.isModel}}
+	if obj.{{name}} != nil {
+			{{/items.isModel}}
+			{{^items.isModel}}
+				{{#mostInnerItems.isModel}}
+					{{^mostInnerItems.isPrimitiveType}}
+	if obj.{{name}} != nil {
+					{{/mostInnerItems.isPrimitiveType}}
+				{{/mostInnerItems.isModel}}
+			{{/items.isModel}}
+		{{/isArray}}
+	{{/isNullable}}
+	{{#isModel}}
+{{#isNullable}}	{{/isNullable}}	if err := Assert{{baseType}}Required({{#isNullable}}*{{/isNullable}}obj.{{name}}); err != nil {
+{{#isNullable}}	{{/isNullable}}		return err
+{{#isNullable}}	{{/isNullable}}	}
+	{{/isModel}}
+	{{#isArray}}
+		{{#items.isModel}}
+{{#isNullable}}	{{/isNullable}}	for _, el := range {{#isNullable}}*{{/isNullable}}obj.{{name}} {
+{{#isNullable}}	{{/isNullable}}		if err := Assert{{items.baseType}}Required(el); err != nil {
+{{#isNullable}}	{{/isNullable}}			return err
+{{#isNullable}}	{{/isNullable}}		}
+{{#isNullable}}	{{/isNullable}}	}
+		{{/items.isModel}}
+		{{^items.isModel}}
+			{{#mostInnerItems.isModel}}
+				{{^mostInnerItems.isPrimitiveType}}
+{{#isNullable}}	{{/isNullable}}	if err := AssertRecurseInterfaceRequired({{#isNullable}}*{{/isNullable}}obj.{{name}}, Assert{{mostInnerItems.dataType}}Required); err != nil {
+{{#isNullable}}	{{/isNullable}}		return err
+{{#isNullable}}	{{/isNullable}}	}
+				{{/mostInnerItems.isPrimitiveType}}
+			{{/mostInnerItems.isModel}}
+		{{/items.isModel}}
+	{{/isArray}}
+	{{#isNullable}}
+		{{#isModel}}
+	}
+		{{/isModel}}
+		{{#isArray}}
+			{{#items.isModel}}
+	}
+			{{/items.isModel}}
+			{{^items.isModel}}
+				{{#mostInnerItems.isModel}}
+					{{^mostInnerItems.isPrimitiveType}}
+	}
+					{{/mostInnerItems.isPrimitiveType}}
+				{{/mostInnerItems.isModel}}
+			{{/items.isModel}}
+		{{/isArray}}
+	{{/isNullable}}
+{{/Vars}}
+	return nil
+}
+
+// Assert{{classname}}Constraints checks if the values respects the defined constraints
+func Assert{{classname}}Constraints(obj model.{{classname}}) error {
+{{#Vars}}
+{{#minimum}}
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} < {{minimum}} {
+		return &ParsingError{Err: errors.New(errMsgMinValueConstraint)}
+	}
+{{/minimum}}
+{{#maximum}}
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} > {{maximum}} {
+		return &ParsingError{Err: errors.New(errMsgMaxValueConstraint)}
+	}
+{{/maximum}}
+{{/Vars}}
+	return nil
+}{{/model}}{{/models}}
