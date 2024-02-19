@@ -8,14 +8,18 @@ spec:
   - kubeflow-gateway
   hosts:
   - '*'
-  http:
+  tcp:
   - match:
-    - uri:
-        prefix: /ml_metadata
-    rewrite:
-      uri: /ml_metadata
+    - port: 8080
     route:
     - destination:
-        host: metadata-envoy-service.kubeflow.svc.cluster.local
+        host: model-registry-service.kubeflow.svc.cluster.local
         port:
-          number: 9090
+          number: 8080
+  - match:
+      - port: 9090
+    route:
+      - destination:
+          host: model-registry-service.kubeflow.svc.cluster.local
+          port:
+            number: 9090

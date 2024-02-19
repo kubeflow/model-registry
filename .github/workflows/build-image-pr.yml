@@ -50,12 +50,5 @@ jobs:
           kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/samples?ref=${BRANCH}"
           kubectl get mr
       - name: Wait for Test Registry Deployment
-        timeout-minutes: 5
         run: |
-          CONDITION="false"
-          while [ "${CONDITION}" != "True" ]
-          do
-            sleep 5
-            CONDITION="`kubectl get mr modelregistry-sample --output=jsonpath='{.status.conditions[?(@.type=="Available")].status}'`"
-            echo "Registry Available=${CONDITION}"
-          done
+          kubectl wait --for=condition=Available=true modelregistries/modelregistry-sample --timeout=5m
