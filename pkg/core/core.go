@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/internal/apiutils"
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/converter"
-	"github.com/opendatahub-io/model-registry/internal/converter/generated"
-	"github.com/opendatahub-io/model-registry/internal/mapper"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/api"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/converter/generated"
+	"github.com/kubeflow/model-registry/internal/mapper"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"google.golang.org/grpc"
 )
 

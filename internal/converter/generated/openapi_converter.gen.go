@@ -3,8 +3,8 @@
 package generated
 
 import (
-	converter "github.com/opendatahub-io/model-registry/internal/converter"
-	openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/model-registry/internal/converter"
+	openapi "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type OpenAPIConverterImpl struct{}

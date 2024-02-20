@@ -4,9 +4,9 @@ package generated
 
 import (
 	"fmt"
-	converter "github.com/opendatahub-io/model-registry/internal/converter"
-	proto "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/model-registry/internal/converter"
+	proto "github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	openapi "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type OpenAPIToMLMDConverterImpl struct{}

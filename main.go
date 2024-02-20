@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/cmd"
+	"github.com/kubeflow/model-registry/cmd"
 	"log"
 	"net/http"
 	_ "net/http/pprof"

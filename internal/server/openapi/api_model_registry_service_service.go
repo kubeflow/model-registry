@@ -12,11 +12,11 @@ package openapi
 import (
 	"context"
 
-	"github.com/opendatahub-io/model-registry/internal/apiutils"
-	"github.com/opendatahub-io/model-registry/internal/converter"
-	"github.com/opendatahub-io/model-registry/internal/converter/generated"
-	"github.com/opendatahub-io/model-registry/pkg/api"
-	model "github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/converter/generated"
+	"github.com/kubeflow/model-registry/pkg/api"
+	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIService is a service that implements the logic for the ModelRegistryServiceAPIServicer

@@ -1,6 +1,6 @@
 # Model Registry Python Client
 
-[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10-blue)](https://github.com/opendatahub-io/model-registry)
+[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10-blue)](https://github.com/kubeflow/model-registry)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
 
 This library provides a high level interface for interacting with a model registry server.
@@ -85,7 +85,7 @@ Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
-If you want run tests locally you will need to set up a colima develeopment environment using the instructions [here](https://github.com/opendatahub-io/model-registry/blob/main/CONTRIBUTING.md#colima)
+If you want run tests locally you will need to set up a colima develeopment environment using the instructions [here](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#colima)
 
 You will also have to change the package source to one compatible with ARM64 architecture. This can be actioned by uncommenting lines 14 or 15 in the pyproject.toml file. Run the following command after you have uncommented the line.
 
