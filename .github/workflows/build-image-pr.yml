@@ -47,7 +47,7 @@ jobs:
           kubectl set env -n model-registry-operator-system deployment/model-registry-operator-controller-manager REST_IMAGE="${IMG}"
       - name: Create Test Registry
         run: |
-          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/samples?ref=${BRANCH}"
+          kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/samples/postgres?ref=${BRANCH}"
           kubectl get mr
       - name: Wait for Test Registry Deployment
         run: |
