@@ -59,6 +59,14 @@ jobs:
           else
             nox --python=${{ matrix.python }}
           fi
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4.0.1
+        if: always() && matrix.session == 'tests'
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
       - name: Upload documentation
         if: matrix.session == 'docs-build'
         uses: actions/upload-artifact@v4
