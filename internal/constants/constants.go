@@ -2,11 +2,11 @@ package constants
 
 // MLMD type names
 const (
-	RegisteredModelTypeName    = "odh.RegisteredModel"
-	ModelVersionTypeName       = "odh.ModelVersion"
-	ModelArtifactTypeName      = "odh.ModelArtifact"
-	DocArtifactTypeName        = "odh.DocArtifact"
-	ServingEnvironmentTypeName = "odh.ServingEnvironment"
-	InferenceServiceTypeName   = "odh.InferenceService"
-	ServeModelTypeName         = "odh.ServeModel"
+	RegisteredModelTypeName    = "kfmr.RegisteredModel"
+	ModelVersionTypeName       = "kfmr.ModelVersion"
+	ModelArtifactTypeName      = "kfmr.ModelArtifact"
+	DocArtifactTypeName        = "kfmr.DocArtifact"
+	ServingEnvironmentTypeName = "kfmr.ServingEnvironment"
+	InferenceServiceTypeName   = "kfmr.InferenceService"
+	ServeModelTypeName         = "kfmr.ServeModel"
 )

@@ -453,7 +453,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInRegisteredM
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type odh.RegisteredModel: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type kfmr.RegisteredModel: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelVersion() {
@@ -473,7 +473,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelVersio
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type odh.ModelVersion: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type kfmr.ModelVersion: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelArtifact() {
@@ -493,7 +493,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelArtifa
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up artifact type odh.ModelArtifact: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up artifact type kfmr.ModelArtifact: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServingEnvironment() {
@@ -512,7 +512,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServingEnvi
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type odh.ServingEnvironment: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type kfmr.ServingEnvironment: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInInferenceService() {
@@ -532,7 +532,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInInferenceSe
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type odh.InferenceService: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type kfmr.InferenceService: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServeModel() {
@@ -552,7 +552,7 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServeModel(
 	// steps to create model registry service
 	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
 	suite.NotNil(err)
-	suite.Regexp("error setting up execution type odh.ServeModel: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up execution type kfmr.ServeModel: rpc error: code = AlreadyExists.*", err.Error())
 }
 
 // REGISTERED MODELS
