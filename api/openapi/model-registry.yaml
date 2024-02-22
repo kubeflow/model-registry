@@ -1102,37 +1102,74 @@ components:
         - $ref: "#/components/schemas/MetadataStructValue"
         - $ref: "#/components/schemas/MetadataProtoValue"
         - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+            MetadataBoolValue: '#/components/schemas/MetadataBoolValue'
+            MetadataDoubleValue: '#/components/schemas/MetadataDoubleValue'
+            MetadataIntValue: '#/components/schemas/MetadataIntValue'
+            MetadataProtoValue: '#/components/schemas/MetadataProtoValue'
+            MetadataStringValue: '#/components/schemas/MetadataStringValue'
+            MetadataStructValue: '#/components/schemas/MetadataStructValue'
       description: A value in properties.
     MetadataIntValue:
       description: An integer (int64) property value.
       type: object
+      required:
+        - metadataType
+        - int_value
       properties:
         int_value:
           format: int64
           type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
     MetadataDoubleValue:
       description: A double property value.
       type: object
+      required:
+        - metadataType
+        - double_value
       properties:
         double_value:
           format: double
           type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
     MetadataStringValue:
       description: A string property value.
       type: object
+      required:
+        - metadataType
+        - string_value
       properties:
         string_value:
           type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
     MetadataStructValue:
       description: A struct property value.
       type: object
+      required:
+        - metadataType
+        - struct_value
       properties:
         struct_value:
           description: Base64 encoded bytes for struct value
           type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
     MetadataProtoValue:
       description: A proto property value.
       type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
       properties:
         type:
           description: url describing proto value
@@ -1140,12 +1177,21 @@ components:
         proto_value:
           description: Base64 encoded bytes for proto value
           type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
     MetadataBoolValue:
       description: A bool property value.
       type: object
+      required:
+        - metadataType
+        - bool_value
       properties:
         bool_value:
           type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
     BaseResource:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
