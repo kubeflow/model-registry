@@ -6,7 +6,7 @@ The Model Registry Service go library provides a convenient interface for managi
 
 The recommended way is using `go get`, from your custom project run:
 ```bash
-go get github.com/opendatahub-io/model-registry
+go get github.com/kubeflow/model-registry
 ```
 
 ## Getting Started
@@ -50,7 +50,7 @@ Once the gRPC connection is setup, let's create the `ModelRegistryService`:
 ```go
 import (
   "fmt"
-  "github.com/opendatahub-io/model-registry/pkg/core"
+  "github.com/kubeflow/model-registry/pkg/core"
 )
 
 service, err := core.NewModelRegistryService(conn)

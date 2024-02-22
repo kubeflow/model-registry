@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 // MapMLMDCustomProperties maps MLMD custom properties model to OpenAPI one

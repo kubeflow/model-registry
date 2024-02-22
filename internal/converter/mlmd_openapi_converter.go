@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 // goverter:converter

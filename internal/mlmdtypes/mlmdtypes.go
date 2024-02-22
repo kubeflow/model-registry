@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/opendatahub-io/model-registry/internal/apiutils"
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"google.golang.org/grpc"
 )
 

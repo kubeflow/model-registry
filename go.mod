@@ -1,4 +1,4 @@
-module github.com/opendatahub-io/model-registry
+module github.com/kubeflow/model-registry
 
 go 1.19
 

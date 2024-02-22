@@ -37,19 +37,19 @@ api/grpc/ml_metadata/proto/metadata_source.proto:
 	mkdir -p api/grpc/ml_metadata/proto/
 	cd api/grpc/ml_metadata/proto/ && \
 		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_source.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_source.proto
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_source.proto
 
 api/grpc/ml_metadata/proto/metadata_store.proto:
 	mkdir -p api/grpc/ml_metadata/proto/
 	cd api/grpc/ml_metadata/proto/ && \
 		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_store.proto
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store.proto
 
 api/grpc/ml_metadata/proto/metadata_store_service.proto:
 	mkdir -p api/grpc/ml_metadata/proto/
 	cd api/grpc/ml_metadata/proto/ && \
 		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store_service.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
+		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
 
 internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 	protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
@@ -59,7 +59,7 @@ internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	${GOVERTER} gen github.com/opendatahub-io/model-registry/internal/converter/
+	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
 
 .PHONY: gen/converter
 gen/converter: gen/grpc internal/converter/generated/converter.go

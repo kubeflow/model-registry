@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -157,10 +157,10 @@ func TestMapToRegisteredModelInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToRegisteredModel(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.RegisteredModelTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kfmr.OtherEntity, please check the provided id", constants.RegisteredModelTypeName), err.Error())
 }
 
 func TestMapToModelVersion(t *testing.T) {
@@ -176,10 +176,10 @@ func TestMapToModelVersionInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToModelVersion(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ModelVersionTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kfmr.OtherEntity, please check the provided id", constants.ModelVersionTypeName), err.Error())
 }
 
 func TestMapToDocArtifact(t *testing.T) {
@@ -213,10 +213,10 @@ func TestMapToArtifactInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal("unknown artifact type: odh.OtherEntity", err.Error())
+	assertion.Equal("unknown artifact type: kfmr.OtherEntity", err.Error())
 }
 
 func TestMapToServingEnvironment(t *testing.T) {
@@ -232,10 +232,10 @@ func TestMapToServingEnvironmentInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServingEnvironment(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ServingEnvironmentTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kfmr.OtherEntity, please check the provided id", constants.ServingEnvironmentTypeName), err.Error())
 }
 
 func TestMapToInferenceService(t *testing.T) {
@@ -251,10 +251,10 @@ func TestMapToInferenceServiceInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToInferenceService(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.InferenceServiceTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kfmr.OtherEntity, please check the provided id", constants.InferenceServiceTypeName), err.Error())
 }
 
 func TestMapToServeModel(t *testing.T) {
@@ -270,10 +270,10 @@ func TestMapToServeModelInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServeModel(&proto.Execution{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kfmr.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ServeModelTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kfmr.OtherEntity, please check the provided id", constants.ServeModelTypeName), err.Error())
 }
 
 func TestMapTo(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/opendatahub-io/model-registry/internal/mlmdtypes"
-	"github.com/opendatahub-io/model-registry/internal/server/openapi"
-	"github.com/opendatahub-io/model-registry/pkg/core"
+	"github.com/kubeflow/model-registry/internal/mlmdtypes"
+	"github.com/kubeflow/model-registry/internal/server/openapi"
+	"github.com/kubeflow/model-registry/pkg/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

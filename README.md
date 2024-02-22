@@ -5,8 +5,8 @@ Model registry provides a central repository for model developers to store and m
 - Red Hat drives the project's development through Open Source principles, ensuring transparency, sustainability, and community ownership.
 - Red Hat values the Kubeflow community and commits to providing a minimum of 12 months' notice before ending project maintenance after the initial release.
 
-![build checks status](https://github.com/opendatahub-io/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
-[![codecov](https://codecov.io/github/opendatahub-io/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/opendatahub-io/model-registry)
+![build checks status](https://github.com/kubeflow/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
 
 ## Pre-requisites:
 - go >= 1.19
@@ -19,14 +19,14 @@ Model registry provides a central repository for model developers to store and m
 
 The model registry proxy server implementation follows a contract-first approach, where the contract is identified by [model-registry.yaml](api/openapi/model-registry.yaml) OpenAPI specification.
 
-You can also easily display the latest OpenAPI contract for model-registry in a Swagger-like editor directly from this repository; for example, [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/opendatahub-io/model-registry/main/api/openapi/model-registry.yaml).
+You can also easily display the latest OpenAPI contract for model-registry in a Swagger-like editor directly from this repository; for example, [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml).
 ### Starting the OpenAPI Proxy Server
 Run the following command to start the OpenAPI proxy server from source:
 
 ```shell
 make run/proxy
 ```
-The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create an Open Data Hub specific REST API on top of the existing ml-metadata server.
+The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API on top of the existing ml-metadata server.
 
 > **NOTE** The ml-metadata server must be running and accessible from the environment where model-registry starts up.
 

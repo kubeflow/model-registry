@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/opendatahub-io/model-registry/pkg/openapi"
+import "github.com/kubeflow/model-registry/pkg/openapi"
 
 // NOTE: methods must follow these patterns, otherwise tests could not find possible issues:
 // Converters createEntity to entity: Convert<ENTITY>Create

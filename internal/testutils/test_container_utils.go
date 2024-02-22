@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
