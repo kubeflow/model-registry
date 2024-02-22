@@ -19,15 +19,18 @@ var _ MappedNullable = &MetadataIntValue{}
 
 // MetadataIntValue An integer (int64) property value.
 type MetadataIntValue struct {
-	IntValue *string `json:"int_value,omitempty"`
+	IntValue     string `json:"int_value"`
+	MetadataType string `json:"metadataType"`
 }
 
 // NewMetadataIntValue instantiates a new MetadataIntValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataIntValue() *MetadataIntValue {
+func NewMetadataIntValue(intValue string, metadataType string) *MetadataIntValue {
 	this := MetadataIntValue{}
+	this.IntValue = intValue
+	this.MetadataType = metadataType
 	return &this
 }
 
@@ -36,39 +39,57 @@ func NewMetadataIntValue() *MetadataIntValue {
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataIntValueWithDefaults() *MetadataIntValue {
 	this := MetadataIntValue{}
+	var metadataType string = "MetadataIntValue"
+	this.MetadataType = metadataType
 	return &this
 }
 
-// GetIntValue returns the IntValue field value if set, zero value otherwise.
+// GetIntValue returns the IntValue field value
 func (o *MetadataIntValue) GetIntValue() string {
-	if o == nil || IsNil(o.IntValue) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.IntValue
+
+	return o.IntValue
 }
 
-// GetIntValueOk returns a tuple with the IntValue field value if set, nil otherwise
+// GetIntValueOk returns a tuple with the IntValue field value
 // and a boolean to check if the value has been set.
 func (o *MetadataIntValue) GetIntValueOk() (*string, bool) {
-	if o == nil || IsNil(o.IntValue) {
+	if o == nil {
 		return nil, false
 	}
-	return o.IntValue, true
+	return &o.IntValue, true
 }
 
-// HasIntValue returns a boolean if a field has been set.
-func (o *MetadataIntValue) HasIntValue() bool {
-	if o != nil && !IsNil(o.IntValue) {
-		return true
+// SetIntValue sets field value
+func (o *MetadataIntValue) SetIntValue(v string) {
+	o.IntValue = v
+}
+
+// GetMetadataType returns the MetadataType field value
+func (o *MetadataIntValue) GetMetadataType() string {
+	if o == nil {
+		var ret string
+		return ret
 	}
 
-	return false
+	return o.MetadataType
 }
 
-// SetIntValue gets a reference to the given string and assigns it to the IntValue field.
-func (o *MetadataIntValue) SetIntValue(v string) {
-	o.IntValue = &v
+// GetMetadataTypeOk returns a tuple with the MetadataType field value
+// and a boolean to check if the value has been set.
+func (o *MetadataIntValue) GetMetadataTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.MetadataType, true
+}
+
+// SetMetadataType sets field value
+func (o *MetadataIntValue) SetMetadataType(v string) {
+	o.MetadataType = v
 }
 
 func (o MetadataIntValue) MarshalJSON() ([]byte, error) {
@@ -81,9 +102,8 @@ func (o MetadataIntValue) MarshalJSON() ([]byte, error) {
 
 func (o MetadataIntValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.IntValue) {
-		toSerialize["int_value"] = o.IntValue
-	}
+	toSerialize["int_value"] = o.IntValue
+	toSerialize["metadataType"] = o.MetadataType
 	return toSerialize, nil
 }
 

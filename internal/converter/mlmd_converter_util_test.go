@@ -66,7 +66,7 @@ func TestMetadataValueBool(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my bool"
 	mdValue := true
-	data[key] = openapi.MetadataBoolValueAsMetadataValue(&openapi.MetadataBoolValue{BoolValue: &mdValue})
+	data[key] = openapi.MetadataBoolValueAsMetadataValue(&openapi.MetadataBoolValue{BoolValue: mdValue})
 
 	roundTripAndAssert(t, data, key)
 }
@@ -75,7 +75,7 @@ func TestMetadataValueInt(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my int"
 	mdValue := "987"
-	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: &mdValue})
+	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: mdValue})
 
 	roundTripAndAssert(t, data, key)
 }
@@ -84,7 +84,7 @@ func TestMetadataValueIntFailure(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my int"
 	mdValue := "not a number"
-	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: &mdValue})
+	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: mdValue})
 
 	assertion := setup(t)
 	asGRPC, err := MapOpenAPICustomProperties(&data)
@@ -97,7 +97,7 @@ func TestMetadataValueDouble(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my double"
 	mdValue := 3.1415
-	data[key] = openapi.MetadataDoubleValueAsMetadataValue(&openapi.MetadataDoubleValue{DoubleValue: &mdValue})
+	data[key] = openapi.MetadataDoubleValueAsMetadataValue(&openapi.MetadataDoubleValue{DoubleValue: mdValue})
 
 	roundTripAndAssert(t, data, key)
 }
@@ -106,7 +106,7 @@ func TestMetadataValueString(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my string"
 	mdValue := "Hello, World!"
-	data[key] = openapi.MetadataStringValueAsMetadataValue(&openapi.MetadataStringValue{StringValue: &mdValue})
+	data[key] = openapi.MetadataStringValueAsMetadataValue(&openapi.MetadataStringValue{StringValue: mdValue})
 
 	roundTripAndAssert(t, data, key)
 }
@@ -123,7 +123,7 @@ func TestMetadataValueStruct(t *testing.T) {
 		t.Error(err)
 	}
 	b64 := base64.StdEncoding.EncodeToString(asJSON)
-	data[key] = openapi.MetadataStructValueAsMetadataValue(&openapi.MetadataStructValue{StructValue: &b64})
+	data[key] = openapi.MetadataStructValueAsMetadataValue(&openapi.MetadataStructValue{StructValue: b64})
 
 	roundTripAndAssert(t, data, key)
 }
@@ -142,8 +142,8 @@ func TestMetadataValueProtoUnsupported(t *testing.T) {
 	b64 := base64.StdEncoding.EncodeToString(asJSON)
 	typeDef := "map[string]openapi.MetadataValue"
 	data[key] = openapi.MetadataProtoValueAsMetadataValue(&openapi.MetadataProtoValue{
-		Type:       &typeDef,
-		ProtoValue: &b64,
+		Type:       typeDef,
+		ProtoValue: b64,
 	})
 
 	assertion := setup(t)

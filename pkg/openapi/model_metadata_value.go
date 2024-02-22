@@ -70,100 +70,86 @@ func MetadataStructValueAsMetadataValue(v *MetadataStructValue) MetadataValue {
 // Unmarshal JSON data into one of the pointers in the struct
 func (dst *MetadataValue) UnmarshalJSON(data []byte) error {
 	var err error
-	match := 0
-	// try to unmarshal data into MetadataBoolValue
-	err = json.Unmarshal(data, &dst.MetadataBoolValue)
-	if err == nil {
-		jsonMetadataBoolValue, _ := json.Marshal(dst.MetadataBoolValue)
-		if string(jsonMetadataBoolValue) == "{}" { // empty struct
+	// use discriminator value to speed up the lookup
+	var jsonDict map[string]interface{}
+	err = newStrictDecoder(data).Decode(&jsonDict)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
+	}
+
+	// check if the discriminator value is 'MetadataBoolValue'
+	if jsonDict["metadataType"] == "MetadataBoolValue" {
+		// try to unmarshal JSON data into MetadataBoolValue
+		err = json.Unmarshal(data, &dst.MetadataBoolValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataBoolValue, return on the first match
+		} else {
 			dst.MetadataBoolValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataBoolValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataBoolValue = nil
 	}
 
-	// try to unmarshal data into MetadataDoubleValue
-	err = json.Unmarshal(data, &dst.MetadataDoubleValue)
-	if err == nil {
-		jsonMetadataDoubleValue, _ := json.Marshal(dst.MetadataDoubleValue)
-		if string(jsonMetadataDoubleValue) == "{}" { // empty struct
+	// check if the discriminator value is 'MetadataDoubleValue'
+	if jsonDict["metadataType"] == "MetadataDoubleValue" {
+		// try to unmarshal JSON data into MetadataDoubleValue
+		err = json.Unmarshal(data, &dst.MetadataDoubleValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataDoubleValue, return on the first match
+		} else {
 			dst.MetadataDoubleValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataDoubleValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataDoubleValue = nil
 	}
 
-	// try to unmarshal data into MetadataIntValue
-	err = json.Unmarshal(data, &dst.MetadataIntValue)
-	if err == nil {
-		jsonMetadataIntValue, _ := json.Marshal(dst.MetadataIntValue)
-		if string(jsonMetadataIntValue) == "{}" { // empty struct
+	// check if the discriminator value is 'MetadataIntValue'
+	if jsonDict["metadataType"] == "MetadataIntValue" {
+		// try to unmarshal JSON data into MetadataIntValue
+		err = json.Unmarshal(data, &dst.MetadataIntValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataIntValue, return on the first match
+		} else {
 			dst.MetadataIntValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataIntValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataIntValue = nil
 	}
 
-	// try to unmarshal data into MetadataProtoValue
-	err = json.Unmarshal(data, &dst.MetadataProtoValue)
-	if err == nil {
-		jsonMetadataProtoValue, _ := json.Marshal(dst.MetadataProtoValue)
-		if string(jsonMetadataProtoValue) == "{}" { // empty struct
+	// check if the discriminator value is 'MetadataProtoValue'
+	if jsonDict["metadataType"] == "MetadataProtoValue" {
+		// try to unmarshal JSON data into MetadataProtoValue
+		err = json.Unmarshal(data, &dst.MetadataProtoValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataProtoValue, return on the first match
+		} else {
 			dst.MetadataProtoValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataProtoValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataProtoValue = nil
 	}
 
-	// try to unmarshal data into MetadataStringValue
-	err = json.Unmarshal(data, &dst.MetadataStringValue)
-	if err == nil {
-		jsonMetadataStringValue, _ := json.Marshal(dst.MetadataStringValue)
-		if string(jsonMetadataStringValue) == "{}" { // empty struct
+	// check if the discriminator value is 'MetadataStringValue'
+	if jsonDict["metadataType"] == "MetadataStringValue" {
+		// try to unmarshal JSON data into MetadataStringValue
+		err = json.Unmarshal(data, &dst.MetadataStringValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataStringValue, return on the first match
+		} else {
 			dst.MetadataStringValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataStringValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataStringValue = nil
 	}
 
-	// try to unmarshal data into MetadataStructValue
-	err = json.Unmarshal(data, &dst.MetadataStructValue)
-	if err == nil {
-		jsonMetadataStructValue, _ := json.Marshal(dst.MetadataStructValue)
-		if string(jsonMetadataStructValue) == "{}" { // empty struct
+	// check if the discriminator value is 'MetadataStructValue'
+	if jsonDict["metadataType"] == "MetadataStructValue" {
+		// try to unmarshal JSON data into MetadataStructValue
+		err = json.Unmarshal(data, &dst.MetadataStructValue)
+		if err == nil {
+			return nil // data stored in dst.MetadataStructValue, return on the first match
+		} else {
 			dst.MetadataStructValue = nil
-		} else {
-			match++
+			return fmt.Errorf("failed to unmarshal MetadataValue as MetadataStructValue: %s", err.Error())
 		}
-	} else {
-		dst.MetadataStructValue = nil
 	}
 
-	if match > 1 { // more than 1 match
-		// reset to nil
-		dst.MetadataBoolValue = nil
-		dst.MetadataDoubleValue = nil
-		dst.MetadataIntValue = nil
-		dst.MetadataProtoValue = nil
-		dst.MetadataStringValue = nil
-		dst.MetadataStructValue = nil
-
-		return fmt.Errorf("data matches more than one schema in oneOf(MetadataValue)")
-	} else if match == 1 {
-		return nil // exactly one match
-	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(MetadataValue)")
-	}
+	return nil
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON

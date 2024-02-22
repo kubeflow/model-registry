@@ -19,15 +19,18 @@ var _ MappedNullable = &MetadataStringValue{}
 
 // MetadataStringValue A string property value.
 type MetadataStringValue struct {
-	StringValue *string `json:"string_value,omitempty"`
+	StringValue  string `json:"string_value"`
+	MetadataType string `json:"metadataType"`
 }
 
 // NewMetadataStringValue instantiates a new MetadataStringValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataStringValue() *MetadataStringValue {
+func NewMetadataStringValue(stringValue string, metadataType string) *MetadataStringValue {
 	this := MetadataStringValue{}
+	this.StringValue = stringValue
+	this.MetadataType = metadataType
 	return &this
 }
 
@@ -39,36 +42,52 @@ func NewMetadataStringValueWithDefaults() *MetadataStringValue {
 	return &this
 }
 
-// GetStringValue returns the StringValue field value if set, zero value otherwise.
+// GetStringValue returns the StringValue field value
 func (o *MetadataStringValue) GetStringValue() string {
-	if o == nil || IsNil(o.StringValue) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.StringValue
+
+	return o.StringValue
 }
 
-// GetStringValueOk returns a tuple with the StringValue field value if set, nil otherwise
+// GetStringValueOk returns a tuple with the StringValue field value
 // and a boolean to check if the value has been set.
 func (o *MetadataStringValue) GetStringValueOk() (*string, bool) {
-	if o == nil || IsNil(o.StringValue) {
+	if o == nil {
 		return nil, false
 	}
-	return o.StringValue, true
+	return &o.StringValue, true
 }
 
-// HasStringValue returns a boolean if a field has been set.
-func (o *MetadataStringValue) HasStringValue() bool {
-	if o != nil && !IsNil(o.StringValue) {
-		return true
+// SetStringValue sets field value
+func (o *MetadataStringValue) SetStringValue(v string) {
+	o.StringValue = v
+}
+
+// GetMetadataType returns the MetadataType field value
+func (o *MetadataStringValue) GetMetadataType() string {
+	if o == nil {
+		var ret string
+		return ret
 	}
 
-	return false
+	return o.MetadataType
 }
 
-// SetStringValue gets a reference to the given string and assigns it to the StringValue field.
-func (o *MetadataStringValue) SetStringValue(v string) {
-	o.StringValue = &v
+// GetMetadataTypeOk returns a tuple with the MetadataType field value
+// and a boolean to check if the value has been set.
+func (o *MetadataStringValue) GetMetadataTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.MetadataType, true
+}
+
+// SetMetadataType sets field value
+func (o *MetadataStringValue) SetMetadataType(v string) {
+	o.MetadataType = v
 }
 
 func (o MetadataStringValue) MarshalJSON() ([]byte, error) {
@@ -81,9 +100,8 @@ func (o MetadataStringValue) MarshalJSON() ([]byte, error) {
 
 func (o MetadataStringValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.StringValue) {
-		toSerialize["string_value"] = o.StringValue
-	}
+	toSerialize["string_value"] = o.StringValue
+	toSerialize["metadataType"] = o.MetadataType
 	return toSerialize, nil
 }
 

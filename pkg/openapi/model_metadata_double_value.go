@@ -19,15 +19,18 @@ var _ MappedNullable = &MetadataDoubleValue{}
 
 // MetadataDoubleValue A double property value.
 type MetadataDoubleValue struct {
-	DoubleValue *float64 `json:"double_value,omitempty"`
+	DoubleValue  float64 `json:"double_value"`
+	MetadataType string  `json:"metadataType"`
 }
 
 // NewMetadataDoubleValue instantiates a new MetadataDoubleValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataDoubleValue() *MetadataDoubleValue {
+func NewMetadataDoubleValue(doubleValue float64, metadataType string) *MetadataDoubleValue {
 	this := MetadataDoubleValue{}
+	this.DoubleValue = doubleValue
+	this.MetadataType = metadataType
 	return &this
 }
 
@@ -39,36 +42,52 @@ func NewMetadataDoubleValueWithDefaults() *MetadataDoubleValue {
 	return &this
 }
 
-// GetDoubleValue returns the DoubleValue field value if set, zero value otherwise.
+// GetDoubleValue returns the DoubleValue field value
 func (o *MetadataDoubleValue) GetDoubleValue() float64 {
-	if o == nil || IsNil(o.DoubleValue) {
+	if o == nil {
 		var ret float64
 		return ret
 	}
-	return *o.DoubleValue
+
+	return o.DoubleValue
 }
 
-// GetDoubleValueOk returns a tuple with the DoubleValue field value if set, nil otherwise
+// GetDoubleValueOk returns a tuple with the DoubleValue field value
 // and a boolean to check if the value has been set.
 func (o *MetadataDoubleValue) GetDoubleValueOk() (*float64, bool) {
-	if o == nil || IsNil(o.DoubleValue) {
+	if o == nil {
 		return nil, false
 	}
-	return o.DoubleValue, true
+	return &o.DoubleValue, true
 }
 
-// HasDoubleValue returns a boolean if a field has been set.
-func (o *MetadataDoubleValue) HasDoubleValue() bool {
-	if o != nil && !IsNil(o.DoubleValue) {
-		return true
+// SetDoubleValue sets field value
+func (o *MetadataDoubleValue) SetDoubleValue(v float64) {
+	o.DoubleValue = v
+}
+
+// GetMetadataType returns the MetadataType field value
+func (o *MetadataDoubleValue) GetMetadataType() string {
+	if o == nil {
+		var ret string
+		return ret
 	}
 
-	return false
+	return o.MetadataType
 }
 
-// SetDoubleValue gets a reference to the given float64 and assigns it to the DoubleValue field.
-func (o *MetadataDoubleValue) SetDoubleValue(v float64) {
-	o.DoubleValue = &v
+// GetMetadataTypeOk returns a tuple with the MetadataType field value
+// and a boolean to check if the value has been set.
+func (o *MetadataDoubleValue) GetMetadataTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.MetadataType, true
+}
+
+// SetMetadataType sets field value
+func (o *MetadataDoubleValue) SetMetadataType(v string) {
+	o.MetadataType = v
 }
 
 func (o MetadataDoubleValue) MarshalJSON() ([]byte, error) {
@@ -81,9 +100,8 @@ func (o MetadataDoubleValue) MarshalJSON() ([]byte, error) {
 
 func (o MetadataDoubleValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.DoubleValue) {
-		toSerialize["double_value"] = o.DoubleValue
-	}
+	toSerialize["double_value"] = o.DoubleValue
+	toSerialize["metadataType"] = o.MetadataType
 	return toSerialize, nil
 }
 

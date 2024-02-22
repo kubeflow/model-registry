@@ -20,15 +20,18 @@ var _ MappedNullable = &MetadataStructValue{}
 // MetadataStructValue A struct property value.
 type MetadataStructValue struct {
 	// Base64 encoded bytes for struct value
-	StructValue *string `json:"struct_value,omitempty"`
+	StructValue  string `json:"struct_value"`
+	MetadataType string `json:"metadataType"`
 }
 
 // NewMetadataStructValue instantiates a new MetadataStructValue object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMetadataStructValue() *MetadataStructValue {
+func NewMetadataStructValue(structValue string, metadataType string) *MetadataStructValue {
 	this := MetadataStructValue{}
+	this.StructValue = structValue
+	this.MetadataType = metadataType
 	return &this
 }
 
@@ -40,36 +43,52 @@ func NewMetadataStructValueWithDefaults() *MetadataStructValue {
 	return &this
 }
 
-// GetStructValue returns the StructValue field value if set, zero value otherwise.
+// GetStructValue returns the StructValue field value
 func (o *MetadataStructValue) GetStructValue() string {
-	if o == nil || IsNil(o.StructValue) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.StructValue
+
+	return o.StructValue
 }
 
-// GetStructValueOk returns a tuple with the StructValue field value if set, nil otherwise
+// GetStructValueOk returns a tuple with the StructValue field value
 // and a boolean to check if the value has been set.
 func (o *MetadataStructValue) GetStructValueOk() (*string, bool) {
-	if o == nil || IsNil(o.StructValue) {
+	if o == nil {
 		return nil, false
 	}
-	return o.StructValue, true
+	return &o.StructValue, true
 }
 
-// HasStructValue returns a boolean if a field has been set.
-func (o *MetadataStructValue) HasStructValue() bool {
-	if o != nil && !IsNil(o.StructValue) {
-		return true
+// SetStructValue sets field value
+func (o *MetadataStructValue) SetStructValue(v string) {
+	o.StructValue = v
+}
+
+// GetMetadataType returns the MetadataType field value
+func (o *MetadataStructValue) GetMetadataType() string {
+	if o == nil {
+		var ret string
+		return ret
 	}
 
-	return false
+	return o.MetadataType
 }
 
-// SetStructValue gets a reference to the given string and assigns it to the StructValue field.
-func (o *MetadataStructValue) SetStructValue(v string) {
-	o.StructValue = &v
+// GetMetadataTypeOk returns a tuple with the MetadataType field value
+// and a boolean to check if the value has been set.
+func (o *MetadataStructValue) GetMetadataTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.MetadataType, true
+}
+
+// SetMetadataType sets field value
+func (o *MetadataStructValue) SetMetadataType(v string) {
+	o.MetadataType = v
 }
 
 func (o MetadataStructValue) MarshalJSON() ([]byte, error) {
@@ -82,9 +101,8 @@ func (o MetadataStructValue) MarshalJSON() ([]byte, error) {
 
 func (o MetadataStructValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.StructValue) {
-		toSerialize["struct_value"] = o.StructValue
-	}
+	toSerialize["struct_value"] = o.StructValue
+	toSerialize["metadataType"] = o.MetadataType
 	return toSerialize, nil
 }
 
