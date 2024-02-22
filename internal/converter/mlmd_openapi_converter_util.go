@@ -42,6 +42,13 @@ func NewMetadataStructValue(value string) *openapi.MetadataStructValue {
 	return result
 }
 
+func NewMetadataProtoValue(typeDef string, value string) *openapi.MetadataProtoValue {
+	result := openapi.NewMetadataProtoValueWithDefaults()
+	result.Type = typeDef
+	result.ProtoValue = value
+	return result
+}
+
 // MapMLMDCustomProperties maps MLMD custom properties model to OpenAPI one
 func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi.MetadataValue, error) {
 	data := make(map[string]openapi.MetadataValue)
