@@ -119,7 +119,7 @@ Based on analysis of the alternatives provided, we decided to further pursue:
 
 MR python client [tests](https://github.com/kubeflow/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/clients/python/tests/conftest.py#L19) should be rewritten using Testcontainers, and not leveraging the embedded server (already done with [this PR](https://github.com/kubeflow/model-registry/pull/225)).
 
-The group concur this is a sensible approach ([recorded here](https://redhat-internal.slack.com/archives/C05LGBNUK9C/p1700763823505259?thread_ts=1700427888.670999&cid=C05LGBNUK9C)).
+The group concur this is a sensible approach.
 
 This change would also better align the test approach used for the MR python client, by aligning with the same strategy of the MR core Go layer test framework, which already makes use of Testcontainers for Go ([reference](https://github.com/kubeflow/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/internal/testutils/test_container_utils.go#L59)).
 

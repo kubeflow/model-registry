@@ -26,7 +26,7 @@ Run the following command to start the OpenAPI proxy server from source:
 ```shell
 make run/proxy
 ```
-The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create an Open Data Hub specific REST API on top of the existing ml-metadata server.
+The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API on top of the existing ml-metadata server.
 
 > **NOTE** The ml-metadata server must be running and accessible from the environment where model-registry starts up.
 
