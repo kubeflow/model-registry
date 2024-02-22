@@ -39,6 +39,8 @@ func NewMetadataDoubleValue(doubleValue float64, metadataType string) *MetadataD
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataDoubleValueWithDefaults() *MetadataDoubleValue {
 	this := MetadataDoubleValue{}
+	var metadataType string = "MetadataDoubleValue"
+	this.MetadataType = metadataType
 	return &this
 }
 

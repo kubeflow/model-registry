@@ -13,23 +13,33 @@ import (
 )
 
 func NewMetadataStringValue(value string) *openapi.MetadataStringValue {
-	return openapi.NewMetadataStringValue(value, "MetadataStringValue")
+	result := openapi.NewMetadataStringValueWithDefaults()
+	result.StringValue = value
+	return result
 }
 
 func NewMetadataBoolValue(value bool) *openapi.MetadataBoolValue {
-	return openapi.NewMetadataBoolValue(value, "MetadataBoolValue")
+	result := openapi.NewMetadataBoolValueWithDefaults()
+	result.BoolValue = value
+	return result
 }
 
 func NewMetadataDoubleValue(value float64) *openapi.MetadataDoubleValue {
-	return openapi.NewMetadataDoubleValue(value, "MetadataDoubleValue")
+	result := openapi.NewMetadataDoubleValueWithDefaults()
+	result.DoubleValue = value
+	return result
 }
 
 func NewMetadataIntValue(value string) *openapi.MetadataIntValue {
-	return openapi.NewMetadataIntValue(value, "MetadataIntValue")
+	result := openapi.NewMetadataIntValueWithDefaults()
+	result.IntValue = value
+	return result
 }
 
 func NewMetadataStructValue(value string) *openapi.MetadataStructValue {
-	return openapi.NewMetadataStructValue(value, "MetadataStructValue")
+	result := openapi.NewMetadataStructValueWithDefaults()
+	result.StructValue = value
+	return result
 }
 
 // MapMLMDCustomProperties maps MLMD custom properties model to OpenAPI one

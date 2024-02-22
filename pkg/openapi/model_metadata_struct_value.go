@@ -40,6 +40,8 @@ func NewMetadataStructValue(structValue string, metadataType string) *MetadataSt
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataStructValueWithDefaults() *MetadataStructValue {
 	this := MetadataStructValue{}
+	var metadataType string = "MetadataStructValue"
+	this.MetadataType = metadataType
 	return &this
 }
 

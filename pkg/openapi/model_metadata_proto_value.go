@@ -43,6 +43,8 @@ func NewMetadataProtoValue(type_ string, protoValue string, metadataType string)
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataProtoValueWithDefaults() *MetadataProtoValue {
 	this := MetadataProtoValue{}
+	var metadataType string = "MetadataProtoValue"
+	this.MetadataType = metadataType
 	return &this
 }
 

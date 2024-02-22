@@ -1125,6 +1125,7 @@ components:
         metadataType:
           type: string
           example: MetadataIntValue
+          default: MetadataIntValue
     MetadataDoubleValue:
       description: A double property value.
       type: object
@@ -1138,6 +1139,7 @@ components:
         metadataType:
           type: string
           example: MetadataDoubleValue
+          default: MetadataDoubleValue
     MetadataStringValue:
       description: A string property value.
       type: object
@@ -1150,6 +1152,7 @@ components:
         metadataType:
           type: string
           example: MetadataStringValue
+          default: MetadataStringValue
     MetadataStructValue:
       description: A struct property value.
       type: object
@@ -1163,6 +1166,7 @@ components:
         metadataType:
           type: string
           example: MetadataStructValue
+          default: MetadataStructValue
     MetadataProtoValue:
       description: A proto property value.
       type: object
@@ -1180,6 +1184,7 @@ components:
         metadataType:
           type: string
           example: MetadataProtoValue
+          default: MetadataProtoValue
     MetadataBoolValue:
       description: A bool property value.
       type: object
@@ -1192,6 +1197,7 @@ components:
         metadataType:
           type: string
           example: MetadataBoolValue
+          default: MetadataBoolValue
     BaseResource:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"

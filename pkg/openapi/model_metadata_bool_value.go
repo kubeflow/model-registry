@@ -39,6 +39,8 @@ func NewMetadataBoolValue(boolValue bool, metadataType string) *MetadataBoolValu
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataBoolValueWithDefaults() *MetadataBoolValue {
 	this := MetadataBoolValue{}
+	var metadataType string = "MetadataBoolValue"
+	this.MetadataType = metadataType
 	return &this
 }
 

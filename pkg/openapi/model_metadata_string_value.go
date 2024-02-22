@@ -39,6 +39,8 @@ func NewMetadataStringValue(stringValue string, metadataType string) *MetadataSt
 // but it doesn't guarantee that properties required by API are set
 func NewMetadataStringValueWithDefaults() *MetadataStringValue {
 	this := MetadataStringValue{}
+	var metadataType string = "MetadataStringValue"
+	this.MetadataType = metadataType
 	return &this
 }
 
