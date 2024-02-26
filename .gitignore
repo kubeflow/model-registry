@@ -27,7 +27,7 @@ metadata.sqlite.db
 
 # Ignore go vendor and code coverage files
 vendor
-coverage.txt
+coverage.*
 
 # Robot Framework files
 log.html
