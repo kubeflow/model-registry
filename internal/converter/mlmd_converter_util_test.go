@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -205,7 +205,7 @@ func TestMapRegisteredModelType(t *testing.T) {
 
 	typeName := MapRegisteredModelType(&openapi.RegisteredModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.RegisteredModelTypeName, *typeName)
+	assertion.Equal(defaults.RegisteredModelTypeName, *typeName)
 }
 
 func TestMapModelVersionProperties(t *testing.T) {
@@ -233,7 +233,7 @@ func TestMapModelVersionType(t *testing.T) {
 
 	typeName := MapModelVersionType(&openapi.ModelVersion{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelVersionTypeName, *typeName)
+	assertion.Equal(defaults.ModelVersionTypeName, *typeName)
 }
 
 func TestMapModelVersionName(t *testing.T) {
@@ -284,7 +284,7 @@ func TestMapModelArtifactType(t *testing.T) {
 
 	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
+	assertion.Equal(defaults.ModelArtifactTypeName, *typeName)
 }
 
 func TestMapModelArtifactName(t *testing.T) {
@@ -343,7 +343,7 @@ func TestMapDocArtifactType(t *testing.T) {
 
 	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
+	assertion.Equal(defaults.ModelArtifactTypeName, *typeName)
 }
 
 func TestMapDocArtifactName(t *testing.T) {
@@ -574,13 +574,13 @@ func TestMapArtifactType(t *testing.T) {
 	assertion := setup(t)
 
 	artifactType, err := MapArtifactType(&proto.Artifact{
-		Type: of(constants.ModelArtifactTypeName),
+		Type: of(defaults.ModelArtifactTypeName),
 	})
 	assertion.Nil(err)
 	assertion.Equal("model-artifact", artifactType)
 
 	artifactType, err = MapArtifactType(&proto.Artifact{
-		Type: of(constants.DocArtifactTypeName),
+		Type: of(defaults.DocArtifactTypeName),
 	})
 	assertion.Nil(err)
 	assertion.Equal("doc-artifact", artifactType)
@@ -656,7 +656,7 @@ func TestMapServingEnvironmentType(t *testing.T) {
 
 	typeName := MapServingEnvironmentType(&openapi.ServingEnvironment{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ServingEnvironmentTypeName, *typeName)
+	assertion.Equal(defaults.ServingEnvironmentTypeName, *typeName)
 }
 
 func TestMapInferenceServiceType(t *testing.T) {
@@ -664,7 +664,7 @@ func TestMapInferenceServiceType(t *testing.T) {
 
 	typeName := MapInferenceServiceType(&openapi.InferenceService{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.InferenceServiceTypeName, *typeName)
+	assertion.Equal(defaults.InferenceServiceTypeName, *typeName)
 }
 
 func TestMapInferenceServiceProperties(t *testing.T) {
@@ -707,7 +707,7 @@ func TestMapServeModelType(t *testing.T) {
 
 	typeName := MapServeModelType(&openapi.ServeModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ServeModelTypeName, *typeName)
+	assertion.Equal(defaults.ServeModelTypeName, *typeName)
 }
 
 func TestMapServeModelProperties(t *testing.T) {

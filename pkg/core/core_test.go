@@ -7,6 +7,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/kubeflow/model-registry/internal/mlmdtypes"
 	"github.com/kubeflow/model-registry/internal/testutils"
@@ -53,7 +54,17 @@ type CoreTestSuite struct {
 	mlmdClient proto.MetadataStoreServiceClient
 }
 
-var canAddFields = apiutils.Of(true)
+// test defaults
+var (
+	registeredModelTypeName    = apiutils.Of(defaults.RegisteredModelTypeName)
+	modelVersionTypeName       = apiutils.Of(defaults.ModelVersionTypeName)
+	modelArtifactTypeName      = apiutils.Of(defaults.ModelArtifactTypeName)
+	docArtifactTypeName        = apiutils.Of(defaults.DocArtifactTypeName)
+	servingEnvironmentTypeName = apiutils.Of(defaults.ServingEnvironmentTypeName)
+	inferenceServiceTypeName   = apiutils.Of(defaults.InferenceServiceTypeName)
+	serveModelTypeName         = apiutils.Of(defaults.ServeModelTypeName)
+	canAddFields               = apiutils.Of(true)
+)
 
 func TestRunCoreTestSuite(t *testing.T) {
 	// before all
@@ -102,10 +113,11 @@ func (suite *CoreTestSuite) AfterTest(suiteName, testName string) {
 }
 
 func (suite *CoreTestSuite) setupModelRegistryService() *ModelRegistryService {
-	_, err := mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	mlmdtypeNames := mlmdtypes.NewMLMDTypeNamesConfigFromDefaults()
+	_, err := mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypeNames)
 	suite.Nilf(err, "error creating MLMD types: %v", err)
 	// setup model registry service
-	service, err := NewModelRegistryService(suite.grpcConn)
+	service, err := NewModelRegistryService(suite.grpcConn, mlmdtypeNames)
 	suite.Nilf(err, "error creating core service: %v", err)
 	mrService, ok := service.(*ModelRegistryService)
 	suite.True(ok)
@@ -445,9 +457,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInRegisteredM
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type kfmr.RegisteredModel: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type "+*registeredModelTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelVersion() {
@@ -465,9 +477,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelVersio
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type kfmr.ModelVersion: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type "+*modelVersionTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelArtifact() {
@@ -485,9 +497,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInModelArtifa
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up artifact type kfmr.ModelArtifact: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up artifact type "+*modelArtifactTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServingEnvironment() {
@@ -504,9 +516,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServingEnvi
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type kfmr.ServingEnvironment: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type "+*servingEnvironmentTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInInferenceService() {
@@ -524,9 +536,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInInferenceSe
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up context type kfmr.InferenceService: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up context type "+*inferenceServiceTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServeModel() {
@@ -544,9 +556,9 @@ func (suite *CoreTestSuite) TestModelRegistryFailureForOmittedFieldInServeModel(
 	suite.Nil(err)
 
 	// steps to create model registry service
-	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn)
+	_, err = mlmdtypes.CreateMLMDTypes(suite.grpcConn, mlmdtypes.NewMLMDTypeNamesConfigFromDefaults())
 	suite.NotNil(err)
-	suite.Regexp("error setting up execution type kfmr.ServeModel: rpc error: code = AlreadyExists.*", err.Error())
+	suite.Regexp("error setting up execution type "+*serveModelTypeName+": rpc error: code = AlreadyExists.*", err.Error())
 }
 
 // REGISTERED MODELS

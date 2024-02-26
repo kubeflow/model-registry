@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -115,9 +115,9 @@ func MapArtifactType(source *proto.Artifact) (string, error) {
 		return "", fmt.Errorf("artifact type is nil")
 	}
 	switch *source.Type {
-	case constants.ModelArtifactTypeName:
+	case defaults.ModelArtifactTypeName:
 		return "model-artifact", nil
-	case constants.DocArtifactTypeName:
+	case defaults.DocArtifactTypeName:
 		return "doc-artifact", nil
 	default:
 		return "", fmt.Errorf("invalid artifact type found: %v", source.Type)

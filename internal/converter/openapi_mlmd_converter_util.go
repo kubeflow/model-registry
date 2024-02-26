@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/kubeflow/model-registry/internal/constants"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -144,7 +144,7 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 
 // MapRegisteredModelType return RegisteredModel corresponding MLMD context type
 func MapRegisteredModelType(_ *openapi.RegisteredModel) *string {
-	return of(constants.RegisteredModelTypeName)
+	return of(defaults.RegisteredModelTypeName)
 }
 
 // MODEL VERSION
@@ -194,7 +194,7 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 
 // MapModelVersionType return ModelVersion corresponding MLMD context type
 func MapModelVersionType(_ *openapi.ModelVersion) *string {
-	return of(constants.ModelVersionTypeName)
+	return of(defaults.ModelVersionTypeName)
 }
 
 // MapModelVersionName maps the user-provided name into MLMD one, i.e., prefixing it with
@@ -222,7 +222,7 @@ func MapOpenAPIArtifactState(source *openapi.ArtifactState) (*proto.Artifact_Sta
 
 // get DocArtifact MLMD type name
 func MapDocArtifactType(_ *openapi.DocArtifact) *string {
-	return of(constants.DocArtifactTypeName)
+	return of(defaults.DocArtifactTypeName)
 }
 
 func MapDocArtifactProperties(source *openapi.DocArtifact) (map[string]*proto.Value, error) {
@@ -307,7 +307,7 @@ func MapModelArtifactProperties(source *openapi.ModelArtifact) (map[string]*prot
 
 // MapModelArtifactType return ModelArtifact corresponding MLMD context type
 func MapModelArtifactType(_ *openapi.ModelArtifact) *string {
-	return of(constants.ModelArtifactTypeName)
+	return of(defaults.ModelArtifactTypeName)
 }
 
 // MapModelArtifactName maps the user-provided name into MLMD one, i.e., prefixing it with
@@ -328,7 +328,7 @@ func MapModelArtifactName(source *OpenAPIModelWrapper[openapi.ModelArtifact]) *s
 
 // MapServingEnvironmentType return ServingEnvironment corresponding MLMD context type
 func MapServingEnvironmentType(_ *openapi.ServingEnvironment) *string {
-	return of(constants.ServingEnvironmentTypeName)
+	return of(defaults.ServingEnvironmentTypeName)
 }
 
 // MapServingEnvironmentProperties maps ServingEnvironment fields to specific MLMD properties
@@ -350,7 +350,7 @@ func MapServingEnvironmentProperties(source *openapi.ServingEnvironment) (map[st
 
 // MapInferenceServiceType return InferenceService corresponding MLMD context type
 func MapInferenceServiceType(_ *openapi.InferenceService) *string {
-	return of(constants.InferenceServiceTypeName)
+	return of(defaults.InferenceServiceTypeName)
 }
 
 // MapInferenceServiceProperties maps InferenceService fields to specific MLMD properties
@@ -436,7 +436,7 @@ func MapInferenceServiceName(source *OpenAPIModelWrapper[openapi.InferenceServic
 
 // MapServeModelType return ServeModel corresponding MLMD context type
 func MapServeModelType(_ *openapi.ServeModel) *string {
-	return of(constants.ServeModelTypeName)
+	return of(defaults.ServeModelTypeName)
 }
 
 // MapServeModelProperties maps ServeModel fields to specific MLMD properties
