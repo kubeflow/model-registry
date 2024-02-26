@@ -60,23 +60,23 @@ func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[s
 			switch {
 			// bool value
 			case v.MetadataBoolValue != nil:
-				value.Value = &proto.Value_BoolValue{BoolValue: *v.MetadataBoolValue.BoolValue}
+				value.Value = &proto.Value_BoolValue{BoolValue: v.MetadataBoolValue.BoolValue}
 			// int value
 			case v.MetadataIntValue != nil:
-				intValue, err := StringToInt64(v.MetadataIntValue.IntValue)
+				intValue, err := StringToInt64(&v.MetadataIntValue.IntValue)
 				if err != nil {
 					return nil, fmt.Errorf("unable to decode as int64 %w for key %s", err, key)
 				}
 				value.Value = &proto.Value_IntValue{IntValue: *intValue}
 			// double value
 			case v.MetadataDoubleValue != nil:
-				value.Value = &proto.Value_DoubleValue{DoubleValue: *v.MetadataDoubleValue.DoubleValue}
+				value.Value = &proto.Value_DoubleValue{DoubleValue: v.MetadataDoubleValue.DoubleValue}
 			// string value
 			case v.MetadataStringValue != nil:
-				value.Value = &proto.Value_StringValue{StringValue: *v.MetadataStringValue.StringValue}
+				value.Value = &proto.Value_StringValue{StringValue: v.MetadataStringValue.StringValue}
 			// struct value
 			case v.MetadataStructValue != nil:
-				data, err := base64.StdEncoding.DecodeString(*v.MetadataStructValue.StructValue)
+				data, err := base64.StdEncoding.DecodeString(v.MetadataStructValue.StructValue)
 				if err != nil {
 					return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
 				}

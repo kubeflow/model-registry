@@ -120,9 +120,7 @@ func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, override
 		Description: &modelDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -152,9 +150,7 @@ func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistry
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -218,9 +214,7 @@ func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryAp
 		ServingEnvironmentId: servingEnvironmentId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -570,9 +564,7 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 		State:       &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -614,9 +606,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 		ExternalID: &modelExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -640,9 +630,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 
 	createdModel.ExternalID = &newModelExternalId
 	(*createdModel.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: &openapi.MetadataStringValue{
-			StringValue: &newOwner,
-		},
+		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
 	}
 
 	// update the model
@@ -703,9 +691,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -1042,9 +1028,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 
 	createdVersion.ExternalID = &newExternalId
 	(*createdVersion.CustomProperties)["score"] = openapi.MetadataValue{
-		MetadataDoubleValue: &openapi.MetadataDoubleValue{
-			DoubleValue: &newScore,
-		},
+		MetadataDoubleValue: converter.NewMetadataDoubleValue(newScore),
 	}
 
 	updatedVersion, err := service.UpsertModelVersion(createdVersion, &registeredModelId)
@@ -1119,9 +1103,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
 
 	createdVersion.ExternalID = &newExternalId
 	(*createdVersion.CustomProperties)["score"] = openapi.MetadataValue{
-		MetadataDoubleValue: &openapi.MetadataDoubleValue{
-			DoubleValue: &newScore,
-		},
+		MetadataDoubleValue: converter.NewMetadataDoubleValue(newScore),
 	}
 
 	wrongId := "9999"
@@ -1384,9 +1366,7 @@ func (suite *CoreTestSuite) TestCreateArtifact() {
 			Description: &artifactDescription,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1401,7 +1381,7 @@ func (suite *CoreTestSuite) TestCreateArtifact() {
 	suite.Equal(*state, *docArtifact.State)
 	suite.Equal(artifactUri, *docArtifact.Uri)
 	suite.Equal(artifactDescription, *docArtifact.Description)
-	suite.Equal(customString, *(*docArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*docArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 }
 
 func (suite *CoreTestSuite) TestCreateArtifactFailure() {
@@ -1417,9 +1397,7 @@ func (suite *CoreTestSuite) TestCreateArtifactFailure() {
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1446,9 +1424,7 @@ func (suite *CoreTestSuite) TestUpdateArtifact() {
 			Uri:   &artifactUri,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1473,7 +1449,7 @@ func (suite *CoreTestSuite) TestUpdateArtifact() {
 	suite.Equal(fmt.Sprintf("%s:%s", modelVersionId, *createdArtifact.DocArtifact.Name), *getById.Artifacts[0].Name)
 	suite.Equal(string(newState), getById.Artifacts[0].State.String())
 	suite.Equal(*createdArtifact.DocArtifact.Uri, *getById.Artifacts[0].Uri)
-	suite.Equal(*(*createdArtifact.DocArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
+	suite.Equal((*createdArtifact.DocArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
 }
 
 func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
@@ -1489,9 +1465,7 @@ func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
 			Uri:   &artifactUri,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1524,9 +1498,7 @@ func (suite *CoreTestSuite) TestGetArtifactById() {
 			Uri:   &artifactUri,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1543,7 +1515,7 @@ func (suite *CoreTestSuite) TestGetArtifactById() {
 	suite.Equal(artifactName, *getById.DocArtifact.Name)
 	suite.Equal(*state, *getById.DocArtifact.State)
 	suite.Equal(artifactUri, *getById.DocArtifact.Uri)
-	suite.Equal(customString, *(*getById.DocArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*getById.DocArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*createdArtifact, *getById, "artifacts returned during creation and on get by id should be equal")
 }
@@ -1566,9 +1538,7 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 			ExternalID: &artifactExtId,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1582,9 +1552,7 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 			ExternalID: &secondArtifactExtId,
 			CustomProperties: &map[string]openapi.MetadataValue{
 				"custom_string_prop": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue: &customString,
-					},
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
 				},
 			},
 		},
@@ -1632,9 +1600,7 @@ func (suite *CoreTestSuite) TestCreateModelArtifact() {
 		StoragePath:        apiutils.Of("bucket"),
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}, &modelVersionId)
@@ -1650,7 +1616,7 @@ func (suite *CoreTestSuite) TestCreateModelArtifact() {
 	suite.Equal("1", *modelArtifact.ModelFormatVersion)
 	suite.Equal("aws-connection-models", *modelArtifact.StorageKey)
 	suite.Equal("bucket", *modelArtifact.StoragePath)
-	suite.Equal(customString, *(*modelArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*modelArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 }
 
 func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
@@ -1665,9 +1631,7 @@ func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1693,9 +1657,7 @@ func (suite *CoreTestSuite) TestUpdateModelArtifact() {
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1721,7 +1683,7 @@ func (suite *CoreTestSuite) TestUpdateModelArtifact() {
 	suite.Equal(fmt.Sprintf("%s:%s", modelVersionId, *createdArtifact.Name), *getById.Artifacts[0].Name)
 	suite.Equal(string(newState), getById.Artifacts[0].State.String())
 	suite.Equal(*createdArtifact.Uri, *getById.Artifacts[0].Uri)
-	suite.Equal(*(*createdArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
+	suite.Equal((*createdArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelArtifactFailure() {
@@ -1736,9 +1698,7 @@ func (suite *CoreTestSuite) TestUpdateModelArtifactFailure() {
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1760,9 +1720,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactById() {
 		Uri:   &artifactUri,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1780,7 +1738,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactById() {
 	suite.Equal(artifactName, *getById.Name)
 	suite.Equal(*state, *getById.State)
 	suite.Equal(artifactUri, *getById.Uri)
-	suite.Equal(customString, *(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*createdArtifact, *getById, "artifacts returned during creation and on get by id should be equal")
 }
@@ -1798,9 +1756,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1820,7 +1776,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 	suite.Equal(artifactExtId, *getByName.ExternalID)
 	suite.Equal(*state, *getByName.State)
 	suite.Equal(artifactUri, *getByName.Uri)
-	suite.Equal(customString, *(*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*createdArtifact, *getByName, "artifacts returned during creation and on get by name should be equal")
 
@@ -1832,7 +1788,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 	suite.Equal(artifactExtId, *getByExtId.ExternalID)
 	suite.Equal(*state, *getByExtId.State)
 	suite.Equal(artifactUri, *getByExtId.Uri)
-	suite.Equal(customString, *(*getByExtId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*getByExtId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*createdArtifact, *getByExtId, "artifacts returned during creation and on get by ext id should be equal")
 }
@@ -1850,9 +1806,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1889,9 +1843,7 @@ func (suite *CoreTestSuite) TestGetModelArtifacts() {
 		ExternalID: &artifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1906,9 +1858,7 @@ func (suite *CoreTestSuite) TestGetModelArtifacts() {
 		ExternalID: &secondArtifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1923,9 +1873,7 @@ func (suite *CoreTestSuite) TestGetModelArtifacts() {
 		ExternalID: &thirdArtifactExtId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -1975,9 +1923,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -2018,9 +1964,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 		ExternalID: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -2044,9 +1988,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 
 	createdEntity.ExternalID = &newExternalId
 	(*createdEntity.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: &openapi.MetadataStringValue{
-			StringValue: &newOwner,
-		},
+		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
 	}
 
 	// update the entity
@@ -2105,9 +2047,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 		ExternalID: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &owner,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(owner),
 			},
 		},
 	}
@@ -2375,9 +2315,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 		DesiredState:         &desiredState,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2422,9 +2360,7 @@ func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 		RegisteredModelId:    "9998",
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2456,9 +2392,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceService() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2475,9 +2409,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceService() {
 
 	createdEntity.ExternalID = &newExternalId
 	(*createdEntity.CustomProperties)["score"] = openapi.MetadataValue{
-		MetadataDoubleValue: &openapi.MetadataDoubleValue{
-			DoubleValue: &newScore,
-		},
+		MetadataDoubleValue: converter.NewMetadataDoubleValue(newScore),
 	}
 
 	updatedEntity, err := service.UpsertInferenceService(createdEntity)
@@ -2554,9 +2486,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2571,9 +2501,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 
 	createdEntity.ExternalID = &newExternalId
 	(*createdEntity.CustomProperties)["score"] = openapi.MetadataValue{
-		MetadataDoubleValue: &openapi.MetadataDoubleValue{
-			DoubleValue: &newScore,
-		},
+		MetadataDoubleValue: converter.NewMetadataDoubleValue(newScore),
 	}
 
 	wrongId := "9999"
@@ -2600,9 +2528,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 		DesiredState:         &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2628,7 +2554,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 	suite.Equal(*eut.Name, *getById.Name, "saved name should match the provided one")
 	suite.Equal(*eut.ExternalID, *getById.ExternalID, "saved external id should match the provided one")
 	suite.Equal(*eut.DesiredState, *getById.DesiredState, "saved state should match the provided one")
-	suite.Equal(*(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, customString, "saved custom_string_prop custom property should match the provided one")
+	suite.Equal((*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, customString, "saved custom_string_prop custom property should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
@@ -2646,9 +2572,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2691,9 +2615,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 		ModelVersionId:       nil, // first we test by unspecified
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2791,9 +2713,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2818,7 +2738,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
 	suite.Equal(*converter.Int64ToString(ctx.Id), *getByName.Id, "returned id should match the mlmd context one")
 	suite.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getByName.Name), *ctx.Name, "saved name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByName.ExternalID, "saved external id should match the provided one")
-	suite.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), *(*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
+	suite.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), (*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
@@ -2836,9 +2756,7 @@ func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -2863,7 +2781,7 @@ func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
 	suite.Equal(*converter.Int64ToString(ctx.Id), *getByExternalId.Id, "returned id should match the mlmd context one")
 	suite.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getByExternalId.Name), *ctx.Name, "saved name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByExternalId.ExternalID, "saved external id should match the provided one")
-	suite.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), *(*getByExternalId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
+	suite.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), (*getByExternalId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
@@ -2881,9 +2799,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 		RegisteredModelId:    registeredModelId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3044,9 +2960,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3060,7 +2974,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 	suite.Equal(*state, *createdEntity.LastKnownState)
 	suite.Equal(createdVersionId, createdEntity.ModelVersionId)
 	suite.Equal(entityDescription, *createdEntity.Description)
-	suite.Equal(customString, *(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	createdEntityId, _ := converter.StringToInt64(createdEntity.Id)
 	getById, err := suite.mlmdClient.GetExecutionsByID(context.Background(), &proto.GetExecutionsByIDRequest{
@@ -3073,7 +2987,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 	suite.Equal(string(*createdEntity.LastKnownState), getById.Executions[0].LastKnownState.String())
 	suite.Equal(*createdVersionIdAsInt, getById.Executions[0].Properties["model_version_id"].GetIntValue())
 	suite.Equal(*createdEntity.Description, getById.Executions[0].Properties["description"].GetStringValue())
-	suite.Equal(*(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
+	suite.Equal((*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
 
 	inferenceServiceIdAsInt, _ := converter.StringToInt64(&inferenceServiceId)
 	byCtx, _ := suite.mlmdClient.GetExecutionsByContext(context.Background(), &proto.GetExecutionsByContextRequest{
@@ -3099,9 +3013,7 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 		ModelVersionId: "9998",
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3142,9 +3054,7 @@ func (suite *CoreTestSuite) TestUpdateServeModel() {
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3170,7 +3080,7 @@ func (suite *CoreTestSuite) TestUpdateServeModel() {
 	suite.Equal(fmt.Sprintf("%s:%s", inferenceServiceId, *createdEntity.Name), *getById.Executions[0].Name)
 	suite.Equal(string(newState), getById.Executions[0].LastKnownState.String())
 	suite.Equal(*createdVersionIdAsInt, getById.Executions[0].Properties["model_version_id"].GetIntValue())
-	suite.Equal(*(*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
+	suite.Equal((*createdEntity.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Executions[0].CustomProperties["custom_string_prop"].GetStringValue())
 
 	prevModelVersionId := updatedEntity.ModelVersionId
 	updatedEntity.ModelVersionId = ""
@@ -3205,9 +3115,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3254,9 +3162,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 		ModelVersionId: createdVersionId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3272,7 +3178,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 	suite.Equal(entityName, *getById.Name)
 	suite.Equal(*state, *getById.LastKnownState)
 	suite.Equal(createdVersionId, getById.ModelVersionId)
-	suite.Equal(customString, *(*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+	suite.Equal(customString, (*getById.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*createdEntity, *getById, "artifacts returned during creation and on get by id should be equal")
 }
@@ -3311,9 +3217,7 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 		ModelVersionId: createdVersion1Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3326,9 +3230,7 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 		ModelVersionId: createdVersion2Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}
@@ -3341,9 +3243,7 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 		ModelVersionId: createdVersion3Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_string_prop": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue: &customString,
-				},
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
 			},
 		},
 	}

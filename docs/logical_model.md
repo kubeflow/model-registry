@@ -87,7 +87,7 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/1" \                     
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/1" \                     
   -H 'accept: application/json' | jq
 {
   "createTimeSinceEpoch": "1707765353963",
@@ -99,7 +99,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/1/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/1/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
   -H 'accept: application/json' | jq 
 {
   "items": [
@@ -120,7 +120,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/model_versions/2/artifacts" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/2/artifacts" \
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -167,7 +167,7 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/3" \       
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/3" \       
   -H 'accept: application/json' | jq 
 {
   "createTimeSinceEpoch": "1707765756856",
@@ -179,7 +179,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/3/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/3/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
   -H 'accept: application/json' | jq 
 {
   "items": [
@@ -200,7 +200,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/model_versions/4/artifacts" \                                                       
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/4/artifacts" \                                                       
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -247,7 +247,7 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/5" \                                                               
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/5" \                                                               
   -H 'accept: application/json' | jq 
 {
   "createTimeSinceEpoch": "1707765990857",
@@ -259,7 +259,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/5/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/5/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
   -H 'accept: application/json' | jq 
 {
   "items": [
@@ -290,7 +290,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/model_versions/6/artifacts" \                                                      
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/6/artifacts" \                                                      
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -362,7 +362,7 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/7" \                                                               
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/7" \                                                               
   -H 'accept: application/json' | jq 
 {
   "createTimeSinceEpoch": "1707766117250",
@@ -374,7 +374,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/registered_models/7/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models/7/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
   -H 'accept: application/json' | jq 
 {
   "items": [
@@ -395,7 +395,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha1/model_versions/8/artifacts" \                                                       
+  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/8/artifacts" \                                                       
   -H 'accept: application/json' | jq
 {
   "items": [
