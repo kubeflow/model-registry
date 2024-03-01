@@ -605,23 +605,23 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	openapiModelArtifact := converter.InitModelArtifactWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.ArtifactType
 	}
-	var pString2 *string
+	var xstring string
 	if pString != nil {
-		xstring := *pString
-		pString2 = &xstring
+		xstring = *pString
 	}
-	openapiModelArtifact.Name = pString2
-	var pString3 *string
+	openapiModelArtifact.ArtifactType = xstring
+	var pString2 *string
 	if source.Existing != nil {
-		pString3 = &source.Existing.ArtifactType
+		pString2 = source.Existing.Name
 	}
-	var xstring2 string
-	if pString3 != nil {
-		xstring2 = *pString3
+	var pString3 *string
+	if pString2 != nil {
+		xstring2 := *pString2
+		pString3 = &xstring2
 	}
-	openapiModelArtifact.ArtifactType = xstring2
+	openapiModelArtifact.Name = pString3
 	return openapiModelArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source converter.OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error) {

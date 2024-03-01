@@ -971,24 +971,26 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "model-artifact"
     DocArtifact:
       description: A document.
       type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1105,12 +1107,12 @@ components:
       discriminator:
         propertyName: metadataType
         mapping:
-            MetadataBoolValue: '#/components/schemas/MetadataBoolValue'
-            MetadataDoubleValue: '#/components/schemas/MetadataDoubleValue'
-            MetadataIntValue: '#/components/schemas/MetadataIntValue'
-            MetadataProtoValue: '#/components/schemas/MetadataProtoValue'
-            MetadataStringValue: '#/components/schemas/MetadataStringValue'
-            MetadataStructValue: '#/components/schemas/MetadataStructValue'
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
       description: A value in properties.
     MetadataIntValue:
       description: An integer (int64) property value.
@@ -1345,12 +1347,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/BaseResource"
-        - required:
-            - artifactType
-          type: object
-          properties:
-            artifactType:
-              type: string
     ServingEnvironmentList:
       description: List of ServingEnvironments.
       type: object
