@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/maps"
 )
@@ -66,7 +66,7 @@ func TestMetadataValueBool(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my bool"
 	mdValue := true
-	data[key] = openapi.MetadataBoolValueAsMetadataValue(&openapi.MetadataBoolValue{BoolValue: &mdValue})
+	data[key] = openapi.MetadataBoolValueAsMetadataValue(NewMetadataBoolValue(mdValue))
 
 	roundTripAndAssert(t, data, key)
 }
@@ -75,7 +75,7 @@ func TestMetadataValueInt(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my int"
 	mdValue := "987"
-	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: &mdValue})
+	data[key] = openapi.MetadataIntValueAsMetadataValue(NewMetadataIntValue(mdValue))
 
 	roundTripAndAssert(t, data, key)
 }
@@ -84,7 +84,7 @@ func TestMetadataValueIntFailure(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my int"
 	mdValue := "not a number"
-	data[key] = openapi.MetadataIntValueAsMetadataValue(&openapi.MetadataIntValue{IntValue: &mdValue})
+	data[key] = openapi.MetadataIntValueAsMetadataValue(NewMetadataIntValue(mdValue))
 
 	assertion := setup(t)
 	asGRPC, err := MapOpenAPICustomProperties(&data)
@@ -97,7 +97,7 @@ func TestMetadataValueDouble(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my double"
 	mdValue := 3.1415
-	data[key] = openapi.MetadataDoubleValueAsMetadataValue(&openapi.MetadataDoubleValue{DoubleValue: &mdValue})
+	data[key] = openapi.MetadataDoubleValueAsMetadataValue(NewMetadataDoubleValue(mdValue))
 
 	roundTripAndAssert(t, data, key)
 }
@@ -106,7 +106,7 @@ func TestMetadataValueString(t *testing.T) {
 	data := make(map[string]openapi.MetadataValue)
 	key := "my string"
 	mdValue := "Hello, World!"
-	data[key] = openapi.MetadataStringValueAsMetadataValue(&openapi.MetadataStringValue{StringValue: &mdValue})
+	data[key] = openapi.MetadataStringValueAsMetadataValue(NewMetadataStringValue(mdValue))
 
 	roundTripAndAssert(t, data, key)
 }
@@ -123,7 +123,7 @@ func TestMetadataValueStruct(t *testing.T) {
 		t.Error(err)
 	}
 	b64 := base64.StdEncoding.EncodeToString(asJSON)
-	data[key] = openapi.MetadataStructValueAsMetadataValue(&openapi.MetadataStructValue{StructValue: &b64})
+	data[key] = openapi.MetadataStructValueAsMetadataValue(NewMetadataStructValue(b64))
 
 	roundTripAndAssert(t, data, key)
 }
@@ -141,10 +141,7 @@ func TestMetadataValueProtoUnsupported(t *testing.T) {
 	}
 	b64 := base64.StdEncoding.EncodeToString(asJSON)
 	typeDef := "map[string]openapi.MetadataValue"
-	data[key] = openapi.MetadataProtoValueAsMetadataValue(&openapi.MetadataProtoValue{
-		Type:       &typeDef,
-		ProtoValue: &b64,
-	})
+	data[key] = openapi.MetadataProtoValueAsMetadataValue(NewMetadataProtoValue(typeDef, b64))
 
 	assertion := setup(t)
 	asGRPC, err := MapOpenAPICustomProperties(&data)
@@ -208,7 +205,7 @@ func TestMapRegisteredModelType(t *testing.T) {
 
 	typeName := MapRegisteredModelType(&openapi.RegisteredModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.RegisteredModelTypeName, *typeName)
+	assertion.Equal(defaults.RegisteredModelTypeName, *typeName)
 }
 
 func TestMapModelVersionProperties(t *testing.T) {
@@ -236,7 +233,7 @@ func TestMapModelVersionType(t *testing.T) {
 
 	typeName := MapModelVersionType(&openapi.ModelVersion{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelVersionTypeName, *typeName)
+	assertion.Equal(defaults.ModelVersionTypeName, *typeName)
 }
 
 func TestMapModelVersionName(t *testing.T) {
@@ -287,7 +284,7 @@ func TestMapModelArtifactType(t *testing.T) {
 
 	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
+	assertion.Equal(defaults.ModelArtifactTypeName, *typeName)
 }
 
 func TestMapModelArtifactName(t *testing.T) {
@@ -346,7 +343,7 @@ func TestMapDocArtifactType(t *testing.T) {
 
 	typeName := MapModelArtifactType(&openapi.ModelArtifact{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ModelArtifactTypeName, *typeName)
+	assertion.Equal(defaults.ModelArtifactTypeName, *typeName)
 }
 
 func TestMapDocArtifactName(t *testing.T) {
@@ -577,13 +574,13 @@ func TestMapArtifactType(t *testing.T) {
 	assertion := setup(t)
 
 	artifactType, err := MapArtifactType(&proto.Artifact{
-		Type: of(constants.ModelArtifactTypeName),
+		Type: of(defaults.ModelArtifactTypeName),
 	})
 	assertion.Nil(err)
 	assertion.Equal("model-artifact", artifactType)
 
 	artifactType, err = MapArtifactType(&proto.Artifact{
-		Type: of(constants.DocArtifactTypeName),
+		Type: of(defaults.DocArtifactTypeName),
 	})
 	assertion.Nil(err)
 	assertion.Equal("doc-artifact", artifactType)
@@ -659,7 +656,7 @@ func TestMapServingEnvironmentType(t *testing.T) {
 
 	typeName := MapServingEnvironmentType(&openapi.ServingEnvironment{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ServingEnvironmentTypeName, *typeName)
+	assertion.Equal(defaults.ServingEnvironmentTypeName, *typeName)
 }
 
 func TestMapInferenceServiceType(t *testing.T) {
@@ -667,7 +664,7 @@ func TestMapInferenceServiceType(t *testing.T) {
 
 	typeName := MapInferenceServiceType(&openapi.InferenceService{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.InferenceServiceTypeName, *typeName)
+	assertion.Equal(defaults.InferenceServiceTypeName, *typeName)
 }
 
 func TestMapInferenceServiceProperties(t *testing.T) {
@@ -710,7 +707,7 @@ func TestMapServeModelType(t *testing.T) {
 
 	typeName := MapServeModelType(&openapi.ServeModel{})
 	assertion.NotNil(typeName)
-	assertion.Equal(constants.ServeModelTypeName, *typeName)
+	assertion.Equal(defaults.ServeModelTypeName, *typeName)
 }
 
 func TestMapServeModelProperties(t *testing.T) {

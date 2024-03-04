@@ -29,13 +29,13 @@ Verify basic logical mapping between MR and MLMD
     # RegisteredModel shall result in a MLMD Context
     ${mlmdProto}    Get Context By Single Id    ${rId}
     Log To Console    ${mlmdProto}
-    Should be equal    ${mlmdProto.type}    odh.RegisteredModel
+    Should be equal    ${mlmdProto.type}    kf.RegisteredModel
     Should be equal    ${mlmdProto.name}    ${name}
 
     # ModelVersion shall result in a MLMD Context and parent Context(of RegisteredModel)
     ${mlmdProto}    Get Context By Single Id    ${vId}
     Log To Console    ${mlmdProto}
-    Should be equal    ${mlmdProto.type}    odh.ModelVersion
+    Should be equal    ${mlmdProto.type}    kf.ModelVersion
     Should be equal    ${mlmdProto.name}    ${rId}:v1
     ${mlmdProto}    Get Parent Contexts By Context    ${vId}
     Should be equal    ${mlmdProto[0].id}    ${rId}
@@ -44,7 +44,7 @@ Verify basic logical mapping between MR and MLMD
     ${aNamePrefix}    Set Variable    ${vId}:
     ${mlmdProto}    Get Artifact By Single Id    ${aId}
     Log To Console    ${mlmdProto}
-    Should be equal    ${mlmdProto.type}    odh.ModelArtifact
+    Should be equal    ${mlmdProto.type}    kf.ModelArtifact
     Should Start With   ${mlmdProto.name}    ${aNamePrefix}
     Should be equal   ${mlmdProto.uri}    s3://12345
     ${mlmdProto}    Get Artifacts By Context    ${vId}

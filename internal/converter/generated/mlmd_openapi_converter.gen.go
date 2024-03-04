@@ -4,9 +4,9 @@ package generated
 
 import (
 	"fmt"
-	converter "github.com/opendatahub-io/model-registry/internal/converter"
-	proto "github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/model-registry/internal/converter"
+	proto "github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	openapi "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type MLMDToOpenAPIConverterImpl struct{}
@@ -15,6 +15,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
 		var openapiDocArtifact openapi.DocArtifact
+		xstring, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiDocArtifact.ArtifactType = xstring
 		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
 		if err != nil {
 			return nil, err
@@ -23,14 +28,14 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 		openapiDocArtifact.Description = converter.MapDescription((*source).Properties)
 		var pString *string
 		if (*source).ExternalId != nil {
-			xstring := *(*source).ExternalId
-			pString = &xstring
+			xstring2 := *(*source).ExternalId
+			pString = &xstring2
 		}
 		openapiDocArtifact.ExternalID = pString
 		var pString2 *string
 		if (*source).Uri != nil {
-			xstring2 := *(*source).Uri
-			pString2 = &xstring2
+			xstring3 := *(*source).Uri
+			pString2 = &xstring3
 		}
 		openapiDocArtifact.Uri = pString2
 		openapiDocArtifact.State = converter.MapMLMDArtifactState((*source).State)
@@ -38,11 +43,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 		openapiDocArtifact.Id = converter.Int64ToString((*source).Id)
 		openapiDocArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiDocArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		xstring3, err := converter.MapArtifactType(source)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
-		}
-		openapiDocArtifact.ArtifactType = xstring3
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
@@ -80,6 +80,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
 		var openapiModelArtifact openapi.ModelArtifact
+		xstring, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiModelArtifact.ArtifactType = xstring
 		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
 		if err != nil {
 			return nil, err
@@ -88,14 +93,14 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		openapiModelArtifact.Description = converter.MapDescription((*source).Properties)
 		var pString *string
 		if (*source).ExternalId != nil {
-			xstring := *(*source).ExternalId
-			pString = &xstring
+			xstring2 := *(*source).ExternalId
+			pString = &xstring2
 		}
 		openapiModelArtifact.ExternalID = pString
 		var pString2 *string
 		if (*source).Uri != nil {
-			xstring2 := *(*source).Uri
-			pString2 = &xstring2
+			xstring3 := *(*source).Uri
+			pString2 = &xstring3
 		}
 		openapiModelArtifact.Uri = pString2
 		openapiModelArtifact.State = converter.MapMLMDArtifactState((*source).State)
@@ -103,11 +108,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		openapiModelArtifact.Id = converter.Int64ToString((*source).Id)
 		openapiModelArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiModelArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		xstring3, err := converter.MapArtifactType(source)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
-		}
-		openapiModelArtifact.ArtifactType = xstring3
 		openapiModelArtifact.ModelFormatName = converter.MapModelArtifactFormatName((*source).Properties)
 		openapiModelArtifact.StorageKey = converter.MapModelArtifactStorageKey((*source).Properties)
 		openapiModelArtifact.StoragePath = converter.MapModelArtifactStoragePath((*source).Properties)

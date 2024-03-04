@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/opendatahub-io/model-registry/pkg/openapi"
+import "github.com/kubeflow/model-registry/pkg/openapi"
 
 type OpenAPIModel interface {
 	openapi.RegisteredModel |

@@ -3,11 +3,11 @@ package mapper
 import (
 	"fmt"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/converter"
-	"github.com/opendatahub-io/model-registry/internal/converter/generated"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/converter/generated"
+	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type Mapper struct {
@@ -28,14 +28,14 @@ func NewMapper(mlmdTypes map[string]int64) *Mapper {
 
 func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel) (*proto.Context, error) {
 	return m.OpenAPIConverter.ConvertRegisteredModel(&converter.OpenAPIModelWrapper[openapi.RegisteredModel]{
-		TypeId: m.MLMDTypes[constants.RegisteredModelTypeName],
+		TypeId: m.MLMDTypes[defaults.RegisteredModelTypeName],
 		Model:  registeredModel,
 	})
 }
 
 func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registeredModelId string, registeredModelName *string) (*proto.Context, error) {
 	return m.OpenAPIConverter.ConvertModelVersion(&converter.OpenAPIModelWrapper[openapi.ModelVersion]{
-		TypeId:           m.MLMDTypes[constants.ModelVersionTypeName],
+		TypeId:           m.MLMDTypes[defaults.ModelVersionTypeName],
 		Model:            modelVersion,
 		ParentResourceId: &registeredModelId,
 		ModelName:        registeredModelName,
@@ -44,7 +44,7 @@ func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registe
 
 func (m *Mapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *string) (*proto.Artifact, error) {
 	return m.OpenAPIConverter.ConvertModelArtifact(&converter.OpenAPIModelWrapper[openapi.ModelArtifact]{
-		TypeId:           m.MLMDTypes[constants.ModelArtifactTypeName],
+		TypeId:           m.MLMDTypes[defaults.ModelArtifactTypeName],
 		Model:            modelArtifact,
 		ParentResourceId: modelVersionId,
 	})
@@ -52,7 +52,7 @@ func (m *Mapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact, mode
 
 func (m *Mapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact, modelVersionId *string) (*proto.Artifact, error) {
 	return m.OpenAPIConverter.ConvertDocArtifact(&converter.OpenAPIModelWrapper[openapi.DocArtifact]{
-		TypeId:           m.MLMDTypes[constants.DocArtifactTypeName],
+		TypeId:           m.MLMDTypes[defaults.DocArtifactTypeName],
 		Model:            docArtifact,
 		ParentResourceId: modelVersionId,
 	})
@@ -89,14 +89,14 @@ func (m *Mapper) MapFromModelArtifacts(modelArtifacts []openapi.ModelArtifact, m
 
 func (m *Mapper) MapFromServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*proto.Context, error) {
 	return m.OpenAPIConverter.ConvertServingEnvironment(&converter.OpenAPIModelWrapper[openapi.ServingEnvironment]{
-		TypeId: m.MLMDTypes[constants.ServingEnvironmentTypeName],
+		TypeId: m.MLMDTypes[defaults.ServingEnvironmentTypeName],
 		Model:  servingEnvironment,
 	})
 }
 
 func (m *Mapper) MapFromInferenceService(inferenceService *openapi.InferenceService, servingEnvironmentId string) (*proto.Context, error) {
 	return m.OpenAPIConverter.ConvertInferenceService(&converter.OpenAPIModelWrapper[openapi.InferenceService]{
-		TypeId:           m.MLMDTypes[constants.InferenceServiceTypeName],
+		TypeId:           m.MLMDTypes[defaults.InferenceServiceTypeName],
 		Model:            inferenceService,
 		ParentResourceId: &servingEnvironmentId,
 	})
@@ -104,7 +104,7 @@ func (m *Mapper) MapFromInferenceService(inferenceService *openapi.InferenceServ
 
 func (m *Mapper) MapFromServeModel(serveModel *openapi.ServeModel, inferenceServiceId string) (*proto.Execution, error) {
 	return m.OpenAPIConverter.ConvertServeModel(&converter.OpenAPIModelWrapper[openapi.ServeModel]{
-		TypeId:           m.MLMDTypes[constants.ServeModelTypeName],
+		TypeId:           m.MLMDTypes[defaults.ServeModelTypeName],
 		Model:            serveModel,
 		ParentResourceId: &inferenceServiceId,
 	})
@@ -113,19 +113,19 @@ func (m *Mapper) MapFromServeModel(serveModel *openapi.ServeModel, inferenceServ
 // Utilities for MLMD --> OpenAPI mapping, make use of generated Converters
 
 func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredModel, error) {
-	return mapTo(ctx, m.MLMDTypes, constants.RegisteredModelTypeName, m.MLMDConverter.ConvertRegisteredModel)
+	return mapTo(ctx, m.MLMDTypes, defaults.RegisteredModelTypeName, m.MLMDConverter.ConvertRegisteredModel)
 }
 
 func (m *Mapper) MapToModelVersion(ctx *proto.Context) (*openapi.ModelVersion, error) {
-	return mapTo(ctx, m.MLMDTypes, constants.ModelVersionTypeName, m.MLMDConverter.ConvertModelVersion)
+	return mapTo(ctx, m.MLMDTypes, defaults.ModelVersionTypeName, m.MLMDConverter.ConvertModelVersion)
 }
 
 func (m *Mapper) MapToModelArtifact(art *proto.Artifact) (*openapi.ModelArtifact, error) {
-	return mapTo(art, m.MLMDTypes, constants.ModelArtifactTypeName, m.MLMDConverter.ConvertModelArtifact)
+	return mapTo(art, m.MLMDTypes, defaults.ModelArtifactTypeName, m.MLMDConverter.ConvertModelArtifact)
 }
 
 func (m *Mapper) MapToDocArtifact(art *proto.Artifact) (*openapi.DocArtifact, error) {
-	return mapTo(art, m.MLMDTypes, constants.DocArtifactTypeName, m.MLMDConverter.ConvertDocArtifact)
+	return mapTo(art, m.MLMDTypes, defaults.DocArtifactTypeName, m.MLMDConverter.ConvertDocArtifact)
 }
 
 func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
@@ -136,12 +136,12 @@ func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 		return nil, fmt.Errorf("invalid artifact type, can't map from nil")
 	}
 	switch art.GetType() {
-	case constants.ModelArtifactTypeName:
+	case defaults.ModelArtifactTypeName:
 		ma, err := m.MapToModelArtifact(art)
 		return &openapi.Artifact{
 			ModelArtifact: ma,
 		}, err
-	case constants.DocArtifactTypeName:
+	case defaults.DocArtifactTypeName:
 		da, err := m.MapToDocArtifact(art)
 		return &openapi.Artifact{
 			DocArtifact: da,
@@ -152,15 +152,15 @@ func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 }
 
 func (m *Mapper) MapToServingEnvironment(ctx *proto.Context) (*openapi.ServingEnvironment, error) {
-	return mapTo(ctx, m.MLMDTypes, constants.ServingEnvironmentTypeName, m.MLMDConverter.ConvertServingEnvironment)
+	return mapTo(ctx, m.MLMDTypes, defaults.ServingEnvironmentTypeName, m.MLMDConverter.ConvertServingEnvironment)
 }
 
 func (m *Mapper) MapToInferenceService(ctx *proto.Context) (*openapi.InferenceService, error) {
-	return mapTo(ctx, m.MLMDTypes, constants.InferenceServiceTypeName, m.MLMDConverter.ConvertInferenceService)
+	return mapTo(ctx, m.MLMDTypes, defaults.InferenceServiceTypeName, m.MLMDConverter.ConvertInferenceService)
 }
 
 func (m *Mapper) MapToServeModel(ex *proto.Execution) (*openapi.ServeModel, error) {
-	return mapTo(ex, m.MLMDTypes, constants.ServeModelTypeName, m.MLMDConverter.ConvertServeModel)
+	return mapTo(ex, m.MLMDTypes, defaults.ServeModelTypeName, m.MLMDConverter.ConvertServeModel)
 }
 
 type getTypeIder interface {
