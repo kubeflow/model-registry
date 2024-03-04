@@ -20,9 +20,9 @@ class Mappable(ABC):
         """Name of the proto type.
 
         Returns:
-            Name of the class prefixed with `kf.`
+            Name of the class prefixed with `odh.`
         """
-        return f"kf.{cls.__name__}"
+        return f"odh.{cls.__name__}"
 
     @property
     @abstractmethod

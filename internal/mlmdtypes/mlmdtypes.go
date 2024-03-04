@@ -4,44 +4,32 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/internal/apiutils"
+	"github.com/opendatahub-io/model-registry/internal/constants"
+	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
 	"google.golang.org/grpc"
 )
 
-type MLMDTypeNamesConfig struct {
-	RegisteredModelTypeName    string
-	ModelVersionTypeName       string
-	ModelArtifactTypeName      string
-	DocArtifactTypeName        string
-	ServingEnvironmentTypeName string
-	InferenceServiceTypeName   string
-	ServeModelTypeName         string
-	CanAddFields               bool
-}
-
-func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
-	return MLMDTypeNamesConfig{
-		RegisteredModelTypeName:    defaults.RegisteredModelTypeName,
-		ModelVersionTypeName:       defaults.ModelVersionTypeName,
-		ModelArtifactTypeName:      defaults.ModelArtifactTypeName,
-		DocArtifactTypeName:        defaults.DocArtifactTypeName,
-		ServingEnvironmentTypeName: defaults.ServingEnvironmentTypeName,
-		InferenceServiceTypeName:   defaults.InferenceServiceTypeName,
-		ServeModelTypeName:         defaults.ServeModelTypeName,
-		CanAddFields:               true,
-	}
-}
+var (
+	registeredModelTypeName    = apiutils.Of(constants.RegisteredModelTypeName)
+	modelVersionTypeName       = apiutils.Of(constants.ModelVersionTypeName)
+	modelArtifactTypeName      = apiutils.Of(constants.ModelArtifactTypeName)
+	docArtifactTypeName        = apiutils.Of(constants.DocArtifactTypeName)
+	servingEnvironmentTypeName = apiutils.Of(constants.ServingEnvironmentTypeName)
+	inferenceServiceTypeName   = apiutils.Of(constants.InferenceServiceTypeName)
+	serveModelTypeName         = apiutils.Of(constants.ServeModelTypeName)
+	canAddFields               = apiutils.Of(true)
+)
 
 // Utility method that created the necessary Model Registry's logical-model types
 // as the necessary MLMD's Context, Artifact, Execution types etc. in the underlying MLMD service
-func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig) (map[string]int64, error) {
+func CreateMLMDTypes(cc grpc.ClientConnInterface) (map[string]int64, error) {
 	client := proto.NewMetadataStoreServiceClient(cc)
 
 	registeredModelReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
-			Name: &nameConfig.RegisteredModelTypeName,
+			Name: registeredModelTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 				"state":       proto.PropertyType_STRING,
@@ -50,9 +38,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	modelVersionReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
-			Name: &nameConfig.ModelVersionTypeName,
+			Name: modelVersionTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 				"model_name":  proto.PropertyType_STRING,
@@ -64,9 +52,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	docArtifactReq := proto.PutArtifactTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ArtifactType: &proto.ArtifactType{
-			Name: &nameConfig.DocArtifactTypeName,
+			Name: docArtifactTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 			},
@@ -74,9 +62,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	modelArtifactReq := proto.PutArtifactTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ArtifactType: &proto.ArtifactType{
-			Name: &nameConfig.ModelArtifactTypeName,
+			Name: modelArtifactTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description":          proto.PropertyType_STRING,
 				"model_format_name":    proto.PropertyType_STRING,
@@ -89,9 +77,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	servingEnvironmentReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
-			Name: &nameConfig.ServingEnvironmentTypeName,
+			Name: servingEnvironmentTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 			},
@@ -99,9 +87,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	inferenceServiceReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ContextType: &proto.ContextType{
-			Name: &nameConfig.InferenceServiceTypeName,
+			Name: inferenceServiceTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description":         proto.PropertyType_STRING,
 				"model_version_id":    proto.PropertyType_INT,
@@ -115,9 +103,9 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	serveModelReq := proto.PutExecutionTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields: canAddFields,
 		ExecutionType: &proto.ExecutionType{
-			Name: &nameConfig.ServeModelTypeName,
+			Name: serveModelTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description":      proto.PropertyType_STRING,
 				"model_version_id": proto.PropertyType_INT,
@@ -127,47 +115,47 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 
 	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.RegisteredModelTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *registeredModelTypeName, err)
 	}
 
 	modelVersionResp, err := client.PutContextType(context.Background(), &modelVersionReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.ModelVersionTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *modelVersionTypeName, err)
 	}
 
 	docArtifactResp, err := client.PutArtifactType(context.Background(), &docArtifactReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up artifact type %s: %v", nameConfig.DocArtifactTypeName, err)
+		return nil, fmt.Errorf("error setting up artifact type %s: %v", *docArtifactTypeName, err)
 	}
 
 	modelArtifactResp, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up artifact type %s: %v", nameConfig.ModelArtifactTypeName, err)
+		return nil, fmt.Errorf("error setting up artifact type %s: %v", *modelArtifactTypeName, err)
 	}
 
 	servingEnvironmentResp, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.ServingEnvironmentTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *servingEnvironmentTypeName, err)
 	}
 
 	inferenceServiceResp, err := client.PutContextType(context.Background(), &inferenceServiceReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.InferenceServiceTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %v", *inferenceServiceTypeName, err)
 	}
 
 	serveModelResp, err := client.PutExecutionType(context.Background(), &serveModelReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up execution type %s: %v", nameConfig.ServeModelTypeName, err)
+		return nil, fmt.Errorf("error setting up execution type %s: %v", *serveModelTypeName, err)
 	}
 
 	typesMap := map[string]int64{
-		defaults.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
-		defaults.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
-		defaults.DocArtifactTypeName:        docArtifactResp.GetTypeId(),
-		defaults.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
-		defaults.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
-		defaults.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
-		defaults.ServeModelTypeName:         serveModelResp.GetTypeId(),
+		constants.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
+		constants.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
+		constants.DocArtifactTypeName:        docArtifactResp.GetTypeId(),
+		constants.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
+		constants.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
+		constants.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
+		constants.ServeModelTypeName:         serveModelResp.GetTypeId(),
 	}
 	return typesMap, nil
 }

@@ -6,21 +6,30 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/converter"
-	"github.com/kubeflow/model-registry/internal/converter/generated"
-	"github.com/kubeflow/model-registry/internal/mapper"
-	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
-	"github.com/kubeflow/model-registry/internal/mlmdtypes"
-	"github.com/kubeflow/model-registry/pkg/api"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/opendatahub-io/model-registry/internal/apiutils"
+	"github.com/opendatahub-io/model-registry/internal/constants"
+	"github.com/opendatahub-io/model-registry/internal/converter"
+	"github.com/opendatahub-io/model-registry/internal/converter/generated"
+	"github.com/opendatahub-io/model-registry/internal/mapper"
+	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
+	"github.com/opendatahub-io/model-registry/pkg/api"
+	"github.com/opendatahub-io/model-registry/pkg/openapi"
 	"google.golang.org/grpc"
+)
+
+var (
+	registeredModelTypeName    = apiutils.Of(constants.RegisteredModelTypeName)
+	modelVersionTypeName       = apiutils.Of(constants.ModelVersionTypeName)
+	modelArtifactTypeName      = apiutils.Of(constants.ModelArtifactTypeName)
+	docArtifactTypeName        = apiutils.Of(constants.DocArtifactTypeName)
+	servingEnvironmentTypeName = apiutils.Of(constants.ServingEnvironmentTypeName)
+	inferenceServiceTypeName   = apiutils.Of(constants.InferenceServiceTypeName)
+	serveModelTypeName         = apiutils.Of(constants.ServeModelTypeName)
 )
 
 // ModelRegistryService is the core library of the model registry
 type ModelRegistryService struct {
 	mlmdClient  proto.MetadataStoreServiceClient
-	nameConfig  mlmdtypes.MLMDTypeNamesConfig
 	typesMap    map[string]int64
 	mapper      *mapper.Mapper
 	openapiConv *generated.OpenAPIConverterImpl
@@ -31,8 +40,8 @@ type ModelRegistryService struct {
 //
 // Parameters:
 //   - cc: A gRPC client connection to the underlying MLMD service
-func NewModelRegistryService(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNamesConfig) (api.ModelRegistryApi, error) {
-	typesMap, err := BuildTypesMap(cc, nameConfig)
+func NewModelRegistryService(cc grpc.ClientConnInterface) (api.ModelRegistryApi, error) {
+	typesMap, err := BuildTypesMap(cc)
 	if err != nil { // early return in case type Ids cannot be retrieved
 		return nil, err
 	}
@@ -41,73 +50,72 @@ func NewModelRegistryService(cc grpc.ClientConnInterface, nameConfig mlmdtypes.M
 
 	return &ModelRegistryService{
 		mlmdClient:  client,
-		nameConfig:  nameConfig,
 		typesMap:    typesMap,
 		openapiConv: &generated.OpenAPIConverterImpl{},
 		mapper:      mapper.NewMapper(typesMap),
 	}, nil
 }
 
-func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNamesConfig) (map[string]int64, error) {
+func BuildTypesMap(cc grpc.ClientConnInterface) (map[string]int64, error) {
 	client := proto.NewMetadataStoreServiceClient(cc)
 
 	registeredModelContextTypeReq := proto.GetContextTypeRequest{
-		TypeName: &nameConfig.RegisteredModelTypeName,
+		TypeName: registeredModelTypeName,
 	}
 	registeredModelResp, err := client.GetContextType(context.Background(), &registeredModelContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.RegisteredModelTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %v", *registeredModelTypeName, err)
 	}
 	modelVersionContextTypeReq := proto.GetContextTypeRequest{
-		TypeName: &nameConfig.ModelVersionTypeName,
+		TypeName: modelVersionTypeName,
 	}
 	modelVersionResp, err := client.GetContextType(context.Background(), &modelVersionContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.ModelVersionTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %v", *modelVersionTypeName, err)
 	}
 	docArtifactResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
-		TypeName: &nameConfig.DocArtifactTypeName,
+		TypeName: docArtifactTypeName,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error getting artifact type %s: %v", nameConfig.DocArtifactTypeName, err)
+		return nil, fmt.Errorf("error getting artifact type %s: %v", *docArtifactTypeName, err)
 	}
 	modelArtifactArtifactTypeReq := proto.GetArtifactTypeRequest{
-		TypeName: &nameConfig.ModelArtifactTypeName,
+		TypeName: modelArtifactTypeName,
 	}
 	modelArtifactResp, err := client.GetArtifactType(context.Background(), &modelArtifactArtifactTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting artifact type %s: %v", nameConfig.ModelArtifactTypeName, err)
+		return nil, fmt.Errorf("error getting artifact type %s: %v", *modelArtifactTypeName, err)
 	}
 	servingEnvironmentContextTypeReq := proto.GetContextTypeRequest{
-		TypeName: &nameConfig.ServingEnvironmentTypeName,
+		TypeName: servingEnvironmentTypeName,
 	}
 	servingEnvironmentResp, err := client.GetContextType(context.Background(), &servingEnvironmentContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.ServingEnvironmentTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %v", *servingEnvironmentTypeName, err)
 	}
 	inferenceServiceContextTypeReq := proto.GetContextTypeRequest{
-		TypeName: &nameConfig.InferenceServiceTypeName,
+		TypeName: inferenceServiceTypeName,
 	}
 	inferenceServiceResp, err := client.GetContextType(context.Background(), &inferenceServiceContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.InferenceServiceTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %v", *inferenceServiceTypeName, err)
 	}
 	serveModelExecutionReq := proto.GetExecutionTypeRequest{
-		TypeName: &nameConfig.ServeModelTypeName,
+		TypeName: serveModelTypeName,
 	}
 	serveModelResp, err := client.GetExecutionType(context.Background(), &serveModelExecutionReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting execution type %s: %v", nameConfig.ServeModelTypeName, err)
+		return nil, fmt.Errorf("error getting execution type %s: %v", *serveModelTypeName, err)
 	}
 
 	typesMap := map[string]int64{
-		nameConfig.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
-		nameConfig.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
-		nameConfig.DocArtifactTypeName:        docArtifactResp.ArtifactType.GetId(),
-		nameConfig.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
-		nameConfig.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
-		nameConfig.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
-		nameConfig.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),
+		constants.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
+		constants.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
+		constants.DocArtifactTypeName:        docArtifactResp.ArtifactType.GetId(),
+		constants.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
+		constants.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
+		constants.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
+		constants.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),
 	}
 	return typesMap, nil
 }
@@ -247,7 +255,7 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.RegisteredModelTypeName,
+		TypeName: registeredModelTypeName,
 		Options: &proto.ListOperationOptions{
 			FilterQuery: &filterQuery,
 		},
@@ -278,7 +286,7 @@ func (serv *ModelRegistryService) GetRegisteredModels(listOptions api.ListOption
 		return nil, err
 	}
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.RegisteredModelTypeName,
+		TypeName: registeredModelTypeName,
 		Options:  listOperationOptions,
 	})
 	if err != nil {
@@ -481,7 +489,7 @@ func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, r
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.ModelVersionTypeName,
+		TypeName: modelVersionTypeName,
 		Options: &proto.ListOperationOptions{
 			FilterQuery: &filterQuery,
 		},
@@ -518,7 +526,7 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 	}
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.ModelVersionTypeName,
+		TypeName: modelVersionTypeName,
 		Options:  listOperationOptions,
 	})
 	if err != nil {
@@ -781,7 +789,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 	}
 
 	artifactsResponse, err := serv.mlmdClient.GetArtifactsByType(context.Background(), &proto.GetArtifactsByTypeRequest{
-		TypeName: &serv.nameConfig.ModelArtifactTypeName,
+		TypeName: modelArtifactTypeName,
 		Options: &proto.ListOperationOptions{
 			FilterQuery: &filterQuery,
 		},
@@ -833,7 +841,7 @@ func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 		nextPageToken = artifactsResp.NextPageToken
 	} else {
 		artifactsResp, err := serv.mlmdClient.GetArtifactsByType(context.Background(), &proto.GetArtifactsByTypeRequest{
-			TypeName: &serv.nameConfig.ModelArtifactTypeName,
+			TypeName: modelArtifactTypeName,
 			Options:  listOperationOptions,
 		})
 		if err != nil {
@@ -955,7 +963,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, ex
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.ServingEnvironmentTypeName,
+		TypeName: servingEnvironmentTypeName,
 		Options: &proto.ListOperationOptions{
 			FilterQuery: &filterQuery,
 		},
@@ -986,7 +994,7 @@ func (serv *ModelRegistryService) GetServingEnvironments(listOptions api.ListOpt
 		return nil, err
 	}
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.ServingEnvironmentTypeName,
+		TypeName: servingEnvironmentTypeName,
 		Options:  listOperationOptions,
 	})
 	if err != nil {
@@ -1179,7 +1187,7 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, serv
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.InferenceServiceTypeName,
+		TypeName: inferenceServiceTypeName,
 		Options: &proto.ListOperationOptions{
 			FilterQuery: &filterQuery,
 		},
@@ -1225,7 +1233,7 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 	listOperationOptions.FilterQuery = &query
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
-		TypeName: &serv.nameConfig.InferenceServiceTypeName,
+		TypeName: inferenceServiceTypeName,
 		Options:  listOperationOptions,
 	})
 	if err != nil {
@@ -1429,7 +1437,7 @@ func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, in
 		nextPageToken = executionsResp.NextPageToken
 	} else {
 		executionsResp, err := serv.mlmdClient.GetExecutionsByType(context.Background(), &proto.GetExecutionsByTypeRequest{
-			TypeName: &serv.nameConfig.ServeModelTypeName,
+			TypeName: serveModelTypeName,
 			Options:  listOperationOptions,
 		})
 		if err != nil {

@@ -2,8 +2,6 @@
 
 set -e
 
-ROOT_FOLDER="${ROOT_FOLDER:-..}"
-
 ASSERT_FILE_PATH="internal/server/openapi/type_asserts.go"
 PATCH="./patches/type_asserts.patch"
 
@@ -31,7 +29,7 @@ INITIAL_CONTENT=$(cat <<EOF
 package openapi
 
 import (
-	model "github.com/kubeflow/model-registry/pkg/openapi"
+	model "github.com/opendatahub-io/model-registry/pkg/openapi"
 )
 
 
@@ -51,7 +49,5 @@ for file in internal/server/openapi/model_*; do
         rm "$file"
     fi
 done
-
-gofmt -w $ROOT_FOLDER/internal/server/openapi/type_asserts.go
 
 git apply "$PATCH"
