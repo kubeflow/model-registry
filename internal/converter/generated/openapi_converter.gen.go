@@ -3,8 +3,8 @@
 package generated
 
 import (
-	converter "github.com/opendatahub-io/model-registry/internal/converter"
-	openapi "github.com/opendatahub-io/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/model-registry/internal/converter"
+	openapi "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type OpenAPIConverterImpl struct{}
@@ -605,23 +605,23 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	openapiModelArtifact := converter.InitModelArtifactWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.ArtifactType
 	}
-	var pString2 *string
+	var xstring string
 	if pString != nil {
-		xstring := *pString
-		pString2 = &xstring
+		xstring = *pString
 	}
-	openapiModelArtifact.Name = pString2
-	var pString3 *string
+	openapiModelArtifact.ArtifactType = xstring
+	var pString2 *string
 	if source.Existing != nil {
-		pString3 = &source.Existing.ArtifactType
+		pString2 = source.Existing.Name
 	}
-	var xstring2 string
-	if pString3 != nil {
-		xstring2 = *pString3
+	var pString3 *string
+	if pString2 != nil {
+		xstring2 := *pString2
+		pString3 = &xstring2
 	}
-	openapiModelArtifact.ArtifactType = xstring2
+	openapiModelArtifact.Name = pString3
 	return openapiModelArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source converter.OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error) {
@@ -703,12 +703,8 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataBoolValueToPOpenapiMetadataBoolVa
 	var pOpenapiMetadataBoolValue *openapi.MetadataBoolValue
 	if source != nil {
 		var openapiMetadataBoolValue openapi.MetadataBoolValue
-		var pBool *bool
-		if (*source).BoolValue != nil {
-			xbool := *(*source).BoolValue
-			pBool = &xbool
-		}
-		openapiMetadataBoolValue.BoolValue = pBool
+		openapiMetadataBoolValue.BoolValue = (*source).BoolValue
+		openapiMetadataBoolValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataBoolValue = &openapiMetadataBoolValue
 	}
 	return pOpenapiMetadataBoolValue
@@ -717,12 +713,8 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataDoubleValueToPOpenapiMetadataDoub
 	var pOpenapiMetadataDoubleValue *openapi.MetadataDoubleValue
 	if source != nil {
 		var openapiMetadataDoubleValue openapi.MetadataDoubleValue
-		var pFloat64 *float64
-		if (*source).DoubleValue != nil {
-			xfloat64 := *(*source).DoubleValue
-			pFloat64 = &xfloat64
-		}
-		openapiMetadataDoubleValue.DoubleValue = pFloat64
+		openapiMetadataDoubleValue.DoubleValue = (*source).DoubleValue
+		openapiMetadataDoubleValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataDoubleValue = &openapiMetadataDoubleValue
 	}
 	return pOpenapiMetadataDoubleValue
@@ -731,12 +723,8 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataIntValueToPOpenapiMetadataIntValu
 	var pOpenapiMetadataIntValue *openapi.MetadataIntValue
 	if source != nil {
 		var openapiMetadataIntValue openapi.MetadataIntValue
-		var pString *string
-		if (*source).IntValue != nil {
-			xstring := *(*source).IntValue
-			pString = &xstring
-		}
-		openapiMetadataIntValue.IntValue = pString
+		openapiMetadataIntValue.IntValue = (*source).IntValue
+		openapiMetadataIntValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataIntValue = &openapiMetadataIntValue
 	}
 	return pOpenapiMetadataIntValue
@@ -745,18 +733,9 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataProtoValueToPOpenapiMetadataProto
 	var pOpenapiMetadataProtoValue *openapi.MetadataProtoValue
 	if source != nil {
 		var openapiMetadataProtoValue openapi.MetadataProtoValue
-		var pString *string
-		if (*source).Type != nil {
-			xstring := *(*source).Type
-			pString = &xstring
-		}
-		openapiMetadataProtoValue.Type = pString
-		var pString2 *string
-		if (*source).ProtoValue != nil {
-			xstring2 := *(*source).ProtoValue
-			pString2 = &xstring2
-		}
-		openapiMetadataProtoValue.ProtoValue = pString2
+		openapiMetadataProtoValue.Type = (*source).Type
+		openapiMetadataProtoValue.ProtoValue = (*source).ProtoValue
+		openapiMetadataProtoValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataProtoValue = &openapiMetadataProtoValue
 	}
 	return pOpenapiMetadataProtoValue
@@ -765,12 +744,8 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataStringValueToPOpenapiMetadataStri
 	var pOpenapiMetadataStringValue *openapi.MetadataStringValue
 	if source != nil {
 		var openapiMetadataStringValue openapi.MetadataStringValue
-		var pString *string
-		if (*source).StringValue != nil {
-			xstring := *(*source).StringValue
-			pString = &xstring
-		}
-		openapiMetadataStringValue.StringValue = pString
+		openapiMetadataStringValue.StringValue = (*source).StringValue
+		openapiMetadataStringValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataStringValue = &openapiMetadataStringValue
 	}
 	return pOpenapiMetadataStringValue
@@ -779,12 +754,8 @@ func (c *OpenAPIConverterImpl) pOpenapiMetadataStructValueToPOpenapiMetadataStru
 	var pOpenapiMetadataStructValue *openapi.MetadataStructValue
 	if source != nil {
 		var openapiMetadataStructValue openapi.MetadataStructValue
-		var pString *string
-		if (*source).StructValue != nil {
-			xstring := *(*source).StructValue
-			pString = &xstring
-		}
-		openapiMetadataStructValue.StructValue = pString
+		openapiMetadataStructValue.StructValue = (*source).StructValue
+		openapiMetadataStructValue.MetadataType = (*source).MetadataType
 		pOpenapiMetadataStructValue = &openapiMetadataStructValue
 	}
 	return pOpenapiMetadataStructValue

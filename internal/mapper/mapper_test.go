@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +22,13 @@ const (
 )
 
 var typesMap = map[string]int64{
-	constants.RegisteredModelTypeName:    registeredModelTypeId,
-	constants.ModelVersionTypeName:       modelVersionTypeId,
-	constants.DocArtifactTypeName:        docArtifactTypeId,
-	constants.ModelArtifactTypeName:      modelArtifactTypeId,
-	constants.ServingEnvironmentTypeName: servingEnvironmentTypeId,
-	constants.InferenceServiceTypeName:   inferenceServiceTypeId,
-	constants.ServeModelTypeName:         serveModelTypeId,
+	defaults.RegisteredModelTypeName:    registeredModelTypeId,
+	defaults.ModelVersionTypeName:       modelVersionTypeId,
+	defaults.DocArtifactTypeName:        docArtifactTypeId,
+	defaults.ModelArtifactTypeName:      modelArtifactTypeId,
+	defaults.ServingEnvironmentTypeName: servingEnvironmentTypeId,
+	defaults.InferenceServiceTypeName:   inferenceServiceTypeId,
+	defaults.ServeModelTypeName:         serveModelTypeId,
 }
 
 func setup(t *testing.T) (*assert.Assertions, *Mapper) {
@@ -148,7 +148,7 @@ func TestMapToRegisteredModel(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToRegisteredModel(&proto.Context{
 		TypeId: of(registeredModelTypeId),
-		Type:   of(constants.RegisteredModelTypeName),
+		Type:   of(defaults.RegisteredModelTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -157,17 +157,17 @@ func TestMapToRegisteredModelInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToRegisteredModel(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.RegisteredModelTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kf.OtherEntity, please check the provided id", defaults.RegisteredModelTypeName), err.Error())
 }
 
 func TestMapToModelVersion(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToModelVersion(&proto.Context{
 		TypeId: of(modelVersionTypeId),
-		Type:   of(constants.ModelVersionTypeName),
+		Type:   of(defaults.ModelVersionTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -176,17 +176,17 @@ func TestMapToModelVersionInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToModelVersion(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ModelVersionTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kf.OtherEntity, please check the provided id", defaults.ModelVersionTypeName), err.Error())
 }
 
 func TestMapToDocArtifact(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(docArtifactTypeId),
-		Type:   of(constants.DocArtifactTypeName),
+		Type:   of(defaults.DocArtifactTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -195,7 +195,7 @@ func TestMapToModelArtifact(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(modelArtifactTypeId),
-		Type:   of(constants.ModelArtifactTypeName),
+		Type:   of(defaults.ModelArtifactTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -213,17 +213,17 @@ func TestMapToArtifactInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToArtifact(&proto.Artifact{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal("unknown artifact type: odh.OtherEntity", err.Error())
+	assertion.Equal("unknown artifact type: kf.OtherEntity", err.Error())
 }
 
 func TestMapToServingEnvironment(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServingEnvironment(&proto.Context{
 		TypeId: of(servingEnvironmentTypeId),
-		Type:   of(constants.ServingEnvironmentTypeName),
+		Type:   of(defaults.ServingEnvironmentTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -232,17 +232,17 @@ func TestMapToServingEnvironmentInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServingEnvironment(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ServingEnvironmentTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kf.OtherEntity, please check the provided id", defaults.ServingEnvironmentTypeName), err.Error())
 }
 
 func TestMapToInferenceService(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToInferenceService(&proto.Context{
 		TypeId: of(inferenceServiceTypeId),
-		Type:   of(constants.InferenceServiceTypeName),
+		Type:   of(defaults.InferenceServiceTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -251,17 +251,17 @@ func TestMapToInferenceServiceInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToInferenceService(&proto.Context{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.InferenceServiceTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kf.OtherEntity, please check the provided id", defaults.InferenceServiceTypeName), err.Error())
 }
 
 func TestMapToServeModel(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServeModel(&proto.Execution{
 		TypeId: of(serveModelTypeId),
-		Type:   of(constants.ServeModelTypeName),
+		Type:   of(defaults.ServeModelTypeName),
 	})
 	assertion.Nil(err)
 }
@@ -270,10 +270,10 @@ func TestMapToServeModelInvalid(t *testing.T) {
 	assertion, m := setup(t)
 	_, err := m.MapToServeModel(&proto.Execution{
 		TypeId: of(invalidTypeId),
-		Type:   of("odh.OtherEntity"),
+		Type:   of("kf.OtherEntity"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received odh.OtherEntity, please check the provided id", constants.ServeModelTypeName), err.Error())
+	assertion.Equal(fmt.Sprintf("invalid entity: expected %s but received kf.OtherEntity, please check the provided id", defaults.ServeModelTypeName), err.Error())
 }
 
 func TestMapTo(t *testing.T) {

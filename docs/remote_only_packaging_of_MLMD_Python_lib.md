@@ -9,7 +9,7 @@ whilst also making it [architecture specific](https://pypi.org/project/ml-metada
 
 The [Model Registry project](https://docs.google.com/document/d/1G-pjdGaS2kLELsB5kYk_D4AmH-fTfnCnJOhJ8xENjx0/edit?usp=sharing) (MR) is built on top of MLMD.
 The Go implementation interfaces with the MLMD server via gRPC, typically available as a Docker container.
-The [MR Python client](https://github.com/opendatahub-io/model-registry/tree/main/clients/python#readme) wraps the MLMD client.
+The [MR Python client](https://github.com/kubeflow/model-registry/tree/main/clients/python#readme) wraps the MLMD client.
 
 As the MLMD client is architecture specific, so is the MR Python client, which **severely limits the targets it can run on**, as it only supports x86-64.
 This **poses many challenges to contributors** using other CPU architectures, specially ARM, as that's become more prevalent in recent years.
@@ -97,7 +97,7 @@ Cons:
 
 ### Packaging Option2: mix resulting artifact inside Model Registry repo
 
-This delivery option considers placing the resulting artifact by executing the exercise from the alternative selected above and placing it directly inside the Model Registry repo, with the python client source [location](https://github.com/opendatahub-io/model-registry/tree/main/clients/python). (for analogy, this is similar to “shading”/”uberjar” in Java world for those familiar with the concept)
+This delivery option considers placing the resulting artifact by executing the exercise from the alternative selected above and placing it directly inside the Model Registry repo, with the python client source [location](https://github.com/kubeflow/model-registry/tree/main/clients/python). (for analogy, this is similar to “shading”/”uberjar” in Java world for those familiar with the concept)
 
 Pros:
 
@@ -117,10 +117,10 @@ Based on analysis of the alternatives provided, we decided to further pursue:
 - the repackaging by **Alternative B** because makes it actually easier to demonstrate the steps and modifications required using as baseline the upstream repo.
 - the distribution by **Packaging Option1** because it will make it easier to "revert" to the upstream `ml-metadata` dependency if upstream will publish for all architectures, OSes, etc. and as the pros outweight considered cons.
 
-MR python client [tests](https://github.com/opendatahub-io/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/clients/python/tests/conftest.py#L19) should be rewritten using Testcontainers, and not leveraging the embedded server (already done with [this PR](https://github.com/opendatahub-io/model-registry/pull/225)).
+MR python client [tests](https://github.com/kubeflow/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/clients/python/tests/conftest.py#L19) should be rewritten using Testcontainers, and not leveraging the embedded server (already done with [this PR](https://github.com/kubeflow/model-registry/pull/225)).
 
-The group concur this is a sensible approach ([recorded here](https://redhat-internal.slack.com/archives/C05LGBNUK9C/p1700763823505259?thread_ts=1700427888.670999&cid=C05LGBNUK9C)).
+The group concur this is a sensible approach.
 
-This change would also better align the test approach used for the MR python client, by aligning with the same strategy of the MR core Go layer test framework, which already makes use of Testcontainers for Go ([reference](https://github.com/opendatahub-io/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/internal/testutils/test_container_utils.go#L59)).
+This change would also better align the test approach used for the MR python client, by aligning with the same strategy of the MR core Go layer test framework, which already makes use of Testcontainers for Go ([reference](https://github.com/kubeflow/model-registry/blob/259b39320953bf05942dcec1fb5ec74f7eb5d4a7/internal/testutils/test_container_utils.go#L59)).
 
 This would allow to update the constraint on the version for the `attrs` dependency as part of this activity.

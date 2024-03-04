@@ -1,10 +1,10 @@
 package apiutils
 
 import (
-	"github.com/opendatahub-io/model-registry/internal/converter"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/api"
-	model "github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/api"
+	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 func BuildListOperationOptions(listOptions api.ListOptions) (*proto.ListOperationOptions, error) {

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 // visitor

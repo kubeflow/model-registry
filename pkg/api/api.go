@@ -1,6 +1,6 @@
 package api
 
-import "github.com/opendatahub-io/model-registry/pkg/openapi"
+import "github.com/kubeflow/model-registry/pkg/openapi"
 
 // ListOptions provides options for listing entities with pagination and sorting.
 // It includes parameters such as PageSize, OrderBy, SortOrder, and NextPageToken.

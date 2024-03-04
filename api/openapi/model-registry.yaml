@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Model Registry REST API
-  version: v1alpha1
+  version: v1alpha2
   description: REST API for Model Registry to create and manage ML model metadata
   license:
     name: Apache 2.0
@@ -10,7 +10,7 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  /api/model_registry/v1alpha1/model_artifact:
+  /api/model_registry/v1alpha2/model_artifact:
     summary: Path used to search for a modelartifact.
     description: >-
       The REST endpoint/path used to search for a `ModelArtifact` entity.  This path contains a `GET` operation to perform the find task.
@@ -35,7 +35,7 @@ paths:
       - $ref: "#/components/parameters/name"
       - $ref: "#/components/parameters/externalID"
       - $ref: "#/components/parameters/parentResourceID"
-  /api/model_registry/v1alpha1/model_artifacts:
+  /api/model_registry/v1alpha2/model_artifacts:
     summary: Path used to manage the list of modelartifacts.
     description: >-
       The REST endpoint/path used to list and create zero or more `ModelArtifact` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -83,7 +83,7 @@ paths:
       operationId: createModelArtifact
       summary: Create a ModelArtifact
       description: Creates a new instance of a `ModelArtifact`.
-  "/api/model_registry/v1alpha1/model_artifacts/{modelartifactId}":
+  "/api/model_registry/v1alpha2/model_artifacts/{modelartifactId}":
     summary: Path used to manage a single ModelArtifact.
     description: >-
       The REST endpoint/path used to get, update, and delete single instances of an `ModelArtifact`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
@@ -133,7 +133,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/model_versions:
+  /api/model_registry/v1alpha2/model_versions:
     summary: Path used to manage the list of modelversions.
     description: >-
       The REST endpoint/path used to list and create zero or more `ModelVersion` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -177,7 +177,7 @@ paths:
       operationId: createModelVersion
       summary: Create a ModelVersion
       description: Creates a new instance of a `ModelVersion`.
-  "/api/model_registry/v1alpha1/model_versions/{modelversionId}":
+  "/api/model_registry/v1alpha2/model_versions/{modelversionId}":
     summary: Path used to manage a single ModelVersion.
     description: >-
       The REST endpoint/path used to get, update, and delete single instances of an `ModelVersion`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
@@ -227,7 +227,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/registered_model:
+  /api/model_registry/v1alpha2/registered_model:
     summary: Path used to search for a registeredmodel.
     description: >-
       The REST endpoint/path used to search for a `RegisteredModel` entity.  This path contains a `GET` operation to perform the find task.
@@ -249,7 +249,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/name"
       - $ref: "#/components/parameters/externalID"
-  /api/model_registry/v1alpha1/registered_models:
+  /api/model_registry/v1alpha2/registered_models:
     summary: Path used to manage the list of registeredmodels.
     description: >-
       The REST endpoint/path used to list and create zero or more `RegisteredModel` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -293,7 +293,7 @@ paths:
       operationId: createRegisteredModel
       summary: Create a RegisteredModel
       description: Creates a new instance of a `RegisteredModel`.
-  "/api/model_registry/v1alpha1/registered_models/{registeredmodelId}":
+  "/api/model_registry/v1alpha2/registered_models/{registeredmodelId}":
     summary: Path used to manage a single RegisteredModel.
     description: >-
       The REST endpoint/path used to get, update, and delete single instances of an `RegisteredModel`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
@@ -343,7 +343,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/model_versions/{modelversionId}/artifacts":
+  "/api/model_registry/v1alpha2/model_versions/{modelversionId}/artifacts":
     summary: Path used to manage the list of artifacts for a modelversion.
     description: >-
       The REST endpoint/path used to list and create zero or more `Artifact` entities for a `ModelVersion`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -401,7 +401,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/registered_models/{registeredmodelId}/versions":
+  "/api/model_registry/v1alpha2/registered_models/{registeredmodelId}/versions":
     summary: Path used to manage the list of modelversions for a registeredmodel.
     description: >-
       The REST endpoint/path used to list and create zero or more `ModelVersion` entities for a `RegisteredModel`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -458,7 +458,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/inference_service:
+  /api/model_registry/v1alpha2/inference_service:
     summary: Path used to manage an instance of inferenceservice.
     description: >-
       The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -483,7 +483,7 @@ paths:
       - $ref: "#/components/parameters/name"
       - $ref: "#/components/parameters/externalID"
       - $ref: "#/components/parameters/parentResourceID"
-  "/api/model_registry/v1alpha1/inference_services/{inferenceserviceId}":
+  "/api/model_registry/v1alpha2/inference_services/{inferenceserviceId}":
     summary: Path used to manage a single InferenceService.
     description: >-
       The REST endpoint/path used to get, update, and delete single instances of an `InferenceService`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
@@ -533,7 +533,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/inference_services:
+  /api/model_registry/v1alpha2/inference_services:
     summary: Path used to manage the list of inferenceservices.
     description: >-
       The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -581,7 +581,7 @@ paths:
       operationId: createInferenceService
       summary: Create a InferenceService
       description: Creates a new instance of a `InferenceService`.
-  /api/model_registry/v1alpha1/serving_environment:
+  /api/model_registry/v1alpha2/serving_environment:
     summary: Path used to find a servingenvironment.
     description: >-
       The REST endpoint/path used to search for a `ServingEnvironment` entity.  This path contains a `GET` operation to perform the find task.
@@ -603,7 +603,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/name"
       - $ref: "#/components/parameters/externalID"
-  /api/model_registry/v1alpha1/serving_environments:
+  /api/model_registry/v1alpha2/serving_environments:
     summary: Path used to manage the list of servingenvironments.
     description: >-
       The REST endpoint/path used to list and create zero or more `ServingEnvironment` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -647,7 +647,7 @@ paths:
       operationId: createServingEnvironment
       summary: Create a ServingEnvironment
       description: Creates a new instance of a `ServingEnvironment`.
-  "/api/model_registry/v1alpha1/serving_environments/{servingenvironmentId}":
+  "/api/model_registry/v1alpha2/serving_environments/{servingenvironmentId}":
     summary: Path used to manage a single ServingEnvironment.
     description: >-
       The REST endpoint/path used to get, update, and delete single instances of an `ServingEnvironment`.  This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
@@ -697,7 +697,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/serving_environments/{servingenvironmentId}/inference_services":
+  "/api/model_registry/v1alpha2/serving_environments/{servingenvironmentId}/inference_services":
     summary: Path used to manage the list of `InferenceServices` for a `ServingEnvironment`.
     description: >-
       The REST endpoint/path used to list and create zero or more `InferenceService` entities for a `ServingEnvironment`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -754,7 +754,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/inference_services/{inferenceserviceId}/serves":
+  "/api/model_registry/v1alpha2/inference_services/{inferenceserviceId}/serves":
     summary: Path used to manage the list of `ServeModels` for a `InferenceService`.
     description: >-
       The REST endpoint/path used to list and create zero or more `ServeModel` entities for a `InferenceService`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -811,7 +811,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/inference_services/{inferenceserviceId}/model":
+  "/api/model_registry/v1alpha2/inference_services/{inferenceserviceId}/model":
     summary: Path used to manage a `RegisteredModel` associated with an `InferenceService`.
     description: >-
       The REST endpoint/path used to list the `RegisteredModel` entity for an `InferenceService`.  This path contains a `GET` operation to perform the get task.
@@ -837,7 +837,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha1/inference_services/{inferenceserviceId}/version":
+  "/api/model_registry/v1alpha2/inference_services/{inferenceserviceId}/version":
     summary: Path used to get the current `ModelVersion` associated with an `InferenceService`.
     description: >-
       The REST endpoint/path used to get the current `ModelVersion` entity for a `InferenceService`. This path contains a `GET` operation to perform the get task.
@@ -863,7 +863,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha1/model_version:
+  /api/model_registry/v1alpha2/model_version:
     summary: Path used to search for a modelversion.
     description: >-
       The REST endpoint/path used to search for a `ModelVersion` entity.  This path contains a `GET` operation to perform the find task.
@@ -971,24 +971,26 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "model-artifact"
     DocArtifact:
       description: A document.
       type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1102,37 +1104,78 @@ components:
         - $ref: "#/components/schemas/MetadataStructValue"
         - $ref: "#/components/schemas/MetadataProtoValue"
         - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
       description: A value in properties.
     MetadataIntValue:
       description: An integer (int64) property value.
       type: object
+      required:
+        - metadataType
+        - int_value
       properties:
         int_value:
           format: int64
           type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
+          default: MetadataIntValue
     MetadataDoubleValue:
       description: A double property value.
       type: object
+      required:
+        - metadataType
+        - double_value
       properties:
         double_value:
           format: double
           type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
+          default: MetadataDoubleValue
     MetadataStringValue:
       description: A string property value.
       type: object
+      required:
+        - metadataType
+        - string_value
       properties:
         string_value:
           type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
+          default: MetadataStringValue
     MetadataStructValue:
       description: A struct property value.
       type: object
+      required:
+        - metadataType
+        - struct_value
       properties:
         struct_value:
           description: Base64 encoded bytes for struct value
           type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
+          default: MetadataStructValue
     MetadataProtoValue:
       description: A proto property value.
       type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
       properties:
         type:
           description: url describing proto value
@@ -1140,12 +1183,23 @@ components:
         proto_value:
           description: Base64 encoded bytes for proto value
           type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
+          default: MetadataProtoValue
     MetadataBoolValue:
       description: A bool property value.
       type: object
+      required:
+        - metadataType
+        - bool_value
       properties:
         bool_value:
           type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
+          default: MetadataBoolValue
     BaseResource:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
@@ -1293,12 +1347,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/BaseResource"
-        - required:
-            - artifactType
-          type: object
-          properties:
-            artifactType:
-              type: string
     ServingEnvironmentList:
       description: List of ServingEnvironments.
       type: object

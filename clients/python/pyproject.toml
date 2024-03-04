@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "model-registry"
 version = "0.1.1"
-description = "Client for Red Hat OpenDataHub Model Registry"
+description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-homepage = "https://github.com/opendatahub-io/model-registry"
+homepage = "https://github.com/kubeflow/model-registry"
 
 [tool.poetry.urls]
-"Issues" = "https://github.com/opendatahub-io/model-registry/issues"
+"Issues" = "https://github.com/kubeflow/model-registry/issues"
 
 [tool.poetry.dependencies]
 python = ">= 3.9, < 3.11"

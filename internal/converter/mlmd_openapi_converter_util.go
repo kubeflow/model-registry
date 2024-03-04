@@ -4,12 +4,50 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/opendatahub-io/model-registry/internal/constants"
-	"github.com/opendatahub-io/model-registry/internal/ml_metadata/proto"
-	"github.com/opendatahub-io/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
+
+func NewMetadataStringValue(value string) *openapi.MetadataStringValue {
+	result := openapi.NewMetadataStringValueWithDefaults()
+	result.StringValue = value
+	return result
+}
+
+func NewMetadataBoolValue(value bool) *openapi.MetadataBoolValue {
+	result := openapi.NewMetadataBoolValueWithDefaults()
+	result.BoolValue = value
+	return result
+}
+
+func NewMetadataDoubleValue(value float64) *openapi.MetadataDoubleValue {
+	result := openapi.NewMetadataDoubleValueWithDefaults()
+	result.DoubleValue = value
+	return result
+}
+
+func NewMetadataIntValue(value string) *openapi.MetadataIntValue {
+	result := openapi.NewMetadataIntValueWithDefaults()
+	result.IntValue = value
+	return result
+}
+
+func NewMetadataStructValue(value string) *openapi.MetadataStructValue {
+	result := openapi.NewMetadataStructValueWithDefaults()
+	result.StructValue = value
+	return result
+}
+
+func NewMetadataProtoValue(typeDef string, value string) *openapi.MetadataProtoValue {
+	result := openapi.NewMetadataProtoValueWithDefaults()
+	result.Type = typeDef
+	result.ProtoValue = value
+	return result
+}
 
 // MapMLMDCustomProperties maps MLMD custom properties model to OpenAPI one
 func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi.MetadataValue, error) {
@@ -21,21 +59,13 @@ func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi
 
 		switch typedValue := v.Value.(type) {
 		case *proto.Value_BoolValue:
-			customValue.MetadataBoolValue = &openapi.MetadataBoolValue{
-				BoolValue: &typedValue.BoolValue,
-			}
+			customValue.MetadataBoolValue = NewMetadataBoolValue(typedValue.BoolValue)
 		case *proto.Value_IntValue:
-			customValue.MetadataIntValue = &openapi.MetadataIntValue{
-				IntValue: Int64ToString(&typedValue.IntValue),
-			}
+			customValue.MetadataIntValue = NewMetadataIntValue(strconv.FormatInt(typedValue.IntValue, 10))
 		case *proto.Value_DoubleValue:
-			customValue.MetadataDoubleValue = &openapi.MetadataDoubleValue{
-				DoubleValue: &typedValue.DoubleValue,
-			}
+			customValue.MetadataDoubleValue = NewMetadataDoubleValue(typedValue.DoubleValue)
 		case *proto.Value_StringValue:
-			customValue.MetadataStringValue = &openapi.MetadataStringValue{
-				StringValue: &typedValue.StringValue,
-			}
+			customValue.MetadataStringValue = NewMetadataStringValue(typedValue.StringValue)
 		case *proto.Value_StructValue:
 			sv := typedValue.StructValue
 			asMap := sv.AsMap()
@@ -44,9 +74,7 @@ func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi
 				return nil, err
 			}
 			b64 := base64.StdEncoding.EncodeToString(asJSON)
-			customValue.MetadataStructValue = &openapi.MetadataStructValue{
-				StructValue: &b64,
-			}
+			customValue.MetadataStructValue = NewMetadataStructValue(b64)
 		default:
 			return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
 		}
@@ -87,9 +115,9 @@ func MapArtifactType(source *proto.Artifact) (string, error) {
 		return "", fmt.Errorf("artifact type is nil")
 	}
 	switch *source.Type {
-	case constants.ModelArtifactTypeName:
+	case defaults.ModelArtifactTypeName:
 		return "model-artifact", nil
-	case constants.DocArtifactTypeName:
+	case defaults.DocArtifactTypeName:
 		return "doc-artifact", nil
 	default:
 		return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
