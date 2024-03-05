@@ -33,8 +33,8 @@ paths:
       description: Gets the details of a single instance of a `ModelArtifact` that matches search parameters.
     parameters:
       - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalID"
-      - $ref: "#/components/parameters/parentResourceID"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
   /api/model_registry/v1alpha2/model_artifacts:
     summary: Path used to manage the list of modelartifacts.
     description: >-
@@ -248,7 +248,7 @@ paths:
       description: Gets the details of a single instance of a `RegisteredModel` that matches search parameters.
     parameters:
       - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalID"
+      - $ref: "#/components/parameters/externalId"
   /api/model_registry/v1alpha2/registered_models:
     summary: Path used to manage the list of registeredmodels.
     description: >-
@@ -352,7 +352,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalID"
+        - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -410,7 +410,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalID"
+        - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -481,8 +481,8 @@ paths:
       description: Gets the details of a single instance of `InferenceService` that matches search parameters.
     parameters:
       - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalID"
-      - $ref: "#/components/parameters/parentResourceID"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
   "/api/model_registry/v1alpha2/inference_services/{inferenceserviceId}":
     summary: Path used to manage a single InferenceService.
     description: >-
@@ -602,7 +602,7 @@ paths:
       description: Finds a `ServingEnvironment` entity that matches query parameters.
     parameters:
       - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalID"
+      - $ref: "#/components/parameters/externalId"
   /api/model_registry/v1alpha2/serving_environments:
     summary: Path used to manage the list of servingenvironments.
     description: >-
@@ -706,7 +706,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalID"
+        - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -763,7 +763,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalID"
+        - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -886,8 +886,8 @@ paths:
       description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
     parameters:
       - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalID"
-      - $ref: "#/components/parameters/parentResourceID"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
 components:
   schemas:
     ArtifactState:
@@ -1043,12 +1043,12 @@ components:
     ModelVersionCreate:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       required:
-        - registeredModelID
+        - registeredModelId
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ModelVersionUpdate"
       properties:
-        registeredModelID:
+        registeredModelId:
           description: ID of the `RegisteredModel` to which this version belongs.
           type: string
     ModelVersionUpdate:
@@ -1245,7 +1245,7 @@ components:
           description: |-
             An optional description about the resource.
           type: string
-        externalID:
+        externalId:
           description: |-
             The external id that come from the clients’ system. This field is optional.
             If set, it must be unique among all resources within a database instance.
@@ -1331,7 +1331,7 @@ components:
       enum:
         - CREATE_TIME
         - LAST_UPDATE_TIME
-        - ID
+        - Id
       type: string
     Artifact:
       oneOf:
@@ -1602,21 +1602,21 @@ components:
         type: string
       in: query
       required: false
-    externalID:
+    externalId:
       examples:
-        externalID:
+        externalId:
           value: "10"
-      name: externalID
+      name: externalId
       description: External ID of entity to search.
       schema:
         type: string
       in: query
       required: false
-    parentResourceID:
+    parentResourceId:
       examples:
-        parentResourceID:
+        parentResourceId:
           value: "10"
-      name: parentResourceID
+      name: parentResourceId
       description: ID of the parent resource to use for search.
       schema:
         type: string
@@ -1647,7 +1647,7 @@ components:
       explode: true
       examples:
         orderBy:
-          value: ID
+          value: Id
       name: orderBy
       description: Specifies the order by criteria for listing entities.
       schema:

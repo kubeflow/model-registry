@@ -20,13 +20,13 @@ var _ MappedNullable = &ModelVersionCreate{}
 // ModelVersionCreate Represents a ModelVersion belonging to a RegisteredModel.
 type ModelVersionCreate struct {
 	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelID string `json:"registeredModelID"`
+	RegisteredModelId string `json:"registeredModelId"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalID *string `json:"externalID,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name  *string            `json:"name,omitempty"`
 	State *ModelVersionState `json:"state,omitempty"`
@@ -38,7 +38,7 @@ type ModelVersionCreate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelVersionCreate(registeredModelID string) *ModelVersionCreate {
+func NewModelVersionCreate(registeredModelId string) *ModelVersionCreate {
 	this := ModelVersionCreate{}
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
@@ -55,28 +55,28 @@ func NewModelVersionCreateWithDefaults() *ModelVersionCreate {
 	return &this
 }
 
-// GetRegisteredModelID returns the RegisteredModelID field value
-func (o *ModelVersionCreate) GetRegisteredModelID() string {
+// GetRegisteredModelId returns the RegisteredModelId field value
+func (o *ModelVersionCreate) GetRegisteredModelId() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.RegisteredModelID
+	return o.RegisteredModelId
 }
 
-// GetRegisteredModelIDOk returns a tuple with the RegisteredModelID field value
+// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
 // and a boolean to check if the value has been set.
-func (o *ModelVersionCreate) GetRegisteredModelIDOk() (*string, bool) {
+func (o *ModelVersionCreate) GetRegisteredModelIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.RegisteredModelID, true
+	return &o.RegisteredModelId, true
 }
 
-// SetRegisteredModelID sets field value
-func (o *ModelVersionCreate) SetRegisteredModelID(v string) {
-	o.RegisteredModelID = v
+// SetRegisteredModelId sets field value
+func (o *ModelVersionCreate) SetRegisteredModelId(v string) {
+	o.RegisteredModelId = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -143,36 +143,36 @@ func (o *ModelVersionCreate) SetDescription(v string) {
 	o.Description = &v
 }
 
-// GetExternalID returns the ExternalID field value if set, zero value otherwise.
-func (o *ModelVersionCreate) GetExternalID() string {
-	if o == nil || IsNil(o.ExternalID) {
+// GetExternalId returns the ExternalId field value if set, zero value otherwise.
+func (o *ModelVersionCreate) GetExternalId() string {
+	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
 	}
-	return *o.ExternalID
+	return *o.ExternalId
 }
 
-// GetExternalIDOk returns a tuple with the ExternalID field value if set, nil otherwise
+// GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelVersionCreate) GetExternalIDOk() (*string, bool) {
-	if o == nil || IsNil(o.ExternalID) {
+func (o *ModelVersionCreate) GetExternalIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
-	return o.ExternalID, true
+	return o.ExternalId, true
 }
 
-// HasExternalID returns a boolean if a field has been set.
-func (o *ModelVersionCreate) HasExternalID() bool {
-	if o != nil && !IsNil(o.ExternalID) {
+// HasExternalId returns a boolean if a field has been set.
+func (o *ModelVersionCreate) HasExternalId() bool {
+	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
 
 	return false
 }
 
-// SetExternalID gets a reference to the given string and assigns it to the ExternalID field.
-func (o *ModelVersionCreate) SetExternalID(v string) {
-	o.ExternalID = &v
+// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
+func (o *ModelVersionCreate) SetExternalId(v string) {
+	o.ExternalId = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
@@ -281,15 +281,15 @@ func (o ModelVersionCreate) MarshalJSON() ([]byte, error) {
 
 func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["registeredModelID"] = o.RegisteredModelID
+	toSerialize["registeredModelId"] = o.RegisteredModelId
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
-	if !IsNil(o.ExternalID) {
-		toSerialize["externalID"] = o.ExternalID
+	if !IsNil(o.ExternalId) {
+		toSerialize["externalId"] = o.ExternalId
 	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name

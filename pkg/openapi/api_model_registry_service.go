@@ -1382,8 +1382,8 @@ type ApiFindInferenceServiceRequest struct {
 	ctx              context.Context
 	ApiService       *ModelRegistryServiceAPIService
 	name             *string
-	externalID       *string
-	parentResourceID *string
+	externalId       *string
+	parentResourceId *string
 }
 
 // Name of entity to search.
@@ -1393,14 +1393,14 @@ func (r ApiFindInferenceServiceRequest) Name(name string) ApiFindInferenceServic
 }
 
 // External ID of entity to search.
-func (r ApiFindInferenceServiceRequest) ExternalID(externalID string) ApiFindInferenceServiceRequest {
-	r.externalID = &externalID
+func (r ApiFindInferenceServiceRequest) ExternalId(externalId string) ApiFindInferenceServiceRequest {
+	r.externalId = &externalId
 	return r
 }
 
 // ID of the parent resource to use for search.
-func (r ApiFindInferenceServiceRequest) ParentResourceID(parentResourceID string) ApiFindInferenceServiceRequest {
-	r.parentResourceID = &parentResourceID
+func (r ApiFindInferenceServiceRequest) ParentResourceId(parentResourceId string) ApiFindInferenceServiceRequest {
+	r.parentResourceId = &parentResourceId
 	return r
 }
 
@@ -1448,11 +1448,11 @@ func (a *ModelRegistryServiceAPIService) FindInferenceServiceExecute(r ApiFindIn
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
-	if r.parentResourceID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceID", r.parentResourceID, "")
+	if r.parentResourceId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -1555,8 +1555,8 @@ type ApiFindModelArtifactRequest struct {
 	ctx              context.Context
 	ApiService       *ModelRegistryServiceAPIService
 	name             *string
-	externalID       *string
-	parentResourceID *string
+	externalId       *string
+	parentResourceId *string
 }
 
 // Name of entity to search.
@@ -1566,14 +1566,14 @@ func (r ApiFindModelArtifactRequest) Name(name string) ApiFindModelArtifactReque
 }
 
 // External ID of entity to search.
-func (r ApiFindModelArtifactRequest) ExternalID(externalID string) ApiFindModelArtifactRequest {
-	r.externalID = &externalID
+func (r ApiFindModelArtifactRequest) ExternalId(externalId string) ApiFindModelArtifactRequest {
+	r.externalId = &externalId
 	return r
 }
 
 // ID of the parent resource to use for search.
-func (r ApiFindModelArtifactRequest) ParentResourceID(parentResourceID string) ApiFindModelArtifactRequest {
-	r.parentResourceID = &parentResourceID
+func (r ApiFindModelArtifactRequest) ParentResourceId(parentResourceId string) ApiFindModelArtifactRequest {
+	r.parentResourceId = &parentResourceId
 	return r
 }
 
@@ -1621,11 +1621,11 @@ func (a *ModelRegistryServiceAPIService) FindModelArtifactExecute(r ApiFindModel
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
-	if r.parentResourceID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceID", r.parentResourceID, "")
+	if r.parentResourceId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -1728,8 +1728,8 @@ type ApiFindModelVersionRequest struct {
 	ctx              context.Context
 	ApiService       *ModelRegistryServiceAPIService
 	name             *string
-	externalID       *string
-	parentResourceID *string
+	externalId       *string
+	parentResourceId *string
 }
 
 // Name of entity to search.
@@ -1739,14 +1739,14 @@ func (r ApiFindModelVersionRequest) Name(name string) ApiFindModelVersionRequest
 }
 
 // External ID of entity to search.
-func (r ApiFindModelVersionRequest) ExternalID(externalID string) ApiFindModelVersionRequest {
-	r.externalID = &externalID
+func (r ApiFindModelVersionRequest) ExternalId(externalId string) ApiFindModelVersionRequest {
+	r.externalId = &externalId
 	return r
 }
 
 // ID of the parent resource to use for search.
-func (r ApiFindModelVersionRequest) ParentResourceID(parentResourceID string) ApiFindModelVersionRequest {
-	r.parentResourceID = &parentResourceID
+func (r ApiFindModelVersionRequest) ParentResourceId(parentResourceId string) ApiFindModelVersionRequest {
+	r.parentResourceId = &parentResourceId
 	return r
 }
 
@@ -1794,11 +1794,11 @@ func (a *ModelRegistryServiceAPIService) FindModelVersionExecute(r ApiFindModelV
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
-	if r.parentResourceID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceID", r.parentResourceID, "")
+	if r.parentResourceId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -1901,7 +1901,7 @@ type ApiFindRegisteredModelRequest struct {
 	ctx        context.Context
 	ApiService *ModelRegistryServiceAPIService
 	name       *string
-	externalID *string
+	externalId *string
 }
 
 // Name of entity to search.
@@ -1911,8 +1911,8 @@ func (r ApiFindRegisteredModelRequest) Name(name string) ApiFindRegisteredModelR
 }
 
 // External ID of entity to search.
-func (r ApiFindRegisteredModelRequest) ExternalID(externalID string) ApiFindRegisteredModelRequest {
-	r.externalID = &externalID
+func (r ApiFindRegisteredModelRequest) ExternalId(externalId string) ApiFindRegisteredModelRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -1960,8 +1960,8 @@ func (a *ModelRegistryServiceAPIService) FindRegisteredModelExecute(r ApiFindReg
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2053,7 +2053,7 @@ type ApiFindServingEnvironmentRequest struct {
 	ctx        context.Context
 	ApiService *ModelRegistryServiceAPIService
 	name       *string
-	externalID *string
+	externalId *string
 }
 
 // Name of entity to search.
@@ -2063,8 +2063,8 @@ func (r ApiFindServingEnvironmentRequest) Name(name string) ApiFindServingEnviro
 }
 
 // External ID of entity to search.
-func (r ApiFindServingEnvironmentRequest) ExternalID(externalID string) ApiFindServingEnvironmentRequest {
-	r.externalID = &externalID
+func (r ApiFindServingEnvironmentRequest) ExternalId(externalId string) ApiFindServingEnvironmentRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -2112,8 +2112,8 @@ func (a *ModelRegistryServiceAPIService) FindServingEnvironmentExecute(r ApiFind
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2206,7 +2206,7 @@ type ApiGetEnvironmentInferenceServicesRequest struct {
 	ApiService           *ModelRegistryServiceAPIService
 	servingenvironmentId string
 	name                 *string
-	externalID           *string
+	externalId           *string
 	pageSize             *string
 	orderBy              *OrderByField
 	sortOrder            *SortOrder
@@ -2220,8 +2220,8 @@ func (r ApiGetEnvironmentInferenceServicesRequest) Name(name string) ApiGetEnvir
 }
 
 // External ID of entity to search.
-func (r ApiGetEnvironmentInferenceServicesRequest) ExternalID(externalID string) ApiGetEnvironmentInferenceServicesRequest {
-	r.externalID = &externalID
+func (r ApiGetEnvironmentInferenceServicesRequest) ExternalId(externalId string) ApiGetEnvironmentInferenceServicesRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -2296,8 +2296,8 @@ func (a *ModelRegistryServiceAPIService) GetEnvironmentInferenceServicesExecute(
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -2674,7 +2674,7 @@ type ApiGetInferenceServiceServesRequest struct {
 	ApiService         *ModelRegistryServiceAPIService
 	inferenceserviceId string
 	name               *string
-	externalID         *string
+	externalId         *string
 	pageSize           *string
 	orderBy            *OrderByField
 	sortOrder          *SortOrder
@@ -2688,8 +2688,8 @@ func (r ApiGetInferenceServiceServesRequest) Name(name string) ApiGetInferenceSe
 }
 
 // External ID of entity to search.
-func (r ApiGetInferenceServiceServesRequest) ExternalID(externalID string) ApiGetInferenceServiceServesRequest {
-	r.externalID = &externalID
+func (r ApiGetInferenceServiceServesRequest) ExternalId(externalId string) ApiGetInferenceServiceServesRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -2764,8 +2764,8 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServiceServesExecute(r ApiG
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -3644,7 +3644,7 @@ type ApiGetModelVersionArtifactsRequest struct {
 	ApiService     *ModelRegistryServiceAPIService
 	modelversionId string
 	name           *string
-	externalID     *string
+	externalId     *string
 	pageSize       *string
 	orderBy        *OrderByField
 	sortOrder      *SortOrder
@@ -3658,8 +3658,8 @@ func (r ApiGetModelVersionArtifactsRequest) Name(name string) ApiGetModelVersion
 }
 
 // External ID of entity to search.
-func (r ApiGetModelVersionArtifactsRequest) ExternalID(externalID string) ApiGetModelVersionArtifactsRequest {
-	r.externalID = &externalID
+func (r ApiGetModelVersionArtifactsRequest) ExternalId(externalId string) ApiGetModelVersionArtifactsRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -3732,8 +3732,8 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionArtifactsExecute(r ApiGe
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -4135,7 +4135,7 @@ type ApiGetRegisteredModelVersionsRequest struct {
 	ApiService        *ModelRegistryServiceAPIService
 	registeredmodelId string
 	name              *string
-	externalID        *string
+	externalId        *string
 	pageSize          *string
 	orderBy           *OrderByField
 	sortOrder         *SortOrder
@@ -4149,8 +4149,8 @@ func (r ApiGetRegisteredModelVersionsRequest) Name(name string) ApiGetRegistered
 }
 
 // External ID of entity to search.
-func (r ApiGetRegisteredModelVersionsRequest) ExternalID(externalID string) ApiGetRegisteredModelVersionsRequest {
-	r.externalID = &externalID
+func (r ApiGetRegisteredModelVersionsRequest) ExternalId(externalId string) ApiGetRegisteredModelVersionsRequest {
+	r.externalId = &externalId
 	return r
 }
 
@@ -4225,8 +4225,8 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelVersionsExecute(r Api
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
-	if r.externalID != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalID", r.externalID, "")
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")

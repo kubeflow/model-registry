@@ -24,7 +24,7 @@ type InferenceServiceCreate struct {
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalID *string `json:"externalID,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
@@ -125,36 +125,36 @@ func (o *InferenceServiceCreate) SetDescription(v string) {
 	o.Description = &v
 }
 
-// GetExternalID returns the ExternalID field value if set, zero value otherwise.
-func (o *InferenceServiceCreate) GetExternalID() string {
-	if o == nil || IsNil(o.ExternalID) {
+// GetExternalId returns the ExternalId field value if set, zero value otherwise.
+func (o *InferenceServiceCreate) GetExternalId() string {
+	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
 	}
-	return *o.ExternalID
+	return *o.ExternalId
 }
 
-// GetExternalIDOk returns a tuple with the ExternalID field value if set, nil otherwise
+// GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *InferenceServiceCreate) GetExternalIDOk() (*string, bool) {
-	if o == nil || IsNil(o.ExternalID) {
+func (o *InferenceServiceCreate) GetExternalIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
-	return o.ExternalID, true
+	return o.ExternalId, true
 }
 
-// HasExternalID returns a boolean if a field has been set.
-func (o *InferenceServiceCreate) HasExternalID() bool {
-	if o != nil && !IsNil(o.ExternalID) {
+// HasExternalId returns a boolean if a field has been set.
+func (o *InferenceServiceCreate) HasExternalId() bool {
+	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
 
 	return false
 }
 
-// SetExternalID gets a reference to the given string and assigns it to the ExternalID field.
-func (o *InferenceServiceCreate) SetExternalID(v string) {
-	o.ExternalID = &v
+// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
+func (o *InferenceServiceCreate) SetExternalId(v string) {
+	o.ExternalId = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
@@ -349,8 +349,8 @@ func (o InferenceServiceCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
-	if !IsNil(o.ExternalID) {
-		toSerialize["externalID"] = o.ExternalID
+	if !IsNil(o.ExternalId) {
+		toSerialize["externalId"] = o.ExternalId
 	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name

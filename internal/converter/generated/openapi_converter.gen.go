@@ -29,11 +29,11 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.Inf
 		}
 		openapiInferenceService.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiInferenceService.ExternalID = pString2
+		openapiInferenceService.ExternalId = pString2
 		var pString3 *string
 		if (*source).Name != nil {
 			xstring3 := *(*source).Name
@@ -84,11 +84,11 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 		}
 		openapiInferenceService.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiInferenceService.ExternalID = pString2
+		openapiInferenceService.ExternalId = pString2
 		var pString3 *string
 		if (*source).ModelVersionId != nil {
 			xstring3 := *(*source).ModelVersionId
@@ -131,11 +131,11 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelA
 		}
 		openapiModelArtifact.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiModelArtifact.ExternalID = pString2
+		openapiModelArtifact.ExternalId = pString2
 		var pString3 *string
 		if (*source).Uri != nil {
 			xstring3 := *(*source).Uri
@@ -208,11 +208,11 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactUpdate(source *openapi.ModelA
 		}
 		openapiModelArtifact.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiModelArtifact.ExternalID = pString2
+		openapiModelArtifact.ExternalId = pString2
 		var pString3 *string
 		if (*source).Uri != nil {
 			xstring3 := *(*source).Uri
@@ -279,11 +279,11 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 		}
 		openapiModelVersion.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiModelVersion.ExternalID = pString2
+		openapiModelVersion.ExternalId = pString2
 		var pString3 *string
 		if (*source).Name != nil {
 			xstring3 := *(*source).Name
@@ -326,11 +326,11 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVe
 		}
 		openapiModelVersion.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiModelVersion.ExternalID = pString2
+		openapiModelVersion.ExternalId = pString2
 		var pOpenapiModelVersionState *openapi.ModelVersionState
 		if (*source).State != nil {
 			openapiModelVersionState := openapi.ModelVersionState(*(*source).State)
@@ -367,11 +367,11 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 		}
 		openapiRegisteredModel.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiRegisteredModel.ExternalID = pString2
+		openapiRegisteredModel.ExternalId = pString2
 		var pString3 *string
 		if (*source).Name != nil {
 			xstring3 := *(*source).Name
@@ -408,11 +408,11 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 		}
 		openapiRegisteredModel.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiRegisteredModel.ExternalID = pString2
+		openapiRegisteredModel.ExternalId = pString2
 		var pOpenapiRegisteredModelState *openapi.RegisteredModelState
 		if (*source).State != nil {
 			openapiRegisteredModelState := openapi.RegisteredModelState(*(*source).State)
@@ -449,11 +449,11 @@ func (c *OpenAPIConverterImpl) ConvertServeModelCreate(source *openapi.ServeMode
 		}
 		openapiServeModel.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiServeModel.ExternalID = pString2
+		openapiServeModel.ExternalId = pString2
 		var pString3 *string
 		if (*source).Name != nil {
 			xstring3 := *(*source).Name
@@ -491,11 +491,11 @@ func (c *OpenAPIConverterImpl) ConvertServeModelUpdate(source *openapi.ServeMode
 		}
 		openapiServeModel.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiServeModel.ExternalID = pString2
+		openapiServeModel.ExternalId = pString2
 		pOpenapiServeModel = &openapiServeModel
 	}
 	return pOpenapiServeModel, nil
@@ -520,11 +520,11 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentCreate(source *openapi.S
 		}
 		openapiServingEnvironment.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiServingEnvironment.ExternalID = pString2
+		openapiServingEnvironment.ExternalId = pString2
 		var pString3 *string
 		if (*source).Name != nil {
 			xstring3 := *(*source).Name
@@ -555,11 +555,11 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.S
 		}
 		openapiServingEnvironment.Description = pString
 		var pString2 *string
-		if (*source).ExternalID != nil {
-			xstring2 := *(*source).ExternalID
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
 			pString2 = &xstring2
 		}
-		openapiServingEnvironment.ExternalID = pString2
+		openapiServingEnvironment.ExternalId = pString2
 		pOpenapiServingEnvironment = &openapiServingEnvironment
 	}
 	return pOpenapiServingEnvironment, nil

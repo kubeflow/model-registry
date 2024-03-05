@@ -481,9 +481,9 @@ func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.Resp
 func (c *ModelRegistryServiceAPIController) FindInferenceService(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
-	parentResourceIDParam := query.Get("parentResourceID")
-	result, err := c.service.FindInferenceService(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
+	externalIdParam := query.Get("externalId")
+	parentResourceIdParam := query.Get("parentResourceId")
+	result, err := c.service.FindInferenceService(r.Context(), nameParam, externalIdParam, parentResourceIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -497,9 +497,9 @@ func (c *ModelRegistryServiceAPIController) FindInferenceService(w http.Response
 func (c *ModelRegistryServiceAPIController) FindModelArtifact(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
-	parentResourceIDParam := query.Get("parentResourceID")
-	result, err := c.service.FindModelArtifact(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
+	externalIdParam := query.Get("externalId")
+	parentResourceIdParam := query.Get("parentResourceId")
+	result, err := c.service.FindModelArtifact(r.Context(), nameParam, externalIdParam, parentResourceIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -513,9 +513,9 @@ func (c *ModelRegistryServiceAPIController) FindModelArtifact(w http.ResponseWri
 func (c *ModelRegistryServiceAPIController) FindModelVersion(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
-	parentResourceIDParam := query.Get("parentResourceID")
-	result, err := c.service.FindModelVersion(r.Context(), nameParam, externalIDParam, parentResourceIDParam)
+	externalIdParam := query.Get("externalId")
+	parentResourceIdParam := query.Get("parentResourceId")
+	result, err := c.service.FindModelVersion(r.Context(), nameParam, externalIdParam, parentResourceIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -529,8 +529,8 @@ func (c *ModelRegistryServiceAPIController) FindModelVersion(w http.ResponseWrit
 func (c *ModelRegistryServiceAPIController) FindRegisteredModel(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
-	result, err := c.service.FindRegisteredModel(r.Context(), nameParam, externalIDParam)
+	externalIdParam := query.Get("externalId")
+	result, err := c.service.FindRegisteredModel(r.Context(), nameParam, externalIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -544,8 +544,8 @@ func (c *ModelRegistryServiceAPIController) FindRegisteredModel(w http.ResponseW
 func (c *ModelRegistryServiceAPIController) FindServingEnvironment(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
-	result, err := c.service.FindServingEnvironment(r.Context(), nameParam, externalIDParam)
+	externalIdParam := query.Get("externalId")
+	result, err := c.service.FindServingEnvironment(r.Context(), nameParam, externalIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -560,12 +560,12 @@ func (c *ModelRegistryServiceAPIController) GetEnvironmentInferenceServices(w ht
 	query := r.URL.Query()
 	servingenvironmentIdParam := chi.URLParam(r, "servingenvironmentId")
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
+	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, nameParam, externalIDParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -606,12 +606,12 @@ func (c *ModelRegistryServiceAPIController) GetInferenceServiceServes(w http.Res
 	query := r.URL.Query()
 	inferenceserviceIdParam := chi.URLParam(r, "inferenceserviceId")
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
+	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, nameParam, externalIDParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -699,12 +699,12 @@ func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.Resp
 	query := r.URL.Query()
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
+	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, nameParam, externalIDParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -749,12 +749,12 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 	query := r.URL.Query()
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
 	nameParam := query.Get("name")
-	externalIDParam := query.Get("externalID")
+	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIDParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
