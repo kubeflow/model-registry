@@ -11,8 +11,14 @@ openapi-generator-cli generate \
 		--ignore-file-override $ROOT_FOLDER/.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true \
 		--template-dir $ROOT_FOLDER/templates/go-server
 
-sed -i 's/, orderByParam/, model.OrderByField(orderByParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
-sed -i 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
+if [[ $(uname) == "Darwin" ]]; then
+  # introduce -i parameter for Mac OSX sed compatibility
+  sed -i '' 's/, orderByParam/, model.OrderByField(orderByParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
+  sed -i '' 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
+else
+  sed -i 's/, orderByParam/, model.OrderByField(orderByParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
+  sed -i 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' $ROOT_FOLDER/internal/server/openapi/api_model_registry_service.go
+fi
 
 echo "Assembling type_assert Go file"
 ./scripts/gen_type_asserts.sh
