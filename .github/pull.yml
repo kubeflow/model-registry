@@ -2,4 +2,4 @@ version: "1"
 rules:
   - base: main
     upstream: kubeflow:main
-label: "tide/merge-merge"
+label: "tide/merge-method-merge"
