@@ -54,8 +54,8 @@ jobs:
           BUILD_IMAGE: false
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
-          # BUILD_IMAGE=false skip the build
-          ./scripts/build_deploy.sh
+          # BUILD_IMAGE=false skip the build, just push the tag made above
+          VERSION=latest ./scripts/build_deploy.sh
       - name: Tag Main
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
@@ -64,5 +64,5 @@ jobs:
           BUILD_IMAGE: false
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
-          # BUILD_IMAGE=false skip the build
-          ./scripts/build_deploy.sh
+          # BUILD_IMAGE=false skip the build, just push the tag made above
+          VERSION=main ./scripts/build_deploy.sh
