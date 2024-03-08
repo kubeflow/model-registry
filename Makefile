@@ -21,7 +21,7 @@ IMG_VERSION ?= main
 # container image repository
 IMG_REPO ?= model-registry
 # container image
-IMG := ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
+IMG ?= ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
 
 model-registry: build
 
