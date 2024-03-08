@@ -5103,15 +5103,15 @@ func (a *ModelRegistryServiceAPIService) UpdateModelArtifactExecute(r ApiUpdateM
 }
 
 type ApiUpdateModelVersionRequest struct {
-	ctx            context.Context
-	ApiService     *ModelRegistryServiceAPIService
-	modelversionId string
-	modelVersion   *ModelVersion
+	ctx                context.Context
+	ApiService         *ModelRegistryServiceAPIService
+	modelversionId     string
+	modelVersionUpdate *ModelVersionUpdate
 }
 
 // Updated &#x60;ModelVersion&#x60; information.
-func (r ApiUpdateModelVersionRequest) ModelVersion(modelVersion ModelVersion) ApiUpdateModelVersionRequest {
-	r.modelVersion = &modelVersion
+func (r ApiUpdateModelVersionRequest) ModelVersionUpdate(modelVersionUpdate ModelVersionUpdate) ApiUpdateModelVersionRequest {
+	r.modelVersionUpdate = &modelVersionUpdate
 	return r
 }
 
@@ -5158,8 +5158,8 @@ func (a *ModelRegistryServiceAPIService) UpdateModelVersionExecute(r ApiUpdateMo
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.modelVersion == nil {
-		return localVarReturnValue, nil, reportError("modelVersion is required and must be specified")
+	if r.modelVersionUpdate == nil {
+		return localVarReturnValue, nil, reportError("modelVersionUpdate is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -5180,7 +5180,7 @@ func (a *ModelRegistryServiceAPIService) UpdateModelVersionExecute(r ApiUpdateMo
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.modelVersion
+	localVarPostBody = r.modelVersionUpdate
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

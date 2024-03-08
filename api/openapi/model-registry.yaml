@@ -202,7 +202,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ModelVersion"
+              $ref: "#/components/schemas/ModelVersionUpdate"
         required: true
       tags:
         - ModelRegistryService

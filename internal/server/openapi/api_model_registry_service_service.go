@@ -476,14 +476,13 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 }
 
 // UpdateModelVersion - Update a ModelVersion
-func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context, modelversionId string, modelVersion model.ModelVersion) (ImplResponse, error) {
-	// TODO: this API is getting model.ModelVersion instead of model.ModelVersionUpdate.
-	// c, err := s.converter.ConvertModelVersionUpdate(&modelVersion)
-	// if err != nil {
-	// 	return Response(500, model.Error{Message: err.Error()}), nil
-	// }
-	// modelVersion.Id = &modelversionId
-	result, err := s.coreApi.UpsertModelVersion(&modelVersion, nil)
+func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context, modelversionId string, modelVersionUpdate model.ModelVersionUpdate) (ImplResponse, error) {
+	modelVersion, err := s.converter.ConvertModelVersionUpdate(&modelVersionUpdate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	modelVersion.Id = &modelversionId
+	result, err := s.coreApi.UpsertModelVersion(modelVersion, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}

@@ -870,22 +870,22 @@ func (c *ModelRegistryServiceAPIController) UpdateModelArtifact(w http.ResponseW
 // UpdateModelVersion - Update a ModelVersion
 func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWriter, r *http.Request) {
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
-	modelVersionParam := model.ModelVersion{}
+	modelVersionUpdateParam := model.ModelVersionUpdate{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&modelVersionParam); err != nil {
+	if err := d.Decode(&modelVersionUpdateParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertModelVersionRequired(modelVersionParam); err != nil {
+	if err := AssertModelVersionUpdateRequired(modelVersionUpdateParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertModelVersionConstraints(modelVersionParam); err != nil {
+	if err := AssertModelVersionUpdateConstraints(modelVersionUpdateParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.UpdateModelVersion(r.Context(), modelversionIdParam, modelVersionParam)
+	result, err := c.service.UpdateModelVersion(r.Context(), modelversionIdParam, modelVersionUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
