@@ -14,7 +14,7 @@ I create a RegisteredModel having
     [Arguments]  ${name}
     IF  $MODE == "REST"
         ${data}    Create Dictionary    name=${name}
-        ${resp}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/registered_models    json=${data}    expected_status=201
+        ${resp}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_models    json=${data}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -28,7 +28,7 @@ I create a RegisteredModel having
 I create a RegisteredModel
     [Arguments]  ${payload}
     IF  $MODE == "REST"
-        ${resp}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/registered_models    json=&{payload}    expected_status=201
+        ${resp}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_models    json=&{payload}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -42,7 +42,7 @@ I create a child ModelVersion having
     [Arguments]  ${registeredModelID}  ${name}
     IF  $MODE == "REST"
         ${data}=    Create Dictionary    name=${name}    registeredModelID=${registeredModelID}
-        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions    json=${data}    expected_status=201
+        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions    json=${data}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -57,7 +57,7 @@ I create a child ModelVersion
     [Arguments]  ${registeredModelID}  ${payload}
     IF  $MODE == "REST"
         Set To Dictionary    ${payload}    registeredModelID=${registeredModelID}
-        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions    json=&{payload}    expected_status=201
+        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions    json=&{payload}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -72,7 +72,7 @@ I create a child ModelArtifact having
     IF  $MODE == "REST"
         ${data}=    Create Dictionary    uri=${uri}  artifactType=model-artifact
         Log to console    ${data}
-        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions/${modelversionId}/artifacts    json=${data}    expected_status=201
+        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions/${modelversionId}/artifacts    json=${data}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -86,7 +86,7 @@ I create a child ModelArtifact having
 I create a child ModelArtifact
     [Arguments]  ${modelversionId}    ${payload}
     IF  $MODE == "REST"
-        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions/${modelversionId}/artifacts    json=&{payload}    expected_status=201
+        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions/${modelversionId}/artifacts    json=&{payload}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -99,7 +99,7 @@ I create a child ModelArtifact
 I create a child Artifact
     [Arguments]  ${modelversionId}    ${payload}
     IF  $MODE == "REST"
-        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions/${modelversionId}/artifacts    json=&{payload}    expected_status=201
+        ${resp}=    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions/${modelversionId}/artifacts    json=&{payload}    expected_status=201
         Log to console    ${resp.json()}
         ${result}    Set Variable    ${resp.json()['id']}
     ELSE
@@ -112,7 +112,7 @@ I create a child Artifact
 I get RegisteredModelByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
-        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/registered_models/${id}    expected_status=200
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_models/${id}    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE
@@ -125,7 +125,7 @@ I get RegisteredModelByID
 I get ModelVersionByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
-        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions/${id}    expected_status=200
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions/${id}    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE
@@ -138,7 +138,7 @@ I get ModelVersionByID
 I get ModelArtifactByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
-        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_artifacts/${id}    expected_status=200
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_artifacts/${id}    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE
@@ -151,7 +151,7 @@ I get ModelArtifactByID
 I get ArtifactsByModelVersionID
     [Arguments]    ${id}
     IF  $MODE == "REST"
-        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha2/model_versions/${id}/artifacts    expected_status=200
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions/${id}/artifacts    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE

@@ -82,7 +82,7 @@ Then, in the same terminal where you exported `MR_HOSTNAME`, perform the followi
 
 ```bash
 curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -100,7 +100,7 @@ Expected output:
 
 ```bash
 curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -121,7 +121,7 @@ This artifact defines where the actual trained model is stored, i.e., `gs://kfse
 
 ```bash
 curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/2/artifacts" \
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/2/artifacts" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
