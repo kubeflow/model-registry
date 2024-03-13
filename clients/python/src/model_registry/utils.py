@@ -4,7 +4,32 @@ from __future__ import annotations
 
 import os
 
+from typing_extensions import overload
+
 from .exceptions import MissingMetadata
+
+
+@overload
+def s3_uri_from(
+    path: str,
+) -> str: ...
+
+
+@overload
+def s3_uri_from(
+    path: str,
+    bucket: str,
+) -> str: ...
+
+
+@overload
+def s3_uri_from(
+    path: str,
+    bucket: str,
+    *,
+    endpoint: str,
+    region: str,
+) -> str: ...
 
 
 def s3_uri_from(
