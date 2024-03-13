@@ -1,7 +1,7 @@
 """Standard client for the model registry."""
+
 from __future__ import annotations
 
-import os
 from typing import get_args
 from warnings import warn
 
@@ -75,16 +75,22 @@ class ModelRegistry:
         model_format_name: str,
         model_format_version: str,
         version: str,
-        author: str | None = None,
-        description: str | None = None,
         storage_key: str | None = None,
         storage_path: str | None = None,
         service_account_name: str | None = None,
+        author: str | None = None,
+        description: str | None = None,
         metadata: dict[str, ScalarType] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
-        Either `storage_key` and `storage_path`, or `service_account_name` must be provided.
+        This registers a model in the model registry. The model is not downloaded, and has to be stored prior to
+        registration.
+
+        Most models can be registered using their URI, along with optional connection-specific parameters, `storage_key`
+        and `storage_path` or, simply a `service_account_name`.
+        URI builder utilities are recommended when referring to specialized storage; for example `utils.s3_uri_from`
+        helper when using S3 object storage data connections.
 
         Args:
             name: Name of the model.
@@ -110,7 +116,7 @@ class ModelRegistry:
             version,
             author or self._author,
             description=description,
-            metadata=metadata or self.default_metadata(),
+            metadata=metadata or {},
         )
         self._register_model_artifact(
             mv,
@@ -123,19 +129,6 @@ class ModelRegistry:
         )
 
         return rm
-
-    def default_metadata(self) -> dict[str, ScalarType]:
-        """Default metadata valorisations.
-
-        When not explicitly supplied by the end users, these valorisations will be used
-        by default.
-
-        Returns:
-            default metadata valorisations.
-        """
-        return {
-            key: os.environ[key] for key in ["AWS_S3_ENDPOINT", "AWS_S3_BUCKET", "AWS_DEFAULT_REGION"] if key in os.environ
-        }
 
     def register_hf_model(
         self,
@@ -202,7 +195,6 @@ class ModelRegistry:
             model_author = author
         source_uri = hf_hub_url(repo, path, revision=git_ref)
         metadata = {
-            **self.default_metadata(),
             "repo": repo,
             "source_uri": source_uri,
             "model_origin": "huggingface_hub",
