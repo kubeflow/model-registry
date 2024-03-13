@@ -94,7 +94,7 @@ type ModelRegistryServiceAPIServicer interface {
 	GetServingEnvironments(context.Context, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	UpdateInferenceService(context.Context, string, model.InferenceServiceUpdate) (ImplResponse, error)
 	UpdateModelArtifact(context.Context, string, model.ModelArtifactUpdate) (ImplResponse, error)
-	UpdateModelVersion(context.Context, string, model.ModelVersion) (ImplResponse, error)
+	UpdateModelVersion(context.Context, string, model.ModelVersionUpdate) (ImplResponse, error)
 	UpdateRegisteredModel(context.Context, string, model.RegisteredModelUpdate) (ImplResponse, error)
 	UpdateServingEnvironment(context.Context, string, model.ServingEnvironmentUpdate) (ImplResponse, error)
 }

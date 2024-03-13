@@ -98,7 +98,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 
-	result, err := s.coreApi.UpsertModelVersion(modelVersion, &modelVersionCreate.RegisteredModelID)
+	result, err := s.coreApi.UpsertModelVersion(modelVersion, &modelVersionCreate.RegisteredModelId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -165,8 +165,8 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 }
 
 // FindInferenceService - Get an InferenceServices that matches search parameters.
-func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalID string, parentResourceID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetInferenceServiceByParams(&name, &parentResourceID, &externalID)
+func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetInferenceServiceByParams(&name, &parentResourceId, &externalId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -177,8 +177,8 @@ func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Contex
 }
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
-func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalID string, parentResourceID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelArtifactByParams(&name, &parentResourceID, &externalID)
+func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetModelArtifactByParams(&name, &parentResourceId, &externalId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -189,8 +189,8 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 }
 
 // FindModelVersion - Get a ModelVersion that matches search parameters.
-func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalID string, registeredModelID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelVersionByParams(&name, &registeredModelID, &externalID)
+func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalId string, registeredModelId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetModelVersionByParams(&name, &registeredModelId, &externalId)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -476,14 +476,13 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 }
 
 // UpdateModelVersion - Update a ModelVersion
-func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context, modelversionId string, modelVersion model.ModelVersion) (ImplResponse, error) {
-	// TODO: this API is getting model.ModelVersion instead of model.ModelVersionUpdate.
-	// c, err := s.converter.ConvertModelVersionUpdate(&modelVersion)
-	// if err != nil {
-	// 	return Response(500, model.Error{Message: err.Error()}), nil
-	// }
-	// modelVersion.Id = &modelversionId
-	result, err := s.coreApi.UpsertModelVersion(&modelVersion, nil)
+func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context, modelversionId string, modelVersionUpdate model.ModelVersionUpdate) (ImplResponse, error) {
+	modelVersion, err := s.converter.ConvertModelVersionUpdate(&modelVersionUpdate)
+	if err != nil {
+		return Response(500, model.Error{Message: err.Error()}), nil
+	}
+	modelVersion.Id = &modelversionId
+	result, err := s.coreApi.UpsertModelVersion(modelVersion, nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
