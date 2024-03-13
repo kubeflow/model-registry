@@ -6,6 +6,7 @@ import os
 
 from typing_extensions import overload
 
+from ._utils import required_args
 from .exceptions import MissingMetadata
 
 
@@ -32,6 +33,17 @@ def s3_uri_from(
 ) -> str: ...
 
 
+@required_args(
+    (),
+    (  # pre-configured env
+        "bucket",
+    ),
+    (  # custom env or non-default bucket
+        "bucket",
+        "endpoint",
+        "region",
+    ),
+)
 def s3_uri_from(
     path: str,
     bucket: str | None = None,
@@ -62,7 +74,7 @@ def s3_uri_from(
             msg = "Custom environment requires all arguments"
             raise MissingMetadata(msg)
         bucket = default_bucket
-    elif (not default_bucket or default_bucket != bucket) and not (endpoint and region):
+    elif (not default_bucket or default_bucket != bucket) and not endpoint:
         msg = (
             "bucket_endpoint and bucket_region must be provided for non-default bucket"
         )
