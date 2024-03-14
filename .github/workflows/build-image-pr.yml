@@ -31,3 +31,24 @@ jobs:
         env:
           VERSION: ${{ steps.tags.outputs.tag }}
         run: ./scripts/build_deploy.sh
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.9.0
+      - name: Load Local Registry Test Image
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          kind load docker-image -n chart-testing ${IMG}
+      - name: Create Test Registry
+        env:
+          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+        run: |
+          echo "Deploying Model Registry using Manifests; branch ${BRANCH}"
+          kubectl create namespace kubeflow
+          cd manifests/kustomize/overlays/db
+          kustomize edit set image quay.io/opendatahub/model-registry:latest $IMG
+          kubectl apply -k .
+      - name: Wait for Test Registry Deployment
+        run: |
+          kubectl wait --for=condition=available -n kubeflow deployment/model-registry-db --timeout=5m
+          kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=5m
+          kubectl logs -n kubeflow deployment/model-registry-deployment
