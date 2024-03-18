@@ -13,7 +13,6 @@ on:
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
-  IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -37,16 +36,17 @@ jobs:
         uses: karancode/kustomize-github-action@v1.3.2
         with:
           kustomize_version: '5.2.1'
+          kustomize_build_dir: 'manifests/kustomize/overlays/db'
       - name: Start Kind Cluster
         uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
         env:
-          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing ${IMG}
       - name: Create Test Registry
         env:
-          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           echo "Display Kustomize version"
           kustomize version 
