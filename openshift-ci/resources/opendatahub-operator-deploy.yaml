@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: rhods-operator
+  namespace: openshift-operators
+spec:
+  channel: odh-nightlies
+  installPlanApproval: Automatic
+  name: rhods-operator
+  source: model-registry-test-source
+  sourceNamespace: openshift-marketplace
