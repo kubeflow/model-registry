@@ -43,8 +43,10 @@ jobs:
         env:
           IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
-          echo "Download kustomize 5.2.1:"
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s "5.2.1"
+          echo "Download kustomize 5.2.1"
+          mkdir $GITHUB_WORKSPACE/kustomize
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s "5.2.1" "$GITHUB_WORKSPACE/kustomize"
+          PATH=$GITHUB_WORKSPACE/kustomize:$PATH
           echo "Display Kustomize version"
           kustomize version 
           echo "Deploying Model Registry using Manifests; branch ${BRANCH}"
