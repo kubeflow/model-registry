@@ -14,10 +14,11 @@ on:
       - '.github/dependabot.yml'
       - 'docs/**'
 env:
-  QUAY_ORG: opendatahub
-  QUAY_IMG_REPO: model-registry
-  QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-  QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+  IMG_ORG: kubeflow
+  IMG_REPO: model-registry
+  IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
+  DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
   PUSH_IMAGE: true
 jobs:
   build-image:
@@ -50,8 +51,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
         env:
-          IMG: quay.io/${{ env.QUAY_ORG }}/${{ env.QUAY_IMG_REPO }}
-          BUILD_IMAGE: false
+          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
           # BUILD_IMAGE=false skip the build, just push the tag made above
@@ -60,8 +60,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
         env:
-          IMG: quay.io/${{ env.QUAY_ORG }}/${{ env.QUAY_IMG_REPO }}
-          BUILD_IMAGE: false
+          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
           # BUILD_IMAGE=false skip the build, just push the tag made above

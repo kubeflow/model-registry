@@ -11,7 +11,9 @@ on:
       - 'docs/**'
       - 'clients/python/**'
 env:
-  QUAY_IMG_REPO: model-registry
+  IMG_ORG: kubeflow
+  IMG_REPO: model-registry
+  IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -35,17 +37,17 @@ jobs:
         uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
         env:
-          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing ${IMG}
       - name: Create Test Registry
         env:
-          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
         run: |
           echo "Deploying Model Registry using Manifests; branch ${BRANCH}"
           kubectl create namespace kubeflow
           cd manifests/kustomize/overlays/db
-          kustomize edit set image quay.io/opendatahub/model-registry:latest $IMG
+          kustomize edit set image kubeflow/model-registry:latest $IMG
           kubectl apply -k .
       - name: Wait for Test Registry Deployment
         run: |
