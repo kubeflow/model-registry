@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: model-registry-test-source
+  namespace: openshift-marketplace
+spec:
+  displayName: ''
+  image: 'registry-proxy.engineering.redhat.com/rh-osbs/iib:688477'
+  publisher: ''
+  sourceType: grpc
