@@ -24,7 +24,7 @@ spec:
           command:
             - /model-registry
             - proxy
-          image: quay.io/opendatahub/model-registry:latest
+          image: kubeflow/model-registry:latest
           # empty placeholder environment for patching
           env: []
           ports:
