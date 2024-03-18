@@ -32,11 +32,6 @@ jobs:
         env:
           VERSION: ${{ steps.tags.outputs.tag }}
         run: ./scripts/build_deploy.sh
-      - name: Install Kustomize
-        uses: karancode/kustomize-github-action@v1.3.2
-        with:
-          kustomize_version: '5.2.1'
-          kustomize_build_dir: 'manifests/kustomize/overlays/db'
       - name: Start Kind Cluster
         uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
@@ -48,6 +43,8 @@ jobs:
         env:
           IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
+          echo "Download kustomize 5.2.1:"
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s "5.2.1"
           echo "Display Kustomize version"
           kustomize version 
           echo "Deploying Model Registry using Manifests; branch ${BRANCH}"
