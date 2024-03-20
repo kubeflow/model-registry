@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ''
-  image: 'registry-proxy.engineering.redhat.com/rh-osbs/iib:688477'
+  image: 'registry-proxy.engineering.redhat.com/rh-osbs/iib:692156'
   publisher: ''
   sourceType: grpc

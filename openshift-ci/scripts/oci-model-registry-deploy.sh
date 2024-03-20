@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Define variables for ODH nightly deployment
-OPENDATAHUB_CATALOGUE_SOURCE_CREATE="../resources/opendatahub-catalogue-source.yaml"
-OPENDATAHUB_DEPLOY_MANIFEST="../resources/opendatahub-operator-deploy.yaml"
-DATA_SCIENCE_CLUSTER_MANIFEST="../resources/opendatahub-data-science-cluster.yaml"
+OPENDATAHUB_CATALOGUE_SOURCE_CREATE="openshift-ci/resources/opendatahub-catalogue-source.yaml"
+OPENDATAHUB_DEPLOY_MANIFEST="openshift-ci/resources/opendatahub-operator-deploy.yaml"
+DATA_SCIENCE_CLUSTER_MANIFEST="openshift-ci/resources/opendatahub-data-science-cluster.yaml"
 MODEL_REGISTRY_OPERATOR_GIT_URL="https://github.com/opendatahub-io/model-registry-operator.git"
-source colour_text_variables.sh
+source 
 
 # Function to deploy and wait for deployment
 deploy_and_wait() {
@@ -62,14 +62,14 @@ check_deployment_availability() {
 
         # Check if the deployment is available
         if [[ $deployment_status != "" ]]; then
-            echo -e "${GREEN}✔ Success:${NC} Deployment $deployment is available"
+            echo "✔ Success: Deployment $deployment is available"
             return 0  # Success
         fi
 
         sleep 5  # Wait for 5 seconds before checking again
     done
 
-    echo -e "${RED}X Fail:${NC} Timeout reached. Deployment $deployment did not become available within $timeout seconds"
+    echo "X Fail: Timeout reached. Deployment $deployment did not become available within $timeout seconds"
     return 1  # Failure
 }
 
@@ -98,10 +98,10 @@ check_pod_status() {
 
             # Check if the pod is Running and all containers are ready
             if [[ $pod_status == "Running" ]] && [[ $ready_containers -eq $expected_ready_containers ]]; then
-                echo -e "${GREEN}✔ Success:${NC} Pod $pod_name is running and $ready_containers out of $expected_ready_containers containers are ready"
+                echo "✔ Success: Pod $pod_name is running and $ready_containers out of $expected_ready_containers containers are ready"
                 return 0  # Success
             else
-                echo -e "${YELLOW}! Info:${NC} Pod $pod_name is not running or does not have $expected_ready_containers containers ready"
+                echo "! Info: Pod $pod_name is not running or does not have $expected_ready_containers containers ready"
             fi
         done <<< "$pod_list"
 
@@ -126,10 +126,10 @@ check_route_status() {
         local route_url="http://$route"
 
         if [[ -z "$route_url" ]]; then
-             echo -e "${RED}X Fail:${NC} Route '$route_name' does not exist in namespace '$namespace'"
+             echo "X Fail: Route '$route_name' does not exist in namespace '$namespace'"
             return 1
         else 
-            echo -e "${GREEN}✔ Success:${NC} Route '$route_name' exists in namespace '$namespace'"
+            echo "✔ Success: Route '$route_name' exists in namespace '$namespace'"
         fi
 
         # Test if the route is live
@@ -137,19 +137,19 @@ check_route_status() {
 
         # Check if the response status code is 200 OK or 404 Not Found
         if [[ "$response" == "200" ]]; then
-            echo -e "${GREEN}✔ Success:${NC} Route server is reachable. Status code: 200 OK"
+            echo "✔ Success: Route server is reachable. Status code: 200 OK"
             return 0
         elif [[ "$response" == "404" ]]; then
-            echo -e "${GREEN}✔ Success:${NC} Route server is reachable. Status code: 404 Not Found"
+            echo "✔ Success: Route server is reachable. Status code: 404 Not Found"
             return 0
         else
-            echo -e "${RED}X Fail:${NC} Route server is unreachable. Status code: $response"
+            echo "X Fail: Route server is unreachable. Status code: $response"
         fi
 
         sleep "$interval"
     done
 
-    echo -e "${RED}X Fail:${NC} Timeout reached. Route '$route_name' did not become live within $timeout seconds."
+    echo "X Fail: Timeout reached. Route '$route_name' did not become live within $timeout seconds."
     return 1
 }
 
