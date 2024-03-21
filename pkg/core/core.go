@@ -245,6 +245,7 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId")
 	}
+	glog.Info("filterQuery ", filterQuery)
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: &serv.nameConfig.RegisteredModelTypeName,
@@ -779,6 +780,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId")
 	}
+	glog.Info("filterQuery ", filterQuery)
 
 	artifactsResponse, err := serv.mlmdClient.GetArtifactsByType(context.Background(), &proto.GetArtifactsByTypeRequest{
 		TypeName: &serv.nameConfig.ModelArtifactTypeName,

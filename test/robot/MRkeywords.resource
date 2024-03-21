@@ -121,6 +121,18 @@ I get RegisteredModelByID
     END
     RETURN    ${result}
 
+I findRegisteredModel by name
+    [Arguments]    ${name}
+    IF  $MODE == "REST"
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_model?name=${name}    expected_status=200
+        ${result}    Set Variable    ${resp.json()}
+        Log to console    ${resp.json()}
+    ELSE
+        Log to console    ${MODE}
+        Fail    Not Implemented
+    END
+    RETURN    ${result}
+
 
 I get ModelVersionByID
     [Arguments]    ${id}
@@ -135,10 +147,36 @@ I get ModelVersionByID
     RETURN    ${result}
 
 
+I findModelVersion by name and parentResourceId
+    [Arguments]    ${name}  ${parentResourceId}
+    IF  $MODE == "REST"
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_version?name=${name}&parentResourceId=${parentResourceId}    expected_status=200
+        ${result}    Set Variable    ${resp.json()}
+        Log to console    ${resp.json()}
+    ELSE
+        Log to console    ${MODE}
+        Fail    Not Implemented
+    END
+    RETURN    ${result}
+
+
 I get ModelArtifactByID
     [Arguments]    ${id}
     IF  $MODE == "REST"
         ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_artifacts/${id}    expected_status=200
+        ${result}    Set Variable    ${resp.json()}
+        Log to console    ${resp.json()}
+    ELSE
+        Log to console    ${MODE}
+        Fail    Not Implemented
+    END
+    RETURN    ${result}
+
+
+I findModelArtifact by name and parentResourceId
+    [Arguments]    ${name}  ${parentResourceId}
+    IF  $MODE == "REST"
+        ${resp}=    GET    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_artifact?name=${name}&parentResourceId=${parentResourceId}    expected_status=200
         ${result}    Set Variable    ${resp.json()}
         Log to console    ${resp.json()}
     ELSE
