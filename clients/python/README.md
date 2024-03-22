@@ -14,12 +14,12 @@ registry = ModelRegistry(server_address="server-address", port=9090, author="aut
 
 model = registry.register_model(
     "my-model",  # model name
-    "s3://path/to/model",  # model URI
+    "https://storage-place.my-company.com",  # model URI
     version="2.0.0",
     description="lorem ipsum",
     model_format_name="onnx",
     model_format_version="1",
-    storage_key="aws-connection-path",
+    storage_key="my-data-connection",
     storage_path="path/to/model",
     metadata={
         # can be one of the following types
@@ -37,10 +37,33 @@ version = registry.get_model_version("my-model", "v2.0")
 experiment = registry.get_model_artifact("my-model", "v2.0")
 ```
 
-### Default values for metadata
+### Importing from S3
 
-If not supplied, `metadata` values defaults to a predefined set of conventional values.
-Reference the technical documentation in the pydoc of the client.
+When registering models stored on S3-compatible object storage, you should use `utils.s3_uri_from` to build an
+unambiguous URI for your artifact.
+
+```py
+from model_registry import ModelRegistry, utils
+
+registry = ModelRegistry(server_address="server-address", port=9090, author="author")
+
+model = registry.register_model(
+    "my-model",  # model name
+    uri=utils.s3_uri_from("path/to/model", "my-bucket"),
+    version="2.0.0",
+    description="lorem ipsum",
+    model_format_name="onnx",
+    model_format_version="1",
+    storage_key="my-data-connection",
+    metadata={
+        # can be one of the following types
+        "int_key": 1,
+        "bool_key": False,
+        "float_key": 3.14,
+        "str_key": "str_value",
+    }
+)
+```
 
 ### Importing from Hugging Face Hub
 

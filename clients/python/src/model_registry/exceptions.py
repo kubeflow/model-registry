@@ -5,6 +5,10 @@ class StoreException(Exception):
     """Storage related error."""
 
 
+class MissingMetadata(Exception):
+    """Not enough metadata to complete operation."""
+
+
 class UnsupportedTypeException(StoreException):
     """Raised when an unsupported type is encountered."""
 
