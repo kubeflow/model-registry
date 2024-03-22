@@ -5,7 +5,6 @@ OPENDATAHUB_CATALOGUE_SOURCE_CREATE="openshift-ci/resources/opendatahub-catalogu
 OPENDATAHUB_DEPLOY_MANIFEST="openshift-ci/resources/opendatahub-operator-deploy.yaml"
 DATA_SCIENCE_CLUSTER_MANIFEST="openshift-ci/resources/opendatahub-data-science-cluster.yaml"
 MODEL_REGISTRY_OPERATOR_GIT_URL="https://github.com/opendatahub-io/model-registry-operator.git"
-source 
 
 # Function to deploy and wait for deployment
 deploy_and_wait() {
