@@ -19,14 +19,14 @@ var _ MappedNullable = &ServingEnvironmentList{}
 
 // ServingEnvironmentList List of ServingEnvironments.
 type ServingEnvironmentList struct {
+	//
+	Items []ServingEnvironment `json:"items,omitempty"`
 	// Token to use to retrieve next page of results.
 	NextPageToken string `json:"nextPageToken"`
 	// Maximum number of resources to return in the result.
 	PageSize int32 `json:"pageSize"`
 	// Number of items in result list.
 	Size int32 `json:"size"`
-	//
-	Items []ServingEnvironment `json:"items,omitempty"`
 }
 
 // NewServingEnvironmentList instantiates a new ServingEnvironmentList object
@@ -47,6 +47,38 @@ func NewServingEnvironmentList(nextPageToken string, pageSize int32, size int32)
 func NewServingEnvironmentListWithDefaults() *ServingEnvironmentList {
 	this := ServingEnvironmentList{}
 	return &this
+}
+
+// GetItems returns the Items field value if set, zero value otherwise.
+func (o *ServingEnvironmentList) GetItems() []ServingEnvironment {
+	if o == nil || IsNil(o.Items) {
+		var ret []ServingEnvironment
+		return ret
+	}
+	return o.Items
+}
+
+// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ServingEnvironmentList) GetItemsOk() ([]ServingEnvironment, bool) {
+	if o == nil || IsNil(o.Items) {
+		return nil, false
+	}
+	return o.Items, true
+}
+
+// HasItems returns a boolean if a field has been set.
+func (o *ServingEnvironmentList) HasItems() bool {
+	if o != nil && !IsNil(o.Items) {
+		return true
+	}
+
+	return false
+}
+
+// SetItems gets a reference to the given []ServingEnvironment and assigns it to the Items field.
+func (o *ServingEnvironmentList) SetItems(v []ServingEnvironment) {
+	o.Items = v
 }
 
 // GetNextPageToken returns the NextPageToken field value
@@ -121,38 +153,6 @@ func (o *ServingEnvironmentList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
-func (o *ServingEnvironmentList) GetItems() []ServingEnvironment {
-	if o == nil || IsNil(o.Items) {
-		var ret []ServingEnvironment
-		return ret
-	}
-	return o.Items
-}
-
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ServingEnvironmentList) GetItemsOk() ([]ServingEnvironment, bool) {
-	if o == nil || IsNil(o.Items) {
-		return nil, false
-	}
-	return o.Items, true
-}
-
-// HasItems returns a boolean if a field has been set.
-func (o *ServingEnvironmentList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []ServingEnvironment and assigns it to the Items field.
-func (o *ServingEnvironmentList) SetItems(v []ServingEnvironment) {
-	o.Items = v
-}
-
 func (o ServingEnvironmentList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -163,12 +163,12 @@ func (o ServingEnvironmentList) MarshalJSON() ([]byte, error) {
 
 func (o ServingEnvironmentList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["nextPageToken"] = o.NextPageToken
-	toSerialize["pageSize"] = o.PageSize
-	toSerialize["size"] = o.Size
 	if !IsNil(o.Items) {
 		toSerialize["items"] = o.Items
 	}
+	toSerialize["nextPageToken"] = o.NextPageToken
+	toSerialize["pageSize"] = o.PageSize
+	toSerialize["size"] = o.Size
 	return toSerialize, nil
 }
 
