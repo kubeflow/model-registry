@@ -13,7 +13,6 @@ on:
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
-  IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -37,18 +36,24 @@ jobs:
         uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
         env:
-          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing ${IMG}
       - name: Create Test Registry
         env:
-          IMG: "${{ env.IMG }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
+          echo "Download kustomize 5.2.1"
+          mkdir $GITHUB_WORKSPACE/kustomize
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s "5.2.1" "$GITHUB_WORKSPACE/kustomize"
+          PATH=$GITHUB_WORKSPACE/kustomize:$PATH
+          echo "Display Kustomize version"
+          kustomize version 
           echo "Deploying Model Registry using Manifests; branch ${BRANCH}"
           kubectl create namespace kubeflow
           cd manifests/kustomize/overlays/db
           kustomize edit set image kubeflow/model-registry:latest $IMG
-          kubectl apply -k .
+          kustomize build | kubectl apply -f -
       - name: Wait for Test Registry Deployment
         run: |
           kubectl wait --for=condition=available -n kubeflow deployment/model-registry-db --timeout=5m
