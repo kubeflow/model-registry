@@ -524,7 +524,7 @@ func AssertModelArtifactUpdateConstraints(obj model.ModelArtifactUpdate) error {
 // AssertModelVersionCreateRequired checks if the required fields are not zero-ed
 func AssertModelVersionCreateRequired(obj model.ModelVersionCreate) error {
 	elements := map[string]interface{}{
-		"registeredModelID": obj.RegisteredModelID,
+		"registeredModelId": obj.RegisteredModelId,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

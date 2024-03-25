@@ -40,7 +40,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertDocArtifact(source *converter.OpenAP
 		protoArtifact.Uri = pString3
 		var pString4 *string
 		if (*source).Model != nil {
-			pString4 = (*source).Model.ExternalID
+			pString4 = (*source).Model.ExternalId
 		}
 		var pString5 *string
 		if pString4 != nil {
@@ -94,7 +94,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertInferenceService(source *converter.O
 		protoContext.Type = converter.MapInferenceServiceType((*source).Model)
 		var pString2 *string
 		if (*source).Model != nil {
-			pString2 = (*source).Model.ExternalID
+			pString2 = (*source).Model.ExternalId
 		}
 		var pString3 *string
 		if pString2 != nil {
@@ -149,7 +149,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertModelArtifact(source *converter.Open
 		protoArtifact.Uri = pString3
 		var pString4 *string
 		if (*source).Model != nil {
-			pString4 = (*source).Model.ExternalID
+			pString4 = (*source).Model.ExternalId
 		}
 		var pString5 *string
 		if pString4 != nil {
@@ -203,7 +203,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertModelVersion(source *converter.OpenA
 		protoContext.Type = converter.MapModelVersionType((*source).Model)
 		var pString2 *string
 		if (*source).Model != nil {
-			pString2 = (*source).Model.ExternalID
+			pString2 = (*source).Model.ExternalId
 		}
 		var pString3 *string
 		if pString2 != nil {
@@ -257,7 +257,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertRegisteredModel(source *converter.Op
 		protoContext.Type = converter.MapRegisteredModelType((*source).Model)
 		var pString4 *string
 		if (*source).Model != nil {
-			pString4 = (*source).Model.ExternalID
+			pString4 = (*source).Model.ExternalId
 		}
 		var pString5 *string
 		if pString4 != nil {
@@ -302,7 +302,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertServeModel(source *converter.OpenAPI
 		protoExecution.Type = converter.MapServeModelType((*source).Model)
 		var pString2 *string
 		if (*source).Model != nil {
-			pString2 = (*source).Model.ExternalID
+			pString2 = (*source).Model.ExternalId
 		}
 		var pString3 *string
 		if pString2 != nil {
@@ -365,7 +365,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertServingEnvironment(source *converter
 		protoContext.Type = converter.MapServingEnvironmentType((*source).Model)
 		var pString4 *string
 		if (*source).Model != nil {
-			pString4 = (*source).Model.ExternalID
+			pString4 = (*source).Model.ExternalId
 		}
 		var pString5 *string
 		if pString4 != nil {

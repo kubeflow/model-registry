@@ -1,19 +1,19 @@
 #!/bin/bash
 
 make_post_extract_id() {
-    local url="$1"
-    local data="$2"
-    local id=$(curl -s -X POST "$url" \
-        -H 'accept: application/json' \
-        -H 'Content-Type: application/json' \
-        -d "$data" | jq -r '.id')
+	local url="$1"
+	local data="$2"
+	local id=$(curl -s -X POST "$url" \
+		-H 'accept: application/json' \
+		-H 'Content-Type: application/json' \
+		-d "$data" | jq -r '.id')
 
-    if [ -z "$id" ]; then
-        echo "Error: Failed to extract ID from response"
-        exit 1
-    fi
+	if [ -z "$id" ]; then
+		echo "Error: Failed to extract ID from response"
+		exit 1
+	fi
 
-    echo "$id"
+	echo "$id"
 }
 
 # TODO: finalize using openshift-ci values.
@@ -24,30 +24,30 @@ MR_HOSTNAME="http://modelregistry-sample-http-$MR_NAMESPACE.apps.$OCP_CLUSTER_NA
 timestamp=$(date +"%Y%m%d%H%M%S")
 rm_name="demo-$timestamp"
 
-rm_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models" '{
+rm_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models" '{
   "description": "lorem ipsum registered model",
   "name": "'"$rm_name"'"
 }')
 
 if [ $? -ne 0 ]; then
-    exit 1
+	exit 1
 fi
 echo "Registered Model ID: $rm_id"
 
-mv_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions" '{
+mv_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" '{
   "description": "lorem ipsum model version",
   "name": "v1",
   "author": "John Doe",
-  "registeredModelID": "'"$rm_id"'"
+  "registeredModelId": "'"$rm_id"'"
 }')
 
 if [ $? -ne 0 ]; then
-    exit 1
+	exit 1
 fi
 echo "Model Version ID: $mv_id"
 
 RAW_ML_MODEL_URI='https://huggingface.co/tarilabs/mnist/resolve/v1.nb20231206162408/mnist.onnx'
-ma_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/$mv_id/artifacts" '{
+ma_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" '{
   "description": "lorem ipsum model artifact",
   "uri": "'"$RAW_ML_MODEL_URI"'",
   "name": "mnist",
@@ -59,7 +59,7 @@ ma_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/model_ver
 }')
 
 if [ $? -ne 0 ]; then
-    exit 1
+	exit 1
 fi
 echo "Model Artifact ID: $ma_id"
 
@@ -90,8 +90,8 @@ spec:
 EOF
 
 # TODO this will continue once we have MC PR merged from: https://github.com/opendatahub-io/odh-model-controller/pull/135
-iss_mr=$(curl -s -X 'GET' "$MR_HOSTNAME/api/model_registry/v1alpha2/inference_services" \
-        -H 'accept: application/json')
+iss_mr=$(curl -s -X 'GET' "$MR_HOSTNAME/api/model_registry/v1alpha3/inference_services" \
+	-H 'accept: application/json')
 
 echo "InferenceService entities on MR:"
 echo "$iss_mr"
