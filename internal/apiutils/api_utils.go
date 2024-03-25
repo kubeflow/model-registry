@@ -51,6 +51,13 @@ func Of[E any](e E) *E {
 	return &e
 }
 
+func StrPtr(notEmpty string) *string {
+	if notEmpty == "" {
+		return nil
+	}
+	return &notEmpty
+}
+
 func BuildListOption(pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (api.ListOptions, error) {
 	var pageSizeInt32 *int32
 	if pageSize != "" {
