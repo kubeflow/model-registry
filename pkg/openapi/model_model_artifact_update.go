@@ -19,9 +19,6 @@ var _ MappedNullable = &ModelArtifactUpdate{}
 
 // ModelArtifactUpdate An ML model artifact.
 type ModelArtifactUpdate struct {
-	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -38,6 +35,9 @@ type ModelArtifactUpdate struct {
 	ModelFormatVersion *string `json:"modelFormatVersion,omitempty"`
 	// Name of the service account with storage secret.
 	ServiceAccountName *string `json:"serviceAccountName,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
 }
 
 // NewModelArtifactUpdate instantiates a new ModelArtifactUpdate object
@@ -59,70 +59,6 @@ func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
-}
-
-// GetUri returns the Uri field value if set, zero value otherwise.
-func (o *ModelArtifactUpdate) GetUri() string {
-	if o == nil || IsNil(o.Uri) {
-		var ret string
-		return ret
-	}
-	return *o.Uri
-}
-
-// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactUpdate) GetUriOk() (*string, bool) {
-	if o == nil || IsNil(o.Uri) {
-		return nil, false
-	}
-	return o.Uri, true
-}
-
-// HasUri returns a boolean if a field has been set.
-func (o *ModelArtifactUpdate) HasUri() bool {
-	if o != nil && !IsNil(o.Uri) {
-		return true
-	}
-
-	return false
-}
-
-// SetUri gets a reference to the given string and assigns it to the Uri field.
-func (o *ModelArtifactUpdate) SetUri(v string) {
-	o.Uri = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *ModelArtifactUpdate) GetState() ArtifactState {
-	if o == nil || IsNil(o.State) {
-		var ret ArtifactState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactUpdate) GetStateOk() (*ArtifactState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *ModelArtifactUpdate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
-	o.State = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -381,6 +317,70 @@ func (o *ModelArtifactUpdate) SetServiceAccountName(v string) {
 	o.ServiceAccountName = &v
 }
 
+// GetUri returns the Uri field value if set, zero value otherwise.
+func (o *ModelArtifactUpdate) GetUri() string {
+	if o == nil || IsNil(o.Uri) {
+		var ret string
+		return ret
+	}
+	return *o.Uri
+}
+
+// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetUriOk() (*string, bool) {
+	if o == nil || IsNil(o.Uri) {
+		return nil, false
+	}
+	return o.Uri, true
+}
+
+// HasUri returns a boolean if a field has been set.
+func (o *ModelArtifactUpdate) HasUri() bool {
+	if o != nil && !IsNil(o.Uri) {
+		return true
+	}
+
+	return false
+}
+
+// SetUri gets a reference to the given string and assigns it to the Uri field.
+func (o *ModelArtifactUpdate) SetUri(v string) {
+	o.Uri = &v
+}
+
+// GetState returns the State field value if set, zero value otherwise.
+func (o *ModelArtifactUpdate) GetState() ArtifactState {
+	if o == nil || IsNil(o.State) {
+		var ret ArtifactState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetStateOk() (*ArtifactState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *ModelArtifactUpdate) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given ArtifactState and assigns it to the State field.
+func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
+	o.State = &v
+}
+
 func (o ModelArtifactUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -391,12 +391,6 @@ func (o ModelArtifactUpdate) MarshalJSON() ([]byte, error) {
 
 func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Uri) {
-		toSerialize["uri"] = o.Uri
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
-	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -420,6 +414,12 @@ func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ServiceAccountName) {
 		toSerialize["serviceAccountName"] = o.ServiceAccountName
+	}
+	if !IsNil(o.Uri) {
+		toSerialize["uri"] = o.Uri
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

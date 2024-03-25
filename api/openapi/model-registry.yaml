@@ -1078,7 +1078,7 @@ components:
         author:
           description: Name of the author.
           type: string
-    WithBaseArtifactUpdate:  
+    WithBaseArtifactUpdate:
       type: object
       properties:
         uri:
@@ -1293,18 +1293,39 @@ components:
           type: string
     ModelArtifactUpdate:
       description: An ML model artifact.
+      type: object
       allOf:
-        - $ref: "#/components/schemas/WithBaseArtifactUpdate"
         - $ref: "#/components/schemas/WithBaseResourceUpdate"
         - $ref: "#/components/schemas/WithModelArtifactUpdate"
+        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now
+        # - $ref: "#/components/schemas/WithBaseArtifactUpdate"
+        - type: object
+          properties:
+            uri:
+              description: |-
+                The uniform resource identifier of the physical artifact.
+                May be empty if there is no physical artifact.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
     ModelArtifactCreate:
       description: An ML model artifact.
       type: object
       allOf:
-        - $ref: "#/components/schemas/WithBaseArtifactUpdate"
+        - $ref: "#/components/schemas/WithModelArtifactUpdate"
         - $ref: "#/components/schemas/WithBaseResourceCreate"
         - $ref: "#/components/schemas/WithBaseResourceUpdate"
-        - $ref: "#/components/schemas/WithModelArtifactUpdate"
+        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now
+        # - $ref: "#/components/schemas/WithBaseArtifactUpdate"
+        - type: object
+          properties:
+            uri:
+              description: |-
+                The uniform resource identifier of the physical artifact.
+                May be empty if there is no physical artifact.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
     Error:
       description: Error code and message.
       required:
