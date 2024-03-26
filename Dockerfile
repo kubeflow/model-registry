@@ -19,24 +19,18 @@ RUN yum install -y nodejs npm java-11
 # Copy the go source
 COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 
-# Download protoc compiler v24.3
-RUN wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip -O protoc.zip && \
-    unzip -q protoc.zip && \
-    bin/protoc --version && \
-    rm protoc.zip
-
-# Download tools
-RUN make deps
-
 # Copy rest of the source
-COPY bin/ bin/
+COPY .git/ .git/
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
-COPY pkg/ pkg/
 COPY scripts/ scripts/
+COPY pkg/ pkg/
 COPY patches/ patches/
 COPY templates/ templates/
+
+# Download tools
+RUN make deps
 
 # Build
 USER root

@@ -2,6 +2,7 @@
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
+GO := $(PROJECT_BIN)/go1.19
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
@@ -56,7 +57,7 @@ api/grpc/ml_metadata/proto/metadata_store_service.proto:
 		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
 
 internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
-	protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
+	bin/protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
 		--go-grpc_out=./internal --go-grpc_opt=paths=source_relative $<
 
 .PHONY: gen/grpc
@@ -76,8 +77,8 @@ openapi/validate: bin/openapi-generator-cli
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
 gen/openapi-server: bin/openapi-generator-cli openapi/validate
-	@if git diff --cached --name-only | grep -q "api/openapi/model-registry.yaml" || \
-		git diff --name-only | grep -q "api/openapi/model-registry.yaml" || \
+	@if git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
+		git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
 		[ -n "${FORCE_SERVER_GENERATION}" ]; then \
 		ROOT_FOLDER="." ./scripts/gen_openapi_server.sh; \
 	else \
@@ -97,7 +98,7 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 
 .PHONY: vet
 vet:
-	go vet ./...
+	${GO} vet ./...
 
 .PHONY: clean
 clean:
@@ -107,14 +108,21 @@ clean:
 clean/odh:
 	rm -Rf ./model-registry
 
+bin/go:
+	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.19@latest
+	$(PROJECT_BIN)/go1.19 download
+
+bin/protoc:
+	./scripts/install_protoc.sh
+
 bin/go-enum:
-	GOBIN=$(PROJECT_BIN) go install github.com/searKing/golang/tools/go-enum@v1.2.97
+	GOBIN=$(PROJECT_BIN) ${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
 
 bin/protoc-gen-go:
-	GOBIN=$(PROJECT_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
 
 bin/protoc-gen-go-grpc:
-	GOBIN=$(PROJECT_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
@@ -122,7 +130,7 @@ bin/golangci-lint:
 
 GOVERTER ?= ${PROJECT_BIN}/goverter
 bin/goverter:
-	GOBIN=$(PROJECT_PATH)/bin go install github.com/jmattheis/goverter/cmd/goverter@v1.1.1
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/jmattheis/goverter/cmd/goverter@v1.1.1
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
@@ -147,23 +155,23 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli
+deps: bin/go bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli
 
 .PHONY: vendor
 vendor:
-	go mod vendor
+	${GO} mod vendor
 
 .PHONY: build
 build: gen vet lint
-	go build
+	${GO} build -buildvcs=false
 
 .PHONY: build/odh
 build/odh: vet
-	go build
+	${GO} build -buildvcs=false
 
 .PHONY: gen
 gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
-	go generate ./...
+	${GO} generate ./...
 
 .PHONY: lint
 lint:
@@ -172,20 +180,20 @@ lint:
 
 .PHONY: test
 test: gen
-	go test ./internal/... ./pkg/...
+	${GO} test ./internal/... ./pkg/...
 
 .PHONY: test-nocache
 test-nocache: gen
-	go test ./internal/... ./pkg/... -count=1
+	${GO} test ./internal/... ./pkg/... -count=1
 
 .PHONY: test-cover
 test-cover: gen
-	go test ./internal/... ./pkg/... -coverprofile=coverage.txt
-	go tool cover -html=coverage.txt -o coverage.html
+	${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
+	${GO} tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: run/proxy
 run/proxy: gen
-	go run main.go proxy --logtostderr=true
+	${GO} run main.go proxy --logtostderr=true
 
 .PHONY: proxy
 proxy: build
@@ -204,7 +212,7 @@ endif
 # build docker image
 .PHONY: image/build
 image/build:
-	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
+	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) --network host
 
 # push docker image
 .PHONY: image/push
