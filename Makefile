@@ -194,11 +194,11 @@ proxy: build
 # login to docker
 .PHONY: docker/login
 docker/login:
-	ifdef IMG_REGISTRY
-		$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}" "${IMG_REGISTRY}"
-	else
-		$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}"
-	endif
+ifdef IMG_REGISTRY
+	$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}" "${IMG_REGISTRY}"
+else
+	$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}"
+endif
 
 
 # build docker image
