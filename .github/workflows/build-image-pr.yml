@@ -11,7 +11,8 @@ on:
       - 'docs/**'
       - 'clients/python/**'
 env:
-  QUAY_IMG_REPO: model-registry
+  IMG_ORG: opendatahub
+  IMG_REPO: model-registry
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -35,12 +36,12 @@ jobs:
         uses: helm/kind-action@v1.9.0
       - name: Load Local Registry Test Image
         env:
-          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing ${IMG}
       - name: Deploy Operator With Test Image
         env:
-          IMG: "quay.io/opendatahub/model-registry:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           echo "Deploying operator from model-registry-operator branch ${BRANCH}"
           kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/default?ref=${BRANCH}"

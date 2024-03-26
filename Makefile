@@ -12,7 +12,7 @@ MLMD_VERSION ?= 1.14.0
 DOCKER ?= docker
 # default Dockerfile
 DOCKERFILE ?= Dockerfile
-# container registry
+# container registry, default to empty (dockerhub) if not explicitly set
 IMG_REGISTRY ?= quay.io
 # container image organization
 IMG_ORG ?= opendatahub
@@ -21,7 +21,11 @@ IMG_VERSION ?= main
 # container image repository
 IMG_REPO ?= model-registry
 # container image
-IMG ?= ${IMG_REGISTRY}/$(IMG_ORG)/$(IMG_REPO)
+ifdef IMG_REGISTRY
+    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
+else
+    IMG := ${IMG_ORG}/${IMG_REPO}
+endif
 
 model-registry: build
 
@@ -190,7 +194,12 @@ proxy: build
 # login to docker
 .PHONY: docker/login
 docker/login:
-	$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}" "${IMG_REGISTRY}"
+	ifdef IMG_REGISTRY
+		$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}" "${IMG_REGISTRY}"
+	else
+		$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}"
+	endif
+
 
 # build docker image
 .PHONY: image/build
