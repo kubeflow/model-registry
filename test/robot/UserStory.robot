@@ -29,9 +29,15 @@ As a MLOps engineer I would like to store a description of the model
     ${aId}  And I create a child ModelArtifact    modelversionId=${vId}  payload=&{model_artifact}
     ${r}  Then I get RegisteredModelByID    id=${rId}
           And Should be equal    ${r["description"]}    Lorem ipsum dolor sit amet
+    ${r}  Then I findRegisteredModel by name    name=${name}
+          And Should be equal    ${r["description"]}    Lorem ipsum dolor sit amet
     ${r}  Then I get ModelVersionByID    id=${vId}
           And Should be equal    ${r["description"]}    consectetur adipiscing elit
+    ${r}  Then I findModelVersion by name and parentResourceId    name=v1.2.3  parentResourceId=${rId}
+          And Should be equal    ${r["description"]}    consectetur adipiscing elit
     ${r}  Then I get ModelArtifactByID    id=${aId}
+          And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
+    ${r}  Then I findModelArtifact by name and parentResourceId    name=ModelArtifactName  parentResourceId=${vId}
           And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
 
 As a MLOps engineer I would like to store a longer documentation for the model

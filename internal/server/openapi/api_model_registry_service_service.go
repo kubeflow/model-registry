@@ -138,7 +138,7 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Conte
 
 // CreateRegisteredModelVersion - Create a ModelVersion in RegisteredModel
 func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx context.Context, registeredmodelId string, modelVersion model.ModelVersion) (ImplResponse, error) {
-	result, err := s.coreApi.UpsertModelVersion(&modelVersion, &registeredmodelId)
+	result, err := s.coreApi.UpsertModelVersion(&modelVersion, apiutils.StrPtr(registeredmodelId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -166,7 +166,7 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 
 // FindInferenceService - Get an InferenceServices that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
-	result, err := s.coreApi.GetInferenceServiceByParams(&name, &parentResourceId, &externalId)
+	result, err := s.coreApi.GetInferenceServiceByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -178,7 +178,7 @@ func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Contex
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelArtifactByParams(&name, &parentResourceId, &externalId)
+	result, err := s.coreApi.GetModelArtifactByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -190,7 +190,7 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 
 // FindModelVersion - Get a ModelVersion that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalId string, registeredModelId string) (ImplResponse, error) {
-	result, err := s.coreApi.GetModelVersionByParams(&name, &registeredModelId, &externalId)
+	result, err := s.coreApi.GetModelVersionByParams(apiutils.StrPtr(name), apiutils.StrPtr(registeredModelId), apiutils.StrPtr(externalId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -202,7 +202,7 @@ func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, n
 
 // FindRegisteredModel - Get a RegisteredModel that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context, name string, externalID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetRegisteredModelByParams(&name, &externalID)
+	result, err := s.coreApi.GetRegisteredModelByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalID))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -214,7 +214,7 @@ func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context
 
 // FindServingEnvironment - Find ServingEnvironment
 func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Context, name string, externalID string) (ImplResponse, error) {
-	result, err := s.coreApi.GetServingEnvironmentByParams(&name, &externalID)
+	result, err := s.coreApi.GetServingEnvironmentByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalID))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -229,7 +229,7 @@ func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx con
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetInferenceServices(listOpts, &servingenvironmentId, nil)
+	result, err := s.coreApi.GetInferenceServices(listOpts, apiutils.StrPtr(servingenvironmentId), nil)
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -266,7 +266,7 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.C
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetServeModels(listOpts, &inferenceserviceId)
+	result, err := s.coreApi.GetServeModels(listOpts, apiutils.StrPtr(inferenceserviceId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -347,7 +347,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetArtifacts(listOpts, &modelversionId)
+	result, err := s.coreApi.GetArtifacts(listOpts, apiutils.StrPtr(modelversionId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
@@ -391,7 +391,7 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
-	result, err := s.coreApi.GetModelVersions(listOpts, &registeredmodelId)
+	result, err := s.coreApi.GetModelVersions(listOpts, apiutils.StrPtr(registeredmodelId))
 	if err != nil {
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
