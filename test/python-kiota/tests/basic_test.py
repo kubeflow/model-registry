@@ -1,15 +1,10 @@
 import asyncio
-from dataclasses import dataclass
-from typing import Optional
-from httpx import QueryParams
 import pytest
 import subprocess
 import time
 import os
 import sys
 import requests
-import json
-from kiota_abstractions.headers_collection import HeadersCollection
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from kiota_abstractions.authentication.anonymous_authentication_provider import (
     AnonymousAuthenticationProvider,
@@ -17,8 +12,9 @@ from kiota_abstractions.authentication.anonymous_authentication_provider import 
 from kiota_http.httpx_request_adapter import HttpxRequestAdapter
 from apisdk.client.registry_client import RegistryClient
 from apisdk.client.models.registered_model_create import RegisteredModelCreate
-from apisdk.client.models.registered_model_state import RegisteredModelState
+from apisdk.client.models.model_version_create import ModelVersionCreate
 from apisdk.client.api.model_registry.v1alpha3.registered_model.registered_model_request_builder import Registered_modelRequestBuilder
+from apisdk.client.api.model_registry.v1alpha3.model_versions.model_versions_request_builder import Model_versionsRequestBuilder
 # from apisdk.client.models.model_artifact_create import ModelArtifactCreate
 # from apisdk.client.api.model_registry.v1alpha3.model_artifact.model_artifact_request_builder import Model_artifactRequestBuilder
 
@@ -77,10 +73,6 @@ def event_loop():
     yield loop
     loop.close()
 
-# registered Model
-# registered version
-# model artifact
-
 @pytest.mark.asyncio
 async def test_registered_model_create_and_retrieve():
     auth_provider = AnonymousAuthenticationProvider()
@@ -101,3 +93,26 @@ async def test_registered_model_create_and_retrieve():
     )
     return_model_artifact = await client.api.model_registry.v1alpha3.registered_model.get(RequestConfiguration(query_params=query_params))
     print(return_model_artifact)
+
+@pytest.mark.asyncio
+async def test_model_version_create_and_retrieve():
+    auth_provider = AnonymousAuthenticationProvider()
+    request_adapter = HttpxRequestAdapter(auth_provider)
+    request_adapter.base_url = REGISTRY_URL
+    client = RegistryClient(request_adapter)
+
+    payload = ModelVersionCreate()
+    payload.author = "me"
+    payload.name = "FOO"
+    payload.description = "a foo"
+
+    # TODO: this returns 422 ... not sure why
+    create_model_version = await client.api.model_registry.v1alpha3.model_versions.post(body=payload)
+    assert create_model_version is not None
+
+    query_params = Model_versionsRequestBuilder.Model_versionsRequestBuilderGetQueryParameters(
+        name=create_model_version.name
+    )
+    return_model_version = await client.api.model_registry.v1alpha3.model_versions.get(RequestConfiguration(query_params=query_params))
+    print(return_model_version)
+
