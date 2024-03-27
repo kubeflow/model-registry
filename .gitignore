@@ -34,3 +34,7 @@ log.html
 output.xml
 report.html
 __pycache__
+
+# Protoc files
+include/
+readme.txt
