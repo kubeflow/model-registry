@@ -1,4 +1,6 @@
 import asyncio
+from apisdk.client.models.model_artifact import ModelArtifact
+from apisdk.client.models.model_version import ModelVersion
 import pytest
 import subprocess
 import time
@@ -14,6 +16,7 @@ from apisdk.client.registry_client import RegistryClient
 from apisdk.client.models.registered_model_create import RegisteredModelCreate
 from apisdk.client.models.model_version_create import ModelVersionCreate
 from apisdk.client.api.model_registry.v1alpha3.registered_model.registered_model_request_builder import Registered_modelRequestBuilder
+from apisdk.client.api.model_registry.v1alpha3.model_version.model_version_request_builder import Model_versionRequestBuilder
 from apisdk.client.api.model_registry.v1alpha3.model_versions.model_versions_request_builder import Model_versionsRequestBuilder
 # from apisdk.client.models.model_artifact_create import ModelArtifactCreate
 # from apisdk.client.api.model_registry.v1alpha3.model_artifact.model_artifact_request_builder import Model_artifactRequestBuilder
@@ -50,6 +53,15 @@ def poll_for_ready():
 
 @pytest.fixture(scope="session", autouse=True)
 def registry_server(request):
+    model_registry_root_dir = model_registry_root(request)
+    print(
+        "Assuming this is the Model Registry root directory:", model_registry_root_dir
+    )
+    shared_volume = model_registry_root_dir / "test/config/ml-metadata"
+    sqlite_db_file = shared_volume / "metadata.sqlite.db"
+    if sqlite_db_file.exists():
+        msg = f"The file {sqlite_db_file} already exists; make sure to cancel it before running these tests."
+        raise FileExistsError(msg)
     root_folder = os.path.join(sys.path[0], "..", "..", "..")
     print(f" Starting Docker Compose in folder {root_folder}")
     subprocess.call(f"{DOCKER} compose -f docker-compose-local.yaml build", shell=True, cwd=root_folder)
@@ -57,11 +69,33 @@ def registry_server(request):
     request.addfinalizer(p.kill)
     request.addfinalizer(cleanup)
     poll_for_ready()
-    
+
+
+def model_registry_root(request):
+    return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
+
+
+@pytest.fixture(scope="session", autouse=True)
+def plain_wrapper(request):
+    sqlite_db_file = (
+        model_registry_root(request) / "test/config/ml-metadata/metadata.sqlite.db"
+    )
+
+    def teardown():
+        try:
+            os.remove(sqlite_db_file)
+            print(f"Removed {sqlite_db_file} successfully.")
+        except Exception as e:
+            print(f"An error occurred while removing {sqlite_db_file}: {e}")
+        print("plain_wrapper_after_each done.")
+
+    request.addfinalizer(teardown)
+
+
 def cleanup():
     root_folder = os.path.join(sys.path[0], "..", "..", "..")
     print(f" Closing Docker Compose in folder {root_folder}")
-    subprocess.Popen(f"{DOCKER} compose -f docker-compose-local.yaml down", shell=False, cwd=root_folder)
+    subprocess.call(f"{DOCKER} compose -f docker-compose-local.yaml down", shell=True, cwd=root_folder)
 
 # workaround: https://stackoverflow.com/a/72104554
 @pytest.fixture(scope="session", autouse=True)
@@ -73,46 +107,85 @@ def event_loop():
     yield loop
     loop.close()
 
-@pytest.mark.asyncio
-async def test_registered_model_create_and_retrieve():
+
+def get_client():
     auth_provider = AnonymousAuthenticationProvider()
     request_adapter = HttpxRequestAdapter(auth_provider)
     request_adapter.base_url = REGISTRY_URL
     client = RegistryClient(request_adapter)
+    return client
+
+
+@pytest.mark.asyncio
+async def test_registered_model_create_and_retrieve():
+    client = get_client()
 
     payload = RegisteredModelCreate()
     payload.name = "FOO"
     payload.description = "a foo"
 
-    # TODO: doesn't work it infer type_id = 10 for some reasons
     create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(payload)
     assert create_registered_model is not None
 
     query_params = Registered_modelRequestBuilder.Registered_modelRequestBuilderGetQueryParameters(
         name= create_registered_model.name
     )
-    return_model_artifact = await client.api.model_registry.v1alpha3.registered_model.get(RequestConfiguration(query_params=query_params))
+    return_model_artifact = await client.api.model_registry.v1alpha3.registered_model.get(RequestConfiguration(query_parameters=query_params))
     print(return_model_artifact)
+
 
 @pytest.mark.asyncio
 async def test_model_version_create_and_retrieve():
-    auth_provider = AnonymousAuthenticationProvider()
-    request_adapter = HttpxRequestAdapter(auth_provider)
-    request_adapter.base_url = REGISTRY_URL
-    client = RegistryClient(request_adapter)
+    client = get_client()
 
-    payload = ModelVersionCreate()
+    rm = RegisteredModelCreate()
+    rm.name = "BAR"
+    rm.description = "a bar"
+
+    create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(rm)
+    assert create_registered_model is not None
+    print(create_registered_model.id)
+
+    payload = ModelVersion()
     payload.author = "me"
-    payload.name = "FOO"
-    payload.description = "a foo"
+    payload.name = "v1"
+    payload.description = "a v1 for bar"
 
-    # TODO: this returns 422 ... not sure why
-    create_model_version = await client.api.model_registry.v1alpha3.model_versions.post(body=payload)
+    create_model_version = await client.api.model_registry.v1alpha3.registered_models.by_registeredmodel_id(create_registered_model.id).versions.post(payload)
     assert create_model_version is not None
 
-    query_params = Model_versionsRequestBuilder.Model_versionsRequestBuilderGetQueryParameters(
-        name=create_model_version.name
-    )
-    return_model_version = await client.api.model_registry.v1alpha3.model_versions.get(RequestConfiguration(query_params=query_params))
+    return_model_version = await client.api.model_registry.v1alpha3.model_versions.by_modelversion_id(create_model_version.id).get()
+    assert return_model_version is not None
     print(return_model_version)
 
+
+@pytest.mark.asyncio
+async def test_model_artifact_create_and_retrieve():
+    client = get_client()
+
+    rm = RegisteredModelCreate()
+    rm.name = "BAZ"
+    rm.description = "a baz"
+
+    create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(rm)
+    assert create_registered_model is not None
+    print(create_registered_model.id)
+
+    mv = ModelVersion()
+    mv.author = "me"
+    mv.name = "v1"
+    mv.description = "a v1 for baz"
+
+    create_model_version = await client.api.model_registry.v1alpha3.registered_models.by_registeredmodel_id(create_registered_model.id).versions.post(mv)
+    assert create_model_version is not None
+
+    payload = ModelArtifact()
+    payload.name = "mnist"
+    payload.uri = "https://acme.org/mnist.onnx"
+
+    create_model_artifact = await client.api.model_registry.v1alpha3.model_versions.by_modelversion_id(create_model_version.id).artifacts.post(payload)
+    assert create_model_artifact is not None
+
+    return_model_artifact = await client.api.model_registry.v1alpha3.model_artifacts.by_modelartifact_id(create_model_artifact.id).get()
+    assert return_model_artifact is not None
+    print(return_model_artifact)
