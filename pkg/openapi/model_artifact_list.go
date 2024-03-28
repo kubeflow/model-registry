@@ -19,14 +19,14 @@ var _ MappedNullable = &ArtifactList{}
 
 // ArtifactList A list of Artifact entities.
 type ArtifactList struct {
+	// Array of `Artifact` entities.
+	Items []Artifact `json:"items,omitempty"`
 	// Token to use to retrieve next page of results.
 	NextPageToken string `json:"nextPageToken"`
 	// Maximum number of resources to return in the result.
 	PageSize int32 `json:"pageSize"`
 	// Number of items in result list.
 	Size int32 `json:"size"`
-	// Array of `Artifact` entities.
-	Items []Artifact `json:"items,omitempty"`
 }
 
 // NewArtifactList instantiates a new ArtifactList object
@@ -47,6 +47,38 @@ func NewArtifactList(nextPageToken string, pageSize int32, size int32) *Artifact
 func NewArtifactListWithDefaults() *ArtifactList {
 	this := ArtifactList{}
 	return &this
+}
+
+// GetItems returns the Items field value if set, zero value otherwise.
+func (o *ArtifactList) GetItems() []Artifact {
+	if o == nil || IsNil(o.Items) {
+		var ret []Artifact
+		return ret
+	}
+	return o.Items
+}
+
+// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ArtifactList) GetItemsOk() ([]Artifact, bool) {
+	if o == nil || IsNil(o.Items) {
+		return nil, false
+	}
+	return o.Items, true
+}
+
+// HasItems returns a boolean if a field has been set.
+func (o *ArtifactList) HasItems() bool {
+	if o != nil && !IsNil(o.Items) {
+		return true
+	}
+
+	return false
+}
+
+// SetItems gets a reference to the given []Artifact and assigns it to the Items field.
+func (o *ArtifactList) SetItems(v []Artifact) {
+	o.Items = v
 }
 
 // GetNextPageToken returns the NextPageToken field value
@@ -121,38 +153,6 @@ func (o *ArtifactList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
-func (o *ArtifactList) GetItems() []Artifact {
-	if o == nil || IsNil(o.Items) {
-		var ret []Artifact
-		return ret
-	}
-	return o.Items
-}
-
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ArtifactList) GetItemsOk() ([]Artifact, bool) {
-	if o == nil || IsNil(o.Items) {
-		return nil, false
-	}
-	return o.Items, true
-}
-
-// HasItems returns a boolean if a field has been set.
-func (o *ArtifactList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []Artifact and assigns it to the Items field.
-func (o *ArtifactList) SetItems(v []Artifact) {
-	o.Items = v
-}
-
 func (o ArtifactList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -163,12 +163,12 @@ func (o ArtifactList) MarshalJSON() ([]byte, error) {
 
 func (o ArtifactList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["nextPageToken"] = o.NextPageToken
-	toSerialize["pageSize"] = o.PageSize
-	toSerialize["size"] = o.Size
 	if !IsNil(o.Items) {
 		toSerialize["items"] = o.Items
 	}
+	toSerialize["nextPageToken"] = o.NextPageToken
+	toSerialize["pageSize"] = o.PageSize
+	toSerialize["size"] = o.Size
 	return toSerialize, nil
 }
 

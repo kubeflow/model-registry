@@ -20,14 +20,14 @@ var _ MappedNullable = &ServeModelCreate{}
 // ServeModelCreate An ML model serving action.
 type ServeModelCreate struct {
 	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
 	// ID of the `ModelVersion` that was served in `InferenceService`.
 	ModelVersionId string `json:"modelVersionId"`
 }
@@ -84,6 +84,38 @@ func (o *ServeModelCreate) HasLastKnownState() bool {
 // SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
 func (o *ServeModelCreate) SetLastKnownState(v ExecutionState) {
 	o.LastKnownState = &v
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *ServeModelCreate) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ServeModelCreate) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *ServeModelCreate) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *ServeModelCreate) SetName(v string) {
+	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -182,38 +214,6 @@ func (o *ServeModelCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *ServeModelCreate) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ServeModelCreate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ServeModelCreate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *ServeModelCreate) SetName(v string) {
-	o.Name = &v
-}
-
 // GetModelVersionId returns the ModelVersionId field value
 func (o *ServeModelCreate) GetModelVersionId() string {
 	if o == nil {
@@ -251,6 +251,9 @@ func (o ServeModelCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastKnownState) {
 		toSerialize["lastKnownState"] = o.LastKnownState
 	}
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -259,9 +262,6 @@ func (o ServeModelCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
 	}
 	toSerialize["modelVersionId"] = o.ModelVersionId
 	return toSerialize, nil
