@@ -6,6 +6,7 @@ DSC_INITIALIZATION_MANIFEST="openshift-ci/resources/model-registry-DSCInitializa
 DATA_SCIENCE_CLUSTER_MANIFEST="openshift-ci/resources/opendatahub-data-science-cluster.yaml"
 MODEL_REGISTRY_OPERATOR_GIT_URL="https://github.com/opendatahub-io/model-registry-operator.git"
 source "openshift-ci/scripts/colour_text_variables.sh"
+source "openshift-ci/scripts/install_yq.sh"
 
 # Function to deploy and wait for deployment
 deploy_and_wait() {
