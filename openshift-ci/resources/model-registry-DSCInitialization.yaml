@@ -1,0 +1,31 @@
+apiVersion: dscinitialization.opendatahub.io/v1
+kind: DSCInitialization
+metadata:
+  creationTimestamp: '2024-03-27T16:16:55Z'
+  finalizers:
+    - dscinitialization.opendatahub.io/finalizer
+  generation: 1
+  labels:
+    app.kubernetes.io/created-by: opendatahub-operator
+    app.kubernetes.io/instance: default
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: dscinitialization
+    app.kubernetes.io/part-of: opendatahub-operator
+  name: default-dsci
+spec:
+  applicationsNamespace: opendatahub
+  monitoring:
+    managementState: Managed
+    namespace: opendatahub
+  serviceMesh:
+    auth:
+      audiences:
+        - 'https://kubernetes.default.svc'
+    controlPlane:
+      metricsCollection: Istio
+      name: data-science-smcp
+      namespace: istio-system
+    managementState: Managed
+  trustedCABundle:
+    customCABundle: ''
+    managementState: Managed
