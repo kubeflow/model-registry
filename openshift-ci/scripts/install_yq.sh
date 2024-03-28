@@ -8,7 +8,7 @@ install_yq_if_not_installed() {
             if ! command -v yq &>/dev/null; then
                 echo "yq is not installed. Installing..."
                 # Linux installation using curl
-                sudo curl -L https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+                curl -L https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
             else
                 echo "yq is already installed."
             fi
