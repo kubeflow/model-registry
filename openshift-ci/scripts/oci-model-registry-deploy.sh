@@ -13,6 +13,9 @@ source "openshift-ci/scripts/colour_text_variables.sh"
 deploy_and_wait() {
     local manifest=$1
     local resource_name=$(basename -s .yaml $manifest)
+    local wait_time=$2
+    
+    sleep $wait_time
     
     echo "Deploying $resource_name from $manifest..."
 
@@ -139,12 +142,12 @@ run_deployment_tests() {
 
 # Main function for orchestrating deployments
 main() {   
-    deploy_and_wait $OPENDATAHUB_SUBSCRIPTION
-    deploy_and_wait $DSC_INITIALIZATION_MANIFEST
+    deploy_and_wait $OPENDATAHUB_SUBSCRIPTION 0
+    deploy_and_wait $DSC_INITIALIZATION_MANIFEST 20
     check_pod_status "opendatahub" "-l component.opendatahub.io/name=model-registry-operator" 2
-    deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST  
-    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST
-    deploy_and_wait $MODEL_REGISTRY_SAMPLE_MANIFEST
+    deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST 0
+    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST 20
+    deploy_and_wait $MODEL_REGISTRY_SAMPLE_MANIFEST 20
     run_deployment_tests
 }
 
