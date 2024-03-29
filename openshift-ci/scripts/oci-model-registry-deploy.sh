@@ -4,9 +4,10 @@
 OPENDATAHUB_SUBSCRIPTION="openshift-ci/resources/opendatahub-subscription.yaml"
 DSC_INITIALIZATION_MANIFEST="openshift-ci/resources/model-registry-DSCInitialization.yaml"
 DATA_SCIENCE_CLUSTER_MANIFEST="openshift-ci/resources/opendatahub-data-science-cluster.yaml"
-MODEL_REGISTRY_OPERATOR_GIT_URL="https://github.com/opendatahub-io/model-registry-operator.git"
+MODEL_REGISTRY_DB_MANIFEST="openshift-ci/resources/model-registry-operator/mysql-db.yaml"
+MODEL_REGISTRY_SAMPLE_MANIFEST="openshift-ci/resources/model-registry-operator/modelregistry_v1alpha1_modelregistry.yaml"
 source "openshift-ci/scripts/colour_text_variables.sh"
-source "openshift-ci/scripts/install_yq.sh"
+
 
 # Function to deploy and wait for deployment
 deploy_and_wait() {
@@ -21,26 +22,6 @@ deploy_and_wait() {
         echo -e "${RED}Error:${NC} Deployment of $resource_name failed or timed out." >&2
         return 1
     fi
-}
-
-# Function to clone a Git repository and deploy the appropriate 
-clone_deploy_model_registry_operator_crd_files() {
-    local url="temp_repo/config/samples/mysql/"
-    local files=("mysql-db.yaml" "modelregistry_v1alpha1_modelregistry.yaml")
-    # Clone the Git repository
-    git clone "$MODEL_REGISTRY_OPERATOR_GIT_URL" temp_repo
-
-    #Change the deployment serviceRoute to enabled
-    yq eval '.spec.rest.serviceRoute = "enabled"' -i "$url${files[1]}"
-
-    # Deploy the model-registry crd files
-    for file in "${files[@]}"; do
-        local path_and_file="$url$file"
-        oc apply -f "$path_and_file" --wait=true --timeout=300s >/tmp/oc_output 2>&1 && rm /tmp/oc_output
-    done
-
-    # Remove temp_repo
-    rm -rf temp_repo
 }
 
 check_deployment_availability() {
@@ -162,7 +143,8 @@ main() {
     deploy_and_wait $DSC_INITIALIZATION_MANIFEST
     check_pod_status "opendatahub" "-l component.opendatahub.io/name=model-registry-operator" 2
     deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST  
-    clone_deploy_model_registry_operator_crd_files
+    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST
+    deploy_and_wait $MODEL_REGISTRY_SAMPLE_MANIFEST
     run_deployment_tests
 }
 
