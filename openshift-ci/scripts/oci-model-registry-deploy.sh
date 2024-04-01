@@ -6,8 +6,63 @@ DSC_INITIALIZATION_MANIFEST="openshift-ci/resources/model-registry-DSCInitializa
 DATA_SCIENCE_CLUSTER_MANIFEST="openshift-ci/resources/opendatahub-data-science-cluster.yaml"
 MODEL_REGISTRY_DB_MANIFEST="openshift-ci/resources/model-registry-operator/mysql-db.yaml"
 MODEL_REGISTRY_SAMPLE_MANIFEST="openshift-ci/resources/model-registry-operator/modelregistry_v1alpha1_modelregistry.yaml"
+OPENDATAHUB_CRDS="datascienceclusters.datasciencecluster.opendatahub.io,dscinitializations.dscinitialization.opendatahub.io,featuretrackers.features.opendatahub.io"
+DATA_SCIENCE_CLUSTER_CRDS="acceleratorprofiles.dashboard.opendatahub.io,datasciencepipelinesapplications.datasciencepipelinesapplications.opendatahub.io,odhapplications.dashboard.opendatahub.io,odhdashboardconfigs.opendatahub.io,odhdocuments.dashboard.opendatahub.io,trustyaiservices.trustyai.opendatahub.io"
+MODEL_REGISTRY_CRDS="modelregistries.modelregistry.opendatahub.io"
 source "openshift-ci/scripts/colour_text_variables.sh"
 
+# Function to monitor CRDS creation and deployment.
+
+monitoring_crds_installation() {
+    IFS=',' read -ra crds_array <<< "$1"
+    local timeout=$2
+
+    echo "Monitoring the installation of CRDs: ${crds_array[*]}"
+    echo "Timeout set to ${timeout}s"
+
+    local start_time=$(date +%s)
+
+    # Loop until all specified CRDs are installed or timeout is reached
+    while true; do
+        local elapsed_time=$(($(date +%s) - start_time))
+
+        # Check if timeout has been reached
+        if [ "$elapsed_time" -ge "$timeout" ]; then
+            echo "Timeout reached. Installation of CRDs failed."
+            return 1
+        fi
+
+        # Get the list of installed CRDs
+        local installed_crds=($(oc get crd -o=name | cut -d '/' -f2))
+
+        # Check if all CRDs are installed
+        local all_installed=true
+        for crd in "${crds_array[@]}"; do
+            if ! [[ " ${installed_crds[@]} " =~ " ${crd} " ]]; then
+                all_installed=false
+                break
+            fi
+        done
+
+        # If all CRDs are installed, break out of the loop
+        if [ "$all_installed" = true ]; then
+            echo "All specified CRDs are installed."
+            return 0
+        fi
+
+        # Print the status of each CRD
+        for crd in "${crds_array[@]}"; do
+            if [[ " ${installed_crds[@]} " =~ " ${crd} " ]]; then
+                echo "CRD '$crd' is installed."
+            else
+                echo "CRD '$crd' is not installed."
+            fi
+        done
+
+        # Wait for a few seconds before checking again
+        sleep 5
+    done
+}
 
 # Function to deploy and wait for deployment
 deploy_and_wait() {
@@ -143,11 +198,14 @@ run_deployment_tests() {
 # Main function for orchestrating deployments
 main() {   
     deploy_and_wait $OPENDATAHUB_SUBSCRIPTION 0
-    deploy_and_wait $DSC_INITIALIZATION_MANIFEST 20
-    check_pod_status "opendatahub" "-l component.opendatahub.io/name=model-registry-operator" 2
-    deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST 0
-    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST 20
+    monitoring_crds_installation $OPENDATAHUB_CRDS 120
+    deploy_and_wait $DSC_INITIALIZATION_MANIFEST 20 
+    deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST 10 
+    monitoring_crds_installation $DATA_SCIENCE_CLUSTER_CRDS 120
+    check_pod_status "opendatahub" "-l component.opendatahub.io/name=model-registry-operator" 2 
     deploy_and_wait $MODEL_REGISTRY_SAMPLE_MANIFEST 20
+    monitoring_crds_installation $MODEL_REGISTRY_CRDS 120
+    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST 20
     run_deployment_tests
 }
 

@@ -14,6 +14,3 @@ metadata:
   name: default-dsci
 spec:
   applicationsNamespace: opendatahub
-  monitoring:
-    managementState: Managed
-    namespace: opendatahub
