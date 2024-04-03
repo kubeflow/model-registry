@@ -58,3 +58,24 @@ As a MLOps engineer I would like to store a longer documentation for the model
     ${r}    Then I get ArtifactsByModelVersionID    id=${vId}
     ${cnt}  Then Get length    ${r["items"]}
             And Should Be Equal As Integers    ${cnt}    2
+
+As a MLOps engineer I would like to store some labels
+    # A custom property of type string, with empty string value, shall be considered a Label; this is also semantically compatible for properties having empty string values in general.
+    ${cp1}    Create Dictionary  my-label1=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}  my-label2=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}
+    Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  customProperties=${cp1}
+    ${cp2}    Create Dictionary  my-label3=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}  my-label4=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}
+    Set To Dictionary    ${model_version}    description=consectetur adipiscing elit  customProperties=${cp2}
+    ${cp3}    Create Dictionary  my-label5=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}  my-label6=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}
+    Set To Dictionary    ${model_artifact}    description=sed do eiusmod tempor incididunt  customProperties=${cp3}
+    ${rId}  Given I create a RegisteredModel    payload=${registered_model}
+    ${vId}  And I create a child ModelVersion    registeredModelID=${rId}  payload=&{model_version}
+    ${aId}  And I create a child ModelArtifact    modelversionId=${vId}  payload=&{model_artifact}
+    ${r}  Then I get RegisteredModelByID    id=${rId}
+          And Should be equal    ${r["description"]}    Lorem ipsum dolor sit amet
+          And Dictionaries Should Be Equal   ${r["customProperties"]}  ${cp1}
+    ${r}  Then I get ModelVersionByID    id=${vId}
+          And Should be equal    ${r["description"]}    consectetur adipiscing elit
+          And Dictionaries Should Be Equal   ${r["customProperties"]}  ${cp2}
+    ${r}  Then I get ModelArtifactByID    id=${aId}
+          And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
+          And Dictionaries Should Be Equal   ${r["customProperties"]}  ${cp3}
