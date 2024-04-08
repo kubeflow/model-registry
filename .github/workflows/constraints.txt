@@ -1,4 +1,5 @@
 pip==23.3.1
+pipx==1.4.3
 nox==2023.04.22
 nox-poetry==1.0.2
 poetry==1.6.1
