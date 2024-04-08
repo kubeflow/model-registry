@@ -211,4 +211,16 @@ image/build:
 image/push:
 	${DOCKER} push ${IMG}:$(IMG_VERSION)
 
+# build and push multi-arch docker image
+PLATFORMS ?= linux/amd64,linux/s390x,linux/ppc64le
+.PHONY: image/buildx
+image/buildx: ## Build and push docker image for cross-platform support
+        # copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	- ${DOCKER} buildx create --name project-v3-builder
+	${DOCKER} buildx use project-v3-builder
+	- ${DOCKER} buildx build --push --platform=$(PLATFORMS) --tag ${IMG}:$(IMG_VERSION) -f Dockerfile.cross .
+	- ${DOCKER} buildx rm project-v3-builder
+	rm Dockerfile.cross
+
 all: model-registry

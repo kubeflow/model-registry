@@ -20,10 +20,14 @@ RUN yum install -y nodejs npm java-11
 COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 
 # Download protoc compiler v24.3
-RUN wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip -O protoc.zip && \
-    unzip -q protoc.zip && \
-    bin/protoc --version && \
-    rm protoc.zip
+RUN set -ex\
+    ; ARCH=$(uname -m) ; echo $ARCH \
+    ; if [ "$ARCH" == "s390x" ] ; then ARCH="s390_64" ; fi \
+    ; wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-$ARCH.zip -O protoc.zip \
+    ; unzip -q protoc.zip \
+    ; bin/protoc --version \
+    ; rm protoc.zip \
+    ;
 
 # Download tools
 RUN make deps
@@ -40,7 +44,7 @@ COPY templates/ templates/
 
 # Build
 USER root
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
+RUN CGO_ENABLED=1 GOOS=linux  make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
