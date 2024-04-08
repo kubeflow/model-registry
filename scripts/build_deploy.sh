@@ -51,13 +51,13 @@ else
   echo "Skip container image build."
 fi
 
-# build and push docker image
+# build and push multi-arch docker image
 if [[ "${PUSH_IMAGE,,}" == "true" ]]; then
   echo "Building container image.."
   make \
-    IMG_REGISTRY="${QUAY_REGISTRY}" \
-    IMG_ORG="${QUAY_ORG}" \
-    IMG_REPO="${QUAY_IMG_REPO}" \
+    IMG_REGISTRY="${IMG_REGISTRY}" \
+    IMG_ORG="${IMG_ORG}" \
+    IMG_REPO="${IMG_REPO}" \
     IMG_VERSION="${VERSION}" \
     image/buildx
 else
