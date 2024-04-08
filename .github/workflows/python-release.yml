@@ -27,7 +27,7 @@ jobs:
           pip --version
       - name: Install Poetry
         run: |
-          pipx install --pip-args=--constraint=.github/workflows/constraints.txt poetry
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
       - name: Check version
         working-directory: clients/python
