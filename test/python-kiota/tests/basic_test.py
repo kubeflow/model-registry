@@ -1,5 +1,6 @@
 import asyncio
 from apisdk.client.models.model_artifact import ModelArtifact
+from apisdk.client.models.doc_artifact import DocArtifact
 from apisdk.client.models.model_version import ModelVersion
 import pytest
 import subprocess
@@ -7,6 +8,7 @@ import time
 import os
 import sys
 import requests
+from uuid import uuid4
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from kiota_abstractions.authentication.anonymous_authentication_provider import (
     AnonymousAuthenticationProvider,
@@ -121,17 +123,20 @@ async def test_registered_model_create_and_retrieve():
     client = get_client()
 
     payload = RegisteredModelCreate()
-    payload.name = "FOO"
+    payload.name = f"FOO{uuid4()}"
     payload.description = "a foo"
 
     create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(payload)
     assert create_registered_model is not None
+    print(create_registered_model)
+    print(create_registered_model.id)
 
     query_params = Registered_modelRequestBuilder.Registered_modelRequestBuilderGetQueryParameters(
         name= create_registered_model.name
     )
     return_model_artifact = await client.api.model_registry.v1alpha3.registered_model.get(RequestConfiguration(query_parameters=query_params))
     print(return_model_artifact)
+    print(return_model_artifact.id)
 
 
 @pytest.mark.asyncio
@@ -139,11 +144,12 @@ async def test_model_version_create_and_retrieve():
     client = get_client()
 
     rm = RegisteredModelCreate()
-    rm.name = "BAR"
+    rm.name = f"BAR{uuid4()}"
     rm.description = "a bar"
 
     create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(rm)
     assert create_registered_model is not None
+    print(create_registered_model)
     print(create_registered_model.id)
 
     payload = ModelVersion()
@@ -164,11 +170,12 @@ async def test_model_artifact_create_and_retrieve():
     client = get_client()
 
     rm = RegisteredModelCreate()
-    rm.name = "BAZ"
+    rm.name = f"BAZ{uuid4()}"
     rm.description = "a baz"
 
     create_registered_model = await client.api.model_registry.v1alpha3.registered_models.post(rm)
     assert create_registered_model is not None
+    print(create_registered_model)
     print(create_registered_model.id)
 
     mv = ModelVersion()
@@ -185,7 +192,21 @@ async def test_model_artifact_create_and_retrieve():
 
     create_model_artifact = await client.api.model_registry.v1alpha3.model_versions.by_modelversion_id(create_model_version.id).artifacts.post(payload)
     assert create_model_artifact is not None
+    create_model_artifact = create_model_artifact.model_artifact
+    print(create_model_artifact)
+    print(create_model_artifact.id)
 
     return_model_artifact = await client.api.model_registry.v1alpha3.model_artifacts.by_modelartifact_id(create_model_artifact.id).get()
     assert return_model_artifact is not None
     print(return_model_artifact)
+
+    payload = DocArtifact()
+    payload.uri = "https://acme.org/mnist.onnx"
+
+    create_doc_artifact = await client.api.model_registry.v1alpha3.model_versions.by_modelversion_id(create_model_version.id).artifacts.post(payload)
+    assert create_doc_artifact is not None
+    create_doc_artifact = create_doc_artifact.doc_artifact
+    assert create_doc_artifact is not None
+    print(create_doc_artifact)
+    
+    # How to retrieve a doc_artifact?
