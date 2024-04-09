@@ -1297,7 +1297,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/WithBaseResourceUpdate"
         - $ref: "#/components/schemas/WithModelArtifactUpdate"
-        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now
+        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now (see: https://github.com/microsoft/kiota/issues/4428)
         # - $ref: "#/components/schemas/WithBaseArtifactUpdate"
         - type: object
           properties:
@@ -1315,7 +1315,7 @@ components:
         - $ref: "#/components/schemas/WithModelArtifactUpdate"
         - $ref: "#/components/schemas/WithBaseResourceCreate"
         - $ref: "#/components/schemas/WithBaseResourceUpdate"
-        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now
+        # TODO: WORKAROUND: WithBaseArtifactUpdate got picked up as direct parent - inlining it for now (see: https://github.com/microsoft/kiota/issues/4428)
         # - $ref: "#/components/schemas/WithBaseArtifactUpdate"
         - type: object
           properties:
