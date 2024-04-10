@@ -44,7 +44,7 @@ def generate_kiota_client_files(setup_kwargs):
     )
     print(f"Using Kiota version: {kiota_version}")
     # Download the Kiota release archive
-    url = f"https://github.com/microsoft/kiota/releases/download/v{kiota_version}/{kiota_release_name}"
+    url = f"https://github.com/andreaTP/kiota-prerelease/releases/download/v{kiota_version}/{kiota_release_name}"
 
     tmpdir = os.path.join(sys.path[0], "kiota_tmp", kiota_version)
     if not os.path.exists(tmpdir):

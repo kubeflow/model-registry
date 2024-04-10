@@ -1,7 +1,7 @@
 
 .PHONY: clean
 clean:
-	rm -rf openapi.yaml apisdk/client kiota_tmp .venv dist
+	rm -rf model-registry.yaml apisdk/client kiota_tmp .venv dist
 
 .PHONY: install
 install:

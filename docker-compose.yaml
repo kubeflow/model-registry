@@ -11,8 +11,12 @@ services:
       - ./test/config/ml-metadata:/tmp/shared
   model-registry:
     image: quay.io/opendatahub/model-registry:latest
-    command: ["proxy", "--mlmd-hostname", "localhost", "--mlmd-port", "9090"]
+    command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "8080"]
     container_name: model-registry
-    network_mode: host
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
     depends_on:
       - mlmd-server
