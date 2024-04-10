@@ -13,6 +13,10 @@ DOCKER_PWD="${DOCKER_PWD}"
 HASH="$(git rev-parse --short=7 HEAD)"
 VERSION="${VERSION:-$HASH}"
 
+# if set to 0 skip image build
+# otherwise build it
+BUILD_IMAGE="${BUILD_IMAGE:-true}"
+
 # if set to 0 skip push to registry
 # otherwise push it
 PUSH_IMAGE="${PUSH_IMAGE:-false}"
@@ -39,7 +43,7 @@ if [[ "${SKIP_IF_EXISTING,,}" == "true" && "${IMG_REGISTRY,,}" == "quay.io" ]]; 
 fi
 
 # build docker image, login is not required at this step
-if [[ "${PUSH_IMAGE,,}" == "false" ]]; then
+if [[ "${BUILD_IMAGE,,}" == "true" ]]; then
   echo "Building container image.."
   make \
     IMG_REGISTRY="${IMG_REGISTRY}" \
@@ -51,15 +55,18 @@ else
   echo "Skip container image build."
 fi
 
-# build and push multi-arch docker image
+# push container image to registry, requires login
 if [[ "${PUSH_IMAGE,,}" == "true" ]]; then
-  echo "Building container image.."
+  echo "Pushing container image.."
   make \
     IMG_REGISTRY="${IMG_REGISTRY}" \
     IMG_ORG="${IMG_ORG}" \
     IMG_REPO="${IMG_REPO}" \
     IMG_VERSION="${VERSION}" \
-    image/buildx
+    DOCKER_USER="${DOCKER_USER}"\
+    DOCKER_PWD="${DOCKER_PWD}" \
+    docker/login \
+    image/push
 else
-  echo "Skip container image push"
+  echo "Skip container image push."
 fi
