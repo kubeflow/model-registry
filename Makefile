@@ -212,7 +212,7 @@ endif
 # build docker image
 .PHONY: image/build
 image/build:
-	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) --network host
+	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
 
 # push docker image
 .PHONY: image/push

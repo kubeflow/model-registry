@@ -9,8 +9,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
   OS="osx"
 fi
-# TODO: support for arm
 ARCH="x86_64"
+if [[ "$(uname -m)" == "arm"* ]]; then
+  ARCH="aarch_64"
+fi
 
 mkdir -p ${SCRIPT_DIR}/../bin
 
