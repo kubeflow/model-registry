@@ -4,10 +4,7 @@ services:
     image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0
     container_name: mlmd-server
     ports:
-      - target: 8080
-        published: 9090
-        protocol: tcp
-        mode: host
+      - "9090:8080"
     environment:
       - METADATA_STORE_SERVER_CONFIG_FILE=/tmp/shared/conn_config.pb
     volumes:
@@ -16,13 +13,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      network: host
     command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "8080"]
     container_name: model-registry
     ports:
-      - target: 8080
-        published: 8080
-        protocol: tcp
-        mode: host
+      - "8080:8080"
     depends_on:
       - mlmd-server
