@@ -20,7 +20,7 @@ You will need to have an openshift cluster deployed and be oc logged into you cl
 
 From the root of the repository
 ```shell
-./openshift-ci/scripts/oc-model-registry.-deploy.sh
+./openshift-ci/scripts/oc-model-registry-deploy.sh
 ```
 
 ## Runing the openshift-ci
