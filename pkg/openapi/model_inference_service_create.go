@@ -19,14 +19,14 @@ var _ MappedNullable = &InferenceServiceCreate{}
 
 // InferenceServiceCreate An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
 type InferenceServiceCreate struct {
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
 	ModelVersionId *string `json:"modelVersionId,omitempty"`
 	// Model runtime.
@@ -59,6 +59,38 @@ func NewInferenceServiceCreateWithDefaults() *InferenceServiceCreate {
 	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
 	this.DesiredState = &desiredState
 	return &this
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *InferenceServiceCreate) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceServiceCreate) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *InferenceServiceCreate) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *InferenceServiceCreate) SetName(v string) {
+	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -155,38 +187,6 @@ func (o *InferenceServiceCreate) HasExternalId() bool {
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
 func (o *InferenceServiceCreate) SetExternalId(v string) {
 	o.ExternalId = &v
-}
-
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *InferenceServiceCreate) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceServiceCreate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *InferenceServiceCreate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *InferenceServiceCreate) SetName(v string) {
-	o.Name = &v
 }
 
 // GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
@@ -343,6 +343,9 @@ func (o InferenceServiceCreate) MarshalJSON() ([]byte, error) {
 
 func (o InferenceServiceCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -351,9 +354,6 @@ func (o InferenceServiceCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
 	}
 	if !IsNil(o.ModelVersionId) {
 		toSerialize["modelVersionId"] = o.ModelVersionId

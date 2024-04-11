@@ -21,15 +21,15 @@ var _ MappedNullable = &ModelVersionCreate{}
 type ModelVersionCreate struct {
 	// ID of the `RegisteredModel` to which this version belongs.
 	RegisteredModelId string `json:"registeredModelId"`
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name  *string            `json:"name,omitempty"`
-	State *ModelVersionState `json:"state,omitempty"`
+	ExternalId *string            `json:"externalId,omitempty"`
+	State      *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
 }
@@ -77,6 +77,38 @@ func (o *ModelVersionCreate) GetRegisteredModelIdOk() (*string, bool) {
 // SetRegisteredModelId sets field value
 func (o *ModelVersionCreate) SetRegisteredModelId(v string) {
 	o.RegisteredModelId = v
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *ModelVersionCreate) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelVersionCreate) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *ModelVersionCreate) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *ModelVersionCreate) SetName(v string) {
+	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -175,38 +207,6 @@ func (o *ModelVersionCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *ModelVersionCreate) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelVersionCreate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ModelVersionCreate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *ModelVersionCreate) SetName(v string) {
-	o.Name = &v
-}
-
 // GetState returns the State field value if set, zero value otherwise.
 func (o *ModelVersionCreate) GetState() ModelVersionState {
 	if o == nil || IsNil(o.State) {
@@ -282,6 +282,9 @@ func (o ModelVersionCreate) MarshalJSON() ([]byte, error) {
 func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -290,9 +293,6 @@ func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State

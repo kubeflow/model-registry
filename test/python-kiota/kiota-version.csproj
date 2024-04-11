@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="0.0.0-pre+andreaTP.initial-fixes-simple-oneOf-py.b46369a" />
+  </ItemGroup>
+</Project>
