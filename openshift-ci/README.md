@@ -19,13 +19,16 @@ You will need to have an openshift cluster deployed and be oc logged into you cl
 ## Runing the script:
 
 From the root of the repository
-```shell
-./openshift-ci/scripts/oc-model-registry-deploy.sh
+```
+./openshift-ci/scripts/oc-model-registry.-deploy.sh
 ```
 
 ## Runing the openshift-ci
 
 You can start the openshift-ci job to test changes in your Pull Request. To do so put the following command into a comment in your Pull Request
-```shell
+```
 /test e2e-odh-mro-optional
 ```
+
+Previous jobs can be seen [here](https://prow.ci.openshift.org/job-history/gs/test-platform-results/pr-logs/directory/rehearse-49999-pull-ci-opendatahub-io-model-registry-main-e2e-odh-mro-optional)
+
