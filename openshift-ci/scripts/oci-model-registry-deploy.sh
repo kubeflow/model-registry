@@ -12,7 +12,7 @@ MODEL_REGISTRY_CRDS="modelregistries.modelregistry.opendatahub.io"
 source "openshift-ci/scripts/colour_text_variables.sh"
 
 # Function to monitor CRDS creation and deployment.
-
+# The function takes two arguments, reference to manifest and a wait time in seconds.
 monitoring_crds_installation() {
     IFS=',' read -ra crds_array <<< "$1"
     local timeout=$2
@@ -28,7 +28,7 @@ monitoring_crds_installation() {
 
         # Check if timeout has been reached
         if [ "$elapsed_time" -ge "$timeout" ]; then
-            echo "Timeout reached. Installation of CRDs failed."
+            echo -e "${RED}X Error:${NC} Timeout reached. Installation of CRDs failed."
             return 1
         fi
 
@@ -46,7 +46,7 @@ monitoring_crds_installation() {
 
         # If all CRDs are installed, break out of the loop
         if [ "$all_installed" = true ]; then
-            echo "All specified CRDs are installed."
+            echo -e "${GREEN}✔ Success:${NC} All specified CRDs are installed."
             return 0
         fi
 
@@ -65,6 +65,7 @@ monitoring_crds_installation() {
 }
 
 # Function to deploy and wait for deployment
+# The function takes two arguments, reference to manifest and a wait time in seconds.
 deploy_and_wait() {
     local manifest=$1
     local resource_name=$(basename -s .yaml $manifest)
@@ -77,7 +78,7 @@ deploy_and_wait() {
     if oc apply -f $manifest --wait=true --timeout=300s; then
         echo -e "${GREEN}✔ Success:${NC} Deployment of $resource_name succeeded."
     else
-        echo -e "${RED}Error:${NC} Deployment of $resource_name failed or timed out." >&2
+        echo -e "${RED}X Error:${NC} Deployment of $resource_name failed or timed out." >&2
         return 1
     fi
 }
@@ -102,10 +103,12 @@ check_deployment_availability() {
         sleep 5  # Wait for 5 seconds before checking again
     done
 
-    echo -e "${RED}Error:${NC}  Timeout reached. Deployment $deployment did not become available within $timeout seconds"
+    echo -e "${RED}X Error:${NC}  Timeout reached. Deployment $deployment did not become available within $timeout seconds"
     return 1  # Failure
 }
 
+# Function to check the status of deploying pods
+# The function takes three arguments, namespace, descriptor to identify the component and number of containers expected.
 check_pod_status() {
     local namespace="$1"
     local pod_selector="$2"
@@ -145,6 +148,8 @@ check_pod_status() {
     return 1  # Failure
 }
 
+# Function to check the status of a route
+# The function takes two arguments, namespace and route name.
 check_route_status() {
     local namespace="$1"
     local route_name="$2"
@@ -159,7 +164,7 @@ check_route_status() {
         local route_url="http://$route"
 
         if [[ -z "$route_url" ]]; then
-             echo -e "${RED}Error:${NC}  Route '$route_name' does not exist in namespace '$namespace'"
+             echo -e "${RED}X Error:${NC}  Route '$route_name' does not exist in namespace '$namespace'"
             return 1
         else 
             echo -e "${GREEN}✔ Success:${NC} Route '$route_name' exists in namespace '$namespace'"
@@ -176,14 +181,19 @@ check_route_status() {
             echo -e "${GREEN}✔ Success:${NC} Route server is reachable. Status code: 404 Not Found"
             return 0
         else
-            echo -e "${RED}Error:${NC}  Route server is unreachable. Status code: $response"
+            echo -e "${RED}X Error:${NC}  Route server is unreachable. Status code: $response"
         fi
 
         sleep "$interval"
     done
 
-    echo -e "${RED}Error:${NC}  Timeout reached. Route '$route_name' did not become live within $timeout seconds."
+    echo -e "${RED}X Error:${NC}  Timeout reached. Route '$route_name' did not become live within $timeout seconds."
     return 1
+}
+
+# Function to source the rest api tests and run them.
+run_api_tests() {
+    source "test/scripts/rest.sh"
 }
 
 # Run the deployment tests.
@@ -207,6 +217,7 @@ main() {
     monitoring_crds_installation $MODEL_REGISTRY_CRDS 120
     deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST 20
     run_deployment_tests
+    run_api_tests
 }
 
 # Execute main function
