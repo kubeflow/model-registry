@@ -19,6 +19,7 @@ RUN yum install -y nodejs npm java-11
 # Copy the go source
 COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 
+
 # Download protoc compiler v24.3
 RUN set -ex\
     ; ARCH=$(uname -m) ; echo $ARCH \
@@ -33,14 +34,17 @@ RUN set -ex\
 RUN make deps
 
 # Copy rest of the source
-COPY bin/ bin/
+COPY .git/ .git/
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
-COPY pkg/ pkg/
 COPY scripts/ scripts/
+COPY pkg/ pkg/
 COPY patches/ patches/
 COPY templates/ templates/
+
+# Download tools
+RUN make deps
 
 # Build
 USER root
