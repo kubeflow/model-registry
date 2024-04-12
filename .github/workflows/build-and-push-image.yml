@@ -53,7 +53,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push Image 
         if: env.BUILD_CONTEXT == 'tag'
-        shell: bash
         uses: docker/build-push-action@v3
         with:
           tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
