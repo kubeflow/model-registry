@@ -36,12 +36,12 @@ jobs:
         if: env.BUILD_CONTEXT == 'tag'
         run: |
           echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=kubeflow/model-registry" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{env.IMG_ORG}}/${{env.IMG_REPO}}" >> $GITHUB_ENV
       - name: Set main-branch environment
         if:  env.BUILD_CONTEXT == 'main'
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
-          echo "IMAGE_NAME=kubeflow/model-registry" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{env.IMG_ORG}}/${{env.IMG_REPO}}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -61,14 +61,6 @@ jobs:
           push: true
       - name: Build and Push Latest tag
         if: env.BUILD_CONTEXT == 'main'
-        uses: docker/build-push-action@v3
-        with:
-          tags: ${{ env.IMAGE_NAME }}:latest
-          platforms: linux/amd64,linux/s390x,linux/ppc64le
-          push: true
-      - name: Build and Push main tag
-        if: env.BUILD_CONTEXT == 'main'
-        shell: bash
         uses: docker/build-push-action@v3
         with:
           tags: ${{ env.IMAGE_NAME }}:${{ env.TAG }}

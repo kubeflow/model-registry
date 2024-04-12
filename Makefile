@@ -165,9 +165,10 @@ build/odh: vet
 gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	go generate ./...
 
+# golanci lint takes more time while running under qemu and facing timeout issue "level=error msg="Timeout exceeded: try increasing it by passing --timeout option" 
 .PHONY: lint
 lint:
-	${GOLANGCI_LINT} run main.go
+	${GOLANGCI_LINT} run main.go --timeout 2m
 	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...
 
 .PHONY: test
