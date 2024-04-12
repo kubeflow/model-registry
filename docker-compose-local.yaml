@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 services:
   mlmd-server:
     image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0
@@ -13,8 +13,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["proxy", "--mlmd-hostname", "localhost", "--mlmd-port", "9090"]
+    command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "8080"]
     container_name: model-registry
-    network_mode: host
+    ports:
+      - "8080:8080"
     depends_on:
       - mlmd-server
