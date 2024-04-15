@@ -28,6 +28,8 @@ else
     IMG := ${IMG_ORG}/${IMG_REPO}
 endif
 
+UNAME := $(shell uname -m)
+
 model-registry: build
 
 # clean the ml-metadata protos and trigger a fresh new build which downloads
@@ -96,10 +98,14 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
 	gofmt -w pkg/openapi
 
+# Export cc = gcc to resolve error ( cgo: C compiler "s390x-linux-gnu-gcc" not found: exec: "s390x-linux-gnu-gcc": executable file not found in $PATH )
 .PHONY: vet
 vet:
-	${GO} vet ./...
-
+        ifeq ($(UNAME),s390x)
+         CC=$(which gcc) ${GO} vet ./...
+        else
+         ${GO} vet ./...
+        endif
 .PHONY: clean
 clean:
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
