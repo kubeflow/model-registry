@@ -173,7 +173,7 @@ build/odh: vet
 gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
 
-# golanci lint takes more time while running under qemu and facing timeout issue "level=error msg="Timeout exceeded: try increasing it by passing --timeout option" 
+# golanci lint takes more time while running under qemu and facing timeout issue "level=error msg="Timeout exceeded: try increasing it by passing --timeout option"
 .PHONY: lint
 lint:
 	${GOLANGCI_LINT} run main.go --timeout 2m
@@ -219,13 +219,11 @@ image/build:
 .PHONY: image/push
 image/push:
 	${DOCKER} push ${IMG}:$(IMG_VERSION)
-
-# build and push multi-arch docker image
-PLATFORMS ?= linux/amd64,linux/s390x,linux/ppc64le
+PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 .PHONY: image/buildx
-image/buildx: ## Build and push docker image for cross-platform support
-        # copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ./Dockerfiles/Dockerfile > ./Dockerfiles/Dockerfile.cross
+image/buildx: ## Build and push docker image for the manager for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- $(DOCKER) buildx create --name project-v3-builder
 	$(DOCKER) buildx use project-v3-builder
 	- $(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG}:$(IMG_VERSION) -f Dockerfile.cross .
