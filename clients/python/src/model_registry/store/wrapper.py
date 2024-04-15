@@ -124,7 +124,7 @@ class MLMDStore:
 
     def _filter_type(
         self, type_name: str, protos: Sequence[ProtoType]
-    ) -> Sequence[ProtoType]:
+    ) -> list[ProtoType]:
         return [proto for proto in protos if proto.type == type_name]
 
     def get_context(
@@ -168,9 +168,7 @@ class MLMDStore:
 
         return None
 
-    def get_contexts(
-        self, ctx_type_name: str, options: ListOptions
-    ) -> Sequence[Context]:
+    def get_contexts(self, ctx_type_name: str, options: ListOptions) -> list[Context]:
         """Get contexts from the store.
 
         Args:
@@ -309,9 +307,7 @@ class MLMDStore:
 
         return None
 
-    def get_artifacts(
-        self, art_type_name: str, options: ListOptions
-    ) -> Sequence[Artifact]:
+    def get_artifacts(self, art_type_name: str, options: ListOptions) -> list[Artifact]:
         """Get artifacts from the store.
 
         Args:
