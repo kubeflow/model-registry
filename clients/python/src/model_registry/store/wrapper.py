@@ -177,6 +177,11 @@ class MLMDStore:
 
         Returns:
             Contexts.
+
+        Raises:
+            TypeNotFoundException: If the type doesn't exist.
+            ServerException: If there was an error getting the type.
+            StoreException: Invalid arguments.
         """
         # TODO: should we make options optional?
         # if options is not None:
@@ -193,9 +198,11 @@ class MLMDStore:
         # else:
         #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
 
-        if not contexts:
+        if not contexts and ctx_type_name not in [
+            t.name for t in self._mlmd_store.get_context_types()
+        ]:
             msg = f"Context type {ctx_type_name} does not exist"
-            raise StoreException(msg)
+            raise TypeNotFoundException(msg)
 
         return contexts
 
@@ -316,6 +323,11 @@ class MLMDStore:
 
         Returns:
             Artifacts.
+
+        Raises:
+            TypeNotFoundException: If the type doesn't exist.
+            ServerException: If there was an error getting the type.
+            StoreException: Invalid arguments.
         """
         try:
             artifacts = self._mlmd_store.get_artifacts(options)
@@ -327,8 +339,10 @@ class MLMDStore:
             raise ServerException(msg) from e
 
         artifacts = self._filter_type(art_type_name, artifacts)
-        if not artifacts:
+        if not artifacts and art_type_name not in [
+            t.name for t in self._mlmd_store.get_artifact_types()
+        ]:
             msg = f"Artifact type {art_type_name} does not exist"
-            raise StoreException(msg)
+            raise TypeNotFoundException(msg)
 
         return artifacts
