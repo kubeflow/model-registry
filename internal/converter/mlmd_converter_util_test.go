@@ -570,6 +570,24 @@ func TestMapNameFromOwned(t *testing.T) {
 	assertion.Nil(name)
 }
 
+func TestMapRegisteredModelIdFromOwned(t *testing.T) {
+	assertion := setup(t)
+
+	result, err := MapRegisteredModelIdFromOwned(of("prefix:name"))
+	assertion.Nil(err)
+	assertion.Equal("prefix", result)
+
+	_, err = MapRegisteredModelIdFromOwned(of("name"))
+	assertion.NotNil(err)
+
+	_, err = MapRegisteredModelIdFromOwned(of("prefix:name:postfix"))
+	assertion.NotNil(err)
+
+	result, err = MapRegisteredModelIdFromOwned(nil)
+	assertion.Nil(err)
+	assertion.Equal("", result)
+}
+
 func TestMapArtifactType(t *testing.T) {
 	assertion := setup(t)
 
