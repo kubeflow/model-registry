@@ -302,6 +302,7 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 			pString4 = &xstring4
 		}
 		openapiModelVersion.Author = pString4
+		openapiModelVersion.RegisteredModelId = (*source).RegisteredModelId
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
@@ -636,6 +637,15 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source convert
 		pString2 = &xstring
 	}
 	openapiModelVersion.Name = pString2
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = &source.Existing.RegisteredModelId
+	}
+	var xstring2 string
+	if pString3 != nil {
+		xstring2 = *pString3
+	}
+	openapiModelVersion.RegisteredModelId = xstring2
 	return openapiModelVersion, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source converter.OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error) {
