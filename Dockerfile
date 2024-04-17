@@ -34,7 +34,7 @@ RUN make deps
 
 # Build
 USER root
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
+RUN CGO_ENABLED=1 GOOS=linux make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
