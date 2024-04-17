@@ -1,5 +1,6 @@
 #!/bin/bash
-MR_HOSTNAME="http://$(oc get route modelregistry-sample-http --template='{{.spec.host}}')"
+FLAG_WITH_NAMESPACE=$1
+MR_HOSTNAME="http://$(oc get route modelregistry-sample-http $FLAG_WITH_NAMESPACE --template='{{.spec.host}}')"
 source "openshift-ci/scripts/colour_text_variables.sh"
 
 # Function to send data and extract ID from response

@@ -67,15 +67,16 @@ monitoring_crds_installation() {
 # Function to deploy and wait for deployment
 # The function takes two arguments, reference to manifest and a wait time in seconds.
 deploy_and_wait() {
-    local manifest=$1
+    local namespace=$1
+    local manifest=$2
     local resource_name=$(basename -s .yaml $manifest)
-    local wait_time=$2
+    local wait_time=$3
     
     sleep $wait_time
     
     echo "Deploying $resource_name from $manifest..."
 
-    if oc apply -f $manifest --wait=true --timeout=300s; then
+    if oc apply -f $manifest $namespace --wait=true --timeout=300s; then
         echo -e "${GREEN}✔ Success:${NC} Deployment of $resource_name succeeded."
     else
         echo -e "${RED}X Error:${NC} Deployment of $resource_name failed or timed out." >&2
@@ -193,31 +194,31 @@ check_route_status() {
 
 # Function to source the rest api tests and run them.
 run_api_tests() {
-    source "test/scripts/rest.sh"
+    ./test/scripts/rest.sh "-n opendatahub"
 }
 
 # Run the deployment tests.
 run_deployment_tests() {
-    check_deployment_availability default model-registry-db
-    check_deployment_availability default modelregistry-sample
-    check_pod_status default "-l name=model-registry-db" 1
-    check_pod_status default "-l app=modelregistry-sample" 2
-    check_route_status "default" "modelregistry-sample-http"
+    check_deployment_availability "opendatahub" model-registry-db
+    check_deployment_availability "opendatahub" modelregistry-sample
+    check_pod_status "opendatahub" "-l name=model-registry-db" 1
+    check_pod_status "opendatahub" "-l app=modelregistry-sample" 2
+    check_route_status "opendatahub" "modelregistry-sample-http"
 }
 
 # Main function for orchestrating deployments
 main() {   
-    deploy_and_wait $OPENDATAHUB_SUBSCRIPTION 0
+    deploy_and_wait "" $OPENDATAHUB_SUBSCRIPTION 0
     monitoring_crds_installation $OPENDATAHUB_CRDS 120
-    deploy_and_wait $DSC_INITIALIZATION_MANIFEST 20 
-    deploy_and_wait $DATA_SCIENCE_CLUSTER_MANIFEST 10 
+    deploy_and_wait "" $DSC_INITIALIZATION_MANIFEST 20 
+    deploy_and_wait "" $DATA_SCIENCE_CLUSTER_MANIFEST 10 
     monitoring_crds_installation $DATA_SCIENCE_CLUSTER_CRDS 120
     check_pod_status "opendatahub" "-l component.opendatahub.io/name=model-registry-operator" 2 
-    deploy_and_wait $MODEL_REGISTRY_SAMPLE_MANIFEST 20
+    deploy_and_wait "-n opendatahub" $MODEL_REGISTRY_SAMPLE_MANIFEST 20
     monitoring_crds_installation $MODEL_REGISTRY_CRDS 120
-    deploy_and_wait $MODEL_REGISTRY_DB_MANIFEST 20
+    deploy_and_wait "-n opendatahub" $MODEL_REGISTRY_DB_MANIFEST 20
     run_deployment_tests
-    run_api_tests
+    run_api_tests "-n opendatahub"
 }
 
 # Execute main function
