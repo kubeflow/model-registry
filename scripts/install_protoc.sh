@@ -11,7 +11,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 ARCH=$(uname -m)
 if [[ "$ARCH" == "arm"* ]]; then
-  ARCH="aarch_64"
+  ARCH="aarch_64" # Mac
+elif [[ "$ARCH" == "aarch64" ]]; then
+  ARCH="aarch_64" # Linux/container
 elif [[ "$ARCH" == "s390x" ]]; then
   ARCH="s390_64"
 elif [[ "$ARCH" == "ppc64le" ]] ; then
