@@ -17,6 +17,7 @@ from model_registry.exceptions import (
     TypeNotFoundException,
 )
 from model_registry.store import MLMDStore
+from model_registry.types.options import MLMDListOptions
 
 
 @pytest.fixture()
@@ -51,6 +52,28 @@ def test_get_undefined_artifact_type_id(plain_wrapper: MLMDStore):
 def test_get_undefined_context_type_id(plain_wrapper: MLMDStore):
     with pytest.raises(TypeNotFoundException):
         plain_wrapper.get_type_id(Context, "undefined")
+
+
+@pytest.mark.usefixtures("artifact")
+def test_get_no_artifacts(plain_wrapper: MLMDStore):
+    arts = plain_wrapper.get_artifacts("test_artifact", MLMDListOptions())
+    assert arts == []
+
+
+def test_get_undefined_artifacts(plain_wrapper: MLMDStore):
+    with pytest.raises(TypeNotFoundException):
+        plain_wrapper.get_artifacts("undefined", MLMDListOptions())
+
+
+@pytest.mark.usefixtures("context")
+def test_get_no_contexts(plain_wrapper: MLMDStore):
+    ctxs = plain_wrapper.get_contexts("test_context", MLMDListOptions())
+    assert ctxs == []
+
+
+def test_get_undefined_contexts(plain_wrapper: MLMDStore):
+    with pytest.raises(TypeNotFoundException):
+        plain_wrapper.get_contexts("undefined", MLMDListOptions())
 
 
 def test_put_invalid_artifact(plain_wrapper: MLMDStore, artifact: Artifact):

@@ -1,7 +1,6 @@
 """Client for the model registry."""
-from __future__ import annotations
 
-from collections.abc import Sequence
+from __future__ import annotations
 
 from ml_metadata.proto import MetadataStoreClientConfig
 
@@ -130,7 +129,7 @@ class ModelRegistryAPIClient:
 
     def get_registered_models(
         self, options: ListOptions | None = None
-    ) -> Sequence[RegisteredModel]:
+    ) -> list[RegisteredModel]:
         """Fetch registered models.
 
         Args:
@@ -194,7 +193,7 @@ class ModelRegistryAPIClient:
 
     def get_model_versions(
         self, registered_model_id: str, options: ListOptions | None = None
-    ) -> Sequence[ModelVersion]:
+    ) -> list[ModelVersion]:
         """Fetch model versions by registered model ID.
 
         Args:
@@ -344,7 +343,7 @@ class ModelRegistryAPIClient:
         self,
         model_version_id: str | None = None,
         options: ListOptions | None = None,
-    ) -> Sequence[ModelArtifact]:
+    ) -> list[ModelArtifact]:
         """Fetches model artifacts.
 
         Args:
