@@ -1047,11 +1047,10 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ModelVersionUpdate"
-        - type: object
-          properties:
-            registeredModelId:
-              description: ID of the `RegisteredModel` to which this version belongs.
-              type: string
+      properties:
+        registeredModelId:
+          description: ID of the `RegisteredModel` to which this version belongs.
+          type: string
     ModelVersionUpdate:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       allOf:

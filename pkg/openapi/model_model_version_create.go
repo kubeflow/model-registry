@@ -19,6 +19,8 @@ var _ MappedNullable = &ModelVersionCreate{}
 
 // ModelVersionCreate Represents a ModelVersion belonging to a RegisteredModel.
 type ModelVersionCreate struct {
+	// ID of the `RegisteredModel` to which this version belongs.
+	RegisteredModelId string `json:"registeredModelId"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -30,8 +32,6 @@ type ModelVersionCreate struct {
 	State *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
-	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelId string `json:"registeredModelId"`
 }
 
 // NewModelVersionCreate instantiates a new ModelVersionCreate object
@@ -42,7 +42,6 @@ func NewModelVersionCreate(registeredModelId string) *ModelVersionCreate {
 	this := ModelVersionCreate{}
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
-	this.RegisteredModelId = registeredModelId
 	return &this
 }
 
@@ -54,6 +53,30 @@ func NewModelVersionCreateWithDefaults() *ModelVersionCreate {
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
 	return &this
+}
+
+// GetRegisteredModelId returns the RegisteredModelId field value
+func (o *ModelVersionCreate) GetRegisteredModelId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.RegisteredModelId
+}
+
+// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
+// and a boolean to check if the value has been set.
+func (o *ModelVersionCreate) GetRegisteredModelIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.RegisteredModelId, true
+}
+
+// SetRegisteredModelId sets field value
+func (o *ModelVersionCreate) SetRegisteredModelId(v string) {
+	o.RegisteredModelId = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -248,30 +271,6 @@ func (o *ModelVersionCreate) SetAuthor(v string) {
 	o.Author = &v
 }
 
-// GetRegisteredModelId returns the RegisteredModelId field value
-func (o *ModelVersionCreate) GetRegisteredModelId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.RegisteredModelId
-}
-
-// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
-// and a boolean to check if the value has been set.
-func (o *ModelVersionCreate) GetRegisteredModelIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.RegisteredModelId, true
-}
-
-// SetRegisteredModelId sets field value
-func (o *ModelVersionCreate) SetRegisteredModelId(v string) {
-	o.RegisteredModelId = v
-}
-
 func (o ModelVersionCreate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -282,6 +281,7 @@ func (o ModelVersionCreate) MarshalJSON() ([]byte, error) {
 
 func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["registeredModelId"] = o.RegisteredModelId
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -300,7 +300,6 @@ func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Author) {
 		toSerialize["author"] = o.Author
 	}
-	toSerialize["registeredModelId"] = o.RegisteredModelId
 	return toSerialize, nil
 }
 

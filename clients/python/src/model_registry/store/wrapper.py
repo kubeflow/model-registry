@@ -124,7 +124,7 @@ class MLMDStore:
 
     def _filter_type(
         self, type_name: str, protos: Sequence[ProtoType]
-    ) -> list[ProtoType]:
+    ) -> Sequence[ProtoType]:
         return [proto for proto in protos if proto.type == type_name]
 
     def get_context(
@@ -168,7 +168,9 @@ class MLMDStore:
 
         return None
 
-    def get_contexts(self, ctx_type_name: str, options: ListOptions) -> list[Context]:
+    def get_contexts(
+        self, ctx_type_name: str, options: ListOptions
+    ) -> Sequence[Context]:
         """Get contexts from the store.
 
         Args:
@@ -177,11 +179,6 @@ class MLMDStore:
 
         Returns:
             Contexts.
-
-        Raises:
-            TypeNotFoundException: If the type doesn't exist.
-            ServerException: If there was an error getting the type.
-            StoreException: Invalid arguments.
         """
         # TODO: should we make options optional?
         # if options is not None:
@@ -198,11 +195,9 @@ class MLMDStore:
         # else:
         #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
 
-        if not contexts and ctx_type_name not in [
-            t.name for t in self._mlmd_store.get_context_types()
-        ]:
+        if not contexts:
             msg = f"Context type {ctx_type_name} does not exist"
-            raise TypeNotFoundException(msg)
+            raise StoreException(msg)
 
         return contexts
 
@@ -314,7 +309,9 @@ class MLMDStore:
 
         return None
 
-    def get_artifacts(self, art_type_name: str, options: ListOptions) -> list[Artifact]:
+    def get_artifacts(
+        self, art_type_name: str, options: ListOptions
+    ) -> Sequence[Artifact]:
         """Get artifacts from the store.
 
         Args:
@@ -323,11 +320,6 @@ class MLMDStore:
 
         Returns:
             Artifacts.
-
-        Raises:
-            TypeNotFoundException: If the type doesn't exist.
-            ServerException: If there was an error getting the type.
-            StoreException: Invalid arguments.
         """
         try:
             artifacts = self._mlmd_store.get_artifacts(options)
@@ -339,10 +331,8 @@ class MLMDStore:
             raise ServerException(msg) from e
 
         artifacts = self._filter_type(art_type_name, artifacts)
-        if not artifacts and art_type_name not in [
-            t.name for t in self._mlmd_store.get_artifact_types()
-        ]:
+        if not artifacts:
             msg = f"Artifact type {art_type_name} does not exist"
-            raise TypeNotFoundException(msg)
+            raise StoreException(msg)
 
         return artifacts

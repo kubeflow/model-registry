@@ -17,7 +17,6 @@ As a MLOps engineer I would like to store Model name
           And Should be equal    ${r["name"]}    ${name}
     ${r}  Then I get ModelVersionByID    id=${vId}
           And Should be equal    ${r["name"]}    v1
-          And Should be equal    ${r["registeredModelId"]}    ${rId}
     ${r}  Then I get ModelArtifactByID    id=${aId}
           And Should be equal    ${r["uri"]}    s3://12345
 

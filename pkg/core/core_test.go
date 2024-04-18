@@ -970,7 +970,6 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
-	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
 
 	suite.NotNilf(createdVersion.Id, "created model version should not have nil Id")
 
@@ -1046,7 +1045,6 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 
 	updatedVersion, err := service.UpsertModelVersion(createdVersion, &registeredModelId)
 	suite.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
-	suite.Equal((*updatedVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
 
 	updateVersionId, _ := converter.StringToInt64(updatedVersion.Id)
 	suite.Equal(*createdVersionId, *updateVersionId, "created and updated model version should have same id")

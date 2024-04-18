@@ -108,18 +108,6 @@ func MapPropertyAuthor(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "author")
 }
 
-func MapRegisteredModelIdFromOwned(source *string) (string, error) {
-	if source == nil {
-		return "", nil
-	}
-
-	exploded := strings.Split(*source, ":")
-	if len(exploded) != 2 {
-		return "", fmt.Errorf("wrong owned format")
-	}
-	return exploded[0], nil
-}
-
 // ARTIFACT
 
 func MapArtifactType(source *proto.Artifact) (string, error) {

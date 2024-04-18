@@ -22,7 +22,7 @@ type OpenAPIConverter interface {
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertModelVersionCreate(source *openapi.ModelVersionCreate) (*openapi.ModelVersion, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name RegisteredModelId
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
 	ConvertModelVersionUpdate(source *openapi.ModelVersionUpdate) (*openapi.ModelVersion, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType

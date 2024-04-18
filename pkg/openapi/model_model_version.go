@@ -30,8 +30,6 @@ type ModelVersion struct {
 	State *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
-	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelId string `json:"registeredModelId"`
 	// Output only. The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
@@ -44,11 +42,10 @@ type ModelVersion struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelVersion(registeredModelId string) *ModelVersion {
+func NewModelVersion() *ModelVersion {
 	this := ModelVersion{}
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
-	this.RegisteredModelId = registeredModelId
 	return &this
 }
 
@@ -254,30 +251,6 @@ func (o *ModelVersion) SetAuthor(v string) {
 	o.Author = &v
 }
 
-// GetRegisteredModelId returns the RegisteredModelId field value
-func (o *ModelVersion) GetRegisteredModelId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.RegisteredModelId
-}
-
-// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
-// and a boolean to check if the value has been set.
-func (o *ModelVersion) GetRegisteredModelIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.RegisteredModelId, true
-}
-
-// SetRegisteredModelId sets field value
-func (o *ModelVersion) SetRegisteredModelId(v string) {
-	o.RegisteredModelId = v
-}
-
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *ModelVersion) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -402,7 +375,6 @@ func (o ModelVersion) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Author) {
 		toSerialize["author"] = o.Author
 	}
-	toSerialize["registeredModelId"] = o.RegisteredModelId
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
