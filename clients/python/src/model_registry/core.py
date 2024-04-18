@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from warnings import warn
 
-from ml_metadata.proto import MetadataStoreClientConfig
+import grpc
 
 from .exceptions import StoreException
 from .store import MLMDStore, ProtoType
 from .types import ListOptions, ModelArtifact, ModelVersion, RegisteredModel
 from .types.base import ProtoBase
 from .types.options import MLMDListOptions
+from .utils import header_adder_interceptor
 
 
 class ModelRegistryAPIClient:
@@ -21,16 +23,25 @@ class ModelRegistryAPIClient:
         self,
         server_address: str,
         port: int = 443,
+        user_token: bytes | None = None,
         custom_ca: bytes | None = None,
     ):
         """Constructor.
 
         Args:
             server_address: Server address.
-            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
             port: Server port. Defaults to 443.
+            user_token: The PEM-encoded user token as a byte string. Defaults to envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
         """
-        config = MetadataStoreClientConfig()
+        if not user_token:
+            # /var/run/secrets/kubernetes.io/serviceaccount/token
+            sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
+            if sa_token:
+                user_token = Path(sa_token).read_bytes()
+            else:
+                warn("User access token is missing", stacklevel=2)
+
         if port == 443:
             if not custom_ca:
                 ca_cert = os.environ.get("CERT")
@@ -40,11 +51,29 @@ class ModelRegistryAPIClient:
                 root_certs = Path(ca_cert).read_bytes()
             else:
                 root_certs = custom_ca
+            chan_creds = grpc.ssl_channel_credentials(root_certs)
 
-            config.ssl_config.custom_ca = root_certs
-        config.host = server_address
-        config.port = port
-        self._store = MLMDStore(config)
+            if user_token:
+                call_creds = grpc.access_token_call_credentials(user_token)
+                chan_creds = grpc.composite_channel_credentials(
+                    chan_creds,
+                    call_creds,
+                )
+
+            chan = grpc.secure_channel(
+                f"{server_address}:443",
+                chan_creds,
+            )
+        elif user_token:
+            chan = grpc.intercept_channel(
+                grpc.insecure_channel(f"{server_address}:{port}"),
+                # header key has to be lowercase
+                header_adder_interceptor("authorization", f"Bearer {user_token}"),
+            )
+        else:
+            chan = grpc.insecure_channel(f"{server_address}:{port}")
+
+        self._store = MLMDStore.from_channel(chan)
 
     def _map(self, py_obj: ProtoBase) -> ProtoType:
         """Map a Python object to a proto object.

@@ -20,6 +20,7 @@ class ModelRegistry:
         port: int = 443,
         *,
         author: str,
+        user_token: bytes | None = None,
         custom_ca: bytes | None = None,
     ):
         """Constructor.
@@ -27,15 +28,15 @@ class ModelRegistry:
         Args:
             server_address: Server address.
             port: Server port. Defaults to 443.
-            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
 
         Keyword Args:
             author: Name of the author.
+            user_token: The PEM-encoded user token as a byte string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
             custom_ca: The PEM-encoded root certificates as a byte string. Defaults to contents of path on envvar CERT.
         """
         # TODO: get args from env
         self._author = author
-        self._api = ModelRegistryAPIClient(server_address, port, custom_ca)
+        self._api = ModelRegistryAPIClient(server_address, port, user_token, custom_ca)
 
     def _register_model(self, name: str) -> RegisteredModel:
         if rm := self._api.get_registered_model_by_params(name):
