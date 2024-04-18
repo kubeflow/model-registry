@@ -17,27 +17,25 @@ class ModelRegistry:
     def __init__(
         self,
         server_address: str,
-        port: int,
+        port: int = 443,
+        *,
         author: str,
-        client_key: str | None = None,
-        server_cert: str | None = None,
-        custom_ca: str | None = None,
+        custom_ca: bytes | None = None,
     ):
         """Constructor.
 
         Args:
             server_address: Server address.
-            port: Server port.
+            port: Server port. Defaults to 443.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
+
+        Keyword Args:
             author: Name of the author.
-            client_key: The PEM-encoded private key as a byte string.
-            server_cert: The PEM-encoded certificate as a byte string.
-            custom_ca: The PEM-encoded root certificates as a byte string.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to contents of path on envvar CERT.
         """
         # TODO: get args from env
         self._author = author
-        self._api = ModelRegistryAPIClient(
-            server_address, port, client_key, server_cert, custom_ca
-        )
+        self._api = ModelRegistryAPIClient(server_address, port, custom_ca)
 
     def _register_model(self, name: str) -> RegisteredModel:
         if rm := self._api.get_registered_model_by_params(name):

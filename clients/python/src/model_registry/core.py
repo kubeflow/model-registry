@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from ml_metadata.proto import MetadataStoreClientConfig
 
 from .exceptions import StoreException
@@ -17,29 +20,30 @@ class ModelRegistryAPIClient:
     def __init__(
         self,
         server_address: str,
-        port: int,
-        client_key: str | None = None,
-        server_cert: str | None = None,
-        custom_ca: str | None = None,
+        port: int = 443,
+        custom_ca: bytes | None = None,
     ):
         """Constructor.
 
         Args:
             server_address: Server address.
-            port: Server port.
-            client_key: The PEM-encoded private key as a byte string.
-            server_cert: The PEM-encoded certificate as a byte string.
-            custom_ca: The PEM-encoded root certificates as a byte string.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
+            port: Server port. Defaults to 443.
         """
         config = MetadataStoreClientConfig()
+        if port == 443:
+            if not custom_ca:
+                ca_cert = os.environ.get("CERT")
+                if not ca_cert:
+                    msg = "CA certificate must be provided"
+                    raise StoreException(msg)
+                root_certs = Path(ca_cert).read_bytes()
+            else:
+                root_certs = custom_ca
+
+            config.ssl_config.custom_ca = root_certs
         config.host = server_address
         config.port = port
-        if client_key is not None:
-            config.ssl_config.client_key = client_key
-        if server_cert is not None:
-            config.ssl_config.server_cert = server_cert
-        if custom_ca is not None:
-            config.ssl_config.custom_ca = custom_ca
         self._store = MLMDStore(config)
 
     def _map(self, py_obj: ProtoBase) -> ProtoType:
