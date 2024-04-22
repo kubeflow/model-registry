@@ -129,11 +129,22 @@ class RegisteredModel(BaseContext):
 
     Attributes:
         name: Registered model name.
+        owner: Owner of this Registered Model.
         description: Description of the object.
         external_id: Customizable ID. Has to be unique among instances of the same type.
     """
 
     name: str
+    owner: str = None
+
+    @override
+    def map(self, type_id: int) -> Context:
+        mlmd_obj = super().map(type_id)
+        props = {
+            "owner": self.owner
+        }
+        self._map_props(props, mlmd_obj.properties)
+        return mlmd_obj
 
     @classmethod
     @override
@@ -142,4 +153,5 @@ class RegisteredModel(BaseContext):
         assert isinstance(
             py_obj, RegisteredModel
         ), f"Expected RegisteredModel, got {type(py_obj)}"
+        py_obj.owner = mlmd_obj.properties["owner"].string_value
         return py_obj

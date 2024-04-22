@@ -6,7 +6,7 @@ Todo:
 
 import pytest
 from ml_metadata.proto import Context
-from model_registry.types import ContextState, ModelVersion
+from model_registry.types import ContextState, ModelVersion, RegisteredModel
 
 from .. import Mapped
 
@@ -95,3 +95,40 @@ def test_full_model_version_unmapping(full_model_version: Mapped):
     assert unmapped_version.author == py_version.author
     assert unmapped_version.state == py_version.state
     assert unmapped_version.metadata == py_version.metadata
+
+
+@pytest.fixture()
+def minimal_registered_model() -> Mapped:
+    proto_version = Context(
+        name="mnist",
+        type_id=1,
+        external_id="test_external_id")
+    proto_version.properties["description"].string_value = "test description"
+    proto_version.properties["state"].string_value = "LIVE"
+    proto_version.properties["owner"].string_value = "my owner"
+
+    py_regmodel = RegisteredModel(name="mnist",
+        owner="my owner", 
+        external_id="test_external_id",
+        description="test description")
+    return Mapped(proto_version, py_regmodel)
+
+
+def test_minimal_registered_model_mapping(minimal_registered_model: Mapped):
+    mapped_version = minimal_registered_model.py.map(1)
+    proto_version = minimal_registered_model.proto
+    assert mapped_version.name == proto_version.name
+    assert mapped_version.type_id == proto_version.type_id
+    assert mapped_version.external_id == proto_version.external_id
+    assert mapped_version.properties == proto_version.properties
+    assert mapped_version.custom_properties == proto_version.custom_properties
+
+
+def test_minimal_registered_model_unmapping(minimal_registered_model: Mapped):
+    unmapped_regmodel = RegisteredModel.unmap(minimal_registered_model.proto)
+    py_regmodel = minimal_registered_model.py
+    assert unmapped_regmodel.name == py_regmodel.name
+    assert unmapped_regmodel.owner == py_regmodel.owner
+    assert unmapped_regmodel.description == py_regmodel.description
+    assert unmapped_regmodel.external_id == py_regmodel.external_id
+    assert unmapped_regmodel.state == py_regmodel.state

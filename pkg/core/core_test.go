@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -89,7 +91,7 @@ func (suite *CoreTestSuite) SetupTest() {
 	modelDescription = "reg model description"
 	modelOwner = "reg model owner"
 	modelExternalId = "org.myawesomemodel"
-	myCustomProp = "owner"
+	myCustomProp = "myCustomPropValue"
 	modelVersionName = "v1"
 	modelVersionDescription = "model version description"
 	versionExternalId = "org.myawesomemodel@v1"
@@ -104,6 +106,22 @@ func (suite *CoreTestSuite) SetupTest() {
 	entityExternalId2 = "entityExternalID2"
 	entityDescription = "lorem ipsum entity description"
 	executionState = "RUNNING"
+
+	// sanity check before each test: connect to MLMD directly, and dry-run any of the gRPC (read) operations;
+	// on newer Podman might delay in recognising volume mount files for sqlite3 db,
+	// hence in case of error "Cannot connect sqlite3 database: unable to open database file" make some retries.
+	maxRetries := 3
+	var err error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		_, err = suite.mlmdClient.GetContextTypes(context.Background(), &proto.GetContextTypesRequest{})
+		if err == nil {
+			break
+		} else if !strings.Contains(err.Error(), "Cannot connect sqlite3 database: unable to open database file") {
+			break // err is different than expected
+		}
+		time.Sleep(1 * time.Second)
+	}
+	suite.Nilf(err, "error connecting to MLMD and dry-run any of the gRPC operations: %v", err)
 }
 
 // after each test
@@ -619,6 +637,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
 		Name:       &modelName,
+		Owner:      &modelOwner,
 		ExternalId: &modelExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"myCustomProp": {
@@ -643,10 +662,16 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// update existing model
 	newModelExternalId := "newExternalId"
 	newOwner := "newOwner"
+	newCustomProp := "updated myCustomProp"
 
 	createdModel.ExternalId = &newModelExternalId
+	createdModel.Owner = &newOwner
+	(*createdModel.CustomProperties)["myCustomProp"] = openapi.MetadataValue{
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
+	}
+	// check can also define customProperty of name "owner", in addition to built-in property "owner"
 	(*createdModel.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
 	}
 
 	// update the model
@@ -668,7 +693,9 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	suite.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newOwner, ctx.Properties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["owner"].GetStringValue(), "check can define custom property 'onwer' and should match the provided one")
 
 	// update the model keeping nil name
 	newModelExternalId = "newNewExternalId"
@@ -692,7 +719,9 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	suite.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newOwner, ctx.Properties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["owner"].GetStringValue(), "check can define custom property 'onwer' and should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelById() {
@@ -974,7 +1003,7 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
-	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
+	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
 
 	suite.NotNilf(createdVersion.Id, "created model version should not have nil Id")
 
@@ -1050,7 +1079,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 
 	updatedVersion, err := service.UpsertModelVersion(createdVersion, &registeredModelId)
 	suite.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
-	suite.Equal((*updatedVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
+	suite.Equal((*updatedVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
 
 	updateVersionId, _ := converter.StringToInt64(updatedVersion.Id)
 	suite.Equal(*createdVersionId, *updateVersionId, "created and updated model version should have same id")
@@ -1981,7 +2010,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 		Name:       &entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
+			"myCustomProp": {
 				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
@@ -2002,11 +2031,11 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 
 	// update existing entity
 	newExternalId := "newExternalId"
-	newOwner := "newOwner"
+	newCustomProp := "newCustomProp"
 
 	createdEntity.ExternalId = &newExternalId
-	(*createdEntity.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
+	(*createdEntity.CustomProperties)["myCustomProp"] = openapi.MetadataValue{
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
 	}
 
 	// update the entity
@@ -2028,7 +2057,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	suite.Equal(*createdEntity.Id, *ctxId, "returned entity id should match the mlmd one")
 	suite.Equal(entityName, *ctx.Name, "saved entity name should match the provided one")
 	suite.Equal(newExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	// update the entity under test, keeping nil name
 	newExternalId = "newNewExternalId"
@@ -2052,7 +2081,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	suite.Equal(*createdEntity.Id, *ctxId, "returned entity id should match the mlmd one")
 	suite.Equal(entityName, *ctx.Name, "saved entity name should match the provided one")
 	suite.Equal(newExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
@@ -2064,7 +2093,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 		Name:       &entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
+			"myCustomProp": {
 				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
