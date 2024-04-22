@@ -33,6 +33,6 @@ spec:
     ray:
       managementState: Removed
     trustyai:
-      managementState: Managed
+      managementState: Removed
     workbenches:
       managementState: Managed
