@@ -26,8 +26,9 @@ var (
 	// registered models
 	modelName        string
 	modelDescription string
+	modelOwner       string
 	modelExternalId  string
-	owner            string
+	myCustomProp     string
 	// model version
 	modelVersionName        string
 	modelVersionDescription string
@@ -86,8 +87,9 @@ func (suite *CoreTestSuite) SetupTest() {
 	customString = "this is a customString value"
 	modelName = "MyAwesomeModel"
 	modelDescription = "reg model description"
+	modelOwner = "reg model owner"
 	modelExternalId = "org.myawesomemodel"
-	owner = "owner"
+	myCustomProp = "owner"
 	modelVersionName = "v1"
 	modelVersionDescription = "model version description"
 	versionExternalId = "org.myawesomemodel@v1"
@@ -131,8 +133,8 @@ func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, override
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -161,8 +163,8 @@ func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistry
 		ExternalId:  &eutExtID,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -225,8 +227,8 @@ func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryAp
 		RegisteredModelId:    registerdModelId,
 		ServingEnvironmentId: servingEnvironmentId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -348,7 +350,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	})
 	suite.NotNilf(regModelResp.ContextType, "registered model type %s should exists", *registeredModelTypeName)
 	suite.Equal(*registeredModelTypeName, *regModelResp.ContextType.Name)
-	suite.Equal(2, len(regModelResp.ContextType.Properties))
+	suite.Equal(3, len(regModelResp.ContextType.Properties))
 
 	modelVersionResp, _ = suite.mlmdClient.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: modelVersionTypeName,
@@ -573,10 +575,11 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 		Name:        &modelName,
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
+		Owner:       &modelOwner,
 		State:       &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -600,8 +603,9 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(modelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
 	suite.Equal(modelDescription, ctx.Properties["description"].GetStringValue(), "saved description should match the provided one")
+	suite.Equal(modelOwner, ctx.Properties["owner"].GetStringValue(), "saved owner should match the provided one")
 	suite.Equal(string(state), ctx.Properties["state"].GetStringValue(), "saved state should match the provided one")
-	suite.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(myCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	getAllResp, err := suite.mlmdClient.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	suite.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
@@ -617,8 +621,8 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 		Name:       &modelName,
 		ExternalId: &modelExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -702,8 +706,8 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 		ExternalId: &modelExternalId,
 		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -1936,8 +1940,8 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 		ExternalId:  &entityExternalId,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -1961,7 +1965,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 	suite.Equal(entityName, *ctx.Name, "saved name should match the provided one")
 	suite.Equal(entityExternalId, *ctx.ExternalId, "saved external id should match the provided one")
 	suite.Equal(entityDescription, ctx.Properties["description"].GetStringValue(), "saved description should match the provided one")
-	suite.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(myCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	getAllResp, err := suite.mlmdClient.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	suite.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
@@ -1978,7 +1982,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -2061,7 +2065,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}

@@ -173,6 +173,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Contex
 		openapiRegisteredModel.Id = converter.Int64ToString((*source).Id)
 		openapiRegisteredModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiRegisteredModel.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		openapiRegisteredModel.Owner = converter.MapOwner((*source).Properties)
 		openapiRegisteredModel.State = converter.MapRegisteredModelState((*source).Properties)
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
