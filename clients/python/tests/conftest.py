@@ -103,8 +103,8 @@ def set_type_attrs(mlmd_obj: ProtoTypeType, name: str, props: list[str]):
 
 def sanity_check_mlmd_connection_to_db(overview: MLMDStore):
     # sanity check before each test: connect to MLMD directly, and dry-run any of the gRPC (read) operations;
-	# on newer Podman might delay in recognising volume mount files for sqlite3 db,
-	# hence in case of error "Cannot connect sqlite3 database: unable to open database file" make some retries.
+    # on newer Podman might delay in recognising volume mount files for sqlite3 db,
+    # hence in case of error "Cannot connect sqlite3 database: unable to open database file" make some retries.
     retry_count = 0
     while retry_count < 3:
         retry_count += 1
@@ -115,8 +115,10 @@ def sanity_check_mlmd_connection_to_db(overview: MLMDStore):
             if str(e) == "Cannot connect sqlite3 database: unable to open database file":
                 time.sleep(1)
             else:
-                raise RuntimeError(f"Failed to sanity check before each test, another type of error detected: {str(e)}")
-    raise RuntimeError(f"Failed to sanity check before each test.")
+                msg = "Failed to sanity check before each test, another type of error detected."
+                raise RuntimeError(msg) from e
+    msg = "Failed to sanity check before each test."
+    raise RuntimeError(msg)
 
 
 @pytest.fixture()

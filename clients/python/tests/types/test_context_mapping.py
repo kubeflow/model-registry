@@ -108,7 +108,7 @@ def minimal_registered_model() -> Mapped:
     proto_version.properties["owner"].string_value = "my owner"
 
     py_regmodel = RegisteredModel(name="mnist",
-        owner="my owner", 
+        owner="my owner",
         external_id="test_external_id",
         description="test description")
     return Mapped(proto_version, py_regmodel)
