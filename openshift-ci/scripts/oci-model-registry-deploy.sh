@@ -179,7 +179,7 @@ check_route_status() {
             echo -e "${GREEN}✔ Success:${NC} Route server is reachable. Status code: 200 OK"
             return 0
         elif [[ "$response" == "404" ]]; then
-            echo -e "${GREEN}✔ Success:${NC} Route server is reachable. Status code: 404 Not Found"
+            echo -e "${YELLOW}! WARNING:${NC} Route server is reachable, but service is not. Status code: 404 Not Found"
             return 0
         else
             echo -e "${RED}X Error:${NC}  Route server is unreachable. Status code: $response"
