@@ -25,7 +25,7 @@ post_model_registry_data() {
   timestamp=$(date +"%Y%m%d%H%M%S")
   rm_name="demo-$timestamp"
 
-  rm_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/registered_models" '{
+  rm_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models" '{
     "description": "lorem ipsum registered model",
     "name": "'"$rm_name"'"
   }')
@@ -37,7 +37,7 @@ post_model_registry_data() {
     echo -e "${GREEN}✔ Success:${NC} Registered Model ID: $rm_id"
   fi
 
-  mv_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions" '{
+  mv_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" '{
     "description": "lorem ipsum model version",
     "name": "v1",
     "author": "John Doe",
@@ -52,7 +52,7 @@ post_model_registry_data() {
   fi
 
   RAW_ML_MODEL_URI='https://huggingface.co/tarilabs/mnist/resolve/v1.nb20231206162408/mnist.onnx'
-  ma_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha2/model_versions/$mv_id/artifacts" '{
+  ma_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" '{
     "description": "lorem ipsum model artifact",
     "uri": "'"$RAW_ML_MODEL_URI"'",
     "name": "mnist",
@@ -103,7 +103,7 @@ EOF
 # Function to test Inference Service
 # TODO this will continue once we have MC PR merged from: https://github.com/opendatahub-io/odh-model-controller/pull/135
 inference_service() {
-  iss_mr=$(curl -s -X 'GET' "$MR_HOSTNAME/api/model_registry/v1alpha2/inference_services" \
+  iss_mr=$(curl -s -X 'GET' "$MR_HOSTNAME/api/model_registry/v1alpha3/inference_services" \
     -H 'accept: application/json')
 
     if [ $? -ne 0 ]; then

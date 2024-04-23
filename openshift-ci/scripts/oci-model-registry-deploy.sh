@@ -172,7 +172,7 @@ check_route_status() {
         fi
 
         # Test if the route is live
-        local response=$(curl -s -o /dev/null -w "%{http_code}" "$route_url/api/model_registry/v1alpha2/registered_models")
+        local response=$(curl -s -o /dev/null -w "%{http_code}" "$route_url/api/model_registry/v1alpha3/registered_models")
 
         # Check if the response status code is 200 OK or 404 Not Found
         if [[ "$response" == "200" ]]; then
