@@ -56,48 +56,48 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 	}
 	registeredModelResp, err := client.GetContextType(context.Background(), &registeredModelContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.RegisteredModelTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.RegisteredModelTypeName, err)
 	}
 	modelVersionContextTypeReq := proto.GetContextTypeRequest{
 		TypeName: &nameConfig.ModelVersionTypeName,
 	}
 	modelVersionResp, err := client.GetContextType(context.Background(), &modelVersionContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.ModelVersionTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ModelVersionTypeName, err)
 	}
 	docArtifactResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
 		TypeName: &nameConfig.DocArtifactTypeName,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error getting artifact type %s: %v", nameConfig.DocArtifactTypeName, err)
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.DocArtifactTypeName, err)
 	}
 	modelArtifactArtifactTypeReq := proto.GetArtifactTypeRequest{
 		TypeName: &nameConfig.ModelArtifactTypeName,
 	}
 	modelArtifactResp, err := client.GetArtifactType(context.Background(), &modelArtifactArtifactTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting artifact type %s: %v", nameConfig.ModelArtifactTypeName, err)
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.ModelArtifactTypeName, err)
 	}
 	servingEnvironmentContextTypeReq := proto.GetContextTypeRequest{
 		TypeName: &nameConfig.ServingEnvironmentTypeName,
 	}
 	servingEnvironmentResp, err := client.GetContextType(context.Background(), &servingEnvironmentContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.ServingEnvironmentTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ServingEnvironmentTypeName, err)
 	}
 	inferenceServiceContextTypeReq := proto.GetContextTypeRequest{
 		TypeName: &nameConfig.InferenceServiceTypeName,
 	}
 	inferenceServiceResp, err := client.GetContextType(context.Background(), &inferenceServiceContextTypeReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting context type %s: %v", nameConfig.InferenceServiceTypeName, err)
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.InferenceServiceTypeName, err)
 	}
 	serveModelExecutionReq := proto.GetExecutionTypeRequest{
 		TypeName: &nameConfig.ServeModelTypeName,
 	}
 	serveModelResp, err := client.GetExecutionType(context.Background(), &serveModelExecutionReq)
 	if err != nil {
-		return nil, fmt.Errorf("error getting execution type %s: %v", nameConfig.ServeModelTypeName, err)
+		return nil, fmt.Errorf("error getting execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
 	typesMap := map[string]int64{
@@ -176,11 +176,11 @@ func (serv *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Re
 	}
 
 	if len(getByIdResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple registered models found for id %s", id)
+		return nil, fmt.Errorf("multiple registered models found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getByIdResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no registered model found for id %s", id)
+		return nil, fmt.Errorf("no registered model found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getByIdResp.Contexts[0])
@@ -217,11 +217,11 @@ func (serv *ModelRegistryService) getRegisteredModelByVersionId(id string) (*ope
 	}
 
 	if len(getParentResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple registered models found for model version %s", id)
+		return nil, fmt.Errorf("multiple registered models found for model version %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getParentResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no registered model found for model version %s", id)
+		return nil, fmt.Errorf("no registered model found for model version %s: %w", id, api.ErrNotFound)
 	}
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getParentResp.Contexts[0])
@@ -243,7 +243,7 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 	} else if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
 	} else {
-		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId")
+		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
 	}
 	glog.Info("filterQuery ", filterQuery)
 
@@ -258,11 +258,11 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 	}
 
 	if len(getByParamsResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(getByParamsResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no registered models found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no registered models found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getByParamsResp.Contexts[0])
@@ -317,7 +317,7 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 		// create
 		glog.Info("Creating new model version")
 		if registeredModelId == nil {
-			return nil, fmt.Errorf("missing registered model id, cannot create model version without registered model")
+			return nil, fmt.Errorf("missing registered model id, cannot create model version without registered model: %w", api.ErrBadRequest)
 		}
 		registeredModel, err = serv.GetRegisteredModelById(*registeredModelId)
 		if err != nil {
@@ -400,11 +400,11 @@ func (serv *ModelRegistryService) GetModelVersionById(id string) (*openapi.Model
 	}
 
 	if len(getByIdResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple model versions found for id %s", id)
+		return nil, fmt.Errorf("multiple model versions found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getByIdResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no model version found for id %s", id)
+		return nil, fmt.Errorf("no model version found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByIdResp.Contexts[0])
@@ -432,7 +432,7 @@ func (serv *ModelRegistryService) GetModelVersionByInferenceService(inferenceSer
 		return nil, err
 	}
 	if len(versions.Items) == 0 {
-		return nil, fmt.Errorf("no model versions found for id %s", is.RegisteredModelId)
+		return nil, fmt.Errorf("no model versions found for id %s: %w", is.RegisteredModelId, api.ErrNotFound)
 	}
 	return &versions.Items[0], nil
 }
@@ -454,11 +454,11 @@ func (serv *ModelRegistryService) getModelVersionByArtifactId(id string) (*opena
 	}
 
 	if len(getParentResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple model versions found for artifact %s", id)
+		return nil, fmt.Errorf("multiple model versions found for artifact %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getParentResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no model version found for artifact %s", id)
+		return nil, fmt.Errorf("no model version found for artifact %s: %w", id, api.ErrNotFound)
 	}
 
 	modelVersion, err := serv.mapper.MapToModelVersion(getParentResp.Contexts[0])
@@ -478,7 +478,7 @@ func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, r
 	} else if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
 	} else {
-		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId")
+		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
@@ -492,11 +492,11 @@ func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, r
 	}
 
 	if len(getByParamsResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple model versions found for versionName=%v, registeredModelId=%v, externalId=%v", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple model versions found for versionName=%v, registeredModelId=%v, externalId=%v: %w", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(getByParamsResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no model versions found for versionName=%v, registeredModelId=%v, externalId=%v", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no model versions found for versionName=%v, registeredModelId=%v, externalId=%v: %w", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByParamsResp.Contexts[0])
@@ -560,11 +560,11 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 			creating = true
 			glog.Info("Creating model artifact")
 			if modelVersionId == nil {
-				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version")
+				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version: %w", api.ErrBadRequest)
 			}
 			_, err := serv.GetModelVersionById(*modelVersionId)
 			if err != nil {
-				return nil, fmt.Errorf("no model version found for id %s", *modelVersionId)
+				return nil, fmt.Errorf("no model version found for id %s: %w", *modelVersionId, api.ErrNotFound)
 			}
 		} else {
 			glog.Info("Updating model artifact")
@@ -589,11 +589,11 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 			creating = true
 			glog.Info("Creating doc artifact")
 			if modelVersionId == nil {
-				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version")
+				return nil, fmt.Errorf("missing model version id, cannot create artifact without model version: %w", api.ErrBadRequest)
 			}
 			_, err := serv.GetModelVersionById(*modelVersionId)
 			if err != nil {
-				return nil, fmt.Errorf("no model version found for id %s", *modelVersionId)
+				return nil, fmt.Errorf("no model version found for id %s: %w", *modelVersionId, api.ErrNotFound)
 			}
 		} else {
 			glog.Info("Updating doc artifact")
@@ -602,7 +602,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 				return nil, err
 			}
 			if existing.DocArtifact == nil {
-				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact", *da.Id)
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
 			}
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
@@ -617,7 +617,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 			}
 		}
 	} else {
-		return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact")
+		return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact: %w", api.ErrBadRequest)
 	}
 	pa, err := serv.mapper.MapFromArtifact(artifact, modelVersionId)
 	if err != nil {
@@ -669,10 +669,10 @@ func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact,
 		return nil, err
 	}
 	if len(artifactsResp.Artifacts) > 1 {
-		return nil, fmt.Errorf("multiple artifacts found for id %s", id)
+		return nil, fmt.Errorf("multiple artifacts found for id %s: %w", id, api.ErrNotFound)
 	}
 	if len(artifactsResp.Artifacts) == 0 {
-		return nil, fmt.Errorf("no artifact found for id %s", id)
+		return nil, fmt.Errorf("no artifact found for id %s: %w", id, api.ErrNotFound)
 	}
 	return serv.mapper.MapToArtifact(artifactsResp.Artifacts[0])
 }
@@ -685,7 +685,7 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, mode
 	var artifacts []*proto.Artifact
 	var nextPageToken *string
 	if modelVersionId == nil {
-		return nil, fmt.Errorf("missing model version id, cannot get artifacts without model version")
+		return nil, fmt.Errorf("missing model version id, cannot get artifacts without model version: %w", api.ErrBadRequest)
 	}
 	ctxId, err := converter.StringToInt64(modelVersionId)
 	if err != nil {
@@ -743,7 +743,7 @@ func (serv *ModelRegistryService) GetModelArtifactById(id string) (*openapi.Mode
 	}
 	ma := art.ModelArtifact
 	if ma == nil {
-		return nil, fmt.Errorf("artifact with id %s is not a model artifact", id)
+		return nil, fmt.Errorf("artifact with id %s is not a model artifact: %w", id, api.ErrNotFound)
 	}
 	return ma, err
 }
@@ -761,7 +761,7 @@ func (serv *ModelRegistryService) GetModelArtifactByInferenceService(inferenceSe
 	}
 
 	if artifactList.Size == 0 {
-		return nil, fmt.Errorf("no artifacts found for model version %s", *mv.Id)
+		return nil, fmt.Errorf("no artifacts found for model version %s: %w", *mv.Id, api.ErrNotFound)
 	}
 
 	return &artifactList.Items[0], nil
@@ -778,7 +778,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 	} else if artifactName != nil && modelVersionId != nil {
 		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(modelVersionId, *artifactName))
 	} else {
-		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId")
+		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
 	}
 	glog.Info("filterQuery ", filterQuery)
 
@@ -793,11 +793,11 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 	}
 
 	if len(artifactsResponse.Artifacts) > 1 {
-		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(artifactsResponse.Artifacts) == 0 {
-		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	artifact0 = artifactsResponse.Artifacts[0]
@@ -927,11 +927,11 @@ func (serv *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi
 	}
 
 	if len(getByIdResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple serving environments found for id %s", id)
+		return nil, fmt.Errorf("multiple serving environments found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getByIdResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no serving environment found for id %s", id)
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	openapiModel, err := serv.mapper.MapToServingEnvironment(getByIdResp.Contexts[0])
@@ -953,7 +953,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, ex
 	} else if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
 	} else {
-		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId")
+		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
@@ -967,11 +967,11 @@ func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, ex
 	}
 
 	if len(getByParamsResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(getByParamsResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no serving environments found for name=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no serving environments found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	openapiModel, err := serv.mapper.MapToServingEnvironment(getByParamsResp.Contexts[0])
@@ -1121,11 +1121,11 @@ func (serv *ModelRegistryService) getServingEnvironmentByInferenceServiceId(id s
 	}
 
 	if len(getParentResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple ServingEnvironments found for InferenceService %s", id)
+		return nil, fmt.Errorf("multiple ServingEnvironments found for InferenceService %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getParentResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no ServingEnvironments found for InferenceService %s", id)
+		return nil, fmt.Errorf("no ServingEnvironments found for InferenceService %s: %w", id, api.ErrNotFound)
 	}
 
 	toReturn, err := serv.mapper.MapToServingEnvironment(getParentResp.Contexts[0])
@@ -1153,11 +1153,11 @@ func (serv *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.I
 	}
 
 	if len(getByIdResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple InferenceServices found for id %s", id)
+		return nil, fmt.Errorf("multiple InferenceServices found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getByIdResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no InferenceService found for id %s", id)
+		return nil, fmt.Errorf("no InferenceService found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByIdResp.Contexts[0])
@@ -1177,7 +1177,7 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, serv
 	} else if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
 	} else {
-		return nil, fmt.Errorf("invalid parameters call, supply either (name and servingEnvironmentId), or externalId")
+		return nil, fmt.Errorf("invalid parameters call, supply either (name and servingEnvironmentId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
@@ -1191,11 +1191,11 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, serv
 	}
 
 	if len(getByParamsResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple inference services found for name=%v, servingEnvironmentId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(servingEnvironmentId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("multiple inference services found for name=%v, servingEnvironmentId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(servingEnvironmentId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(getByParamsResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no inference services found for name=%v, servingEnvironmentId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(servingEnvironmentId), apiutils.ZeroIfNil(externalId))
+		return nil, fmt.Errorf("no inference services found for name=%v, servingEnvironmentId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(servingEnvironmentId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByParamsResp.Contexts[0])
@@ -1264,7 +1264,7 @@ func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 		// create
 		glog.Info("Creating new ServeModel")
 		if inferenceServiceId == nil {
-			return nil, fmt.Errorf("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService")
+			return nil, fmt.Errorf("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: %w", api.ErrBadRequest)
 		}
 		_, err = serv.GetInferenceServiceById(*inferenceServiceId)
 		if err != nil {
@@ -1361,11 +1361,11 @@ func (serv *ModelRegistryService) getInferenceServiceByServeModel(id string) (*o
 	}
 
 	if len(getParentResp.Contexts) > 1 {
-		return nil, fmt.Errorf("multiple InferenceService found for ServeModel %s", id)
+		return nil, fmt.Errorf("multiple InferenceService found for ServeModel %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(getParentResp.Contexts) == 0 {
-		return nil, fmt.Errorf("no InferenceService found for ServeModel %s", id)
+		return nil, fmt.Errorf("no InferenceService found for ServeModel %s: %w", id, api.ErrNotFound)
 	}
 
 	toReturn, err := serv.mapper.MapToInferenceService(getParentResp.Contexts[0])
@@ -1391,11 +1391,11 @@ func (serv *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeMo
 	}
 
 	if len(executionsResp.Executions) > 1 {
-		return nil, fmt.Errorf("multiple ServeModels found for id %s", id)
+		return nil, fmt.Errorf("multiple ServeModels found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if len(executionsResp.Executions) == 0 {
-		return nil, fmt.Errorf("no ServeModel found for id %s", id)
+		return nil, fmt.Errorf("no ServeModel found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	result, err := serv.mapper.MapToServeModel(executionsResp.Executions[0])

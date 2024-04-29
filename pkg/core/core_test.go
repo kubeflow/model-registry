@@ -763,7 +763,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsWithNoResults() {
 
 	_, err := service.GetRegisteredModelByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
-	suite.Equal("no registered models found for name=not-present, externalId=", err.Error())
+	suite.Equal("no registered models found for name=not-present, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
@@ -819,7 +819,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByEmptyParams() {
 
 	_, err = service.GetRegisteredModelByParams(nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either name or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either name or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
@@ -1044,11 +1044,11 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 
 	_, err := service.UpsertModelVersion(modelVersion, nil)
 	suite.NotNil(err)
-	suite.Equal("missing registered model id, cannot create model version without registered model", err.Error())
+	suite.Equal("missing registered model id, cannot create model version without registered model: bad request", err.Error())
 
 	_, err = service.UpsertModelVersion(modelVersion, &registeredModelId)
 	suite.NotNil(err)
-	suite.Equal("no registered model found for id 9999", err.Error())
+	suite.Equal("no registered model found for id 9999: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersion() {
@@ -1157,7 +1157,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
 	createdVersion.Id = &wrongId
 	_, err = service.UpsertModelVersion(createdVersion, &registeredModelId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no model version found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no model version found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionById() {
@@ -1206,7 +1206,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
 
 	_, err := service.GetModelVersionByParams(apiutils.Of("not-present"), &registeredModelId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=", err.Error())
+	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
@@ -1297,7 +1297,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
 
 	_, err = service.GetModelVersionByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (versionName and registeredModelId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (versionName and registeredModelId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersions() {
@@ -1451,11 +1451,11 @@ func (suite *CoreTestSuite) TestCreateArtifactFailure() {
 
 	_, err := service.UpsertArtifact(&artifact, nil)
 	suite.NotNil(err)
-	suite.Equal("missing model version id, cannot create artifact without model version", err.Error())
+	suite.Equal("missing model version id, cannot create artifact without model version: bad request", err.Error())
 
 	_, err = service.UpsertArtifact(&artifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateArtifact() {
@@ -1529,7 +1529,7 @@ func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
 	updatedArtifact.DocArtifact.Id = &wrongId
 	_, err = service.UpsertArtifact(updatedArtifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no artifact found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no artifact found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetArtifactById() {
@@ -1685,11 +1685,11 @@ func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
 
 	_, err := service.UpsertModelArtifact(modelArtifact, nil)
 	suite.NotNil(err)
-	suite.Equal("missing model version id, cannot create artifact without model version", err.Error())
+	suite.Equal("missing model version id, cannot create artifact without model version: bad request", err.Error())
 
 	_, err = service.UpsertModelArtifact(modelArtifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelArtifact() {
@@ -1863,7 +1863,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 
 	_, err = service.GetModelArtifactByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
@@ -1874,7 +1874,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 
 	_, err := service.GetModelArtifactByParams(apiutils.Of("not-present"), &modelVersionId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=", err.Error())
+	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifacts() {
@@ -2120,7 +2120,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsWithNoResults() {
 
 	_, err := service.GetServingEnvironmentByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
-	suite.Equal("no serving environments found for name=not-present, externalId=", err.Error())
+	suite.Equal("no serving environments found for name=not-present, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
@@ -2176,7 +2176,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByEmptyParams() {
 
 	_, err = service.GetServingEnvironmentByParams(nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either name or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either name or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
@@ -2414,14 +2414,14 @@ func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 
 	_, err := service.UpsertInferenceService(eut)
 	suite.NotNil(err)
-	suite.Equal("no serving environment found for id 9999", err.Error())
+	suite.Equal("no serving environment found for id 9999: not found", err.Error())
 
 	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
 	eut.ServingEnvironmentId = parentResourceId
 
 	_, err = service.UpsertInferenceService(eut)
 	suite.NotNil(err)
-	suite.Equal("no registered model found for id 9998", err.Error())
+	suite.Equal("no registered model found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateInferenceService() {
@@ -2555,7 +2555,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 	createdEntity.Id = &wrongId
 	_, err = service.UpsertInferenceService(createdEntity)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no InferenceService found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no InferenceService found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceById() {
@@ -2742,7 +2742,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 
 	_, err := service.GetInferenceServiceByParams(apiutils.Of("not-present"), &parentResourceId, nil)
 	suite.NotNil(err)
-	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=", err.Error())
+	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
@@ -2858,7 +2858,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 
 	_, err = service.GetInferenceServiceByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (name and servingEnvironmentId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (name and servingEnvironmentId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServices() {
@@ -3067,11 +3067,11 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 
 	_, err := service.UpsertServeModel(eut, nil)
 	suite.NotNil(err)
-	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService", err.Error())
+	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: bad request", err.Error())
 
 	_, err = service.UpsertServeModel(eut, &inferenceServiceId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateServeModel() {
@@ -3180,7 +3180,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 	updatedEntity.Id = &wrongId
 	_, err = service.UpsertServeModel(updatedEntity, &inferenceServiceId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no ServeModel found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no ServeModel found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServeModelById() {
