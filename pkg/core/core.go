@@ -131,7 +131,7 @@ func (serv *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi
 
 		withNotEditable, err := serv.openapiConv.OverrideNotEditableForRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		registeredModel = &withNotEditable
 	}
@@ -165,7 +165,7 @@ func (serv *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Re
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getByIdResp, err := serv.mlmdClient.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
@@ -185,7 +185,7 @@ func (serv *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Re
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getByIdResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return regModel, nil
@@ -206,7 +206,7 @@ func (serv *ModelRegistryService) getRegisteredModelByVersionId(id string) (*ope
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getParentResp, err := serv.mlmdClient.GetParentContextsByContext(context.Background(), &proto.GetParentContextsByContextRequest{
@@ -226,7 +226,7 @@ func (serv *ModelRegistryService) getRegisteredModelByVersionId(id string) (*ope
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getParentResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return regModel, nil
@@ -267,7 +267,7 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 
 	regModel, err := serv.mapper.MapToRegisteredModel(getByParamsResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	return regModel, nil
 }
@@ -333,7 +333,7 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 
 		withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		modelVersion = &withNotEditable
 
@@ -345,7 +345,7 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 
 	modelCtx, err := serv.mapper.MapFromModelVersion(modelVersion, *registeredModel.Id, registeredModel.Name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	modelCtxResp, err := serv.mlmdClient.PutContexts(context.Background(), &proto.PutContextsRequest{
@@ -361,7 +361,7 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 	if modelVersion.Id == nil {
 		registeredModelId, err := converter.StringToInt64(registeredModel.Id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		_, err = serv.mlmdClient.PutParentContexts(context.Background(), &proto.PutParentContextsRequest{
@@ -389,7 +389,7 @@ func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.Model
 func (serv *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getByIdResp, err := serv.mlmdClient.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
@@ -409,7 +409,7 @@ func (serv *ModelRegistryService) GetModelVersionById(id string) (*openapi.Model
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByIdResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return modelVer, nil
@@ -443,7 +443,7 @@ func (serv *ModelRegistryService) getModelVersionByArtifactId(id string) (*opena
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getParentResp, err := serv.mlmdClient.GetContextsByArtifact(context.Background(), &proto.GetContextsByArtifactRequest{
@@ -463,7 +463,7 @@ func (serv *ModelRegistryService) getModelVersionByArtifactId(id string) (*opena
 
 	modelVersion, err := serv.mapper.MapToModelVersion(getParentResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return modelVersion, nil
@@ -501,7 +501,7 @@ func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, r
 
 	modelVer, err := serv.mapper.MapToModelVersion(getByParamsResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	return modelVer, nil
 }
@@ -510,7 +510,7 @@ func (serv *ModelRegistryService) GetModelVersionByParams(versionName *string, r
 func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, registeredModelId *string) (*openapi.ModelVersionList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	if registeredModelId != nil {
@@ -530,7 +530,7 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 	for _, c := range contextsResp.Contexts {
 		mapped, err := serv.mapper.MapToModelVersion(c)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}
@@ -575,7 +575,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, ma))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 			ma = &withNotEditable
 
@@ -607,7 +607,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 			da = &withNotEditable
 
@@ -621,7 +621,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 	}
 	pa, err := serv.mapper.MapFromArtifact(artifact, modelVersionId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	artifactsResp, err := serv.mlmdClient.PutArtifacts(context.Background(), &proto.PutArtifactsRequest{
 		Artifacts: []*proto.Artifact{pa},
@@ -634,7 +634,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 		// add explicit Attribution between Artifact and ModelVersion
 		modelVersionId, err := converter.StringToInt64(modelVersionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		attributions := []*proto.Attribution{}
 		for _, a := range artifactsResp.ArtifactIds {
@@ -659,7 +659,7 @@ func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact, mod
 func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	artifactsResp, err := serv.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
@@ -680,7 +680,7 @@ func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact,
 func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ArtifactList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	var artifacts []*proto.Artifact
 	var nextPageToken *string
@@ -689,7 +689,7 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, mode
 	}
 	ctxId, err := converter.StringToInt64(modelVersionId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	artifactsResp, err := serv.mlmdClient.GetArtifactsByContext(context.Background(), &proto.GetArtifactsByContextRequest{
 		ContextId: ctxId,
@@ -705,7 +705,7 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, mode
 	for _, a := range artifacts {
 		mapped, err := serv.mapper.MapToArtifact(a)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}
@@ -804,7 +804,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 
 	result, err := serv.mapper.MapToModelArtifact(artifact0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return result, nil
@@ -814,7 +814,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ModelArtifactList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	var artifacts []*proto.Artifact
@@ -822,7 +822,7 @@ func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 	if modelVersionId != nil {
 		ctxId, err := converter.StringToInt64(modelVersionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		artifactsResp, err := serv.mlmdClient.GetArtifactsByContext(context.Background(), &proto.GetArtifactsByContextRequest{
 			ContextId: ctxId,
@@ -849,7 +849,7 @@ func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 	for _, a := range artifacts {
 		mapped, err := serv.mapper.MapToModelArtifact(a)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}
@@ -882,14 +882,14 @@ func (serv *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *o
 
 		withNotEditable, err := serv.openapiConv.OverrideNotEditableForServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		servingEnvironment = &withNotEditable
 	}
 
 	protoCtx, err := serv.mapper.MapFromServingEnvironment(servingEnvironment)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	protoCtxResp, err := serv.mlmdClient.PutContexts(context.Background(), &proto.PutContextsRequest{
@@ -904,7 +904,7 @@ func (serv *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *o
 	idAsString := converter.Int64ToString(&protoCtxResp.ContextIds[0])
 	openapiModel, err := serv.GetServingEnvironmentById(*idAsString)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return openapiModel, nil
@@ -916,7 +916,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getByIdResp, err := serv.mlmdClient.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
@@ -936,7 +936,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi
 
 	openapiModel, err := serv.mapper.MapToServingEnvironment(getByIdResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return openapiModel, nil
@@ -976,7 +976,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, ex
 
 	openapiModel, err := serv.mapper.MapToServingEnvironment(getByParamsResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	return openapiModel, nil
 }
@@ -985,7 +985,7 @@ func (serv *ModelRegistryService) GetServingEnvironmentByParams(name *string, ex
 func (serv *ModelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: &serv.nameConfig.ServingEnvironmentTypeName,
@@ -999,7 +999,7 @@ func (serv *ModelRegistryService) GetServingEnvironments(listOptions api.ListOpt
 	for _, c := range contextsResp.Contexts {
 		mapped, err := serv.mapper.MapToServingEnvironment(c)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}
@@ -1064,7 +1064,7 @@ func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *opena
 
 	protoCtx, err := serv.mapper.MapFromInferenceService(inferenceService, *servingEnvironment.Id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	protoCtxResp, err := serv.mlmdClient.PutContexts(context.Background(), &proto.PutContextsRequest{
@@ -1080,7 +1080,7 @@ func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *opena
 	if inferenceService.Id == nil {
 		servingEnvironmentId, err := converter.StringToInt64(servingEnvironment.Id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		_, err = serv.mlmdClient.PutParentContexts(context.Background(), &proto.PutParentContextsRequest{
@@ -1110,7 +1110,7 @@ func (serv *ModelRegistryService) getServingEnvironmentByInferenceServiceId(id s
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getParentResp, err := serv.mlmdClient.GetParentContextsByContext(context.Background(), &proto.GetParentContextsByContextRequest{
@@ -1130,7 +1130,7 @@ func (serv *ModelRegistryService) getServingEnvironmentByInferenceServiceId(id s
 
 	toReturn, err := serv.mapper.MapToServingEnvironment(getParentResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return toReturn, nil
@@ -1142,7 +1142,7 @@ func (serv *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.I
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getByIdResp, err := serv.mlmdClient.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
@@ -1162,7 +1162,7 @@ func (serv *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.I
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByIdResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return toReturn, nil
@@ -1200,7 +1200,7 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, serv
 
 	toReturn, err := serv.mapper.MapToInferenceService(getByParamsResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 	return toReturn, nil
 }
@@ -1209,7 +1209,7 @@ func (serv *ModelRegistryService) GetInferenceServiceByParams(name *string, serv
 func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions, servingEnvironmentId *string, runtime *string) (*openapi.InferenceServiceList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	queries := []string{}
@@ -1238,7 +1238,7 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 	for _, c := range contextsResp.Contexts {
 		mapped, err := serv.mapper.MapToInferenceService(c)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}
@@ -1304,7 +1304,7 @@ func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 
 	execution, err := serv.mapper.MapFromServeModel(serveModel, *inferenceServiceId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	executionsResp, err := serv.mlmdClient.PutExecutions(context.Background(), &proto.PutExecutionsRequest{
@@ -1318,7 +1318,7 @@ func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeMode
 	if inferenceServiceId != nil && serveModel.Id == nil {
 		inferenceServiceId, err := converter.StringToInt64(inferenceServiceId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		associations := []*proto.Association{}
 		for _, a := range executionsResp.ExecutionIds {
@@ -1350,7 +1350,7 @@ func (serv *ModelRegistryService) getInferenceServiceByServeModel(id string) (*o
 
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	getParentResp, err := serv.mlmdClient.GetContextsByExecution(context.Background(), &proto.GetContextsByExecutionRequest{
@@ -1370,7 +1370,7 @@ func (serv *ModelRegistryService) getInferenceServiceByServeModel(id string) (*o
 
 	toReturn, err := serv.mapper.MapToInferenceService(getParentResp.Contexts[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return toReturn, nil
@@ -1380,7 +1380,7 @@ func (serv *ModelRegistryService) getInferenceServiceByServeModel(id string) (*o
 func (serv *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeModel, error) {
 	idAsInt, err := converter.StringToInt64(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	executionsResp, err := serv.mlmdClient.GetExecutionsByID(context.Background(), &proto.GetExecutionsByIDRequest{
@@ -1400,7 +1400,7 @@ func (serv *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeMo
 
 	result, err := serv.mapper.MapToServeModel(executionsResp.Executions[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	return result, nil
@@ -1410,7 +1410,7 @@ func (serv *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeMo
 func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, inferenceServiceId *string) (*openapi.ServeModelList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	var executions []*proto.Execution
@@ -1418,7 +1418,7 @@ func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, in
 	if inferenceServiceId != nil {
 		ctxId, err := converter.StringToInt64(inferenceServiceId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		executionsResp, err := serv.mlmdClient.GetExecutionsByContext(context.Background(), &proto.GetExecutionsByContextRequest{
 			ContextId: ctxId,
@@ -1445,7 +1445,7 @@ func (serv *ModelRegistryService) GetServeModels(listOptions api.ListOptions, in
 	for _, a := range executions {
 		mapped, err := serv.mapper.MapToServeModel(a)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		results = append(results, *mapped)
 	}

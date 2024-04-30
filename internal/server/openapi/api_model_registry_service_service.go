@@ -47,7 +47,7 @@ func (s *ModelRegistryServiceAPIService) CreateEnvironmentInferenceService(ctx c
 func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Context, inferenceServiceCreate model.InferenceServiceCreate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertInferenceServiceCreate(&inferenceServiceCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertInferenceService(entity)
@@ -65,7 +65,7 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Cont
 func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context.Context, inferenceserviceId string, serveModelCreate model.ServeModelCreate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertServeModelCreate(&serveModelCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertServeModel(entity, &inferenceserviceId)
@@ -87,7 +87,7 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context
 func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context, modelArtifactCreate model.ModelArtifactCreate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertModelArtifactCreate(&modelArtifactCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertModelArtifact(entity, nil)
@@ -105,7 +105,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context, modelVersionCreate model.ModelVersionCreate) (ImplResponse, error) {
 	modelVersion, err := s.converter.ConvertModelVersionCreate(&modelVersionCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertModelVersion(modelVersion, &modelVersionCreate.RegisteredModelId)
@@ -138,7 +138,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.
 func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Context, registeredModelCreate model.RegisteredModelCreate) (ImplResponse, error) {
 	registeredModel, err := s.converter.ConvertRegisteredModelCreate(&registeredModelCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
@@ -172,7 +172,7 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx contex
 func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Context, servingEnvironmentCreate model.ServingEnvironmentCreate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertServingEnvironmentCreate(&servingEnvironmentCreate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 
 	result, err := s.coreApi.UpsertServingEnvironment(entity)
@@ -521,7 +521,7 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Cont
 func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Context, inferenceserviceId string, inferenceServiceUpdate model.InferenceServiceUpdate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertInferenceServiceUpdate(&inferenceServiceUpdate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 	entity.Id = &inferenceserviceId
 	result, err := s.coreApi.UpsertInferenceService(entity)
@@ -542,7 +542,7 @@ func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Cont
 func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context, modelartifactId string, modelArtifactUpdate model.ModelArtifactUpdate) (ImplResponse, error) {
 	modelArtifact, err := s.converter.ConvertModelArtifactUpdate(&modelArtifactUpdate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 	modelArtifact.Id = &modelartifactId
 	result, err := s.coreApi.UpsertModelArtifact(modelArtifact, nil)
@@ -563,7 +563,7 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context, modelversionId string, modelVersionUpdate model.ModelVersionUpdate) (ImplResponse, error) {
 	modelVersion, err := s.converter.ConvertModelVersionUpdate(&modelVersionUpdate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 	modelVersion.Id = &modelversionId
 	result, err := s.coreApi.UpsertModelVersion(modelVersion, nil)
@@ -584,7 +584,7 @@ func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context,
 func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Context, registeredmodelId string, registeredModelUpdate model.RegisteredModelUpdate) (ImplResponse, error) {
 	registeredModel, err := s.converter.ConvertRegisteredModelUpdate(&registeredModelUpdate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 	registeredModel.Id = &registeredmodelId
 	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
@@ -605,7 +605,7 @@ func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Conte
 func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Context, servingenvironmentId string, servingEnvironmentUpdate model.ServingEnvironmentUpdate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertServingEnvironmentUpdate(&servingEnvironmentUpdate)
 	if err != nil {
-		return Response(500, model.Error{Message: err.Error()}), nil
+		return Response(400, model.Error{Message: err.Error()}), nil
 	}
 	entity.Id = &servingenvironmentId
 	result, err := s.coreApi.UpsertServingEnvironment(entity)
