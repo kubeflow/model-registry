@@ -211,6 +211,10 @@ func MapDescription(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "description")
 }
 
+func MapOwner(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "owner")
+}
+
 func MapModelArtifactFormatName(properties map[string]*proto.Value) *string {
 	return MapStringProperty(properties, "model_format_name")
 }

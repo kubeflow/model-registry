@@ -379,6 +379,12 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 			pString3 = &xstring3
 		}
 		openapiRegisteredModel.Name = pString3
+		var pString4 *string
+		if (*source).Owner != nil {
+			xstring4 := *(*source).Owner
+			pString4 = &xstring4
+		}
+		openapiRegisteredModel.Owner = pString4
 		var pOpenapiRegisteredModelState *openapi.RegisteredModelState
 		if (*source).State != nil {
 			openapiRegisteredModelState := openapi.RegisteredModelState(*(*source).State)
@@ -414,6 +420,12 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 			pString2 = &xstring2
 		}
 		openapiRegisteredModel.ExternalId = pString2
+		var pString3 *string
+		if (*source).Owner != nil {
+			xstring3 := *(*source).Owner
+			pString3 = &xstring3
+		}
+		openapiRegisteredModel.Owner = pString3
 		var pOpenapiRegisteredModelState *openapi.RegisteredModelState
 		if (*source).State != nil {
 			openapiRegisteredModelState := openapi.RegisteredModelState(*(*source).State)

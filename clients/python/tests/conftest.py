@@ -89,7 +89,9 @@ def plain_wrapper(request, mlmd_conn: MetadataStoreClientConfig) -> MLMDStore:
 
     request.addfinalizer(teardown)
 
-    return MLMDStore(mlmd_conn)
+    to_return = MLMDStore(mlmd_conn)
+    sanity_check_mlmd_connection_to_db(to_return)
+    return to_return
 
 
 def set_type_attrs(mlmd_obj: ProtoTypeType, name: str, props: list[str]):
@@ -97,6 +99,26 @@ def set_type_attrs(mlmd_obj: ProtoTypeType, name: str, props: list[str]):
     for key in props:
         mlmd_obj.properties[key] = metadata_store_pb2.STRING
     return mlmd_obj
+
+
+def sanity_check_mlmd_connection_to_db(overview: MLMDStore):
+    # sanity check before each test: connect to MLMD directly, and dry-run any of the gRPC (read) operations;
+    # on newer Podman might delay in recognising volume mount files for sqlite3 db,
+    # hence in case of error "Cannot connect sqlite3 database: unable to open database file" make some retries.
+    retry_count = 0
+    while retry_count < 3:
+        retry_count += 1
+        try:
+            overview._mlmd_store.get_artifact_types()
+            return
+        except Exception as e:
+            if str(e) == "Cannot connect sqlite3 database: unable to open database file":
+                time.sleep(1)
+            else:
+                msg = "Failed to sanity check before each test, another type of error detected."
+                raise RuntimeError(msg) from e
+    msg = "Failed to sanity check before each test."
+    raise RuntimeError(msg)
 
 
 @pytest.fixture()

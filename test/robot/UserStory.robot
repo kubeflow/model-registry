@@ -80,3 +80,10 @@ As a MLOps engineer I would like to store some labels
     ${r}  Then I get ModelArtifactByID    id=${aId}
           And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
           And Dictionaries Should Be Equal   ${r["customProperties"]}  ${cp3}
+
+As a MLOps engineer I would like to store an owner for the RegisteredModel
+    Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  owner=My owner
+    ${rId}  Given I create a RegisteredModel    payload=${registered_model}
+    ${r}  Then I get RegisteredModelByID    id=${rId}
+          And Should be equal    ${r["description"]}    Lorem ipsum dolor sit amet
+          And Should be equal    ${r["owner"]}    My owner

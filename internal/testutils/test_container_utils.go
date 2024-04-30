@@ -1,10 +1,13 @@
 package testutils
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
@@ -15,7 +18,7 @@ import (
 )
 
 const (
-	useProvider      = testcontainers.ProviderDefault // or explicit to testcontainers.ProviderPodman if needed
+	defaultProvider  = testcontainers.ProviderDefault // or explicit to testcontainers.ProviderPodman if needed
 	mlmdImage        = "gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0"
 	sqliteFile       = "metadata.sqlite.db"
 	testConfigFolder = "test/config/ml-metadata"
@@ -93,6 +96,13 @@ func SetupMLMetadataTestContainer(t *testing.T) (*grpc.ClientConn, proto.Metadat
 		WaitingFor: wait.ForLog("Server listening on"),
 	}
 
+	useProvider := defaultProvider
+	if useProvider == testcontainers.ProviderDefault { // user did not override
+		if tryDetectPodmanRunning() {
+			t.Log("Podman running detected! Will instruct TestContainers to use Podman explicitly.") // see https://github.com/testcontainers/testcontainers-go/issues/2264#issuecomment-2062092012
+			useProvider = testcontainers.ProviderPodman
+		}
+	}
 	mlmdgrpc, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ProviderType:     useProvider,
 		ContainerRequest: req,
@@ -136,4 +146,27 @@ func SetupMLMetadataTestContainer(t *testing.T) (*grpc.ClientConn, proto.Metadat
 			t.Error(err)
 		}
 	}
+}
+
+// simple utility function with heuristic to detect if Podman is running
+func tryDetectPodmanRunning() bool {
+	cmd := exec.Command("podman", "machine", "info", "--format", "json")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	output := out.Bytes()
+	type MachineInfo struct {
+		Host struct {
+			MachineState string `json:"MachineState"`
+		} `json:"Host"`
+	}
+	var info MachineInfo
+	err = json.Unmarshal(output, &info)
+	if err != nil {
+		return false
+	}
+	return info.Host.MachineState == "Running"
 }

@@ -15,6 +15,7 @@ import (
 // goverter:extend MapMLMDCustomProperties
 type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Owner | MapOwner
 	// goverter:map Properties State | MapRegisteredModelState
 	ConvertRegisteredModel(source *proto.Context) (*openapi.RegisteredModel, error)
 
