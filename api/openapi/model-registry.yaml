@@ -1033,6 +1033,8 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
+            owner:
+              type: string
             state:
               $ref: "#/components/schemas/RegisteredModelState"
     ModelVersion:

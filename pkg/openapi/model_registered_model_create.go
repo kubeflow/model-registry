@@ -27,6 +27,7 @@ type RegisteredModelCreate struct {
 	ExternalId *string `json:"externalId,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name  *string               `json:"name,omitempty"`
+	Owner *string               `json:"owner,omitempty"`
 	State *RegisteredModelState `json:"state,omitempty"`
 }
 
@@ -179,6 +180,38 @@ func (o *RegisteredModelCreate) SetName(v string) {
 	o.Name = &v
 }
 
+// GetOwner returns the Owner field value if set, zero value otherwise.
+func (o *RegisteredModelCreate) GetOwner() string {
+	if o == nil || IsNil(o.Owner) {
+		var ret string
+		return ret
+	}
+	return *o.Owner
+}
+
+// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelCreate) GetOwnerOk() (*string, bool) {
+	if o == nil || IsNil(o.Owner) {
+		return nil, false
+	}
+	return o.Owner, true
+}
+
+// HasOwner returns a boolean if a field has been set.
+func (o *RegisteredModelCreate) HasOwner() bool {
+	if o != nil && !IsNil(o.Owner) {
+		return true
+	}
+
+	return false
+}
+
+// SetOwner gets a reference to the given string and assigns it to the Owner field.
+func (o *RegisteredModelCreate) SetOwner(v string) {
+	o.Owner = &v
+}
+
 // GetState returns the State field value if set, zero value otherwise.
 func (o *RegisteredModelCreate) GetState() RegisteredModelState {
 	if o == nil || IsNil(o.State) {
@@ -232,6 +265,9 @@ func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
+	}
+	if !IsNil(o.Owner) {
+		toSerialize["owner"] = o.Owner
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State

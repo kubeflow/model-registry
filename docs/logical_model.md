@@ -442,10 +442,12 @@ This diagram summarizes the relationship between the entities:
 classDiagram
     class RegisteredModel{
         +String name
+        +String owner
         +Map customProperties
     }
     class ModelVersion{
         +String name
+        +String author
         +Map customProperties
     }
     class Artifact{
