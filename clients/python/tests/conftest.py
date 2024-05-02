@@ -171,7 +171,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
 @pytest.fixture()
 def mr_api(store_wrapper: MLMDStore) -> ModelRegistryAPIClient:
     mr = object.__new__(ModelRegistryAPIClient)
-    mr._store = store_wrapper
+    mr.store = store_wrapper
     return mr
 
 

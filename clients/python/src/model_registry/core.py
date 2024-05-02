@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from warnings import warn
+from dataclasses import dataclass
 
 import grpc
 
@@ -16,55 +14,58 @@ from .types.options import MLMDListOptions
 from .utils import header_adder_interceptor
 
 
+@dataclass
 class ModelRegistryAPIClient:
     """Model registry API."""
 
-    def __init__(
-        self,
+    store: MLMDStore
+
+    @classmethod
+    def secure_connection(
+        cls,
         server_address: str,
         port: int = 443,
         user_token: bytes | None = None,
         custom_ca: bytes | None = None,
-    ):
+    ) -> ModelRegistryAPIClient:
         """Constructor.
 
         Args:
             server_address: Server address.
             port: Server port. Defaults to 443.
-            user_token: The PEM-encoded user token as a byte string. Defaults to envvar KF_PIPELINES_SA_TOKEN_PATH.
-            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to envvar CERT.
+            user_token: The PEM-encoded user token as a byte string.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to GRPC_DEFAULT_SSL_ROOTS_FILE_PATH, then system default.
         """
         if not user_token:
-            # /var/run/secrets/kubernetes.io/serviceaccount/token
-            sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
-            if sa_token:
-                user_token = Path(sa_token).read_bytes()
-            else:
-                warn("User access token is missing", stacklevel=2)
+            msg = "user token must be provided for secure connection"
+            raise StoreException(msg)
 
-        if port == 443:
-            if not custom_ca:
-                ca_cert = os.environ.get("CERT")
-                if not ca_cert:
-                    msg = "CA certificate must be provided"
-                    raise StoreException(msg)
-                root_certs = Path(ca_cert).read_bytes()
-            else:
-                root_certs = custom_ca
-            chan_creds = grpc.ssl_channel_credentials(root_certs)
+        chan = grpc.secure_channel(
+            f"{server_address}:{port}",
+            grpc.composite_channel_credentials(
+                # custom_ca = None will get the default root certificates
+                grpc.ssl_channel_credentials(custom_ca),
+                grpc.access_token_call_credentials(user_token),
+            ),
+        )
 
-            if user_token:
-                call_creds = grpc.access_token_call_credentials(user_token)
-                chan_creds = grpc.composite_channel_credentials(
-                    chan_creds,
-                    call_creds,
-                )
+        return cls(MLMDStore.from_channel(chan))
 
-            chan = grpc.secure_channel(
-                f"{server_address}:443",
-                chan_creds,
-            )
-        elif user_token:
+    @classmethod
+    def insecure_connection(
+        cls,
+        server_address: str,
+        port: int,
+        user_token: bytes | None = None,
+    ) -> ModelRegistryAPIClient:
+        """Constructor.
+
+        Args:
+            server_address: Server address.
+            port: Server port.
+            user_token: The PEM-encoded user token as a byte string.
+        """
+        if user_token:
             chan = grpc.intercept_channel(
                 grpc.insecure_channel(f"{server_address}:{port}"),
                 # header key has to be lowercase
@@ -73,7 +74,7 @@ class ModelRegistryAPIClient:
         else:
             chan = grpc.insecure_channel(f"{server_address}:{port}")
 
-        self._store = MLMDStore.from_channel(chan)
+        return cls(MLMDStore.from_channel(chan))
 
     def _map(self, py_obj: ProtoBase) -> ProtoType:
         """Map a Python object to a proto object.
@@ -86,7 +87,7 @@ class ModelRegistryAPIClient:
         Returns:
             Proto object.
         """
-        type_id = self._store.get_type_id(
+        type_id = self.store.get_type_id(
             py_obj.get_proto_type(), py_obj.get_proto_type_name()
         )
         return py_obj.map(type_id)
@@ -103,9 +104,9 @@ class ModelRegistryAPIClient:
         Returns:
             ID of the registered model.
         """
-        id = self._store.put_context(self._map(registered_model))
+        id = self.store.put_context(self._map(registered_model))
         new_py_rm = RegisteredModel.unmap(
-            self._store.get_context(RegisteredModel.get_proto_type_name(), id)
+            self.store.get_context(RegisteredModel.get_proto_type_name(), id)
         )
         id = str(id)
         registered_model.id = id
@@ -124,7 +125,7 @@ class ModelRegistryAPIClient:
         Returns:
             Registered model.
         """
-        proto_rm = self._store.get_context(
+        proto_rm = self.store.get_context(
             RegisteredModel.get_proto_type_name(), id=int(id)
         )
         if proto_rm is not None:
@@ -150,7 +151,7 @@ class ModelRegistryAPIClient:
         if name is None and external_id is None:
             msg = "Either name or external_id must be provided"
             raise StoreException(msg)
-        proto_rm = self._store.get_context(
+        proto_rm = self.store.get_context(
             RegisteredModel.get_proto_type_name(),
             name=name,
             external_id=external_id,
@@ -172,7 +173,7 @@ class ModelRegistryAPIClient:
             Registered models.
         """
         mlmd_options = options.as_mlmd_list_options() if options else MLMDListOptions()
-        proto_rms = self._store.get_contexts(
+        proto_rms = self.store.get_contexts(
             RegisteredModel.get_proto_type_name(), mlmd_options
         )
         return [RegisteredModel.unmap(proto_rm) for proto_rm in proto_rms]
@@ -194,10 +195,10 @@ class ModelRegistryAPIClient:
         """
         # this is not ideal but we need this info for the prefix
         model_version._registered_model_id = registered_model_id
-        id = self._store.put_context(self._map(model_version))
-        self._store.put_context_parent(int(registered_model_id), id)
+        id = self.store.put_context(self._map(model_version))
+        self.store.put_context_parent(int(registered_model_id), id)
         new_py_mv = ModelVersion.unmap(
-            self._store.get_context(ModelVersion.get_proto_type_name(), id)
+            self.store.get_context(ModelVersion.get_proto_type_name(), id)
         )
         id = str(id)
         model_version.id = id
@@ -216,7 +217,7 @@ class ModelRegistryAPIClient:
         Returns:
             Model version.
         """
-        proto_mv = self._store.get_context(
+        proto_mv = self.store.get_context(
             ModelVersion.get_proto_type_name(), id=int(model_version_id)
         )
         if proto_mv is not None:
@@ -240,7 +241,7 @@ class ModelRegistryAPIClient:
         mlmd_options.filter_query = f"parent_contexts_a.id = {registered_model_id}"
         return [
             ModelVersion.unmap(proto_mv)
-            for proto_mv in self._store.get_contexts(
+            for proto_mv in self.store.get_contexts(
                 ModelVersion.get_proto_type_name(), mlmd_options
             )
         ]
@@ -267,7 +268,7 @@ class ModelRegistryAPIClient:
             StoreException: If neither external ID nor registered model ID and version is provided.
         """
         if external_id is not None:
-            proto_mv = self._store.get_context(
+            proto_mv = self.store.get_context(
                 ModelVersion.get_proto_type_name(), external_id=external_id
             )
         elif registered_model_id is None or version is None:
@@ -276,7 +277,7 @@ class ModelRegistryAPIClient:
             )
             raise StoreException(msg)
         else:
-            proto_mv = self._store.get_context(
+            proto_mv = self.store.get_context(
                 ModelVersion.get_proto_type_name(),
                 name=f"{registered_model_id}:{version}",
             )
@@ -304,17 +305,17 @@ class ModelRegistryAPIClient:
             StoreException: If the model version already has a model artifact.
         """
         mv_id = int(model_version_id)
-        if self._store.get_attributed_artifact(
+        if self.store.get_attributed_artifact(
             ModelArtifact.get_proto_type_name(), mv_id
         ):
             msg = f"Model version with ID {mv_id} already has a model artifact"
             raise StoreException(msg)
 
         model_artifact._model_version_id = model_version_id
-        id = self._store.put_artifact(self._map(model_artifact))
-        self._store.put_attribution(mv_id, id)
+        id = self.store.put_artifact(self._map(model_artifact))
+        self.store.put_attribution(mv_id, id)
         new_py_ma = ModelArtifact.unmap(
-            self._store.get_artifact(ModelArtifact.get_proto_type_name(), id)
+            self.store.get_artifact(ModelArtifact.get_proto_type_name(), id)
         )
         id = str(id)
         model_artifact.id = id
@@ -333,9 +334,7 @@ class ModelRegistryAPIClient:
         Returns:
             Model artifact.
         """
-        proto_ma = self._store.get_artifact(
-            ModelArtifact.get_proto_type_name(), int(id)
-        )
+        proto_ma = self.store.get_artifact(ModelArtifact.get_proto_type_name(), int(id))
         if proto_ma is not None:
             return ModelArtifact.unmap(proto_ma)
 
@@ -357,14 +356,14 @@ class ModelRegistryAPIClient:
             StoreException: If neither external ID nor model version ID is provided.
         """
         if external_id:
-            proto_ma = self._store.get_artifact(
+            proto_ma = self.store.get_artifact(
                 ModelArtifact.get_proto_type_name(), external_id=external_id
             )
         elif not model_version_id:
             msg = "Either model_version_id or external_id must be provided"
             raise StoreException(msg)
         else:
-            proto_ma = self._store.get_attributed_artifact(
+            proto_ma = self.store.get_attributed_artifact(
                 ModelArtifact.get_proto_type_name(), int(model_version_id)
             )
         if proto_ma is not None:
@@ -390,7 +389,7 @@ class ModelRegistryAPIClient:
         if model_version_id is not None:
             mlmd_options.filter_query = f"contexts_a.id = {model_version_id}"
 
-        proto_mas = self._store.get_artifacts(
+        proto_mas = self.store.get_artifacts(
             ModelArtifact.get_proto_type_name(), mlmd_options
         )
         return [ModelArtifact.unmap(proto_ma) for proto_ma in proto_mas]
