@@ -17,7 +17,7 @@ make_post_extract_id() {
       -d "$data" | jq -r '.id')
 	
   if [ -z "$id" ]; then
-		echo -e "${RED}Error:${NC} Error: Failed to extract ID from response"
+		echo -e "Error: Failed to extract ID from response"
 		exit 1
   else
     echo "$id"
@@ -36,10 +36,10 @@ post_model_registry_data() {
   }')
 
   if [ $? -ne 0 ]; then
-    echo -e "${RED}Error:${NC} Registered Model ID not returned"
+    echo -e "Error: Registered Model ID not returned"
     exit 1
   else
-    echo -e "${GREEN}✔ Success:${NC} Registered Model ID: $rm_id"
+    echo -e "Success: Registered Model ID: $rm_id"
   fi
 
   mv_id=$(make_post_extract_id "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" '{
@@ -50,10 +50,10 @@ post_model_registry_data() {
   }')
 
   if [ $? -ne 0 ]; then
-    echo -e "${RED}Error:${NC} Model Version ID not returned"
+    echo -e "Error: Model Version ID not returned"
     exit 1
   else
-     echo -e "${GREEN}✔ Success:${NC} Model Version ID: $mv_id"
+     echo -e "Success: Model Version ID: $mv_id"
   fi
 
   RAW_ML_MODEL_URI='https://huggingface.co/tarilabs/mnist/resolve/v1.nb20231206162408/mnist.onnx'
@@ -69,10 +69,10 @@ post_model_registry_data() {
   }')
 
   if [ $? -ne 0 ]; then
-    echo -e "${RED}Error:${NC} Model Artifact ID not returned"
+    echo -e "Error: Model Artifact ID not returned"
     exit 1
   else
-    echo -e "${GREEN}✔ Success:${NC} Model Artifact ID: $ma_id"
+    echo -e "Success: Model Artifact ID: $ma_id"
   fi
 }
 
