@@ -10,7 +10,7 @@ def write_to_console(s):
 
 class ModelRegistry(mr.core.ModelRegistryAPIClient):
     def __init__(self, host: str = "localhost", port: int = 9090):
-        super().__init__(host, port)
+        super().__init__(mr.store.MLMDStore.from_config(host, port))
 
     def upsert_registered_model(self, registered_model) -> str:
         p = RegisteredModel("")

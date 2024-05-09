@@ -27,7 +27,7 @@ def artifact(plain_wrapper: MLMDStore) -> Artifact:
 
     art = Artifact()
     art.name = "test_artifact"
-    art.type_id = plain_wrapper._mlmd_store.put_artifact_type(art_type)
+    art.type_id = plain_wrapper.store.put_artifact_type(art_type)
 
     return art
 
@@ -39,7 +39,7 @@ def context(plain_wrapper: MLMDStore) -> Context:
 
     ctx = Context()
     ctx.name = "test_context"
-    ctx.type_id = plain_wrapper._mlmd_store.put_context_type(ctx_type)
+    ctx.type_id = plain_wrapper.store.put_context_type(ctx_type)
 
     return ctx
 
@@ -84,7 +84,7 @@ def test_put_invalid_artifact(plain_wrapper: MLMDStore, artifact: Artifact):
 
 
 def test_put_duplicate_artifact(plain_wrapper: MLMDStore, artifact: Artifact):
-    plain_wrapper._mlmd_store.put_artifacts([artifact])
+    plain_wrapper.store.put_artifacts([artifact])
     with pytest.raises(DuplicateException):
         plain_wrapper.put_artifact(artifact)
 
@@ -97,7 +97,7 @@ def test_put_invalid_context(plain_wrapper: MLMDStore, context: Context):
 
 
 def test_put_duplicate_context(plain_wrapper: MLMDStore, context: Context):
-    plain_wrapper._mlmd_store.put_contexts([context])
+    plain_wrapper.store.put_contexts([context])
 
     with pytest.raises(DuplicateException):
         plain_wrapper.put_context(context)
@@ -106,7 +106,7 @@ def test_put_duplicate_context(plain_wrapper: MLMDStore, context: Context):
 def test_put_attribution_with_invalid_context(
     plain_wrapper: MLMDStore, artifact: Artifact
 ):
-    art_id = plain_wrapper._mlmd_store.put_artifacts([artifact])[0]
+    art_id = plain_wrapper.store.put_artifacts([artifact])[0]
 
     with pytest.raises(StoreException) as store_error:
         plain_wrapper.put_attribution(0, art_id)
@@ -117,7 +117,7 @@ def test_put_attribution_with_invalid_context(
 def test_put_attribution_with_invalid_artifact(
     plain_wrapper: MLMDStore, context: Context
 ):
-    ctx_id = plain_wrapper._mlmd_store.put_contexts([context])[0]
+    ctx_id = plain_wrapper.store.put_contexts([context])[0]
 
     with pytest.raises(StoreException) as store_error:
         plain_wrapper.put_attribution(ctx_id, 0)

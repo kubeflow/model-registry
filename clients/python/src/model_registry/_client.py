@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import get_args
 from warnings import warn
 
@@ -17,27 +19,55 @@ class ModelRegistry:
     def __init__(
         self,
         server_address: str,
-        port: int,
+        port: int = 443,
+        *,
         author: str,
-        client_key: str | None = None,
-        server_cert: str | None = None,
-        custom_ca: str | None = None,
+        is_secure: bool = True,
+        user_token: bytes | None = None,
+        custom_ca: bytes | None = None,
     ):
         """Constructor.
 
         Args:
             server_address: Server address.
-            port: Server port.
+            port: Server port. Defaults to 443.
+
+        Keyword Args:
             author: Name of the author.
-            client_key: The PEM-encoded private key as a byte string.
-            server_cert: The PEM-encoded certificate as a byte string.
-            custom_ca: The PEM-encoded root certificates as a byte string.
+            is_secure: Whether to use a secure connection. Defaults to True.
+            user_token: The PEM-encoded user token as a byte string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to contents of path on envvar CERT.
         """
-        # TODO: get args from env
+        # TODO: get remaining args from env
         self._author = author
-        self._api = ModelRegistryAPIClient(
-            server_address, port, client_key, server_cert, custom_ca
-        )
+
+        if not user_token:
+            # /var/run/secrets/kubernetes.io/serviceaccount/token
+            sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
+            if sa_token:
+                user_token = Path(sa_token).read_bytes()
+            else:
+                warn("User access token is missing", stacklevel=2)
+
+        if is_secure:
+            root_ca = None
+            if not custom_ca:
+                if ca_path := os.getenv("CERT"):
+                    root_ca = Path(ca_path).read_bytes()
+                    # client might have a default CA setup
+            else:
+                root_ca = custom_ca
+
+            self._api = ModelRegistryAPIClient.secure_connection(
+                server_address, port, user_token, root_ca
+            )
+        elif custom_ca:
+            msg = "Custom CA provided without secure connection"
+            raise StoreException(msg)
+        else:
+            self._api = ModelRegistryAPIClient.insecure_connection(
+                server_address, port, user_token
+            )
 
     def _register_model(self, name: str) -> RegisteredModel:
         if rm := self._api.get_registered_model_by_params(name):

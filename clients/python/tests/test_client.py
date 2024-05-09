@@ -14,6 +14,15 @@ def mr_client(mr_api: ModelRegistryAPIClient) -> ModelRegistry:
     return mr
 
 
+def test_secure_client():
+    os.environ["CERT"] = ""
+    os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = ""
+    with pytest.raises(StoreException) as e:
+        ModelRegistry("anything", author="test_author")
+
+    assert "user token" in str(e.value).lower()
+
+
 def test_register_new(mr_client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
