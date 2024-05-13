@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import ClassVar
 
+from grpc import Channel
 from ml_metadata import errors
 from ml_metadata.metadata_store import ListOptions, MetadataStore
 from ml_metadata.proto import (
@@ -14,6 +16,7 @@ from ml_metadata.proto import (
     MetadataStoreClientConfig,
     ParentContext,
 )
+from ml_metadata.proto.metadata_store_service_pb2_grpc import MetadataStoreServiceStub
 
 from model_registry.exceptions import (
     DuplicateException,
@@ -25,19 +28,43 @@ from model_registry.exceptions import (
 from .base import ProtoType
 
 
+@dataclass
 class MLMDStore:
     """MLMD storage backend."""
 
+    store: MetadataStore
     # cache for MLMD type IDs
     _type_ids: ClassVar[dict[str, int]] = {}
 
-    def __init__(self, config: MetadataStoreClientConfig):
+    @classmethod
+    def from_config(cls, host: str, port: int):
         """Constructor.
 
         Args:
-            config: MLMD config.
+            host: MLMD store server host.
+            port: MLMD store server port.
         """
-        self._mlmd_store = MetadataStore(config)
+        return cls(
+            MetadataStore(
+                MetadataStoreClientConfig(
+                    host=host,
+                    port=port,
+                )
+            )
+        )
+
+    @classmethod
+    def from_channel(cls, chan: Channel):
+        """Constructor.
+
+        Args:
+            chan: gRPC channel to the MLMD store.
+        """
+        store = MetadataStore(
+            MetadataStoreClientConfig(host="localhost", port=8080),
+        )
+        store._metadata_store_stub = MetadataStoreServiceStub(chan)
+        return cls(store)
 
     def get_type_id(self, pt: type[ProtoType], type_name: str) -> int:
         """Get backend ID for a type.
@@ -59,7 +86,7 @@ class MLMDStore:
         pt_name = pt.__name__.lower()
 
         try:
-            _type = getattr(self._mlmd_store, f"get_{pt_name}_type")(type_name)
+            _type = getattr(self.store, f"get_{pt_name}_type")(type_name)
         except errors.NotFoundError as e:
             msg = f"{pt_name} type {type_name} does not exist"
             raise TypeNotFoundException(msg) from e
@@ -85,7 +112,7 @@ class MLMDStore:
             StoreException: If the artifact isn't properly formed.
         """
         try:
-            return self._mlmd_store.put_artifacts([artifact])[0]
+            return self.store.put_artifacts([artifact])[0]
         except errors.AlreadyExistsError as e:
             msg = f"Artifact {artifact.name} already exists"
             raise DuplicateException(msg) from e
@@ -111,7 +138,7 @@ class MLMDStore:
             StoreException: If the context isn't propertly formed.
         """
         try:
-            return self._mlmd_store.put_contexts([context])[0]
+            return self.store.put_contexts([context])[0]
         except errors.AlreadyExistsError as e:
             msg = f"Context {context.name} already exists"
             raise DuplicateException(msg) from e
@@ -152,12 +179,12 @@ class MLMDStore:
             StoreException: Invalid arguments.
         """
         if name is not None:
-            return self._mlmd_store.get_context_by_type_and_name(ctx_type_name, name)
+            return self.store.get_context_by_type_and_name(ctx_type_name, name)
 
         if id is not None:
-            contexts = self._mlmd_store.get_contexts_by_id([id])
+            contexts = self.store.get_contexts_by_id([id])
         elif external_id is not None:
-            contexts = self._mlmd_store.get_contexts_by_external_ids([external_id])
+            contexts = self.store.get_contexts_by_external_ids([external_id])
         else:
             msg = "Either id, name or external_id must be provided"
             raise StoreException(msg)
@@ -186,7 +213,7 @@ class MLMDStore:
         # TODO: should we make options optional?
         # if options is not None:
         try:
-            contexts = self._mlmd_store.get_contexts(options)
+            contexts = self.store.get_contexts(options)
         except errors.InvalidArgumentError as e:
             msg = f"Invalid arguments for get_contexts: {e}"
             raise StoreException(msg) from e
@@ -196,10 +223,10 @@ class MLMDStore:
 
         contexts = self._filter_type(ctx_type_name, contexts)
         # else:
-        #     contexts = self._mlmd_store.get_contexts_by_type(ctx_type_name)
+        #     contexts = self.store.get_contexts_by_type(ctx_type_name)
 
         if not contexts and ctx_type_name not in [
-            t.name for t in self._mlmd_store.get_context_types()
+            t.name for t in self.store.get_context_types()
         ]:
             msg = f"Context type {ctx_type_name} does not exist"
             raise TypeNotFoundException(msg)
@@ -218,7 +245,7 @@ class MLMDStore:
             ServerException: If there was an error putting the parent context.
         """
         try:
-            self._mlmd_store.put_parent_contexts(
+            self.store.put_parent_contexts(
                 [ParentContext(parent_id=parent_id, child_id=child_id)]
             )
         except errors.AlreadyExistsError as e:
@@ -240,7 +267,7 @@ class MLMDStore:
         """
         attribution = Attribution(context_id=context_id, artifact_id=artifact_id)
         try:
-            self._mlmd_store.put_attributions_and_associations([attribution], [])
+            self.store.put_attributions_and_associations([attribution], [])
         except errors.InvalidArgumentError as e:
             if "artifact" in str(e).lower():
                 msg = f"Artifact with ID {artifact_id} does not exist"
@@ -277,12 +304,12 @@ class MLMDStore:
             StoreException: Invalid arguments.
         """
         if name is not None:
-            return self._mlmd_store.get_artifact_by_type_and_name(art_type_name, name)
+            return self.store.get_artifact_by_type_and_name(art_type_name, name)
 
         if id is not None:
-            artifacts = self._mlmd_store.get_artifacts_by_id([id])
+            artifacts = self.store.get_artifacts_by_id([id])
         elif external_id is not None:
-            artifacts = self._mlmd_store.get_artifacts_by_external_ids([external_id])
+            artifacts = self.store.get_artifacts_by_external_ids([external_id])
         else:
             msg = "Either id, name or external_id must be provided"
             raise StoreException(msg)
@@ -304,7 +331,7 @@ class MLMDStore:
             Artifact.
         """
         try:
-            artifacts = self._mlmd_store.get_artifacts_by_context(ctx_id)
+            artifacts = self.store.get_artifacts_by_context(ctx_id)
         except errors.InternalError as e:
             msg = f"Couldn't get artifacts by context {ctx_id}"
             raise ServerException(msg) from e
@@ -330,7 +357,7 @@ class MLMDStore:
             StoreException: Invalid arguments.
         """
         try:
-            artifacts = self._mlmd_store.get_artifacts(options)
+            artifacts = self.store.get_artifacts(options)
         except errors.InvalidArgumentError as e:
             msg = f"Invalid arguments for get_artifacts: {e}"
             raise StoreException(msg) from e
@@ -340,7 +367,7 @@ class MLMDStore:
 
         artifacts = self._filter_type(art_type_name, artifacts)
         if not artifacts and art_type_name not in [
-            t.name for t in self._mlmd_store.get_artifact_types()
+            t.name for t in self.store.get_artifact_types()
         ]:
             msg = f"Artifact type {art_type_name} does not exist"
             raise TypeNotFoundException(msg)

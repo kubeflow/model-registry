@@ -21,7 +21,7 @@ ProtoTypeType = Union[ArtifactType, ContextType]
 
 # ruff: noqa: PT021 supported
 @pytest.fixture(scope="session")
-def mlmd_conn(request) -> MetadataStoreClientConfig:
+def mlmd_port(request) -> int:
     model_registry_root_dir = model_registry_root(request)
     print(
         "Assuming this is the Model Registry root directory:", model_registry_root_dir
@@ -46,10 +46,8 @@ def mlmd_conn(request) -> MetadataStoreClientConfig:
     wait_for_logs(container, "Server listening on")
     os.system('docker container ls --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}" -a')  # noqa governed test
     print("waited for logs and port")
-    cfg = MetadataStoreClientConfig(
-        host="localhost", port=int(container.get_exposed_port(8080))
-    )
-    print(cfg)
+    port = int(container.get_exposed_port(8080))
+    print("port:", port)
 
     # this callback is needed in order to perform the container.stop()
     # removing this callback might result in mlmd container shutting down before the tests had chance to fully run,
@@ -63,10 +61,12 @@ def mlmd_conn(request) -> MetadataStoreClientConfig:
     time.sleep(
         3
     )  # allowing some time for mlmd grpc to fully stabilize (is "spent" once per pytest session anyway)
-    _throwaway_store = metadata_store.MetadataStore(cfg)
+    _throwaway_store = metadata_store.MetadataStore(
+        MetadataStoreClientConfig(host="localhost", port=port)
+    )
     wait_for_grpc(container, _throwaway_store)
 
-    return cfg
+    return port
 
 
 def model_registry_root(request):
@@ -74,7 +74,7 @@ def model_registry_root(request):
 
 
 @pytest.fixture()
-def plain_wrapper(request, mlmd_conn: MetadataStoreClientConfig) -> MLMDStore:
+def plain_wrapper(request, mlmd_port: int) -> MLMDStore:
     sqlite_db_file = (
         model_registry_root(request) / "test/config/ml-metadata/metadata.sqlite.db"
     )
@@ -89,7 +89,7 @@ def plain_wrapper(request, mlmd_conn: MetadataStoreClientConfig) -> MLMDStore:
 
     request.addfinalizer(teardown)
 
-    to_return = MLMDStore(mlmd_conn)
+    to_return = MLMDStore.from_config("localhost", mlmd_port)
     sanity_check_mlmd_connection_to_db(to_return)
     return to_return
 
@@ -109,10 +109,13 @@ def sanity_check_mlmd_connection_to_db(overview: MLMDStore):
     while retry_count < 3:
         retry_count += 1
         try:
-            overview._mlmd_store.get_artifact_types()
+            overview.store.get_artifact_types()
             return
         except Exception as e:
-            if str(e) == "Cannot connect sqlite3 database: unable to open database file":
+            if (
+                str(e)
+                == "Cannot connect sqlite3 database: unable to open database file"
+            ):
                 time.sleep(1)
             else:
                 msg = "Failed to sanity check before each test, another type of error detected."
@@ -136,7 +139,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
         ],
     )
 
-    plain_wrapper._mlmd_store.put_artifact_type(ma_type)
+    plain_wrapper.store.put_artifact_type(ma_type)
 
     mv_type = set_type_attrs(
         ContextType(),
@@ -149,7 +152,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
         ],
     )
 
-    plain_wrapper._mlmd_store.put_context_type(mv_type)
+    plain_wrapper.store.put_context_type(mv_type)
 
     rm_type = set_type_attrs(
         ContextType(),
@@ -160,7 +163,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
         ],
     )
 
-    plain_wrapper._mlmd_store.put_context_type(rm_type)
+    plain_wrapper.store.put_context_type(rm_type)
 
     return plain_wrapper
 
@@ -168,7 +171,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
 @pytest.fixture()
 def mr_api(store_wrapper: MLMDStore) -> ModelRegistryAPIClient:
     mr = object.__new__(ModelRegistryAPIClient)
-    mr._store = store_wrapper
+    mr.store = store_wrapper
     return mr
 
 
@@ -191,5 +194,6 @@ def wait_for_grpc(
         if results is not None:
             return duration
         if timeout and duration > timeout:
-            raise TimeoutError("wait_for_grpc not ready %.3f seconds" % timeout)
+            msg = f"wait_for_grpc not ready {timeout:.3f} seconds"
+            raise TimeoutError(msg)
         time.sleep(interval)
