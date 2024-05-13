@@ -194,5 +194,6 @@ def wait_for_grpc(
         if results is not None:
             return duration
         if timeout and duration > timeout:
-            raise TimeoutError("wait_for_grpc not ready %.3f seconds" % timeout)
+            msg = f"wait_for_grpc not ready {timeout:.3f} seconds"
+            raise TimeoutError(msg)
         time.sleep(interval)
