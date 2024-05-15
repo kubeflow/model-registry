@@ -511,6 +511,9 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Cont
 	}
 	result, err := s.coreApi.GetServingEnvironments(listOpts)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	return Response(200, result), nil
