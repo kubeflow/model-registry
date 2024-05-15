@@ -11,7 +11,6 @@ package openapi
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -53,10 +52,8 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Cont
 
 	result, err := s.coreApi.UpsertInferenceService(entity)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -71,14 +68,8 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context
 
 	result, err := s.coreApi.UpsertServeModel(entity, &inferenceserviceId)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -93,10 +84,8 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 
 	result, err := s.coreApi.UpsertModelArtifact(entity, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -111,10 +100,8 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 
 	result, err := s.coreApi.UpsertModelVersion(modelVersion, &modelVersionCreate.RegisteredModelId)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -124,10 +111,8 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
 	result, err := s.coreApi.UpsertArtifact(&artifact, &modelversionId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// return Response(http.StatusNotImplemented, nil), errors.New("unsupported artifactType")
@@ -144,10 +129,8 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Conte
 
 	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -157,13 +140,8 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Conte
 func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx context.Context, registeredmodelId string, modelVersion model.ModelVersion) (ImplResponse, error) {
 	result, err := s.coreApi.UpsertModelVersion(&modelVersion, apiutils.StrPtr(registeredmodelId))
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -178,10 +156,8 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 
 	result, err := s.coreApi.UpsertServingEnvironment(entity)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusCreated, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -191,13 +167,8 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetInferenceServiceByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -207,13 +178,8 @@ func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Contex
 func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetModelArtifactByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -223,13 +189,8 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, name string, externalId string, registeredModelId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetModelVersionByParams(apiutils.StrPtr(name), apiutils.StrPtr(registeredModelId), apiutils.StrPtr(externalId))
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -239,13 +200,8 @@ func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, n
 func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context, name string, externalID string) (ImplResponse, error) {
 	result, err := s.coreApi.GetRegisteredModelByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalID))
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -255,10 +211,8 @@ func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context
 func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Context, name string, externalID string) (ImplResponse, error) {
 	result, err := s.coreApi.GetServingEnvironmentByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalID))
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -268,17 +222,13 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetInferenceServices(listOpts, apiutils.StrPtr(servingenvironmentId), nil)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -288,10 +238,8 @@ func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx con
 func (s *ModelRegistryServiceAPIService) GetInferenceService(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetInferenceServiceById(inferenceserviceId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -301,10 +249,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceService(ctx context.Context
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetRegisteredModelByInferenceService(inferenceserviceId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -314,17 +260,13 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetServeModels(listOpts, apiutils.StrPtr(inferenceserviceId))
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -334,10 +276,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.C
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.Context, inferenceserviceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetModelVersionByInferenceService(inferenceserviceId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -347,17 +287,13 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetInferenceServices(listOpts, nil, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -367,10 +303,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Contex
 func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, modelartifactId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetModelArtifactById(modelartifactId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -380,20 +314,13 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelArtifacts(listOpts, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -403,10 +330,8 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, 
 func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, modelversionId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetModelVersionById(modelversionId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -418,17 +343,13 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	// TODO externalID unused
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetArtifacts(listOpts, apiutils.StrPtr(modelversionId))
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -438,20 +359,13 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelVersions(listOpts, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -461,10 +375,8 @@ func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, p
 func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context, registeredmodelId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetRegisteredModelById(registeredmodelId)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -476,17 +388,13 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 	// TODO externalID unused
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelVersions(listOpts, apiutils.StrPtr(registeredmodelId))
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -496,20 +404,13 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetRegisteredModels(listOpts)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -519,10 +420,8 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context
 func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Context, servingenvironmentId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetServingEnvironmentById(servingenvironmentId)
 	if err != nil {
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
@@ -532,17 +431,13 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetServingEnvironments(listOpts)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -557,13 +452,8 @@ func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Cont
 	entity.Id = &inferenceserviceId
 	result, err := s.coreApi.UpsertInferenceService(entity)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -578,13 +468,8 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 	modelArtifact.Id = &modelartifactId
 	result, err := s.coreApi.UpsertModelArtifact(modelArtifact, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -599,13 +484,8 @@ func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context,
 	modelVersion.Id = &modelversionId
 	result, err := s.coreApi.UpsertModelVersion(modelVersion, nil)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -620,13 +500,8 @@ func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Conte
 	registeredModel.Id = &registeredmodelId
 	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -641,13 +516,8 @@ func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Co
 	entity.Id = &servingenvironmentId
 	result, err := s.coreApi.UpsertServingEnvironment(entity)
 	if err != nil {
-		if errors.Is(err, api.ErrBadRequest) {
-			return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
-		}
-		if errors.Is(err, api.ErrNotFound) {
-			return Response(http.StatusNotFound, model.Error{Message: err.Error()}), nil
-		}
-		return Response(http.StatusInternalServerError, model.Error{Message: err.Error()}), nil
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
 	}
 	return Response(http.StatusOK, result), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil

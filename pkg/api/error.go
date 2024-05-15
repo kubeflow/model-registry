@@ -1,8 +1,22 @@
 package api
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
 var (
 	ErrBadRequest = errors.New("bad request")
 	ErrNotFound   = errors.New("not found")
 )
+
+func ErrToStatus(err error) int {
+	switch err {
+	case ErrBadRequest:
+		return http.StatusBadRequest
+	case ErrNotFound:
+		return http.StatusNotFound
+	default:
+		return http.StatusInternalServerError
+	}
+}
