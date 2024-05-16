@@ -267,6 +267,9 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetInferenceServices(listOpts, apiutils.StrPtr(servingenvironmentId), nil)
@@ -310,6 +313,9 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetServeModels(listOpts, apiutils.StrPtr(inferenceserviceId))
@@ -340,6 +346,9 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetInferenceServices(listOpts, nil, nil)
@@ -370,6 +379,9 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelArtifacts(listOpts, nil)
@@ -405,6 +417,9 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	// TODO externalID unused
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetArtifacts(listOpts, apiutils.StrPtr(modelversionId))
@@ -422,6 +437,9 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelVersions(listOpts, nil)
@@ -457,6 +475,9 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 	// TODO externalID unused
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetModelVersions(listOpts, apiutils.StrPtr(registeredmodelId))
@@ -474,6 +495,9 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetRegisteredModels(listOpts)
@@ -507,6 +531,9 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
+		if errors.Is(err, api.ErrBadRequest) {
+			return Response(400, model.Error{Message: err.Error()}), nil
+		}
 		return Response(500, model.Error{Message: err.Error()}), nil
 	}
 	result, err := s.coreApi.GetServingEnvironments(listOpts)
