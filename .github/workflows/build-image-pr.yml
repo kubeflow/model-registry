@@ -2,14 +2,14 @@ name: Test container image build and deployment
 on:
   pull_request:
     paths-ignore:
-      - 'LICENSE*'
-      - '**.gitignore'
-      - '**.md'
-      - '**.txt'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - 'docs/**'
-      - 'clients/python/**'
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+      - "clients/python/docs/**"
 env:
   IMG_ORG: opendatahub
   IMG_REPO: model-registry
@@ -55,3 +55,25 @@ jobs:
       - name: Wait for Test Registry Deployment
         run: |
           kubectl wait --for=condition=Available=true modelregistries/modelregistry-sample --timeout=5m
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Install Poetry
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+      - name: Build package
+        working-directory: clients/python
+        run: |
+          poetry build --ansi
+          pip install dist/*.whl
+      - name: Connect with Python client
+        run: |
+          kubectl port-forward service/modelregistry-sample 9090:9090 &
+          sleep 5
+          python test/python/test_mr_conn.py localhost 9090
