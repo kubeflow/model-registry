@@ -2,14 +2,14 @@ name: Test container image build and deployment
 on:
   pull_request:
     paths-ignore:
-      - 'LICENSE*'
-      - '**.gitignore'
-      - '**.md'
-      - '**.txt'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - 'docs/**'
-      - 'clients/python/**'
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+      - "clients/python/docs/**"
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
@@ -61,3 +61,25 @@ jobs:
           kubectl wait --for=condition=available -n kubeflow deployment/model-registry-db --timeout=5m
           kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=5m
           kubectl logs -n kubeflow deployment/model-registry-deployment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Install Poetry
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+      - name: Build package
+        working-directory: clients/python
+        run: |
+          poetry build --ansi
+          pip install dist/*.whl
+      - name: Connect with Python client
+        run: |
+          kubectl port-forward -n kubeflow service/model-registry-service 9090:9090 &
+          sleep 5
+          python test/python/test_mr_conn.py localhost 9090
