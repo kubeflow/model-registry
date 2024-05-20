@@ -1,6 +1,8 @@
 package apiutils
 
 import (
+	"fmt"
+
 	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -8,7 +10,6 @@ import (
 )
 
 func BuildListOperationOptions(listOptions api.ListOptions) (*proto.ListOperationOptions, error) {
-
 	result := proto.ListOperationOptions{}
 	if listOptions.PageSize != nil {
 		result.MaxResultSize = listOptions.PageSize
@@ -63,7 +64,7 @@ func BuildListOption(pageSize string, orderBy model.OrderByField, sortOrder mode
 	if pageSize != "" {
 		conv, err := converter.StringToInt32(pageSize)
 		if err != nil {
-			return api.ListOptions{}, err
+			return api.ListOptions{}, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		pageSizeInt32 = &conv
 	}
