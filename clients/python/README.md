@@ -104,7 +104,7 @@ There are caveats to be noted when using this method:
 
 ## Advanced use-cases
 
-### Using Model Registry Python Client with newer Python versions
+### Using Model Registry Python Client with newer Python versions (>=3.11)
 
 > [!CAUTION]
 > The mechanism described in this section is a temporary workaround and likely will never be supported.
@@ -113,11 +113,11 @@ There are caveats to be noted when using this method:
 <!-- a longer-term plan to address this ties to the investigations to rebase this client on top of MR REST api directly,
 so to avoid having to wrap the MLMD Wheel. See more: https://github.com/kubeflow/model-registry/pull/59 -->
 
-This project _currently_ wraps Google's MLMD and aligns with its supported Python versions (see more [here](https://pypi.org/project/ml-metadata/#files)),
-hence the reason of this project's [specified constraints](https://github.com/kubeflow/model-registry/blob/8d77c13100c6cc5a9465d4293403114a3576fdd7/clients/python/pyproject.toml#L14).
+This project _currently_ depends for internal implementations on the Google's [MLMD Python library](https://pypi.org/project/ml-metadata/).
+Due to this dependency, this project supports [only the Python versions](https://github.com/kubeflow/model-registry/blob/8d77c13100c6cc5a9465d4293403114a3576fdd7/clients/python/pyproject.toml#L14) which are also available for the MLMD library (see more [here](https://pypi.org/project/ml-metadata/#files)).
 
-To circumvent this current limitation, **and only IF your Python/Notebook project does NOT make use of MLMD directly or indirectly**,
-you could opt-in using a non-constrained variant of that dependency supporting _only_ remote gRPC calls and not constrained by Python versions or architecture.
+As a workaround, **only IF your Python/Notebook project does NOT make use of MLMD directly or indirectly**,
+you could opt-in to make use of a non-constrained variant of the MLMD dependency supporting _only_ remote gRPC calls (and not constrained by specific Python versions or architectures):
 
 ```
 !pip install "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" # need a Python 3.11 compatible version
