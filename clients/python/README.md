@@ -102,6 +102,30 @@ There are caveats to be noted when using this method:
     )
     ```
 
+## Advanced use-cases
+
+### Using Model Registry Python Client with newer Python versions
+
+> [!CAUTION]
+> The mechanism described in this section is a temporary workaround and likely will never be supported.
+> This workaround is ONLY applicable if your Python/Notebook project does NOT make use of MLMD directly or indirectly.
+
+<!-- a longer-term plan to address this ties to the investigations to rebase this client on top of MR REST api directly,
+so to avoid having to wrap the MLMD Wheel. See more: https://github.com/kubeflow/model-registry/pull/59 -->
+
+This project _currently_ wraps Google's MLMD and aligns with its supported Python versions (see more [here](https://pypi.org/project/ml-metadata/#files)),
+hence the reason of this project's [specified constraints](https://github.com/kubeflow/model-registry/blob/8d77c13100c6cc5a9465d4293403114a3576fdd7/clients/python/pyproject.toml#L14).
+
+To circumvent this current limitation, **and only IF your Python/Notebook project does NOT make use of MLMD directly or indirectly**,
+you could opt-in using a non-constrained variant of that dependency supporting _only_ remote gRPC calls and not constrained by Python versions or architecture.
+
+```
+!pip install "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" # need a Python 3.11 compatible version
+!pip install --no-deps --ignore-requires-python --pre "model-registry" # ignore dependencies because of the above override
+```
+
+You can read more about this use-case, in the [Remote-only packaging of MLMD Python lib](https://github.com/kubeflow/model-registry/blob/main/docs/remote_only_packaging_of_MLMD_Python_lib.md) document.
+
 ## Development
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
