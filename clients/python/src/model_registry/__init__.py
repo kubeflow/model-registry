@@ -1,4 +1,4 @@
-"""Main package for the ODH model registry."""
+"""Main package for the Kubeflow model registry."""
 
 __version__ = "0.2.3a1"
 
