@@ -11,7 +11,7 @@ var (
 )
 
 func ErrToStatus(err error) int {
-	switch err {
+	switch errors.Unwrap(err) {
 	case ErrBadRequest:
 		return http.StatusBadRequest
 	case ErrNotFound:
