@@ -73,8 +73,7 @@ Having Docker installed is also helpful for Testcontainers.
 
 ### Podman
 
-Podman also supports Rosetta (Apple specific) emulation which is handy since the Google MLMD project dependency is x86 specific.
-You can install Podman from the Podman [website](https://podman.io/).
+[Podman](https://podman.io/) also supports Rosetta (Apple specific) emulation which is handy since the Google MLMD project dependency is x86 specific.
 
 We recommend setting up the Podman machine with root priviledges,
 and setting the environment variable
