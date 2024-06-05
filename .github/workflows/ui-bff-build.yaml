@@ -1,0 +1,39 @@
+name: Build
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    paths-ignore:
+      - 'LICENSE*'
+      - 'DOCKERFILE*'
+      - '**.gitignore'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.2'
+
+      - name: Clean
+        working-directory: clients/ui/bff
+        run: make clean
+
+      - name: Build
+        working-directory: clients/ui/bff
+        run: make build
+
+      - name: Check if there are uncommitted file changes
+        working-directory: clients/ui/bff
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "Empty git status --porcelain: $clean"
+          else
+              echo "Uncommitted file changes detected: $clean"
+              git diff
+              exit 1
