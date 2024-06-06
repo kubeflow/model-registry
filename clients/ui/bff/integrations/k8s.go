@@ -37,6 +37,8 @@ func NewKubernetesClient() (KubernetesClientInterface, error) {
 }
 
 func (kc *KubernetesClient) FetchServiceNamesByComponent(componentValue string) ([]string, error) {
+	//TODO (ederign) when we develop the front-end, implement subject access review here
+	// currently on kf dashboard, the user name comes in kubeflow-userid
 
 	services, err := kc.ClientSet.CoreV1().Services(kc.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
