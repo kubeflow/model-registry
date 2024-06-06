@@ -19,9 +19,7 @@ func TestHealthCheckHandler(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, HealthCheckPath, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	app.HealthcheckHandler(rr, req, nil)
 	rs := rr.Result()
@@ -29,15 +27,13 @@ func TestHealthCheckHandler(t *testing.T) {
 	defer rs.Body.Close()
 
 	body, err := io.ReadAll(rs.Body)
-	if err != nil {
-		t.Fatal("Failed to read response body")
-	}
+	assert.NoError(t, err)
 
 	var healthCheckRes data.HealthCheckModel
 	err = json.Unmarshal(body, &healthCheckRes)
-	if err != nil {
-		t.Fatalf("Error unmarshalling response JSON: %v", err)
-	}
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
 
 	expected := data.HealthCheckModel{
 		Status: "available",
