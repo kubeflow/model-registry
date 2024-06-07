@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/integrations"
 	"net/http"
 	"strconv"
 )
@@ -27,9 +28,9 @@ func (app *App) LogError(r *http.Request, err error) {
 }
 
 func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	httpError := &HTTPError{
+	httpError := &integrations.HTTPError{
 		StatusCode: http.StatusBadRequest,
-		ErrorResponse: ErrorResponse{
+		ErrorResponse: integrations.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusBadRequest),
 			Message: err.Error(),
 		},
@@ -37,7 +38,7 @@ func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err e
 	app.errorResponse(w, r, httpError)
 }
 
-func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *HTTPError) {
+func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *integrations.HTTPError) {
 
 	env := Envelope{"error": error}
 
@@ -52,9 +53,9 @@ func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *HTT
 func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.LogError(r, err)
 
-	httpError := &HTTPError{
+	httpError := &integrations.HTTPError{
 		StatusCode: http.StatusInternalServerError,
-		ErrorResponse: ErrorResponse{
+		ErrorResponse: integrations.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusInternalServerError),
 			Message: "the server encountered a problem and could not process your request",
 		},
@@ -64,9 +65,9 @@ func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err 
 
 func (app *App) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 
-	httpError := &HTTPError{
+	httpError := &integrations.HTTPError{
 		StatusCode: http.StatusNotFound,
-		ErrorResponse: ErrorResponse{
+		ErrorResponse: integrations.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusNotFound),
 			Message: "the requested resource could not be found",
 		},
@@ -76,9 +77,9 @@ func (app *App) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 
-	httpError := &HTTPError{
+	httpError := &integrations.HTTPError{
 		StatusCode: http.StatusMethodNotAllowed,
-		ErrorResponse: ErrorResponse{
+		ErrorResponse: integrations.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusMethodNotAllowed),
 			Message: fmt.Sprintf("the %s method is not supported for this resource", r.Method),
 		},
@@ -92,9 +93,9 @@ func (app *App) failedValidationResponse(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		message = []byte("{}")
 	}
-	httpError := &HTTPError{
+	httpError := &integrations.HTTPError{
 		StatusCode: http.StatusUnprocessableEntity,
-		ErrorResponse: ErrorResponse{
+		ErrorResponse: integrations.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusUnprocessableEntity),
 			Message: string(message),
 		},
