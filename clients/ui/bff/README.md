@@ -11,10 +11,10 @@ TBD
 
 ### Endpoints
 
-| URL Pattern         | Handler            | Action                        |
-|---------------------|--------------------|-------------------------------|
-| GET /v1/healthcheck | HealthcheckHandler | Show application information. |
-
+| URL Pattern             | Handler              | Action                        |
+|-------------------------|----------------------|-------------------------------|
+| GET /v1/healthcheck     | HealthcheckHandler   | Show application information. |
+| GET /v1/model-registry/ | ModelRegistryHandler | Get all model registries,     |
 
 ### Sample local calls
 ```

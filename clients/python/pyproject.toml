@@ -11,14 +11,16 @@ homepage = "https://github.com/kubeflow/model-registry"
 "Issues" = "https://github.com/kubeflow/model-registry/issues"
 
 [tool.poetry.dependencies]
-python = ">= 3.9, < 3.11"
+python = ">= 3.9, < 3.11" # mainly aligns constraints with: https://pypi.org/project/ml-metadata/#files
 attrs = "^21.0"
-ml-metadata = "^1.14.0"
+ml-metadata = "==1.14.0"
 # you might consider using locally the following alternative, when developing on Apple-silicon/ARM-based computers:
 # ml-metadata = { url = "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" }
 typing-extensions = "^4.8"
 
 huggingface-hub = { version = ">=0.20.1,<0.24.0", optional = true }
+# pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
+requests = { version = "^2.32.2", optional = true }
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
@@ -29,11 +31,13 @@ furo = ">=2023.9.10,<2025.0.0"
 myst-parser = { extras = ["linkify"], version = "^2.0.0" }
 pytest = ">=7.4.2,<9.0.0"
 coverage = { extras = ["toml"], version = "^7.3.2" }
-pytest-cov = "^4.1.0"
+pytest-cov = ">=4.1,<6.0"
 sphinx-autobuild = ">=2021.3.14,<2025.0.0"
 ruff = "^0.4.4"
 mypy = "^1.7.0"
-testcontainers = "^3.7.1"
+testcontainers = "^4.5.0"
+# pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
+docker = "^7.1.0"
 
 [tool.coverage.run]
 branch = true

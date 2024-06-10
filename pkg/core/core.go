@@ -20,10 +20,10 @@ import (
 // ModelRegistryService is the core library of the model registry
 type ModelRegistryService struct {
 	mlmdClient  proto.MetadataStoreServiceClient
-	nameConfig  mlmdtypes.MLMDTypeNamesConfig
 	typesMap    map[string]int64
 	mapper      *mapper.Mapper
 	openapiConv *generated.OpenAPIConverterImpl
+	nameConfig  mlmdtypes.MLMDTypeNamesConfig
 }
 
 // NewModelRegistryService creates a new instance of the ModelRegistryService, initializing it with the provided gRPC client connection.

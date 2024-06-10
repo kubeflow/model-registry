@@ -12,6 +12,10 @@ help: ## Display this help.
 fmt:
 	go fmt ./...
 
+.PHONY: clean
+clean:
+	rm -Rf ./bin
+
 .PHONY: vet
 vet:  .
 	go vet ./...
