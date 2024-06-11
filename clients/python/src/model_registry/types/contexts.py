@@ -52,9 +52,9 @@ class BaseContext(ProtoBase, ABC):
     @override
     def unmap(cls, mlmd_obj: Context) -> BaseContext:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, BaseContext
-        ), f"Expected BaseContext, got {type(py_obj)}"
+        if not isinstance(py_obj, BaseContext):
+            msg =  f"Expected BaseContext, got {type(py_obj)}"
+            raise TypeError(msg)
         py_obj.state = ContextState(mlmd_obj.properties["state"].string_value)
         return py_obj
 
@@ -92,9 +92,9 @@ class ModelVersion(BaseContext, Prefixable):
     @property
     @override
     def mlmd_name_prefix(self) -> str:
-        assert (
-            self._registered_model_id is not None
-        ), "There's no registered model associated with this version"
+        if self._registered_model_id is None:
+            msg = "There's no registered model associated with this version"
+            raise ValueError(msg)
         return self._registered_model_id
 
     @override
@@ -113,9 +113,9 @@ class ModelVersion(BaseContext, Prefixable):
     @override
     def unmap(cls, mlmd_obj: Context) -> ModelVersion:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, ModelVersion
-        ), f"Expected ModelVersion, got {type(py_obj)}"
+        if not isinstance(py_obj, ModelVersion):
+            msg = f"Expected ModelVersion, got {type(py_obj)}"
+            raise TypeError(msg)
         py_obj.version = py_obj.name
         py_obj.model_name = mlmd_obj.properties["model_name"].string_value
         py_obj.author = mlmd_obj.properties["author"].string_value
@@ -150,8 +150,8 @@ class RegisteredModel(BaseContext):
     @override
     def unmap(cls, mlmd_obj: Context) -> RegisteredModel:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, RegisteredModel
-        ), f"Expected RegisteredModel, got {type(py_obj)}"
+        if not isinstance(py_obj, RegisteredModel):
+            msg = f"Expected RegisteredModel, got {type(py_obj)}"
+            raise TypeError(msg)
         py_obj.owner = mlmd_obj.properties["owner"].string_value
         return py_obj

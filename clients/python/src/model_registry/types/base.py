@@ -178,7 +178,9 @@ class ProtoBase(Mappable, ABC):
         py_obj.id = str(mlmd_obj.id)
         if isinstance(py_obj, Prefixable):
             name: str = mlmd_obj.name
-            assert ":" in name, f"Expected {name} to be prefixed"
+            if ":" not in name:
+                msg = f"Expected {name} to be prefixed"
+                raise ValueError(msg)
             py_obj.name = name.split(":", 1)[1]
         else:
             py_obj.name = mlmd_obj.name

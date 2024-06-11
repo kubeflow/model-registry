@@ -65,9 +65,9 @@ class BaseArtifact(ProtoBase):
     @override
     def unmap(cls, mlmd_obj: Artifact) -> BaseArtifact:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, BaseArtifact
-        ), f"Expected BaseArtifact, got {type(py_obj)}"
+        if not isinstance(py_obj, BaseArtifact):
+            msg = f"Expected BaseArtifact, got {type(py_obj)}"
+            raise TypeError(msg)
         py_obj.uri = mlmd_obj.uri
         py_obj.state = ArtifactState(mlmd_obj.state)
         return py_obj
@@ -120,9 +120,9 @@ class ModelArtifact(BaseArtifact, Prefixable):
     @classmethod
     def unmap(cls, mlmd_obj: Artifact) -> ModelArtifact:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, ModelArtifact
-        ), f"Expected ModelArtifact, got {type(py_obj)}"
+        if not isinstance(py_obj, ModelArtifact):
+            msg = f"Expected ModelArtifact, got {type(py_obj)}"
+            raise TypeError(msg)
         py_obj.model_format_name = mlmd_obj.properties["model_format_name"].string_value
         py_obj.model_format_version = mlmd_obj.properties[
             "model_format_version"
