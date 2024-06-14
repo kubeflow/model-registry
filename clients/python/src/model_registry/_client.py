@@ -80,7 +80,7 @@ class ModelRegistry:
     def _register_new_version(
         self, rm: RegisteredModel, version: str, author: str, /, **kwargs
     ) -> ModelVersion:
-        assert rm.id is not None, "Registered model must have an ID"
+        assert rm.id is not None, "Registered model must have an ID" # noqa: S101 helpful for dev phase, not runtime
         if self._api.get_model_version_by_params(rm.id, version):
             msg = f"Version {version} already exists"
             raise StoreException(msg)
@@ -92,7 +92,7 @@ class ModelRegistry:
     def _register_model_artifact(
         self, mv: ModelVersion, uri: str, /, **kwargs
     ) -> ModelArtifact:
-        assert mv.id is not None, "Model version must have an ID"
+        assert mv.id is not None, "Model version must have an ID" # noqa: S101 helpful for dev phase, not runtime
         ma = ModelArtifact(mv.model_name, uri, **kwargs)
         self._api.upsert_model_artifact(ma, mv.id)
         return ma

@@ -52,7 +52,7 @@ class BaseContext(ProtoBase, ABC):
     @override
     def unmap(cls, mlmd_obj: Context) -> BaseContext:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
+        assert isinstance( # noqa: S101 helpful for dev phase, not runtime
             py_obj, BaseContext
         ), f"Expected BaseContext, got {type(py_obj)}"
         py_obj.state = ContextState(mlmd_obj.properties["state"].string_value)
@@ -92,7 +92,7 @@ class ModelVersion(BaseContext, Prefixable):
     @property
     @override
     def mlmd_name_prefix(self) -> str:
-        assert (
+        assert ( # noqa: S101 helpful for dev phase, not runtime
             self._registered_model_id is not None
         ), "There's no registered model associated with this version"
         return self._registered_model_id
@@ -113,7 +113,7 @@ class ModelVersion(BaseContext, Prefixable):
     @override
     def unmap(cls, mlmd_obj: Context) -> ModelVersion:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
+        assert isinstance( # noqa: S101 helpful for dev phase, not runtime
             py_obj, ModelVersion
         ), f"Expected ModelVersion, got {type(py_obj)}"
         py_obj.version = py_obj.name
@@ -150,7 +150,7 @@ class RegisteredModel(BaseContext):
     @override
     def unmap(cls, mlmd_obj: Context) -> RegisteredModel:
         py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
+        assert isinstance( # noqa: S101 helpful for dev phase, not runtime
             py_obj, RegisteredModel
         ), f"Expected RegisteredModel, got {type(py_obj)}"
         py_obj.owner = mlmd_obj.properties["owner"].string_value
