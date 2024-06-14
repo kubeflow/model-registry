@@ -12,9 +12,12 @@ import (
 )
 
 const (
-	Version         = "1.0.0"
-	HealthCheckPath = "/api/v1/healthcheck/"
-	ModelRegistry   = "/api/v1/model-registry/"
+	Version              = "1.0.0"
+	PathPrefix           = "/api/v1"
+	ModelRegistryId      = "model_registry_id"
+	HealthCheckPath      = PathPrefix + "/healthcheck/"
+	ModelRegistry        = PathPrefix + "/model-registry/"
+	RegisteredModelsPath = ModelRegistry + ":" + ModelRegistryId + "/registered_models"
 )
 
 type App struct {
@@ -25,7 +28,7 @@ type App struct {
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
-	k8sClient, err := integrations.NewKubernetesClient()
+	k8sClient, err := integrations.NewKubernetesClient(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
@@ -46,6 +49,8 @@ func (app *App) Routes() http.Handler {
 
 	// HTTP client routes
 	router.GET(HealthCheckPath, app.HealthcheckHandler)
+	router.GET(RegisteredModelsPath, app.AttachRESTClient(app.GetRegisteredModelsHandler))
+	router.POST(RegisteredModelsPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
 
 	// Kubernetes client routes
 	router.GET(ModelRegistry, app.ModelRegistryHandler)

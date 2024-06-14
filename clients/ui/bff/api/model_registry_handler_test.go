@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/kubeflow/model-registry/ui/bff/data"
 	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +13,7 @@ import (
 
 func TestModelRegistryHandler(t *testing.T) {
 	mockK8sClient := new(mocks.KubernetesClientMock)
-	mockK8sClient.On("FetchServiceNamesByComponent", "model-registry-server").Return([]string{"model-registry-dora", "model-registry-bella"}, nil)
+	mockK8sClient.On("GetServiceNames").Return(mockK8sClient.MockServiceNames(), nil)
 
 	testApp := App{
 		kubernetesClient: mockK8sClient,
@@ -31,7 +30,6 @@ func TestModelRegistryHandler(t *testing.T) {
 	defer rs.Body.Close()
 	body, err := io.ReadAll(rs.Body)
 	assert.NoError(t, err)
-	fmt.Println(string(body))
 	var modelRegistryRes Envelope
 	err = json.Unmarshal(body, &modelRegistryRes)
 	assert.NoError(t, err)
@@ -48,8 +46,8 @@ func TestModelRegistryHandler(t *testing.T) {
 
 	var expected = Envelope{
 		"model_registry": []data.ModelRegistryModel{
-			{Name: "model-registry-dora"},
-			{Name: "model-registry-bella"},
+			{Name: mockK8sClient.MockServiceNames()[0]},
+			{Name: mockK8sClient.MockServiceNames()[1]},
 		},
 	}
 
