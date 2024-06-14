@@ -17,6 +17,10 @@ COPY api/ api/
 COPY config/ config/
 COPY data/ data/
 COPY integrations/ integrations/
+COPY internals/ internals/
+COPY validation/ validation/
+
+
 
 # Build the Go application
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd/main.go
