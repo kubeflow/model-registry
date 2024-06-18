@@ -9,9 +9,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
   OS="osx"
 fi
-ARCH="x86_64"
-if [[ "$(uname -m)" == "arm"* ]]; then
-  ARCH="aarch_64"
+ARCH=$(uname -m)
+if [[ "$ARCH" == "arm"* ]]; then
+  ARCH="aarch_64" # Mac
+elif [[ "$ARCH" == "aarch64" ]]; then
+  ARCH="aarch_64" # Linux/container
+elif [[ "$ARCH" == "s390x" ]]; then
+  ARCH="s390_64"
+elif [[ "$ARCH" == "ppc64le" ]] ; then
+  ARCH="ppcle_64"
 fi
 
 mkdir -p ${SCRIPT_DIR}/../bin

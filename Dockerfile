@@ -1,5 +1,7 @@
 # Build the model-registry binary
 FROM registry.access.redhat.com/ubi8/go-toolset:1.19 as builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -34,7 +36,7 @@ RUN make deps
 
 # Build
 USER root
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
+RUN CGO_ENABLED=1 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
