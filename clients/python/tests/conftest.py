@@ -160,6 +160,7 @@ def store_wrapper(plain_wrapper: MLMDStore) -> MLMDStore:
         [
             "description",
             "state",
+            "owner",
         ],
     )
 

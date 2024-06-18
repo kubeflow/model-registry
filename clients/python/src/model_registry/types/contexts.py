@@ -135,14 +135,12 @@ class RegisteredModel(BaseContext):
     """
 
     name: str
-    owner: str = None
+    owner: str | None = None
 
     @override
     def map(self, type_id: int) -> Context:
         mlmd_obj = super().map(type_id)
-        props = {
-            "owner": self.owner
-        }
+        props = {"owner": self.owner}
         self._map_props(props, mlmd_obj.properties)
         return mlmd_obj
 
