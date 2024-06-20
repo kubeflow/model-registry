@@ -1,0 +1,48 @@
+name: UI - Frontend - Test and Build
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    paths-ignore:
+      - 'LICENSE*'
+      - 'DOCKERFILE*'
+      - '**.gitignore'
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: clients/ui/frontend
+        run: npm install
+
+      - name: Run tests
+        working-directory: clients/ui/frontend
+        run: npm run test:coverage
+
+      - name: Clean
+        working-directory: clients/ui/frontend
+        run: npm run clean
+
+      - name: Build
+        working-directory: clients/ui/frontend
+        run: npm run build
+
+      - name: Check if there are uncommitted file changes
+        working-directory: clients/ui/frontend
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "Empty git status --porcelain: $clean"
+          else
+              echo "Uncommitted file changes detected: $clean"
+              git diff
+              exit 1
+          fi
