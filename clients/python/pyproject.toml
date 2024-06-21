@@ -23,6 +23,8 @@ aiohttp = "^3.9.5"
 aiohttp-retry = "^2.8.3"
 
 huggingface-hub = { version = ">=0.20.1,<0.24.0", optional = true }
+# necessary for modern type annotations using pydantic on 3.9
+eval-type-backport = "^0.2.0"
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
