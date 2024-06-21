@@ -1,4 +1,5 @@
 """Nox sessions."""
+
 import os
 import shutil
 import sys
@@ -33,7 +34,8 @@ def lint(session: Session) -> None:
     """Lint using ruff."""
     session.install("ruff")
 
-    session.run("ruff", "check", ".")
+    # can't check the whole project because of the generated code
+    session.run("ruff", "check", "src/model_registry", "tests")
 
 
 @session(python=python_versions)
@@ -42,7 +44,7 @@ def mypy(session: Session) -> None:
     session.install(".")
     session.install("mypy")
 
-    session.run("mypy", "src")
+    session.run("mypy", "src/model_registry")
 
 
 @session(python=python_versions)
