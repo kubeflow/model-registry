@@ -10,6 +10,7 @@
 
 ### Register objects
 
+<!-- TODO: update section -->
 ```py
 from model_registry import ModelRegistry
 
@@ -54,24 +55,33 @@ another_trained_model = registry.get_model_artifact_by_id("another-model-artifac
 #### By parameters
 
 External IDs can be used to query objects in the wild.
-Note that external IDs must be unique among artifacts or
-contexts (see [Types](#types)).
+Note that external IDs must be unique among artifacts or contexts (see [Types](#types)).
 
 ```py
-trained_model = ModelArtifact("my_model_name", "resource_URI",
-                              description="Model description",
-                              external_id="unique_reference")
+trained_model = ModelArtifact(
+    name="my_model_name",
+    uri="resource_URI",
+    description="Model description",
+    external_id="unique_reference"
+)
 
 # As a version is a context, we can have the same external_id as the above
-version = ModelVersion(trained_model, "v1.0", "model author",
-                       external_id="unique_reference")
+version = ModelVersion(
+    name="v1.0",
+    author="model author",
+    external_id="unique_reference"
+)
 
 # Registering this will cause an error!
-# model = RegisteredModel("my_model_name",
-#                         external_id="unique_reference")
+# model = RegisteredModel(
+#    name="my_model_name",
+#    external_id="unique_reference",  # this wouldn't be unique
+# )
 
-model = RegisteredModel("my_model_name",
-                        external_id="another_unique_reference")
+model = RegisteredModel(
+    name="my_model_name",
+    external_id="another_unique_reference"
+)
 ```
 
 You can also perform queries by parameters:
@@ -109,18 +119,17 @@ versions = registry.get_model_versions("registered_model_id")
 all_model_artifacts = registry.get_model_artifacts()
 ```
 
-<!-- TODO: #120 provide a link to the reference docs instead of code -->
-To limit or order the query, provide a `ListOptions` object
+To limit or order the query, provide a {py:class}`model_registry.types.ListOptions` object.
 
 ```py
-from model_registry import ListOptions, OrderByField
+from model_registry import ListOptions
 
 options = ListOptions(limit=50)
 
 first_50_models = registry.get_registered_models(options)
 
 # By default we get ascending order
-options = ListOptions(order_by=OrderByField.CREATE_TIME, is_asc=False)
+options = ListOptions.order_by_creation_time(is_asc=False)
 
 last_50_models = registry.get_registered_models(options)
 ```
@@ -138,12 +147,21 @@ Registry objects can be created by doing
 ```py
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
 
-trained_model = ModelArtifact("my_model_name", "resource_URI",
-                              description="Model description")
+trained_model = ModelArtifact(
+    name="model-exec",
+    uri="resource_URI",
+    description="Model description",
+)
 
-version = ModelVersion(trained_model.name, "v1.0", "model author")
+version = ModelVersion(
+    name="v1.0",
+    author="model author",
+)
 
-model = RegisteredModel(trained_model.name)
+model = RegisteredModel(
+    name="model",
+    owner="team",
+)
 ```
 
 ```{eval-rst}
