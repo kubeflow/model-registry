@@ -10,6 +10,7 @@ import "github.com/kubeflow/model-registry/pkg/openapi"
 // goverter:converter
 // goverter:output:file ./generated/openapi_converter.gen.go
 // goverter:wrapErrors
+// goverter:enum:unknown @error
 // goverter:matchIgnoreCase
 // goverter:useZeroValueOnPointerInconsistency
 type OpenAPIConverter interface {
