@@ -2,7 +2,7 @@ import os
 
 import pytest
 from model_registry import ModelRegistry, utils
-from model_registry.exceptions import StoreException
+from model_registry.exceptions import StoreError
 
 
 @pytest.fixture()
@@ -13,7 +13,7 @@ def client() -> ModelRegistry:
 def test_secure_client():
     os.environ["CERT"] = ""
     os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = ""
-    with pytest.raises(StoreException) as e:
+    with pytest.raises(StoreError) as e:
         ModelRegistry("anything", author="test_author")
 
     assert "user token" in str(e.value).lower()
@@ -71,7 +71,7 @@ def test_register_existing_version(client: ModelRegistry):
     }
     client.register_model(**params)
 
-    with pytest.raises(StoreException):
+    with pytest.raises(StoreError):
         client.register_model(**params)
 
 
