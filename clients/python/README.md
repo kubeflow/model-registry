@@ -10,9 +10,9 @@ This library provides a high level interface for interacting with a model regist
 ```py
 from model_registry import ModelRegistry
 
-registry = ModelRegistry("server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
 
-# registry = ModelRegistry("server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
+# registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
 
 model = registry.register_model(
     "my-model",  # model name
