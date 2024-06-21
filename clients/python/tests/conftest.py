@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 from typing import Union
 
 import pytest
@@ -19,14 +20,16 @@ from testcontainers.core.waiting_utils import wait_for_logs
 ProtoTypeType = Union[ArtifactType, ContextType]
 
 
+@pytest.fixture(scope="session")
+def root(request) -> Path:
+    return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
+
+
 # ruff: noqa: PT021 supported
 @pytest.fixture(scope="session")
-def mlmd_port(request) -> int:
-    model_registry_root_dir = model_registry_root(request)
-    print(
-        "Assuming this is the Model Registry root directory:", model_registry_root_dir
-    )
-    shared_volume = model_registry_root_dir / "test/config/ml-metadata"
+def mlmd_port(root: Path):
+    print("Assuming this is the Model Registry root directory:", root)
+    shared_volume = root / "test/config/ml-metadata"
     sqlite_db_file = shared_volume / "metadata.sqlite.db"
     if sqlite_db_file.exists():
         msg = f"The file {sqlite_db_file} already exists; make sure to cancel it before running these tests."
@@ -49,15 +52,6 @@ def mlmd_port(request) -> int:
     port = int(container.get_exposed_port(8080))
     print("port:", port)
 
-    # this callback is needed in order to perform the container.stop()
-    # removing this callback might result in mlmd container shutting down before the tests had chance to fully run,
-    # and resulting in grpc connection resets.
-    def teardown():
-        container.stop()
-        print("teardown of plain_wrapper completed.")
-
-    request.addfinalizer(teardown)
-
     time.sleep(
         3
     )  # allowing some time for mlmd grpc to fully stabilize (is "spent" once per pytest session anyway)
@@ -66,32 +60,29 @@ def mlmd_port(request) -> int:
     )
     wait_for_grpc(container, _throwaway_store)
 
-    return port
+    yield port
 
-
-def model_registry_root(request):
-    return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
+    # this callback is needed in order to perform the container.stop()
+    # removing this callback might result in mlmd container shutting down before the tests had chance to fully run,
+    # and resulting in grpc connection resets.
+    container.stop()
+    print("teardown of plain_wrapper completed.")
 
 
 @pytest.fixture()
-def plain_wrapper(request, mlmd_port: int) -> MLMDStore:
-    sqlite_db_file = (
-        model_registry_root(request) / "test/config/ml-metadata/metadata.sqlite.db"
-    )
-
-    def teardown():
-        try:
-            os.remove(sqlite_db_file)
-            print(f"Removed {sqlite_db_file} successfully.")
-        except Exception as e:
-            print(f"An error occurred while removing {sqlite_db_file}: {e}")
-        print("plain_wrapper_after_each done.")
-
-    request.addfinalizer(teardown)
-
+def plain_wrapper(root: Path, mlmd_port: int):
+    sqlite_db_file = root / "test/config/ml-metadata/metadata.sqlite.db"
     to_return = MLMDStore.from_config("localhost", mlmd_port)
     sanity_check_mlmd_connection_to_db(to_return)
-    return to_return
+
+    yield to_return
+
+    try:
+        os.remove(sqlite_db_file)
+        print(f"Removed {sqlite_db_file} successfully.")
+    except Exception as e:
+        print(f"An error occurred while removing {sqlite_db_file}: {e}")
+    print("plain_wrapper_after_each done.")
 
 
 def set_type_attrs(mlmd_obj: ProtoTypeType, name: str, props: list[str]):
