@@ -1,4 +1,4 @@
-import model_registry as mr
+from model_registry.core import ModelRegistryAPIClient
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
 from robot.libraries.BuiltIn import BuiltIn
 
@@ -8,31 +8,26 @@ def write_to_console(s):
     BuiltIn().log_to_console(s)
 
 
-class ModelRegistry(mr.core.ModelRegistryAPIClient):
-    def __init__(self, host: str = "localhost", port: int = 9090):
-        super().__init__(mr.store.MLMDStore.from_config(host, port))
+class ModelRegistry:
+    def __init__(self, host: str = "http://localhost", port: int = 9090):
+        self.api = ModelRegistryAPIClient.insecure_connection(host, port)
 
-    def upsert_registered_model(self, registered_model) -> str:
-        p = RegisteredModel("")
-        for key, value in registered_model.items():
-            setattr(p, key, value)
-        return super().upsert_registered_model(p)
+    def upsert_registered_model(self, registered_model: dict) -> str:
+        return self.api.upsert_registered_model(RegisteredModel(**registered_model))
 
-    def upsert_model_version(self, model_version, registered_model_id: str) -> str:
+    def upsert_model_version(
+        self, model_version: dict, registered_model_id: str
+    ) -> str:
         write_to_console(model_version)
-        p = ModelVersion("", "", "")
-        for key, value in model_version.items():
-            setattr(p, key, value)
+        p = ModelVersion(**model_version)
         write_to_console(p)
-        return super().upsert_model_version(p, registered_model_id)
+        return self.api.upsert_model_version(p, registered_model_id)
 
-    def upsert_model_artifact(self, model_artifact, model_version_id: str) -> str:
+    def upsert_model_artifact(self, model_artifact: dict, model_version_id: str) -> str:
         write_to_console(model_artifact)
-        p = ModelArtifact("", "")
-        for key, value in model_artifact.items():
-            setattr(p, key, value)
+        p = ModelArtifact(**model_artifact)
         write_to_console(p)
-        return super().upsert_model_artifact(p, model_version_id)
+        return self.api.upsert_model_artifact(p, model_version_id)
 
 
 # Used only for quick smoke tests
