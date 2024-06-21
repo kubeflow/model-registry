@@ -8,7 +8,7 @@ from typing import get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
-from .exceptions import StoreException
+from .exceptions import StoreError
 from .types import ModelArtifact, ModelVersion, RegisteredModel, SupportedTypes
 
 
@@ -62,7 +62,7 @@ class ModelRegistry:
             )
         elif custom_ca:
             msg = "Custom CA provided without secure connection"
-            raise StoreException(msg)
+            raise StoreError(msg)
         else:
             self._api = ModelRegistryAPIClient.insecure_connection(
                 server_address, port, user_token
@@ -82,7 +82,7 @@ class ModelRegistry:
         assert rm.id is not None, "Registered model must have an ID"
         if self._api.get_model_version_by_params(rm.id, version):
             msg = f"Version {version} already exists"
-            raise StoreException(msg)
+            raise StoreError(msg)
 
         mv = ModelVersion(rm.name, version, author, **kwargs)
         self._api.upsert_model_version(mv, rm.id)
@@ -201,18 +201,18 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = "huggingface_hub is not installed"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
 
         api = HfApi()
         try:
             model_info = api.model_info(repo, revision=git_ref)
         except utils.RepositoryNotFoundError as e:
             msg = f"Repository {repo} does not exist"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
         except utils.RevisionNotFoundError as e:
             # TODO: as all hf-hub client calls default to using main, should we provide a tip?
             msg = f"Revision {git_ref} does not exist"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
 
         if not author:
             # model author can be None if the repo is in a "global" namespace (i.e. no / in repo).
@@ -282,7 +282,7 @@ class ModelRegistry:
         """
         if not (rm := self._api.get_registered_model_by_params(name)):
             msg = f"Model {name} does not exist"
-            raise StoreException(msg)
+            raise StoreError(msg)
         return self._api.get_model_version_by_params(rm.id, version)
 
     def get_model_artifact(self, name: str, version: str) -> ModelArtifact | None:
@@ -300,5 +300,6 @@ class ModelRegistry:
         """
         if not (mv := self.get_model_version(name, version)):
             msg = f"Version {version} does not exist"
-            raise StoreException(msg)
+            raise StoreError(msg)
+        assert mv.id
         return self._api.get_model_artifact_by_params(mv.id)
