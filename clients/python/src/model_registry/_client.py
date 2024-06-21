@@ -9,8 +9,7 @@ from warnings import warn
 
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreException
-from .store import ScalarType
-from .types import ModelArtifact, ModelVersion, RegisteredModel
+from .types import ModelArtifact, ModelVersion, RegisteredModel, SupportedTypes
 
 
 class ModelRegistry:
@@ -111,7 +110,7 @@ class ModelRegistry:
         author: str | None = None,
         owner: str | None = None,
         description: str | None = None,
-        metadata: dict[str, ScalarType] | None = None,
+        metadata: dict[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
@@ -241,7 +240,7 @@ class ModelRegistry:
                     k: v
                     for k, v in card_data.to_dict().items()
                     # TODO: (#151) preserve tags, possibly other complex metadata
-                    if isinstance(v, get_args(ScalarType))
+                    if isinstance(v, get_args(SupportedTypes))
                 }
             )
         return self.register_model(

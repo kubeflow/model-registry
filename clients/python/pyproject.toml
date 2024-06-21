@@ -15,11 +15,7 @@ packages = [
 "Issues" = "https://github.com/kubeflow/model-registry/issues"
 
 [tool.poetry.dependencies]
-python = ">= 3.9, < 3.11" # mainly aligns constraints with: https://pypi.org/project/ml-metadata/#files
-attrs = "^21.0"
-ml-metadata = "==1.14.0"
-# you might consider using locally the following alternative, when developing on Apple-silicon/ARM-based computers:
-# ml-metadata = { url = "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" }
+python = ">= 3.9, < 4.0"
 typing-extensions = "^4.8"
 pydantic = "^2.7.4"
 python-dateutil = "^2.9.0.post0"
@@ -46,9 +42,6 @@ coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<6.0"
 ruff = "^0.4.4"
 mypy = "^1.7.0"
-testcontainers = "^4.5.0"
-# pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
-docker = "^7.1.0"
 pytest-asyncio = "^0.23.7"
 requests = "^2.32.2"
 

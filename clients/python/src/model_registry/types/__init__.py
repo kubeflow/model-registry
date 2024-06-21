@@ -3,19 +3,22 @@
 Types are based on [ML Metadata](https://github.com/google/ml-metadata), with Pythonic class wrappers.
 """
 
-from .artifacts import ArtifactState, ModelArtifact
-from .contexts import ContextState, ModelVersion, RegisteredModel
-from .options import ListOptions, OrderByField
+from .artifacts import Artifact, ModelArtifact
+from .base import SupportedTypes
+from .contexts import (
+    ModelVersion,
+    RegisteredModel,
+)
+from .options import ListOptions
 
 __all__ = [
     # Artifacts
+    "Artifact",
     "ModelArtifact",
-    "ArtifactState",
     # Contexts
     "ModelVersion",
     "RegisteredModel",
-    "ContextState",
+    "SupportedTypes",
     # Options
     "ListOptions",
-    "OrderByField",
 ]
