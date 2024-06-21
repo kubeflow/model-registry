@@ -4,10 +4,13 @@ import pytest
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 
+from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
+
 
 @pytest.fixture()
+@cleanup
 def client() -> ModelRegistry:
-    pass
+    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
 
 
 def test_secure_client():
@@ -19,7 +22,7 @@ def test_secure_client():
     assert "user token" in str(e.value).lower()
 
 
-def test_register_new(client: ModelRegistry):
+async def test_register_new(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
@@ -32,14 +35,14 @@ def test_register_new(client: ModelRegistry):
     assert rm.id
 
     mr_api = client._api
-    mv = mr_api.get_model_version_by_params(rm.id, version)
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
     assert mv
     assert mv.id
-    ma = mr_api.get_model_artifact_by_params(name, mv.id)
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
     assert ma
 
 
-def test_register_new_using_s3_uri_builder(client: ModelRegistry):
+async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
     uri = utils.s3_uri_from(
@@ -55,9 +58,11 @@ def test_register_new_using_s3_uri_builder(client: ModelRegistry):
     assert rm.id is not None
 
     mr_api = client._api
-    assert (mv := mr_api.get_model_version_by_params(rm.id, version))
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
     assert mv.id
-    assert (ma := mr_api.get_model_artifact_by_params(mv.id))
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    assert ma
     assert ma.uri == uri
 
 
@@ -75,7 +80,7 @@ def test_register_existing_version(client: ModelRegistry):
         client.register_model(**params)
 
 
-def test_get(client: ModelRegistry):
+async def test_get(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
     metadata = {"a": 1, "b": "2"}
@@ -93,9 +98,9 @@ def test_get(client: ModelRegistry):
     assert rm.id == _rm.id
 
     mr_api = client._api
-    assert (mv := mr_api.get_model_version_by_params(rm.id, version))
+    assert (mv := await mr_api.get_model_version_by_params(rm.id, version))
     assert mv.id
-    assert (ma := mr_api.get_model_artifact_by_params(name, mv.id))
+    assert (ma := await mr_api.get_model_artifact_by_params(name, mv.id))
 
     assert (_mv := client.get_model_version(name, version))
     assert mv.id == _mv.id
