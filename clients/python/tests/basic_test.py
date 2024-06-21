@@ -1,14 +1,7 @@
 """Tests creation and retrieval of base models."""
 
-import asyncio
-import os
-import subprocess
-import time
-from time import sleep
-
 import mr_openapi
 import pytest
-import requests
 from mr_openapi import (
     Artifact,
     DocArtifact,
@@ -18,99 +11,17 @@ from mr_openapi import (
     RegisteredModelCreate,
 )
 
-REGISTRY_HOST = "http://localhost"
-REGISTRY_PORT = 8080
-REGISTRY_URL = f"{REGISTRY_HOST}:{REGISTRY_PORT}"
-COMPOSE_FILE = "docker-compose.yaml"
-MAX_POLL_TIME = 1200  # the first build is extremely slow if using docker-compose-*local*.yaml for bootstrap of builder image
-POLL_INTERVAL = 1
-DOCKER = os.getenv("DOCKER", "docker")
-
-
-def poll_for_ready():
-    start_time = time.time()
-    while True:
-        elapsed_time = time.time() - start_time
-        if elapsed_time >= MAX_POLL_TIME:
-            print("Polling timed out.")
-            break
-
-        print("Attempt to connect")
-        try:
-            response = requests.get(REGISTRY_URL, timeout=MAX_POLL_TIME)
-            if response.status_code == 404:
-                print("Server is up!")
-                break
-        except requests.exceptions.ConnectionError:
-            pass
-
-        # Wait for the specified poll interval before trying again
-        time.sleep(POLL_INTERVAL)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _compose_mr(root):
-    print("Assuming this is the Model Registry root directory:", root)
-    shared_volume = root / "test/config/ml-metadata"
-    sqlite_db_file = shared_volume / "metadata.sqlite.db"
-    if sqlite_db_file.exists():
-        msg = f"The file {sqlite_db_file} already exists; make sure to cancel it before running these tests."
-        raise FileExistsError(msg)
-    print(f" Starting Docker Compose in folder {root}")
-    p = subprocess.Popen(
-        f"{DOCKER} compose -f {COMPOSE_FILE} up --build",
-        shell=True,  # noqa: S602
-        cwd=root,
-    )
-    yield
-
-    p.kill()
-    print(f" Closing Docker Compose in folder {root}")
-    subprocess.call(
-        f"{DOCKER} compose -f {COMPOSE_FILE} down",
-        shell=True,  # noqa: S602
-        cwd=root,
-    )
-    try:
-        os.remove(sqlite_db_file)
-        print(f"Removed {sqlite_db_file} successfully.")
-    except Exception as e:
-        print(f"An error occurred while removing {sqlite_db_file}: {e}")
-
-
-# workaround: https://github.com/pytest-dev/pytest-asyncio/issues/706#issuecomment-2147044022
-@pytest.fixture(scope="session", autouse=True)
-def event_loop():
-    loop = asyncio.get_event_loop_policy().get_event_loop()
-    yield loop
-    loop.close()
+from .conftest import REGISTRY_URL, cleanup
 
 
 @pytest.fixture()
-async def client(root):
-    poll_for_ready()
-
+@cleanup
+async def client():
     config = mr_openapi.Configuration(REGISTRY_URL)
     api_client = mr_openapi.ApiClient(config)
     client = mr_openapi.ModelRegistryServiceApi(api_client)
     yield client
     await api_client.close()
-
-    sqlite_db_file = root / "test/config/ml-metadata/metadata.sqlite.db"
-    try:
-        os.remove(sqlite_db_file)
-        print(f"Removed {sqlite_db_file} successfully.")
-    except Exception as e:
-        print(f"An error occurred while removing {sqlite_db_file}: {e}")
-    # we have to wait to make sure the server restarts after the file is gone
-    sleep(1)
-
-    print("Restarting model-registry...")
-    subprocess.call(
-        f"{DOCKER} compose -f {COMPOSE_FILE} restart model-registry",
-        shell=True,  # noqa: S602
-        cwd=root,
-    )
 
 
 @pytest.fixture()
