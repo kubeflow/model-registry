@@ -51,43 +51,43 @@ type OpenAPIConverter interface {
 	ConvertServeModelUpdate(source *openapi.ServeModelUpdate) (*openapi.ServeModel, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitRegisteredModelWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Owner
 	OverrideNotEditableForRegisteredModel(source OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitModelVersionWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Author
 	OverrideNotEditableForModelVersion(source OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitDocArtifactWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id Name ArtifactType CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State
 	OverrideNotEditableForDocArtifact(source OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitModelArtifactWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath
 	OverrideNotEditableForModelArtifact(source OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitServingEnvironmentWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties
 	OverrideNotEditableForServingEnvironment(source OpenapiUpdateWrapper[openapi.ServingEnvironment]) (openapi.ServingEnvironment, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitInferenceServiceWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties ModelVersionId Runtime DesiredState
 	OverrideNotEditableForInferenceService(source OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error)
 
 	// Ignore all fields that ARE editable
-	// goverter:default InitServeModelWithUpdate
+	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties LastKnownState
 	OverrideNotEditableForServeModel(source OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error)

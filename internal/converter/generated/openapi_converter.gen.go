@@ -502,12 +502,12 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.S
 	return pOpenapiServingEnvironment, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
-	openapiDocArtifact := converter.InitDocArtifactWithUpdate(source)
+	openapiDocArtifact := converter.InitWithUpdate(source)
 	_ = source
 	return openapiDocArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source converter.OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error) {
-	openapiInferenceService := converter.InitInferenceServiceWithUpdate(source)
+	openapiInferenceService := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = source.Existing.Name
@@ -533,7 +533,7 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source con
 	return openapiInferenceService, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source converter.OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error) {
-	openapiModelArtifact := converter.InitModelArtifactWithUpdate(source)
+	openapiModelArtifact := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = &source.Existing.ArtifactType
@@ -552,7 +552,7 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	return openapiModelArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source converter.OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error) {
-	openapiModelVersion := converter.InitModelVersionWithUpdate(source)
+	openapiModelVersion := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = source.Existing.Name
@@ -571,7 +571,7 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source convert
 	return openapiModelVersion, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source converter.OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error) {
-	openapiRegisteredModel := converter.InitRegisteredModelWithUpdate(source)
+	openapiRegisteredModel := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = source.Existing.Name
@@ -583,7 +583,7 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source conv
 	return openapiRegisteredModel, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForServeModel(source converter.OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error) {
-	openapiServeModel := converter.InitServeModelWithUpdate(source)
+	openapiServeModel := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = source.Existing.Name
@@ -602,7 +602,7 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForServeModel(source converter
 	return openapiServeModel, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForServingEnvironment(source converter.OpenapiUpdateWrapper[openapi.ServingEnvironment]) (openapi.ServingEnvironment, error) {
-	openapiServingEnvironment := converter.InitServingEnvironmentWithUpdate(source)
+	openapiServingEnvironment := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
 		pString = source.Existing.Name
