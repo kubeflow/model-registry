@@ -28,6 +28,10 @@ func NewOpenapiUpdateWrapper[
 	}
 }
 
+func InitWithExisting[M OpenAPIModel](source OpenapiUpdateWrapper[M]) M {
+	return *source.Existing
+}
+
 func InitWithUpdate[M OpenAPIModel](source OpenapiUpdateWrapper[M]) M {
 	if source.Update != nil {
 		return *source.Update
