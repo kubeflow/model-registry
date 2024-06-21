@@ -69,11 +69,11 @@ class ModelRegistry:
                 server_address, port, user_token
             )
 
-    def _register_model(self, name: str) -> RegisteredModel:
+    def _register_model(self, name: str, **kwargs) -> RegisteredModel:
         if rm := self._api.get_registered_model_by_params(name):
             return rm
 
-        rm = RegisteredModel(name)
+        rm = RegisteredModel(name, **kwargs)
         self._api.upsert_registered_model(rm)
         return rm
 
@@ -109,6 +109,7 @@ class ModelRegistry:
         storage_path: str | None = None,
         service_account_name: str | None = None,
         author: str | None = None,
+        owner: str | None = None,
         description: str | None = None,
         metadata: dict[str, ScalarType] | None = None,
     ) -> RegisteredModel:
@@ -132,6 +133,7 @@ class ModelRegistry:
             model_format_version: Version of the model format.
             description: Description of the model.
             author: Author of the model. Defaults to the client author.
+            owner: Owner of the model. Defaults to the client author.
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
@@ -140,7 +142,7 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        rm = self._register_model(name)
+        rm = self._register_model(name, owner=owner or self._author)
         mv = self._register_new_version(
             rm,
             version,
@@ -169,6 +171,7 @@ class ModelRegistry:
         model_format_name: str,
         model_format_version: str,
         author: str | None = None,
+        owner: str | None = None,
         model_name: str | None = None,
         description: str | None = None,
         git_ref: str = "main",
@@ -187,6 +190,7 @@ class ModelRegistry:
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
             author: Author of the model. Defaults to repo owner.
+            owner: Owner of the model. Defaults to the client author.
             model_name: Name of the model. Defaults to the repo name.
             description: Description of the model.
             git_ref: Git reference to use. Defaults to `main`.
@@ -244,6 +248,7 @@ class ModelRegistry:
             model_name or model_info.id,
             source_uri,
             author=author or model_author,
+            owner=owner or self._author,
             version=version,
             model_format_name=model_format_name,
             model_format_version=model_format_version,
