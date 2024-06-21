@@ -8,48 +8,92 @@
 
 ## Core
 
+The core {py:class}`model_registry.core.ModelRegistryAPIClient` is a lower level client that tries to emulate the Go
+gRPC client.
+As it wraps the client provided by the generated module `mr_openapi`, it's also an async interface for the client.
+
+To create a client you should use the {py:meth}`model_registry.core.ModelRegistryAPIClient.secure_connection` or {py:meth}`model_registry.core.ModelRegistryAPIClient.insecure_connection` constructor. E.g.
+
+```py
+from model_registry.core import ModelRegistryAPIClient
+
+insecure_registry = ModelRegistryAPIClient.insecure_connection(
+    "server-address", "port",
+    # optionally, you can identify yourself
+    # user_token=os.environ["MY_TOKEN"]
+)
+
+insecure_registry = ModelRegistryAPIClient.insecure_connection(
+    "server-address", "port",
+    user_token=os.environ["MY_TOKEN"]  # this is necessary on a secure connection
+    # optionally, use a custom_ca
+    # custom_ca=os.environ["MY_CERT"]
+)
+```
+
+The {py:class}`model_registry.core.ModelRegistryAPIClient` manages an async connection for you, so you only need to set
+up the client once, and only need to `await` when making calls -- how convenient!
+
+
 ### Register objects
 
-<!-- TODO: update section -->
 ```py
-from model_registry import ModelRegistry
+from model_registry.types import RegisteredModel, ModelVersion, ModelArtifact
+from model_registry.utils import s3_uri_from
 
-registry = ModelRegistry("server-address", "port")
+async def register_a_model():
+    model = await registry.upsert_registered_model(
+        RegisteredModel(
+            name="HAL",
+            owner="me <me@cool.inc>",
+        )
+    )
+    assert model.id  # this should be valid now
 
-model_id = registry.upsert_registered_model(model)
+    # we need a registered model to associate the version to
+    version = await registry.upsert_model_version(
+        ModelVersion(
+            name="9000",
+            author="Mr. Tom A.I.",
+            external_id="HAL-9000",
+        ),
+        model.id
+    )
+    assert version.id
 
-# we need a model to associate the version to
-version_id = registry.upsert_model_version(version, model_id)
-
-# we need a version to associate an trained model to
-experiment_id = registry.upsert_model_artifact(trained_model, version_id)
+    # we need a version to associate a trained model to
+    trained_model = await registry.upsert_model_artifact(
+        ModelArtifact(
+            name="HAL-core",
+            uri=s3_uri_from("build/onnx/hal.onnx", "cool-bucket"),
+            model_format_name="onnx",
+            model_format_version="1",
+            storage_key="secret_secret",
+        ),
+        version.id
+    )
+    assert trained_model.id
 ```
+
+> Note: to execute the remaining examples, you should wrap them in an async function like shown above.
+> Check out the [Python asyncio module docs](https://docs.python.org/3/library/asyncio.html)
+
+As objects are only assigned IDs upon creation, you can use this property to verify whether an object exists.
 
 ### Query objects
 
-There are several ways to get previously registered objects from the registry.
+There are several ways to get registered objects from the registry.
 
 #### By ID
 
-IDs are created once the object is registered, you can either keep the string returned by the
-`upsert_*` functions, or access the `id` property of the objects.
+After upserting an object you can use its `id` to fetch it again.
 
 ```py
-new_model = RegisteredModel("new_model")
+new_model = await registry.upsert_registered_model(RegisteredModel("new_model"))
 
-new_model_id = registry.upsert_registered_model(new_model)
+maybe_new_model = await registry.get_registered_model_by_id(new_model.id)
 
-assert new_model_id == new_model.id
-```
-
-To query objects using IDs, do
-
-```py
-another_model = registry.get_registered_model_by_id("another-model-id")
-
-another_version = registry.get_model_version_by_id("another-version-id", another_model.id)
-
-another_trained_model = registry.get_model_artifact_by_id("another-model-artifact-id")
+assert maybe_new_model == new_model  # True
 ```
 
 #### By parameters
@@ -88,22 +132,22 @@ You can also perform queries by parameters:
 
 ```py
 # We can get the model artifact associated to a version
-another_trained_model = registry.get_model_artifact_by_params(model_version_id=another_version.id)
+another_trained_model = await registry.get_model_artifact_by_params(name="my_model_name", model_version_id=another_version.id)
 
 # Or by its unique identifier
-trained_model = registry.get_model_artifact_by_params(external_id="unique_reference")
+trained_model = await registry.get_model_artifact_by_params(external_id="unique_reference")
 
 # Same thing for a version
-version = registry.get_model_version_by_params(external_id="unique_reference")
+version = await registry.get_model_version_by_params(external_id="unique_reference")
 
 # Or for a model
-model = registry.get_registered_model_by_params(external_id="another_unique_reference")
+model = await registry.get_registered_model_by_params(external_id="another_unique_reference")
 
 # We can also get a version by its name and associated model id
-version = registry.get_model_version_by_params(version="v1.0", registered_model_id="x")
+version = await registry.get_model_version_by_params(version="v1.0", registered_model_id="x")
 
 # And we can get a model by simply calling its name
-model = registry.get_registered_model_by_params(name="my_model_name")
+model = await registry.get_registered_model_by_params(name="my_model_name")
 ```
 
 ### Query multiple objects
@@ -111,12 +155,12 @@ model = registry.get_registered_model_by_params(name="my_model_name")
 We can query all objects of a type
 
 ```py
-models = registry.get_registered_models()
+models = await registry.get_registered_models()
 
-versions = registry.get_model_versions("registered_model_id")
+versions = await registry.get_model_versions("registered_model_id")
 
 # We can get a list of all model artifacts
-all_model_artifacts = registry.get_model_artifacts()
+all_model_artifacts = await registry.get_model_artifacts()
 ```
 
 To limit or order the query, provide a {py:class}`model_registry.types.ListOptions` object.
@@ -126,12 +170,12 @@ from model_registry import ListOptions
 
 options = ListOptions(limit=50)
 
-first_50_models = registry.get_registered_models(options)
+first_50_models = await registry.get_registered_models(options)
 
 # By default we get ascending order
 options = ListOptions.order_by_creation_time(is_asc=False)
 
-last_50_models = registry.get_registered_models(options)
+last_50_models = await registry.get_registered_models(options)
 ```
 
 ```{eval-rst}

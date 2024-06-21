@@ -2,9 +2,23 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
+from mr_openapi import (
+    ApiClient,
+    Configuration,
+    ModelRegistryServiceApi,
+)
+from mr_openapi import (
+    exceptions as mr_exceptions,
+)
+from typing_extensions import overload
+
+from ._utils import required_args
 from .types import (
+    Artifact,
     ListOptions,
     ModelArtifact,
     ModelVersion,
@@ -16,22 +30,34 @@ from .types import (
 class ModelRegistryAPIClient:
     """Model registry API."""
 
+    config: Configuration
+
     @classmethod
     def secure_connection(
         cls,
         server_address: str,
         port: int = 443,
-        user_token: bytes | None = None,
-        custom_ca: bytes | None = None,
+        *,
+        user_token: bytes,
+        custom_ca: str | None = None,
     ) -> ModelRegistryAPIClient:
         """Constructor.
 
         Args:
             server_address: Server address.
             port: Server port. Defaults to 443.
+
+        Keyword Args:
             user_token: The PEM-encoded user token as a byte string.
-            custom_ca: The PEM-encoded root certificates as a byte string. Defaults to GRPC_DEFAULT_SSL_ROOTS_FILE_PATH, then system default.
+            custom_ca: The path to a PEM-
         """
+        return cls(
+            Configuration(
+                f"{server_address}:{port}",
+                access_token=user_token,
+                ssl_ca_cert=custom_ca,
+            )
+        )
 
     @classmethod
     def insecure_connection(
@@ -47,19 +73,45 @@ class ModelRegistryAPIClient:
             port: Server port.
             user_token: The PEM-encoded user token as a byte string.
         """
+        return cls(
+            Configuration(host=f"{server_address}:{port}", access_token=user_token)
+        )
 
-    def upsert_registered_model(self, registered_model: RegisteredModel) -> str:
+    @asynccontextmanager
+    async def get_client(self) -> AsyncIterator[ModelRegistryServiceApi]:
+        """Get a client for the model registry."""
+        api_client = ApiClient(self.config)
+        client = ModelRegistryServiceApi(api_client)
+
+        try:
+            yield client
+        finally:
+            await api_client.close()
+
+    async def upsert_registered_model(
+        self, registered_model: RegisteredModel
+    ) -> RegisteredModel:
         """Upsert a registered model.
 
         Updates or creates a registered model on the server.
-        This updates the registered_model instance passed in with new data from the servers.
 
         Args:
             registered_model: Registered model.
 
         Returns:
-            ID of the registered model.
+            New registered model.
         """
+        async with self.get_client() as client:
+            if registered_model.id:
+                rm = await client.update_registered_model(
+                    registered_model.id, registered_model.update()
+                )
+            else:
+                rm = await client.create_registered_model(registered_model.create())
+
+        return RegisteredModel.from_basemodel(rm)
+
+    async def get_registered_model_by_id(self, id: str) -> RegisteredModel | None:
         """Fetch a registered model by its ID.
 
         Args:
@@ -68,8 +120,22 @@ class ModelRegistryAPIClient:
         Returns:
             Registered model.
         """
+        async with self.get_client() as client:
+            try:
+                rm = await client.get_registered_model(id)
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def get_registered_model_by_params(
+        return RegisteredModel.from_basemodel(rm)
+
+    @overload
+    async def get_registered_model_by_params(self, name: str): ...
+
+    @overload
+    async def get_registered_model_by_params(self, *, external_id: str): ...
+
+    @required_args(("name",), ("external_id",))
+    async def get_registered_model_by_params(
         self, name: str | None = None, external_id: str | None = None
     ) -> RegisteredModel | None:
         """Fetch a registered model by its name or external ID.
@@ -80,12 +146,18 @@ class ModelRegistryAPIClient:
 
         Returns:
             Registered model.
-
-        Raises:
-            StoreException: If neither name nor external ID is provided.
         """
+        async with self.get_client() as client:
+            try:
+                rm = await client.find_registered_model(
+                    name=name, external_id=external_id
+                )
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def get_registered_models(
+        return RegisteredModel.from_basemodel(rm)
+
+    async def get_registered_models(
         self, options: ListOptions | None = None
     ) -> list[RegisteredModel]:
         """Fetch registered models.
@@ -96,24 +168,42 @@ class ModelRegistryAPIClient:
         Returns:
             Registered models.
         """
+        async with self.get_client() as client:
+            rms = await client.get_registered_models(
+                **(options or ListOptions()).as_options()
+            )
 
-    def upsert_model_version(
+        return [RegisteredModel.from_basemodel(rm) for rm in rms.items or []]
+
+    async def upsert_model_version(
         self, model_version: ModelVersion, registered_model_id: str
-    ) -> str:
+    ) -> ModelVersion:
         """Upsert a model version.
 
         Updates or creates a model version on the server.
-        This updates the model_version instance passed in with new data from the servers.
 
         Args:
             model_version: Model version to upsert.
             registered_model_id: ID of the registered model this version will be associated to.
 
         Returns:
-            ID of the model version.
+            New model version.
         """
+        async with self.get_client() as client:
+            if model_version.id:
+                mv = await client.update_model_version(
+                    model_version.id, model_version.update()
+                )
+            else:
+                mv = await client.create_model_version(
+                    model_version.create(registered_model_id=registered_model_id)
+                )
 
-    def get_model_version_by_id(self, model_version_id: str) -> ModelVersion | None:
+        return ModelVersion.from_basemodel(mv)
+
+    async def get_model_version_by_id(
+        self, model_version_id: str
+    ) -> ModelVersion | None:
         """Fetch a model version by its ID.
 
         Args:
@@ -122,8 +212,15 @@ class ModelRegistryAPIClient:
         Returns:
             Model version.
         """
+        async with self.get_client() as client:
+            try:
+                mv = await client.get_model_version(model_version_id)
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def get_model_versions(
+        return ModelVersion.from_basemodel(mv)
+
+    async def get_model_versions(
         self, registered_model_id: str, options: ListOptions | None = None
     ) -> list[ModelVersion]:
         """Fetch model versions by registered model ID.
@@ -135,49 +232,85 @@ class ModelRegistryAPIClient:
         Returns:
             Model versions.
         """
+        async with self.get_client() as client:
+            mvs = await client.get_registered_model_versions(
+                registered_model_id, **(options or ListOptions()).as_options()
+            )
 
-    def get_model_version_by_params(
+        return [ModelVersion.from_basemodel(mv) for mv in mvs.items or []]
+
+    @overload
+    async def get_model_version_by_params(
+        self, registered_model_id: str, name: str
+    ): ...
+
+    @overload
+    async def get_model_version_by_params(self, *, external_id: str): ...
+
+    @required_args(
+        (
+            "registered_model_id",
+            "name",
+        ),
+        ("external_id",),
+    )
+    async def get_model_version_by_params(
         self,
         registered_model_id: str | None = None,
-        version: str | None = None,
+        name: str | None = None,
         external_id: str | None = None,
     ) -> ModelVersion | None:
         """Fetch a model version by associated parameters.
 
-        Either fetches by using external ID or by using registered model ID and version.
+        Either fetches by using external ID or by using registered model ID and version name.
 
         Args:
             registered_model_id: Registered model ID.
-            version: Model version.
+            name: Model version.
             external_id: Model version external ID.
 
         Returns:
             Model version.
-
-        Raises:
-            StoreException: If neither external ID nor registered model ID and version is provided.
         """
+        async with self.get_client() as client:
+            try:
+                mv = await client.find_model_version(
+                    name=name,
+                    external_id=external_id,
+                    parent_resource_id=registered_model_id,
+                )
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def upsert_model_artifact(
+        return ModelVersion.from_basemodel(mv)
+
+    async def upsert_model_artifact(
         self, model_artifact: ModelArtifact, model_version_id: str
-    ) -> str:
+    ) -> ModelArtifact:
         """Upsert a model artifact.
 
         Updates or creates a model artifact on the server.
-        This updates the model_artifact instance passed in with new data from the servers.
 
         Args:
             model_artifact: Model artifact to upsert.
             model_version_id: ID of the model version this artifact will be associated to.
 
         Returns:
-            ID of the model artifact.
-
-        Raises:
-            StoreException: If the model version already has a model artifact.
+            New model artifact.
         """
+        async with self.get_client() as client:
+            if model_artifact.id:
+                ma = await client.update_model_artifact(
+                    model_artifact.id, model_artifact.update()
+                )
+                return ModelArtifact.from_basemodel(ma)
 
-    def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
+            ma = await client.create_model_version_artifact(
+                model_version_id, model_artifact.wrap()
+            )
+            return ModelArtifact.from_artifact(ma)
+
+    async def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
         """Fetch a model artifact by its ID.
 
         Args:
@@ -186,24 +319,60 @@ class ModelRegistryAPIClient:
         Returns:
             Model artifact.
         """
+        async with self.get_client() as client:
+            try:
+                ma = await client.get_model_artifact(id)
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def get_model_artifact_by_params(
-        self, model_version_id: str | None = None, external_id: str | None = None
+        return ModelArtifact.from_basemodel(ma)
+
+    @overload
+    async def get_model_artifact_by_params(
+        self,
+        name: str,
+        model_version_id: str,
+    ): ...
+
+    @overload
+    async def get_model_artifact_by_params(self, *, external_id: str): ...
+
+    @required_args(
+        (
+            "name",
+            "model_version_id",
+        ),
+        ("external_id",),
+    )
+    async def get_model_artifact_by_params(
+        self,
+        name: str | None = None,
+        model_version_id: str | None = None,
+        external_id: str | None = None,
     ) -> ModelArtifact | None:
-        """Fetch a model artifact either by external ID or by the ID of its associated model version.
+        """Fetch a model artifact either by external ID or by its name and the ID of its associated model version.
 
         Args:
+            name: Model artifact name.
             model_version_id: ID of the associated model version.
             external_id: Model artifact external ID.
 
         Returns:
             Model artifact.
-
-        Raises:
-            StoreException: If neither external ID nor model version ID is provided.
         """
+        async with self.get_client() as client:
+            try:
+                ma = await client.find_model_artifact(
+                    name=name,
+                    parent_resource_id=model_version_id,
+                    external_id=external_id,
+                )
+            except mr_exceptions.NotFoundException:
+                return None
 
-    def get_model_artifacts(
+        return ModelArtifact.from_basemodel(ma)
+
+    async def get_model_artifacts(
         self,
         model_version_id: str | None = None,
         options: ListOptions | None = None,
@@ -217,3 +386,19 @@ class ModelRegistryAPIClient:
         Returns:
             Model artifacts.
         """
+        async with self.get_client() as client:
+            if model_version_id:
+                arts = await client.get_model_version_artifacts(
+                    model_version_id, **(options or ListOptions()).as_options()
+                )
+                models = []
+                for art in arts.items or []:
+                    converted = Artifact.validate_artifact(art)
+                    if isinstance(converted, ModelArtifact):
+                        models.append(converted)
+                return models
+
+            mas = await client.get_model_artifacts(
+                **(options or ListOptions()).as_options()
+            )
+            return [ModelArtifact.from_basemodel(ma) for ma in mas.items or []]
