@@ -10,15 +10,15 @@ Help() {
   echo
   echo "Syntax: [-n NAMESPACE] [-i IMAGE]"
   echo "options:"
-  echo "n Namespace."
-  echo "i Model registry image."
+  echo "  n Namespace."
+  echo "  i Model registry image."
   echo
 }
 
-MR_ROOT=".."
+MR_ROOT=${MR_ROOT:-".."}
 
 namespace=kubeflow
-image=quay.io/opendatahub/model-registry:latest
+image=kubeflow/model-registry:latest
 while getopts ":hn:i:" option; do
    case $option in
       h) # display Help
@@ -40,9 +40,9 @@ if ! kubectl get namespace "$namespace" &> /dev/null; then
 fi
 # Apply model-registry kustomize manifests
 echo Using model registry image: $image
-cd $MR_ROOT/manifests/kustomize/base && kustomize edit set image quay.io/opendatahub/model-registry:latest=${image} && cd -
-kubectl -n $namespace apply -k "$MR_ROOT/manifests/kustomize/overlays/postgres"
+cd $MR_ROOT/manifests/kustomize/base && kustomize edit set image kubeflow/model-registry:latest=${image} && cd -
+kubectl -n $namespace apply -k "$MR_ROOT/manifests/kustomize/overlays/db"
 
 # Wait for model registry deployment
 modelregistry=$(kubectl get pod -n kubeflow --selector="component=model-registry-server" --output jsonpath='{.items[0].metadata.name}')
-kubectl wait --for=condition=Ready pod/$modelregistry -n $namespace --timeout=5m
+kubectl wait --for=condition=Ready pod/$modelregistry -n $namespace --timeout=6m

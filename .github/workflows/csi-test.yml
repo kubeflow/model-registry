@@ -1,0 +1,74 @@
+name: Test custom storage initializer
+on:
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - 'LICENSE*'
+      - '**.gitignore'
+      - '**.md'
+      - '**.txt'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - 'docs/**'
+  pull_request:
+    paths:
+      - "csi/**"
+      - "internal/server/openapi/api_model_registry_service*"
+      - "pkg/openapi/**"
+
+env:
+  IMG_ORG: kubeflow
+  MODEL_REGISTRY_IMG: model-registry
+  MODEL_REGISTRY_CSI_IMG: model-registry-storage-initializer
+  PUSH_IMAGE: false
+  BRANCH: ${{ github.base_ref }}
+jobs:
+  build-and-test-csi-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+
+      - name: Install network tools
+        run: sudo apt-get update && sudo apt-get install -y netcat
+
+      - name: Build local model registry image
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.MODEL_REGISTRY_IMG }}
+          VERSION: ${{ steps.tags.outputs.tag }}
+          PUSH_IMAGE: false
+        run: ./scripts/build_deploy.sh
+      
+      - name: Build local custom storage initializer
+        working-directory: ./csi
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.MODEL_REGISTRY_CSI_IMG }}
+          IMG_VERSION: ${{ steps.tags.outputs.tag }}
+        run: make docker-build-dev
+
+      - name: Start KinD cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          node_image: "kindest/node:v1.27.11"
+
+      - name: Install kustomize
+        run: ./csi/scripts/install_kustomize.sh
+
+      - name: Run tests
+        working-directory: ./csi
+        shell: bash
+        env:
+          MR_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_CSI_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
+          CLUSTER: chart-testing
+        run: ./test/e2e_test.sh

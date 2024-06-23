@@ -15,46 +15,60 @@ We assume all [prerequisites](#prerequisites) are satisfied at this point.
 ### Create the environment
 
 1. After having kind installed, create a kind cluster with:
-```bash
-kind create cluster
-```
+    ```bash
+    kind create cluster
+    ```
 
 2. Configure `kubectl` to use kind context
-```bash
-kubectl config use-context kind-kind
-```
+    ```bash
+    kubectl config use-context kind-kind
+    ```
 
 3. Setup local deployment of *Kserve* using the provided *Kserve quick installation* script
-```bash
-curl -s "https://raw.githubusercontent.com/kserve/kserve/release-0.11/hack/quick_install.sh" | bash
-```
+    ```bash
+    curl -s "https://raw.githubusercontent.com/kserve/kserve/release-0.12/hack/quick_install.sh" | bash
+    ```
 
 4. Install *model registry* in the local cluster
 
-[Optional ]Use model registry with local changes:
+    [Optional] Use local model registry container image:
 
-```bash
-TAG=$(git rev-parse HEAD) && \
-MR_IMG=quay.io/$USER/model-registry:$TAG && \
-make -C ../ IMG_ORG=$USER IMG_VERSION=$TAG image/build && \
-kind load docker-image $MR_IMG
-```
+    ```bash
+    TAG=$(git rev-parse HEAD) && \
+    MR_IMG=quay.io/$USER/model-registry:$TAG && \
+    make -C ../ IMG_ORG=$USER IMG_VERSION=$TAG image/build && \
+    kind load docker-image $MR_IMG
+    ```
+    or
+    ```bash
+    TAG=... && \
+    MR_IMG=kubeflow/model-registry:$TAG
+    ```
 
-then:
+    then:
 
-```bash
-bash ./scripts/install_modelregistry.sh -i $MR_IMG
-```
+    ```bash
+    bash ./scripts/install_modelregistry.sh -i $MR_IMG
+    ```
 
-> _NOTE_: If you want to use a remote image you can simply remove the `-i` option
+> [!NOTE]
+> The `./scripts/install_modelregistry.sh` will make some change to [base/kustomization.yaml](../manifests/kustomize/base/kustomization.yaml) that you DON'T need to commit!!
 
-> _NOTE_: The `./scripts/install_modelregistry.sh` will make some change to [base/kustomization.yaml](../manifests/kustomize/base/kustomization.yaml) that you DON'T need to commit!!
+5. [Optional] Use local CSI container image
 
-5. [Optional] Use local container image for CSI
+    Either, using the local model-registry library as dependency:
+    ```bash
+    IMG=$USER/model-registry-storage-initializer:$(git rev-parse HEAD) && \ 
+    make IMG=$IMG docker-build-dev && \
+    kind load docker-image $IMG
+    ```
 
-```bash
-IMG=quay.io/$USER/model-registry-storage-initializer:$(git rev-parse HEAD) && make IMG=$IMG docker-build && kind load docker-image $IMG
-```
+    Or using a fixed version of model-registry library:
+    ```bash
+    IMG=$USER/model-registry-storage-initializer:$(git rev-parse HEAD) && \ 
+    make IMG=$IMG docker-build && \
+    kind load docker-image $IMG
+    ```
 
 ## First InferenceService with ModelRegistry URI
 
@@ -79,68 +93,66 @@ export MR_HOSTNAME=localhost:8080
 
 Then, in the same terminal where you exported `MR_HOSTNAME`, perform the following actions:
 1. Register an empty `RegisteredModel`
+    ```bash
+    curl --silent -X 'POST' \
+      "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d '{
+      "description": "Iris scikit-learn model",
+      "name": "iris"
+    }'
+    ```
 
-```bash
-curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models" \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "description": "Iris scikit-learn model",
-  "name": "iris"
-}'
-```
-
-Expected output:
-```bash
-{"createTimeSinceEpoch":"1709287882361","customProperties":{},"description":"Iris scikit-learn model","id":"1","lastUpdateTimeSinceEpoch":"1709287882361","name":"iris"}
-```
+    Expected output:
+    ```bash
+    {"createTimeSinceEpoch":"1709287882361","customProperties":{},"description":"Iris scikit-learn model","id":"1","lastUpdateTimeSinceEpoch":"1709287882361","name":"iris"}
+    ```
 
 2. Register the first `ModelVersion`
+    ```bash
+    curl --silent -X 'POST' \
+      "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d '{
+      "description": "Iris model version v1",
+      "name": "v1",
+      "registeredModelID": "1"
+    }'
+    ```
 
-```bash
-curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions" \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "description": "Iris model version v1",
-  "name": "v1",
-  "registeredModelID": "1"
-}'
-```
-
-Expected output:
-```bash
-{"createTimeSinceEpoch":"1709287890365","customProperties":{},"description":"Iris model version v1","id":"2","lastUpdateTimeSinceEpoch":"1709287890365","name":"v1"}
-```
+    Expected output:
+    ```bash
+    {"createTimeSinceEpoch":"1709287890365","customProperties":{},"description":"Iris model version v1","id":"2","lastUpdateTimeSinceEpoch":"1709287890365","name":"v1"}
+    ```
 
 3. Register the raw `ModelArtifact`
+    This artifact defines where the actual trained model is stored, i.e., `gs://kfserving-examples/models/sklearn/1.0/model`
 
-This artifact defines where the actual trained model is stored, i.e., `gs://kfserving-examples/models/sklearn/1.0/model`
+    ```bash
+    curl --silent -X 'POST' \
+      "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/2/artifacts" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d '{
+      "description": "Model artifact for Iris v1",
+      "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
+      "state": "UNKNOWN",
+      "name": "iris-model-v1",
+      "modelFormatName": "sklearn",
+      "modelFormatVersion": "1",
+      "artifactType": "model-artifact"
+    }'
+    ```
 
-```bash
-curl --silent -X 'POST' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/2/artifacts" \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "description": "Model artifact for Iris v1",
-  "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
-  "state": "UNKNOWN",
-  "name": "iris-model-v1",
-  "modelFormatName": "sklearn",
-  "modelFormatVersion": "1",
-  "artifactType": "model-artifact"
-}'
-```
+    Expected output:
+    ```bash
+    {"artifactType":"model-artifact","createTimeSinceEpoch":"1709287972637","customProperties":{},"description":"Model artifact for Iris v1","id":"1","lastUpdateTimeSinceEpoch":"1709287972637","modelFormatName":"sklearn","modelFormatVersion":"1","name":"iris-model-v1","state":"UNKNOWN","uri":"gs://kfserving-examples/models/sklearn/1.0/model"}
+    ```
 
-Expected output:
-```bash
-{"artifactType":"model-artifact","createTimeSinceEpoch":"1709287972637","customProperties":{},"description":"Model artifact for Iris v1","id":"1","lastUpdateTimeSinceEpoch":"1709287972637","modelFormatName":"sklearn","modelFormatVersion":"1","name":"iris-model-v1","state":"UNKNOWN","uri":"gs://kfserving-examples/models/sklearn/1.0/model"}
-```
-
-> _NOTE_: double check the provided IDs are the expected ones.
+> [!NOTE]
+> Double check the provided IDs are the expected ones.
 
 ### Apply the `ClusterStorageContainer` resource
 
@@ -180,70 +192,70 @@ spec:
 EOF
 ```
 
-> _NOTE_: as `$IMG` you could use either the one created during [env preparation](#environment-preparation) or any other remote img in the container registry.
+> [!NOTE]
+> As `$IMG` you could use either the one created during [env preparation](#environment-preparation) or any other remote img in the container registry.
 
 ### Create an `InferenceService`
 
 1. Create a namespace
-```bash
-kubectl create namespace kserve-test
-```
+    ```bash
+    kubectl create namespace kserve-test
+    ```
 
 2. Create the `InferenceService`
-```bash
-kubectl apply -n kserve-test -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "iris-model"
-spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: "model-registry://iris/v1"
-EOF
-```
+    ```bash
+    kubectl apply -n kserve-test -f - <<EOF
+    apiVersion: "serving.kserve.io/v1beta1"
+    kind: "InferenceService"
+    metadata:
+      name: "iris-model"
+    spec:
+      predictor:
+        model:
+          modelFormat:
+            name: sklearn
+          storageUri: "model-registry://iris/v1"
+    EOF
+    ```
 
 3. Check `InferenceService` status
-```bash
-kubectl get inferenceservices iris-model -n kserve-test
-```
+    ```bash
+    kubectl get inferenceservices iris-model -n kserve-test
+    ```
 
 4. Determine the ingress IP and ports
+    ```bash
+    kubectl get svc istio-ingressgateway -n istio-system
+    ```
 
-```bash
-kubectl get svc istio-ingressgateway -n istio-system
-```
+    And then:
+    ```bash
+    INGRESS_GATEWAY_SERVICE=$(kubectl get svc --namespace istio-system --selector="app=istio-ingressgateway" --output jsonpath='{.items[0].metadata.name}')
+    kubectl port-forward --namespace istio-system svc/${INGRESS_GATEWAY_SERVICE} 8081:80
+    ```
 
-And then:
-```bash
-INGRESS_GATEWAY_SERVICE=$(kubectl get svc --namespace istio-system --selector="app=istio-ingressgateway" --output jsonpath='{.items[0].metadata.name}')
-kubectl port-forward --namespace istio-system svc/${INGRESS_GATEWAY_SERVICE} 8081:80
-```
-
-After that (in another terminal):
-```bash
-export INGRESS_HOST=localhost
-export INGRESS_PORT=8081
-```
+    After that (in another terminal):
+    ```bash
+    export INGRESS_HOST=localhost
+    export INGRESS_PORT=8081
+    ```
 
 5. Perform the inference request
 
-Prepare the input data:
-```bash
-cat <<EOF > "/tmp/iris-input.json"
-{
-  "instances": [
-    [6.8,  2.8,  4.8,  1.4],
-    [6.0,  3.4,  4.5,  1.6]
-  ]
-}
-EOF
-```
+    Prepare the input data:
+    ```bash
+    cat <<EOF > "/tmp/iris-input.json"
+    {
+      "instances": [
+        [6.8,  2.8,  4.8,  1.4],
+        [6.0,  3.4,  4.5,  1.6]
+      ]
+    }
+    EOF
+    ```
 
-If you do not have DNS, you can still curl with the ingress gateway external IP using the HOST Header.
-```bash
-SERVICE_HOSTNAME=$(kubectl get inferenceservice iris-model -n kserve-test -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/iris-v1:predict" -d @/tmp/iris-input.json
-```
+    If you do not have DNS, you can still curl with the ingress gateway external IP using the HOST Header.
+    ```bash
+    SERVICE_HOSTNAME=$(kubectl get inferenceservice iris-model -n kserve-test -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+    curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/iris-v1:predict" -d @/tmp/iris-input.json
+    ```
