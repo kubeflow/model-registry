@@ -1,4 +1,28 @@
-IMG ?= quay.io/${USER}/model-registry-storage-initializer:latest
+# Useful paths
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
+PROJECT_BIN := $(PROJECT_PATH)/bin
+GO := $(PROJECT_BIN)/go1.19
+
+# add tools bin directory
+PATH := $(PROJECT_BIN):$(PATH)
+
+# container tool
+DOCKER ?= docker
+
+IMG_REGISTRY ?= 
+# container image organization
+IMG_ORG ?= kubeflow
+# container image version
+IMG_VERSION ?= main
+# container image repository
+IMG_REPO ?= model-registry-storage-initializer
+# container image
+ifdef IMG_REGISTRY
+    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
+else
+    IMG := ${IMG_ORG}/${IMG_REPO}
+endif
 
 .PHONY: help
 help: ## Display this help.
@@ -6,32 +30,43 @@ help: ## Display this help.
 
 ##@ Development
 
+bin-go: ## Install go tool
+	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.19@latest
+	$(PROJECT_BIN)/go1.19 download
+
+.PHONY: bin
+bin: bin-go ## Install required dependencies
+
+.PHONY: tidy
+tidy: ## Run go mod tidy.
+	${GO} mod tidy
+
 .PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
+fmt: bin ## Run go fmt against code.
+	${GO} fmt ./...
 
 .PHONY: vet
-vet: ## Run go vet against code.
-	go vet ./...
+vet: bin ## Run go vet against code.
+	${GO} vet ./...
 
 .PHONY: test
-test: fmt vet ## Run tests.
-	go test ./... -coverprofile cover.out
+test: fmt vet bin ## Run tests.
+	${GO} test ./... -coverprofile cover.out
 
 ##@ Build
 
 .PHONY: build
-build: fmt vet ## Build binary.
-	go build -o bin/mr-storage-initializer main.go
+build: fmt vet bin ## Build binary.
+	${GO} build -o bin/mr-storage-initializer main.go
 
 .PHONY: run
 run: fmt vet ## Run the program
-	go run ./main.go $(SOURCE_URI) $(DEST_PATH)
+	${GO} run ./main.go $(SOURCE_URI) $(DEST_PATH)
 
 .PHONY: docker-build
-docker-build: test ## Build docker image.
-	docker build . -f ./Dockerfile -t ${IMG}
+docker-build: ## Build container image.
+	${DOCKER} build . -f ./Dockerfile -t ${IMG}:$(IMG_VERSION)
 
 .PHONY: docker-push
-docker-push: ## Push docker image.
-	docker push ${IMG}
+docker-push: ## Push container image.
+	${DOCKER} push ${IMG}:$(IMG_VERSION)

@@ -14,7 +14,7 @@ USER root
 COPY ["Makefile", "main.go", "./"]
 
 # Copy rest of the source
-COPY bin/ bin/
+# COPY bin/ bin/
 COPY pkg/ pkg/
 
 # Build
