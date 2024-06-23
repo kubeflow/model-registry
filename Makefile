@@ -2,7 +2,7 @@
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
-GO := $(PROJECT_BIN)/go1.19
+GO := $(PROJECT_BIN)/go1.21.9
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
@@ -109,8 +109,8 @@ clean/odh:
 	rm -Rf ./model-registry
 
 bin/go:
-	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.19@latest
-	$(PROJECT_BIN)/go1.19 download
+	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.21.9@latest
+	$(PROJECT_BIN)/go1.21.9 download
 
 bin/protoc:
 	./scripts/install_protoc.sh
