@@ -3,7 +3,7 @@ module github.com/kubeflow/model-registry
 go 1.21
 
 require (
-	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/chi/v5 v5.0.14
 	github.com/go-chi/cors v1.2.1
 	github.com/golang/glog v1.2.1
 	github.com/spf13/cobra v1.8.1
