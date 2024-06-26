@@ -41,6 +41,15 @@ As a MLOps engineer I would like to store a description of the model
     ${r}  Then I findModelArtifact by name and parentResourceId    name=ModelArtifactName  parentResourceId=${vId}
           And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
 
+As a MLOps engineer I would like to update a description of the model
+    Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  owner=me
+    ${rId}  Given I create a RegisteredModel    payload=${registered_model}
+    &{registered_model_update}  Create dictionary    description=New description
+    ${rId}  And I update a RegisteredModel    id=${rId}  payload=${registered_model_update}
+    ${r}  Then I get RegisteredModelByID    id=${rId}
+          And Should be equal    ${r["description"]}    New description
+          And Should be equal    ${r["owner"]}    me
+
 As a MLOps engineer I would like to store a longer documentation for the model
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}
     Set To Dictionary    ${model_version}    description=consectetur adipiscing elit
