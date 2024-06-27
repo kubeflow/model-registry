@@ -54,6 +54,7 @@ jobs:
           kubectl get mr
       - name: Wait for Test Registry Deployment
         run: |
+          kubectl wait --for=condition=Available=true deployment/model-registry-db --timeout=5m
           kubectl wait --for=condition=Available=true modelregistries/modelregistry-sample --timeout=5m
       - name: Set up Python
         uses: actions/setup-python@v5
