@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- postgres-db.yaml
+- modelregistry_v1alpha1_modelregistry.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+## Append samples of your project ##
+
+# Istio tls config patch
+patches:
+  - path: istio_tls_modelregistry.yaml
+
+replacements:
+  - path: tls-replacements.yaml
+
+#+kubebuilder:scaffold:manifestskustomizesamples

@@ -1,0 +1,24 @@
+apiVersion: modelregistry.opendatahub.io/v1alpha1
+kind: ModelRegistry
+metadata:
+  labels:
+    app.kubernetes.io/name: modelregistry
+    app.kubernetes.io/instance: modelregistry-sample
+    app.kubernetes.io/part-of: model-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: model-registry-operator
+  name: modelregistry-sample
+spec:
+  # TODO(user): Add fields here
+  grpc:
+    port: 9090
+  rest:
+    port: 8080
+    serviceRoute: disabled
+  mysql:
+    host: model-registry-db
+    database: model_registry
+    username: mlmduser
+    passwordSecret:
+      name: model-registry-db
+      key: database-password

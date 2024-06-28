@@ -14,3 +14,20 @@ metadata:
   name: default-dsci
 spec:
   applicationsNamespace: opendatahub
+  devFlags:
+    logmode: production
+  monitoring:
+    managementState: Managed
+    namespace: opendatahub
+  serviceMesh:
+    auth:
+      audiences:
+      - https://kubernetes.default.svc
+    controlPlane:
+      metricsCollection: Istio
+      name: data-science-smcp
+      namespace: istio-system
+    managementState: Managed
+  trustedCABundle:
+    customCABundle: ""
+    managementState: Managed

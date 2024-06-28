@@ -1,0 +1,16 @@
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value:
+    --ssl-ca=/etc/server-cert/ca.crt
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value:
+    --ssl-cert=/etc/server-cert/tls.crt
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value:
+    --ssl-key=/etc/server-cert/tls.key
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value:
+    --require-secure-transport

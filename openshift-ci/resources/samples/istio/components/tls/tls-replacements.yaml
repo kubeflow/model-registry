@@ -1,0 +1,21 @@
+# replacements from configmap using istio.env for cluster specific config
+- source:
+    kind: ConfigMap
+    name: modelregistry-sample-environment
+    fieldPath: data.REST_CREDENTIAL_NAME
+  targets:
+    - select:
+        kind: ModelRegistry
+        name: modelregistry-sample
+      fieldPaths:
+        - spec.istio.gateway.rest.tls.credentialName
+- source:
+    kind: ConfigMap
+    name: modelregistry-sample-environment
+    fieldPath: data.GRPC_CREDENTIAL_NAME
+  targets:
+    - select:
+        kind: ModelRegistry
+        name: modelregistry-sample
+      fieldPaths:
+        - spec.istio.gateway.grpc.tls.credentialName

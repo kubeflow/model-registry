@@ -40,3 +40,6 @@ __pycache__
 # Protoc files
 include/
 readme.txt
+
+# do not send certs
+certs/

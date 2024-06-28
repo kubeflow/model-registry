@@ -1,11 +1,10 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: model-registry-test-source-subscription
+  name: authorino-operator
   namespace: openshift-operators
 spec:
-  channel: fast
-  name: opendatahub-operator
+  channel: stable
+  name: authorino-operator
   source: community-operators
   sourceNamespace: openshift-marketplace
-  

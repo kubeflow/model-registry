@@ -1,0 +1,15 @@
+apiVersion: modelregistry.opendatahub.io/v1alpha1
+kind: ModelRegistry
+metadata:
+  name: modelregistry-sample
+spec:
+  istio:
+    authProvider: AUTH_PROVIDER
+    authConfigLabels: {}
+    gateway:
+      domain: DOMAIN
+      istioIngress: ISTIO_INGRESS
+      rest:
+        gatewayRoute: enabled
+      grpc:
+        gatewayRoute: enabled

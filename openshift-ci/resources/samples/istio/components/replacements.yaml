@@ -1,0 +1,32 @@
+# replacements from configmap using istio.env for cluster specific config
+- source:
+    kind: ConfigMap
+    name: modelregistry-sample-environment
+    fieldPath: data.AUTH_PROVIDER
+  targets:
+    - select:
+        apiVersion: modelregistry.opendatahub.io/v1alpha1
+        kind: ModelRegistry
+        name: modelregistry-sample
+      fieldPaths:
+        - spec.istio.authProvider
+- source:
+    kind: ConfigMap
+    name: modelregistry-sample-environment
+    fieldPath: data.DOMAIN
+  targets:
+    - select:
+        kind: ModelRegistry
+        name: modelregistry-sample
+      fieldPaths:
+        - spec.istio.gateway.domain
+- source:
+    kind: ConfigMap
+    name: modelregistry-sample-environment
+    fieldPath: data.ISTIO_INGRESS
+  targets:
+    - select:
+        kind: ModelRegistry
+        name: modelregistry-sample
+      fieldPaths:
+        - spec.istio.gateway.istioIngress

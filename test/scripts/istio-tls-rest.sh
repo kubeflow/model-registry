@@ -1,12 +1,14 @@
 #!/bin/bash
 FLAG_WITH_NAMESPACE=$1
-MR_HOSTNAME="http://$(oc get route modelregistry-sample-http $FLAG_WITH_NAMESPACE --template='{{.spec.host}}')"
+TOKEN=$2
+CERT="certs/domain.crt"
+MR_HOSTNAME="https://$(oc get route odh-model-registries-modelregistry-sample-rest $FLAG_WITH_NAMESPACE --template='{{.spec.host}}')"
 
 # Function to send data and extract ID from response
 make_post_extract_id() {
 	local url="$1"
 	local data="$2"
-	local id=$(curl -s -X POST "$url" \
+	local id=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" --cacert certs/domain.crt "$url" \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
 		-d "$data" | jq -r '.id')
