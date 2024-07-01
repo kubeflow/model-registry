@@ -112,7 +112,7 @@ items:
     name: model-registry-db
   stringData:
     database-name: "model-registry"
-    database-password: "TheBlurstOfTimes"
-    database-user: "mlmduser"
+    database-password: "TheBlurstOfTimes" # notsecret
+    database-user: "mlmduser" # notsecret
 kind: List
 metadata: {}

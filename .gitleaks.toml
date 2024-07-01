@@ -1,0 +1,12 @@
+[allowlist]
+  description = "Global Allowlist"
+        
+  # Ignore based on any subset of the line
+  regexes = [
+    
+    # Ignore specific database password
+    '''database-password\s*:\s*"The BlurstOfTimes"''',
+
+    # Ignore specific database user
+    '''database-user\s*:\s*"mlmduser"'''
+  ]
