@@ -56,7 +56,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 	// Fetch model version by name or latest if not specified
 	var version *openapi.ModelVersion
 	if versionName != nil {
-		version, _, err = p.Client.ModelRegistryServiceAPI.FindModelVersion(context.Background()).Name(*versionName).ParentResourceID(*model.Id).Execute()
+		version, _, err = p.Client.ModelRegistryServiceAPI.FindModelVersion(context.Background()).Name(*versionName).ParentResourceId(*model.Id).Execute()
 		if err != nil {
 			return err
 		}
@@ -107,12 +107,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return err
 	}
 
-	modelName = registeredModelName
-	if version.Name != nil {
-		modelName = fmt.Sprintf("%s-%s", modelName, *version.Name)
-	}
-
-	return provider.DownloadModel(modelDir, modelName, *modelArtifact.Uri)
+	return provider.DownloadModel(modelDir, "", *modelArtifact.Uri)
 }
 
 func extractProtocol(storageURI string) (kserve.Protocol, error) {
