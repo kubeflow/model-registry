@@ -28,51 +28,14 @@ func NewOpenapiUpdateWrapper[
 	}
 }
 
-func InitRegisteredModelWithUpdate(source OpenapiUpdateWrapper[openapi.RegisteredModel]) openapi.RegisteredModel {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.RegisteredModel{}
+func InitWithExisting[M OpenAPIModel](source OpenapiUpdateWrapper[M]) M {
+	return *source.Existing
 }
 
-func InitModelVersionWithUpdate(source OpenapiUpdateWrapper[openapi.ModelVersion]) openapi.ModelVersion {
+func InitWithUpdate[M OpenAPIModel](source OpenapiUpdateWrapper[M]) M {
 	if source.Update != nil {
 		return *source.Update
 	}
-	return openapi.ModelVersion{}
-}
-
-func InitDocArtifactWithUpdate(source OpenapiUpdateWrapper[openapi.DocArtifact]) openapi.DocArtifact {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.DocArtifact{}
-}
-
-func InitModelArtifactWithUpdate(source OpenapiUpdateWrapper[openapi.ModelArtifact]) openapi.ModelArtifact {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.ModelArtifact{}
-}
-
-func InitServingEnvironmentWithUpdate(source OpenapiUpdateWrapper[openapi.ServingEnvironment]) openapi.ServingEnvironment {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.ServingEnvironment{}
-}
-
-func InitInferenceServiceWithUpdate(source OpenapiUpdateWrapper[openapi.InferenceService]) openapi.InferenceService {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.InferenceService{}
-}
-
-func InitServeModelWithUpdate(source OpenapiUpdateWrapper[openapi.ServeModel]) openapi.ServeModel {
-	if source.Update != nil {
-		return *source.Update
-	}
-	return openapi.ServeModel{}
+	var m M
+	return m
 }

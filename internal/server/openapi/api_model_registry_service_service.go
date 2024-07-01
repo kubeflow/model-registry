@@ -24,15 +24,17 @@ import (
 // This service should implement the business logic for every endpoint for the ModelRegistryServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelRegistryServiceAPIService struct {
-	coreApi   api.ModelRegistryApi
-	converter converter.OpenAPIConverter
+	coreApi    api.ModelRegistryApi
+	converter  converter.OpenAPIConverter
+	reconciler converter.OpenAPIReconciler
 }
 
 // NewModelRegistryServiceAPIService creates a default api service
 func NewModelRegistryServiceAPIService(coreApi api.ModelRegistryApi) ModelRegistryServiceAPIServicer {
 	return &ModelRegistryServiceAPIService{
-		coreApi:   coreApi,
-		converter: &generated.OpenAPIConverterImpl{},
+		coreApi:    coreApi,
+		converter:  &generated.OpenAPIConverterImpl{},
+		reconciler: &generated.OpenAPIReconcilerImpl{},
 	}
 }
 
@@ -450,7 +452,16 @@ func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Cont
 		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
 	}
 	entity.Id = &inferenceserviceId
-	result, err := s.coreApi.UpsertInferenceService(entity)
+	existing, err := s.coreApi.GetInferenceServiceById(inferenceserviceId)
+	if err != nil {
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
+	}
+	update, err := s.reconciler.UpdateExistingInferenceService(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.UpsertInferenceService(&update)
 	if err != nil {
 		status := api.ErrToStatus(err)
 		return Response(status, model.Error{Message: err.Error()}), nil
@@ -466,7 +477,16 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
 	}
 	modelArtifact.Id = &modelartifactId
-	result, err := s.coreApi.UpsertModelArtifact(modelArtifact, nil)
+	existing, err := s.coreApi.GetModelArtifactById(modelartifactId)
+	if err != nil {
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
+	}
+	update, err := s.reconciler.UpdateExistingModelArtifact(converter.NewOpenapiUpdateWrapper(existing, modelArtifact))
+	if err != nil {
+		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.UpsertModelArtifact(&update, nil)
 	if err != nil {
 		status := api.ErrToStatus(err)
 		return Response(status, model.Error{Message: err.Error()}), nil
@@ -482,7 +502,16 @@ func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context,
 		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
 	}
 	modelVersion.Id = &modelversionId
-	result, err := s.coreApi.UpsertModelVersion(modelVersion, nil)
+	existing, err := s.coreApi.GetModelVersionById(modelversionId)
+	if err != nil {
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
+	}
+	update, err := s.reconciler.UpdateExistingModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+	if err != nil {
+		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.UpsertModelVersion(&update, nil)
 	if err != nil {
 		status := api.ErrToStatus(err)
 		return Response(status, model.Error{Message: err.Error()}), nil
@@ -498,7 +527,16 @@ func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Conte
 		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
 	}
 	registeredModel.Id = &registeredmodelId
-	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
+	existing, err := s.coreApi.GetRegisteredModelById(registeredmodelId)
+	if err != nil {
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
+	}
+	update, err := s.reconciler.UpdateExistingRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
+	if err != nil {
+		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.UpsertRegisteredModel(&update)
 	if err != nil {
 		status := api.ErrToStatus(err)
 		return Response(status, model.Error{Message: err.Error()}), nil
@@ -514,7 +552,16 @@ func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Co
 		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
 	}
 	entity.Id = &servingenvironmentId
-	result, err := s.coreApi.UpsertServingEnvironment(entity)
+	existing, err := s.coreApi.GetServingEnvironmentById(servingenvironmentId)
+	if err != nil {
+		status := api.ErrToStatus(err)
+		return Response(status, model.Error{Message: err.Error()}), nil
+	}
+	update, err := s.reconciler.UpdateExistingServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return Response(http.StatusBadRequest, model.Error{Message: err.Error()}), nil
+	}
+	result, err := s.coreApi.UpsertServingEnvironment(&update)
 	if err != nil {
 		status := api.ErrToStatus(err)
 		return Response(status, model.Error{Message: err.Error()}), nil
