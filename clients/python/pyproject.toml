@@ -38,7 +38,7 @@ sphinx-autobuild = ">=2021.3.14,<2025.0.0"
 pytest = ">=7.4.2,<9.0.0"
 coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<6.0"
-ruff = "^0.4.4"
+ruff = ">=0.4.4,<0.6.0"
 mypy = "^1.7.0"
 testcontainers = "^4.5.0"
 # pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
