@@ -1,0 +1,24 @@
+diff --git a/clients/python/src/mr_openapi/models/doc_artifact.py b/clients/python/src/mr_openapi/models/doc_artifact.py
+index 5e6a34a5..4f7c29bd 100644
+--- a/clients/python/src/mr_openapi/models/doc_artifact.py
++++ b/clients/python/src/mr_openapi/models/doc_artifact.py
+@@ -104,6 +104,7 @@ class DocArtifact(BaseModel):
+             return cls.model_validate(obj)
+ 
+         _obj = cls.model_validate({
++            "artifactType": "doc-artifact",
+             "customProperties": dict(
+                 (_k, MetadataValue.from_dict(_v))
+                 for _k, _v in obj["customProperties"].items()
+diff --git a/clients/python/src/mr_openapi/models/model_artifact.py b/clients/python/src/mr_openapi/models/model_artifact.py
+index 380d1480..306d74d6 100644
+--- a/clients/python/src/mr_openapi/models/model_artifact.py
++++ b/clients/python/src/mr_openapi/models/model_artifact.py
+@@ -109,6 +109,7 @@ class ModelArtifact(BaseModel):
+             return cls.model_validate(obj)
+ 
+         _obj = cls.model_validate({
++            "artifactType": "model-artifact",
+             "customProperties": dict(
+                 (_k, MetadataValue.from_dict(_v))
+                 for _k, _v in obj["customProperties"].items()
