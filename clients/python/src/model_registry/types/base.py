@@ -108,7 +108,8 @@ class BaseResourceModel(BaseModel, ABC):
 
     def _props_as_dict(
         self, exclude: Sequence[str] | None = None, alias: bool = False
-    ) -> dict[str, SupportedTypes]:
+    ) -> dict[str, Any]:
+        exclude = exclude or []
         return {
             k: getattr(self, k)
             for k in self.model_json_schema(alias).get("properties", {})

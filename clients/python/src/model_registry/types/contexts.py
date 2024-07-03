@@ -46,7 +46,7 @@ class ModelVersion(BaseResourceModel):
     state: ModelVersionState = ModelVersionState.LIVE
 
     @override
-    def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionCreate:
+    def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionCreate:  # type: ignore[override]
         return ModelVersionCreate(
             registeredModelId=registered_model_id,
             customProperties=self._map_custom_properties(),

@@ -305,10 +305,10 @@ class ModelRegistryAPIClient:
                 )
                 return ModelArtifact.from_basemodel(ma)
 
-            ma = await client.create_model_version_artifact(
+            art = await client.create_model_version_artifact(
                 model_version_id, model_artifact.wrap()
             )
-            return ModelArtifact.from_artifact(ma)
+            return ModelArtifact.from_artifact(art)
 
     async def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
         """Fetch a model artifact by its ID.
