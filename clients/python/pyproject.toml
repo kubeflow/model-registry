@@ -6,6 +6,7 @@ authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/kubeflow/model-registry"
+documentation = "https://model-registry.readthedocs.io/en/latest/"
 
 [tool.poetry.urls]
 "Issues" = "https://github.com/kubeflow/model-registry/issues"

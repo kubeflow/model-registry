@@ -2,6 +2,7 @@
 
 [![Python](https://img.shields.io/badge/python%20-3.9%7C3.10-blue)](https://github.com/kubeflow/model-registry)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
+[Documentation](https://model-registry.readthedocs.io/en/latest/)
 
 This library provides a high level interface for interacting with a model registry server.
 
