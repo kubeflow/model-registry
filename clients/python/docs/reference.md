@@ -176,14 +176,14 @@ models = await mr_client.get_registered_models()
 
 versions = await mr_client.get_model_versions("registered_model_id")
 
-# We can get a list of all model artifacts
+# We can get a list of the first 20 model artifacts
 all_model_artifacts = await mr_client.get_model_artifacts()
 ```
 
-To limit or order the query, provide a {py:class}`model_registry.types.ListOptions` object.
+To limit or sort the query by another parameter, provide a {py:class}`model_registry.types.ListOptions` object.
 
 ```py
-from model_registry import ListOptions
+from model_registry.types import ListOptions
 
 options = ListOptions(limit=50)
 
@@ -194,6 +194,42 @@ options = ListOptions.order_by_creation_time(is_asc=False)
 
 last_50_models = await mr_client.get_registered_models(options)
 ```
+
+You can also use the high-level {py:class}`model_registry.types.Pager` to get an iterator.
+
+```py
+from model_registry.types import Pager
+
+models = Pager(mr_client.get_registered_models)
+
+async for model in models:
+    ...
+```
+
+Note that the iterator currently only works with methods that take a `ListOptions` argument, so if you want to use a
+method that needs additional arguments, you'll need to provide a partial application like in the example below.
+
+```py
+model_version_artifacts = Pager(lambda o: mr_client.get_model_version_artifacts(mv.id, o))
+```
+
+> ⚠️ Also note that a [`partial`](https://docs.python.org/3/library/functools.html#functools.partial) definition won't work as the `options` argument is optional, and thus has to be overriden as a positional argument.
+
+The iterator provides methods for setting up the {py:class}`model_registry.types.ListOptions` that will be used in each
+call.
+
+```py
+reverse_model_version_artifacts = model_version_artifacts.order_by_creation_time().descending().limit(100)
+```
+
+You can also get each page separately and iterate yourself:
+
+```py
+page = await reverse_model_version_artifacts.next_page()
+```
+
+> Note: the iterator will be automagically sync or async depending on the paging function passed in for initialization.
+
 
 ```{eval-rst}
 .. automodule:: model_registry.core

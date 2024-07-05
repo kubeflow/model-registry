@@ -12,6 +12,7 @@ from .contexts import (
     RegisteredModelState,
 )
 from .options import ListOptions
+from .pager import Pager
 
 __all__ = [
     # Artifacts
@@ -27,4 +28,6 @@ __all__ = [
     "SupportedTypes",
     # Options
     "ListOptions",
+    # Pager
+    "Pager",
 ]

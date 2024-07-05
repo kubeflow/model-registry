@@ -98,6 +98,31 @@ There are caveats to be noted when using this method:
     )
     ```
 
+### Listing models
+
+To list models you can use
+```py
+for model in registry.get_registered_models():
+    ...
+
+# and versions associated with a model
+for version in registry.get_model_versions("my-model"):
+    ...
+```
+
+To customize sorting order or query limits you can also use
+
+```py
+latest_updates = registry.get_model_versions("my-model").order_by_update_time().descending().limit(20)
+for version in latest_updates:
+    ...
+```
+
+You can use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order.
+
+> Note that the `limit()` method only limits the query size, not the actual loop boundaries -- even if your limit is 1
+> you will still get all the models, with one query each.
+
 ## Development
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
