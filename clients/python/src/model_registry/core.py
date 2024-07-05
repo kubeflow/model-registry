@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from typing import TypeVar, cast
 
 from mr_openapi import (
     ApiClient,
@@ -24,6 +25,8 @@ from .types import (
     ModelVersion,
     RegisteredModel,
 )
+
+ArtifactT = TypeVar("ArtifactT", bound=Artifact)
 
 
 @dataclass
@@ -298,17 +301,41 @@ class ModelRegistryAPIClient:
         Returns:
             New model artifact.
         """
+        if not model_artifact.id:
+            return await self.create_model_version_artifact(
+                model_artifact, model_version_id
+            )
+
         async with self.get_client() as client:
-            if model_artifact.id:
-                ma = await client.update_model_artifact(
+            return ModelArtifact.from_basemodel(
+                await client.update_model_artifact(
                     model_artifact.id, model_artifact.update()
                 )
-                return ModelArtifact.from_basemodel(ma)
-
-            art = await client.create_model_version_artifact(
-                model_version_id, model_artifact.wrap()
             )
-            return ModelArtifact.from_artifact(art)
+
+    async def create_model_version_artifact(
+        self, artifact: ArtifactT, model_version_id: str
+    ) -> ArtifactT:
+        """Creates a model version artifact.
+
+        Creates a model version artifact on the server.
+
+        Args:
+            artifact: Model version artifact to upsert.
+            model_version_id: ID of the model version this artifact will be associated to.
+
+        Returns:
+            New model version artifact.
+        """
+        async with self.get_client() as client:
+            return cast(
+                ArtifactT,
+                Artifact.validate_artifact(
+                    await client.create_model_version_artifact(
+                        model_version_id, artifact.wrap()
+                    )
+                ),
+            )
 
     async def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
         """Fetch a model artifact by its ID.
