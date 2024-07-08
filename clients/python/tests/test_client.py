@@ -129,6 +129,41 @@ def test_hf_import(mr_client: ModelRegistry):
     assert mr_client.get_model_artifact(name, version)
 
 
+def test_mlflow_import_default_env(mr_client: ModelRegistry):
+    """Test setting environment variables, hence triggering defaults, does _not_ interfere with HF metadata"""
+    pytest.importorskip("mlflow")
+    mlflow_server = "http://localhost:5002"
+    name= "test_mlflow_model_name"
+    mlflow_model_name = "lgbm-reg-model"
+    version = "1.2.3"
+    author = "test author"
+    env_values = {
+        "AWS_S3_ENDPOINT": "value1",
+        "AWS_S3_BUCKET": "value2",
+        "AWS_DEFAULT_REGION": "value3",
+    }
+    for k, v in env_values.items():
+        os.environ[k] = v
+
+    assert mr_client.register_MlFlow_model(
+        tracking_uri =  mlflow_server,
+        registered_name = mlflow_model_name,
+        author=author,
+        version=version,
+        model_name=name,
+        model_format_name="test format",
+        model_format_version="test version",
+    )
+    assert (mv := mr_client.get_model_version(name, version))
+    assert mv.metadata["model_author"] == author
+    assert mv.metadata["model_origin"] == "MlFlow"
+    assert mv.metadata["tracking_uri"] == mlflow_server
+    assert mv.metadata["name_in_origin_mr"] == mlflow_model_name
+    assert mr_client.get_model_artifact(name, version)
+
+    for k in env_values:
+        os.environ.pop(k)
+        
 def test_hf_import_default_env(mr_client: ModelRegistry):
     """Test setting environment variables, hence triggering defaults, does _not_ interfere with HF metadata"""
     pytest.importorskip("huggingface_hub")

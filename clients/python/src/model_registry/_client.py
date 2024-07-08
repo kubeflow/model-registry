@@ -11,6 +11,7 @@ from .core import ModelRegistryAPIClient
 from .exceptions import StoreException
 from .store import ScalarType
 from .types import ModelArtifact, ModelVersion, RegisteredModel
+from .integrator import ModelInfoManager
 
 
 class ModelRegistry:
@@ -198,63 +199,71 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        try:
-            from huggingface_hub import HfApi, hf_hub_url, utils
-        except ImportError as e:
-            msg = "huggingface_hub is not installed"
-            raise StoreException(msg) from e
-
-        api = HfApi()
-        try:
-            model_info = api.model_info(repo, revision=git_ref)
-        except utils.RepositoryNotFoundError as e:
-            msg = f"Repository {repo} does not exist"
-            raise StoreException(msg) from e
-        except utils.RevisionNotFoundError as e:
-            # TODO: as all hf-hub client calls default to using main, should we provide a tip?
-            msg = f"Revision {git_ref} does not exist"
-            raise StoreException(msg) from e
-
-        if not author:
-            # model author can be None if the repo is in a "global" namespace (i.e. no / in repo).
-            if model_info.author is None:
-                model_author = "unknown"
-                warn(
-                    "Model author is unknown. This is likely because the model is in a global namespace.",
-                    stacklevel=2,
-                )
-            else:
-                model_author = model_info.author
-        else:
-            model_author = author
-        source_uri = hf_hub_url(repo, path, revision=git_ref)
-        metadata = {
-            "repo": repo,
-            "source_uri": source_uri,
-            "model_origin": "huggingface_hub",
-            "model_author": model_author,
-        }
-        # card_data is the new field, but let's use the old one for backwards compatibility.
-        if card_data := model_info.cardData:
-            metadata.update(
-                {
-                    k: v
-                    for k, v in card_data.to_dict().items()
-                    # TODO: (#151) preserve tags, possibly other complex metadata
-                    if isinstance(v, get_args(ScalarType))
-                }
-            )
+        params = locals()
+        params.pop('self', None)
+        model_info = ModelInfoManager.get_model_info("HuggingFace", params)
+        
         return self.register_model(
-            model_name or model_info.id,
-            source_uri,
-            author=author or model_author,
-            owner=owner or self._author,
+            model_name or model_info["model_name"],
+            model_info["source_uri"],
+            author=author or model_info["author"],
             version=version,
             model_format_name=model_format_name,
             model_format_version=model_format_version,
             description=description,
-            storage_path=path,
-            metadata=metadata,
+            storage_path=model_info["storage_path"],
+            metadata=model_info["metadata"],
+        )
+        
+        
+    def register_Mlflow_model(
+        self,
+        tracking_uri: str,
+        registered_name: str,
+        *,
+        version: str,
+        model_format_name: str,
+        model_format_version: str,
+        author: str | None = None,
+        model_name: str | None = None,
+        description: str | None = None,
+        registered_version: int | None = None,
+    ) -> RegisteredModel:
+        """Register a MlFlow Registered model.
+
+        This imports a model from MlFlowg and registers it in the model registry.
+        Note that the model is not downloaded.
+
+        Args:
+            tracking_uri: URI for the MlFlow Server
+            registered_name: registered model name in MlFlow MR.
+
+        Keyword Args:
+            version: Version of the model. Has to be unique.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            author: Author of the model. Defaults to repo owner.
+            model_name: Name of the model. Defaults to the model name in MlFlow Registry.
+            description: Description of the model.
+            registered_version: registered model version in MlFlow MR, if None will pick the latest.
+
+        Returns:
+            Registered model.
+        """
+        params = locals()
+        params.pop('self', None)
+        model_info = ModelInfoManager.get_model_info("MlFlow", params)
+        
+        return self.register_model(
+            model_name or model_info["name"],
+            model_info["uri"],
+            author=author or model_info["author"],
+            version= version or model_info["version"],
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            description=description,
+            storage_path=model_info["uri"],
+            metadata=model_info["metadata"],
         )
 
     def get_registered_model(self, name: str) -> RegisteredModel | None:
