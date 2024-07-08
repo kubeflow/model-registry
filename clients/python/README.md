@@ -10,9 +10,9 @@ This library provides a high level interface for interacting with a model regist
 ```py
 from model_registry import ModelRegistry
 
-registry = ModelRegistry("server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
 
-# registry = ModelRegistry("server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
+# registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
 
 model = registry.register_model(
     "my-model",  # model name
@@ -34,9 +34,9 @@ model = registry.register_model(
 
 model = registry.get_registered_model("my-model")
 
-version = registry.get_model_version("my-model", "v2.0")
+version = registry.get_model_version("my-model", "2.0.0")
 
-experiment = registry.get_model_artifact("my-model", "v2.0")
+experiment = registry.get_model_artifact("my-model", "2.0.0")
 ```
 
 ### Importing from S3
@@ -102,51 +102,21 @@ There are caveats to be noted when using this method:
     )
     ```
 
-## Advanced use-cases
-
-### Using Model Registry Python Client with newer Python versions (>=3.11)
-
-> [!CAUTION]
-> The mechanism described in this section is a temporary workaround and likely will never be supported.
-> This workaround is ONLY applicable if your Python/Notebook project does NOT make use of MLMD directly or indirectly.
-
-<!-- a longer-term plan to address this ties to the investigations to rebase this client on top of MR REST api directly,
-so to avoid having to wrap the MLMD Wheel. See more: https://github.com/kubeflow/model-registry/pull/59 -->
-
-This project _currently_ depends for internal implementations on the Google's [MLMD Python library](https://pypi.org/project/ml-metadata/).
-Due to this dependency, this project supports [only the Python versions](https://github.com/kubeflow/model-registry/blob/8d77c13100c6cc5a9465d4293403114a3576fdd7/clients/python/pyproject.toml#L14) which are also available for the MLMD library (see more [here](https://pypi.org/project/ml-metadata/#files)).
-
-As a workaround, **only IF your Python/Notebook project does NOT make use of MLMD directly or indirectly**,
-you could opt-in to make use of a non-constrained variant of the MLMD dependency supporting _only_ remote gRPC calls (and not constrained by specific Python versions or architectures):
-
-```
-!pip install "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" # need a Python 3.11 compatible version
-!pip install --no-deps --ignore-requires-python --pre "model-registry" # ignore dependencies because of the above override
-```
-
-You can read more about this use-case, in the [Remote-only packaging of MLMD Python lib](https://github.com/kubeflow/model-registry/blob/main/docs/remote_only_packaging_of_MLMD_Python_lib.md) document.
-
 ## Development
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
 
 Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
+Alternatively, use `make install` to setup a local Python virtual environment with `poetry`.
+
+To run the tests you will need `docker` (or equivalent) and the `compose` extension command.
+This is necessary as the test suite will manage a Model Registry server and an MLMD instance to ensure a clean state on
+each run.
+You can use `make test` to execute `pytest`.
+
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
-If you want run tests locally you will need to set up a development environment, including docker engine; we recommend following the instructions [here](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine).
-
-You will also have to change the package source to one compatible with ARM64 architecture. This can be actioned by uncommenting lines 14 or 15 in the pyproject.toml file. Run the following command after you have uncommented the line.
-
-```sh
-poetry lock
-```
-
-Use the following commands to directly run the tests with individual test output. Alternatively you can use the nox session commands above.
-
-```sh
-poetry install
-poetry run pytest -v
-```
+Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
 <!-- github-only -->

@@ -11,120 +11,78 @@ Todo:
 
 from __future__ import annotations
 
-from abc import ABC
-from enum import Enum, unique
-
-from attrs import define, field
-from ml_metadata.proto import Context
+from mr_openapi import (
+    ModelVersion as ModelVersionBaseModel,
+)
+from mr_openapi import (
+    ModelVersionCreate,
+    ModelVersionState,
+    ModelVersionUpdate,
+    RegisteredModelCreate,
+    RegisteredModelState,
+    RegisteredModelUpdate,
+)
+from mr_openapi import (
+    RegisteredModel as RegisteredModelBaseModel,
+)
 from typing_extensions import override
 
-from model_registry.store import ScalarType
-
-from .artifacts import BaseArtifact
-from .base import Prefixable, ProtoBase
+from .base import BaseResourceModel
 
 
-@unique
-class ContextState(Enum):
-    """State of the context.
-
-    LIVE: The context is live and can be used.
-    ARCHIVED: The context is archived and can't be used.
-    """
-
-    LIVE = "LIVE"
-    ARCHIVED = "ARCHIVED"
-
-
-@define(slots=False, init=False)
-class BaseContext(ProtoBase, ABC):
-    """Abstract base class for all contexts."""
-
-    state: ContextState = field(init=False, default=ContextState.LIVE)
-
-    @override
-    def map(self, type_id: int) -> Context:
-        mlmd_obj = super().map(type_id)
-        mlmd_obj.properties["state"].string_value = self.state.value
-        return mlmd_obj
-
-    @classmethod
-    @override
-    def unmap(cls, mlmd_obj: Context) -> BaseContext:
-        py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, BaseContext
-        ), f"Expected BaseContext, got {type(py_obj)}"
-        py_obj.state = ContextState(mlmd_obj.properties["state"].string_value)
-        return py_obj
-
-    @classmethod
-    @override
-    def get_proto_type(cls) -> type[Context]:
-        return Context
-
-
-@define(slots=False)
-class ModelVersion(BaseContext, Prefixable):
+class ModelVersion(BaseResourceModel):
     """Represents a model version.
 
     Attributes:
-        model_name: Name of the model associated with this version.
-        version: Version of the model.
+        name: Name of this version.
         author: Author of the model version.
         description: Description of the object.
         external_id: Customizable ID. Has to be unique among instances of the same type.
         artifacts: Artifacts associated with this version.
-        metadata: Metadata associated with this version.
     """
 
-    model_name: str
-    version: str
-    author: str
-    metadata: dict[str, ScalarType] = field(factory=dict)
-    artifacts: list[BaseArtifact] = field(init=False, factory=list)
-
-    _registered_model_id: str | None = field(init=False, default=None)
-
-    def __attrs_post_init__(self) -> None:
-        self.name = self.version
-
-    @property
-    @override
-    def mlmd_name_prefix(self) -> str:
-        assert (
-            self._registered_model_id is not None
-        ), "There's no registered model associated with this version"
-        return self._registered_model_id
+    name: str
+    author: str | None = None
+    state: ModelVersionState = ModelVersionState.LIVE
 
     @override
-    def map(self, type_id: int) -> Context:
-        mlmd_obj = super().map(type_id)
-        # this should match the name of the registered model
-        props = {
-            "model_name": self.model_name,
-            "author": self.author,
-        }
-        self._map_props(props, mlmd_obj.properties)
-        self._map_props(self.metadata, mlmd_obj.custom_properties)
-        return mlmd_obj
+    def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionCreate:  # type: ignore[override]
+        return ModelVersionCreate(
+            registeredModelId=registered_model_id,
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "custom_properties")),
+            **kwargs,
+        )
+
+    @override
+    def update(self, **kwargs) -> ModelVersionUpdate:
+        return ModelVersionUpdate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "name", "custom_properties")),
+            **kwargs,
+        )
 
     @classmethod
     @override
-    def unmap(cls, mlmd_obj: Context) -> ModelVersion:
-        py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, ModelVersion
-        ), f"Expected ModelVersion, got {type(py_obj)}"
-        py_obj.version = py_obj.name
-        py_obj.model_name = mlmd_obj.properties["model_name"].string_value
-        py_obj.author = mlmd_obj.properties["author"].string_value
-        py_obj.metadata = cls._unmap_props(mlmd_obj.custom_properties)
-        return py_obj
+    def from_basemodel(cls, source: ModelVersionBaseModel) -> ModelVersion:
+        assert source.name
+        assert source.state
+        return cls(
+            id=source.id,
+            name=source.name,
+            state=source.state,
+            author=source.author,
+            description=source.description,
+            external_id=source.external_id,
+            create_time_since_epoch=source.create_time_since_epoch,
+            last_update_time_since_epoch=source.last_update_time_since_epoch,
+            custom_properties=cls._unmap_custom_properties(source.custom_properties)
+            if source.custom_properties
+            else None,
+        )
 
 
-@define(slots=False)
-class RegisteredModel(BaseContext):
+class RegisteredModel(BaseResourceModel):
     """Represents a registered model.
 
     Attributes:
@@ -136,20 +94,39 @@ class RegisteredModel(BaseContext):
 
     name: str
     owner: str | None = None
+    state: RegisteredModelState = RegisteredModelState.LIVE
 
     @override
-    def map(self, type_id: int) -> Context:
-        mlmd_obj = super().map(type_id)
-        props = {"owner": self.owner}
-        self._map_props(props, mlmd_obj.properties)
-        return mlmd_obj
+    def create(self, **kwargs) -> RegisteredModelCreate:
+        return RegisteredModelCreate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "custom_properties")),
+            **kwargs,
+        )
+
+    @override
+    def update(self, **kwargs) -> RegisteredModelUpdate:
+        return RegisteredModelUpdate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "name", "custom_properties")),
+            **kwargs,
+        )
 
     @classmethod
     @override
-    def unmap(cls, mlmd_obj: Context) -> RegisteredModel:
-        py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, RegisteredModel
-        ), f"Expected RegisteredModel, got {type(py_obj)}"
-        py_obj.owner = mlmd_obj.properties["owner"].string_value
-        return py_obj
+    def from_basemodel(cls, source: RegisteredModelBaseModel) -> RegisteredModel:
+        assert source.name
+        assert source.state
+        return cls(
+            id=source.id,
+            name=source.name,
+            owner=source.owner,
+            state=source.state,
+            description=source.description,
+            external_id=source.external_id,
+            create_time_since_epoch=source.create_time_since_epoch,
+            last_update_time_since_epoch=source.last_update_time_since_epoch,
+            custom_properties=cls._unmap_custom_properties(source.custom_properties)
+            if source.custom_properties
+            else None,
+        )

@@ -11,10 +11,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10"]
+        python: ["3.12"]
         session: [lint, tests, mypy, docs-build]
         include:
           - python: "3.9"
+            session: tests
+          - python: "3.10"
+            session: tests
+          - python: "3.11"
             session: tests
     env:
       NOXSESSION: ${{ matrix.session }}
