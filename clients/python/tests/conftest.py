@@ -55,18 +55,18 @@ def _compose_mr(root):
         msg = f"The file {sqlite_db_file} already exists; make sure to cancel it before running these tests."
         raise FileExistsError(msg)
     print(f" Starting Docker Compose in folder {root}")
-    p = subprocess.Popen(
+    p = subprocess.Popen(  # noqa: S602
         f"{DOCKER} compose -f {COMPOSE_FILE} up --build",
-        shell=True,  # noqa: S602
+        shell=True,
         cwd=root,
     )
     yield
 
     p.kill()
     print(f" Closing Docker Compose in folder {root}")
-    subprocess.call(
+    subprocess.call(  # noqa: S602
         f"{DOCKER} compose -f {COMPOSE_FILE} down",
-        shell=True,  # noqa: S602
+        shell=True,
         cwd=root,
     )
     try:
@@ -95,9 +95,9 @@ def cleanup(client):
         sleep(1)
 
         print("Restarting model-registry...")
-        subprocess.call(
+        subprocess.call(  # noqa: S602
             f"{DOCKER} compose -f {COMPOSE_FILE} restart model-registry",
-            shell=True,  # noqa: S602
+            shell=True,
             cwd=root,
         )
 
