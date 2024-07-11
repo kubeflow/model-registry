@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry/csi
 
-go 1.20
+go 1.21
 
 require (
 	github.com/kserve/kserve v0.12.0

@@ -75,6 +75,6 @@ jobs:
           pip install dist/*.whl
       - name: Connect with Python client
         run: |
-          kubectl port-forward service/modelregistry-sample 9090:9090 &
+          kubectl port-forward service/modelregistry-sample 8080:8080 &
           sleep 5
-          python test/python/test_mr_conn.py localhost 9090
+          python test/python/test_mr_conn.py http://localhost 8080

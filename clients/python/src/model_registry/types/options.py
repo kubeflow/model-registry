@@ -5,22 +5,13 @@ Provides a thin wrappers around the options classes defined in the MLMD Py lib.
 
 from __future__ import annotations
 
-from enum import Enum
+from dataclasses import dataclass
+from typing import Any
 
-from attrs import define, field
-from ml_metadata.metadata_store import ListOptions as MLMDListOptions
-from ml_metadata.metadata_store import OrderByField as MLMDOrderByField
-
-
-class OrderByField(Enum):
-    """Fields to order by."""
-
-    CREATE_TIME = MLMDOrderByField.CREATE_TIME
-    UPDATE_TIME = MLMDOrderByField.UPDATE_TIME
-    ID = MLMDOrderByField.ID
+from mr_openapi import OrderByField, SortOrder
 
 
-@define
+@dataclass
 class ListOptions:
     """Options for listing objects.
 
@@ -30,18 +21,32 @@ class ListOptions:
         is_asc: Whether to order in ascending order. Defaults to True.
     """
 
-    limit: int | None = field(default=None)
-    order_by: OrderByField | None = field(default=None)
-    is_asc: bool = field(default=True)
+    limit: int | None = None
+    order_by: OrderByField | None = None
+    is_asc: bool = True
 
-    def as_mlmd_list_options(self) -> MLMDListOptions:
-        """Convert to MLMD ListOptions.
+    @classmethod
+    def order_by_creation_time(cls, **kwargs) -> ListOptions:
+        """Return options to order by creation time."""
+        return cls(order_by=OrderByField.CREATE_TIME, **kwargs)
 
-        Returns:
-            MLMD ListOptions.
-        """
-        return MLMDListOptions(
-            limit=self.limit,
-            order_by=OrderByField(self.order_by).value if self.order_by else None,
-            is_asc=self.is_asc,
-        )
+    @classmethod
+    def order_by_update_time(cls, **kwargs) -> ListOptions:
+        """Return options to order by update time."""
+        return cls(order_by=OrderByField.LAST_UPDATE_TIME, **kwargs)
+
+    @classmethod
+    def order_by_id(cls, **kwargs) -> ListOptions:
+        """Return options to order by ID."""
+        return cls(order_by=OrderByField.ID, **kwargs)
+
+    def as_options(self) -> dict[str, Any]:
+        """Convert to options dictionary."""
+        options = {}
+        if self.limit is not None:
+            options["page_size"] = str(self.limit)
+        if self.order_by is not None:
+            options["order_by"] = self.order_by
+        if self.is_asc is not None:
+            options["sort_order"] = SortOrder.ASC if self.is_asc else SortOrder.DESC
+        return options
