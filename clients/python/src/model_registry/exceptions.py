@@ -1,7 +1,7 @@
 """Exceptions for the model registry."""
 
 
-class StoreException(Exception):
+class StoreError(Exception):
     """Storage related error."""
 
 
@@ -9,17 +9,17 @@ class MissingMetadata(Exception):
     """Not enough metadata to complete operation."""
 
 
-class UnsupportedTypeException(StoreException):
+class UnsupportedType(StoreError):
     """Raised when an unsupported type is encountered."""
 
 
-class TypeNotFoundException(StoreException):
+class TypeNotFound(StoreError):
     """Raised when a type cannot be found."""
 
 
-class ServerException(StoreException):
+class ServerError(StoreError):
     """Raised when the server returns a bad response."""
 
 
-class DuplicateException(StoreException):
+class DuplicateError(StoreError):
     """Raised when the user tries to put an object with a conflicting property."""

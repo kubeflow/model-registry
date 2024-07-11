@@ -7,21 +7,27 @@ license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/kubeflow/model-registry"
 documentation = "https://model-registry.readthedocs.io/en/latest/"
+packages = [
+    { include = "model_registry", from = "src" },
+    { include = "mr_openapi", from = "src" },
+]
 
 [tool.poetry.urls]
 "Issues" = "https://github.com/kubeflow/model-registry/issues"
 
 [tool.poetry.dependencies]
-python = ">= 3.9, < 3.11" # mainly aligns constraints with: https://pypi.org/project/ml-metadata/#files
-attrs = "^21.0"
-ml-metadata = "==1.14.0"
-# you might consider using locally the following alternative, when developing on Apple-silicon/ARM-based computers:
-# ml-metadata = { url = "https://github.com/opendatahub-io/ml-metadata/releases/download/v1.14.0%2Bremote.1/ml_metadata-1.14.0+remote.1-py3-none-any.whl" }
+python = ">= 3.9, < 4.0"
 typing-extensions = "^4.8"
+pydantic = "^2.7.4"
+python-dateutil = "^2.9.0.post0"
+aiohttp = "^3.9.5"
+aiohttp-retry = "^2.8.3"
+# allows for reentrant event loops (used for sync client)
+nest-asyncio = "^1.6.0"
+# necessary for modern type annotations using pydantic on 3.9
+eval-type-backport = "^0.2.0"
 
 huggingface-hub = { version = ">=0.20.1,<0.24.0", optional = true }
-# pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
-requests = { version = "^2.32.2", optional = true }
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
@@ -41,9 +47,8 @@ coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<6.0"
 ruff = "^0.4.4"
 mypy = "^1.7.0"
-testcontainers = "^4.5.0"
-# pin docker+requests dependencies of testcontainers to docker ^7.1.0 for compatibility with requests ^2.32.2; ref: https://github.com/testcontainers/testcontainers-python/issues/577#issuecomment-2123324367
-docker = "^7.1.0"
+pytest-asyncio = "^0.23.7"
+requests = "^2.32.2"
 
 [tool.coverage.run]
 branch = true
@@ -62,6 +67,9 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 119
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.ruff]
 target-version = "py39"
@@ -100,3 +108,12 @@ per-file-ignores = { "tests/**/*.py" = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.mypy]
+python_version = "3.9"
+strict = false
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+ignore_missing_imports = true

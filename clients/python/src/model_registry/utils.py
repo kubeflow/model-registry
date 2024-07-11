@@ -3,11 +3,7 @@
 from __future__ import annotations
 
 import os
-from collections import namedtuple
-from typing import Callable
 
-import grpc
-from attr import dataclass
 from typing_extensions import overload
 
 from ._utils import required_args
@@ -94,85 +90,3 @@ def s3_uri_from(
     # https://alexwlchan.net/2020/s3-keys-are-not-file-paths/ nor do they resolve to valid URls
     # FIXME: is this safe?
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
-
-
-# https://github.com/grpc/grpc/blob/master/examples/python/interceptors/headers/generic_client_interceptor.py
-@dataclass
-class GenericClientInterceptor(  # noqa: D101
-    grpc.UnaryUnaryClientInterceptor,
-    grpc.UnaryStreamClientInterceptor,
-    grpc.StreamUnaryClientInterceptor,
-    grpc.StreamStreamClientInterceptor,
-):
-    fn: Callable
-
-    def intercept_unary_unary(self, continuation, client_call_details, request):  # noqa: D102
-        new_details, new_request_iterator, postprocess = self.fn(
-            client_call_details, iter((request,)), False, False
-        )
-        response = continuation(new_details, next(new_request_iterator))
-        return postprocess(response) if postprocess else response
-
-    def intercept_unary_stream(self, continuation, client_call_details, request):  # noqa: D102
-        new_details, new_request_iterator, postprocess = self.fn(
-            client_call_details, iter((request,)), False, True
-        )
-        response_it = continuation(new_details, next(new_request_iterator))
-        return postprocess(response_it) if postprocess else response_it
-
-    def intercept_stream_unary(  # noqa: D102
-        self, continuation, client_call_details, request_iterator
-    ):
-        new_details, new_request_iterator, postprocess = self.fn(
-            client_call_details, request_iterator, True, False
-        )
-        response = continuation(new_details, new_request_iterator)
-        return postprocess(response) if postprocess else response
-
-    def intercept_stream_stream(  # noqa: D102
-        self, continuation, client_call_details, request_iterator
-    ):
-        new_details, new_request_iterator, postprocess = self.fn(
-            client_call_details, request_iterator, True, True
-        )
-        response_it = continuation(new_details, new_request_iterator)
-        return postprocess(response_it) if postprocess else response_it
-
-
-# https://github.com/grpc/grpc/blob/master/examples/python/interceptors/headers/header_manipulator_client_interceptor.py
-# we need to subclass ClientCallDetails to add a constructor (it's ABC)
-class ClientCallDetails(  # noqa: D101
-    namedtuple("ClientCallDetails", ("method", "timeout", "metadata", "credentials")),
-    grpc.ClientCallDetails,
-):
-    pass
-
-
-def header_adder_interceptor(header, value):
-    """Create a client interceptor that adds a header to requests."""
-
-    def intercept_call(
-        client_call_details,
-        request_iterator,
-        request_streaming,
-        response_streaming,
-    ):
-        metadata = list(client_call_details.metadata or [])
-        metadata.append(
-            (
-                header,
-                value,
-            )
-        )
-        return (
-            ClientCallDetails(
-                client_call_details.method,
-                client_call_details.timeout,
-                metadata,
-                client_call_details.credentials,
-            ),
-            request_iterator,
-            None,
-        )
-
-    return GenericClientInterceptor(intercept_call)
