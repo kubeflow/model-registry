@@ -6,18 +6,6 @@ from .exceptions import StoreException
 from warnings import warn
 
 
-class supportedPlatform(Enum):
-    HUGGING_FACE = "HuggingFace"
-    MLFLOW = "MlFlow"
-
-    def __contains__(cls, item: str):
-        try:
-            cls(item)
-        except ValueError:
-            return False
-        return True
-
-
 class ModelInfoProvider(ABC):
     @property
     def passByInfo(self):
@@ -159,22 +147,3 @@ class MLflowModelInfoProvider(ModelInfoProvider):
         self._modelInfo.update(model_version_details.tags)
         self._modelInfo["name"] = model_name or model_version_details.name
         return self._modelInfo
-
-
-class ModelInfoManager:
-
-    @classmethod
-    def providers(cls):
-        return {
-            supportedPlatform.HUGGING_FACE: HuggingFaceModelInfoProvider(),
-            supportedPlatform.MLFLOW: MLflowModelInfoProvider(),
-        }
-
-    @classmethod
-    def get_model_info(cls, platform: str, kwargs: dict) -> dict:
-        assert platform in [p.value for p in supportedPlatform]
-        provider = cls.providers().get(supportedPlatform(platform))
-        if provider:
-            return provider.get_model_info(**kwargs)
-        else:
-            return {"error": "Platform not supported"}

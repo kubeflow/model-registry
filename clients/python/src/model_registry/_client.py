@@ -11,7 +11,7 @@ from .core import ModelRegistryAPIClient
 from .exceptions import StoreException
 from .store import ScalarType
 from .types import ModelArtifact, ModelVersion, RegisteredModel
-from .integrator import ModelInfoManager
+from .integrator import MLflowModelInfoProvider, HuggingFaceModelInfoProvider   
 
 
 class ModelRegistry:
@@ -201,7 +201,7 @@ class ModelRegistry:
         """
         params = locals()
         params.pop('self', None)
-        model_info = ModelInfoManager.get_model_info("HuggingFace", params)
+        model_info = HuggingFaceModelInfoProvider.get_model_info(params)
         
         return self.register_model(
             model_name or model_info["model_name"],
@@ -252,7 +252,7 @@ class ModelRegistry:
         """
         params = locals()
         params.pop('self', None)
-        model_info = ModelInfoManager.get_model_info("MlFlow", params)
+        model_info = MLflowModelInfoProvider.get_model_info(params)
         
         return self.register_model(
             model_name or model_info["name"],
