@@ -30,11 +30,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-conn, err := grpc.DialContext(
-  context.Background(),
+conn, err := grpc.NewClient(
   "localhost:9090",
-  grpc.WithReturnConnectionError(),
-  grpc.WithBlock(), // optional
   grpc.WithTransportCredentials(insecure.NewCredentials()),
 )
 if err != nil {
@@ -43,7 +40,7 @@ if err != nil {
 defer conn.Close()
 ```
 
-> NOTE: check [grpc doc](https://pkg.go.dev/google.golang.org/grpc#DialContext) for more details.
+> NOTE: check [grpc doc](https://pkg.go.dev/google.golang.org/grpc#NewClient) for more details.
 
 Once the gRPC connection is setup, let's create the `ModelRegistryService`:
 

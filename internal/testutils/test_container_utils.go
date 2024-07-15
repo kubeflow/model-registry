@@ -121,11 +121,8 @@ func SetupMLMetadataTestContainer(t *testing.T) (*grpc.ClientConn, proto.Metadat
 	t.Log("MLMD test container running at: ", mlmdAddr)
 
 	// setup grpc connection
-	conn, err := grpc.DialContext(
-		context.Background(),
+	conn, err := grpc.NewClient(
 		mlmdAddr,
-		grpc.WithReturnConnectionError(),
-		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
