@@ -7,9 +7,7 @@ import (
 )
 
 func TestFetchAllModelRegistry(t *testing.T) {
-	mockK8sClient := new(mocks.KubernetesClientMock)
-
-	mockK8sClient.On("GetServiceNames").Return(mockK8sClient.MockServiceNames(), nil)
+	mockK8sClient, _ := mocks.NewKubernetesClient(nil)
 
 	model := ModelRegistryModel{}
 
@@ -18,10 +16,10 @@ func TestFetchAllModelRegistry(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedRegistries := []ModelRegistryModel{
-		{Name: mockK8sClient.MockServiceNames()[0]},
-		{Name: mockK8sClient.MockServiceNames()[1]},
+		{Name: "model-registry"},
+		{Name: "model-registry-dora"},
+		{Name: "model-registry-bella"},
 	}
 	assert.Equal(t, expectedRegistries, registries)
 
-	mockK8sClient.AssertExpectations(t)
 }

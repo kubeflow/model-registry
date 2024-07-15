@@ -5,6 +5,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/config"
 	"github.com/kubeflow/model-registry/ui/bff/data"
 	"github.com/kubeflow/model-registry/ui/bff/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
 	"log/slog"
 	"net/http"
 
@@ -28,7 +29,15 @@ type App struct {
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
-	k8sClient, err := integrations.NewKubernetesClient(logger)
+	var k8sClient integrations.KubernetesClientInterface
+	var err error
+	if cfg.MockK8Client {
+		//mock all k8s calls
+		k8sClient, err = mocks.NewKubernetesClient(logger)
+	} else {
+		k8sClient, err = integrations.NewKubernetesClient(logger)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
