@@ -42,14 +42,17 @@ type Router interface {
 	Routes() Routes
 }
 
-const errMsgRequiredMissing = "required parameter is missing"
-const errMsgMinValueConstraint = "provided parameter is not respecting minimum value constraint"
-const errMsgMaxValueConstraint = "provided parameter is not respecting maximum value constraint"
+const (
+	errMsgRequiredMissing    = "required parameter is missing"
+	errMsgMinValueConstraint = "provided parameter is not respecting minimum value constraint"
+	errMsgMaxValueConstraint = "provided parameter is not respecting maximum value constraint"
+)
 
 // NewRouter creates a new router for any number of api routers
 func NewRouter(routers ...Router) chi.Router {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
