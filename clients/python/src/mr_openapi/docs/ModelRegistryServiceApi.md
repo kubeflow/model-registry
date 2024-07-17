@@ -1259,7 +1259,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All ServingEnvironment's InferenceServices
@@ -1516,7 +1516,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All InferenceService's ServeModel actions
@@ -1689,7 +1689,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All InferenceServices
@@ -1860,7 +1860,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All ModelArtifacts
@@ -2032,7 +2032,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List all artifacts associated with the `ModelVersion`
@@ -2124,7 +2124,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All ModelVersions
@@ -2296,7 +2296,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All RegisteredModel's ModelVersions
@@ -2388,7 +2388,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All RegisteredModels
@@ -2557,7 +2557,7 @@ async with mr_openapi.ApiClient(configuration) as api_client:
     page_size = '100' # str | Number of entities in each page. (optional)
     order_by = mr_openapi.OrderByField() # OrderByField | Specifies the order by criteria for listing entities. (optional)
     sort_order = mr_openapi.SortOrder() # SortOrder | Specifies the sort order for listing entities, defaults to ASC. (optional)
-    next_page_token = 'IkhlbGxvLCB3b3JsZC4i' # str | Token to use to retrieve next page of results. (optional)
+    next_page_token = '<nextPageCode>' # str | Token to use to retrieve next page of results. (optional)
 
     try:
         # List All ServingEnvironments

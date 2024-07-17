@@ -1638,7 +1638,7 @@ components:
     nextPageToken:
       examples:
         nextPageToken:
-          value: IkhlbGxvLCB3b3JsZC4i
+          value: <nextPageCode>
       name: nextPageToken
       description: Token to use to retrieve next page of results.
       schema:
