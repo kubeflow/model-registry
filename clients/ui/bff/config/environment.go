@@ -1,5 +1,6 @@
 package config
 
 type EnvConfig struct {
-	Port int
+	Port         int
+	MockK8Client bool
 }
