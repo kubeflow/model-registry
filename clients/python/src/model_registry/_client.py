@@ -9,7 +9,14 @@ from warnings import warn
 
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
-from .types import ModelArtifact, ModelVersion, RegisteredModel, SupportedTypes
+from .types import (
+    ListOptions,
+    ModelArtifact,
+    ModelVersion,
+    Pager,
+    RegisteredModel,
+    SupportedTypes,
+)
 
 
 class ModelRegistry:
@@ -327,3 +334,38 @@ class ModelRegistry:
             raise StoreError(msg)
         assert mv.id
         return self.async_runner(self._api.get_model_artifact_by_params(name, mv.id))
+
+    def get_registered_models(self) -> Pager[RegisteredModel]:
+        """Get a pager for registered models.
+
+        Returns:
+            Iterable pager for registered models.
+        """
+
+        def rm_list(options: ListOptions) -> list[RegisteredModel]:
+            return self.async_runner(self._api.get_registered_models(options))
+
+        return Pager[RegisteredModel](rm_list)
+
+    def get_model_versions(self, name: str) -> Pager[ModelVersion]:
+        """Get a pager for model versions.
+
+        Args:
+            name: Name of the model.
+
+        Returns:
+            Iterable pager for model versions.
+
+        Raises:
+            StoreException: If the model does not exist.
+        """
+        if not (rm := self.get_registered_model(name)):
+            msg = f"Model {name} does not exist"
+            raise StoreError(msg)
+
+        def rm_versions(options: ListOptions) -> list[ModelVersion]:
+            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            assert rm.id
+            return self.async_runner(self._api.get_model_versions(rm.id, options))
+
+        return Pager[ModelVersion](rm_versions)

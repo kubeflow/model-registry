@@ -2,7 +2,13 @@
 
 import pytest
 from model_registry.core import ModelRegistryAPIClient
-from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
+from model_registry.types import (
+    DocArtifact,
+    ModelArtifact,
+    ModelVersion,
+    Pager,
+    RegisteredModel,
+)
 
 from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
 
@@ -81,6 +87,17 @@ async def test_get_registered_models(
     assert [registered_model, rm2] == rms
 
 
+async def test_page_through_registered_models(client: ModelRegistryAPIClient):
+    models = 6
+    for i in range(models):
+        await client.upsert_registered_model(RegisteredModel(name=f"rm{i}"))
+    pager = Pager(client.get_registered_models).limit(5)
+    total = 0
+    async for _ in pager:
+        total += 1
+    assert total == models
+
+
 async def test_insert_model_version(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -144,7 +161,7 @@ async def test_get_model_version_by_external_id(
 ):
     assert (
         mv := await client.get_model_version_by_params(
-            external_id=model_version.external_id
+            external_id=str(model_version.external_id)
         )
     )
     assert mv == model_version
@@ -161,6 +178,23 @@ async def test_get_model_versions(
 
     mvs = await client.get_model_versions(str(registered_model.id))
     assert [model_version, mv2] == mvs
+
+
+async def test_page_through_model_versions(
+    client: ModelRegistryAPIClient, registered_model: RegisteredModel
+):
+    models = 6
+    for i in range(models):
+        await client.upsert_model_version(
+            ModelVersion(name=f"mv{i}"), str(registered_model.id)
+        )
+    pager = Pager(
+        lambda o: client.get_model_versions(str(registered_model.id), o)
+    ).limit(5)
+    total = 0
+    async for _ in pager:
+        total += 1
+    assert total == models
 
 
 async def test_insert_model_artifact(
@@ -229,7 +263,7 @@ async def test_get_model_artifact_by_name(
 ):
     assert (
         ma := await client.get_model_artifact_by_params(
-            name=model.name, model_version_id=str(model_version.id)
+            name=str(model.name), model_version_id=str(model_version.id)
         )
     )
     assert ma == model
@@ -239,7 +273,9 @@ async def test_get_model_artifact_by_external_id(
     client: ModelRegistryAPIClient, model: ModelArtifact
 ):
     assert (
-        ma := await client.get_model_artifact_by_params(external_id=model.external_id)
+        ma := await client.get_model_artifact_by_params(
+            external_id=str(model.external_id)
+        )
     )
     assert ma == model
 
@@ -264,3 +300,25 @@ async def test_get_model_artifacts_by_mv_id(
 
     mas = await client.get_model_artifacts(str(model_version.id))
     assert [model, ma2] == mas
+
+
+async def test_page_through_model_version_artifacts(
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
+    model_version: ModelVersion,
+):
+    _ = registered_model
+    models = 6
+    for i in range(models):
+        if i % 2 == 0:
+            art = ModelArtifact(name=f"ma{i}", uri="uri")
+        else:
+            art = DocArtifact(name=f"ma{i}", uri="uri")
+        await client.create_model_version_artifact(art, str(model_version.id))
+    pager = Pager(
+        lambda o: client.get_model_version_artifacts(str(model_version.id), o)
+    ).limit(5)
+    total = 0
+    async for _ in pager:
+        total += 1
+    assert total == models
