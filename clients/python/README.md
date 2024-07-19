@@ -1,6 +1,6 @@
 # Model Registry Python Client
 
-[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10-blue)](https://github.com/kubeflow/model-registry)
+[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10%7C3.11%7C3.12-blue)](https://github.com/kubeflow/model-registry)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
 
 This library provides a high level interface for interacting with a model registry server.
@@ -10,7 +10,9 @@ This library provides a high level interface for interacting with a model regist
 ```py
 from model_registry import ModelRegistry
 
-registry = ModelRegistry(server_address="server-address", port=9090, author="author")
+registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+
+# registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
 
 model = registry.register_model(
     "my-model",  # model name
@@ -32,9 +34,9 @@ model = registry.register_model(
 
 model = registry.get_registered_model("my-model")
 
-version = registry.get_model_version("my-model", "v2.0")
+version = registry.get_model_version("my-model", "2.0.0")
 
-experiment = registry.get_model_artifact("my-model", "v2.0")
+experiment = registry.get_model_artifact("my-model", "2.0.0")
 ```
 
 ### Importing from S3
@@ -43,10 +45,6 @@ When registering models stored on S3-compatible object storage, you should use `
 unambiguous URI for your artifact.
 
 ```py
-from model_registry import ModelRegistry, utils
-
-registry = ModelRegistry(server_address="server-address", port=9090, author="author")
-
 model = registry.register_model(
     "my-model",  # model name
     uri=utils.s3_uri_from("path/to/model", "my-bucket"),
@@ -100,26 +98,46 @@ There are caveats to be noted when using this method:
     )
     ```
 
+### Listing models
+
+To list models you can use
+```py
+for model in registry.get_registered_models():
+    ...
+
+# and versions associated with a model
+for version in registry.get_model_versions("my-model"):
+    ...
+```
+
+To customize sorting order or query limits you can also use
+
+```py
+latest_updates = registry.get_model_versions("my-model").order_by_update_time().descending().limit(20)
+for version in latest_updates:
+    ...
+```
+
+You can use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order.
+
+> Note that the `limit()` method only limits the query size, not the actual loop boundaries -- even if your limit is 1
+> you will still get all the models, with one query each.
+
 ## Development
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
 
 Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
+Alternatively, use `make install` to setup a local Python virtual environment with `poetry`.
+
+To run the tests you will need `docker` (or equivalent) and the `compose` extension command.
+This is necessary as the test suite will manage a Model Registry server and an MLMD instance to ensure a clean state on
+each run.
+You can use `make test` to execute `pytest`.
+
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
-If you want run tests locally you will need to set up a colima develeopment environment using the instructions [here](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#colima)
-
-You will also have to change the package source to one compatible with ARM64 architecture. This can be actioned by uncommenting lines 14 or 15 in the pyproject.toml file. Run the following command after you have uncommented the line.
-
-```sh
-poetry lock
-```
-Use the following commands to directly run the tests with individual test output. Alternatively you can use the nox session commands above.
-
-```sh
-poetry install
-poetry run pytest -v
-```
+Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
 <!-- github-only -->

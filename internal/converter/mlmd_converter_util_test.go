@@ -414,6 +414,20 @@ func TestMapDescription(t *testing.T) {
 	assertion.Equal("my-description", *extracted)
 }
 
+func TestMapOwner(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapOwner(map[string]*proto.Value{
+		"owner": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-owner",
+			},
+		},
+	})
+
+	assertion.Equal("my-owner", *extracted)
+}
+
 func TestPropertyRuntime(t *testing.T) {
 	assertion := setup(t)
 

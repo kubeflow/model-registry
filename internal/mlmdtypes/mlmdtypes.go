@@ -44,6 +44,7 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 			Name: &nameConfig.RegisteredModelTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
+				"owner":       proto.PropertyType_STRING,
 				"state":       proto.PropertyType_STRING,
 			},
 		},

@@ -2,7 +2,7 @@
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
-GO := $(PROJECT_BIN)/go1.19
+GO := $(PROJECT_BIN)/go1.21.9
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
@@ -110,8 +110,8 @@ clean/odh:
 	rm -Rf ./model-registry
 
 bin/go:
-	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.19@latest
-	$(PROJECT_BIN)/go1.19 download
+	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.21.9@latest
+	$(PROJECT_BIN)/go1.21.9 download
 
 bin/protoc:
 	./scripts/install_protoc.sh
@@ -127,11 +127,11 @@ bin/protoc-gen-go-grpc:
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.54.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.59.1
 
 GOVERTER ?= ${PROJECT_BIN}/goverter
 bin/goverter:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/jmattheis/goverter/cmd/goverter@v1.1.1
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/jmattheis/goverter/cmd/goverter@v1.4.1
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"

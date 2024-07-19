@@ -15,18 +15,16 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var (
-	// proxyCmd represents the proxy command
-	proxyCmd = &cobra.Command{
-		Use:   "proxy",
-		Short: "Starts the ml-metadata go OpenAPI proxy",
-		Long: `This command launches the ml-metadata go OpenAPI proxy server.
+// proxyCmd represents the proxy command
+var proxyCmd = &cobra.Command{
+	Use:   "proxy",
+	Short: "Starts the ml-metadata go OpenAPI proxy",
+	Long: `This command launches the ml-metadata go OpenAPI proxy server.
 
 The server connects to a mlmd CPP server. It supports options to customize the
 hostname and port where it listens.'`,
-		RunE: runProxyServer,
-	}
-)
+	RunE: runProxyServer,
+}
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
 	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
@@ -36,11 +34,11 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 	mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
 	glog.Infof("connecting to MLMD server %s..", mlmdAddr)
-	conn, err := grpc.DialContext(
+	conn, err := grpc.DialContext( // nolint:staticcheck
 		ctxTimeout,
 		mlmdAddr,
-		grpc.WithReturnConnectionError(),
-		grpc.WithBlock(),
+		grpc.WithReturnConnectionError(), // nolint:staticcheck
+		grpc.WithBlock(),                 // nolint:staticcheck
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

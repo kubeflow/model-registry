@@ -71,6 +71,19 @@ and now you can substitute `gmake` every time the make command is mentioned in g
 Several options of docker engines are available for Mac.
 Having Docker installed is also helpful for Testcontainers.
 
+### Podman
+
+[Podman](https://podman.io/) also supports Rosetta (Apple specific) emulation which is handy since the Google MLMD project dependency is x86 specific.
+
+We recommend setting up the Podman machine with root privileges,
+and setting the environment variable
+
+```sh
+export TESTCONTAINERS_RYUK_PRIVILEGED=true
+```
+
+when running TestContainer-based Model Registry Python tests (for more information, see [here](https://pypi.org/project/testcontainers/#:~:text=TESTCONTAINERS_RYUK_PRIVILEGED)).
+
 ### Colima
 
 Colima offers Rosetta (Apple specific) emulation which is handy since the Google MLMD project dependency is x86 specific.
@@ -202,3 +215,31 @@ Then with the given setup MLMD is already installed inside the DevContainer:
 At this point Poetry is already installed as well and can be used to build and run test of the Model Registry Python client.
 
 <!-- to be continued with explanation of this "hack": https://github.com/tarilabs/ml-metadata-remote#readme -->
+
+# FAQ
+
+## Error `docker.errors.NotFound: 404 Client Error for http+docker://localhost/v1.41/containers ...`
+
+This happens on Mac OSX when running Testcontainers-based Python tests, and [Ryuk](https://github.com/testcontainers/moby-ryuk) does not have the correct access priviledges.
+
+```
+-------------------------------------------- Captured stderr setup ---------------------------------------------
+Pulling image testcontainers/ryuk:0.7.0
+Container started: 4af385c2d670
+---------------------------------------------- Captured log setup ----------------------------------------------
+WARNING  root:config.py:59 DOCKER_AUTH_CONFIG is experimental, see testcontainers/testcontainers-python#566
+INFO     testcontainers.core.container:container.py:88 Pulling image testcontainers/ryuk:0.7.0
+INFO     testcontainers.core.container:container.py:101 Container started: 4af385c2d670
+=========================================== short test summary info ============================================
+ERROR tests/store/test_wrapper.py::test_get_undefined_artifact_type_id - docker.errors.NotFound: 404 Client Error for http+docker://localhost/v1.41/containers/4af385c2d67067875f6f0...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+=============================================== 1 error in 0.50s ===============================================
+```
+
+Solution:
+- Use `export TESTCONTAINERS_RYUK_PRIVILEGED=true` (we recommend this option)
+- Use `export TESTCONTAINERS_RYUK_DISABLED=true` to disable Ryuk entirely; the tests are configured to close all container resources, but we do not recommend this option
+
+For more information:
+- section [Docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) in this document
+- https://pypi.org/project/testcontainers/#:~:text=the%20database%20version.-,Configuration,-Env%20Variable

@@ -17,7 +17,7 @@ It provides model registry metadata capabilities, e.g., store and retrieve ML mo
 ### Prerequisites
 
 * MLMD server, check [ml-metadata doc](https://github.com/google/ml-metadata/blob/f0fef74eae2bdf6650a79ba976b36bea0b777c2e/g3doc/get_started.md#use-mlmd-with-a-remote-grpc-server) for more details on how to startup a MLMD store server.
-* Go >= 1.19
+* Go >= 1.21
 
 ### Usage
 

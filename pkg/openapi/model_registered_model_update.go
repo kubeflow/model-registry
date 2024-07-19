@@ -25,6 +25,7 @@ type RegisteredModelUpdate struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string               `json:"externalId,omitempty"`
+	Owner      *string               `json:"owner,omitempty"`
 	State      *RegisteredModelState `json:"state,omitempty"`
 }
 
@@ -145,6 +146,38 @@ func (o *RegisteredModelUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
+// GetOwner returns the Owner field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetOwner() string {
+	if o == nil || IsNil(o.Owner) {
+		var ret string
+		return ret
+	}
+	return *o.Owner
+}
+
+// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetOwnerOk() (*string, bool) {
+	if o == nil || IsNil(o.Owner) {
+		return nil, false
+	}
+	return o.Owner, true
+}
+
+// HasOwner returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasOwner() bool {
+	if o != nil && !IsNil(o.Owner) {
+		return true
+	}
+
+	return false
+}
+
+// SetOwner gets a reference to the given string and assigns it to the Owner field.
+func (o *RegisteredModelUpdate) SetOwner(v string) {
+	o.Owner = &v
+}
+
 // GetState returns the State field value if set, zero value otherwise.
 func (o *RegisteredModelUpdate) GetState() RegisteredModelState {
 	if o == nil || IsNil(o.State) {
@@ -195,6 +228,9 @@ func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
+	}
+	if !IsNil(o.Owner) {
+		toSerialize["owner"] = o.Owner
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State

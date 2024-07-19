@@ -12,32 +12,32 @@ Todo:
 
 from __future__ import annotations
 
-from enum import Enum, unique
-from uuid import uuid4
+from abc import ABC, abstractmethod
+from typing import Any, TypeVar
 
-from attrs import define, field
-from ml_metadata.proto import Artifact
+from mr_openapi import (
+    Artifact as ArtifactBaseModel,
+)
+from mr_openapi import (
+    ArtifactState,
+    ModelArtifactCreate,
+    ModelArtifactUpdate,
+)
+from mr_openapi import (
+    DocArtifact as DocArtifactBaseModel,
+)
+from mr_openapi import (
+    ModelArtifact as ModelArtifactBaseModel,
+)
 from typing_extensions import override
 
-from .base import Prefixable, ProtoBase
+from .base import BaseResourceModel
+
+A = TypeVar("A", bound="Artifact")
 
 
-@unique
-class ArtifactState(Enum):
-    """State of an artifact."""
-
-    UNKNOWN = Artifact.UNKNOWN
-    PENDING = Artifact.PENDING
-    LIVE = Artifact.LIVE
-    MARKED_FOR_DELETION = Artifact.MARKED_FOR_DELETION
-    DELETED = Artifact.DELETED
-    ABANDONED = Artifact.ABANDONED
-    REFERENCE = Artifact.REFERENCE
-
-
-@define(slots=False)
-class BaseArtifact(ProtoBase):
-    """Abstract base class for all artifacts.
+class Artifact(BaseResourceModel, ABC):
+    """Base class for all artifacts.
 
     Attributes:
         name: Name of the artifact.
@@ -45,36 +45,83 @@ class BaseArtifact(ProtoBase):
         state: State of the artifact.
     """
 
-    name: str
+    name: str | None = None
     uri: str
-    state: ArtifactState = field(init=False, default=ArtifactState.UNKNOWN)
+    state: ArtifactState = ArtifactState.UNKNOWN
+
+    @classmethod
+    def from_artifact(cls: type[A], source: ArtifactBaseModel) -> A:
+        """Convert a base artifact."""
+        model = source.actual_instance
+        assert model
+        return cls.from_basemodel(model)
+
+    @staticmethod
+    def validate_artifact(source: ArtifactBaseModel) -> DocArtifact | ModelArtifact:
+        """Validate an artifact."""
+        model = source.actual_instance
+        assert model
+        if isinstance(model, DocArtifactBaseModel):
+            return DocArtifact.from_basemodel(model)
+        return ModelArtifact.from_basemodel(model)
+
+    @abstractmethod
+    def as_basemodel(self) -> Any:
+        """Wrap the object in a BaseModel object."""
+
+    def wrap(self) -> ArtifactBaseModel:
+        """Wrap the object in a ArtifactBaseModel object."""
+        return ArtifactBaseModel(self.as_basemodel())
+
+
+class DocArtifact(Artifact):
+    """Represents a Document Artifact.
+
+    Attributes:
+        name: Name of the document.
+        uri: URI of the document.
+        description: Description of the object.
+        external_id: Customizable ID. Has to be unique among instances of the same type.
+    """
+
+    @override
+    def create(self, **kwargs) -> Any:
+        raise NotImplementedError
+
+    @override
+    def update(self, **kwargs) -> Any:
+        raise NotImplementedError
+
+    @override
+    def as_basemodel(self) -> DocArtifactBaseModel:
+        return DocArtifactBaseModel(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("custom_properties")),
+            artifactType="doc-artifact",
+        )
 
     @classmethod
     @override
-    def get_proto_type(cls) -> type[Artifact]:
-        return Artifact
-
-    @override
-    def map(self, type_id: int) -> Artifact:
-        mlmd_obj = super().map(type_id)
-        mlmd_obj.uri = self.uri
-        mlmd_obj.state = self.state.value
-        return mlmd_obj
-
-    @classmethod
-    @override
-    def unmap(cls, mlmd_obj: Artifact) -> BaseArtifact:
-        py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, BaseArtifact
-        ), f"Expected BaseArtifact, got {type(py_obj)}"
-        py_obj.uri = mlmd_obj.uri
-        py_obj.state = ArtifactState(mlmd_obj.state)
-        return py_obj
+    def from_basemodel(cls, source: DocArtifactBaseModel) -> DocArtifact:
+        assert source.name
+        assert source.uri
+        assert source.state
+        return cls(
+            id=source.id,
+            name=source.name,
+            description=source.description,
+            external_id=source.external_id,
+            create_time_since_epoch=source.create_time_since_epoch,
+            last_update_time_since_epoch=source.last_update_time_since_epoch,
+            uri=source.uri,
+            state=source.state,
+            custom_properties=cls._unmap_custom_properties(source.custom_properties)
+            if source.custom_properties
+            else None,
+        )
 
 
-@define(slots=False, auto_attribs=True)
-class ModelArtifact(BaseArtifact, Prefixable):
+class ModelArtifact(Artifact):
     """Represents a Model.
 
     Attributes:
@@ -90,46 +137,62 @@ class ModelArtifact(BaseArtifact, Prefixable):
     """
 
     # TODO: this could be an enum of valid formats
-    model_format_name: str | None = field(kw_only=True, default=None)
-    model_format_version: str | None = field(kw_only=True, default=None)
-    storage_key: str | None = field(kw_only=True, default=None)
-    storage_path: str | None = field(kw_only=True, default=None)
-    service_account_name: str | None = field(kw_only=True, default=None)
+    model_format_name: str | None = None
+    model_format_version: str | None = None
+    storage_key: str | None = None
+    storage_path: str | None = None
+    service_account_name: str | None = None
 
-    _model_version_id: str | None = field(init=False, default=None)
-
-    @property
-    @override
-    def mlmd_name_prefix(self) -> str:
-        return self._model_version_id if self._model_version_id else uuid4().hex
+    _model_version_id: str | None = None
 
     @override
-    def map(self, type_id: int) -> Artifact:
-        mlmd_obj = super().map(type_id)
-        props = {
-            "model_format_name": self.model_format_name,
-            "model_format_version": self.model_format_version,
-            "storage_key": self.storage_key,
-            "storage_path": self.storage_path,
-            "service_account_name": self.service_account_name,
-        }
-        self._map_props(props, mlmd_obj.properties)
-        return mlmd_obj
+    def create(self, **kwargs) -> ModelArtifactCreate:
+        """Create a new ModelArtifactCreate object."""
+        return ModelArtifactCreate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "custom_properties")),
+            **kwargs,
+        )
 
     @override
+    def update(self, **kwargs) -> ModelArtifactUpdate:
+        """Create a new ModelArtifactUpdate object."""
+        return ModelArtifactUpdate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "name", "custom_properties")),
+            **kwargs,
+        )
+
+    @override
+    def as_basemodel(self) -> ModelArtifactBaseModel:
+        return ModelArtifactBaseModel(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("custom_properties")),
+            artifactType="model-artifact",
+        )
+
     @classmethod
-    def unmap(cls, mlmd_obj: Artifact) -> ModelArtifact:
-        py_obj = super().unmap(mlmd_obj)
-        assert isinstance(
-            py_obj, ModelArtifact
-        ), f"Expected ModelArtifact, got {type(py_obj)}"
-        py_obj.model_format_name = mlmd_obj.properties["model_format_name"].string_value
-        py_obj.model_format_version = mlmd_obj.properties[
-            "model_format_version"
-        ].string_value
-        py_obj.storage_key = mlmd_obj.properties["storage_key"].string_value
-        py_obj.storage_path = mlmd_obj.properties["storage_path"].string_value
-        py_obj.service_account_name = mlmd_obj.properties[
-            "service_account_name"
-        ].string_value
-        return py_obj
+    @override
+    def from_basemodel(cls, source: ModelArtifactBaseModel) -> ModelArtifact:
+        """Create a new ModelArtifact object from a BaseModel object."""
+        assert source.name
+        assert source.uri
+        assert source.state
+        return cls(
+            id=source.id,
+            name=source.name,
+            description=source.description,
+            external_id=source.external_id,
+            create_time_since_epoch=source.create_time_since_epoch,
+            last_update_time_since_epoch=source.last_update_time_since_epoch,
+            uri=source.uri,
+            model_format_name=source.model_format_name,
+            model_format_version=source.model_format_version,
+            storage_key=source.storage_key,
+            storage_path=source.storage_path,
+            service_account_name=source.service_account_name,
+            state=source.state,
+            custom_properties=cls._unmap_custom_properties(source.custom_properties)
+            if source.custom_properties
+            else None,
+        )

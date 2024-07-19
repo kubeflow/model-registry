@@ -123,6 +123,14 @@ func PrefixWhenOwned(ownerId *string, entityName string) string {
 func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*proto.Value, error) {
 	props := make(map[string]*proto.Value)
 	if source != nil {
+		if source.Owner != nil {
+			props["owner"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Owner,
+				},
+			}
+		}
+
 		if source.Description != nil {
 			props["description"] = &proto.Value{
 				Value: &proto.Value_StringValue{

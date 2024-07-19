@@ -1,5 +1,5 @@
 # Build the model-registry binary
-FROM registry.access.redhat.com/ubi8/go-toolset:1.19 as builder
+FROM registry.access.redhat.com/ubi8/go-toolset:1.21 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -23,7 +23,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make build
 
 # Use distroless as minimal base image to package the model-registry storage initializer binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 WORKDIR /
 # copy the storage initializer binary
 COPY --from=builder /workspace/bin/mr-storage-initializer .

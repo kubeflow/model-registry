@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -26,8 +28,9 @@ var (
 	// registered models
 	modelName        string
 	modelDescription string
+	modelOwner       string
 	modelExternalId  string
-	owner            string
+	myCustomProp     string
 	// model version
 	modelVersionName        string
 	modelVersionDescription string
@@ -86,8 +89,9 @@ func (suite *CoreTestSuite) SetupTest() {
 	customString = "this is a customString value"
 	modelName = "MyAwesomeModel"
 	modelDescription = "reg model description"
+	modelOwner = "reg model owner"
 	modelExternalId = "org.myawesomemodel"
-	owner = "owner"
+	myCustomProp = "myCustomPropValue"
 	modelVersionName = "v1"
 	modelVersionDescription = "model version description"
 	versionExternalId = "org.myawesomemodel@v1"
@@ -102,6 +106,22 @@ func (suite *CoreTestSuite) SetupTest() {
 	entityExternalId2 = "entityExternalID2"
 	entityDescription = "lorem ipsum entity description"
 	executionState = "RUNNING"
+
+	// sanity check before each test: connect to MLMD directly, and dry-run any of the gRPC (read) operations;
+	// on newer Podman might delay in recognising volume mount files for sqlite3 db,
+	// hence in case of error "Cannot connect sqlite3 database: unable to open database file" make some retries.
+	maxRetries := 3
+	var err error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		_, err = suite.mlmdClient.GetContextTypes(context.Background(), &proto.GetContextTypesRequest{})
+		if err == nil {
+			break
+		} else if !strings.Contains(err.Error(), "Cannot connect sqlite3 database: unable to open database file") {
+			break // err is different than expected
+		}
+		time.Sleep(1 * time.Second)
+	}
+	suite.Nilf(err, "error connecting to MLMD and dry-run any of the gRPC operations: %v", err)
 }
 
 // after each test
@@ -131,8 +151,8 @@ func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, override
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -161,8 +181,8 @@ func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistry
 		ExternalId:  &eutExtID,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -225,8 +245,8 @@ func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryAp
 		RegisteredModelId:    registerdModelId,
 		ServingEnvironmentId: servingEnvironmentId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -348,7 +368,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	})
 	suite.NotNilf(regModelResp.ContextType, "registered model type %s should exists", *registeredModelTypeName)
 	suite.Equal(*registeredModelTypeName, *regModelResp.ContextType.Name)
-	suite.Equal(2, len(regModelResp.ContextType.Properties))
+	suite.Equal(3, len(regModelResp.ContextType.Properties))
 
 	modelVersionResp, _ = suite.mlmdClient.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: modelVersionTypeName,
@@ -573,10 +593,11 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 		Name:        &modelName,
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
+		Owner:       &modelOwner,
 		State:       &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -600,8 +621,9 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(modelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
 	suite.Equal(modelDescription, ctx.Properties["description"].GetStringValue(), "saved description should match the provided one")
+	suite.Equal(modelOwner, ctx.Properties["owner"].GetStringValue(), "saved owner should match the provided one")
 	suite.Equal(string(state), ctx.Properties["state"].GetStringValue(), "saved state should match the provided one")
-	suite.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(myCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	getAllResp, err := suite.mlmdClient.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	suite.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
@@ -615,10 +637,11 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
 		Name:       &modelName,
+		Owner:      &modelOwner,
 		ExternalId: &modelExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -639,10 +662,16 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// update existing model
 	newModelExternalId := "newExternalId"
 	newOwner := "newOwner"
+	newCustomProp := "updated myCustomProp"
 
 	createdModel.ExternalId = &newModelExternalId
+	createdModel.Owner = &newOwner
+	(*createdModel.CustomProperties)["myCustomProp"] = openapi.MetadataValue{
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
+	}
+	// check can also define customProperty of name "owner", in addition to built-in property "owner"
 	(*createdModel.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
 	}
 
 	// update the model
@@ -664,7 +693,9 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	suite.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newOwner, ctx.Properties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["owner"].GetStringValue(), "check can define custom property 'onwer' and should match the provided one")
 
 	// update the model keeping nil name
 	newModelExternalId = "newNewExternalId"
@@ -688,7 +719,9 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	suite.Equal(*createdModel.Id, *ctxId, "returned model id should match the mlmd one")
 	suite.Equal(modelName, *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(newModelExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newOwner, ctx.Properties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["owner"].GetStringValue(), "check can define custom property 'onwer' and should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelById() {
@@ -702,8 +735,8 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 		ExternalId: &modelExternalId,
 		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -730,7 +763,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsWithNoResults() {
 
 	_, err := service.GetRegisteredModelByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
-	suite.Equal("no registered models found for name=not-present, externalId=", err.Error())
+	suite.Equal("no registered models found for name=not-present, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
@@ -786,7 +819,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByEmptyParams() {
 
 	_, err = service.GetRegisteredModelByParams(nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either name or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either name or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
@@ -970,7 +1003,7 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
-	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
+	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
 
 	suite.NotNilf(createdVersion.Id, "created model version should not have nil Id")
 
@@ -1011,11 +1044,11 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 
 	_, err := service.UpsertModelVersion(modelVersion, nil)
 	suite.NotNil(err)
-	suite.Equal("missing registered model id, cannot create model version without registered model", err.Error())
+	suite.Equal("missing registered model id, cannot create model version without registered model: bad request", err.Error())
 
 	_, err = service.UpsertModelVersion(modelVersion, &registeredModelId)
 	suite.NotNil(err)
-	suite.Equal("no registered model found for id 9999", err.Error())
+	suite.Equal("no registered model found for id 9999: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersion() {
@@ -1046,7 +1079,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 
 	updatedVersion, err := service.UpsertModelVersion(createdVersion, &registeredModelId)
 	suite.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
-	suite.Equal((*updatedVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner")
+	suite.Equal((*updatedVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
 
 	updateVersionId, _ := converter.StringToInt64(updatedVersion.Id)
 	suite.Equal(*createdVersionId, *updateVersionId, "created and updated model version should have same id")
@@ -1124,7 +1157,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
 	createdVersion.Id = &wrongId
 	_, err = service.UpsertModelVersion(createdVersion, &registeredModelId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no model version found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no model version found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionById() {
@@ -1173,7 +1206,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
 
 	_, err := service.GetModelVersionByParams(apiutils.Of("not-present"), &registeredModelId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=", err.Error())
+	suite.Equal("no model versions found for versionName=not-present, registeredModelId=1, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
@@ -1264,7 +1297,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
 
 	_, err = service.GetModelVersionByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (versionName and registeredModelId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (versionName and registeredModelId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelVersions() {
@@ -1418,11 +1451,11 @@ func (suite *CoreTestSuite) TestCreateArtifactFailure() {
 
 	_, err := service.UpsertArtifact(&artifact, nil)
 	suite.NotNil(err)
-	suite.Equal("missing model version id, cannot create artifact without model version", err.Error())
+	suite.Equal("missing model version id, cannot create artifact without model version: bad request", err.Error())
 
 	_, err = service.UpsertArtifact(&artifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateArtifact() {
@@ -1496,7 +1529,7 @@ func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
 	updatedArtifact.DocArtifact.Id = &wrongId
 	_, err = service.UpsertArtifact(updatedArtifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no artifact found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no artifact found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetArtifactById() {
@@ -1652,11 +1685,11 @@ func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
 
 	_, err := service.UpsertModelArtifact(modelArtifact, nil)
 	suite.NotNil(err)
-	suite.Equal("missing model version id, cannot create artifact without model version", err.Error())
+	suite.Equal("missing model version id, cannot create artifact without model version: bad request", err.Error())
 
 	_, err = service.UpsertModelArtifact(modelArtifact, &modelVersionId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelArtifact() {
@@ -1830,7 +1863,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 
 	_, err = service.GetModelArtifactByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
@@ -1841,7 +1874,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 
 	_, err := service.GetModelArtifactByParams(apiutils.Of("not-present"), &modelVersionId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=", err.Error())
+	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifacts() {
@@ -1936,8 +1969,8 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 		ExternalId:  &entityExternalId,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -1961,7 +1994,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 	suite.Equal(entityName, *ctx.Name, "saved name should match the provided one")
 	suite.Equal(entityExternalId, *ctx.ExternalId, "saved external id should match the provided one")
 	suite.Equal(entityDescription, ctx.Properties["description"].GetStringValue(), "saved description should match the provided one")
-	suite.Equal(owner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(myCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	getAllResp, err := suite.mlmdClient.GetContexts(context.Background(), &proto.GetContextsRequest{})
 	suite.Nilf(err, "error retrieving all contexts, not related to the test itself: %v", err)
@@ -1977,8 +2010,8 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 		Name:       &entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -1998,11 +2031,11 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 
 	// update existing entity
 	newExternalId := "newExternalId"
-	newOwner := "newOwner"
+	newCustomProp := "newCustomProp"
 
 	createdEntity.ExternalId = &newExternalId
-	(*createdEntity.CustomProperties)["owner"] = openapi.MetadataValue{
-		MetadataStringValue: converter.NewMetadataStringValue(newOwner),
+	(*createdEntity.CustomProperties)["myCustomProp"] = openapi.MetadataValue{
+		MetadataStringValue: converter.NewMetadataStringValue(newCustomProp),
 	}
 
 	// update the entity
@@ -2024,7 +2057,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	suite.Equal(*createdEntity.Id, *ctxId, "returned entity id should match the mlmd one")
 	suite.Equal(entityName, *ctx.Name, "saved entity name should match the provided one")
 	suite.Equal(newExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 
 	// update the entity under test, keeping nil name
 	newExternalId = "newNewExternalId"
@@ -2048,7 +2081,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	suite.Equal(*createdEntity.Id, *ctxId, "returned entity id should match the mlmd one")
 	suite.Equal(entityName, *ctx.Name, "saved entity name should match the provided one")
 	suite.Equal(newExternalId, *ctx.ExternalId, "saved external id should match the provided one")
-	suite.Equal(newOwner, ctx.CustomProperties["owner"].GetStringValue(), "saved owner custom property should match the provided one")
+	suite.Equal(newCustomProp, ctx.CustomProperties["myCustomProp"].GetStringValue(), "saved myCustomProp custom property should match the provided one")
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
@@ -2060,8 +2093,8 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 		Name:       &entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
-			"owner": {
-				MetadataStringValue: converter.NewMetadataStringValue(owner),
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
 			},
 		},
 	}
@@ -2087,7 +2120,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsWithNoResults() {
 
 	_, err := service.GetServingEnvironmentByParams(apiutils.Of("not-present"), nil)
 	suite.NotNil(err)
-	suite.Equal("no serving environments found for name=not-present, externalId=", err.Error())
+	suite.Equal("no serving environments found for name=not-present, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
@@ -2143,7 +2176,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByEmptyParams() {
 
 	_, err = service.GetServingEnvironmentByParams(nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either name or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either name or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
@@ -2381,14 +2414,14 @@ func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 
 	_, err := service.UpsertInferenceService(eut)
 	suite.NotNil(err)
-	suite.Equal("no serving environment found for id 9999", err.Error())
+	suite.Equal("no serving environment found for id 9999: not found", err.Error())
 
 	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
 	eut.ServingEnvironmentId = parentResourceId
 
 	_, err = service.UpsertInferenceService(eut)
 	suite.NotNil(err)
-	suite.Equal("no registered model found for id 9998", err.Error())
+	suite.Equal("no registered model found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateInferenceService() {
@@ -2522,7 +2555,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 	createdEntity.Id = &wrongId
 	_, err = service.UpsertInferenceService(createdEntity)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no InferenceService found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no InferenceService found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceById() {
@@ -2709,7 +2742,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 
 	_, err := service.GetInferenceServiceByParams(apiutils.Of("not-present"), &parentResourceId, nil)
 	suite.NotNil(err)
-	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=", err.Error())
+	suite.Equal("no inference services found for name=not-present, servingEnvironmentId=1, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
@@ -2825,7 +2858,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 
 	_, err = service.GetInferenceServiceByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (name and servingEnvironmentId), or externalId", err.Error())
+	suite.Equal("invalid parameters call, supply either (name and servingEnvironmentId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServices() {
@@ -3034,11 +3067,11 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 
 	_, err := service.UpsertServeModel(eut, nil)
 	suite.NotNil(err)
-	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService", err.Error())
+	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: bad request", err.Error())
 
 	_, err = service.UpsertServeModel(eut, &inferenceServiceId)
 	suite.NotNil(err)
-	suite.Equal("no model version found for id 9998", err.Error())
+	suite.Equal("no model version found for id 9998: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateServeModel() {
@@ -3147,7 +3180,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 	updatedEntity.Id = &wrongId
 	_, err = service.UpsertServeModel(updatedEntity, &inferenceServiceId)
 	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("no ServeModel found for id %s", wrongId), err.Error())
+	suite.Equal(fmt.Sprintf("no ServeModel found for id %s: not found", wrongId), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetServeModelById() {

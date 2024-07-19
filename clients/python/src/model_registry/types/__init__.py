@@ -3,19 +3,31 @@
 Types are based on [ML Metadata](https://github.com/google/ml-metadata), with Pythonic class wrappers.
 """
 
-from .artifacts import ArtifactState, ModelArtifact
-from .contexts import ContextState, ModelVersion, RegisteredModel
-from .options import ListOptions, OrderByField
+from .artifacts import Artifact, ArtifactState, DocArtifact, ModelArtifact
+from .base import SupportedTypes
+from .contexts import (
+    ModelVersion,
+    ModelVersionState,
+    RegisteredModel,
+    RegisteredModelState,
+)
+from .options import ListOptions
+from .pager import Pager
 
 __all__ = [
     # Artifacts
-    "ModelArtifact",
+    "Artifact",
     "ArtifactState",
+    "DocArtifact",
+    "ModelArtifact",
     # Contexts
     "ModelVersion",
+    "ModelVersionState",
     "RegisteredModel",
-    "ContextState",
+    "RegisteredModelState",
+    "SupportedTypes",
     # Options
     "ListOptions",
-    "OrderByField",
+    # Pager
+    "Pager",
 ]

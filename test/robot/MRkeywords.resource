@@ -38,6 +38,16 @@ I create a RegisteredModel
     RETURN    ${result}
 
 
+I update a RegisteredModel
+    [Arguments]  ${id}  ${payload}
+    IF  $MODE == "REST"
+        ${resp}    PATCH    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_models/${id}    json=&{payload}    expected_status=200
+        Log to console    ${resp.json()}
+        ${result}    Set Variable    ${resp.json()['id']}
+    END
+    RETURN    ${result}
+
+
 I create a child ModelVersion having
     [Arguments]  ${registeredModelID}  ${name}
     IF  $MODE == "REST"

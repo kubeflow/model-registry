@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-from typing import get_args
+import os
+from pathlib import Path
+from typing import Any, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
-from .exceptions import StoreException
-from .store import ScalarType
-from .types import ModelArtifact, ModelVersion, RegisteredModel
+from .exceptions import StoreError
+from .types import (
+    ListOptions,
+    ModelArtifact,
+    ModelVersion,
+    Pager,
+    RegisteredModel,
+    SupportedTypes,
+)
 
 
 class ModelRegistry:
@@ -17,55 +25,101 @@ class ModelRegistry:
     def __init__(
         self,
         server_address: str,
-        port: int,
+        port: int = 443,
+        *,
         author: str,
-        client_key: str | None = None,
-        server_cert: str | None = None,
+        is_secure: bool = True,
+        user_token: bytes | None = None,
         custom_ca: str | None = None,
     ):
         """Constructor.
 
         Args:
             server_address: Server address.
-            port: Server port.
-            author: Name of the author.
-            client_key: The PEM-encoded private key as a byte string.
-            server_cert: The PEM-encoded certificate as a byte string.
-            custom_ca: The PEM-encoded root certificates as a byte string.
-        """
-        # TODO: get args from env
-        self._author = author
-        self._api = ModelRegistryAPIClient(
-            server_address, port, client_key, server_cert, custom_ca
-        )
+            port: Server port. Defaults to 443.
 
-    def _register_model(self, name: str) -> RegisteredModel:
-        if rm := self._api.get_registered_model_by_params(name):
+        Keyword Args:
+            author: Name of the author.
+            is_secure: Whether to use a secure connection. Defaults to True.
+            user_token: The PEM-encoded user token as a byte string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: Path to the PEM-encoded root certificates as a byte string. Defaults to path on envvar CERT.
+        """
+        import nest_asyncio
+
+        nest_asyncio.apply()
+
+        # TODO: get remaining args from env
+        self._author = author
+
+        if not user_token:
+            # /var/run/secrets/kubernetes.io/serviceaccount/token
+            sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
+            if sa_token:
+                user_token = Path(sa_token).read_bytes()
+            else:
+                warn("User access token is missing", stacklevel=2)
+
+        if is_secure:
+            root_ca = None
+            if not custom_ca:
+                if cert := os.getenv("CERT"):
+                    root_ca = cert
+                    # client might have a default CA setup
+            else:
+                root_ca = custom_ca
+
+            if not user_token:
+                msg = "user token must be provided for secure connection"
+                raise StoreError(msg)
+
+            self._api = ModelRegistryAPIClient.secure_connection(
+                server_address, port, user_token=user_token, custom_ca=root_ca
+            )
+        elif custom_ca:
+            msg = "Custom CA provided without secure connection, conflicting options"
+            raise StoreError(msg)
+        else:
+            self._api = ModelRegistryAPIClient.insecure_connection(
+                server_address, port, user_token
+            )
+
+    def async_runner(self, coro: Any) -> Any:
+        import asyncio
+
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
+
+    async def _register_model(self, name: str, **kwargs) -> RegisteredModel:
+        if rm := await self._api.get_registered_model_by_params(name):
             return rm
 
-        rm = RegisteredModel(name)
-        self._api.upsert_registered_model(rm)
-        return rm
+        return await self._api.upsert_registered_model(
+            RegisteredModel(name=name, **kwargs)
+        )
 
-    def _register_new_version(
+    async def _register_new_version(
         self, rm: RegisteredModel, version: str, author: str, /, **kwargs
     ) -> ModelVersion:
         assert rm.id is not None, "Registered model must have an ID"
-        if self._api.get_model_version_by_params(rm.id, version):
+        if await self._api.get_model_version_by_params(rm.id, version):
             msg = f"Version {version} already exists"
-            raise StoreException(msg)
+            raise StoreError(msg)
 
-        mv = ModelVersion(rm.name, version, author, **kwargs)
-        self._api.upsert_model_version(mv, rm.id)
-        return mv
+        return await self._api.upsert_model_version(
+            ModelVersion(name=version, author=author, **kwargs), rm.id
+        )
 
-    def _register_model_artifact(
-        self, mv: ModelVersion, uri: str, /, **kwargs
+    async def _register_model_artifact(
+        self, mv: ModelVersion, name: str, uri: str, /, **kwargs
     ) -> ModelArtifact:
         assert mv.id is not None, "Model version must have an ID"
-        ma = ModelArtifact(mv.model_name, uri, **kwargs)
-        self._api.upsert_model_artifact(ma, mv.id)
-        return ma
+        return await self._api.upsert_model_artifact(
+            ModelArtifact(name=name, uri=uri, **kwargs), mv.id
+        )
 
     def register_model(
         self,
@@ -79,8 +133,9 @@ class ModelRegistry:
         storage_path: str | None = None,
         service_account_name: str | None = None,
         author: str | None = None,
+        owner: str | None = None,
         description: str | None = None,
-        metadata: dict[str, ScalarType] | None = None,
+        metadata: dict[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
@@ -102,6 +157,7 @@ class ModelRegistry:
             model_format_version: Version of the model format.
             description: Description of the model.
             author: Author of the model. Defaults to the client author.
+            owner: Owner of the model. Defaults to the client author.
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
@@ -110,22 +166,27 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        rm = self._register_model(name)
-        mv = self._register_new_version(
-            rm,
-            version,
-            author or self._author,
-            description=description,
-            metadata=metadata or {},
+        rm = self.async_runner(self._register_model(name, owner=owner or self._author))
+        mv = self.async_runner(
+            self._register_new_version(
+                rm,
+                version,
+                author or self._author,
+                description=description,
+                custom_properties=metadata or {},
+            )
         )
-        self._register_model_artifact(
-            mv,
-            uri,
-            model_format_name=model_format_name,
-            model_format_version=model_format_version,
-            storage_key=storage_key,
-            storage_path=storage_path,
-            service_account_name=service_account_name,
+        self.async_runner(
+            self._register_model_artifact(
+                mv,
+                name,
+                uri,
+                model_format_name=model_format_name,
+                model_format_version=model_format_version,
+                storage_key=storage_key,
+                storage_path=storage_path,
+                service_account_name=service_account_name,
+            )
         )
 
         return rm
@@ -139,6 +200,7 @@ class ModelRegistry:
         model_format_name: str,
         model_format_version: str,
         author: str | None = None,
+        owner: str | None = None,
         model_name: str | None = None,
         description: str | None = None,
         git_ref: str = "main",
@@ -157,6 +219,7 @@ class ModelRegistry:
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
             author: Author of the model. Defaults to repo owner.
+            owner: Owner of the model. Defaults to the client author.
             model_name: Name of the model. Defaults to the repo name.
             description: Description of the model.
             git_ref: Git reference to use. Defaults to `main`.
@@ -168,18 +231,18 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = "huggingface_hub is not installed"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
 
         api = HfApi()
         try:
             model_info = api.model_info(repo, revision=git_ref)
         except utils.RepositoryNotFoundError as e:
             msg = f"Repository {repo} does not exist"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
         except utils.RevisionNotFoundError as e:
             # TODO: as all hf-hub client calls default to using main, should we provide a tip?
             msg = f"Revision {git_ref} does not exist"
-            raise StoreException(msg) from e
+            raise StoreError(msg) from e
 
         if not author:
             # model author can be None if the repo is in a "global" namespace (i.e. no / in repo).
@@ -207,13 +270,14 @@ class ModelRegistry:
                     k: v
                     for k, v in card_data.to_dict().items()
                     # TODO: (#151) preserve tags, possibly other complex metadata
-                    if isinstance(v, get_args(ScalarType))
+                    if isinstance(v, get_args(SupportedTypes))
                 }
             )
         return self.register_model(
             model_name or model_info.id,
             source_uri,
             author=author or model_author,
+            owner=owner or self._author,
             version=version,
             model_format_name=model_format_name,
             model_format_version=model_format_version,
@@ -231,7 +295,7 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        return self._api.get_registered_model_by_params(name)
+        return self.async_runner(self._api.get_registered_model_by_params(name))
 
     def get_model_version(self, name: str, version: str) -> ModelVersion | None:
         """Get a model version.
@@ -246,10 +310,11 @@ class ModelRegistry:
         Raises:
             StoreException: If the model does not exist.
         """
-        if not (rm := self._api.get_registered_model_by_params(name)):
+        if not (rm := self.get_registered_model(name)):
             msg = f"Model {name} does not exist"
-            raise StoreException(msg)
-        return self._api.get_model_version_by_params(rm.id, version)
+            raise StoreError(msg)
+        assert rm.id
+        return self.async_runner(self._api.get_model_version_by_params(rm.id, version))
 
     def get_model_artifact(self, name: str, version: str) -> ModelArtifact | None:
         """Get a model artifact.
@@ -266,5 +331,41 @@ class ModelRegistry:
         """
         if not (mv := self.get_model_version(name, version)):
             msg = f"Version {version} does not exist"
-            raise StoreException(msg)
-        return self._api.get_model_artifact_by_params(mv.id)
+            raise StoreError(msg)
+        assert mv.id
+        return self.async_runner(self._api.get_model_artifact_by_params(name, mv.id))
+
+    def get_registered_models(self) -> Pager[RegisteredModel]:
+        """Get a pager for registered models.
+
+        Returns:
+            Iterable pager for registered models.
+        """
+
+        def rm_list(options: ListOptions) -> list[RegisteredModel]:
+            return self.async_runner(self._api.get_registered_models(options))
+
+        return Pager[RegisteredModel](rm_list)
+
+    def get_model_versions(self, name: str) -> Pager[ModelVersion]:
+        """Get a pager for model versions.
+
+        Args:
+            name: Name of the model.
+
+        Returns:
+            Iterable pager for model versions.
+
+        Raises:
+            StoreException: If the model does not exist.
+        """
+        if not (rm := self.get_registered_model(name)):
+            msg = f"Model {name} does not exist"
+            raise StoreError(msg)
+
+        def rm_versions(options: ListOptions) -> list[ModelVersion]:
+            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            assert rm.id
+            return self.async_runner(self._api.get_model_versions(rm.id, options))
+
+        return Pager[ModelVersion](rm_versions)

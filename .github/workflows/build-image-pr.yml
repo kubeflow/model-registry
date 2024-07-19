@@ -2,14 +2,14 @@ name: Test container image build and deployment
 on:
   pull_request:
     paths-ignore:
-      - 'LICENSE*'
-      - '**.gitignore'
-      - '**.md'
-      - '**.txt'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - 'docs/**'
-      - 'clients/python/**'
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+      - "clients/python/docs/**"
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
@@ -33,7 +33,7 @@ jobs:
           VERSION: ${{ steps.tags.outputs.tag }}
         run: ./scripts/build_deploy.sh
       - name: Start Kind Cluster
-        uses: helm/kind-action@v1.9.0
+        uses: helm/kind-action@v1.10.0
         with:
           node_image: "kindest/node:v1.27.11"
       - name: Load Local Registry Test Image
@@ -61,3 +61,25 @@ jobs:
           kubectl wait --for=condition=available -n kubeflow deployment/model-registry-db --timeout=5m
           kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=5m
           kubectl logs -n kubeflow deployment/model-registry-deployment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Install Poetry
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+      - name: Build package
+        working-directory: clients/python
+        run: |
+          poetry build --ansi
+          pip install dist/*.whl
+      - name: Connect with Python client
+        run: |
+          kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
+          sleep 5
+          python test/python/test_mr_conn.py http://localhost 8080
