@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from typing import TypeVar, cast
 
 from mr_openapi import (
     ApiClient,
@@ -24,6 +25,8 @@ from .types import (
     ModelVersion,
     RegisteredModel,
 )
+
+ArtifactT = TypeVar("ArtifactT", bound=Artifact)
 
 
 @dataclass
@@ -169,11 +172,14 @@ class ModelRegistryAPIClient:
             Registered models.
         """
         async with self.get_client() as client:
-            rms = await client.get_registered_models(
+            rm_list = await client.get_registered_models(
                 **(options or ListOptions()).as_options()
             )
 
-        return [RegisteredModel.from_basemodel(rm) for rm in rms.items or []]
+        if options:
+            options.next_page_token = rm_list.next_page_token
+
+        return [RegisteredModel.from_basemodel(rm) for rm in rm_list.items or []]
 
     async def upsert_model_version(
         self, model_version: ModelVersion, registered_model_id: str
@@ -233,11 +239,14 @@ class ModelRegistryAPIClient:
             Model versions.
         """
         async with self.get_client() as client:
-            mvs = await client.get_registered_model_versions(
+            mv_list = await client.get_registered_model_versions(
                 registered_model_id, **(options or ListOptions()).as_options()
             )
 
-        return [ModelVersion.from_basemodel(mv) for mv in mvs.items or []]
+        if options:
+            options.next_page_token = mv_list.next_page_token
+
+        return [ModelVersion.from_basemodel(mv) for mv in mv_list.items or []]
 
     @overload
     async def get_model_version_by_params(
@@ -298,17 +307,41 @@ class ModelRegistryAPIClient:
         Returns:
             New model artifact.
         """
+        if not model_artifact.id:
+            return await self.create_model_version_artifact(
+                model_artifact, model_version_id
+            )
+
         async with self.get_client() as client:
-            if model_artifact.id:
-                ma = await client.update_model_artifact(
+            return ModelArtifact.from_basemodel(
+                await client.update_model_artifact(
                     model_artifact.id, model_artifact.update()
                 )
-                return ModelArtifact.from_basemodel(ma)
-
-            art = await client.create_model_version_artifact(
-                model_version_id, model_artifact.wrap()
             )
-            return ModelArtifact.from_artifact(art)
+
+    async def create_model_version_artifact(
+        self, artifact: ArtifactT, model_version_id: str
+    ) -> ArtifactT:
+        """Creates a model version artifact.
+
+        Creates a model version artifact on the server.
+
+        Args:
+            artifact: Model version artifact to upsert.
+            model_version_id: ID of the model version this artifact will be associated to.
+
+        Returns:
+            New model version artifact.
+        """
+        async with self.get_client() as client:
+            return cast(
+                ArtifactT,
+                Artifact.validate_artifact(
+                    await client.create_model_version_artifact(
+                        model_version_id, artifact.wrap()
+                    )
+                ),
+            )
 
     async def get_model_artifact_by_id(self, id: str) -> ModelArtifact | None:
         """Fetch a model artifact by its ID.
@@ -388,17 +421,43 @@ class ModelRegistryAPIClient:
         """
         async with self.get_client() as client:
             if model_version_id:
-                arts = await client.get_model_version_artifacts(
+                art_list = await client.get_model_version_artifacts(
                     model_version_id, **(options or ListOptions()).as_options()
                 )
+                if options:
+                    options.next_page_token = art_list.next_page_token
                 models = []
-                for art in arts.items or []:
+                for art in art_list.items or []:
                     converted = Artifact.validate_artifact(art)
                     if isinstance(converted, ModelArtifact):
                         models.append(converted)
                 return models
 
-            mas = await client.get_model_artifacts(
+            ma_list = await client.get_model_artifacts(
                 **(options or ListOptions()).as_options()
             )
-            return [ModelArtifact.from_basemodel(ma) for ma in mas.items or []]
+            if options:
+                options.next_page_token = ma_list.next_page_token
+            return [ModelArtifact.from_basemodel(ma) for ma in ma_list.items or []]
+
+    async def get_model_version_artifacts(
+        self,
+        model_version_id: str,
+        options: ListOptions | None = None,
+    ) -> list[Artifact]:
+        """Fetches model artifacts.
+
+        Args:
+            model_version_id: ID of the associated model version.
+            options: Options for listing model artifacts.
+
+        Returns:
+            Model artifacts.
+        """
+        async with self.get_client() as client:
+            art_list = await client.get_model_version_artifacts(
+                model_version_id, **(options or ListOptions()).as_options()
+            )
+        if options:
+            options.next_page_token = art_list.next_page_token
+        return [Artifact.validate_artifact(art) for art in art_list.items or []]

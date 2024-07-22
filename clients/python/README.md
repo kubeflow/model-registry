@@ -1,6 +1,6 @@
 # Model Registry Python Client
 
-[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10-blue)](https://github.com/kubeflow/model-registry)
+[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10%7C3.11%7C3.12-blue)](https://github.com/kubeflow/model-registry)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
 [Documentation](https://model-registry.readthedocs.io/en/latest/)
 
@@ -46,10 +46,6 @@ When registering models stored on S3-compatible object storage, you should use `
 unambiguous URI for your artifact.
 
 ```py
-from model_registry import ModelRegistry, utils
-
-registry = ModelRegistry(server_address="server-address", port=9090, author="author")
-
 model = registry.register_model(
     "my-model",  # model name
     uri=utils.s3_uri_from("path/to/model", "my-bucket"),
@@ -102,6 +98,31 @@ There are caveats to be noted when using this method:
         model_format_version="1",
     )
     ```
+
+### Listing models
+
+To list models you can use
+```py
+for model in registry.get_registered_models():
+    ...
+
+# and versions associated with a model
+for version in registry.get_model_versions("my-model"):
+    ...
+```
+
+To customize sorting order or query limits you can also use
+
+```py
+latest_updates = registry.get_model_versions("my-model").order_by_update_time().descending().limit(20)
+for version in latest_updates:
+    ...
+```
+
+You can use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order.
+
+> Note that the `limit()` method only limits the query size, not the actual loop boundaries -- even if your limit is 1
+> you will still get all the models, with one query each.
 
 ## Development
 

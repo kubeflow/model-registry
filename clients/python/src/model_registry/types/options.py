@@ -19,11 +19,13 @@ class ListOptions:
         limit: Maximum number of objects to return.
         order_by: Field to order by.
         is_asc: Whether to order in ascending order. Defaults to True.
+        next_page_token: Token to use to retrieve next page of results.
     """
 
     limit: int | None = None
     order_by: OrderByField | None = None
     is_asc: bool = True
+    next_page_token: str | None = None
 
     @classmethod
     def order_by_creation_time(cls, **kwargs) -> ListOptions:
@@ -49,4 +51,6 @@ class ListOptions:
             options["order_by"] = self.order_by
         if self.is_asc is not None:
             options["sort_order"] = SortOrder.ASC if self.is_asc else SortOrder.DESC
+        if self.next_page_token is not None:
+            options["next_page_token"] = self.next_page_token
         return options

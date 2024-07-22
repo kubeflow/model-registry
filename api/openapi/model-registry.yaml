@@ -86,7 +86,7 @@ paths:
   "/api/model_registry/v1alpha3/model_artifacts/{modelartifactId}":
     summary: Path used to manage a single ModelArtifact.
     description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `ModelArtifact`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
+      The REST endpoint/path used to get and update single instances of an `ModelArtifact`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
     get:
       tags:
         - ModelRegistryService
@@ -180,7 +180,7 @@ paths:
   "/api/model_registry/v1alpha3/model_versions/{modelversionId}":
     summary: Path used to manage a single ModelVersion.
     description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `ModelVersion`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
+      The REST endpoint/path used to get and update single instances of an `ModelVersion`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
     get:
       tags:
         - ModelRegistryService
@@ -296,7 +296,7 @@ paths:
   "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}":
     summary: Path used to manage a single RegisteredModel.
     description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `RegisteredModel`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
+      The REST endpoint/path used to get and update single instances of an `RegisteredModel`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
     get:
       tags:
         - ModelRegistryService
@@ -486,7 +486,7 @@ paths:
   "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}":
     summary: Path used to manage a single InferenceService.
     description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `InferenceService`. This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
+      The REST endpoint/path used to get and update single instances of an `InferenceService`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
     get:
       tags:
         - ModelRegistryService
@@ -650,7 +650,7 @@ paths:
   "/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}":
     summary: Path used to manage a single ServingEnvironment.
     description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `ServingEnvironment`.  This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.
+      The REST endpoint/path used to get and update single instances of an `ServingEnvironment`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
     get:
       tags:
         - ModelRegistryService
@@ -1636,9 +1636,6 @@ components:
       in: query
       required: false
     nextPageToken:
-      examples:
-        nextPageToken:
-          value: IkhlbGxvLCB3b3JsZC4i
       name: nextPageToken
       description: Token to use to retrieve next page of results.
       schema:

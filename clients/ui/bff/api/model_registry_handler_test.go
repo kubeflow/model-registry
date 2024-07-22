@@ -12,8 +12,7 @@ import (
 )
 
 func TestModelRegistryHandler(t *testing.T) {
-	mockK8sClient := new(mocks.KubernetesClientMock)
-	mockK8sClient.On("GetServiceNames").Return(mockK8sClient.MockServiceNames(), nil)
+	mockK8sClient, _ := mocks.NewKubernetesClient(nil)
 
 	testApp := App{
 		kubernetesClient: mockK8sClient,
@@ -46,12 +45,12 @@ func TestModelRegistryHandler(t *testing.T) {
 
 	var expected = Envelope{
 		"model_registry": []data.ModelRegistryModel{
-			{Name: mockK8sClient.MockServiceNames()[0]},
-			{Name: mockK8sClient.MockServiceNames()[1]},
+			{Name: "model-registry"},
+			{Name: "model-registry-dora"},
+			{Name: "model-registry-bella"},
 		},
 	}
 
 	assert.Equal(t, expected, modelRegistryRes)
 
-	mockK8sClient.AssertExpectations(t)
 }

@@ -1,6 +1,6 @@
-"""Main package for the ODH model registry."""
+"""Main package for the Kubeflow model registry."""
 
-__version__ = "0.2.3a1"
+__version__ = "0.2.4a1"
 
 from ._client import ModelRegistry
 

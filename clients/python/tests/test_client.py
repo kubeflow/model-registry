@@ -1,4 +1,5 @@
 import os
+from itertools import islice
 
 import pytest
 from model_registry import ModelRegistry, utils
@@ -94,6 +95,7 @@ async def test_get(client: ModelRegistry):
         metadata=metadata,
     )
 
+    assert rm.id
     assert (_rm := client.get_registered_model(name))
     assert rm.id == _rm.id
 
@@ -107,6 +109,117 @@ async def test_get(client: ModelRegistry):
     assert mv.custom_properties == metadata
     assert (_ma := client.get_model_artifact(name, version))
     assert ma.id == _ma.id
+
+
+def test_get_registered_models(client: ModelRegistry):
+    models = 21
+
+    for name in [f"test_model{i}" for i in range(models)]:
+        client.register_model(
+            name,
+            "s3",
+            model_format_name="test_format",
+            model_format_version="test_version",
+            version="1.0.0",
+        )
+
+    rm_iter = client.get_registered_models().limit(10)
+    i = 0
+    prev_tok = None
+    changes = 0
+    with pytest.raises(StopIteration):  # noqa: PT012
+        while i < 50 and next(rm_iter):
+            if rm_iter.options.next_page_token != prev_tok:
+                print(
+                    f"Token changed from {prev_tok} to {rm_iter.options.next_page_token} at {i}"
+                )
+                prev_tok = rm_iter.options.next_page_token
+                changes += 1
+            i += 1
+
+    assert changes == 3
+    assert i == models
+
+
+def test_get_registered_models_and_reset(client: ModelRegistry):
+    model_count = 6
+    page = model_count // 2
+
+    for name in [f"test_model{i}" for i in range(model_count)]:
+        client.register_model(
+            name,
+            "s3",
+            model_format_name="test_format",
+            model_format_version="test_version",
+            version="1.0.0",
+        )
+
+    rm_iter = client.get_registered_models().limit(model_count - 1)
+    models = []
+    for rm in islice(rm_iter, page):
+        models.append(rm)
+    assert len(models) == page
+    rm_iter.restart()
+    complete = list(rm_iter)
+    assert len(complete) == model_count
+    assert complete[:page] == models
+
+
+def test_get_model_versions(client: ModelRegistry):
+    name = "test_model"
+    models = 21
+
+    for v in [f"1.0.{i}" for i in range(models)]:
+        client.register_model(
+            name,
+            "s3",
+            model_format_name="test_format",
+            model_format_version="test_version",
+            version=v,
+        )
+
+    mv_iter = client.get_model_versions(name).limit(10)
+    i = 0
+    prev_tok = None
+    changes = 0
+    with pytest.raises(StopIteration):  # noqa: PT012
+        while i < 50 and next(mv_iter):
+            if mv_iter.options.next_page_token != prev_tok:
+                print(
+                    f"Token changed from {prev_tok} to {mv_iter.options.next_page_token} at {i}"
+                )
+                prev_tok = mv_iter.options.next_page_token
+                changes += 1
+            i += 1
+
+    assert changes == 3
+    assert i == models
+
+
+def test_get_model_versions_and_reset(client: ModelRegistry):
+    name = "test_model"
+
+    model_count = 6
+    page = model_count // 2
+
+    for v in [f"1.0.{i}" for i in range(model_count)]:
+        client.register_model(
+            name,
+            "s3",
+            model_format_name="test_format",
+            model_format_version="test_version",
+            version=v,
+        )
+
+    mv_iter = client.get_model_versions(name).limit(model_count - 1)
+    models = []
+    for rm in islice(mv_iter, page):
+        models.append(rm)
+    assert len(models) == page
+    mv_iter.restart()
+    complete = list(mv_iter)
+    assert len(complete) == model_count
+    assert complete[:page] == models
 
 
 def test_hf_import(client: ModelRegistry):
