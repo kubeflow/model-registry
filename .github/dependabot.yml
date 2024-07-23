@@ -6,7 +6,9 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories: 
+      - "/"
+      - "/clients/ui/bff/"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
@@ -19,5 +21,9 @@ updates:
       interval: "weekly"
   - package-ecosystem: "github-actions"
     directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/clients/ui/frontend/"
     schedule:
       interval: "weekly"
