@@ -1,4 +1,4 @@
-name: Test custom storage initializer
+name: Test CSI
 on:
   push:
     branches:
