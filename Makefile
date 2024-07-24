@@ -96,9 +96,10 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
 	gofmt -w pkg/openapi
 
+# Export cc = gcc to resolve error ( cgo: C compiler "s390x-linux-gnu-gcc" not found: exec: "s390x-linux-gnu-gcc": executable file not found in $PATH )
 .PHONY: vet
 vet:
-	${GO} vet ./...
+	CC=gcc ${GO} vet ./...
 
 .PHONY: clean
 clean:
@@ -218,5 +219,17 @@ image/build:
 .PHONY: image/push
 image/push:
 	${DOCKER} push ${IMG}:$(IMG_VERSION)
+
+#multi-platform image build & push
+PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
+.PHONY: image/buildx
+image/buildx: ## Build and push docker image for the manager for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	- $(DOCKER) buildx create --name project-v3-builder
+	$(DOCKER) buildx use project-v3-builder
+	- $(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG}:$(IMG_VERSION) -f Dockerfile.cross .
+	- $(DOCKER) buildx rm project-v3-builder
+	rm Dockerfile.cross
 
 all: model-registry
