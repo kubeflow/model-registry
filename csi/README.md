@@ -56,6 +56,10 @@ You can just run:
 make build
 ```
 
+> [!NOTE]
+> The project is currently using a fixed tag of the root Model Registry. You can use the local one by
+> simply adding `replace github.com/kubeflow/model-registry v0.2.1-alpha => ../` in the `go.mod` file
+
 Which wil create the executable under `bin/mr-storage-initializer`.
 
 ### Run the executable
@@ -70,13 +74,19 @@ or directly running the `main.go` skipping the previous step:
 make SOURCE_URI=model-registry://model/version DEST_PATH=./ run
 ```
 
-> _NOTE_: a Model Registry service should be up and running at `localhost:8080`.
+> [!NOTE]
+> A Model Registry service should be up and running at `localhost:8080`.
 
 ### Build container image
 
-Run:
+Using a fixed version of the model-registry library:
 ```bash
 make docker-build
+```
+
+Or, using the local model-registry module:
+```bash
+make docker-build-dev
 ```
 
 By default the container image name is `quay.io/${USER}/model-registry-storage-initializer:latest` but it can be overridden providing the `IMG` env variable, e.g., `make IMG=abc/ORG/NAME:TAG docker-build`.

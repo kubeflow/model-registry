@@ -1,24 +1,34 @@
-# This Dockerfile MUST be used if using a fixed version of model-registry dependency
-# This assumes the root is the csi/ folder
-
 # Build the model-registry-storage-initializer binary
+# This assumes the root is the model-registry repository
 FROM registry.access.redhat.com/ubi8/go-toolset:1.21 AS builder
 
-WORKDIR /workspace
+WORKDIR /modelregistry
+# Copy the model-registry Go Modules manifests and sources
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY cmd/ cmd/
+COPY api/ api/
+COPY internal/ internal/
+COPY scripts/ scripts/
+COPY pkg/ pkg/
+COPY patches/ patches/
+COPY templates/ templates/
+
+USER root
+
+WORKDIR /modelregistry/csi
 # Copy the Go Modules manifests
-COPY ["go.mod", "go.sum", "./"]
+COPY csi/go.mod go.mod
+COPY csi/go.sum go.sum
+RUN echo "replace github.com/kubeflow/model-registry => ../" >> go.mod
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-USER root
-
-# Copy the go source
-COPY ["Makefile", "main.go", "./"]
-
 # Copy rest of the source
-# COPY bin/ bin/
-COPY pkg/ pkg/
+COPY csi/Makefile Makefile
+COPY csi/main.go main.go
+COPY csi/pkg/ pkg/
 
 # Build
 USER root
@@ -29,7 +39,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make build
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 WORKDIR /
 # copy the storage initializer binary
-COPY --from=builder /workspace/bin/mr-storage-initializer .
+COPY --from=builder /modelregistry/csi/bin/mr-storage-initializer .
 USER 65532:65532
 
 ENTRYPOINT ["/mr-storage-initializer"]

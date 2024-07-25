@@ -1,5 +1,5 @@
 # Build the model-registry binary
-FROM registry.access.redhat.com/ubi8/go-toolset:1.21 as builder
+FROM registry.access.redhat.com/ubi8/go-toolset:1.21 AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
