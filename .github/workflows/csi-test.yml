@@ -18,7 +18,7 @@ on:
       - "pkg/openapi/**"
 
 env:
-  IMG_ORG: kubeflow
+  IMG_ORG: opendatahub
   MODEL_REGISTRY_IMG: model-registry
   MODEL_REGISTRY_CSI_IMG: model-registry-storage-initializer
   PUSH_IMAGE: false
@@ -68,7 +68,7 @@ jobs:
         working-directory: ./csi
         shell: bash
         env:
-          MR_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
-          MR_CSI_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_CSI_IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
           CLUSTER: chart-testing
         run: ./test/e2e_test.sh

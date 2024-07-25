@@ -12,9 +12,9 @@ DOCKER ?= docker
 DOCKERFILE ?= Dockerfile
 DOCKERFILE_DEV ?= Dockerfile.dev
 
-IMG_REGISTRY ?= 
+IMG_REGISTRY ?= quay.io
 # container image organization
-IMG_ORG ?= kubeflow
+IMG_ORG ?= opendatahub
 # container image version
 IMG_VERSION ?= main
 # container image repository
