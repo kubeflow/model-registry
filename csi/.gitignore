@@ -17,3 +17,6 @@ bin/
 
 # Go workspace file
 go.work
+
+# KServe manifests
+istio-*
