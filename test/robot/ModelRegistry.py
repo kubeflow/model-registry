@@ -1,6 +1,7 @@
 from model_registry.core import ModelRegistryAPIClient
 from model_registry.types import ModelArtifact, ModelVersion, RegisteredModel
 from robot.libraries.BuiltIn import BuiltIn
+import model_registry.utils
 
 
 def write_to_console(s):
@@ -32,6 +33,12 @@ class ModelRegistry:
         p = ModelArtifact(**model_artifact)
         write_to_console(p)
         return (await self.api.upsert_model_artifact(p, model_version_id)).id
+
+    def s3_uri_from(self, path, bucket, endpoint, region) -> str:
+        """
+        Expose util to RobotFramework
+        """
+        return model_registry.utils.s3_uri_from(path=path, bucket=bucket, endpoint=endpoint, region=region)
 
 
 async def test():
