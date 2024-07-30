@@ -15,7 +15,7 @@ We do have some [contributing guidelines] you can follow.
 
 ## Documentation
 
-Read more about the Dashboard in one of our documentation links.
+Read more about the Model Registry UI in one of our documentation links.
 
 * [Dev setup & Requirements]
 * [Model Registry UI documentation]

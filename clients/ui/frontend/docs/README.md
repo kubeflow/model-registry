@@ -2,7 +2,7 @@
 [Architecture]: architecture.md
 
 
-# Model REgistry UI Documentation
+# Model Registry UI Documentation
 
 This is the general documentation of the Model Registry UI.
 

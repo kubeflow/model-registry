@@ -12,7 +12,7 @@ To review the requirements, please refer to the [dev setup documentation].
 
 ### Running locally
 
-The recommended flow for development would be have two sessions, one for the "frontend":
+The recommended flow for development is to have two sessions, one for the "frontend":
 
 ```bash
 npm run start:dev
