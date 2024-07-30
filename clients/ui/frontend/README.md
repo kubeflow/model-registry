@@ -1,38 +1,21 @@
+[contributing guidelines]: CONTRIBUTING.md
+[Dev setup & Requirements]: docs/dev-setup.md
+[Model Registry UI documentation]: docs/README.md
+[issue]: https://github.com/kubeflow/model-registry/issues/new/choose
+
 # Kubeflow Model Registry UI
 
 The Kubeflow Model Registry UI is a standalone web app for Kubeflow Model Registry.
 
-## Pre-requisites:
+## Contributing:
 
-TBD
+Individual bug fixes are welcome, it is recommended that you create a bug [issue] at the same time to describe the fix you're applying. If you are unsure how best to solve it, start with the issue and note your desire to contribute.
 
-## Development
+We do have some [contributing guidelines] you can follow.
 
-```sh
-# Install development/build dependencies
-npm install
+## Documentation
 
-# Start the development server
-npm run start:dev
+Read more about the Dashboard in one of our documentation links.
 
-# Run a production build (outputs to "dist" dir)
-npm run build
-
-# Run the test suite
-npm run test
-
-# Run the test suite with coverage
-npm run test:coverage
-
-# Run the linter
-npm run lint
-
-# Run the code formatter
-npm run format
-
-# Launch a tool to inspect the bundle size
-npm run bundle-profile:analyze
-
-# Start the express server (run a production build first)
-npm run start
-```
+* [Dev setup & Requirements]
+* [Model Registry UI documentation]
