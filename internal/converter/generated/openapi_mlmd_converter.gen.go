@@ -233,7 +233,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertRegisteredModel(source *converter.Op
 		protoContext.Id = pInt64
 		var pString2 *string
 		if (*source).Model != nil {
-			pString2 = (*source).Model.Name
+			pString2 = &(*source).Model.Name
 		}
 		if pString2 != nil {
 			xstring := *pString2
