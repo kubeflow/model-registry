@@ -19,7 +19,7 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties State | MapRegisteredModelState
 	ConvertRegisteredModel(source *proto.Context) (*openapi.RegisteredModel, error)
 
-	// goverter:map Name | MapNameFromOwned
+	// goverter:map Name | MapName
 	// goverter:map Name RegisteredModelId | MapRegisteredModelIdFromOwned
 	// goverter:map Properties Description | MapDescription
 	// goverter:map Properties State | MapModelVersionState
