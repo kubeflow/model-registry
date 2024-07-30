@@ -26,7 +26,8 @@
       ],
       "@assets/*": [
         "node_modules/@patternfly/react-core/dist/styles/assets/*"
-      ]
+      ],
+      "~/*": ["./*"]
     },
     "importHelpers": true,
     "skipLibCheck": true
