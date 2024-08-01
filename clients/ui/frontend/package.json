@@ -45,7 +45,7 @@
     "prop-types": "^15.8.1",
     "raw-loader": "^4.0.2",
     "react-router-dom": "^5.3.4",
-    "regenerator-runtime": "^0.13.11",
+    "regenerator-runtime": "^0.14.1",
     "rimraf": "^5.0.7",
     "style-loader": "^3.3.4",
     "svg-url-loader": "^8.0.0",
