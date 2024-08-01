@@ -207,3 +207,9 @@ I get ArtifactsByModelVersionID
         Fail    Not Implemented
     END
     RETURN    ${result}
+
+
+I use util s3_uri_from
+    [Arguments]    ${path}  ${bucket}  ${endpoint}  ${region}
+    ${result}=  s3_uri_from  path=${path}  bucket=${bucket}  endpoint=${endpoint}  region=${region}
+    RETURN    ${result}
