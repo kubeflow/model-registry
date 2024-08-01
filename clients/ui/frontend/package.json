@@ -6,22 +6,17 @@
   "homepage": "https://github.com/kubeflow/model-registry",
   "license": "Apache-2.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "prebuild": "npm run type-check && npm run clean",
-    "build": "webpack --config webpack.prod.js",
-    "start": "sirv dist --cors --single --host --port 8080",
-    "start:dev": "webpack serve --color --progress --config webpack.dev.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "eslint": "eslint --ext .tsx,.js ./src/",
-    "lint": "npm run eslint",
-    "format": "prettier --check --write ./src/**/*.{tsx,ts}",
-    "type-check": "tsc --noEmit",
-    "ci-checks": "npm run type-check && npm run lint && npm run test:coverage",
-    "build:bundle-profile": "webpack --config webpack.prod.js --profile --json > stats.json",
-    "bundle-profile:analyze": "npm run build:bundle-profile && webpack-bundle-analyzer ./stats.json",
-    "clean": "rimraf dist"
+    "build": "run-s build:prod",
+    "build:analyze": "run-s build build:bundle-profile build:bundle-analyze",
+    "build:bundle-profile": "_ODH_OUTPUT_ONLY=true webpack --config ./config/webpack.prod.js --profile --json > ./bundle.stats.json",
+    "build:bundle-analyze": "webpack-bundle-analyzer ./bundle.stats.json",
+    "build:clean": "rimraf ./public",
+    "build:prod": "webpack --config ./config/webpack.prod.js",
+    "start:dev": "webpack serve --hot --color --config ./config/webpack.dev.js"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -71,8 +66,8 @@
     "@patternfly/react-core": "6.0.0-alpha.68",
     "@patternfly/react-icons": "6.0.0-alpha.24",
     "@patternfly/react-styles": "6.0.0-alpha.24",
+    "npm-run-all": "^4.1.5",
     "react": "^18",
-    "react-dom": "^18",
-    "sirv-cli": "^2.0.2"
+    "react-dom": "^18"
   }
 }
