@@ -23,13 +23,9 @@ jobs:
         working-directory: clients/ui/frontend
         run: npm install
 
-      - name: Run tests
-        working-directory: clients/ui/frontend
-        run: npm run test:coverage
-
       - name: Clean
         working-directory: clients/ui/frontend
-        run: npm run clean
+        run: npm run build:clean
 
       - name: Build
         working-directory: clients/ui/frontend

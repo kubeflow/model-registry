@@ -7,6 +7,7 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
 const BG_IMAGES_DIRNAME = 'bgimages';
 const ASSET_PATH = process.env.ASSET_PATH || '/';
+const relativeDir = path.resolve(__dirname, '..');
 module.exports = (env) => {
   return {
     module: {
@@ -29,11 +30,11 @@ module.exports = (env) => {
           // only process modules with this loader
           // if they live under a 'fonts' or 'pficon' directory
           include: [
-            path.resolve(__dirname, 'node_modules/patternfly/dist/fonts'),
-            path.resolve(__dirname, 'node_modules/@patternfly/react-core/dist/styles/assets/fonts'),
-            path.resolve(__dirname, 'node_modules/@patternfly/react-core/dist/styles/assets/pficon'),
-            path.resolve(__dirname, 'node_modules/@patternfly/patternfly/assets/fonts'),
-            path.resolve(__dirname, 'node_modules/@patternfly/patternfly/assets/pficon')
+            path.resolve(relativeDir, 'node_modules/patternfly/dist/fonts'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/react-core/dist/styles/assets/fonts'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/react-core/dist/styles/assets/pficon'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/patternfly/assets/fonts'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/patternfly/assets/pficon')
           ]
         },
         {
@@ -74,21 +75,21 @@ module.exports = (env) => {
         {
           test: /\.(jpg|jpeg|png|gif)$/i,
           include: [
-            path.resolve(__dirname, 'src'),
-            path.resolve(__dirname, 'node_modules/patternfly'),
-            path.resolve(__dirname, 'node_modules/@patternfly/patternfly/assets/images'),
-            path.resolve(__dirname, 'node_modules/@patternfly/react-styles/css/assets/images'),
-            path.resolve(__dirname, 'node_modules/@patternfly/react-core/dist/styles/assets/images'),
+            path.resolve(relativeDir, 'src'),
+            path.resolve(relativeDir, 'node_modules/patternfly'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/patternfly/assets/images'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/react-styles/css/assets/images'),
+            path.resolve(relativeDir, 'node_modules/@patternfly/react-core/dist/styles/assets/images'),
             path.resolve(
-              __dirname,
+              relativeDir,
               'node_modules/@patternfly/react-core/node_modules/@patternfly/react-styles/css/assets/images'
             ),
             path.resolve(
-              __dirname,
+              relativeDir,
               'node_modules/@patternfly/react-table/node_modules/@patternfly/react-styles/css/assets/images'
             ),
             path.resolve(
-              __dirname,
+              relativeDir,
               'node_modules/@patternfly/react-inline-edit-extension/node_modules/@patternfly/react-styles/css/assets/images'
             )
           ],
@@ -107,12 +108,12 @@ module.exports = (env) => {
     },
     output: {
       filename: '[name].bundle.js',
-      path: path.resolve(__dirname, 'dist'),
+      path: path.resolve(relativeDir, 'dist'),
       publicPath: ASSET_PATH
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: path.resolve(__dirname, 'src', 'index.html')
+        template: path.resolve(relativeDir, 'src', 'index.html')
       }),
       new Dotenv({
         systemvars: true,
@@ -126,7 +127,7 @@ module.exports = (env) => {
       extensions: ['.js', '.ts', '.tsx', '.jsx'],
       plugins: [
         new TsconfigPathsPlugin({
-          configFile: path.resolve(__dirname, './tsconfig.json')
+          configFile: path.resolve(relativeDir, './tsconfig.json')
         })
       ],
       symlinks: false,
