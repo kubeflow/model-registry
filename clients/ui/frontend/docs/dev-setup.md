@@ -44,10 +44,10 @@ For in-depth local run guidance review the [contribution guidelines](../CONTRIBU
 
 ### Testing
 
-Run the tests.
+Run the mock tests.
 
   ```bash
-  npm run test
+  npm run test:cypress-ci
   ```
 
 For in-depth testing guidance review the [testing guidelines](./testing.md)
