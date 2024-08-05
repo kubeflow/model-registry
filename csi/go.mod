@@ -3,7 +3,7 @@ module github.com/kubeflow/model-registry/csi
 go 1.21
 
 require (
-	github.com/kserve/kserve v0.12.0
+	github.com/kserve/kserve v0.13.1
 	github.com/kubeflow/model-registry v0.2.3-alpha
 )
 
@@ -37,7 +37,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.26.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
