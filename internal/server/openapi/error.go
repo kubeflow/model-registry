@@ -15,10 +15,8 @@ import (
 	"net/http"
 )
 
-var (
-	// ErrTypeAssertionError is thrown when type an interface does not match the asserted type
-	ErrTypeAssertionError = errors.New("unable to assert type")
-)
+// ErrTypeAssertionError is thrown when type an interface does not match the asserted type
+var ErrTypeAssertionError = errors.New("unable to assert type")
 
 // ParsingError indicates that an error has occurred when parsing request parameters
 type ParsingError struct {
@@ -51,12 +49,12 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result
 func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, result *ImplResponse) {
 	if _, ok := err.(*ParsingError); ok {
 		// Handle parsing errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusBadRequest), w)
+		EncodeJSONResponse(ErrorResponse(http.StatusBadRequest, err).Body, func(i int) *int { return &i }(http.StatusBadRequest), w)
 	} else if _, ok := err.(*RequiredError); ok {
 		// Handle missing required errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
+		EncodeJSONResponse(ErrorResponse(http.StatusBadRequest, err).Body, func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
 	} else {
 		// Handle all other errors
-		EncodeJSONResponse(err.Error(), &result.Code, w)
+		EncodeJSONResponse(result.Body, &result.Code, w)
 	}
 }
