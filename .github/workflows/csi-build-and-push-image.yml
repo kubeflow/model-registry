@@ -16,8 +16,8 @@ on:
 env:
   IMG_ORG: opendatahub
   IMG_REPO: model-registry-storage-initializer
-  DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
+  DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
+  DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
   PUSH_IMAGE: true
 jobs:
   build-csi-image:
