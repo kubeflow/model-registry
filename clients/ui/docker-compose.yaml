@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: model-registry-ui
+    ports:
+      - 8080:8080
+    environment:
+      API_URL: http://model-registry-bff:4001
+    networks:
+      - model_registry
+    depends_on:
+      - bff
+  bff:
+    build: ./bff
+    container_name: model-registry-bff
+    command:
+      - "--mock-k8s-client=true"
+    networks:
+      - model_registry
+
+networks:
+  model_registry:
+    name: model_registry
