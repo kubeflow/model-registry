@@ -74,7 +74,7 @@
     "ts-loader": "^9.5.1",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "tslib": "^2.6.3",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.4",
     "url-loader": "^4.1.1",
     "webpack": "^5.91.0",
     "webpack-bundle-analyzer": "^4.10.2",
