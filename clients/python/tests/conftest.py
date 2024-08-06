@@ -9,7 +9,6 @@ from time import sleep
 
 import pytest
 import requests
-from aiohttp.helpers import isasyncgenfunction
 
 REGISTRY_HOST = "http://localhost"
 REGISTRY_PORT = 8080
@@ -79,7 +78,7 @@ def _compose_mr(root):
 def cleanup(client):
     async def yield_and_restart(root):
         poll_for_ready()
-        if inspect.iscoroutinefunction(client) or isasyncgenfunction(client):
+        if inspect.iscoroutinefunction(client) or inspect.isasyncgenfunction(client):
             async with asynccontextmanager(client)() as async_client:
                 yield async_client
         else:
