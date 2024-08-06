@@ -25,3 +25,5 @@
 # Model Registry OpenAPI:
 # Do not generate markdown for models coming from OpenAPI
 mr_openapi/docs/*.md
+# Do not generate empty tests
+mr_openapi/test/
