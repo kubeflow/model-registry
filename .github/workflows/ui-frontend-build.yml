@@ -23,6 +23,10 @@ jobs:
         working-directory: clients/ui/frontend
         run: npm install
 
+      - name: Run tests
+        working-directory: clients/ui/frontend
+        run: npm run test:cypress-ci
+
       - name: Clean
         working-directory: clients/ui/frontend
         run: npm run build:clean
