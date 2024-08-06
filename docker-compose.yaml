@@ -10,7 +10,7 @@ services:
     volumes:
       - ./test/config/ml-metadata:/tmp/shared
   model-registry:
-    image: quay.io/opendatahub/model-registry:latest
+    image: docker.io/kubeflow/model-registry:latest
     command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "8080"]
     container_name: model-registry
     ports:

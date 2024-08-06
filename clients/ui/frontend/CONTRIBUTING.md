@@ -30,7 +30,7 @@ Once you have both services ready, you can open the dashboard locally at: `http:
 
 ## Debugging and Testing
 
-[TBD]
+See [frontend testing guidelines](docs/testing.md) for more information.
 
 ## Environment variables
 

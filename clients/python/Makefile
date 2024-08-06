@@ -22,7 +22,6 @@ lint:
 
 .PHONY: tidy
 tidy:
-	rm -rf src/mr_openapi/docs
 	poetry run ruff check --fix --unsafe-fixes || true
 	poetry run black src/mr_openapi
 

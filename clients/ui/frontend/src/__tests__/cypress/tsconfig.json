@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "include": ["../../**/*.ts"],
+  "exclude": ["node_modules", "public"],
+  "compilerOptions": {
+    // TODO https://github.com/cypress-io/cypress/issues/26203
+    "sourceMap": false,
+    "types": ["node", "cypress", "@testing-library/cypress", "cypress-axe"]
+  }
+}
