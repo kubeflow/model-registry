@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { Button, EmptyState, EmptyStateBody, EmptyStateFooter, PageSection } from '@patternfly/react-core';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const NotFound: React.FunctionComponent = () => {
   function GoHomeBtn() {
-    const history = useHistory();
+    const navigate = useNavigate();
 
     function handleClick() {
-      history.push('/');
+      navigate('/');
     }
 
     return (
