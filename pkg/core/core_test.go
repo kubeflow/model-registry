@@ -147,7 +147,7 @@ func (suite *CoreTestSuite) setupModelRegistryService() *ModelRegistryService {
 // utility function that register a new simple model and return its ID
 func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, overrideModelName *string, overrideExternalId *string) string {
 	registeredModel := &openapi.RegisteredModel{
-		Name:        &modelName,
+		Name:        modelName,
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
@@ -158,7 +158,7 @@ func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, override
 	}
 
 	if overrideModelName != nil {
-		registeredModel.Name = overrideModelName
+		registeredModel.Name = *overrideModelName
 	}
 
 	if overrideExternalId != nil {
@@ -213,14 +213,14 @@ func (suite *CoreTestSuite) registerModelVersion(
 	registeredModelId := suite.registerModel(service, overrideModelName, overrideExternalId)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		Author:      &author,
 	}
 
 	if overrideVersionName != nil {
-		modelVersion.Name = overrideVersionName
+		modelVersion.Name = *overrideVersionName
 	}
 
 	if overrideVersionExtId != nil {
@@ -590,7 +590,7 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:        &modelName,
+		Name:        modelName,
 		ExternalId:  &modelExternalId,
 		Description: &modelDescription,
 		Owner:       &modelOwner,
@@ -636,7 +636,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		Owner:      &modelOwner,
 		ExternalId: &modelExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
@@ -655,7 +655,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	createdModelId, _ := converter.StringToInt64(createdModel.Id)
 
 	// checks created model matches original one except for Id
-	suite.Equal(*registeredModel.Name, *createdModel.Name, "returned model name should match the original one")
+	suite.Equal(registeredModel.Name, createdModel.Name, "returned model name should match the original one")
 	suite.Equal(*registeredModel.ExternalId, *createdModel.ExternalId, "returned model external id should match the original one")
 	suite.Equal(*registeredModel.CustomProperties, *createdModel.CustomProperties, "returned model custom props should match the original one")
 
@@ -700,7 +700,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// update the model keeping nil name
 	newModelExternalId = "newNewExternalId"
 	createdModel.ExternalId = &newModelExternalId
-	createdModel.Name = nil
+	createdModel.Name = ""
 	createdModel, err = service.UpsertRegisteredModel(createdModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
 
@@ -731,7 +731,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 	state := openapi.REGISTEREDMODELSTATE_LIVE
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 		State:      &state,
 		CustomProperties: &map[string]openapi.MetadataValue{
@@ -751,7 +751,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 	suite.Nilf(err, "error getting registered model by id %s: %v", *createdModel.Id, err)
 
 	// checks created model matches original one except for Id
-	suite.Equal(*registeredModel.Name, *getModelById.Name, "saved model name should match the original one")
+	suite.Equal(registeredModel.Name, getModelById.Name, "saved model name should match the original one")
 	suite.Equal(*registeredModel.ExternalId, *getModelById.ExternalId, "saved model external id should match the original one")
 	suite.Equal(*registeredModel.State, *getModelById.State, "saved model state should match the original one")
 	suite.Equal(*registeredModel.CustomProperties, *getModelById.CustomProperties, "saved model custom props should match the original one")
@@ -772,7 +772,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -791,7 +791,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsExternalId() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -810,7 +810,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByEmptyParams() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -830,7 +830,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -839,14 +839,14 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
 
 	newModelName := "PricingModel2"
 	newModelExternalId := "myExternalId2"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	_, err = service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
 
 	newModelName = "PricingModel3"
 	newModelExternalId = "myExternalId3"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	_, err = service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
@@ -882,7 +882,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedByLastUpdate() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -891,14 +891,14 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedByLastUpdate() {
 
 	newModelName := "PricingModel2"
 	newModelExternalId := "myExternalId2"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	secondModel, err := service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
 
 	newModelName = "PricingModel3"
 	newModelExternalId = "myExternalId3"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	thirdModel, err := service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
@@ -942,7 +942,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsWithPageSize() {
 
 	// register a new model
 	registeredModel := &openapi.RegisteredModel{
-		Name:       &modelName,
+		Name:       modelName,
 		ExternalId: &modelExternalId,
 	}
 
@@ -951,14 +951,14 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsWithPageSize() {
 
 	newModelName := "PricingModel2"
 	newModelExternalId := "myExternalId2"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	secondModel, err := service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
 
 	newModelName = "PricingModel3"
 	newModelExternalId = "myExternalId3"
-	registeredModel.Name = &newModelName
+	registeredModel.Name = newModelName
 	registeredModel.ExternalId = &newModelExternalId
 	thirdModel, err := service.UpsertRegisteredModel(registeredModel)
 	suite.Nilf(err, "error creating registered model: %v", err)
@@ -994,7 +994,7 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 
 	state := openapi.MODELVERSIONSTATE_LIVE
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		State:       &state,
@@ -1037,7 +1037,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 	registeredModelId := "9999"
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1058,7 +1058,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1106,7 +1106,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 	// update with nil name
 	newExternalId = "org.my_awesome_model_@v1"
 	updatedVersion.ExternalId = &newExternalId
-	updatedVersion.Name = nil
+	updatedVersion.Name = ""
 	updatedVersion, err = service.UpsertModelVersion(updatedVersion, &registeredModelId)
 	suite.Nilf(err, "error updating new model version for %s: %v", registeredModelId, err)
 
@@ -1136,7 +1136,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1168,7 +1168,7 @@ func (suite *CoreTestSuite) TestGetModelVersionById() {
 
 	state := openapi.MODELVERSIONSTATE_ARCHIVED
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		State:      &state,
 		Author:     &author,
@@ -1192,7 +1192,7 @@ func (suite *CoreTestSuite) TestGetModelVersionById() {
 
 	ctx := ctxById.Contexts[0]
 	suite.Equal(*converter.Int64ToString(ctx.Id), *getById.Id, "returned model version id should match the mlmd context one")
-	suite.Equal(*modelVersion.Name, *getById.Name, "saved model name should match the provided one")
+	suite.Equal(modelVersion.Name, getById.Name, "saved model name should match the provided one")
 	suite.Equal(*modelVersion.ExternalId, *getById.ExternalId, "saved external id should match the provided one")
 	suite.Equal(*modelVersion.State, *getById.State, "saved model state should match the original one")
 	suite.Equal(*getById.Author, author, "saved author property should match the provided one")
@@ -1216,7 +1216,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1239,7 +1239,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
 
 	ctx := ctxById.Contexts[0]
 	suite.Equal(*converter.Int64ToString(ctx.Id), *getByName.Id, "returned model version id should match the mlmd context one")
-	suite.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getByName.Name), *ctx.Name, "saved model name should match the provided one")
+	suite.Equal(fmt.Sprintf("%s:%s", registeredModelId, getByName.Name), *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByName.ExternalId, "saved external id should match the provided one")
 	suite.Equal(ctx.Properties["author"].GetStringValue(), *getByName.Author, "saved author property should match the provided one")
 }
@@ -1251,7 +1251,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1274,7 +1274,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {
 
 	ctx := ctxById.Contexts[0]
 	suite.Equal(*converter.Int64ToString(ctx.Id), *getByExternalId.Id, "returned model version id should match the mlmd context one")
-	suite.Equal(fmt.Sprintf("%s:%s", registeredModelId, *getByExternalId.Name), *ctx.Name, "saved model name should match the provided one")
+	suite.Equal(fmt.Sprintf("%s:%s", registeredModelId, getByExternalId.Name), *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByExternalId.ExternalId, "saved external id should match the provided one")
 	suite.Equal(ctx.Properties["author"].GetStringValue(), *getByExternalId.Author, "saved author property should match the provided one")
 }
@@ -1286,7 +1286,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 		Author:     &author,
 	}
@@ -1307,21 +1307,21 @@ func (suite *CoreTestSuite) TestGetModelVersions() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion1 := &openapi.ModelVersion{
-		Name:       &modelVersionName,
+		Name:       modelVersionName,
 		ExternalId: &versionExternalId,
 	}
 
 	secondModelVersionName := "v2"
 	secondModelVersionExtId := "org.myawesomemodel@v2"
 	modelVersion2 := &openapi.ModelVersion{
-		Name:       &secondModelVersionName,
+		Name:       secondModelVersionName,
 		ExternalId: &secondModelVersionExtId,
 	}
 
 	thirdModelVersionName := "v3"
 	thirdModelVersionExtId := "org.myawesomemodel@v3"
 	modelVersion3 := &openapi.ModelVersion{
-		Name:       &thirdModelVersionName,
+		Name:       thirdModelVersionName,
 		ExternalId: &thirdModelVersionExtId,
 	}
 
@@ -1341,7 +1341,7 @@ func (suite *CoreTestSuite) TestGetModelVersions() {
 	anotherModelVersionName := "v1.0"
 	anotherModelVersionExtId := "org.another@v1.0"
 	modelVersionAnother := &openapi.ModelVersion{
-		Name:       &anotherModelVersionName,
+		Name:       anotherModelVersionName,
 		ExternalId: &anotherModelVersionExtId,
 	}
 
@@ -2641,13 +2641,13 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion1Name := "v1"
-	modelVersion1 := &openapi.ModelVersion{Name: &modelVersion1Name, Description: &modelVersionDescription}
+	modelVersion1 := &openapi.ModelVersion{Name: modelVersion1Name, Description: &modelVersionDescription}
 	createdVersion1, err := service.UpsertModelVersion(modelVersion1, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
 	createdVersion1Id := *createdVersion1.Id
 
 	modelVersion2Name := "v2"
-	modelVersion2 := &openapi.ModelVersion{Name: &modelVersion2Name, Description: &modelVersionDescription}
+	modelVersion2 := &openapi.ModelVersion{Name: modelVersion2Name, Description: &modelVersionDescription}
 	createdVersion2, err := service.UpsertModelVersion(modelVersion2, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
 	createdVersion2Id := *createdVersion2.Id
@@ -2691,7 +2691,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion1Name := "v1"
-	modelVersion1 := &openapi.ModelVersion{Name: &modelVersion1Name, Description: &modelVersionDescription}
+	modelVersion1 := &openapi.ModelVersion{Name: modelVersion1Name, Description: &modelVersionDescription}
 	createdVersion1, err := service.UpsertModelVersion(modelVersion1, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	modelArtifact1Name := "v1-artifact"
@@ -2700,7 +2700,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
 	suite.Nilf(err, "error creating new model artifact for %s", *createdVersion1.Id)
 
 	modelVersion2Name := "v2"
-	modelVersion2 := &openapi.ModelVersion{Name: &modelVersion2Name, Description: &modelVersionDescription}
+	modelVersion2 := &openapi.ModelVersion{Name: modelVersion2Name, Description: &modelVersionDescription}
 	createdVersion2, err := service.UpsertModelVersion(modelVersion2, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	modelArtifact2Name := "v2-artifact"
@@ -2988,7 +2988,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		Author:      &author,
@@ -3082,7 +3082,7 @@ func (suite *CoreTestSuite) TestUpdateServeModel() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		Author:      &author,
@@ -3144,7 +3144,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		Author:      &author,
@@ -3191,7 +3191,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
-		Name:        &modelVersionName,
+		Name:        modelVersionName,
 		ExternalId:  &versionExternalId,
 		Description: &modelVersionDescription,
 		Author:      &author,
@@ -3238,19 +3238,19 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 
 	modelVersion1Name := "v1"
-	modelVersion1 := &openapi.ModelVersion{Name: &modelVersion1Name, Description: &modelVersionDescription}
+	modelVersion1 := &openapi.ModelVersion{Name: modelVersion1Name, Description: &modelVersionDescription}
 	createdVersion1, err := service.UpsertModelVersion(modelVersion1, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
 	createdVersion1Id := *createdVersion1.Id
 
 	modelVersion2Name := "v2"
-	modelVersion2 := &openapi.ModelVersion{Name: &modelVersion2Name, Description: &modelVersionDescription}
+	modelVersion2 := &openapi.ModelVersion{Name: modelVersion2Name, Description: &modelVersionDescription}
 	createdVersion2, err := service.UpsertModelVersion(modelVersion2, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
 	createdVersion2Id := *createdVersion2.Id
 
 	modelVersion3Name := "v3"
-	modelVersion3 := &openapi.ModelVersion{Name: &modelVersion3Name, Description: &modelVersionDescription}
+	modelVersion3 := &openapi.ModelVersion{Name: modelVersion3Name, Description: &modelVersionDescription}
 	createdVersion3, err := service.UpsertModelVersion(modelVersion3, &registeredModelId)
 	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
 	createdVersion3Id := *createdVersion3.Id

@@ -100,6 +100,21 @@ func MapNameFromOwned(source *string) *string {
 	return &exploded[1]
 }
 
+// MapName derive the entity name from the mlmd fullname
+// for owned entity such as ModelVersion
+// for potentially owned entity such as ModelArtifact
+func MapName(source *string) string {
+	if source == nil {
+		return ""
+	}
+
+	exploded := strings.Split(*source, ":")
+	if len(exploded) == 1 {
+		return *source
+	}
+	return exploded[1]
+}
+
 // REGISTERED MODEL
 
 // MODEL VERSION
