@@ -30,11 +30,11 @@ COPY patches/ patches/
 COPY templates/ templates/
 
 # Download tools
-RUN make deps
+RUN make deps go-deps
 
 # Build
 USER root
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
+RUN PATH=$PATH:/opt/app-root/src/go/bin CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean model-registry
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

@@ -1,11 +1,4 @@
-# Useful paths
-MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
-PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
-
-# add tools bin directory
-PATH := $(PROJECT_BIN):$(PATH)
 
 # container tool
 DOCKER ?= docker

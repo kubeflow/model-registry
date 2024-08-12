@@ -64,7 +64,7 @@ internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
 gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
+	goverter gen github.com/kubeflow/model-registry/internal/converter/
 
 .PHONY: gen/converter
 gen/converter: gen/grpc internal/converter/generated/converter.go
@@ -104,29 +104,22 @@ vet:
 clean:
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
 
-.PHONY: clean/odh
-clean/odh:
+.PHONY: clean/docker
+clean/docker:
 	rm -Rf ./model-registry
 
 bin/protoc:
 	./scripts/install_protoc.sh
 
-bin/go-enum:
-	GOBIN=$(PROJECT_BIN) ${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
-
-bin/protoc-gen-go:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
-
-bin/protoc-gen-go-grpc:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+go-deps:
+	${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
+	${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	${GO} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+	${GO} install github.com/jmattheis/goverter/cmd/goverter@v1.4.1
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.59.1
-
-GOVERTER ?= ${PROJECT_BIN}/goverter
-bin/goverter:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/jmattheis/goverter/cmd/goverter@v1.4.1
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
@@ -151,7 +144,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli
+deps: bin/protoc bin/golangci-lint bin/openapi-generator-cli
 
 .PHONY: vendor
 vendor:
@@ -159,11 +152,11 @@ vendor:
 
 .PHONY: build
 build: gen vet lint
-	${GO} build -buildvcs=false
+	${GO} build
 
-.PHONY: build/odh
-build/odh: vet
-	${GO} build -buildvcs=false
+.PHONY: build/docker
+build/docker: vet
+	${GO} build
 
 .PHONY: gen
 gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter

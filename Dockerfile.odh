@@ -21,7 +21,7 @@ COPY internal/ internal/
 COPY pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean/odh build/odh
+RUN PATH=$PATH:/opt/app-root/src/go/bin CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean/odh build/odh
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

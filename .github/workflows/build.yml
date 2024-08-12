@@ -23,6 +23,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.21"
+      - name: install go deps
+        run: make go-deps
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

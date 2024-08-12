@@ -10,10 +10,20 @@ Model registry provides a central repository for model developers to store and m
 
 ## Pre-requisites:
 - go >= 1.21
+- go-enum >= 1.2.97
+- protoc-gen-go >= 1.31.0
+- protoc-gen-go-grpc >= 1.3.0
+- goverter >= 1.4.1
 - protoc v24.3 - [Protocol Buffers v24.3 Release](https://github.com/protocolbuffers/protobuf/releases/tag/v24.3)
 - npm >= 10.2.0 - [Installing Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Java >= 11.0
 - python 3.9
+
+To install the go dependencies you can use
+
+```sh
+make go-deps
+```
 
 ## OpenAPI Proxy Server
 
