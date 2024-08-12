@@ -26,7 +26,7 @@ type RegisteredModelCreate struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name  *string               `json:"name,omitempty"`
+	Name  string                `json:"name"`
 	Owner *string               `json:"owner,omitempty"`
 	State *RegisteredModelState `json:"state,omitempty"`
 }
@@ -35,8 +35,9 @@ type RegisteredModelCreate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegisteredModelCreate() *RegisteredModelCreate {
+func NewRegisteredModelCreate(name string) *RegisteredModelCreate {
 	this := RegisteredModelCreate{}
+	this.Name = name
 	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
 	this.State = &state
 	return &this
@@ -148,36 +149,28 @@ func (o *RegisteredModelCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise.
+// GetName returns the Name field value
 func (o *RegisteredModelCreate) GetName() string {
-	if o == nil || IsNil(o.Name) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.Name
+
+	return o.Name
 }
 
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *RegisteredModelCreate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Name, true
+	return &o.Name, true
 }
 
-// HasName returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
+// SetName sets field value
 func (o *RegisteredModelCreate) SetName(v string) {
-	o.Name = &v
+	o.Name = v
 }
 
 // GetOwner returns the Owner field value if set, zero value otherwise.
@@ -263,9 +256,7 @@ func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner
 	}

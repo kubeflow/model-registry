@@ -40,7 +40,7 @@ func setup(t *testing.T) (*assert.Assertions, *Mapper) {
 func TestMapFromRegisteredModel(t *testing.T) {
 	assertion, m := setup(t)
 
-	ctx, err := m.MapFromRegisteredModel(&openapi.RegisteredModel{Name: of("ModelName")})
+	ctx, err := m.MapFromRegisteredModel(&openapi.RegisteredModel{Name: "ModelName"})
 	assertion.Nil(err)
 	assertion.Equal("ModelName", ctx.GetName())
 	assertion.Equal(registeredModelTypeId, ctx.GetTypeId())
@@ -49,7 +49,7 @@ func TestMapFromRegisteredModel(t *testing.T) {
 func TestMapFromModelVersion(t *testing.T) {
 	assertion, m := setup(t)
 
-	ctx, err := m.MapFromModelVersion(&openapi.ModelVersion{Name: of("v1")}, "1", of("ModelName"))
+	ctx, err := m.MapFromModelVersion(&openapi.ModelVersion{Name: "v1"}, "1", "ModelName")
 	assertion.Nil(err)
 	assertion.Equal("1:v1", ctx.GetName())
 	assertion.Equal(modelVersionTypeId, ctx.GetTypeId())
@@ -277,12 +277,7 @@ func TestMapToServeModelInvalid(t *testing.T) {
 }
 
 func TestMapTo(t *testing.T) {
-	_, err := mapTo[*proto.Execution, any](&proto.Execution{TypeId: of(registeredModelTypeId)}, typesMap, "notExisitingTypeName", func(e *proto.Execution) (*any, error) { return nil, nil })
+	_, err := mapTo(&proto.Execution{TypeId: of(registeredModelTypeId)}, typesMap, "notExisitingTypeName", func(e *proto.Execution) (*any, error) { return nil, nil })
 	assert.NotNil(t, err)
 	assert.Equal(t, "unknown type name provided: notExisitingTypeName", err.Error())
-}
-
-// of returns a pointer to the provided literal/const input
-func of[E any](e E) *E {
-	return &e
 }

@@ -239,10 +239,7 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 			xstring2 := *(*source).ExternalId
 			openapiModelVersion.ExternalId = &xstring2
 		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiModelVersion.Name = &xstring3
-		}
+		openapiModelVersion.Name = (*source).Name
 		if (*source).State != nil {
 			openapiModelVersionState, err := c.openapiModelVersionStateToOpenapiModelVersionState(*(*source).State)
 			if err != nil {
@@ -251,8 +248,8 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVe
 			openapiModelVersion.State = &openapiModelVersionState
 		}
 		if (*source).Author != nil {
-			xstring4 := *(*source).Author
-			openapiModelVersion.Author = &xstring4
+			xstring3 := *(*source).Author
+			openapiModelVersion.Author = &xstring3
 		}
 		openapiModelVersion.RegisteredModelId = (*source).RegisteredModelId
 		pOpenapiModelVersion = &openapiModelVersion
@@ -318,13 +315,10 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 			xstring2 := *(*source).ExternalId
 			openapiRegisteredModel.ExternalId = &xstring2
 		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiRegisteredModel.Name = &xstring3
-		}
+		openapiRegisteredModel.Name = (*source).Name
 		if (*source).Owner != nil {
-			xstring4 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring4
+			xstring3 := *(*source).Owner
+			openapiRegisteredModel.Owner = &xstring3
 		}
 		if (*source).State != nil {
 			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)
@@ -555,11 +549,10 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source convert
 	openapiModelVersion := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.Name
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiModelVersion.Name = &xstring
+		openapiModelVersion.Name = *pString
 	}
 	var pString2 *string
 	if source.Existing != nil {
@@ -574,11 +567,10 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source conv
 	openapiRegisteredModel := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.Name
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiRegisteredModel.Name = &xstring
+		openapiRegisteredModel.Name = *pString
 	}
 	return openapiRegisteredModel, nil
 }

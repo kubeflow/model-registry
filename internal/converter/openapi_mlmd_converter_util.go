@@ -177,7 +177,7 @@ func MapModelVersionProperties(source *OpenAPIModelWrapper[openapi.ModelVersion]
 		}
 		props["version"] = &proto.Value{
 			Value: &proto.Value_StringValue{
-				StringValue: *(*source.Model).Name,
+				StringValue: (*source.Model).Name,
 			},
 		}
 
@@ -208,7 +208,7 @@ func MapModelVersionType(_ *openapi.ModelVersion) *string {
 // MapModelVersionName maps the user-provided name into MLMD one, i.e., prefixing it with
 // either the parent resource id or a generated uuid
 func MapModelVersionName(source *OpenAPIModelWrapper[openapi.ModelVersion]) *string {
-	return of(PrefixWhenOwned(source.ParentResourceId, *(*source).Model.Name))
+	return of(PrefixWhenOwned(source.ParentResourceId, (*source).Model.Name))
 }
 
 // ARTIFACT

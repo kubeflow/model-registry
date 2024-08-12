@@ -1023,10 +1023,18 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelCreate:
       description: A registered model in model registry. A registered model has ModelVersion children.
+      required:
+        - name
       allOf:
         - type: object
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/RegisteredModelUpdate"
+          properties:
+            name:
+              description: |-
+                The client provided name of the model. It must be unique among all the RegisteredModels of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
     RegisteredModelUpdate:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1045,6 +1053,7 @@ components:
     ModelVersionCreate:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       required:
+        - name
         - registeredModelId
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
@@ -1053,6 +1062,11 @@ components:
           properties:
             registeredModelId:
               description: ID of the `RegisteredModel` to which this version belongs.
+              type: string
+            name:
+              description: |-
+                The client provided name of the model's version. It must be unique among all the ModelVersions of the same
+                type within a Model Registry instance and cannot be changed once set.
               type: string
     ModelVersionUpdate:
       description: Represents a ModelVersion belonging to a RegisteredModel.

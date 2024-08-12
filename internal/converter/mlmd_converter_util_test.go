@@ -216,7 +216,7 @@ func TestMapModelVersionProperties(t *testing.T) {
 		ParentResourceId: of("123"),
 		ModelName:        of("MyModel"),
 		Model: &openapi.ModelVersion{
-			Name:        of("v1"),
+			Name:        "v1",
 			Description: of("my model version description"),
 			Author:      of("John Doe"),
 		},
@@ -244,7 +244,7 @@ func TestMapModelVersionName(t *testing.T) {
 		ParentResourceId: of("123"),
 		ModelName:        of("MyModel"),
 		Model: &openapi.ModelVersion{
-			Name: of("v1"),
+			Name: "v1",
 		},
 	})
 	assertion.NotNil(name)

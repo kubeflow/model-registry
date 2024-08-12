@@ -24,6 +24,11 @@ func NewMapper(mlmdTypes map[string]int64) *Mapper {
 	}
 }
 
+// of returns a pointer to the provided literal/const input
+func of[E any](e E) *E {
+	return &e
+}
+
 // Utilities for OpenAPI --> MLMD mapping, make use of generated Converters
 
 func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel) (*proto.Context, error) {
@@ -33,12 +38,12 @@ func (m *Mapper) MapFromRegisteredModel(registeredModel *openapi.RegisteredModel
 	})
 }
 
-func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registeredModelId string, registeredModelName *string) (*proto.Context, error) {
+func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registeredModelId string, registeredModelName string) (*proto.Context, error) {
 	return m.OpenAPIConverter.ConvertModelVersion(&converter.OpenAPIModelWrapper[openapi.ModelVersion]{
 		TypeId:           m.MLMDTypes[defaults.ModelVersionTypeName],
 		Model:            modelVersion,
 		ParentResourceId: &registeredModelId,
-		ModelName:        registeredModelName,
+		ModelName:        of(registeredModelName),
 	})
 }
 
