@@ -77,7 +77,7 @@ openapi/validate: bin/openapi-generator-cli
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
 gen/openapi-server: bin/openapi-generator-cli openapi/validate
-	@if git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
+	@if git diff --cached --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
 		git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
 		[ -n "${FORCE_SERVER_GENERATION}" ]; then \
 		./scripts/gen_openapi_server.sh; \
