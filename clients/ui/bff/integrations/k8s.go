@@ -13,13 +13,16 @@ import (
 type KubernetesClientInterface interface {
 	GetServiceNames() ([]string, error)
 	GetServiceDetailsByName(serviceName string) (ServiceDetails, error)
+	GetServiceDetails() ([]ServiceDetails, error)
 	BearerToken() (string, error)
 }
 
 type ServiceDetails struct {
-	Name      string
-	ClusterIP string
-	HTTPPort  int32
+	Name        string
+	DisplayName string
+	Description string
+	ClusterIP   string
+	HTTPPort    int32
 }
 
 type KubernetesClient struct {
@@ -79,7 +82,6 @@ func buildModelRegistryServiceCache(logger *slog.Logger, services v1.ServiceList
 	serviceCache := make(map[string]ServiceDetails)
 	for _, service := range services.Items {
 		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == "model-registry-server" {
-
 			var httpPort int32
 			hasHTTPPort := false
 			for _, port := range service.Spec.Ports {
@@ -98,6 +100,8 @@ func buildModelRegistryServiceCache(logger *slog.Logger, services v1.ServiceList
 				continue
 			}
 
+			//TODO (acreasy) DisplayName and Description need to be included and not given a zero value once we
+			// know how this will be implemented.
 			serviceCache[service.Name] = ServiceDetails{
 				Name:      service.Name,
 				ClusterIP: service.Spec.ClusterIP,
@@ -121,6 +125,21 @@ func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
 		}
 	}
 	return serviceNames, nil
+}
+
+func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
+	var services []ServiceDetails
+
+	for _, service := range kc.ServiceCache {
+		if service.Name != "" {
+			services = append(services, ServiceDetails{
+				Name:        service.Name,
+				DisplayName: service.DisplayName,
+				Description: service.Description,
+			})
+		}
+	}
+	return services, nil
 }
 
 func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (ServiceDetails, error) {

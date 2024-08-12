@@ -7,7 +7,7 @@ import (
 
 func (app *App) ModelRegistryHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	registries, err := app.models.ModelRegistry.FetchAllModelRegistry(app.kubernetesClient)
+	registries, err := app.models.ModelRegistry.FetchAllModelRegistries(app.kubernetesClient)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

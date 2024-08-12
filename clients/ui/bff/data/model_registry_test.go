@@ -11,14 +11,14 @@ func TestFetchAllModelRegistry(t *testing.T) {
 
 	model := ModelRegistryModel{}
 
-	registries, err := model.FetchAllModelRegistry(mockK8sClient)
+	registries, err := model.FetchAllModelRegistries(mockK8sClient)
 
 	assert.NoError(t, err)
 
 	expectedRegistries := []ModelRegistryModel{
-		{Name: "model-registry"},
-		{Name: "model-registry-dora"},
-		{Name: "model-registry-bella"},
+		{Name: "model-registry", Description: "Model registry description", DisplayName: "Model Registry"},
+		{Name: "model-registry-dora", Description: "Model registry dora description", DisplayName: "Model Registry Dora"},
+		{Name: "model-registry-bella", Description: "Model registry bella description", DisplayName: "Model Registry Bella"},
 	}
 	assert.Equal(t, expectedRegistries, registries)
 
