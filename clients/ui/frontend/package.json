@@ -65,7 +65,7 @@
     "raw-loader": "^4.0.2",
     "react-router-dom": "^6.4.1",
     "regenerator-runtime": "^0.14.1",
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "serve": "^14.2.1",
     "style-loader": "^3.3.4",
     "svg-url-loader": "^8.0.0",
