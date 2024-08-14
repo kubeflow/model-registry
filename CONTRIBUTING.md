@@ -84,6 +84,25 @@ export TESTCONTAINERS_RYUK_PRIVILEGED=true
 
 when running TestContainer-based Model Registry Python tests (for more information, see [here](https://pypi.org/project/testcontainers/#:~:text=TESTCONTAINERS_RYUK_PRIVILEGED)).
 
+#### Fedora
+
+Fedora requires further setup to make testcontainers work with Podman, the following steps are required:
+
+- start the podman socket service
+
+```sh
+systemctl --user start podman.socket
+```
+
+- set the environment variables
+
+```sh
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export TESTCONTAINERS_RYUK_PRIVILEGED=true
+```
+
+If you need more information, please refer to the [Testcontainers using Podman](https://golang.testcontainers.org/system_requirements/using_podman/).
+
 ### Colima
 
 Colima offers Rosetta (Apple specific) emulation which is handy since the Google MLMD project dependency is x86 specific.
