@@ -36,9 +36,8 @@ class ModelVersionCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
+    name: StrictStr = Field(
+        description="The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set."
     )
     state: ModelVersionState | None = None
     author: StrictStr | None = Field(default=None, description="Name of the author.")
