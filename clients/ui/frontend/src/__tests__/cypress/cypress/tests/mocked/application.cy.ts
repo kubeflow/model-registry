@@ -1,5 +1,5 @@
-import { pageNotfound } from "~/src/__tests__/cypress/cypress/pages/pageNoteFound";
-import { home } from "~/src/__tests__/cypress/cypress/pages/home";
+import { pageNotfound } from "~/__tests__/cypress/cypress/pages/pageNoteFound";
+import { home } from "~/__tests__/cypress/cypress/pages/home";
 
 describe('Application', () => {
 

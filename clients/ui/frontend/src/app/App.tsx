@@ -1,7 +1,7 @@
 import * as React from 'react';
 import '@patternfly/react-core/dist/styles/base.css';
-import AppRoutes from '@app/AppRoutes';
-import '@app/app.css';
+import AppRoutes from './AppRoutes';
+import './app.css';
 import {
   Flex,
   Masthead,
