@@ -2,13 +2,14 @@ import os
 from itertools import islice
 
 import pytest
+
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 
 from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
 
 
-@pytest.fixture()
+@pytest.fixture
 @cleanup
 def client() -> ModelRegistry:
     return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)

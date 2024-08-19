@@ -1,6 +1,7 @@
 import os
 
 import pytest
+
 from model_registry.exceptions import MissingMetadata
 from model_registry.utils import s3_uri_from
 

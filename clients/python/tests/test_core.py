@@ -1,6 +1,7 @@
 """Tests for user facing model registry APIs."""
 
 import pytest
+
 from model_registry.core import ModelRegistryAPIClient
 from model_registry.types import (
     DocArtifact,
@@ -13,7 +14,7 @@ from model_registry.types import (
 from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
 
 
-@pytest.fixture()
+@pytest.fixture
 @cleanup
 def client():
     return ModelRegistryAPIClient.insecure_connection(REGISTRY_HOST, REGISTRY_PORT)
@@ -41,7 +42,7 @@ async def test_update_registered_model(client: ModelRegistryAPIClient):
     assert rm.last_update_time_since_epoch != last_update
 
 
-@pytest.fixture()
+@pytest.fixture
 async def registered_model(client: ModelRegistryAPIClient) -> RegisteredModel:
     return await client.upsert_registered_model(
         RegisteredModel(name="registered", external_id="mr id")
@@ -126,7 +127,7 @@ async def test_update_model_version(
     assert mv.last_update_time_since_epoch != last_update
 
 
-@pytest.fixture()
+@pytest.fixture
 async def model_version(
     client: ModelRegistryAPIClient, registered_model: RegisteredModel
 ) -> ModelVersion:
@@ -240,7 +241,7 @@ async def test_update_model_artifact(
     assert ma.last_update_time_since_epoch != last_update
 
 
-@pytest.fixture()
+@pytest.fixture
 async def model(
     client: ModelRegistryAPIClient,
     model_version: ModelVersion,

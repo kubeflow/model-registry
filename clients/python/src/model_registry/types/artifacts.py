@@ -15,6 +15,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar
 
+from typing_extensions import override
+
 from mr_openapi import (
     Artifact as ArtifactBaseModel,
 )
@@ -29,7 +31,6 @@ from mr_openapi import (
 from mr_openapi import (
     ModelArtifact as ModelArtifactBaseModel,
 )
-from typing_extensions import override
 
 from .base import BaseResourceModel
 
