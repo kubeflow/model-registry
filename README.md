@@ -136,7 +136,7 @@ directly checking the end results in the backend gRPC MLMD server.
 ## Tips
 ### Pull image rate limiting
 
-Ocassionally you may encounter an 'ImagePullBackOff' error within the model-registry-db container. See example below. 
+Ocassionally you may encounter an 'ImagePullBackOff' error when deploying the Model Registry manifests. See example below for the `model-registry-db` container. 
 
 ```
 Failed to pull image “mysql:8.3.0”: rpc error: code = Unknown desc = fetching target platform image selected from image index: reading manifest sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62 in docker.io/library/mysql: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
