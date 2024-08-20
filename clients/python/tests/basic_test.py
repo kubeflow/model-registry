@@ -1,7 +1,8 @@
 """Tests creation and retrieval of base models."""
 
-import mr_openapi
 import pytest
+
+import mr_openapi
 from mr_openapi import (
     Artifact,
     DocArtifact,
@@ -14,7 +15,7 @@ from mr_openapi import (
 from .conftest import REGISTRY_URL, cleanup
 
 
-@pytest.fixture()
+@pytest.fixture
 @cleanup
 async def client():
     config = mr_openapi.Configuration(REGISTRY_URL)
@@ -24,12 +25,12 @@ async def client():
     await api_client.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def rm_create() -> RegisteredModelCreate:
     return RegisteredModelCreate(name="registered", description="a registered model")
 
 
-@pytest.fixture()
+@pytest.fixture
 async def mv_create(client, rm_create) -> ModelVersionCreate:
     # HACK: create an RM first because we need an ID for the instance
     rm = await client.create_registered_model(rm_create)

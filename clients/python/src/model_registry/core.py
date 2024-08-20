@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TypeVar, cast
 
+from typing_extensions import overload
+
 from mr_openapi import (
     ApiClient,
     Configuration,
@@ -15,7 +17,6 @@ from mr_openapi import (
 from mr_openapi import (
     exceptions as mr_exceptions,
 )
-from typing_extensions import overload
 
 from ._utils import required_args
 from .types import (

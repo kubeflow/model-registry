@@ -132,14 +132,13 @@ class MetadataValue(BaseModel):
                 "Multiple matches found when setting `actual_instance` in MetadataValue with oneOf schemas: MetadataBoolValue, MetadataDoubleValue, MetadataIntValue, MetadataProtoValue, MetadataStringValue, MetadataStructValue. Details: "
                 + ", ".join(error_messages)
             )
-        elif match == 0:
+        if match == 0:
             # no match
             raise ValueError(
                 "No match found when setting `actual_instance` in MetadataValue with oneOf schemas: MetadataBoolValue, MetadataDoubleValue, MetadataIntValue, MetadataProtoValue, MetadataStringValue, MetadataStructValue. Details: "
                 + ", ".join(error_messages)
             )
-        else:
-            return v
+        return v
 
     @classmethod
     def from_dict(cls, obj: str | dict[str, Any]) -> Self:
@@ -231,14 +230,13 @@ class MetadataValue(BaseModel):
                 "Multiple matches found when deserializing the JSON string into MetadataValue with oneOf schemas: MetadataBoolValue, MetadataDoubleValue, MetadataIntValue, MetadataProtoValue, MetadataStringValue, MetadataStructValue. Details: "
                 + ", ".join(error_messages)
             )
-        elif match == 0:
+        if match == 0:
             # no match
             raise ValueError(
                 "No match found when deserializing the JSON string into MetadataValue with oneOf schemas: MetadataBoolValue, MetadataDoubleValue, MetadataIntValue, MetadataProtoValue, MetadataStringValue, MetadataStructValue. Details: "
                 + ", ".join(error_messages)
             )
-        else:
-            return instance
+        return instance
 
     def to_json(self) -> str:
         """Returns the JSON representation of the actual instance."""
@@ -247,8 +245,7 @@ class MetadataValue(BaseModel):
 
         if hasattr(self.actual_instance, "to_json") and callable(self.actual_instance.to_json):
             return self.actual_instance.to_json()
-        else:
-            return json.dumps(self.actual_instance)
+        return json.dumps(self.actual_instance)
 
     def to_dict(
         self,
@@ -268,9 +265,8 @@ class MetadataValue(BaseModel):
 
         if hasattr(self.actual_instance, "to_dict") and callable(self.actual_instance.to_dict):
             return self.actual_instance.to_dict()
-        else:
-            # primitive type
-            return self.actual_instance
+        # primitive type
+        return self.actual_instance
 
     def to_str(self) -> str:
         """Returns the string representation of the actual instance."""
