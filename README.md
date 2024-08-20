@@ -134,7 +134,7 @@ End-to-end testing is developed with Robot Framework; this higher-lever layer of
 directly checking the end results in the backend gRPC MLMD server.
 
 ## Tips
-### Model-Registry-db mysql:8.3.0 rate limiting
+### Pull image rate limiting
 
 Ocassionally you may encounter an 'ImagePullBackOff' error within the model-registry-db container. See example below. 
 
