@@ -133,7 +133,7 @@ End-to-end testing is developed with Robot Framework; this higher-lever layer of
 - demonstrate coherent logical data mapping by performing the same high level capabilities, using REST API flow Vs Python client flow,
 directly checking the end results in the backend gRPC MLMD server.
 
-## Known Issues
+## Tips
 ### Model-Registry-db mysql:8.3.0 rate limiting
 
 Ocassionally you may encounter an 'ImagePullBackOff' error within the model-registry-db container. See example below. 
