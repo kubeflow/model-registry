@@ -132,3 +132,19 @@ End-to-end testing is developed with Robot Framework; this higher-lever layer of
 - demonstrate *User Stories* from high level perspective
 - demonstrate coherent logical data mapping by performing the same high level capabilities, using REST API flow Vs Python client flow,
 directly checking the end results in the backend gRPC MLMD server.
+
+## Known Issues
+### Model-Registry-db mysql:8.3.0 rate limiting
+
+Ocassionally you may encounter an 'ImagePullBackOff' error within the model-registry-db container. See example below. 
+
+```
+Failed to pull image “mysql:8.3.0”: rpc error: code = Unknown desc = fetching target platform image selected from image index: reading manifest sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62 in docker.io/library/mysql: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
+```
+
+This error is caused by the use of the image tag mysql:8.3.0. To mitigate against this error you can use the following image, to be updated in the file with key value pair.
+```
+manifests/kustomize/overlays/db/model-registry-db-deployment.yaml file.
+
+spec.template.spec.containers.image: public.ecr.aws/docker/library/mysql:8.3.0
+```
