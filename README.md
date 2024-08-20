@@ -142,7 +142,7 @@ Ocassionally you may encounter an 'ImagePullBackOff' error when deploying the Mo
 Failed to pull image “mysql:8.3.0”: rpc error: code = Unknown desc = fetching target platform image selected from image index: reading manifest sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62 in docker.io/library/mysql: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
 ```
 
-This error is caused by the use of the image tag mysql:8.3.0. To mitigate against this error you can use the following image, to be updated in the file with key value pair.
+This error is triggered by the rate limits from docker.io; in this example specifically about the image `mysql:8.3.0` (the expanded reference is `docker.io/library/mysql:8.3.0`). To mitigate against this error you could [authenticate using image pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for _local development_; or replace the image used with alternative mirrored images, for instance with the following example:
 ```
 manifests/kustomize/overlays/db/model-registry-db-deployment.yaml file.
 
