@@ -9,7 +9,7 @@ import cypressHighResolution from 'cypress-high-resolution';
 // @ts-ignore no types available
 import { beforeRunHook, afterRunHook } from 'cypress-mochawesome-reporter/lib';
 import { mergeFiles } from 'junit-report-merger';
-import { env, BASE_URL } from '~/src/__tests__/cypress/cypress/utils/testConfig';
+import { env, BASE_URL } from '~/__tests__/cypress/cypress/utils/testConfig';
 
 
 const resultsDir = `${env.CY_RESULTS_DIR || 'results'}/${env.CY_MOCK ? 'mocked' : 'e2e'}`;

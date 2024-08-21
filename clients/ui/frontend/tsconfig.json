@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "rootDir": ".",
     "outDir": "dist",
     "module": "esnext",
@@ -12,21 +12,16 @@
     "sourceMap": true,
     "jsx": "react",
     "moduleResolution": "node",
+    "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "paths": {
-      "@app/*": [
-        "src/app/*"
-      ],
-      "@assets/*": [
-        "node_modules/@patternfly/react-core/dist/styles/assets/*"
-      ],
       "~/*": ["./*"]
     },
     "importHelpers": true,
@@ -37,9 +32,10 @@
     "**/*.tsx",
     "**/*.jsx",
     "**/*.js",
-    ".eslintrc.js"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist",
+    "src/__tests__/cypress"
   ]
 }

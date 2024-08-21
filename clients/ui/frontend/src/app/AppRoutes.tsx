@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Dashboard } from '@app/Dashboard/Dashboard';
-import { Support } from '@app/Support/Support';
-import { NotFound } from '@app/NotFound/NotFound';
-import { Admin } from '@app/Settings/Admin';
+import { Dashboard } from './Dashboard/Dashboard';
+import { Support } from './Support/Support';
+import { NotFound } from './NotFound/NotFound';
+import { Admin } from './Settings/Admin';
 
 export const isNavDataGroup = (navItem: NavDataItem): navItem is NavDataGroup => 'children' in navItem;
 
