@@ -1,11 +1,11 @@
 class Home {
-    visit() {
-      cy.visit(`/`);
-    }
-  
-    findButton() {
-      return cy.get('button:contains("Primary Action")');
-    }
+  visit() {
+    cy.visit(`/`);
   }
-  
-  export const home = new Home();
+
+  findButton() {
+    return cy.get('button:contains("Primary Action")');
+  }
+}
+
+export const home = new Home();

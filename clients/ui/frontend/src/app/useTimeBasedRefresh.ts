@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useBrowserStorage } from '~/components/browserStorage';
 
-
 export type SetTime = (refreshDateMarker: Date) => void;
 
 const useTimeBasedRefresh = (): SetTime => {
