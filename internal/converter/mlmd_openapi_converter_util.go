@@ -97,7 +97,9 @@ func MapNameFromOwned(source *string) *string {
 	if len(exploded) == 1 {
 		return source
 	}
-	return &exploded[1]
+	// cat remaining parts of the exploded string
+	joined := strings.Join(exploded[1:], ":")
+	return &joined
 }
 
 // MapName derive the entity name from the mlmd fullname
@@ -124,7 +126,7 @@ func MapRegisteredModelIdFromOwned(source *string) (string, error) {
 	}
 
 	exploded := strings.Split(*source, ":")
-	if len(exploded) != 2 {
+	if len(exploded) < 2 {
 		return "", fmt.Errorf("wrong owned format")
 	}
 	return exploded[0], nil
