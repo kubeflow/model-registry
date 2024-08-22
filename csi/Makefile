@@ -2,7 +2,7 @@
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
-GO := $(PROJECT_BIN)/go1.21.9
+GO ?= "$(shell which go)"
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
@@ -32,33 +32,26 @@ help: ## Display this help.
 
 ##@ Development
 
-bin-go: ## Install go tool
-	GOBIN=$(PROJECT_BIN) go install golang.org/dl/go1.21.9@latest
-	$(PROJECT_BIN)/go1.21.9 download
-
-.PHONY: bin
-bin: bin-go ## Install required dependencies
-
 .PHONY: tidy
 tidy: ## Run go mod tidy.
 	${GO} mod tidy
 
 .PHONY: fmt
-fmt: bin ## Run go fmt against code.
+fmt: ## Run go fmt against code.
 	${GO} fmt ./...
 
 .PHONY: vet
-vet: bin ## Run go vet against code.
+vet: ## Run go vet against code.
 	${GO} vet ./...
 
 .PHONY: test
-test: fmt vet bin ## Run tests.
+test: fmt vet ## Run tests.
 	${GO} test ./... -coverprofile cover.out
 
 ##@ Build
 
 .PHONY: build
-build: fmt vet bin ## Build binary.
+build: fmt vet ## Build binary.
 	${GO} build -o bin/mr-storage-initializer main.go
 
 .PHONY: run
