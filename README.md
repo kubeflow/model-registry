@@ -133,6 +133,13 @@ End-to-end testing is developed with Robot Framework; this higher-lever layer of
 - demonstrate coherent logical data mapping by performing the same high level capabilities, using REST API flow Vs Python client flow,
 directly checking the end results in the backend gRPC MLMD server.
 
+## FAQ
+
+### How do I delete metadata resources using the Model Registry API?
+
+MR utilizes a common `ARCHIVED` status for all types.
+To delete something, simply update its status.
+
 ## Tips
 ### Pull image rate limiting
 
