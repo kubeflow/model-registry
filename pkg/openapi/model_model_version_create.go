@@ -25,8 +25,8 @@ type ModelVersionCreate struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name  *string            `json:"name,omitempty"`
+	// The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set.
+	Name  string             `json:"name"`
 	State *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
@@ -38,8 +38,9 @@ type ModelVersionCreate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelVersionCreate(registeredModelId string) *ModelVersionCreate {
+func NewModelVersionCreate(name string, registeredModelId string) *ModelVersionCreate {
 	this := ModelVersionCreate{}
+	this.Name = name
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
 	this.RegisteredModelId = registeredModelId
@@ -152,36 +153,28 @@ func (o *ModelVersionCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise.
+// GetName returns the Name field value
 func (o *ModelVersionCreate) GetName() string {
-	if o == nil || IsNil(o.Name) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.Name
+
+	return o.Name
 }
 
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
 func (o *ModelVersionCreate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Name, true
+	return &o.Name, true
 }
 
-// HasName returns a boolean if a field has been set.
-func (o *ModelVersionCreate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
+// SetName sets field value
 func (o *ModelVersionCreate) SetName(v string) {
-	o.Name = &v
+	o.Name = v
 }
 
 // GetState returns the State field value if set, zero value otherwise.
@@ -291,9 +284,7 @@ func (o ModelVersionCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}

@@ -122,7 +122,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 			xstring := *(*source).ExternalId
 			openapiModelVersion.ExternalId = &xstring
 		}
-		openapiModelVersion.Name = converter.MapNameFromOwned((*source).Name)
+		openapiModelVersion.Name = converter.MapName((*source).Name)
 		openapiModelVersion.State = converter.MapModelVersionState((*source).Properties)
 		openapiModelVersion.Author = converter.MapPropertyAuthor((*source).Properties)
 		xstring2, err := converter.MapRegisteredModelIdFromOwned((*source).Name)
@@ -152,8 +152,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Contex
 			openapiRegisteredModel.ExternalId = &xstring
 		}
 		if (*source).Name != nil {
-			xstring2 := *(*source).Name
-			openapiRegisteredModel.Name = &xstring2
+			openapiRegisteredModel.Name = *(*source).Name
 		}
 		openapiRegisteredModel.Id = converter.Int64ToString((*source).Id)
 		openapiRegisteredModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)

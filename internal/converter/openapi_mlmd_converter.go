@@ -8,10 +8,10 @@ import (
 type OpenAPIModelWrapper[
 	M OpenAPIModel,
 ] struct {
-	TypeId           int64
 	Model            *M
-	ParentResourceId *string // optional parent id
-	ModelName        *string // optional registered model name
+	ParentResourceId *string
+	ModelName        *string
+	TypeId           int64
 }
 
 // goverter:converter

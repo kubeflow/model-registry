@@ -8,7 +8,7 @@ import {
   PageSidebar,
   PageSidebarBody,
 } from '@patternfly/react-core';
-import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from '@app/AppRoutes';
+import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from './AppRoutes';
 
 const NavHref: React.FC<{ item: NavDataHref }> = ({ item }) => (
   <NavItem

@@ -11,6 +11,8 @@ Todo:
 
 from __future__ import annotations
 
+from typing_extensions import override
+
 from mr_openapi import (
     ModelVersion as ModelVersionBaseModel,
 )
@@ -25,7 +27,6 @@ from mr_openapi import (
 from mr_openapi import (
     RegisteredModel as RegisteredModelBaseModel,
 )
-from typing_extensions import override
 
 from .base import BaseResourceModel
 

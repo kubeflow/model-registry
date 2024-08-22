@@ -6,8 +6,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Any, Union, get_args
 
-from mr_openapi.models.metadata_value import MetadataValue
 from pydantic import BaseModel, ConfigDict
+
+from mr_openapi.models.metadata_value import MetadataValue
 
 SupportedTypes = Union[bool, int, float, str]
 

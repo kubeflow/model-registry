@@ -524,6 +524,7 @@ func AssertModelArtifactUpdateConstraints(obj model.ModelArtifactUpdate) error {
 // AssertModelVersionRequired checks if the required fields are not zero-ed
 func AssertModelVersionRequired(obj model.ModelVersion) error {
 	elements := map[string]interface{}{
+		"name":              obj.Name,
 		"registeredModelId": obj.RegisteredModelId,
 	}
 	for name, el := range elements {
@@ -543,6 +544,7 @@ func AssertModelVersionConstraints(obj model.ModelVersion) error {
 // AssertModelVersionCreateRequired checks if the required fields are not zero-ed
 func AssertModelVersionCreateRequired(obj model.ModelVersionCreate) error {
 	elements := map[string]interface{}{
+		"name":              obj.Name,
 		"registeredModelId": obj.RegisteredModelId,
 	}
 	for name, el := range elements {
@@ -617,6 +619,15 @@ func AssertOrderByFieldConstraints(obj model.OrderByField) error {
 
 // AssertRegisteredModelRequired checks if the required fields are not zero-ed
 func AssertRegisteredModelRequired(obj model.RegisteredModel) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 
@@ -627,6 +638,15 @@ func AssertRegisteredModelConstraints(obj model.RegisteredModel) error {
 
 // AssertRegisteredModelCreateRequired checks if the required fields are not zero-ed
 func AssertRegisteredModelCreateRequired(obj model.RegisteredModelCreate) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 

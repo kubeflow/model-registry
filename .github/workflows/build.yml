@@ -22,22 +22,13 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "24.3"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          go-version: "1.21"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install makefile dependencies
-        run: make deps
-      - name: Clean
-        run: make clean
       - name: Build
-        run: make build
+        run: make clean build
       - name: Check if there are uncommitted file changes
         run: |
           clean=$(git status --porcelain)

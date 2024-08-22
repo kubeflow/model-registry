@@ -39,15 +39,15 @@ func TestModelRegistryHandler(t *testing.T) {
 	actualModelRegistry := make([]data.ModelRegistryModel, 0)
 	for _, v := range modelRegistryRes["model_registry"].([]interface{}) {
 		model := v.(map[string]interface{})
-		actualModelRegistry = append(actualModelRegistry, data.ModelRegistryModel{Name: model["name"].(string)})
+		actualModelRegistry = append(actualModelRegistry, data.ModelRegistryModel{Name: model["name"].(string), Description: model["description"].(string), DisplayName: model["displayName"].(string)})
 	}
 	modelRegistryRes["model_registry"] = actualModelRegistry
 
 	var expected = Envelope{
 		"model_registry": []data.ModelRegistryModel{
-			{Name: "model-registry"},
-			{Name: "model-registry-dora"},
-			{Name: "model-registry-bella"},
+			{Name: "model-registry", Description: "Model registry description", DisplayName: "Model Registry"},
+			{Name: "model-registry-dora", Description: "Model registry dora description", DisplayName: "Model Registry Dora"},
+			{Name: "model-registry-bella", Description: "Model registry bella description", DisplayName: "Model Registry Bella"},
 		},
 	}
 

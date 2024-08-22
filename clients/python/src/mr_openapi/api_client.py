@@ -309,20 +309,20 @@ class ApiClient:
         """
         if obj is None:
             return None
-        elif isinstance(obj, Enum):
+        if isinstance(obj, Enum):
             return obj.value
-        elif isinstance(obj, SecretStr):
+        if isinstance(obj, SecretStr):
             return obj.get_secret_value()
-        elif isinstance(obj, self.PRIMITIVE_TYPES):
+        if isinstance(obj, self.PRIMITIVE_TYPES):
             return obj
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             return [self.sanitize_for_serialization(sub_obj) for sub_obj in obj]
-        elif isinstance(obj, tuple):
+        if isinstance(obj, tuple):
             return tuple(self.sanitize_for_serialization(sub_obj) for sub_obj in obj)
-        elif isinstance(obj, (datetime.datetime, datetime.date)):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
 
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             obj_dict = obj
         else:
             # Convert model obj to dict except
@@ -386,16 +386,15 @@ class ApiClient:
 
         if klass in self.PRIMITIVE_TYPES:
             return self.__deserialize_primitive(data, klass)
-        elif klass == object:
+        if klass == object:
             return self.__deserialize_object(data)
-        elif klass == datetime.date:
+        if klass == datetime.date:
             return self.__deserialize_date(data)
-        elif klass == datetime.datetime:
+        if klass == datetime.datetime:
             return self.__deserialize_datetime(data)
-        elif issubclass(klass, Enum):
+        if issubclass(klass, Enum):
             return self.__deserialize_enum(data, klass)
-        else:
-            return self.__deserialize_model(data, klass)
+        return self.__deserialize_model(data, klass)
 
     def parameters_to_tuples(self, params, collection_formats):
         """Get parameters as list of tuples, formatting collections.

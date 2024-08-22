@@ -18,6 +18,14 @@ func (m *KubernetesClientMock) GetServiceNames() ([]string, error) {
 	return []string{"model-registry", "model-registry-dora", "model-registry-bella"}, nil
 }
 
+func (m *KubernetesClientMock) GetServiceDetails() ([]k8s.ServiceDetails, error) {
+	return []k8s.ServiceDetails{
+		{Name: "model-registry", Description: "Model registry description", DisplayName: "Model Registry"},
+		{Name: "model-registry-dora", Description: "Model registry dora description", DisplayName: "Model Registry Dora"},
+		{Name: "model-registry-bella", Description: "Model registry bella description", DisplayName: "Model Registry Bella"},
+	}, nil
+}
+
 func (m *KubernetesClientMock) BearerToken() (string, error) {
 	return "FAKE BEARER TOKEN", nil
 }

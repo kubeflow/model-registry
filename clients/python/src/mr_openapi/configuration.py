@@ -338,8 +338,7 @@ class Configuration:
             prefix = self.api_key_prefix.get(identifier)
             if prefix:
                 return f"{prefix} {key}"
-            else:
-                return key
+            return key
         return None
 
     def auth_settings(self):
