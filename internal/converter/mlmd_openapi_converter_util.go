@@ -107,11 +107,7 @@ func MapName(source *string) string {
 		return ""
 	}
 
-	exploded := strings.Split(*source, ":")
-	if len(exploded) == 1 {
-		return *source
-	}
-	return exploded[1]
+	return *MapNameFromOwned(source)
 }
 
 // REGISTERED MODEL
