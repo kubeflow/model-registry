@@ -4,6 +4,14 @@ on:
     branches:
       - "main"
   pull_request:
+    paths-ignore:
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
 jobs:
   tests:
     name: ${{ matrix.session }} ${{ matrix.python }}
