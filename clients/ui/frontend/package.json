@@ -73,7 +73,7 @@
     "ts-jest": "^29.2.4",
     "ts-loader": "^9.5.1",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "tslib": "^2.6.3",
+    "tslib": "^2.7.0",
     "typescript": "^5.5.4",
     "url-loader": "^4.1.1",
     "webpack": "^5.91.0",
