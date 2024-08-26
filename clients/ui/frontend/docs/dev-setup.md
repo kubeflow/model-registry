@@ -37,7 +37,7 @@ npm run build
 This is the default context for running a local UI.  Make sure you build the project using the instructions above prior to running the command below.
 
 ```bash
-npm run start
+npm run start:dev
 ```
 
 For in-depth local run guidance review the [contribution guidelines](../CONTRIBUTING.md).
