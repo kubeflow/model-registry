@@ -4,18 +4,20 @@ on:
     branches:
       - "main"
     paths-ignore:
-      - 'LICENSE*'
-      - '**.gitignore'
-      - '**.md'
-      - '**.txt'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - 'docs/**'
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
   pull_request:
     paths:
       - "csi/**"
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"
+      # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
+      - "go.mod"
 
 env:
   IMG_ORG: kubeflow
@@ -47,7 +49,7 @@ jobs:
           VERSION: ${{ steps.tags.outputs.tag }}
           PUSH_IMAGE: false
         run: ./scripts/build_deploy.sh
-      
+
       - name: Build local custom storage initializer
         working-directory: ./csi
         shell: bash
