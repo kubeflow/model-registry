@@ -2,12 +2,13 @@ name: UI - Frontend - Test and Build
 on:
   push:
     branches:
-      - 'main'
+      - "main"
   pull_request:
     paths-ignore:
-      - 'LICENSE*'
-      - 'DOCKERFILE*'
-      - '**.gitignore'
+      - "LICENSE*"
+      - "DOCKERFILE*"
+      - "**.gitignore"
+      - "**.md"
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -17,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         working-directory: clients/ui/frontend
@@ -46,3 +47,4 @@ jobs:
               git diff
               exit 1
           fi
+
