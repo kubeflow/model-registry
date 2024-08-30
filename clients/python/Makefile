@@ -13,7 +13,7 @@ clean:
 
 .PHONY: build-mr
 build-mr:
-	cd ../../ && make image/build
+	cd ../../ && IMG_REGISTRY=docker.io IMG_VERSION=latest make image/build
 
 .PHONY: test-e2e
 test-e2e: build-mr

@@ -71,7 +71,7 @@ def _compose_mr(root):
         raise FileExistsError(msg)
     print(f" Starting Docker Compose in folder {root}")
     p = subprocess.Popen(  # noqa: S602
-        f"{DOCKER} compose -f {COMPOSE_FILE} up --build",
+        f"{DOCKER} compose -f {COMPOSE_FILE} up",
         shell=True,
         cwd=root,
     )
