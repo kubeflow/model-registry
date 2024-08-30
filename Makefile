@@ -76,14 +76,10 @@ openapi/validate: bin/openapi-generator-cli
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli openapi/validate
-	@if git diff --cached --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
-		git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
-		[ -n "${FORCE_SERVER_GENERATION}" ]; then \
-		./scripts/gen_openapi_server.sh; \
-	else \
-		echo "INFO api/openapi/model-registry.yaml is not staged or modified, will not re-generate server"; \
-	fi
+gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go
+
+internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+	ROOT_FOLDER=${PROJECT_PATH} ./scripts/gen_openapi_server.sh
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
@@ -102,7 +98,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi internal/server/openapi/api_model_registry_service.go
 
 .PHONY: clean/odh
 clean/odh:
