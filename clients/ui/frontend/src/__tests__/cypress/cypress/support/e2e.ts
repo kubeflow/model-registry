@@ -20,7 +20,6 @@ import './commands';
 
 chai.use(chaiSubset);
 
-
 Cypress.Keyboard.defaults({
   keystrokeDelay: 0,
 });
@@ -29,6 +28,5 @@ beforeEach(() => {
   if (Cypress.env('MOCK')) {
     // fallback: return 404 for all api requests
     cy.intercept({ pathname: '/api/**' }, { statusCode: 404 });
-
   }
 });

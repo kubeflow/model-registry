@@ -1,22 +1,21 @@
-
 //  TODO: Get the status config params
 export type UserSettings = {
-    username: string;
-    isAdmin: boolean;
-    isAllowed: boolean;
+  username: string;
+  isAdmin: boolean;
+  isAllowed: boolean;
 };
 
 // TODO: Add more config parameters
 export type ConfigSettings = {
-    common: CommonConfig;
+  common: CommonConfig;
 };
 
 // TODO: Add more config parameters
 export type CommonConfig = {
-    featureFlags: FeatureFlag;
+  featureFlags: FeatureFlag;
 };
 
 // TODO: Add more config parameters
 export type FeatureFlag = {
-    modelRegistry: boolean;
+  modelRegistry: boolean;
 };
