@@ -20,7 +20,6 @@ RUN yum install -y nodejs npm java-11
 COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 
 # Copy rest of the source
-COPY .git/ .git/
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
