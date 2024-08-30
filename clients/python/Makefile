@@ -11,6 +11,14 @@ install:
 clean:
 	rm -rf src/mr_openapi
 
+.PHONY: build-mr
+build-mr:
+	cd ../../ && make image/build
+
+.PHONY: test-e2e
+test-e2e: build-mr
+	poetry run pytest --e2e -s
+
 .PHONY: test
 test:
 	poetry run pytest -s

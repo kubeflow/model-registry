@@ -10,6 +10,22 @@ from time import sleep
 import pytest
 import requests
 
+
+def pytest_addoption(parser):
+    parser.addoption("--e2e", action="store_true", help="run end-to-end tests")
+
+
+def pytest_collection_modifyitems(config, items):
+    for item in items:
+        skip_e2e = pytest.mark.skip(
+            reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
+        )
+        if "e2e" in item.keywords:
+            if not config.getoption("--e2e"):
+                item.add_marker(skip_e2e)
+            continue
+
+
 REGISTRY_HOST = "http://localhost"
 REGISTRY_PORT = 8080
 REGISTRY_URL = f"{REGISTRY_HOST}:{REGISTRY_PORT}"
@@ -45,7 +61,7 @@ def poll_for_ready():
         time.sleep(POLL_INTERVAL)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def _compose_mr(root):
     print("Assuming this is the Model Registry root directory:", root)
     shared_volume = root / "test/config/ml-metadata"
@@ -76,7 +92,7 @@ def _compose_mr(root):
 
 
 def cleanup(client):
-    async def yield_and_restart(root):
+    async def yield_and_restart(_compose_mr, root):
         poll_for_ready()
         if inspect.iscoroutinefunction(client) or inspect.isasyncgenfunction(client):
             async with asynccontextmanager(client)() as async_client:

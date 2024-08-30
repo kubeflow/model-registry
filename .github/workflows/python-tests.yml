@@ -65,6 +65,7 @@ jobs:
         working-directory: clients/python
         run: |
           if [[ ${{ matrix.session }} == "tests" ]]; then
+            make build-mr
             nox --python=${{ matrix.python }} -- --cov-report=xml
           elif [[ ${{ matrix.session }} == "mypy" ]]; then
             nox --python=${{ matrix.python }} ||\
