@@ -1,7 +1,8 @@
 """Tests creation and retrieval of base models."""
 
-import mr_openapi
 import pytest
+
+import mr_openapi
 from mr_openapi import (
     Artifact,
     DocArtifact,
@@ -42,6 +43,7 @@ async def mv_create(client, rm_create) -> ModelVersionCreate:
     )
 
 
+@pytest.mark.e2e
 async def test_registered_model(client, rm_create):
     rm_create.custom_properties = {
         "key1": MetadataValue.from_dict(
@@ -63,6 +65,7 @@ async def test_registered_model(client, rm_create):
     assert new_rm.description == by_find.description
 
 
+@pytest.mark.e2e
 async def test_model_version(client, mv_create):
     mv_create.custom_properties = {
         "key1": MetadataValue.from_dict(
@@ -86,6 +89,7 @@ async def test_model_version(client, mv_create):
     assert new_mv.custom_properties == by_find.custom_properties
 
 
+@pytest.mark.e2e
 async def test_model_artifact(client, mv_create):
     mv = await client.create_model_version(mv_create)
     assert mv is not None

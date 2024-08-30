@@ -24,6 +24,7 @@ def test_secure_client():
     assert "user token" in str(e.value).lower()
 
 
+@pytest.mark.e2e
 async def test_register_new(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
@@ -44,6 +45,7 @@ async def test_register_new(client: ModelRegistry):
     assert ma
 
 
+@pytest.mark.e2e
 async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
@@ -68,6 +70,7 @@ async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
     assert ma.uri == uri
 
 
+@pytest.mark.e2e
 def test_register_existing_version(client: ModelRegistry):
     params = {
         "name": "test_model",
@@ -82,6 +85,7 @@ def test_register_existing_version(client: ModelRegistry):
         client.register_model(**params)
 
 
+@pytest.mark.e2e
 async def test_get(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
@@ -112,6 +116,7 @@ async def test_get(client: ModelRegistry):
     assert ma.id == _ma.id
 
 
+@pytest.mark.e2e
 def test_get_registered_models(client: ModelRegistry):
     models = 21
 
@@ -142,6 +147,7 @@ def test_get_registered_models(client: ModelRegistry):
     assert i == models
 
 
+@pytest.mark.e2e
 def test_get_registered_models_and_reset(client: ModelRegistry):
     model_count = 6
     page = model_count // 2
@@ -166,6 +172,7 @@ def test_get_registered_models_and_reset(client: ModelRegistry):
     assert complete[:page] == models
 
 
+@pytest.mark.e2e
 def test_get_model_versions(client: ModelRegistry):
     name = "test_model"
     models = 21
@@ -197,6 +204,7 @@ def test_get_model_versions(client: ModelRegistry):
     assert i == models
 
 
+@pytest.mark.e2e
 def test_get_model_versions_and_reset(client: ModelRegistry):
     name = "test_model"
 
@@ -223,6 +231,7 @@ def test_get_model_versions_and_reset(client: ModelRegistry):
     assert complete[:page] == models
 
 
+@pytest.mark.e2e
 def test_hf_import(client: ModelRegistry):
     pytest.importorskip("huggingface_hub")
     name = "openai-community/gpt2"
@@ -250,6 +259,7 @@ def test_hf_import(client: ModelRegistry):
     assert client.get_model_artifact(name, version)
 
 
+@pytest.mark.e2e
 def test_hf_import_default_env(client: ModelRegistry):
     """Test setting environment variables, hence triggering defaults, does _not_ interfere with HF metadata"""
     pytest.importorskip("huggingface_hub")
