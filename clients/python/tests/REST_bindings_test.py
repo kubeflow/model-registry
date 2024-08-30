@@ -1,8 +1,7 @@
 """Tests creation and retrieval of base models."""
 
-import pytest
-
 import mr_openapi
+import pytest
 from mr_openapi import (
     Artifact,
     DocArtifact,
