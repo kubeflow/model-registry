@@ -7,9 +7,13 @@ on:
     pull_request:
 
 jobs:
-  build:
+  fossa-scan:
+    if: github.repository_owner == 'kubeflow' # FOSSA is not intended to run on forks.
     runs-on: ubuntu-latest
-
+    env:
+      # push-only token, intentional; see https://github.com/fossa-contrib/fossa-action?tab=readme-ov-file#push-only-api-token
+      # this also how other CNCF projects are doing e.g. https://github.com/cncf/foundation/issues/109
+      FOSSA_API_KEY: 80871bdd477c2c97f65e9822cae99d20 # This is a push-only token that is safe to be exposed.
     steps:
       - name: Checkout tree
         uses: actions/checkout@v4
@@ -17,6 +21,4 @@ jobs:
       - name: Run FOSSA scan and upload build data
         uses: fossa-contrib/fossa-action@v3
         with:
-          # push-only token, intentional; see https://github.com/fossa-contrib/fossa-action?tab=readme-ov-file#push-only-api-token
-          # this also how other CNCF projects are doing e.g. https://github.com/cncf/foundation/issues/109
-          fossa-api-key: 80871bdd477c2c97f65e9822cae99d20
+          fossa-api-key: ${{ env.FOSSA_API_KEY }}
