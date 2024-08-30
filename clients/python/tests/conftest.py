@@ -10,6 +10,8 @@ from time import sleep
 import pytest
 import requests
 
+from model_registry import ModelRegistry
+
 
 def pytest_addoption(parser):
     parser.addoption("--e2e", action="store_true", help="run end-to-end tests")
@@ -125,3 +127,9 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().get_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture
+@cleanup
+def client() -> ModelRegistry:
+    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
