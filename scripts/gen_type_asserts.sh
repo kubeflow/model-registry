@@ -42,15 +42,42 @@ EOF
 # Create the file and initialize it with the specified content
 echo -e "$INITIAL_CONTENT" >"$ASSERT_FILE_PATH"
 
+declare -A assert_functions
+pattern="\/\/ (\w+) checks(.|\n)+?\n\}\n"
+shell_pattern="\/\/ (\w+) checks[^\/?]+?"
+
 # Iterate over files starting with "model_" in the internal/server/openapi/ folder
 for file in "$PROJECT_ROOT"/internal/server/openapi/model_*; do
     # Check if the file is a regular file
     if [ -f "$file" ]; then
-        # Ignore first 15 lines containing license, package and imports
-        sed -n '13,$p' "$file" >>"$ASSERT_FILE_PATH"
+
+        # grab all functions in the file
+        functions=$(grep -Pzo "$pattern" "${file}" | tr -d '\0')
+        while [[ $functions =~ $shell_pattern ]]; do
+
+          name="${BASH_REMATCH[1]}"
+          body="${BASH_REMATCH[0]}"
+
+          # add function to associative array
+          assert_functions["$name"]="$body"
+
+          # Remove the matched function to process next function
+          functions=${functions//"$body"/}
+        done
+
         # Remove the merged file
         rm "$file"
     fi
+done
+
+# get sorted function names in another array
+sorted_names=$(for name in "${!assert_functions[@]}"; do
+  echo "$name"
+done | sort)
+
+# iterate over the sorted function names array and print bodies
+for name in $sorted_names; do
+  echo "${assert_functions[$name]}" >>"$ASSERT_FILE_PATH"
 done
 
 gofmt -w "$ASSERT_FILE_PATH"
