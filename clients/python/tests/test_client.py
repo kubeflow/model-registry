@@ -78,6 +78,35 @@ def test_register_existing_version(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+async def test_update_models(client: ModelRegistry):
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+
+    mr_api = client._api
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
+    assert mv.id
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    assert ma
+
+    new_description = "updated description"
+    rm.description = new_description
+    mv.description = new_description
+    ma.description = new_description
+    assert client.update(rm).description == new_description
+    assert client.update(mv).description == new_description
+    assert client.update(ma).description == new_description
+
+
+@pytest.mark.e2e
 async def test_get(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
