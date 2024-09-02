@@ -1,5 +1,8 @@
 all: install tidy
 
+IMG_REGISTRY ?= docker.io
+IMG_VERSION ?= latest 
+
 .PHONY: install
 install:
 	../../bin/openapi-generator-cli generate -i ../../api/openapi/model-registry.yaml -g python -o src/ --package-name mr_openapi --additional-properties=library=asyncio,generateSourceCodeOnly=true,useOneOfDiscriminatorLookup=true
@@ -13,7 +16,7 @@ clean:
 
 .PHONY: build-mr
 build-mr:
-	cd ../../ && IMG_REGISTRY=docker.io IMG_VERSION=latest make image/build
+	cd ../../ && IMG_REGISTRY=${IMG_REGISTRY} IMG_VERSION=${IMG_VERSION} make image/build
 
 .PHONY: test-e2e
 test-e2e: build-mr
