@@ -185,6 +185,14 @@ func TestPrefixWhenOwnedWithoutOwner(t *testing.T) {
 	assertion.Equal("name", strings.Split(prefixed, ":")[1])
 }
 
+func TestPrefixNameWithColonWhenOwned(t *testing.T) {
+	assertion := setup(t)
+
+	owner := "owner"
+	entity := "name:with:colon"
+	assertion.Equal("owner:name:with:colon", PrefixWhenOwned(&owner, entity))
+}
+
 func TestMapRegisteredModelProperties(t *testing.T) {
 	assertion := setup(t)
 
@@ -578,7 +586,7 @@ func TestMapNameFromOwned(t *testing.T) {
 	assertion.Equal("name", *name)
 
 	name = MapNameFromOwned(of("prefix:name:postfix"))
-	assertion.Equal("name", *name)
+	assertion.Equal("name:postfix", *name)
 
 	name = MapNameFromOwned(nil)
 	assertion.Nil(name)
@@ -594,8 +602,9 @@ func TestMapRegisteredModelIdFromOwned(t *testing.T) {
 	_, err = MapRegisteredModelIdFromOwned(of("name"))
 	assertion.NotNil(err)
 
-	_, err = MapRegisteredModelIdFromOwned(of("prefix:name:postfix"))
-	assertion.NotNil(err)
+	result, err = MapRegisteredModelIdFromOwned(of("prefix:name:postfix"))
+	assertion.Nil(err)
+	assertion.Equal("prefix", result)
 
 	result, err = MapRegisteredModelIdFromOwned(nil)
 	assertion.Nil(err)
