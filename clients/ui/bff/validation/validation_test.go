@@ -14,17 +14,12 @@ func TestValidateRegisteredModel(t *testing.T) {
 	}{
 		{
 			name:    "Empty name",
-			input:   openapi.RegisteredModel{Name: strPtr("")},
+			input:   openapi.RegisteredModel{Name: ""},
 			wantErr: true,
 		},
 		{
 			name:    "Valid name",
-			input:   openapi.RegisteredModel{Name: strPtr("ValidName")},
-			wantErr: false,
-		},
-		{
-			name:    "Nil name",
-			input:   openapi.RegisteredModel{Name: nil},
+			input:   openapi.RegisteredModel{Name: "ValidName"},
 			wantErr: false,
 		},
 	}
@@ -39,8 +34,4 @@ func TestValidateRegisteredModel(t *testing.T) {
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }

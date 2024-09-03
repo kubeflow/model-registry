@@ -48,7 +48,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 	actual, err := CreateRegisteredModel(mockClient, jsonInput)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
-	assert.Equal(t, *expected.Name, *actual.Name)
+	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, *expected.Owner, *actual.Owner)
 
 	mockClient.AssertExpectations(t)
