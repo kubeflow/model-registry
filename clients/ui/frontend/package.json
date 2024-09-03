@@ -37,7 +37,7 @@
     "@cypress/code-coverage": "^3.12.46",
     "@testing-library/cypress": "^10.0.1",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "^29.5.12",
