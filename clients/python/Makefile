@@ -1,6 +1,6 @@
 all: install tidy
 
-IMG_REGISTRY ?= docker.io
+IMG_REGISTRY ?= quay.io
 IMG_VERSION ?= latest 
 
 .PHONY: install
