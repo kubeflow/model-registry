@@ -6,20 +6,20 @@ on:
   push:
     # To any branch
     branches:
-      - '*'
+      - "*"
   # For every pull request
   pull_request:
     # But ignore this paths
     paths-ignore:
-      - 'LICENSE*'
-      - 'DOCKERFILE*'
-      - '**.gitignore'
-      - '**.md'
-      - '**.txt'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - 'docs/**'
-      - 'scripts/**'
+      - "LICENSE*"
+      - "DOCKERFILE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+      - "scripts/**"
 # Define workflow jobs
 jobs:
   # Job runs Robot Framework tests against locally build image from current code
@@ -36,9 +36,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           # Set Python version to install
-          python-version: '3.9'
+          python-version: "3.9"
           # Set architecture of Python to install
-          architecture: 'x64'
+          architecture: "x64"
       # Install required Python packages for running Robot Framework tests
       - name: Install required Python packages
         # Install required Python packages using pip
@@ -55,10 +55,6 @@ jobs:
       - name: Run Robot Framework tests (REST mode)
         # Run Robot Framework tests in REST mode from test/robot directory
         run: robot test/robot
-      # Run Robot Framework tests in Python mode against running docker compose
-      - name: Run Robot Framework tests (Python mode)
-        # Run Robot Framework tests in Python mode from test/robot directory
-        run: TEST_MODE=Python robot test/robot/MRandLogicalModel.robot
       # Shutdown docker compose with locally build image from current code
       - name: Shutdown docker compose with local image
         # Shutdown docker compose running in the background

@@ -11,11 +11,7 @@ import {
 import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from './AppRoutes';
 
 const NavHref: React.FC<{ item: NavDataHref }> = ({ item }) => (
-  <NavItem
-    key={item.label}
-    data-id={item.label}
-    itemId={item.label}
-  >
+  <NavItem key={item.label} data-id={item.label} itemId={item.label}>
     <NavLink to={item.path}>{item.label}</NavLink>
   </NavItem>
 );
@@ -43,18 +39,18 @@ const NavGroup: React.FC<{ item: NavDataGroup }> = ({ item }) => {
 };
 
 const NavSidebar: React.FC = () => {
-  const navData = useNavData()
+  const navData = useNavData();
 
   return (
     <PageSidebar>
       <PageSidebarBody>
         <Nav id="nav-primary-simple">
           <NavList id="nav-list-simple">
-            {navData.map((item) => 
+            {navData.map((item) =>
               isNavDataGroup(item) ? (
-              <NavGroup key={item.label} item={item} />
+                <NavGroup key={item.label} item={item} />
               ) : (
-              <NavHref key={item.label} item={item} />
+                <NavHref key={item.label} item={item} />
               ),
             )}
           </NavList>

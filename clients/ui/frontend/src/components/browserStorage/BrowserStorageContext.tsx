@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '~/utilities/useDeepCompareMemoize';
 import { useEventListener } from '~/utilities/useEventListener';
 
-
 type ValueMap = { [storageKey: string]: unknown };
 export type BrowserStorageContextType = {
   /** Based on parseJSON it can be any jsonify-able item */

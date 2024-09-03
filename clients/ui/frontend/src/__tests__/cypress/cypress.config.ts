@@ -11,7 +11,6 @@ import { beforeRunHook, afterRunHook } from 'cypress-mochawesome-reporter/lib';
 import { mergeFiles } from 'junit-report-merger';
 import { env, BASE_URL } from '~/__tests__/cypress/cypress/utils/testConfig';
 
-
 const resultsDir = `${env.CY_RESULTS_DIR || 'results'}/${env.CY_MOCK ? 'mocked' : 'e2e'}`;
 
 export default defineConfig({
@@ -50,9 +49,7 @@ export default defineConfig({
   defaultCommandTimeout: 10000,
   e2e: {
     baseUrl: BASE_URL,
-    specPattern: env.CY_MOCK
-      ? `cypress/tests/mocked/**/*.cy.ts`
-      : `cypress/tests/e2e/**/*.cy.ts`,
+    specPattern: env.CY_MOCK ? `cypress/tests/mocked/**/*.cy.ts` : `cypress/tests/e2e/**/*.cy.ts`,
     experimentalInteractiveRunEvents: true,
     setupNodeEvents(on, config) {
       cypressHighResolution(on, config);

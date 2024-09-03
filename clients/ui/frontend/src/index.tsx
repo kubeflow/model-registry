@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './app/App';
-import { BrowserStorageContextProvider } from "./components/browserStorage/BrowserStorageContext";
+import { BrowserStorageContextProvider } from './components/browserStorage/BrowserStorageContext';
 
-const root = ReactDOM.createRoot(document.getElementById("root") as Element);
+const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
     <Router>
@@ -12,5 +12,5 @@ root.render(
         <App />
       </BrowserStorageContextProvider>
     </Router>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
