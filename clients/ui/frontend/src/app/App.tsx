@@ -1,6 +1,5 @@
 import * as React from 'react';
 import '@patternfly/react-core/dist/styles/base.css';
-import AppRoutes from './AppRoutes';
 import './app.css';
 import {
   Alert,
@@ -17,11 +16,12 @@ import {
   Stack,
   StackItem,
   Title,
-} from "@patternfly/react-core";
-import NavSidebar from "./NavSidebar";
-import { BarsIcon } from "@patternfly/react-icons";
-import { AppContext } from "./AppContext";
-import { useSettings } from "./useSettings";
+} from '@patternfly/react-core';
+import { BarsIcon } from '@patternfly/react-icons';
+import NavSidebar from './NavSidebar';
+import AppRoutes from './AppRoutes';
+import { AppContext } from './AppContext';
+import { useSettings } from './useSettings';
 
 const App: React.FC = () => {
   const {
@@ -39,7 +39,7 @@ const App: React.FC = () => {
             user: userSettings!,
           }
         : null,
-    [configSettings, userSettings]
+    [configSettings, userSettings],
   );
 
   // We lack the critical data to startup the app
@@ -51,10 +51,7 @@ const App: React.FC = () => {
           <Stack hasGutter>
             <StackItem>
               <Alert variant="danger" isInline title="General loading error">
-                <p>
-                  {configError.message ||
-                    "Unknown error occurred during startup."}
-                </p>
+                <p>{configError.message || 'Unknown error occurred during startup.'}</p>
                 <p>Logging out and logging back in may solve the issue.</p>
               </Alert>
             </StackItem>
@@ -80,11 +77,7 @@ const App: React.FC = () => {
   const masthead = (
     <Masthead>
       <MastheadToggle>
-        <PageToggleButton
-          id="page-nav-toggle"
-          variant="plain"
-          aria-label="Dashboard navigation"
-        >
+        <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
           <BarsIcon />
         </PageToggleButton>
       </MastheadToggle>

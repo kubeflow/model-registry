@@ -1,4 +1,3 @@
-
 // TODO: Fetch the .env variable here.
 const POLL_INTERVAL = 30000;
 

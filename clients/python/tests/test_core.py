@@ -20,6 +20,7 @@ def client():
     return ModelRegistryAPIClient.insecure_connection(REGISTRY_HOST, REGISTRY_PORT)
 
 
+@pytest.mark.e2e
 async def test_insert_registered_model(client: ModelRegistryAPIClient):
     registered_model = RegisteredModel(name="test rm")
     rm = await client.upsert_registered_model(registered_model)
@@ -31,6 +32,7 @@ async def test_insert_registered_model(client: ModelRegistryAPIClient):
     assert rm.last_update_time_since_epoch
 
 
+@pytest.mark.e2e
 async def test_update_registered_model(client: ModelRegistryAPIClient):
     registered_model = RegisteredModel(name="updated rm")
     rm = await client.upsert_registered_model(registered_model)
@@ -49,6 +51,7 @@ async def registered_model(client: ModelRegistryAPIClient) -> RegisteredModel:
     )
 
 
+@pytest.mark.e2e
 async def test_get_registered_model_by_id(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -57,6 +60,7 @@ async def test_get_registered_model_by_id(
     assert rm == registered_model
 
 
+@pytest.mark.e2e
 async def test_get_registered_model_by_name(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -67,6 +71,7 @@ async def test_get_registered_model_by_name(
     assert rm == registered_model
 
 
+@pytest.mark.e2e
 async def test_get_registered_model_by_external_id(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -79,6 +84,7 @@ async def test_get_registered_model_by_external_id(
     assert rm == registered_model
 
 
+@pytest.mark.e2e
 async def test_get_registered_models(
     client: ModelRegistryAPIClient, registered_model: RegisteredModel
 ):
@@ -88,6 +94,7 @@ async def test_get_registered_models(
     assert [registered_model, rm2] == rms
 
 
+@pytest.mark.e2e
 async def test_page_through_registered_models(client: ModelRegistryAPIClient):
     models = 6
     for i in range(models):
@@ -99,6 +106,7 @@ async def test_page_through_registered_models(client: ModelRegistryAPIClient):
     assert total == models
 
 
+@pytest.mark.e2e
 async def test_insert_model_version(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -114,6 +122,7 @@ async def test_insert_model_version(
     assert mv.author == model_version.author
 
 
+@pytest.mark.e2e
 async def test_update_model_version(
     client: ModelRegistryAPIClient, registered_model: RegisteredModel
 ):
@@ -137,6 +146,7 @@ async def model_version(
     )
 
 
+@pytest.mark.e2e
 async def test_get_model_version_by_id(
     client: ModelRegistryAPIClient, model_version: ModelVersion
 ):
@@ -144,6 +154,7 @@ async def test_get_model_version_by_id(
     assert mv == model_version
 
 
+@pytest.mark.e2e
 async def test_get_model_version_by_name(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -157,6 +168,7 @@ async def test_get_model_version_by_name(
     assert mv == model_version
 
 
+@pytest.mark.e2e
 async def test_get_model_version_by_external_id(
     client: ModelRegistryAPIClient, model_version: ModelVersion
 ):
@@ -168,6 +180,7 @@ async def test_get_model_version_by_external_id(
     assert mv == model_version
 
 
+@pytest.mark.e2e
 async def test_get_model_versions(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
@@ -181,6 +194,7 @@ async def test_get_model_versions(
     assert [model_version, mv2] == mvs
 
 
+@pytest.mark.e2e
 async def test_page_through_model_versions(
     client: ModelRegistryAPIClient, registered_model: RegisteredModel
 ):
@@ -198,6 +212,7 @@ async def test_page_through_model_versions(
     assert total == models
 
 
+@pytest.mark.e2e
 async def test_insert_model_artifact(
     client: ModelRegistryAPIClient,
     model_version: ModelVersion,
@@ -228,6 +243,7 @@ async def test_insert_model_artifact(
     assert ma.service_account_name
 
 
+@pytest.mark.e2e
 async def test_update_model_artifact(
     client: ModelRegistryAPIClient, model_version: ModelVersion
 ):
@@ -252,6 +268,7 @@ async def model(
     )
 
 
+@pytest.mark.e2e
 async def test_get_model_artifact_by_id(
     client: ModelRegistryAPIClient, model: ModelArtifact
 ):
@@ -259,6 +276,7 @@ async def test_get_model_artifact_by_id(
     assert ma == model
 
 
+@pytest.mark.e2e
 async def test_get_model_artifact_by_name(
     client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
@@ -270,6 +288,7 @@ async def test_get_model_artifact_by_name(
     assert ma == model
 
 
+@pytest.mark.e2e
 async def test_get_model_artifact_by_external_id(
     client: ModelRegistryAPIClient, model: ModelArtifact
 ):
@@ -281,6 +300,7 @@ async def test_get_model_artifact_by_external_id(
     assert ma == model
 
 
+@pytest.mark.e2e
 async def test_get_all_model_artifacts(
     client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
@@ -292,6 +312,7 @@ async def test_get_all_model_artifacts(
     assert [model, ma2] == mas
 
 
+@pytest.mark.e2e
 async def test_get_model_artifacts_by_mv_id(
     client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
@@ -303,6 +324,7 @@ async def test_get_model_artifacts_by_mv_id(
     assert [model, ma2] == mas
 
 
+@pytest.mark.e2e
 async def test_page_through_model_version_artifacts(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,

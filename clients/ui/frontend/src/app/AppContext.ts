@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { UserSettings, ConfigSettings } from '~/types';
 
-
 type AppContextProps = {
   config: ConfigSettings;
   user: UserSettings;

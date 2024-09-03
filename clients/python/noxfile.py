@@ -21,7 +21,7 @@ except ImportError:
 
 
 package = "model_registry"
-python_versions = ["3.12", "3.11","3.10", "3.9"]
+python_versions = ["3.12", "3.11", "3.10", "3.9"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "tests",
@@ -63,6 +63,11 @@ def tests(session: Session) -> None:
     try:
         session.run(
             "pytest",
+            *session.posargs,
+        )
+        session.run(
+            "pytest",
+            "--e2e",
             "--cov",
             "--cov-config=pyproject.toml",
             *session.posargs,
