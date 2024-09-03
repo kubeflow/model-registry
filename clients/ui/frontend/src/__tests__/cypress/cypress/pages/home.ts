@@ -3,8 +3,8 @@ class Home {
     cy.visit(`/`);
   }
 
-  findButton() {
-    return cy.get('button:contains("Primary Action")');
+  findTitle() {
+    cy.get(`h1`).should(`have.text`, `Model registry`);
   }
 }
 

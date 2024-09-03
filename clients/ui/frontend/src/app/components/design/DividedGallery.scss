@@ -1,0 +1,27 @@
+.odh-divided-gallery {
+  position: relative;
+  background-color: var(--pf-v5-global--BackgroundColor--100);
+
+  &__border {
+    width: 2px;
+    position: absolute;
+    top: var(--pf-v5-global--spacer--md);
+    bottom: var(--pf-v5-global--spacer--md);
+    left: 0;
+    background-color: white;
+    content: ' ';
+  }
+  &__item {
+    border-left: 1px solid var(--pf-v5-global--BorderColor--100);
+    padding: 0 var(--pf-v5-global--spacer--xl);
+    margin: var(--pf-v5-global--spacer--md) 0;
+  }
+  .pf-v5-l-gallery {
+    position: relative;
+  }
+  &__close {
+    position: absolute;
+    top: var(--pf-v5-global--spacer--xs);
+    right: 0;
+  }
+}

@@ -5,8 +5,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
-const BG_IMAGES_DIRNAME = 'bgimages';
 const ASSET_PATH = process.env.ASSET_PATH || '/';
+const IMAGES_DIRNAME = 'images';
 const relativeDir = path.resolve(__dirname, '..');
 module.exports = (env) => {
   return {
@@ -35,42 +35,56 @@ module.exports = (env) => {
             path.resolve(relativeDir, 'node_modules/@patternfly/react-core/dist/styles/assets/pficon'),
             path.resolve(relativeDir, 'node_modules/@patternfly/patternfly/assets/fonts'),
             path.resolve(relativeDir, 'node_modules/@patternfly/patternfly/assets/pficon')
-          ]
+          ],
+          use: {
+            loader: 'file-loader',
+            options: {
+              // Limit at 50k. larger files emitted into separate files
+              limit: 5000,
+              outputPath: 'fonts',
+              name: '[name].[ext]',
+            },
+          },
         },
         {
           test: /\.svg$/,
-          type: 'asset/inline',
           include: (input) => input.indexOf('background-filter.svg') > 1,
           use: [
             {
+              loader: 'url-loader',
               options: {
                 limit: 5000,
                 outputPath: 'svgs',
-                name: '[name].[ext]'
-              }
-            }
-          ]
+                name: '[name].[ext]',
+              },
+            },
+          ],
         },
         {
           test: /\.svg$/,
           // only process SVG modules with this loader if they live under a 'bgimages' directory
           // this is primarily useful when applying a CSS background using an SVG
-          include: (input) => input.indexOf(BG_IMAGES_DIRNAME) > -1,
-          type: 'asset/inline'
+          include: (input) => input.indexOf(IMAGES_DIRNAME) > -1,
+          use: {
+            loader: 'svg-url-loader',
+            options: {
+              limit: 10000,
+            },
+          },
         },
         {
           test: /\.svg$/,
           // only process SVG modules with this loader when they don't live under a 'bgimages',
           // 'fonts', or 'pficon' directory, those are handled with other loaders
           include: (input) =>
-            input.indexOf(BG_IMAGES_DIRNAME) === -1 &&
+            input.indexOf(IMAGES_DIRNAME) === -1 &&
             input.indexOf('fonts') === -1 &&
             input.indexOf('background-filter') === -1 &&
             input.indexOf('pficon') === -1,
           use: {
             loader: 'raw-loader',
-            options: {}
-          }
+            options: {},
+          },
         },
         {
           test: /\.(jpg|jpeg|png|gif)$/i,
@@ -103,6 +117,17 @@ module.exports = (env) => {
               }
             }
           ]
+        },
+        {
+          test: /\.s[ac]ss$/i,
+          use: [
+            // Creates `style` nodes from JS strings
+            'style-loader',
+            // Translates CSS into CommonJS
+            'css-loader',
+            // Compiles Sass to CSS
+            'sass-loader',
+          ],
         }
       ]
     },
@@ -120,7 +145,7 @@ module.exports = (env) => {
         silent: true
       }),
       new CopyPlugin({
-        patterns: [{ from: './src/favicon.png', to: 'images' }]
+        patterns: [{ from: './src/images', to: 'images' }]
       })
     ],
     resolve: {

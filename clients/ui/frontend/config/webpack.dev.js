@@ -20,28 +20,30 @@ module.exports = merge(common('development'), {
     historyApiFallback: true,
     open: true,
     static: {
-      directory: path.resolve(relativeDir, 'dist')
+      directory: path.resolve(relativeDir, 'dist'),
     },
     client: {
-      overlay: true
+      overlay: true,
     },
-    proxy: {
-      '/api': {
+    proxy: [
+      {
+        context: ["/api"],
         target: {
           host: PROXY_HOST,
           protocol: PROXY_PROTOCOL,
           port: PROXY_PORT,
         },
+        changeOrigin: true,
       },
-    },
+    ],
   },
   module: {
     rules: [
       {
         test: /\.css$/,
         include: [...stylePaths],
-        use: ['style-loader', 'css-loader']
-      }
-    ]
-  }
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
 });

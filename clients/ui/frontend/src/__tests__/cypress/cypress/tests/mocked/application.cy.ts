@@ -8,6 +8,6 @@ describe('Application', () => {
 
   it('Home page should have primary button', () => {
     home.visit();
-    home.findButton();
+    home.findTitle();
   });
 });
