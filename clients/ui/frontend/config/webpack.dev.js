@@ -10,6 +10,7 @@ const PROXY_HOST = process.env.PROXY_HOST || 'localhost';
 const PROXY_PORT = process.env.PROXY_PORT || '4000';
 const PROXY_PROTOCOL = process.env.PROXY_PROTOCOL || 'http:';
 const relativeDir = path.resolve(__dirname, '..');
+const PROXY_TARGET = `${PROXY_PROTOCOL}//${PROXY_HOST}:${PROXY_PORT}`;
 
 module.exports = merge(common('development'), {
   mode: 'development',
@@ -25,15 +26,16 @@ module.exports = merge(common('development'), {
     client: {
       overlay: true
     },
-    proxy: {
-      '/api': {
-        target: {
-          host: PROXY_HOST,
-          protocol: PROXY_PROTOCOL,
-          port: PROXY_PORT,
-        },
+    proxy: [
+      {
+        context: ['/api'],
+        target: PROXY_TARGET,
+        host: PROXY_HOST,
+        protocol: PROXY_PROTOCOL,
+        port: PROXY_PORT,
+        secure: false
       },
-    },
+    ],
   },
   module: {
     rules: [
