@@ -137,9 +137,8 @@ def client() -> ModelRegistry:
 
 @pytest.fixture(scope="module")
 def setup_env_user_token():
-    token_file = tempfile.NamedTemporaryFile(delete=False)
-    token_file.write(b"Token")
-    token_file.close()
+    with tempfile.NamedTemporaryFile(delete=False) as token_file:
+        token_file.write(b"Token")
     old_token_path = os.getenv("KF_PIPELINES_SA_TOKEN_PATH")
     os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = token_file.name
 
