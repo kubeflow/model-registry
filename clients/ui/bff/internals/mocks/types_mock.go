@@ -33,7 +33,7 @@ func GenerateRegisteredModel() openapi.RegisteredModel {
 		},
 		Description:              stringToPointer(gofakeit.Sentence(5)),
 		ExternalId:               stringToPointer(gofakeit.UUID()),
-		Name:                     stringToPointer(gofakeit.Name()),
+		Name:                     gofakeit.Name(),
 		Id:                       stringToPointer(gofakeit.UUID()),
 		CreateTimeSinceEpoch:     stringToPointer(fmt.Sprintf("%d", gofakeit.Date().UnixMilli())),
 		LastUpdateTimeSinceEpoch: stringToPointer(fmt.Sprintf("%d", gofakeit.Date().UnixMilli())),

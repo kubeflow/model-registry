@@ -6,7 +6,7 @@ import (
 )
 
 func ValidateRegisteredModel(input openapi.RegisteredModel) error {
-	if input.Name != nil && *input.Name == "" {
+	if input.Name == "" {
 		return errors.New("name cannot be empty")
 	}
 	// Add more field validations as required
