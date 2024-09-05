@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, get_args
+from typing import Any, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -17,6 +17,9 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
+
+ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
+TModel = TypeVar("TModel", bound=ModelTypes)
 
 
 class ModelRegistry:
@@ -190,6 +193,20 @@ class ModelRegistry:
         )
 
         return rm
+
+    def update(self, model: TModel) -> TModel:
+        """Update a model."""
+        if not model.id:
+            msg = "Model must have an ID"
+            raise StoreError(msg)
+        if not isinstance(model, get_args(ModelTypes)):
+            msg = f"Model must be one of {get_args(ModelTypes)}"
+            raise StoreError(msg)
+        if isinstance(model, RegisteredModel):
+            return self.async_runner(self._api.upsert_registered_model(model))
+        if isinstance(model, ModelVersion):
+            return self.async_runner(self._api.upsert_model_version(model, model.id))
+        return self.async_runner(self._api.upsert_model_artifact(model, model.id))
 
     def register_hf_model(
         self,
