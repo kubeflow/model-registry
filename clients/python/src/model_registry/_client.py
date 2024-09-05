@@ -55,7 +55,7 @@ class ModelRegistry:
             # /var/run/secrets/kubernetes.io/serviceaccount/token
             sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
             if sa_token:
-                user_token = Path(sa_token).read_bytes()
+                user_token = Path(sa_token).read_text()
             else:
                 warn("User access token is missing", stacklevel=2)
 
