@@ -5,7 +5,7 @@ import { css } from '@patternfly/react-styles';
 import './DividedGallery.scss';
 
 const DividedGalleryItem: React.FC<GalleryItemProps> = ({ className, ...rest }) => (
-  <div className={css('odh-divided-gallery__item', className)} {...rest} />
+  <div className={css('kubeflowdivided-gallery__item', className)} {...rest} />
 );
 
 export default DividedGalleryItem;

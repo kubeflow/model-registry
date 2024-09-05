@@ -25,15 +25,15 @@ const DividedGallery: React.FC<DividedGalleryProps> = ({
   closeTestId,
   ...rest
 }) => (
-  <div className={css('odh-divided-gallery', className)} {...rest}>
+  <div className={css('kubeflowdivided-gallery', className)} {...rest}>
     <Gallery
       minWidths={{ default: minSize, md: minSize }}
       maxWidths={{ default: '100%', md: `${100 / itemCount}%` }}
     >
-      <div className="odh-divided-gallery__border" />
+      <div className="kubeflowdivided-gallery__border" />
       {children}
       {showClose ? (
-        <div className="odh-divided-gallery__close">
+        <div className="kubeflowdivided-gallery__close">
           <Button
             data-testid={closeTestId}
             aria-label={closeAlt || 'close'}
