@@ -135,8 +135,8 @@ async def test_update_preserves_model_info(client: ModelRegistry):
 
     updated_ma = client.update(ma)
     assert updated_ma.description == new_description
-    assert ma.uri == updated_ma.uri
-    assert ma.id == updated_ma.id
+    assert updated_ma.uri == uri
+    assert updated_ma.id == ma.id
     assert updated_ma.model_format_name == model_fmt_name
     assert updated_ma.model_format_version == model_fmt_version
 
