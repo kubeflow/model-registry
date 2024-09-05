@@ -72,10 +72,17 @@ jobs:
               echo "::error title='mypy failure'::Check the logs for more details"
           else
             nox --python=${{ matrix.python }}
+            poetry build
           fi
+      - name: Upload dist
+        if: matrix.session == 'lint'
+        uses: actions/upload-artifact@v4
+        with:
+          name: py-dist
+          path: clients/python/dist
       - name: Upload documentation
         if: matrix.session == 'docs-build'
         uses: actions/upload-artifact@v4
         with:
-          name: docs
+          name: py-docs
           path: clients/python/docs/_build
