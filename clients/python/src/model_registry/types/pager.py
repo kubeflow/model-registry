@@ -112,7 +112,9 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         return await cast(Awaitable[list[T]], self.page_fn(self.options))
 
     def _needs_fetch(self) -> bool:
-        return not self._current_page or self._i >= len(self._current_page)
+        return not self._current_page or (
+            self._i >= len(self._current_page) and self._start is not None
+        )
 
     def _next_item(self) -> T:
         """Get the next item in the pager.
@@ -126,6 +128,8 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
             self._current_page = self._next_page()
             self._i = 0
         assert self._current_page
+        if self._i >= len(self._current_page):
+            raise StopIteration
 
         item = self._current_page[self._i]
         self._i += 1
@@ -143,6 +147,8 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
             self._current_page = await self._anext_page()
             self._i = 0
         assert self._current_page
+        if self._i >= len(self._current_page):
+            raise StopIteration
 
         item = self._current_page[self._i]
         self._i += 1
@@ -153,7 +159,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
 
         item = self._next_item()
 
-        if not self._start:
+        if self._start is None:
             self._start = self.options.next_page_token
         elif check_looping and self.options.next_page_token == self._start:
             raise StopIteration
@@ -165,7 +171,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
 
         item = await self._anext_item()
 
-        if not self._start:
+        if self._start is None:
             self._start = self.options.next_page_token
         elif check_looping and self.options.next_page_token == self._start:
             raise StopAsyncIteration
