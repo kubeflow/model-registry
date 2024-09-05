@@ -1,0 +1,31 @@
+:root {
+  --ai-set-up--BackgroundColor: #ffe8cc;
+  --ai-organize--BackgroundColor: #ffe8cc;
+  --ai-training--BackgroundColor: #daf2f2;
+  --ai-serving--BackgroundColor: #e0f0ff;
+
+  --ai-set-up--BorderColor: #f8ae54;
+  --ai-organize--BorderColor: #f8ae54;
+  --ai-training--BorderColor: #9ad8d8;
+  --ai-serving--BorderColor: #92c5f9;
+
+  --ai-project--BackgroundColor: var(--ai-organize--BackgroundColor);
+  --ai-project--BorderColor: var(--ai-organize--BorderColor);
+  --ai-data-connection--BackgroundColor: var(--ai-organize--BackgroundColor);
+  --ai-data-connection--BorderColor: var(--ai-organize--BorderColor);
+  --ai-cluster-storage--BackgroundColor: var(--ai-organize--BackgroundColor);
+  --ai-cluster-storage--BorderColor: var(--ai-organize--BorderColor);
+
+  --ai-notebook--BackgroundColor: var(--ai-training--BackgroundColor);
+  --ai-notebook--BorderColor: var(--ai-training--BorderColor);
+  --ai-pipeline--BackgroundColor: var(--ai-training--BackgroundColor);
+  --ai-pipeline--BorderColor: var(--ai-training--BorderColor);
+
+  --ai-model-server--BackgroundColor: var(--ai-serving--BackgroundColor);
+  --ai-model-server--BorderColor: var(--ai-serving--BorderColor);
+
+  --ai-user--BackgroundColor: var(--ai-set-up--BackgroundColor);
+  --ai-user--BorderColor: var(--ai-set-up--BorderColor);
+  --ai-group--BackgroundColor: var(--ai-set-up--BackgroundColor);
+  --ai-group--BorderColor: var(--ai-set-up--BorderColor);
+}
