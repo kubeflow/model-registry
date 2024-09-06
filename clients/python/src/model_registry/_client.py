@@ -32,7 +32,7 @@ class ModelRegistry:
         *,
         author: str,
         is_secure: bool = True,
-        user_token: bytes | None = None,
+        user_token: str | None = None,
         custom_ca: str | None = None,
     ):
         """Constructor.
@@ -44,8 +44,8 @@ class ModelRegistry:
         Keyword Args:
             author: Name of the author.
             is_secure: Whether to use a secure connection. Defaults to True.
-            user_token: The PEM-encoded user token as a byte string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
-            custom_ca: Path to the PEM-encoded root certificates as a byte string. Defaults to path on envvar CERT.
+            user_token: The PEM-encoded user token as a string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: Path to the PEM-encoded root certificates as a string. Defaults to path on envvar CERT.
         """
         import nest_asyncio
 
