@@ -54,13 +54,13 @@ make docker-build
 
 ### Endpoints
 
-| URL Pattern                                                                        | Handler                  | Action                                       |
-|------------------------------------------------------------------------------------|--------------------------|----------------------------------------------|
-| GET /v1/healthcheck                                                                | HealthcheckHandler       | Show application information.                |
-| GET /v1/model-registry/                                                            | ModelRegistryHandler     | Get all model registries,                    |
-| GET /v1/model-registry/{model_registry_id}/registered_models                       | RegisteredModelsHandler  | Gets a list of all RegisteredModel entities. |
-| POST /v1/model-registry/{model_registry_id}/registered_models                      | RegisteredModelsHandler  | Create a RegisteredModel entity.             |
-| GET /v1/model-registry/{model_registry_id}/registered_models/{registered_model_id} | RegisteredModelHandler   | Get a RegisteredModel entity by ID           |
+| URL Pattern                                                                        | Handler                 | Action                                       |
+|------------------------------------------------------------------------------------|-------------------------|----------------------------------------------|
+| GET /v1/healthcheck                                                                | HealthcheckHandler      | Show application information.                |
+| GET /v1/model-registry                                                             | ModelRegistryHandler    | Get all model registries,                    |
+| GET /v1/model-registry/{model_registry_id}/registered_models                       | RegisteredModelsHandler | Gets a list of all RegisteredModel entities. |
+| POST /v1/model-registry/{model_registry_id}/registered_models                      | RegisteredModelsHandler | Create a RegisteredModel entity.             |
+| GET /v1/model-registry/{model_registry_id}/registered_models/{registered_model_id} | RegisteredModelHandler  | Get a RegisteredModel entity by ID           |
 
 ### Sample local calls
 ```
