@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.12"]
-        session: [lint, tests, mypy, docs-build, dist]
+        session: [lint, tests, mypy, docs-build]
         include:
           - python: "3.9"
             session: tests
@@ -67,16 +67,15 @@ jobs:
           if [[ ${{ matrix.session }} == "tests" ]]; then
             make build-mr
             nox --python=${{ matrix.python }} -- --cov-report=xml
+            poetry build
           elif [[ ${{ matrix.session }} == "mypy" ]]; then
             nox --python=${{ matrix.python }} ||\
               echo "::error title='mypy failure'::Check the logs for more details"
-          elif [[ ${{ matrix.session }} == "dist" ]]; then
-            poetry build
           else
             nox --python=${{ matrix.python }}
           fi
       - name: Upload dist
-        if: matrix.session == 'dist'
+        if: matrix.session == 'tests' && matrix.python == '3.12'
         uses: actions/upload-artifact@v4
         with:
           name: py-dist
