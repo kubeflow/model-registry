@@ -22,7 +22,7 @@ const TypeBorderedCard: React.FC<TypeBorderedCardProps> = ({
   <Card
     className={css(
       className,
-      'odh-type-bordered-card',
+      'kubeflowtype-bordered-card',
       sectionType,
       objectType,
       selectable && 'm-is-selectable',
