@@ -42,7 +42,10 @@ def lint(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Type check using mypy."""
     session.install(".")
-    session.install("mypy")
+    session.install(
+        "mypy",
+        "types-python-dateutil",
+    )
 
     session.run("mypy", "src/model_registry")
 
