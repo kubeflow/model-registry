@@ -22,14 +22,14 @@ type OrderByField string
 const (
 	ORDERBYFIELD_CREATE_TIME      OrderByField = "CREATE_TIME"
 	ORDERBYFIELD_LAST_UPDATE_TIME OrderByField = "LAST_UPDATE_TIME"
-	ORDERBYFIELD_ID               OrderByField = "Id"
+	ORDERBYFIELD_ID               OrderByField = "ID"
 )
 
 // All allowed values of OrderByField enum
 var AllowedOrderByFieldEnumValues = []OrderByField{
 	"CREATE_TIME",
 	"LAST_UPDATE_TIME",
-	"Id",
+	"ID",
 }
 
 func (v *OrderByField) UnmarshalJSON(src []byte) error {
