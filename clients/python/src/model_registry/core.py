@@ -42,7 +42,7 @@ class ModelRegistryAPIClient:
         server_address: str,
         port: int = 443,
         *,
-        user_token: bytes,
+        user_token: str,
         custom_ca: str | None = None,
     ) -> ModelRegistryAPIClient:
         """Constructor.
@@ -52,7 +52,7 @@ class ModelRegistryAPIClient:
             port: Server port. Defaults to 443.
 
         Keyword Args:
-            user_token: The PEM-encoded user token as a byte string.
+            user_token: The PEM-encoded user token as a string.
             custom_ca: The path to a PEM-
         """
         return cls(
@@ -68,14 +68,14 @@ class ModelRegistryAPIClient:
         cls,
         server_address: str,
         port: int,
-        user_token: bytes | None = None,
+        user_token: str | None = None,
     ) -> ModelRegistryAPIClient:
         """Constructor.
 
         Args:
             server_address: Server address.
             port: Server port.
-            user_token: The PEM-encoded user token as a byte string.
+            user_token: The PEM-encoded user token as a string.
         """
         return cls(
             Configuration(host=f"{server_address}:{port}", access_token=user_token)

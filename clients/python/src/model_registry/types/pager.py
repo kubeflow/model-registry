@@ -42,8 +42,8 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         This keeps the current options and page function, but resets the internal state.
         """
         # as MLMD loops over pages, we need to keep track of the first page or we'll loop forever
-        self._start = None
-        self._current_page = None
+        self._start: str | None = None
+        self._current_page: list[T] | None = None
         # tracks the next item on the current page
         self._i = 0
         self.options.next_page_token = None
