@@ -38,6 +38,12 @@ model = registry.get_registered_model("my-model")
 version = registry.get_model_version("my-model", "2.0.0")
 
 experiment = registry.get_model_artifact("my-model", "2.0.0")
+
+# change is not reflected on pushed model version
+version.description = "Updated model version"
+
+# you can update it using
+registry.update(version)
 ```
 
 ### Importing from S3

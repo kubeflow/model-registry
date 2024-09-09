@@ -20,7 +20,7 @@ func (app *App) GetRegisteredModelsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	modelList, err := data.FetchAllRegisteredModels(client)
+	modelList, err := data.GetAllRegisteredModels(client)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -81,5 +81,33 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
+	}
+}
+
+func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	model, err := data.GetRegisteredModel(client, ps.ByName(RegisteredModelId))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if _, ok := model.GetNameOk(); !ok {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	result := Envelope{
+		"registered_model": model,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, result, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 	}
 }

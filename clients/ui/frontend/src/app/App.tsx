@@ -3,11 +3,13 @@ import '@patternfly/react-core/dist/styles/base.css';
 import './app.css';
 import {
   Alert,
+  Brand,
   Bullseye,
   Button,
-  Flex,
   Masthead,
+  MastheadBrand,
   MastheadContent,
+  MastheadMain,
   MastheadToggle,
   Page,
   PageSection,
@@ -15,7 +17,6 @@ import {
   Spinner,
   Stack,
   StackItem,
-  Title,
 } from '@patternfly/react-core';
 import { BarsIcon } from '@patternfly/react-icons';
 import NavSidebar from './NavSidebar';
@@ -76,19 +77,22 @@ const App: React.FC = () => {
 
   const masthead = (
     <Masthead>
-      <MastheadToggle>
-        <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
-          <BarsIcon />
-        </PageToggleButton>
-      </MastheadToggle>
+      <MastheadMain>
+        <MastheadToggle>
+          <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
+            <BarsIcon />
+          </PageToggleButton>
+        </MastheadToggle>
+        <MastheadBrand>
+          <Brand
+            className="kubeflow_brand"
+            src={`${window.location.origin}/images/logo.svg`}
+            alt="Kubeflow Logo"
+          />
+        </MastheadBrand>
+      </MastheadMain>
 
-      <MastheadContent>
-        <Flex>
-          <Title headingLevel="h2" size="3xl">
-            Kubeflow Model Registry UI
-          </Title>
-        </Flex>
-      </MastheadContent>
+      <MastheadContent>{/* TODO: Change this into a component for Header Tools */}</MastheadContent>
     </Masthead>
   );
 

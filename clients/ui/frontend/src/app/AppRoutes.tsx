@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Dashboard } from './Dashboard/Dashboard';
-import { Support } from './Support/Support';
-import { NotFound } from './NotFound/NotFound';
-import { Admin } from './Settings/Admin';
+import { NotFound } from './pages/notFound/NotFound';
+import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
+import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 
 export const isNavDataGroup = (navItem: NavDataItem): navItem is NavDataGroup =>
   'children' in navItem;
@@ -35,23 +34,15 @@ export const useAdminSettings = (): NavDataItem[] => {
   return [
     {
       label: 'Settings',
-      children: [
-        { label: 'Setting 1', path: '/admin' },
-        { label: 'Setting 2', path: '/admin' },
-        { label: 'Setting 3', path: '/admin' },
-      ],
+      children: [{ label: 'Model Registry', path: '/settings' }],
     },
   ];
 };
 
 export const useNavData = (): NavDataItem[] => [
   {
-    label: 'Dashboard',
+    label: 'Model Registry',
     path: '/',
-  },
-  {
-    label: 'Support',
-    path: '/support',
   },
   ...useAdminSettings(),
 ];
@@ -61,13 +52,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/support" element={<Support />} />
+      <Route path="/" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
       {
         // TODO: Remove the linter skip when we implement authentication
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        isAdmin && <Route path="/admin" element={<Admin />} />
+        isAdmin && <Route path="/settings" element={<ModelRegistrySettingsRoutes />} />
       }
     </Routes>
   );

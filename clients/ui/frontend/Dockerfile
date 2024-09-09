@@ -1,4 +1,4 @@
-FROM node:18 AS build-stage
+FROM node:20 AS build-stage
 
 WORKDIR /usr/src/app
 

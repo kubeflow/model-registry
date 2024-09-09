@@ -5,6 +5,7 @@ import pytest
 
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
+from model_registry.types import ModelArtifact
 
 
 def test_secure_client():
@@ -78,6 +79,69 @@ def test_register_existing_version(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+async def test_update_models(client: ModelRegistry):
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+
+    mr_api = client._api
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
+    assert mv.id
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    assert ma
+
+    new_description = "updated description"
+    rm.description = new_description
+    mv.description = new_description
+    ma.description = new_description
+    assert client.update(rm).description == new_description
+    assert client.update(mv).description == new_description
+    assert client.update(ma).description == new_description
+
+
+@pytest.mark.e2e
+async def test_update_preserves_model_info(client: ModelRegistry):
+    name = "test_model"
+    version = "1.0.0"
+    uri = "s3"
+    model_fmt_name = "test_format"
+    model_fmt_version = "test_version"
+    rm = client.register_model(
+        name,
+        uri,
+        model_format_name=model_fmt_name,
+        model_format_version=model_fmt_version,
+        version=version,
+    )
+    assert rm.id
+
+    mr_api = client._api
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
+    assert mv.id
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    assert ma
+
+    new_description = "updated description"
+    ma = ModelArtifact(id=ma.id, uri=uri, description=new_description)
+
+    updated_ma = client.update(ma)
+    assert updated_ma.description == new_description
+    assert updated_ma.uri == uri
+    assert updated_ma.id == ma.id
+    assert updated_ma.model_format_name == model_fmt_name
+    assert updated_ma.model_format_version == model_fmt_version
+
+
+@pytest.mark.e2e
 async def test_get(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
@@ -140,6 +204,72 @@ def test_get_registered_models(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+def test_get_registered_models_order_by(client: ModelRegistry):
+    models = 5
+
+    rms = []
+    for name in [f"test_model{i}" for i in range(models)]:
+        rms.append(
+            client.register_model(
+                name,
+                "s3",
+                model_format_name="test_format",
+                model_format_version="test_version",
+                version="1.0.0",
+            )
+        )
+
+    # id ordering should match creation order
+    i = 0
+    for rm, by_id in zip(
+        rms,
+        client.get_registered_models().order_by_id(),
+    ):
+        assert rm.id == by_id.id
+        i += 1
+
+    assert i == models
+
+    # and obviously, creation ordering should match creation ordering
+    i = 0
+    for rm, by_creation in zip(
+        rms,
+        client.get_registered_models().order_by_creation_time(),
+    ):
+        assert rm.id == by_creation.id
+        i += 1
+
+    assert i == models
+
+    # update order should match creation ordering by default
+    i = 0
+    for rm, by_update in zip(
+        rms,
+        client.get_registered_models().order_by_update_time(),
+    ):
+        assert rm.id == by_update.id
+        i += 1
+
+    assert i == models
+
+    # now update the models in reverse order
+    for rm in reversed(rms):
+        rm.description = "updated"
+        client.update(rm)
+
+    # and they should match in reverse
+    i = 0
+    for rm, by_update in zip(
+        reversed(rms),
+        client.get_registered_models().order_by_update_time(),
+    ):
+        assert rm.id == by_update.id
+        i += 1
+
+    assert i == models
+
+
+@pytest.mark.e2e
 def test_get_registered_models_and_reset(client: ModelRegistry):
     model_count = 6
     page = model_count // 2
@@ -194,6 +324,64 @@ def test_get_model_versions(client: ModelRegistry):
 
     assert changes == 3
     assert i == models
+
+
+@pytest.mark.e2e
+def test_get_model_versions_order_by(client: ModelRegistry):
+    name = "test_model"
+    models = 5
+    mvs = []
+    for v in [f"1.0.{i}" for i in range(models)]:
+        client.register_model(
+            name,
+            "s3",
+            model_format_name="test_format",
+            model_format_version="test_version",
+            version=v,
+        )
+        mvs.append(client.get_model_version(name, v))
+
+    i = 0
+    for mv, by_id in zip(
+        mvs,
+        client.get_model_versions(name).order_by_id(),
+    ):
+        assert mv.id == by_id.id
+        i += 1
+
+    assert i == models
+
+    i = 0
+    for mv, by_creation in zip(
+        mvs,
+        client.get_model_versions(name).order_by_creation_time(),
+    ):
+        assert mv.id == by_creation.id
+        i += 1
+
+    assert i == models
+
+    i = 0
+    for mv, by_update in zip(
+        mvs,
+        client.get_model_versions(name).order_by_update_time(),
+    ):
+        assert mv.id == by_update.id
+        i += 1
+
+    assert i == models
+
+    for mv in reversed(mvs):
+        mv.description = "updated"
+        client.update(mv)
+
+    i = 0
+    for mv, by_update in zip(
+        reversed(mvs),
+        client.get_model_versions(name).order_by_update_time(),
+    ):
+        assert mv.id == by_update.id
+        i += 1
 
 
 @pytest.mark.e2e
