@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestFetchAllRegisteredModels(t *testing.T) {
+func TestGetAllRegisteredModels(t *testing.T) {
 	gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModelList()
@@ -20,7 +20,7 @@ func TestFetchAllRegisteredModels(t *testing.T) {
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registerModelPath).Return(mockData, nil)
 
-	actual, err := FetchAllRegisteredModels(mockClient)
+	actual, err := GetAllRegisteredModels(mockClient)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
@@ -48,7 +48,27 @@ func TestCreateRegisteredModel(t *testing.T) {
 	actual, err := CreateRegisteredModel(mockClient, jsonInput)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
-	assert.Equal(t, *expected.Name, *actual.Name)
+	assert.Equal(t, expected.Name, actual.Name)
+	assert.Equal(t, *expected.Owner, *actual.Owner)
+
+	mockClient.AssertExpectations(t)
+}
+
+func TestGetRegisteredModel(t *testing.T) {
+	gofakeit.Seed(0)
+
+	expected := mocks.GenerateRegisteredModel()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On("GET", registerModelPath+"/"+expected.GetId()).Return(mockData, nil)
+
+	actual, err := GetRegisteredModel(mockClient, expected.GetId())
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, *expected.Owner, *actual.Owner)
 
 	mockClient.AssertExpectations(t)

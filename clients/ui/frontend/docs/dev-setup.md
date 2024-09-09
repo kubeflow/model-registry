@@ -5,8 +5,8 @@
 This project requires the following tools to be installed on your system:
 
 - [NodeJS and NPM](https://nodejs.org/)
-  - Node recommended version -> `18.16.0`
-  - NPM recommended version -> `9.6.7`
+  - Node recommended version -> `20.17.0`
+  - NPM recommended version -> `10.8.2`
 
 ### Additional tooling
 

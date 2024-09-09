@@ -19,3 +19,14 @@ export type CommonConfig = {
 export type FeatureFlag = {
   modelRegistry: boolean;
 };
+
+export type APIOptions = {
+  dryRun?: boolean;
+  signal?: AbortSignal;
+  parseJSON?: boolean;
+};
+
+export type APIError = {
+  code: string;
+  message: string;
+};

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, get_args
+from typing import Any, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -18,6 +18,9 @@ from .types import (
     SupportedTypes,
 )
 
+ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
+TModel = TypeVar("TModel", bound=ModelTypes)
+
 
 class ModelRegistry:
     """Model registry client."""
@@ -29,7 +32,7 @@ class ModelRegistry:
         *,
         author: str,
         is_secure: bool = True,
-        user_token: bytes | None = None,
+        user_token: str | None = None,
         custom_ca: str | None = None,
     ):
         """Constructor.
@@ -41,8 +44,8 @@ class ModelRegistry:
         Keyword Args:
             author: Name of the author.
             is_secure: Whether to use a secure connection. Defaults to True.
-            user_token: The PEM-encoded user token as a byte string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
-            custom_ca: Path to the PEM-encoded root certificates as a byte string. Defaults to path on envvar CERT.
+            user_token: The PEM-encoded user token as a string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: Path to the PEM-encoded root certificates as a string. Defaults to path on envvar CERT.
         """
         import nest_asyncio
 
@@ -55,7 +58,7 @@ class ModelRegistry:
             # /var/run/secrets/kubernetes.io/serviceaccount/token
             sa_token = os.environ.get("KF_PIPELINES_SA_TOKEN_PATH")
             if sa_token:
-                user_token = Path(sa_token).read_bytes()
+                user_token = Path(sa_token).read_text()
             else:
                 warn("User access token is missing", stacklevel=2)
 
@@ -190,6 +193,20 @@ class ModelRegistry:
         )
 
         return rm
+
+    def update(self, model: TModel) -> TModel:
+        """Update a model."""
+        if not model.id:
+            msg = "Model must have an ID"
+            raise StoreError(msg)
+        if not isinstance(model, get_args(ModelTypes)):
+            msg = f"Model must be one of {get_args(ModelTypes)}"
+            raise StoreError(msg)
+        if isinstance(model, RegisteredModel):
+            return self.async_runner(self._api.upsert_registered_model(model))
+        if isinstance(model, ModelVersion):
+            return self.async_runner(self._api.upsert_model_version(model, model.id))
+        return self.async_runner(self._api.upsert_model_artifact(model, model.id))
 
     def register_hf_model(
         self,

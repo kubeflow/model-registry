@@ -54,21 +54,22 @@ make docker-build
 
 ### Endpoints
 
-| URL Pattern                                                   | Handler                 | Action                                       |
-|---------------------------------------------------------------|-------------------------|----------------------------------------------|
-| GET /v1/healthcheck                                           | HealthcheckHandler      | Show application information.                |
-| GET /v1/model-registry/                                       | ModelRegistryHandler    | Get all model registries,                    |
-| GET /v1/model-registry/{model_registry_id}/registered_models  | RegisteredModelsHandler | Gets a list of all RegisteredModel entities. |
-| POST /v1/model-registry/{model_registry_id}/registered_models | RegisteredModelsHandler | Create a RegisteredModel entity.             |
+| URL Pattern                                                                        | Handler                 | Action                                       |
+|------------------------------------------------------------------------------------|-------------------------|----------------------------------------------|
+| GET /v1/healthcheck                                                                | HealthcheckHandler      | Show application information.                |
+| GET /v1/model-registry                                                             | ModelRegistryHandler    | Get all model registries,                    |
+| GET /v1/model-registry/{model_registry_id}/registered_models                       | RegisteredModelsHandler | Gets a list of all RegisteredModel entities. |
+| POST /v1/model-registry/{model_registry_id}/registered_models                      | RegisteredModelsHandler | Create a RegisteredModel entity.             |
+| GET /v1/model-registry/{model_registry_id}/registered_models/{registered_model_id} | RegisteredModelHandler  | Get a RegisteredModel entity by ID           |
 
 ### Sample local calls
 ```
 # GET /v1/healthcheck
-curl -i localhost:4000/api/v1/healthcheck/
+curl -i localhost:4000/api/v1/healthcheck
 ```
 ```
-# GET /v1/model-registry/ 
-curl -i localhost:4000/api/v1/model-registry/
+# GET /v1/model-registry 
+curl -i localhost:4000/api/v1/model-registry
 ```
 ```
 # GET /v1/model-registry/{model_registry_id}/registered_models
@@ -91,4 +92,8 @@ curl -i -X POST "http://localhost:4000/api/v1/model-registry/model-registry/regi
   "owner": "eder",
   "state": "LIVE"
 }'
+```
+```
+# GET /v1/model-registry/{model_registry_id}/registered_models/{registered_model_id}
+curl -i localhost:4000/api/v1/model-registry/model-registry/registered_models/1
 ```

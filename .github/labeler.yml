@@ -1,0 +1,33 @@
+"Area/UI":
+- changed-files:
+  - any-glob-to-any-file: "clients/ui/**"
+
+"Area/MR Python client":
+- changed-files:
+  - any-glob-to-any-file: "clients/python/**"
+
+"Area/Go REST server":
+- changed-files:
+  - any-glob-to-any-file:
+    - "api/**"
+    - "cmd/**"
+    - "internal/**"
+    - "patches/**"
+    - "pkg/**"
+    - "templates/go-server/**"
+
+"Area/CSI":
+- changed-files:
+  - any-glob-to-any-file: "csi/**"
+
+"Area/Manifests":
+- changed-files:
+  - any-glob-to-any-file: "manifests/**"
+
+"Area/Documentation":
+- changed-files:
+  - any-glob-to-any-file: "docs/**"
+
+"Area/GitHub":
+- changed-files:
+  - any-glob-to-any-file: ".github/**"
