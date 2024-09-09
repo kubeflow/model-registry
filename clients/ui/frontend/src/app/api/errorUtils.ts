@@ -1,4 +1,4 @@
-import { APIError } from '~/types';
+import { APIError } from '~/app/api/types';
 import { isCommonStateError } from '~/utilities/useFetchState';
 
 const isError = (e: unknown): e is APIError =>

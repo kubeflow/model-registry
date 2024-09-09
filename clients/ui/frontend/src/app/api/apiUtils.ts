@@ -1,4 +1,4 @@
-import { APIOptions } from '~/types';
+import { APIOptions } from '~/app/api/types';
 import { EitherOrNone } from '~/typeHelpers';
 
 export const mergeRequestInit = (

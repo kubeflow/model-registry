@@ -1,4 +1,4 @@
-import { APIOptions } from '~/types';
+import { APIOptions } from '~/app/api/types';
 
 export enum ModelState {
   LIVE = 'LIVE',
@@ -20,6 +20,8 @@ export type ModelRegistry = {
   displayName: string;
   description: string;
 };
+
+export type ModelRegistryList = ModelRegistry[];
 
 export enum ModelRegistryMetadataType {
   INT = 'MetadataIntValue',

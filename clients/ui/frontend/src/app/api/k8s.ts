@@ -1,10 +1,10 @@
-import { APIOptions } from '~/types';
+import { APIOptions } from '~/app/api/types';
 import { handleRestFailures } from '~/app/api/errorUtils';
 import { restGET } from '~/app/api/apiUtils';
-import { ModelRegistry } from '~/app/types';
+import { ModelRegistryList } from '~/app/types';
 import { BFF_API_VERSION } from '~/app/const';
 
-export const getModelRegistries =
+export const getListModelRegistries =
   (hostPath: string) =>
-  (opts: APIOptions): Promise<ModelRegistry> =>
+  (opts: APIOptions): Promise<ModelRegistryList> =>
     handleRestFailures(restGET(hostPath, `/api/${BFF_API_VERSION}/model_registry`, {}, opts));

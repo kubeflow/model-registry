@@ -1,5 +1,5 @@
 import { NotReadyError } from '~/utilities/useFetchState';
-import { APIError } from '~/types';
+import { APIError } from '~/app/api/types';
 import { handleRestFailures } from '~/app/api/errorUtils';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 
