@@ -12,8 +12,10 @@ describe('handleRestFailures', () => {
 
   it('should handle and throw model registry errors', async () => {
     const statusMock: APIError = {
-      code: '',
-      message: 'error',
+      error: {
+        code: '',
+        message: 'error',
+      },
     };
 
     await expect(handleRestFailures(Promise.resolve(statusMock))).rejects.toThrow('error');

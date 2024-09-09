@@ -39,19 +39,19 @@ const EnabledModelRegistrySelectorContextProvider: React.FC<
 
   const firstModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
+  const contextValue = React.useMemo(
+    () => ({
+      modelRegistriesLoaded: isLoaded,
+      modelRegistriesLoadError: error,
+      modelRegistries,
+      preferredModelRegistry: preferredModelRegistry ?? firstModelRegistry ?? undefined,
+      updatePreferredModelRegistry: setPreferredModelRegistry,
+    }),
+    [isLoaded, error, modelRegistries, preferredModelRegistry, firstModelRegistry],
+  );
+
   return (
-    <ModelRegistrySelectorContext.Provider
-      value={React.useMemo(
-        () => ({
-          modelRegistriesLoaded: isLoaded,
-          modelRegistriesLoadError: error,
-          modelRegistries,
-          preferredModelRegistry: preferredModelRegistry ?? firstModelRegistry ?? undefined,
-          updatePreferredModelRegistry: setPreferredModelRegistry,
-        }),
-        [isLoaded, error, modelRegistries, preferredModelRegistry, firstModelRegistry],
-      )}
-    >
+    <ModelRegistrySelectorContext.Provider value={contextValue}>
       {children}
     </ModelRegistrySelectorContext.Provider>
   );

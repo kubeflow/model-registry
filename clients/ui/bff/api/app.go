@@ -2,13 +2,14 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/config"
 	"github.com/kubeflow/model-registry/ui/bff/data"
 	"github.com/kubeflow/model-registry/ui/bff/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
-	"log/slog"
-	"net/http"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	ModelRegistryId      = "model_registry_id"
 	RegisteredModelId    = "registered_model_id"
 	HealthCheckPath      = PathPrefix + "/healthcheck"
-	ModelRegistry        = PathPrefix + "/model-registry"
+	ModelRegistry        = PathPrefix + "/model_registry"
 	RegisteredModelsPath = ModelRegistry + "/:" + ModelRegistryId + "/registered_models"
 	RegisteredModelPath  = RegisteredModelsPath + "/:" + RegisteredModelId
 )

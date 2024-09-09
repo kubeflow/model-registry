@@ -5,8 +5,10 @@ export type APIOptions = {
 };
 
 export type APIError = {
-  code: string;
-  message: string;
+  error: {
+    code: string;
+    message: string;
+  };
 };
 
 export type APIState<T> = {

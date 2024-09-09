@@ -21,7 +21,10 @@ export type ModelRegistry = {
   description: string;
 };
 
-export type ModelRegistryList = ModelRegistry[];
+// TODO: Change in the backend AND frontend to "items" instead of "model-registries"
+export type ModelRegistryResponse = {
+  model_registry: ModelRegistry[];
+};
 
 export enum ModelRegistryMetadataType {
   INT = 'MetadataIntValue',
