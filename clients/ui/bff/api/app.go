@@ -23,10 +23,11 @@ const (
 )
 
 type App struct {
-	config           config.EnvConfig
-	logger           *slog.Logger
-	models           data.Models
-	kubernetesClient integrations.KubernetesClientInterface
+	config              config.EnvConfig
+	logger              *slog.Logger
+	models              data.Models
+	kubernetesClient    integrations.KubernetesClientInterface
+	modelRegistryClient data.ModelRegistryClientInterface
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
@@ -43,10 +44,23 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
+	var mrClient data.ModelRegistryClientInterface
+
+	if cfg.MockMRClient {
+		mrClient, err = mocks.NewModelRegistryClient(logger)
+	} else {
+		mrClient, err = data.NewModelRegistryClient(logger)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ModelRegistry client: %w", err)
+	}
+
 	app := &App{
-		config:           cfg,
-		logger:           logger,
-		kubernetesClient: k8sClient,
+		config:              cfg,
+		logger:              logger,
+		kubernetesClient:    k8sClient,
+		modelRegistryClient: mrClient,
 	}
 	return app, nil
 }
@@ -59,7 +73,7 @@ func (app *App) Routes() http.Handler {
 
 	// HTTP client routes
 	router.GET(HealthCheckPath, app.HealthcheckHandler)
-	router.GET(RegisteredModelsPath, app.AttachRESTClient(app.GetRegisteredModelsHandler))
+	router.GET(RegisteredModelsPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
 	router.GET(RegisteredModelPath, app.AttachRESTClient(app.GetRegisteredModelHandler))
 	router.POST(RegisteredModelsPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
 
