@@ -247,7 +247,19 @@ class ModelRegistry:
         try:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
-            msg = "huggingface_hub is not installed"
+            msg = """package `huggingface-hub` is not installed.
+
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
+            extra (available as `model-registry[hf]`), e.g.:
+
+            ```sh
+            !pip install --pre model-registry[hf]
+            ```
+            or
+            ```sh
+            !pip install huggingface-hub
+            ```
+            """
             raise StoreError(msg) from e
 
         api = HfApi()

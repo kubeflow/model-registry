@@ -72,7 +72,16 @@ model = registry.register_model(
 ### Importing from Hugging Face Hub
 
 To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-extra (available as `model-registry[hf]`).
+extra (available as `model-registry[hf]`), e.g.:
+
+```sh
+!pip install --pre model-registry[hf]
+```
+or
+```sh
+!pip install huggingface-hub
+```
+
 Models can be imported with
 
 ```py
