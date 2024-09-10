@@ -82,7 +82,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
-	result, err := s.coreApi.UpsertModelArtifact(entity, nil)
+	result, err := s.coreApi.UpsertModelArtifact(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -106,8 +106,8 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 }
 
 // CreateModelVersionArtifact - Create an Artifact in a ModelVersion
-func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
-	result, err := s.coreApi.UpsertArtifact(&artifact, &modelversionId)
+func (s *ModelRegistryServiceAPIService) UpsertModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
+	result, err := s.coreApi.UpsertModelVersionArtifact(&artifact, modelversionId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -445,7 +445,7 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
-	result, err := s.coreApi.UpsertModelArtifact(&update, nil)
+	result, err := s.coreApi.UpsertModelArtifact(&update)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}

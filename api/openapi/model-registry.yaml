@@ -391,8 +391,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: createModelVersionArtifact
-      summary: Create an Artifact in a ModelVersion
+      operationId: upsertModelVersionArtifact
+      summary: Upsert an Artifact in a ModelVersion
       description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
     parameters:
       - name: modelversionId
