@@ -72,7 +72,6 @@
     "no-only-tests/no-only-tests": "error",
     "@typescript-eslint/default-param-last": "error",
     "@typescript-eslint/dot-notation": ["error", { "allowKeywords": true }],
-    "@typescript-eslint/lines-between-class-members": ["error", "always"],
     "@typescript-eslint/method-signature-style": "error",
     "@typescript-eslint/naming-convention": [
       "error",

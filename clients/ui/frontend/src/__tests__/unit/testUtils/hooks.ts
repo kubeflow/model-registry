@@ -7,14 +7,8 @@ import {
 } from '@testing-library/react';
 import { queries, Queries } from '@testing-library/dom';
 
-export type BooleanValues<T> = T extends
-  | boolean
-  | number
-  | string
-  | null
-  | undefined
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  | Function
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type BooleanValues<T> = T extends boolean | number | null | undefined | Function
   ? boolean | undefined
   : boolean | undefined | { [K in keyof T]?: BooleanValues<T[K]> };
 
@@ -174,7 +168,7 @@ export const createComparativeValue = <T>(source: T, booleanTarget: BooleanValue
 
 const createComparativeValueRecursive = <T>(
   source: unknown,
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   booleanTarget: boolean | string | number | Function | BooleanValues<T>,
 ) => {
   if (typeof booleanTarget === 'boolean') {
