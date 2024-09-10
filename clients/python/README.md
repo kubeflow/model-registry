@@ -2,8 +2,36 @@
 
 [![Python](https://img.shields.io/badge/python%20-3.9%7C3.10%7C3.11%7C3.12-blue)](https://github.com/kubeflow/model-registry)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
+[![Read the Docs](https://img.shields.io/readthedocs/model-registry)](https://model-registry.readthedocs.io/en/latest/)
+[![Tutorial Website](https://img.shields.io/badge/Website-green?style=plastic&label=Tutorial&labelColor=blue)](https://www.kubeflow.org/docs/components/model-registry/getting-started/)
 
 This library provides a high level interface for interacting with a model registry server.
+
+## Installation
+
+In your Python environment, you can install the latest version of the Model Registry Python client with:
+
+```
+pip install --pre "model-registry"
+```
+
+### Installing extras
+
+Some capabilities of this Model Registry Python client, such as [importing model from Hugging Face](#importing-from-hugging-face-hub),
+require additional dependencies.
+
+By [installing an extra variant](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-extras) of this package
+the additional dependencies will be managed for you automatically, for instance with:
+
+```
+pip install --pre "model-registry[hf]"
+```
+
+This step is not required if you already installed the additional dependencies already, for instance with:
+
+```
+pip install huggingface-hub
+```
 
 ## Basic usage
 
@@ -72,7 +100,9 @@ model = registry.register_model(
 ### Importing from Hugging Face Hub
 
 To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-extra (available as `model-registry[hf]`).
+extra (available as `model-registry[hf]`). Reference section "[installing extras](#installing-extras)" above for
+more information.
+
 Models can be imported with
 
 ```py
