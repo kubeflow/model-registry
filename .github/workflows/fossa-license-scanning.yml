@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@v3
+        uses: fossas/fossa-action@v1.4.0
         with:
-          fossa-api-key: ${{ env.FOSSA_API_KEY }}
+          api-key: ${{ env.FOSSA_API_KEY }}
+          project: "github.com/kubeflow/model-registry"
