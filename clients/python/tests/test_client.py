@@ -232,7 +232,7 @@ def test_get_registered_models(client: ModelRegistry):
             version="1.0.0",
         )
 
-    rm_iter = client.get_registered_models().limit(10)
+    rm_iter = client.get_registered_models().page_size(10)
     i = 0
     prev_tok = None
     changes = 0
@@ -330,7 +330,7 @@ def test_get_registered_models_and_reset(client: ModelRegistry):
             version="1.0.0",
         )
 
-    rm_iter = client.get_registered_models().limit(model_count - 1)
+    rm_iter = client.get_registered_models().page_size(model_count - 1)
     models = []
     for rm in islice(rm_iter, page):
         models.append(rm)
@@ -355,7 +355,7 @@ def test_get_model_versions(client: ModelRegistry):
             version=v,
         )
 
-    mv_iter = client.get_model_versions(name).limit(10)
+    mv_iter = client.get_model_versions(name).page_size(10)
     i = 0
     prev_tok = None
     changes = 0
@@ -447,7 +447,7 @@ def test_get_model_versions_and_reset(client: ModelRegistry):
             version=v,
         )
 
-    mv_iter = client.get_model_versions(name).limit(model_count - 1)
+    mv_iter = client.get_model_versions(name).page_size(model_count - 1)
     models = []
     for rm in islice(mv_iter, page):
         models.append(rm)
