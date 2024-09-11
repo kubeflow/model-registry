@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/data"
 	"github.com/kubeflow/model-registry/ui/bff/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/validation"
 	"net/http"
 )
 
-func (app *App) GetRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	//TODO (ederign) implement pagination
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
@@ -20,14 +19,14 @@ func (app *App) GetRegisteredModelsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	modelList, err := data.GetAllRegisteredModels(client)
+	modelList, err := app.modelRegistryClient.GetAllRegisteredModels(client)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	modelRegistryRes := Envelope{
-		"registered_models": modelList,
+		"registered_model_list": modelList,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
@@ -60,7 +59,7 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	createdModel, err := data.CreateRegisteredModel(client, jsonData)
+	createdModel, err := app.modelRegistryClient.CreateRegisteredModel(client, jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {
@@ -91,13 +90,13 @@ func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	model, err := data.GetRegisteredModel(client, ps.ByName(RegisteredModelId))
+	model, err := app.modelRegistryClient.GetRegisteredModel(client, ps.ByName(RegisteredModelId))
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	if _, ok := model.GetNameOk(); !ok {
+	if _, ok := model.GetIdOk(); !ok {
 		app.notFoundResponse(w, r)
 		return
 	}
