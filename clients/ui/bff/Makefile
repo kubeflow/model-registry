@@ -35,6 +35,10 @@ build: fmt vet test
 run: fmt vet
 	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT)
 
+.PHONY: lint
+lint:
+	staticcheck ./...
+
 .PHONY: docker-build
 docker-build:
 	$(CONTAINER_TOOL) build -t ${IMG} .

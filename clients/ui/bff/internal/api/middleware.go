@@ -3,10 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"k8s.io/client-go/rest"
-	"net/http"
 )
 
 type contextKey string
@@ -39,9 +40,9 @@ func (app *App) enableCORS(next http.Handler) http.Handler {
 func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-		modelRegistryID := ps.ByName(ModelRegistryId)
+		modelRegistryId := ps.ByName(ModelRegistryId)
 
-		modelRegistryBaseURL, err := resolveModelRegistryURL(modelRegistryID, app.kubernetesClient)
+		modelRegistryBaseURL, err := resolveModelRegistryURL(modelRegistryId, app.kubernetesClient)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to resolve model registry base URL): %v", err))
 			return

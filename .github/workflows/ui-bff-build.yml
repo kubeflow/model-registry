@@ -24,6 +24,11 @@ jobs:
         working-directory: clients/ui/bff
         run: make clean
 
+      - uses: dominikh/staticcheck-action@v1
+        with:
+          version: "latest"
+          working-directory: clients/ui/bff
+
       - name: Build
         working-directory: clients/ui/bff
         run: make build
