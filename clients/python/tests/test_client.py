@@ -72,10 +72,10 @@ def test_register_existing_version(client: ModelRegistry):
         "model_format_version": "test_version",
         "version": "1.0.0",
     }
-    client.register_model(**params)
+    client.register_model(**params, metadata=None)
 
     with pytest.raises(StoreError):
-        client.register_model(**params)
+        client.register_model(**params, metadata=None)
 
 
 @pytest.mark.e2e
@@ -124,8 +124,10 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
     )
     assert rm.id
     mv = client.get_model_version(name, version)
+    assert mv
     assert mv.id
     ma = client.get_model_artifact(name, version)
+    assert ma
     assert ma.id
 
     rm_labels = {
@@ -149,9 +151,15 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
     ma.custom_properties = ma_labels
     client.update(ma)
 
-    assert client.get_registered_model(name).custom_properties == rm_labels
-    assert client.get_model_version(name, version).custom_properties == mv_labels
-    assert client.get_model_artifact(name, version).custom_properties == ma_labels
+    rm = client.get_registered_model(name)
+    assert rm
+    assert rm.custom_properties == rm_labels
+    mv = client.get_model_version(name, version)
+    assert mv
+    assert mv.custom_properties == mv_labels
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.custom_properties == ma_labels
 
 
 @pytest.mark.e2e
