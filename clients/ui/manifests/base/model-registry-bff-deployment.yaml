@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-bff
+  labels:
+    app: model-registry-bff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-registry-bff
+  template:
+    metadata:
+      labels:
+        app: model-registry-bff
+    spec:
+      containers:
+      - name: model-registry-bff
+        image: model-registry-bff-image
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        ports:
+          - containerPort: 4000
