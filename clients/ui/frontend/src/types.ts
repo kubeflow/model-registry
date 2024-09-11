@@ -19,3 +19,8 @@ export type CommonConfig = {
 export type FeatureFlag = {
   modelRegistry: boolean;
 };
+
+export type KeyValuePair = {
+  key: string;
+  value: string;
+};

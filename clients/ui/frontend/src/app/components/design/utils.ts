@@ -1,5 +1,8 @@
 import registerModelImg from '~/images/UI_icon-Cubes-RGB.svg';
 import modelRegistryEmptyStateImg from '~/images/empty-state-model-registries.svg';
+import modelRegistryMissingModelImg from '~/images/no-models-model-registry.svg';
+import modelRegistryMissingVersionImg from '~/images/no-versions-model-registry.svg';
+
 import './vars.scss';
 
 export enum ProjectObjectType {
@@ -24,10 +27,17 @@ export const typedObjectImage = (objectType: ProjectObjectType): string => {
   }
 };
 
-export const typedEmptyImage = (objectType: ProjectObjectType): string => {
+export const typedEmptyImage = (objectType: ProjectObjectType, option?: string): string => {
   switch (objectType) {
     case ProjectObjectType.registeredModels:
-      return modelRegistryEmptyStateImg;
+      switch (option) {
+        case 'MissingModel':
+          return modelRegistryMissingModelImg;
+        case 'MissingVersion':
+          return modelRegistryMissingVersionImg;
+        default:
+          return modelRegistryEmptyStateImg;
+      }
     default:
       return '';
   }

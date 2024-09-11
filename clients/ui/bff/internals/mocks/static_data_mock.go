@@ -29,7 +29,19 @@ func GetRegisteredModelMocks() []openapi.RegisteredModel {
 		State:                    stateToPointer(openapi.REGISTEREDMODELSTATE_LIVE),
 	}
 
-	return []openapi.RegisteredModel{model1, model2}
+	model3 := openapi.RegisteredModel{
+		CustomProperties:         newCustomProperties(),
+		Name:                     "Model Three",
+		Description:              stringToPointer("This model does things and stuff"),
+		ExternalId:               stringToPointer("345235989"),
+		Id:                       stringToPointer("3"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282249933"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282249933"),
+		Owner:                    stringToPointer("M. Oriarty"),
+		State:                    stateToPointer(openapi.REGISTEREDMODELSTATE_ARCHIVED),
+	}
+
+	return []openapi.RegisteredModel{model1, model2, model3}
 }
 
 func GetRegisteredModelListMock() openapi.RegisteredModelList {
@@ -135,10 +147,28 @@ func GetModelArtifactListMock() openapi.ModelArtifactList {
 
 func newCustomProperties() *map[string]openapi.MetadataValue {
 	result := map[string]openapi.MetadataValue{
-		"my-label9": {
+		"tensorflow": {
 			MetadataStringValue: &openapi.MetadataStringValue{
-				StringValue:  "property9",
-				MetadataType: "string",
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"pytorch": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"mll": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"rnn": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
 			},
 		},
 	}

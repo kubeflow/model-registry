@@ -1,4 +1,8 @@
-import { ModelRegistryMetadataType, ModelRegistryStringCustomProperties } from '~/app/types';
+import {
+  ModelRegistryMetadataType,
+  ModelRegistryResponse,
+  ModelRegistryStringCustomProperties,
+} from '~/app/types';
 
 export const createModelRegistryLabelsObject = (
   labels: string[],
@@ -11,3 +15,7 @@ export const createModelRegistryLabelsObject = (
     };
     return acc;
   }, {} as ModelRegistryStringCustomProperties);
+
+export const mockBFFResponse = <T>(data: T): ModelRegistryResponse<T> => ({
+  data,
+});

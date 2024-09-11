@@ -163,11 +163,14 @@ export const restDELETE = <T>(
     parseJSON: options?.parseJSON,
   });
 
-export const isModelRegistryResponse = (response: unknown): response is ModelRegistryResponse => {
+export const isModelRegistryResponse = <T>(
+  response: unknown,
+): response is ModelRegistryResponse<T> => {
   if (typeof response === 'object' && response !== null) {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const modelRegistryResponse = response as { model_registry?: unknown };
-    return Array.isArray(modelRegistryResponse.model_registry);
+    const modelRegistryResponse = response as { data?: T };
+    // TODO: Check if data is conforming any type so we have a proper check
+    return modelRegistryResponse.data !== undefined;
   }
   return false;
 };
