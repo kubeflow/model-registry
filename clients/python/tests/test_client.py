@@ -323,6 +323,17 @@ def test_get_registered_models_order_by(client: ModelRegistry):
 
     assert i == models
 
+    # or if descending is explicitly set
+    i = 0
+    for rm, by_update in zip(
+        rms,
+        client.get_registered_models().order_by_update_time().descending(),
+    ):
+        assert rm.id == by_update.id
+        i += 1
+
+    assert i == models
+
 
 @pytest.mark.e2e
 def test_get_registered_models_and_reset(client: ModelRegistry):
@@ -437,6 +448,18 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     ):
         assert mv.id == by_update.id
         i += 1
+
+    assert i == models
+
+    i = 0
+    for mv, by_update in zip(
+        mvs,
+        client.get_model_versions(name).order_by_update_time().descending(),
+    ):
+        assert mv.id == by_update.id
+        i += 1
+
+    assert i == models
 
 
 @pytest.mark.e2e
