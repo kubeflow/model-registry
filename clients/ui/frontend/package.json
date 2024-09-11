@@ -42,7 +42,6 @@
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "^29.5.12",
     "@types/react-router-dom": "^5.3.3",
-    "@types/victory": "^35.0.0",
     "chai-subset": "^1.6.0",
     "copy-webpack-plugin": "^12.0.2",
     "core-js": "^3.37.1",
@@ -97,8 +96,8 @@
     "sass": "^1.78.0"
   },
   "optionalDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.1.1",
-    "@typescript-eslint/parser": "^7.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-node": "^0.3.7",
