@@ -94,11 +94,10 @@ Fedora requires further setup to make testcontainers work with Podman, the follo
 systemctl --user start podman.socket
 ```
 
-- set the environment variables
+- set the environment variable
 
 ```sh
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
-export TESTCONTAINERS_RYUK_PRIVILEGED=true
 ```
 
 If you need more information, please refer to the [Testcontainers using Podman](https://golang.testcontainers.org/system_requirements/using_podman/).
