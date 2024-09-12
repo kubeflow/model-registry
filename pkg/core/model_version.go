@@ -17,6 +17,9 @@ import (
 // UpsertModelVersion creates a new model version if the provided model version's ID is nil,
 // or updates an existing model version if the ID is provided.
 func (serv *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVersion, registeredModelId *string) (*openapi.ModelVersion, error) {
+	if modelVersion == nil {
+		return nil, fmt.Errorf("invalid model version pointer, can't upsert nil: %w", api.ErrBadRequest)
+	}
 	var err error
 	var existing *openapi.ModelVersion
 	var registeredModel *openapi.RegisteredModel

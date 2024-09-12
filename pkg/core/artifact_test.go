@@ -50,6 +50,10 @@ func (suite *CoreTestSuite) TestCreateModelVersionArtifactFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
+	_, err := service.UpsertModelVersionArtifact(nil, "")
+	suite.NotNil(err)
+	suite.Equal("invalid artifact pointer, can't upsert nil: bad request", err.Error())
+
 	modelVersionId := "9998"
 
 	artifact := &openapi.Artifact{
@@ -65,7 +69,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionArtifactFailure() {
 		},
 	}
 
-	_, err := service.UpsertModelVersionArtifact(artifact, "")
+	_, err = service.UpsertModelVersionArtifact(artifact, "")
 	suite.NotNil(err)
 	suite.Equal("no model version found for id : not found", err.Error())
 
@@ -97,7 +101,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifact() {
 	newState := "MARKED_FOR_DELETION"
 	createdArtifact.DocArtifact.State = (*openapi.ArtifactState)(&newState)
 	updatedArtifact, err := service.UpsertModelVersionArtifact(createdArtifact, modelVersionId)
-	suite.Nilf(err, "error updating artifact for %v: %v", modelVersionId, err)
+	suite.Nilf(err, "error updating artifact for %s: %v", modelVersionId, err)
 
 	createdArtifactId, _ := converter.StringToInt64(createdArtifact.DocArtifact.Id)
 	updatedArtifactId, _ := converter.StringToInt64(updatedArtifact.DocArtifact.Id)
@@ -106,7 +110,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifact() {
 	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
 		ArtifactIds: []int64{*createdArtifactId},
 	})
-	suite.Nilf(err, "error getting artifact by id %v", createdArtifactId)
+	suite.Nilf(err, "error getting artifact by id %s", *createdArtifactId)
 
 	suite.Equal(*createdArtifactId, *getById.Artifacts[0].Id)
 	suite.Equal(fmt.Sprintf("%s:%s", modelVersionId, *createdArtifact.DocArtifact.Name), *getById.Artifacts[0].Name)
@@ -139,13 +143,50 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifactFailure() {
 	newState := "MARKED_FOR_DELETION"
 	createdArtifact.DocArtifact.State = (*openapi.ArtifactState)(&newState)
 	updatedArtifact, err := service.UpsertModelVersionArtifact(createdArtifact, modelVersionId)
-	suite.Nilf(err, "error updating artifact for %v: %v", modelVersionId, err)
+	suite.Nilf(err, "error updating artifact for %s: %v", modelVersionId, err)
 
 	wrongId := "5555"
 	updatedArtifact.DocArtifact.Id = &wrongId
 	_, err = service.UpsertModelVersionArtifact(updatedArtifact, modelVersionId)
 	suite.NotNil(err)
 	suite.Equal(fmt.Sprintf("no artifact found for id %s: not found", wrongId), err.Error())
+
+	rmName := "x1"
+	mvName := "x2"
+	modelVersion2Id := suite.registerModelVersion(service, &rmName, &rmName, &mvName, &mvName)
+
+	_, err = service.UpsertModelVersionArtifact(createdArtifact, modelVersion2Id)
+	suite.NotNil(err)
+	suite.Equal(fmt.Sprintf("artifact %s is already associated with a different model version %s: bad request", *createdArtifact.DocArtifact.Id, modelVersionId), err.Error())
+}
+
+func (suite *CoreTestSuite) TestUpsertModelVersionStandaloneArtifact() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArtifact, err := service.UpsertArtifact(&openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{
+			Name:  &artifactName,
+			State: (*openapi.ArtifactState)(&artifactState),
+			Uri:   &artifactUri,
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	})
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	upsertedMVArtifact, err := service.UpsertModelVersionArtifact(createdArtifact, modelVersionId)
+	suite.Nilf(err, "error upserting standalone artifact: %v", err)
+	suite.Equal(*createdArtifact.DocArtifact.Id, *upsertedMVArtifact.DocArtifact.Id)
+
+	associatedMV, err := service.getModelVersionByArtifactId(*createdArtifact.DocArtifact.Id)
+	suite.Nilf(err, "error getting model version by artifact id: %v", err)
+	suite.Equal(modelVersionId, *associatedMV.Id)
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
@@ -245,9 +286,13 @@ func (suite *CoreTestSuite) TestCreateArtifactFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
+	_, err := service.UpsertArtifact(nil)
+	suite.NotNil(err)
+	suite.Equal("invalid artifact pointer, can't upsert nil: bad request", err.Error())
+
 	artifact := &openapi.Artifact{}
 
-	_, err := service.UpsertArtifact(artifact)
+	_, err = service.UpsertArtifact(artifact)
 	suite.NotNil(err)
 	suite.Equal("invalid artifact type, must be either ModelArtifact or DocArtifact: bad request", err.Error())
 }
@@ -282,7 +327,7 @@ func (suite *CoreTestSuite) TestUpdateArtifact() {
 	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
 		ArtifactIds: []int64{*createdArtifactId},
 	})
-	suite.Nilf(err, "error getting artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting artifact by id %s: %v", *createdArtifactId, err)
 
 	suite.Equal(*createdArtifactId, *getById.Artifacts[0].Id)
 	fmt.Printf("da name: %s, db name: %s", *createdArtifact.DocArtifact.Name, *getById.Artifacts[0].Name)
@@ -324,7 +369,14 @@ func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
 	suite.NotNil(err)
 	suite.Equal(fmt.Sprintf("no artifact found for id %s: not found", wrongId), err.Error())
 
-	// test mismatched artifact type
+	ma := &openapi.Artifact{
+		ModelArtifact: &openapi.ModelArtifact{
+			Id: createdArtifact.DocArtifact.Id,
+		},
+	}
+	_, err = service.UpsertArtifact(ma)
+	suite.NotNil(err)
+	suite.Equal(fmt.Sprintf("mismatched types, artifact with id %s is not a model artifact: bad request", *createdArtifact.DocArtifact.Id), err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetArtifactById() {
@@ -348,7 +400,7 @@ func (suite *CoreTestSuite) TestGetArtifactById() {
 	createdArtifactId, _ := converter.StringToInt64(createdArtifact.DocArtifact.Id)
 
 	getById, err := service.GetArtifactById(*createdArtifact.DocArtifact.Id)
-	suite.Nilf(err, "error getting artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting artifact by id %s: %v", *createdArtifactId, err)
 
 	state, _ := openapi.NewArtifactStateFromValue(artifactState)
 	suite.NotNil(createdArtifact.DocArtifact.Id, "created artifact id should not be nil")
@@ -459,12 +511,9 @@ func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	modelArtifact := &openapi.ModelArtifact{}
-
-	art, err := service.UpsertModelArtifact(modelArtifact)
-	fmt.Printf("art: %v, err: %v", art, err)
-	// suite.NotNil(err)
-	// suite.Equal("missing model version id, cannot create artifact without model version: bad request", err.Error())
+	_, err := service.UpsertModelArtifact(nil)
+	suite.NotNil(err)
+	suite.Equal("invalid artifact pointer, can't upsert nil: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestUpdateModelArtifact() {
@@ -497,7 +546,7 @@ func (suite *CoreTestSuite) TestUpdateModelArtifact() {
 	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
 		ArtifactIds: []int64{*createdArtifactId},
 	})
-	suite.Nilf(err, "error getting model artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
 
 	suite.Equal(*createdArtifactId, *getById.Artifacts[0].Id)
 	exploded := strings.Split(*getById.Artifacts[0].Name, ":")
@@ -529,7 +578,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactById() {
 	createdArtifactId, _ := converter.StringToInt64(createdArtifact.Id)
 
 	getById, err := service.GetModelArtifactById(*createdArtifact.Id)
-	suite.Nilf(err, "error getting model artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
 
 	state, _ := openapi.NewArtifactStateFromValue(artifactState)
 	suite.NotNil(createdArtifact.Id, "created artifact id should not be nil")
@@ -568,7 +617,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 	state, _ := openapi.NewArtifactStateFromValue(artifactState)
 
 	getByName, err := service.GetModelArtifactByParams(&artifactName, &modelVersionId, nil)
-	suite.Nilf(err, "error getting model artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
 
 	suite.NotNil(ma.Id, "created artifact id should not be nil")
 	suite.Equal(artifactName, *getByName.Name)
@@ -580,7 +629,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 	suite.Equal(*ma, *getByName, "artifacts returned during creation and on get by name should be equal")
 
 	getByExtId, err := service.GetModelArtifactByParams(nil, nil, &artifactExtId)
-	suite.Nilf(err, "error getting model artifact by id %v: %v", createdArtifactId, err)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
 
 	suite.NotNil(ma.Id, "created artifact id should not be nil")
 	suite.Equal(artifactName, *getByExtId.Name)

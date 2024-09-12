@@ -34,7 +34,6 @@ func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.A
 	}
 
 	mv, _ := serv.getModelVersionByArtifactId(*id)
-	fmt.Printf("found associated mv: %v", mv)
 
 	if mv == nil {
 		// add explicit Attribution between Artifact and ModelVersion
@@ -59,13 +58,15 @@ func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.A
 		if err != nil {
 			return nil, err
 		}
+	} else if *mv.Id != modelVersionId {
+		return nil, fmt.Errorf("artifact %s is already associated with a different model version %s: %w", *id, *mv.Id, api.ErrBadRequest)
 	}
 	return art, nil
 }
 
 func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error) {
 	if artifact == nil {
-		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil")
+		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
 	}
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id == nil {
@@ -74,7 +75,7 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, mod
 			glog.Info("Updating model artifact")
 			existing, err := serv.GetModelArtifactById(*ma.Id)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
 			}
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, ma))
@@ -209,6 +210,9 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, mode
 // UpsertModelArtifact creates a new model artifact if the provided model artifact's ID is nil,
 // or updates an existing model artifact if the ID is provided.
 func (serv *ModelRegistryService) UpsertModelArtifact(modelArtifact *openapi.ModelArtifact) (*openapi.ModelArtifact, error) {
+	if modelArtifact == nil {
+		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
+	}
 	art, err := serv.UpsertArtifact(&openapi.Artifact{
 		ModelArtifact: modelArtifact,
 	})
