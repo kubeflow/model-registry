@@ -154,11 +154,15 @@ for version in latest_updates:
     ...
 ```
 
-By default, all queries well be `ascending`, but this method is also available for explicitness.
+By default, all queries will be `ascending`, but this method is also available for explicitness.
 
-> Note: You can also set the `page_size()` that you want to use, but the pager will automatically manage pages for you.
-> This is intended to aid in usability as currently the Model Registry backend treats model lists as a circular buffer,
-> and **will not end iteration** for you.
+> Note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
+> When using it as an iterator, it will automatically manage pages for you.
+
+#### Implementation notes
+
+The pager will manage pages for you in order to prevent infinite looping.
+Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
 ## Development
 
