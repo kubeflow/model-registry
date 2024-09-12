@@ -1318,272 +1318,6 @@ class ModelRegistryServiceApi:
         )
 
     @validate_call
-    async def create_model_version_artifact(
-        self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
-        artifact: Annotated[
-            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
-        ],
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
-        ] = None,
-        _request_auth: Optional[dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Artifact:
-        """Create an Artifact in a ModelVersion.
-
-        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
-
-        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
-        :type modelversion_id: str
-        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
-        :type artifact: Artifact
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """  # noqa: E501
-        _param = self._create_model_version_artifact_serialize(
-            modelversion_id=modelversion_id,
-            artifact=artifact,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index,
-        )
-
-        _response_types_map: dict[str, Optional[str]] = {
-            "200": "Artifact",
-            "201": "Artifact",
-            "400": "Error",
-            "401": "Error",
-            "404": "Error",
-            "500": "Error",
-        }
-        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
-        await response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-    @validate_call
-    async def create_model_version_artifact_with_http_info(
-        self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
-        artifact: Annotated[
-            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
-        ],
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
-        ] = None,
-        _request_auth: Optional[dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Artifact]:
-        """Create an Artifact in a ModelVersion.
-
-        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
-
-        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
-        :type modelversion_id: str
-        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
-        :type artifact: Artifact
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """  # noqa: E501
-        _param = self._create_model_version_artifact_serialize(
-            modelversion_id=modelversion_id,
-            artifact=artifact,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index,
-        )
-
-        _response_types_map: dict[str, Optional[str]] = {
-            "200": "Artifact",
-            "201": "Artifact",
-            "400": "Error",
-            "401": "Error",
-            "404": "Error",
-            "500": "Error",
-        }
-        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
-        await response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-    @validate_call
-    async def create_model_version_artifact_without_preload_content(
-        self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
-        artifact: Annotated[
-            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
-        ],
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
-        ] = None,
-        _request_auth: Optional[dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Create an Artifact in a ModelVersion.
-
-        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
-
-        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
-        :type modelversion_id: str
-        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
-        :type artifact: Artifact
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """  # noqa: E501
-        _param = self._create_model_version_artifact_serialize(
-            modelversion_id=modelversion_id,
-            artifact=artifact,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index,
-        )
-
-        _response_types_map: dict[str, Optional[str]] = {
-            "200": "Artifact",
-            "201": "Artifact",
-            "400": "Error",
-            "401": "Error",
-            "404": "Error",
-            "500": "Error",
-        }
-        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
-        return response_data.response
-
-    def _create_model_version_artifact_serialize(
-        self,
-        modelversion_id,
-        artifact,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: dict[str, str] = {}
-
-        _path_params: dict[str, str] = {}
-        _query_params: list[tuple[str, str]] = []
-        _header_params: dict[str, Optional[str]] = _headers or {}
-        _form_params: list[tuple[str, str]] = []
-        _files: dict[str, Union[str, bytes]] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        if modelversion_id is not None:
-            _path_params["modelversionId"] = modelversion_id
-        # process the query parameters
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-        if artifact is not None:
-            _body_params = artifact
-
-        # set the HTTP header `Accept`
-        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params["Content-Type"] = _content_type
-        else:
-            _default_content_type = self.api_client.select_header_content_type(["application/json"])
-            if _default_content_type is not None:
-                _header_params["Content-Type"] = _default_content_type
-
-        # authentication setting
-        _auth_settings: list[str] = ["Bearer"]
-
-        return self.api_client.param_serialize(
-            method="POST",
-            resource_path="/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth,
-        )
-
-    @validate_call
     async def create_registered_model(
         self,
         registered_model_create: Annotated[
@@ -9495,6 +9229,272 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="PATCH",
             resource_path="/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def upsert_model_version_artifact(
+        self,
+        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Upsert an Artifact in a ModelVersion.
+
+        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
+
+        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
+        :type modelversion_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_model_version_artifact_serialize(
+            modelversion_id=modelversion_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def upsert_model_version_artifact_with_http_info(
+        self,
+        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Upsert an Artifact in a ModelVersion.
+
+        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
+
+        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
+        :type modelversion_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_model_version_artifact_serialize(
+            modelversion_id=modelversion_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def upsert_model_version_artifact_without_preload_content(
+        self,
+        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Upsert an Artifact in a ModelVersion.
+
+        Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
+
+        :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
+        :type modelversion_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ModelVersion`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_model_version_artifact_serialize(
+            modelversion_id=modelversion_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _upsert_model_version_artifact_serialize(
+        self,
+        modelversion_id,
+        artifact,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if modelversion_id is not None:
+            _path_params["modelversionId"] = modelversion_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if artifact is not None:
+            _body_params = artifact
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

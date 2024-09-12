@@ -16,7 +16,7 @@ from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
 
 @pytest.fixture
 @cleanup
-def client():
+def client() -> ModelRegistryAPIClient:
     return ModelRegistryAPIClient.insecure_connection(REGISTRY_HOST, REGISTRY_PORT)
 
 
@@ -214,23 +214,51 @@ async def test_page_through_model_versions(
 
 
 @pytest.mark.e2e
+async def test_insert_model_version_artifact(
+    client: ModelRegistryAPIClient, model_version: ModelVersion
+):
+    model = DocArtifact(
+        name="test model",
+        uri="test uri",
+    )
+    assert model_version.id
+    da = await client.upsert_model_version_artifact(model, model_version.id)
+    assert da.id
+    assert da.name == "test model"
+    assert da.uri
+    assert da.description is None
+    assert da.external_id is None
+
+
+@pytest.mark.e2e
+async def test_update_model_version_artifact(
+    client: ModelRegistryAPIClient, model_version: ModelVersion
+):
+    model = DocArtifact(name="updated model", uri="uri")
+    da = await client.upsert_model_version_artifact(model, str(model_version.id))
+    assert da.id
+    last_update = da.last_update_time_since_epoch
+    da.description = "lorem ipsum"
+    da = await client.upsert_model_version_artifact(da, str(model_version.id))
+
+    assert da.description == "lorem ipsum"
+    assert da.last_update_time_since_epoch != last_update
+
+
+@pytest.mark.e2e
 async def test_insert_model_artifact(
     client: ModelRegistryAPIClient,
-    model_version: ModelVersion,
 ):
-    props = {
-        "name": "test model",
-        "uri": "test uri",
-        "model_format_name": "test format",
-        "model_format_version": "test version",
-        "storage_key": "test key",
-        "storage_path": "test path",
-        "service_account_name": "test service account",
-    }
-    ma = await client.upsert_model_artifact(
-        ModelArtifact(**props),  # type: ignore
-        str(model_version.id),
+    model = ModelArtifact(
+        name="test model",
+        uri="test uri",
+        model_format_name="test format",
+        model_format_version="test version",
+        storage_key="test key",
+        storage_path="test path",
+        service_account_name="test service account",
     )
+    ma = await client.upsert_model_artifact(model)
     assert ma.id
     assert ma.name == "test model"
     assert ma.uri
@@ -246,14 +274,12 @@ async def test_insert_model_artifact(
 
 
 @pytest.mark.e2e
-async def test_update_model_artifact(
-    client: ModelRegistryAPIClient, model_version: ModelVersion
-):
+async def test_update_model_artifact(client: ModelRegistryAPIClient):
     model = ModelArtifact(name="updated model", uri="uri")
-    ma = await client.upsert_model_artifact(model, str(model_version.id))
+    ma = await client.upsert_model_artifact(model)
     last_update = ma.last_update_time_since_epoch
     ma.description = "lorem ipsum"
-    ma = await client.upsert_model_artifact(ma, str(model_version.id))
+    ma = await client.upsert_model_artifact(ma)
 
     assert ma.description == "lorem ipsum"
     assert ma.last_update_time_since_epoch != last_update
@@ -264,7 +290,7 @@ async def model(
     client: ModelRegistryAPIClient,
     model_version: ModelVersion,
 ) -> ModelArtifact:
-    return await client.upsert_model_artifact(
+    return await client.upsert_model_version_artifact(
         ModelArtifact(name="model", uri="uri", external_id="ma id"),
         str(model_version.id),
     )
@@ -304,21 +330,19 @@ async def test_get_model_artifact_by_external_id(
 
 @pytest.mark.e2e
 async def test_get_all_model_artifacts(
-    client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
+    client: ModelRegistryAPIClient, model: ModelArtifact
 ):
-    ma2 = await client.upsert_model_artifact(
-        ModelArtifact(name="ma2", uri="uri"), str(model_version.id)
-    )
+    ma2 = await client.upsert_model_artifact(ModelArtifact(name="ma2", uri="uri"))
 
     mas = await client.get_model_artifacts()
     assert [model, ma2] == mas
 
 
 @pytest.mark.e2e
-async def test_get_model_artifacts_by_mv_id(
+async def test_get_model_version_artifacts_by_mv_id(
     client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
-    ma2 = await client.upsert_model_artifact(
+    ma2 = await client.upsert_model_version_artifact(
         ModelArtifact(name="ma2", uri="uri"), str(model_version.id)
     )
 
@@ -339,7 +363,7 @@ async def test_page_through_model_version_artifacts(
             art = ModelArtifact(name=f"ma{i}", uri="uri")
         else:
             art = DocArtifact(name=f"ma{i}", uri="uri")
-        await client.create_model_version_artifact(art, str(model_version.id))
+        await client.upsert_model_version_artifact(art, str(model_version.id))
     pager = Pager(
         lambda o: client.get_model_version_artifacts(str(model_version.id), o)
     ).page_size(5)

@@ -28,8 +28,7 @@ test:
 
 .PHONY: lint
 lint:
-	poetry run ruff check
-	poetry run black src/mr_openapi --check
+	poetry run ruff check src/model_registry
 
 .PHONY: tidy
 tidy:
