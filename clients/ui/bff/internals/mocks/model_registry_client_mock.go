@@ -29,3 +29,8 @@ func (m *ModelRegistryClientMock) GetRegisteredModel(client integrations.HTTPCli
 	mockData := GetRegisteredModelMocks()[0]
 	return &mockData, nil
 }
+
+func (m *ModelRegistryClientMock) UpdateRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error) {
+	mockData := GetRegisteredModelMocks()[0]
+	return &mockData, nil
+}

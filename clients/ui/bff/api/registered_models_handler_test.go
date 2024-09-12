@@ -139,3 +139,47 @@ func TestCreateRegisteredModelHandler(t *testing.T) {
 	assert.Equal(t, expected.Name, actual.Data.Name)
 	assert.NotEmpty(t, rs.Header.Get("location"))
 }
+
+func TestUpdateRegisteredModelHandler(t *testing.T) {
+	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
+	mockClient := new(mocks.MockHTTPClient)
+
+	testApp := App{
+		modelRegistryClient: mockMRClient,
+	}
+
+	newModel := openapi.NewRegisteredModel("Model One")
+	newEnvelope := RegisteredModelEnvelope{Data: newModel}
+
+	newEnvelopeJSON, err := json.Marshal(newEnvelope)
+	assert.NoError(t, err)
+
+	reqBody := bytes.NewReader(newEnvelopeJSON)
+
+	req, err := http.NewRequest(http.MethodPatch,
+		"/api/v1/model_registry/model-registry/registered_models/1", reqBody)
+	assert.NoError(t, err)
+
+	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
+
+	testApp.UpdateRegisteredModelHandler(rr, req, nil)
+	rs := rr.Result()
+
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	assert.NoError(t, err)
+	var actual RegisteredModelEnvelope
+	err = json.Unmarshal(body, &actual)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	expectedModel := mocks.GetRegisteredModelMocks()[0]
+	expected := RegisteredModelEnvelope{Data: &expectedModel}
+
+	assert.Equal(t, expected.Data.Name, actual.Data.Name)
+}

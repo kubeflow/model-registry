@@ -12,6 +12,7 @@ import (
 type HTTPClientInterface interface {
 	GET(url string) ([]byte, error)
 	POST(url string, body io.Reader) ([]byte, error)
+	PATCH(url string, body io.Reader) ([]byte, error)
 }
 
 type HTTPClient struct {
@@ -107,4 +108,8 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	}
 
 	return responseBody, nil
+}
+
+func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented")
 }

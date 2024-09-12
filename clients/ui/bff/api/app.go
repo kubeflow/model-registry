@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	Version              = "1.0.0"
-	PathPrefix           = "/api/v1"
-	ModelRegistryId      = "model_registry_id"
-	RegisteredModelId    = "registered_model_id"
-	HealthCheckPath      = PathPrefix + "/healthcheck"
-	ModelRegistry        = PathPrefix + "/model_registry"
-	RegisteredModelsPath = ModelRegistry + "/:" + ModelRegistryId + "/registered_models"
-	RegisteredModelPath  = RegisteredModelsPath + "/:" + RegisteredModelId
+	Version                 = "1.0.0"
+	PathPrefix              = "/api/v1"
+	ModelRegistryId         = "model_registry_id"
+	RegisteredModelId       = "registered_model_id"
+	HealthCheckPath         = PathPrefix + "/healthcheck"
+	ModelRegistry           = PathPrefix + "/model_registry"
+	RegisteredModelListPath = ModelRegistry + "/:" + ModelRegistryId + "/registered_models"
+	RegisteredModelPath     = RegisteredModelListPath + "/:" + RegisteredModelId
 )
 
 type App struct {
@@ -74,9 +74,10 @@ func (app *App) Routes() http.Handler {
 
 	// HTTP client routes
 	router.GET(HealthCheckPath, app.HealthcheckHandler)
-	router.GET(RegisteredModelsPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
+	router.GET(RegisteredModelListPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
 	router.GET(RegisteredModelPath, app.AttachRESTClient(app.GetRegisteredModelHandler))
-	router.POST(RegisteredModelsPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
+	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
+	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
 
 	// Kubernetes client routes
 	router.GET(ModelRegistry, app.ModelRegistryHandler)
