@@ -1,4 +1,4 @@
-import { APIOptions } from '~/types';
+import { APIOptions } from '~/app/api/types';
 
 export enum ModelState {
   LIVE = 'LIVE',
@@ -19,6 +19,11 @@ export type ModelRegistry = {
   name: string;
   displayName: string;
   description: string;
+};
+
+// TODO: Change in the backend AND frontend to "items" instead of "model-registries"
+export type ModelRegistryResponse = {
+  model_registry: ModelRegistry[];
 };
 
 export enum ModelRegistryMetadataType {

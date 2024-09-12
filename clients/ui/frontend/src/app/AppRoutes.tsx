@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { NotFound } from './pages/notFound/NotFound';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
@@ -42,7 +42,7 @@ export const useAdminSettings = (): NavDataItem[] => {
 export const useNavData = (): NavDataItem[] => [
   {
     label: 'Model Registry',
-    path: '/',
+    path: '/modelRegistry',
   },
   ...useAdminSettings(),
 ];
@@ -52,12 +52,13 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<ModelRegistryRoutes />} />
+      <Route path="/" element={<Navigate to="/modelRegistry" replace />} />
+      <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
       {
         // TODO: Remove the linter skip when we implement authentication
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        isAdmin && <Route path="/settings" element={<ModelRegistrySettingsRoutes />} />
+        isAdmin && <Route path="/settings/*" element={<ModelRegistrySettingsRoutes />} />
       }
     </Routes>
   );

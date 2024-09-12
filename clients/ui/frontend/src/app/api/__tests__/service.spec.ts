@@ -45,18 +45,21 @@ const K8sAPIOptionsMock = {};
 describe('createRegisteredModel', () => {
   it('should call restCREATE and handleRestFailures to create registered model', () => {
     expect(
-      createRegisteredModel('hostPath', 'model-registry-1')(K8sAPIOptionsMock, {
-        description: 'test',
-        externalID: '1',
-        name: 'test new registered model',
-        state: ModelState.LIVE,
-        customProperties: {},
-      }),
+      createRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        {
+          description: 'test',
+          externalID: '1',
+          name: 'test new registered model',
+          state: ModelState.LIVE,
+          customProperties: {},
+        },
+      ),
     ).toBe(mockResultPromise);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models`,
       {
         description: 'test',
         externalID: '1',
@@ -75,20 +78,23 @@ describe('createRegisteredModel', () => {
 describe('createModelVersion', () => {
   it('should call restCREATE and handleRestFailures to create model version', () => {
     expect(
-      createModelVersion('hostPath', 'model-registry-1')(K8sAPIOptionsMock, {
-        description: 'test',
-        externalID: '1',
-        author: 'test author',
-        registeredModelId: '1',
-        name: 'test new model version',
-        state: ModelState.LIVE,
-        customProperties: {},
-      }),
+      createModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        {
+          description: 'test',
+          externalID: '1',
+          author: 'test author',
+          registeredModelId: '1',
+          name: 'test new model version',
+          state: ModelState.LIVE,
+          customProperties: {},
+        },
+      ),
     ).toBe(mockResultPromise);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions`,
       {
         description: 'test',
         externalID: '1',
@@ -109,7 +115,9 @@ describe('createModelVersion', () => {
 describe('createModelVersionForRegisteredModel', () => {
   it('should call restCREATE and handleRestFailures to create model version for a model', () => {
     expect(
-      createModelVersionForRegisteredModel('hostPath', 'model-registry-1')(K8sAPIOptionsMock, '1', {
+      createModelVersionForRegisteredModel(
+        `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      )(K8sAPIOptionsMock, '1', {
         description: 'test',
         externalID: '1',
         author: 'test author',
@@ -121,8 +129,8 @@ describe('createModelVersionForRegisteredModel', () => {
     ).toBe(mockResultPromise);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models/1/versions`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models/1/versions`,
       {
         description: 'test',
         externalID: '1',
@@ -143,25 +151,28 @@ describe('createModelVersionForRegisteredModel', () => {
 describe('createModelArtifact', () => {
   it('should call restCREATE and handleRestFailures to create model artifact', () => {
     expect(
-      createModelArtifact('hostPath', 'model-registry-1')(K8sAPIOptionsMock, {
-        description: 'test',
-        externalID: 'test',
-        uri: 'test-uri',
-        state: ModelArtifactState.LIVE,
-        name: 'test-name',
-        modelFormatName: 'test-modelformatname',
-        storageKey: 'teststoragekey',
-        storagePath: 'teststoragePath',
-        modelFormatVersion: 'testmodelFormatVersion',
-        serviceAccountName: 'testserviceAccountname',
-        customProperties: {},
-        artifactType: 'model-artifact',
-      }),
+      createModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        {
+          description: 'test',
+          externalID: 'test',
+          uri: 'test-uri',
+          state: ModelArtifactState.LIVE,
+          name: 'test-name',
+          modelFormatName: 'test-modelformatname',
+          storageKey: 'teststoragekey',
+          storagePath: 'teststoragePath',
+          modelFormatVersion: 'testmodelFormatVersion',
+          serviceAccountName: 'testserviceAccountname',
+          customProperties: {},
+          artifactType: 'model-artifact',
+        },
+      ),
     ).toBe(mockResultPromise);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_artifacts`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_artifacts`,
       {
         description: 'test',
         externalID: 'test',
@@ -187,7 +198,9 @@ describe('createModelArtifact', () => {
 describe('createModelArtifactForModelVersion', () => {
   it('should call restCREATE and handleRestFailures to create model artifact for version', () => {
     expect(
-      createModelArtifactForModelVersion('hostPath', 'model-registry-1')(K8sAPIOptionsMock, '2', {
+      createModelArtifactForModelVersion(
+        `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      )(K8sAPIOptionsMock, '2', {
         description: 'test',
         externalID: 'test',
         uri: 'test-uri',
@@ -204,8 +217,8 @@ describe('createModelArtifactForModelVersion', () => {
     ).toBe(mockResultPromise);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions/2/artifacts`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions/2/artifacts`,
       {
         description: 'test',
         externalID: 'test',
@@ -230,13 +243,16 @@ describe('createModelArtifactForModelVersion', () => {
 
 describe('getRegisteredModel', () => {
   it('should call restGET and handleRestFailures to fetch registered model', () => {
-    expect(getRegisteredModel('hostPath', 'model-registry-1')(K8sAPIOptionsMock, '1')).toBe(
-      mockResultPromise,
-    );
+    expect(
+      getRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        '1',
+      ),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models/1`,
       {},
       K8sAPIOptionsMock,
     );
@@ -247,13 +263,16 @@ describe('getRegisteredModel', () => {
 
 describe('getModelVersion', () => {
   it('should call restGET and handleRestFailures to fetch model version', () => {
-    expect(getModelVersion('hostPath', 'model-registry-1')(K8sAPIOptionsMock, '1')).toBe(
-      mockResultPromise,
-    );
+    expect(
+      getModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        '1',
+      ),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions/1`,
       {},
       K8sAPIOptionsMock,
     );
@@ -264,13 +283,16 @@ describe('getModelVersion', () => {
 
 describe('getModelArtifact', () => {
   it('should call restGET and handleRestFailures to fetch model version', () => {
-    expect(getModelArtifact('hostPath', 'model-registry-1')(K8sAPIOptionsMock, '1')).toBe(
-      mockResultPromise,
-    );
+    expect(
+      getModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        K8sAPIOptionsMock,
+        '1',
+      ),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_artifacts/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_artifacts/1`,
       {},
       K8sAPIOptionsMock,
     );
@@ -281,11 +303,13 @@ describe('getModelArtifact', () => {
 
 describe('getListRegisteredModels', () => {
   it('should call restGET and handleRestFailures to list registered models', () => {
-    expect(getListRegisteredModels('hostPath', 'model-registry-1')({})).toBe(mockResultPromise);
+    expect(
+      getListRegisteredModels(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models`,
       {},
       K8sAPIOptionsMock,
     );
@@ -296,11 +320,13 @@ describe('getListRegisteredModels', () => {
 
 describe('getListModelArtifacts', () => {
   it('should call restGET and handleRestFailures to list models artifacts', () => {
-    expect(getListModelArtifacts('hostPath', 'model-registry-1')({})).toBe(mockResultPromise);
+    expect(
+      getListModelArtifacts(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_artifacts`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_artifacts`,
       {},
       K8sAPIOptionsMock,
     );
@@ -311,11 +337,13 @@ describe('getListModelArtifacts', () => {
 
 describe('getListModelVersions', () => {
   it('should call restGET and handleRestFailures to list models versions', () => {
-    expect(getListModelVersions('hostPath', 'model-registry-1')({})).toBe(mockResultPromise);
+    expect(
+      getListModelVersions(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions`,
       {},
       K8sAPIOptionsMock,
     );
@@ -326,13 +354,16 @@ describe('getListModelVersions', () => {
 
 describe('getModelVersionsByRegisteredModel', () => {
   it('should call restGET and handleRestFailures to list models versions by registered model', () => {
-    expect(getModelVersionsByRegisteredModel('hostPath', 'model-registry-1')({}, '1')).toBe(
-      mockResultPromise,
-    );
+    expect(
+      getModelVersionsByRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        {},
+        '1',
+      ),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models/1/versions`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models/1/versions`,
       {},
       K8sAPIOptionsMock,
     );
@@ -343,13 +374,16 @@ describe('getModelVersionsByRegisteredModel', () => {
 
 describe('getModelArtifactsByModelVersion', () => {
   it('should call restGET and handleRestFailures to list models artifacts by model version', () => {
-    expect(getModelArtifactsByModelVersion('hostPath', 'model-registry-1')({}, '1')).toBe(
-      mockResultPromise,
-    );
+    expect(
+      getModelArtifactsByModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
+        {},
+        '1',
+      ),
+    ).toBe(mockResultPromise);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions/1/artifacts`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions/1/artifacts`,
       {},
       K8sAPIOptionsMock,
     );
@@ -361,7 +395,7 @@ describe('getModelArtifactsByModelVersion', () => {
 describe('patchRegisteredModel', () => {
   it('should call restPATCH and handleRestFailures to update registered model', () => {
     expect(
-      patchRegisteredModel('hostPath', 'model-registry-1')(
+      patchRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
         K8sAPIOptionsMock,
         { description: 'new test' },
         '1',
@@ -369,8 +403,8 @@ describe('patchRegisteredModel', () => {
     ).toBe(mockResultPromise);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/registered_models/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/registered_models/1`,
       { description: 'new test' },
       K8sAPIOptionsMock,
     );
@@ -382,7 +416,7 @@ describe('patchRegisteredModel', () => {
 describe('patchModelVersion', () => {
   it('should call restPATCH and handleRestFailures to update model version', () => {
     expect(
-      patchModelVersion('hostPath', 'model-registry-1')(
+      patchModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
         K8sAPIOptionsMock,
         { description: 'new test' },
         '1',
@@ -390,8 +424,8 @@ describe('patchModelVersion', () => {
     ).toBe(mockResultPromise);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_versions/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_versions/1`,
       { description: 'new test' },
       K8sAPIOptionsMock,
     );
@@ -403,7 +437,7 @@ describe('patchModelVersion', () => {
 describe('patchModelArtifact', () => {
   it('should call restPATCH and handleRestFailures to update model artifact', () => {
     expect(
-      patchModelArtifact('hostPath', 'model-registry-1')(
+      patchModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
         K8sAPIOptionsMock,
         { description: 'new test' },
         '1',
@@ -411,8 +445,8 @@ describe('patchModelArtifact', () => {
     ).toBe(mockResultPromise);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
-      'hostPath',
-      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/model_artifacts/1`,
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      `/model_artifacts/1`,
       { description: 'new test' },
       K8sAPIOptionsMock,
     );
