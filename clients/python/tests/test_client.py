@@ -108,6 +108,53 @@ async def test_update_models(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+async def test_update_logical_model_with_labels(client: ModelRegistry):
+    """As a MLOps engineer I would like to store some labels
+
+    A custom property of type string, with empty string value, shall be considered a Label; this is also semantically compatible for properties having empty string values in general.
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+    mv = client.get_model_version(name, version)
+    assert mv.id
+    ma = client.get_model_artifact(name, version)
+    assert ma.id
+
+    rm_labels = {
+        "my-label1": "",
+        "my-label2": "",
+    }
+    rm.custom_properties = rm_labels
+    client.update(rm)
+
+    mv_labels = {
+        "my-label3": "",
+        "my-label4": "",
+    }
+    mv.custom_properties = mv_labels
+    client.update(mv)
+
+    ma_labels = {
+        "my-label5": "",
+        "my-label6": "",
+    }
+    ma.custom_properties = ma_labels
+    client.update(ma)
+
+    assert client.get_registered_model(name).custom_properties == rm_labels
+    assert client.get_model_version(name, version).custom_properties == mv_labels
+    assert client.get_model_artifact(name, version).custom_properties == ma_labels
+
+
+@pytest.mark.e2e
 async def test_update_preserves_model_info(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"

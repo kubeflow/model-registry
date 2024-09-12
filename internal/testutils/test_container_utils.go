@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
-	"github.com/docker/docker/api/types/container"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
 	testcontainers "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -86,10 +86,16 @@ func SetupMLMetadataTestContainer(t *testing.T) (*grpc.ClientConn, proto.Metadat
 		Env: map[string]string{
 			"METADATA_STORE_SERVER_CONFIG_FILE": "/tmp/shared/conn_config.pb",
 		},
-		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{wd + ":/tmp/shared"}
+		Mounts: testcontainers.ContainerMounts{
+			testcontainers.ContainerMount{
+				Source: testcontainers.GenericBindMountSource{ // nolint keep deprecated method to avoid depending directly to docker api exposed by testcontainers' HostConfigModifier
+					HostPath: wd,
+				},
+				Target: "/tmp/shared",
+			},
 		},
 		WaitingFor: wait.ForLog("Server listening on"),
+		Privileged: true,
 	}
 
 	useProvider := defaultProvider
@@ -164,5 +170,5 @@ func tryDetectPodmanRunning() bool {
 	if err != nil {
 		return false
 	}
-	return info.Host.MachineState == "Running"
+	return info.Host.MachineState == "Running" || strings.Contains(os.Getenv("DOCKER_HOST"), "podman.sock")
 }

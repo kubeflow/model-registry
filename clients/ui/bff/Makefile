@@ -2,6 +2,7 @@ CONTAINER_TOOL ?= docker
 IMG ?= model-registry-bff:latest
 PORT ?= 4000
 MOCK_K8S_CLIENT ?= false
+MOCK_MR_CLIENT ?= false
 
 .PHONY: all
 all: build
@@ -32,7 +33,7 @@ build: fmt vet test
 
 .PHONY: run
 run: fmt vet
-	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT)
+	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT)
 
 .PHONY: docker-build
 docker-build:

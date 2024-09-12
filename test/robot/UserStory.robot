@@ -70,6 +70,7 @@ As a MLOps engineer I would like to store a longer documentation for the model
             And Should Be Equal As Integers    ${cnt}    2
 
 As a MLOps engineer I would like to store some labels
+    # MIGRATED TO test_update_logical_model_with_labels in pytest
     # A custom property of type string, with empty string value, shall be considered a Label; this is also semantically compatible for properties having empty string values in general.
     ${cp1}    Create Dictionary  my-label1=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}  my-label2=${{ {"string_value": "", "metadataType": "MetadataStringValue"} }}
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  customProperties=${cp1}
