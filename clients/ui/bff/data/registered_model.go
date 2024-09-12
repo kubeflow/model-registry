@@ -11,7 +11,17 @@ import (
 
 const registerModelPath = "/registered_models"
 
-func GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error) {
+type RegisteredModelInterface interface {
+	GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error)
+	CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error)
+	GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
+}
+
+type RegisteredModel struct {
+	RegisteredModelInterface
+}
+
+func (m RegisteredModel) GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error) {
 
 	responseData, err := client.GET(registerModelPath)
 	if err != nil {
@@ -26,7 +36,7 @@ func GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.R
 	return &modelList, nil
 }
 
-func CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error) {
+func (m RegisteredModel) CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error) {
 	responseData, err := client.POST(registerModelPath, bytes.NewBuffer(jsonData))
 
 	if err != nil {
@@ -41,7 +51,7 @@ func CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []b
 	return &model, nil
 }
 
-func GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error) {
+func (m RegisteredModel) GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error) {
 	path, err := url.JoinPath(registerModelPath, id)
 	if err != nil {
 		return nil, err

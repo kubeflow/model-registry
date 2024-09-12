@@ -42,13 +42,12 @@
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "^29.5.12",
     "@types/react-router-dom": "^5.3.3",
-    "@types/victory": "^35.0.0",
     "chai-subset": "^1.6.0",
     "copy-webpack-plugin": "^12.0.2",
     "core-js": "^3.37.1",
     "css-loader": "^6.11.0",
     "css-minimizer-webpack-plugin": "^7.0.0",
-    "cypress": "^13.10.0",
+    "cypress": "^13.14.2",
     "cypress-axe": "^1.5.0",
     "cypress-high-resolution": "^1.0.0",
     "cypress-mochawesome-reporter": "^3.8.2",
@@ -83,7 +82,7 @@
     "webpack": "^5.94.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4",
+    "webpack-dev-server": "^5.1.0",
     "webpack-merge": "^6.0.1"
   },
   "dependencies": {
@@ -97,8 +96,8 @@
     "sass": "^1.78.0"
   },
   "optionalDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.1.1",
-    "@typescript-eslint/parser": "^7.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-node": "^0.3.7",

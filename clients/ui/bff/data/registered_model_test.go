@@ -17,10 +17,12 @@ func TestGetAllRegisteredModels(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
+	mrClient := ModelRegistryClient{}
+
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registerModelPath).Return(mockData, nil)
 
-	actual, err := GetAllRegisteredModels(mockClient)
+	actual, err := mrClient.GetAllRegisteredModels(mockClient)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
@@ -39,13 +41,15 @@ func TestCreateRegisteredModel(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
+	mrClient := ModelRegistryClient{}
+
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("POST", registerModelPath, mock.Anything).Return(mockData, nil)
 
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	actual, err := CreateRegisteredModel(mockClient, jsonInput)
+	actual, err := mrClient.CreateRegisteredModel(mockClient, jsonInput)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)
@@ -62,10 +66,12 @@ func TestGetRegisteredModel(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
+	mrClient := ModelRegistryClient{}
+
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registerModelPath+"/"+expected.GetId()).Return(mockData, nil)
 
-	actual, err := GetRegisteredModel(mockClient, expected.GetId())
+	actual, err := mrClient.GetRegisteredModel(mockClient, expected.GetId())
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)

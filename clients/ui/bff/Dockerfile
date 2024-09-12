@@ -34,8 +34,4 @@ USER 65532:65532
 # Expose port 4000
 EXPOSE 4000
 
-# Define environment variables
-ENV PORT 4001
-ENV ENV development
-
 ENTRYPOINT ["/bff"]

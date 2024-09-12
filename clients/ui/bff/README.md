@@ -31,9 +31,9 @@ After building it, you can run our app with:
 ```shell
 make run
 ```
-If you want to use a different port or mock kubernetes client, useful for front-end development, you can run:
+If you want to use a different port, mock kubernetes client or model registry client - useful for front-end development, you can run:
 ```shell
-make run PORT=8000 MOCK_K8S_CLIENT=true
+make run PORT=8000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true
 ```
 
 # Building and Deploying

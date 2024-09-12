@@ -11,6 +11,8 @@ import (
 
 type Envelope map[string]interface{}
 
+type TypedEnvelope[T any] map[string]T
+
 func (app *App) WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 
 	js, err := json.MarshalIndent(data, "", "\t")

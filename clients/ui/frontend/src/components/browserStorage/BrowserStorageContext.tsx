@@ -102,7 +102,7 @@ export const BrowserStorageContextProvider: React.FC<BrowserStorageContextProvid
       if (parseJSON) {
         try {
           return JSON.parse(value);
-        } catch (e) {
+        } catch {
           /* eslint-disable-next-line no-console */
           console.warn(`Failed to parse storage value "${key}"`);
           return null;
@@ -122,7 +122,7 @@ export const BrowserStorageContextProvider: React.FC<BrowserStorageContextProvid
         setValues((oldValues) => ({ ...oldValues, [storageKey]: storageValue }));
 
         return true;
-      } catch (e) {
+      } catch {
         /* eslint-disable-next-line no-console */
         console.warn(
           'Could not store a value because it was requested to be stringified but was an invalid value for stringification.',
