@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, TypeVar, Union, get_args
 from warnings import warn
@@ -138,7 +139,7 @@ class ModelRegistry:
         author: str | None = None,
         owner: str | None = None,
         description: str | None = None,
-        metadata: dict[str, SupportedTypes] | None = None,
+        metadata: Mapping[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 

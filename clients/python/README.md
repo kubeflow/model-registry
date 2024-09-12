@@ -146,18 +146,23 @@ for version in registry.get_model_versions("my-model"):
     ...
 ```
 
-To customize sorting order or query limits you can also use
+You can also use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order
 
 ```py
-latest_updates = registry.get_model_versions("my-model").order_by_update_time().descending().limit(20)
+latest_updates = registry.get_model_versions("my-model").order_by_update_time().descending()
 for version in latest_updates:
     ...
 ```
 
-You can use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order.
+By default, all queries will be `ascending`, but this method is also available for explicitness.
 
-> Note that the `limit()` method only limits the query size, not the actual loop boundaries -- even if your limit is 1
-> you will still get all the models, with one query each.
+> Note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
+> When using it as an iterator, it will automatically manage pages for you.
+
+#### Implementation notes
+
+The pager will manage pages for you in order to prevent infinite looping.
+Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
 ## Development
 
