@@ -228,9 +228,20 @@ image/build:
 PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 .PHONY: image/buildx
 image/buildx:
+ifeq ($(DOCKER),docker)
+	# docker uses builder containers
 	$(DOCKER) buildx create --use --name model-registry-builder
 	$(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f ${DOCKERFILE} .
 	$(DOCKER) buildx rm model-registry-builder
+else ifeq ($(DOCKER),podman)
+	# podman uses image manifests
+	$(DOCKER) manifest create -a ${IMG}
+	$(DOCKER) buildx build --platform=$(PLATFORMS) --manifest ${IMG} -f ${DOCKERFILE} .
+	$(DOCKER) manifest push ${IMG}
+	$(DOCKER) manifest rm ${IMG}
+else
+	$(error Unsupported container tool $(DOCKER))
+endif
 
 # push docker image
 .PHONY: image/push
