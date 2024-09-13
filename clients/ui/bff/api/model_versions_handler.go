@@ -94,3 +94,56 @@ func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+
+func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	var envelope ModelVersionEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	data := *envelope.Data
+
+	if err := validation.ValidateModelVersion(data); err != nil {
+		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
+		return
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling ModelVersion to JSON: %w", err))
+		return
+	}
+
+	patchedModel, err := app.modelRegistryClient.UpdateModelVersion(client, ps.ByName(ModelVersionId), jsonData)
+	if err != nil {
+		var httpErr *integrations.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if patchedModel == nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("patched ModelVersion is nil"))
+		return
+	}
+
+	responseBody := ModelVersionEnvelope{
+		Data: patchedModel,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, responseBody, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+		return
+	}
+}

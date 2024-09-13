@@ -14,6 +14,7 @@ const modelVersionPath = "/model_versions"
 type ModelVersionInterface interface {
 	GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error)
 	CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
+	UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 }
 
 type ModelVersion struct {
@@ -45,6 +46,26 @@ func (v ModelVersion) CreateModelVersion(client integrations.HTTPClientInterface
 
 	if err != nil {
 		return nil, fmt.Errorf("error posting registered model: %w", err)
+	}
+
+	var model openapi.ModelVersion
+	if err := json.Unmarshal(responseData, &model); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &model, nil
+}
+
+func (m ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+	path, err := url.JoinPath(modelVersionPath, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	responseData, err := client.PATCH(path, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("error patching ModelVersion: %w", err)
 	}
 
 	var model openapi.ModelVersion

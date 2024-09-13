@@ -85,9 +85,11 @@ func (app *App) Routes() http.Handler {
 
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
 	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
+	router.PATCH(ModelVersionPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
 	// Kubernetes client routes
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
+	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
 	return app.RecoverPanic(app.enableCORS(router))
 }

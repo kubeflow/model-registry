@@ -6,7 +6,7 @@ import (
 )
 
 func TestValidateRegisteredModel(t *testing.T) {
-	specs := []TestSpec[openapi.RegisteredModel]{
+	specs := []testSpec[openapi.RegisteredModel]{
 		{
 			name:    "Empty name",
 			input:   openapi.RegisteredModel{Name: ""},
@@ -19,11 +19,11 @@ func TestValidateRegisteredModel(t *testing.T) {
 		},
 	}
 
-	ValidateTestSpecs(t, specs, ValidateRegisteredModel)
+	validateTestSpecs(t, specs, ValidateRegisteredModel)
 }
 
 func TestValidateModelVersion(t *testing.T) {
-	specs := []TestSpec[openapi.ModelVersion]{
+	specs := []testSpec[openapi.ModelVersion]{
 		{
 			name:    "Empty name",
 			input:   openapi.ModelVersion{Name: ""},
@@ -36,5 +36,5 @@ func TestValidateModelVersion(t *testing.T) {
 		},
 	}
 
-	ValidateTestSpecs(t, specs, ValidateModelVersion)
+	validateTestSpecs(t, specs, ValidateModelVersion)
 }

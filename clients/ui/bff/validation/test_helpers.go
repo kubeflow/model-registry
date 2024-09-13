@@ -5,13 +5,13 @@ import (
 	"testing"
 )
 
-type TestSpec[T any] struct {
+type testSpec[T any] struct {
 	name    string
 	input   T
 	wantErr bool
 }
 
-func ValidateTestSpecs[T any](t *testing.T, specs []TestSpec[T], validator func(input T) error) {
+func validateTestSpecs[T any](t *testing.T, specs []testSpec[T], validator func(input T) error) {
 	for _, tt := range specs {
 		t.Run(tt.name, func(t *testing.T) {
 			err := validator(tt.input)
