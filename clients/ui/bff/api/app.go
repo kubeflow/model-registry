@@ -17,10 +17,13 @@ const (
 	PathPrefix              = "/api/v1"
 	ModelRegistryId         = "model_registry_id"
 	RegisteredModelId       = "registered_model_id"
+	ModelVersionId          = "model_version_id"
 	HealthCheckPath         = PathPrefix + "/healthcheck"
-	ModelRegistry           = PathPrefix + "/model_registry"
-	RegisteredModelListPath = ModelRegistry + "/:" + ModelRegistryId + "/registered_models"
+	ModelRegistryListPath   = PathPrefix + "/model_registry"
+	ModelRegistryPath       = ModelRegistryListPath + "/:" + ModelRegistryId
+	RegisteredModelListPath = ModelRegistryPath + "/registered_models"
 	RegisteredModelPath     = RegisteredModelListPath + "/:" + RegisteredModelId
+	ModelVersionPath        = ModelRegistryPath + "/model_versions/:" + ModelVersionId
 )
 
 type App struct {
@@ -54,7 +57,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create ModelRegistry client: %w", err)
+		return nil, fmt.Errorf("failed to create ModelRegistryListPath client: %w", err)
 	}
 
 	app := &App{
@@ -79,8 +82,10 @@ func (app *App) Routes() http.Handler {
 	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
 	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
 
+	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
+
 	// Kubernetes client routes
-	router.GET(ModelRegistry, app.ModelRegistryHandler)
+	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
 
 	return app.RecoverPanic(app.enableCORS(router))
 }

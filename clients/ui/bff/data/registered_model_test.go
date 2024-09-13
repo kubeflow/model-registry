@@ -19,12 +19,12 @@ func TestGetAllRegisteredModels(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	mrClient := ModelRegistryClient{}
+	registeredModel := RegisteredModel{}
 
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registeredModelPath).Return(mockData, nil)
 
-	actual, err := mrClient.GetAllRegisteredModels(mockClient)
+	actual, err := registeredModel.GetAllRegisteredModels(mockClient)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
@@ -43,7 +43,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	mrClient := ModelRegistryClient{}
+	registeredModel := RegisteredModel{}
 
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("POST", registeredModelPath, mock.Anything).Return(mockData, nil)
@@ -51,7 +51,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	actual, err := mrClient.CreateRegisteredModel(mockClient, jsonInput)
+	actual, err := registeredModel.CreateRegisteredModel(mockClient, jsonInput)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)
@@ -68,12 +68,12 @@ func TestGetRegisteredModel(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	mrClient := ModelRegistryClient{}
+	registeredModel := RegisteredModel{}
 
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registeredModelPath+"/"+expected.GetId()).Return(mockData, nil)
 
-	actual, err := mrClient.GetRegisteredModel(mockClient, expected.GetId())
+	actual, err := registeredModel.GetRegisteredModel(mockClient, expected.GetId())
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)
@@ -90,7 +90,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	mrClient := ModelRegistryClient{}
+	registeredModel := RegisteredModel{}
 
 	path, err := url.JoinPath(registeredModelPath, expected.GetId())
 	assert.NoError(t, err)
@@ -101,7 +101,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)
 
-	actual, err := mrClient.UpdateRegisteredModel(mockClient, expected.GetId(), jsonInput)
+	actual, err := registeredModel.UpdateRegisteredModel(mockClient, expected.GetId(), jsonInput)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)

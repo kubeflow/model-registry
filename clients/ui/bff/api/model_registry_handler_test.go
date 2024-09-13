@@ -18,7 +18,7 @@ func TestModelRegistryHandler(t *testing.T) {
 		kubernetesClient: mockK8sClient,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, ModelRegistry, nil)
+	req, err := http.NewRequest(http.MethodGet, ModelRegistryListPath, nil)
 	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()

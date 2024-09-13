@@ -43,7 +43,29 @@ func GenerateRegisteredModel() openapi.RegisteredModel {
 	return model
 }
 
-func stateToPointer(s openapi.RegisteredModelState) *openapi.RegisteredModelState {
+func GenerateMockModelVersion() openapi.ModelVersion {
+	model := openapi.ModelVersion{
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"example_key": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue:  gofakeit.Sentence(3),
+					MetadataType: "string",
+				},
+			},
+		},
+		Description:              stringToPointer(gofakeit.Sentence(5)),
+		ExternalId:               stringToPointer(gofakeit.UUID()),
+		Name:                     gofakeit.Name(),
+		Id:                       stringToPointer(gofakeit.UUID()),
+		CreateTimeSinceEpoch:     stringToPointer(fmt.Sprintf("%d", gofakeit.Date().UnixMilli())),
+		LastUpdateTimeSinceEpoch: stringToPointer(fmt.Sprintf("%d", gofakeit.Date().UnixMilli())),
+		Author:                   stringToPointer(gofakeit.Name()),
+		State:                    stateToPointer(openapi.ModelVersionState(gofakeit.RandomString([]string{string(openapi.MODELVERSIONSTATE_LIVE), string(openapi.MODELVERSIONSTATE_ARCHIVED)}))),
+	}
+	return model
+}
+
+func stateToPointer[T any](s T) *T {
 	return &s
 }
 

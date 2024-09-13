@@ -56,3 +56,47 @@ func GetRegisteredModelListMock() openapi.RegisteredModelList {
 		Items:         models,
 	}
 }
+
+func GetModelVersionMocks() []openapi.ModelVersion {
+	model1 := openapi.ModelVersion{
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"my-label9": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue:  "property9",
+					MetadataType: "string",
+				},
+			},
+		},
+		Name:                     "Version One",
+		Description:              stringToPointer("This version improves stuff and things"),
+		ExternalId:               stringToPointer("934589798"),
+		Id:                       stringToPointer("1"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
+		RegisteredModelId:        "1",
+		Author:                   stringToPointer("Sherlock Holmes"),
+		State:                    stateToPointer(openapi.MODELVERSIONSTATE_LIVE),
+	}
+
+	model2 := openapi.ModelVersion{
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"my-label9": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue:  "property9",
+					MetadataType: "string",
+				},
+			},
+		},
+		Name:                     "Version Two",
+		Description:              stringToPointer("This version improves stuff and things"),
+		ExternalId:               stringToPointer("934589799"),
+		Id:                       stringToPointer("2"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
+		RegisteredModelId:        "2",
+		Author:                   stringToPointer("Sherlock Holmes"),
+		State:                    stateToPointer(openapi.MODELVERSIONSTATE_LIVE),
+	}
+
+	return []openapi.ModelVersion{model1, model2}
+}
