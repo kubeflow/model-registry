@@ -1224,9 +1224,8 @@ components:
           properties:
             id:
               format: int64
-              description: Output only. The unique server generated id of the resource.
+              description: The unique server generated id of the resource.
               type: string
-              readOnly: true
             createTimeSinceEpoch:
               format: int64
               description: Output only. Create time of the resource in millisecond since epoch.

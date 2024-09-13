@@ -32,7 +32,7 @@ type ModelVersion struct {
 	Author *string `json:"author,omitempty"`
 	// ID of the `RegisteredModel` to which this version belongs.
 	RegisteredModelId string `json:"registeredModelId"`
-	// Output only. The unique server generated id of the resource.
+	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
