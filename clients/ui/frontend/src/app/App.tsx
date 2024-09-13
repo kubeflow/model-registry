@@ -23,6 +23,7 @@ import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { useSettings } from './useSettings';
+import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
 
 const App: React.FC = () => {
   const {
@@ -108,7 +109,9 @@ const App: React.FC = () => {
         isManagedSidebar
         sidebar={<NavSidebar />}
       >
-        <AppRoutes />
+        <ModelRegistrySelectorContextProvider>
+          <AppRoutes />
+        </ModelRegistrySelectorContextProvider>
       </Page>
     </AppContext.Provider>
   );

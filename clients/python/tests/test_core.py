@@ -76,6 +76,7 @@ async def test_get_registered_model_by_external_id(
     client: ModelRegistryAPIClient,
     registered_model: RegisteredModel,
 ):
+    assert registered_model.external_id
     assert (
         rm := await client.get_registered_model_by_params(
             external_id=registered_model.external_id
@@ -99,7 +100,7 @@ async def test_page_through_registered_models(client: ModelRegistryAPIClient):
     models = 6
     for i in range(models):
         await client.upsert_registered_model(RegisteredModel(name=f"rm{i}"))
-    pager = Pager(client.get_registered_models).limit(5)
+    pager = Pager(client.get_registered_models).page_size(5)
     total = 0
     async for _ in pager:
         total += 1
@@ -205,7 +206,7 @@ async def test_page_through_model_versions(
         )
     pager = Pager(
         lambda o: client.get_model_versions(str(registered_model.id), o)
-    ).limit(5)
+    ).page_size(5)
     total = 0
     async for _ in pager:
         total += 1
@@ -227,7 +228,8 @@ async def test_insert_model_artifact(
         "service_account_name": "test service account",
     }
     ma = await client.upsert_model_artifact(
-        ModelArtifact(**props), str(model_version.id)
+        ModelArtifact(**props),  # type: ignore
+        str(model_version.id),
     )
     assert ma.id
     assert ma.name == "test model"
@@ -340,7 +342,7 @@ async def test_page_through_model_version_artifacts(
         await client.create_model_version_artifact(art, str(model_version.id))
     pager = Pager(
         lambda o: client.get_model_version_artifacts(str(model_version.id), o)
-    ).limit(5)
+    ).page_size(5)
     total = 0
     async for _ in pager:
         total += 1

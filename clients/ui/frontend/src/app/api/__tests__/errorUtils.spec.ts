@@ -1,5 +1,5 @@
 import { NotReadyError } from '~/utilities/useFetchState';
-import { APIError } from '~/types';
+import { APIError } from '~/app/api/types';
 import { handleRestFailures } from '~/app/api/errorUtils';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 
@@ -12,8 +12,10 @@ describe('handleRestFailures', () => {
 
   it('should handle and throw model registry errors', async () => {
     const statusMock: APIError = {
-      code: '',
-      message: 'error',
+      error: {
+        code: '',
+        message: 'error',
+      },
     };
 
     await expect(handleRestFailures(Promise.resolve(statusMock))).rejects.toThrow('error');

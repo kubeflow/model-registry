@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { APIOptions } from '~/types';
+import { APIOptions } from '~/app/api/types';
 
 /**
  * Allows "I'm not ready" rejections if you lack a lazy provided prop

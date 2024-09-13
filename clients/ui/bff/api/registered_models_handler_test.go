@@ -22,7 +22,7 @@ func TestGetRegisteredModelHandler(t *testing.T) {
 	}
 
 	req, err := http.NewRequest(http.MethodGet,
-		"/api/v1/model-registry/model-registry/registered_models/1", nil)
+		"/api/v1/model_registry/model-registry/registered_models/1", nil)
 	assert.NoError(t, err)
 
 	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
@@ -37,19 +37,21 @@ func TestGetRegisteredModelHandler(t *testing.T) {
 
 	body, err := io.ReadAll(rs.Body)
 	assert.NoError(t, err)
-	var registeredModelRes TypedEnvelope[openapi.RegisteredModel]
+	var registeredModelRes RegisteredModelEnvelope
 	err = json.Unmarshal(body, &registeredModelRes)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var expected = TypedEnvelope[openapi.RegisteredModel]{
-		"registered_model": mocks.GetRegisteredModelMocks()[0],
+	mockModel := mocks.GetRegisteredModelMocks()[0]
+
+	var expected = RegisteredModelEnvelope{
+		Data: &mockModel,
 	}
 
 	//TODO assert the full structure, I couldn't get unmarshalling to work for the full customProperties values
 	// this issue is in the test only
-	assert.Equal(t, expected["registered_model"].Name, registeredModelRes["registered_model"].Name)
+	assert.Equal(t, expected.Data.Name, registeredModelRes.Data.Name)
 }
 
 func TestGetAllRegisteredModelsHandler(t *testing.T) {
@@ -61,7 +63,7 @@ func TestGetAllRegisteredModelsHandler(t *testing.T) {
 	}
 
 	req, err := http.NewRequest(http.MethodGet,
-		"/api/v1/model-registry/model-registry/registered_models", nil)
+		"/api/v1/model_registry/model-registry/registered_models", nil)
 	assert.NoError(t, err)
 
 	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
@@ -76,20 +78,22 @@ func TestGetAllRegisteredModelsHandler(t *testing.T) {
 
 	body, err := io.ReadAll(rs.Body)
 	assert.NoError(t, err)
-	var registeredModelsListRes TypedEnvelope[openapi.RegisteredModelList]
+	var registeredModelsListRes RegisteredModelListEnvelope
 	err = json.Unmarshal(body, &registeredModelsListRes)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var expected = TypedEnvelope[openapi.RegisteredModelList]{
-		"registered_model_list": mocks.GetRegisteredModelListMock(),
+	modelList := mocks.GetRegisteredModelListMock()
+
+	var expected = RegisteredModelListEnvelope{
+		Data: &modelList,
 	}
 
-	assert.Equal(t, expected["registered_model_list"].Size, registeredModelsListRes["registered_model_list"].Size)
-	assert.Equal(t, expected["registered_model_list"].PageSize, registeredModelsListRes["registered_model_list"].PageSize)
-	assert.Equal(t, expected["registered_model_list"].NextPageToken, registeredModelsListRes["registered_model_list"].NextPageToken)
-	assert.Equal(t, len(expected["registered_model_list"].Items), len(registeredModelsListRes["registered_model_list"].Items))
+	assert.Equal(t, expected.Data.Size, registeredModelsListRes.Data.Size)
+	assert.Equal(t, expected.Data.PageSize, registeredModelsListRes.Data.PageSize)
+	assert.Equal(t, expected.Data.NextPageToken, registeredModelsListRes.Data.NextPageToken)
+	assert.Equal(t, len(expected.Data.Items), len(registeredModelsListRes.Data.Items))
 }
 
 func TestCreateRegisteredModelHandler(t *testing.T) {
@@ -100,14 +104,16 @@ func TestCreateRegisteredModelHandler(t *testing.T) {
 		modelRegistryClient: mockMRClient,
 	}
 
-	newModel := openapi.NewRegisteredModelCreate("Model One")
-	newModelJSON, err := newModel.MarshalJSON()
+	newModel := openapi.NewRegisteredModel("Model One")
+	newEnvelope := RegisteredModelEnvelope{Data: newModel}
+
+	newModelJSON, err := json.Marshal(newEnvelope)
 	assert.NoError(t, err)
 
 	reqBody := bytes.NewReader(newModelJSON)
 
 	req, err := http.NewRequest(http.MethodPost,
-		"/api/v1/model-registry/model-registry/registered_models", reqBody)
+		"/api/v1/model_registry/model-registry/registered_models", reqBody)
 	assert.NoError(t, err)
 
 	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
@@ -122,14 +128,14 @@ func TestCreateRegisteredModelHandler(t *testing.T) {
 
 	body, err := io.ReadAll(rs.Body)
 	assert.NoError(t, err)
-	var registeredModelRes openapi.RegisteredModel
-	err = json.Unmarshal(body, &registeredModelRes)
+	var actual RegisteredModelEnvelope
+	err = json.Unmarshal(body, &actual)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
 
 	var expected = mocks.GetRegisteredModelMocks()[0]
 
-	assert.Equal(t, expected.Name, registeredModelRes.Name)
+	assert.Equal(t, expected.Name, actual.Data.Name)
 	assert.NotEmpty(t, rs.Header.Get("location"))
 }

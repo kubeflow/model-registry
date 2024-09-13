@@ -73,12 +73,15 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         self.options.order_by = OrderByField.ID
         return self.restart()
 
-    def limit(self, limit: int) -> Pager[T]:
-        """Limit the number of items to return.
+    def page_size(self, n: int) -> Pager[T]:
+        """Set the page size for each request.
 
         This resets the pager.
         """
-        self.options.limit = limit
+        if n < 1:
+            msg = f"Page size must be at least 1, got {n}"
+            raise ValueError(msg)
+        self.options.limit = n
         return self.restart()
 
     def ascending(self) -> Pager[T]:

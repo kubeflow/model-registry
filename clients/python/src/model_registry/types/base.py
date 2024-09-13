@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Union, get_args
 
 from pydantic import BaseModel, ConfigDict
@@ -35,7 +35,7 @@ class BaseResourceModel(BaseModel, ABC):
     external_id: str | None = None
     create_time_since_epoch: str | None = None
     last_update_time_since_epoch: str | None = None
-    custom_properties: dict[str, SupportedTypes] | None = None
+    custom_properties: Mapping[str, SupportedTypes] | None = None
 
     @abstractmethod
     def create(self, **kwargs) -> Any:

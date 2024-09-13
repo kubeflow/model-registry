@@ -11,6 +11,9 @@ import (
 	"net/http"
 )
 
+type RegisteredModelEnvelope Envelope[*openapi.RegisteredModel, None]
+type RegisteredModelListEnvelope Envelope[*openapi.RegisteredModelList, None]
+
 func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	//TODO (ederign) implement pagination
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
@@ -25,8 +28,8 @@ func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	modelRegistryRes := Envelope{
-		"registered_model_list": modelList,
+	modelRegistryRes := RegisteredModelListEnvelope{
+		Data: modelList,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
@@ -42,18 +45,20 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var model openapi.RegisteredModel
-	if err := json.NewDecoder(r.Body).Decode(&model); err != nil {
+	var envelope RegisteredModelEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
 
-	if err := validation.ValidateRegisteredModel(model); err != nil {
+	data := *envelope.Data
+
+	if err := validation.ValidateRegisteredModel(data); err != nil {
 		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
 		return
 	}
 
-	jsonData, err := json.Marshal(model)
+	jsonData, err := json.Marshal(data)
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling model to JSON: %w", err))
 		return
@@ -75,8 +80,11 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	response := RegisteredModelEnvelope{
+		Data: createdModel,
+	}
 	w.Header().Set("Location", fmt.Sprintf("%s/%s", RegisteredModelsPath, *createdModel.Id))
-	err = app.WriteJSON(w, http.StatusCreated, createdModel, nil)
+	err = app.WriteJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
@@ -101,8 +109,8 @@ func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	result := Envelope{
-		"registered_model": model,
+	result := RegisteredModelEnvelope{
+		Data: model,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, result, nil)
