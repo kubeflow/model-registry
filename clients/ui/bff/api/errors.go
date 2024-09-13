@@ -18,6 +18,10 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+type ErrorEnvelope struct {
+	Error *integrations.HTTPError `json:"error"`
+}
+
 func (app *App) LogError(r *http.Request, err error) {
 	var (
 		method = r.Method
@@ -40,7 +44,7 @@ func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err e
 
 func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *integrations.HTTPError) {
 
-	env := Envelope{"error": error}
+	env := ErrorEnvelope{Error: error}
 
 	err := app.WriteJSON(w, error.StatusCode, env, nil)
 

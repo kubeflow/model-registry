@@ -9,9 +9,12 @@ import (
 	"strings"
 )
 
-type Envelope map[string]interface{}
+type Envelope[D any, M any] struct {
+	Data     D `json:"data,omitempty"`
+	Metadata M `json:"metadata,omitempty"`
+}
 
-type TypedEnvelope[T any] map[string]T
+type None *struct{}
 
 func (app *App) WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 
@@ -29,7 +32,11 @@ func (app *App) WriteJSON(w http.ResponseWriter, status int, data any, headers h
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(js)
+	_, err = w.Write(js)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
