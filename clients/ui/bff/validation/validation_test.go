@@ -2,16 +2,11 @@ package validation
 
 import (
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestValidateRegisteredModel(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   openapi.RegisteredModel
-		wantErr bool
-	}{
+	specs := []TestSpec[openapi.RegisteredModel]{
 		{
 			name:    "Empty name",
 			input:   openapi.RegisteredModel{Name: ""},
@@ -24,14 +19,22 @@ func TestValidateRegisteredModel(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateRegisteredModel(tt.input)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
+	ValidateTestSpecs(t, specs, ValidateRegisteredModel)
+}
+
+func TestValidateModelVersion(t *testing.T) {
+	specs := []TestSpec[openapi.ModelVersion]{
+		{
+			name:    "Empty name",
+			input:   openapi.ModelVersion{Name: ""},
+			wantErr: true,
+		},
+		{
+			name:    "Valid name",
+			input:   openapi.ModelVersion{Name: "ValidName"},
+			wantErr: false,
+		},
 	}
+
+	ValidateTestSpecs(t, specs, ValidateModelVersion)
 }

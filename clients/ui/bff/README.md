@@ -63,6 +63,7 @@ make docker-build
 | GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}   | GetRegisteredModelHandler     | Get a RegisteredModel entity by ID           |
 | PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id} | UpdateRegisteredModelHandler  | Update a RegisteredModel entity by ID        |
 | GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}     | GetModelVersionHandler        | Get a ModelVersion by ID                     |
+| POST /api/v1/model_registry/{model_registry_id}/model_versions                       | CreateModelVersionHandler     | Create a ModelVersion entity                 |
 
 ### Sample local calls
 ```
@@ -120,4 +121,23 @@ curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/reg
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id} 
 curl -i http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1
+```
+```
+# POST /api/v1/model_registry/{model_registry_id}/model_versions
+curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions" \
+     -H "Content-Type: application/json" \
+     -d '{ "data": {
+  "customProperties": {
+    "my-label9": {
+      "metadataType": "MetadataStringValue",
+      "string_value": "val"
+    }
+  },
+  "description": "Version description",
+  "externalId": "9927",
+  "name": "ModelVersion One",
+  "state": "LIVE",
+  "author": "alex",
+  "registeredModelId": "1"
+}}'
 ```

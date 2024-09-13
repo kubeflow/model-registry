@@ -39,3 +39,8 @@ func (m *ModelRegistryClientMock) GetModelVersion(client integrations.HTTPClient
 	mockData := GetModelVersionMocks()[0]
 	return &mockData, nil
 }
+
+func (m *ModelRegistryClientMock) CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error) {
+	mockData := GetModelVersionMocks()[0]
+	return &mockData, nil
+}

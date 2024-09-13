@@ -23,7 +23,8 @@ const (
 	ModelRegistryPath       = ModelRegistryListPath + "/:" + ModelRegistryId
 	RegisteredModelListPath = ModelRegistryPath + "/registered_models"
 	RegisteredModelPath     = RegisteredModelListPath + "/:" + RegisteredModelId
-	ModelVersionPath        = ModelRegistryPath + "/model_versions/:" + ModelVersionId
+	ModelVersionListPath    = ModelRegistryPath + "/model_versions"
+	ModelVersionPath        = ModelVersionListPath + "/:" + ModelVersionId
 )
 
 type App struct {
@@ -83,6 +84,7 @@ func (app *App) Routes() http.Handler {
 	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
 
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
+	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
 
 	// Kubernetes client routes
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)

@@ -12,3 +12,11 @@ func ValidateRegisteredModel(input openapi.RegisteredModel) error {
 	// Add more field validations as required
 	return nil
 }
+
+func ValidateModelVersion(input openapi.ModelVersion) error {
+	if input.Name == "" {
+		return errors.New("name cannot be empty")
+	}
+	// Add more field validations as required
+	return nil
+}
