@@ -1,27 +1,31 @@
-# Model Registry Service
+# Model Registry
 
-The Model Registry Service go library provides a convenient interface for managing and interacting with models, model versions, artifacts, serving environments, inference services, and serve models through the underlying [ML Metadata (MLMD)](https://github.com/google/ml-metadata) service.
+> ⚠️  NOTE: UNSTABLE API  ⚠️
+> This library is provided as a convenience for Kubeflow developers.
+> If you are not actively involved in the development of Model Registry, please prefer the [REST API](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml).
 
-## Installation
+## Getting Started
 
-The recommended way is using `go get`, from your custom project run:
+Model Registry is a high level Go library client for a remote [ML Metadata (MLMD)](https://github.com/google/ml-metadata)
+server that provides a [high-level model metadata registry API](../pkg/api/api.go).
+
+You can use Model Registry to interact with MLMD using [convenient type definitions](../pkg/openapi/), instead of managing them yourself.
+This includes models, model versions, artifacts, serving environments, inference services, and serve models.
+
+### Prerequisites
+
+* [MLMD server](https://github.com/google/ml-metadata/blob/f0fef74eae2bdf6650a79ba976b36bea0b777c2e/g3doc/get_started.md#use-mlmd-with-a-remote-grpc-server)
+* Go >= 1.21
+
+Install it using:
+
 ```bash
 go get github.com/kubeflow/model-registry
 ```
 
-## Getting Started
+Assuming that an MLMD server is running at `localhost:9090`, you can connect with it using a gRPC connection:
 
-Model Registry Service is an high level Go client (or library) for ML Metadata (MLMD) store/service.
-It provides model registry metadata capabilities, e.g., store and retrieve ML models metadata and related artifacts, through a custom defined [API](../pkg/api/api.go).
-
-### Prerequisites
-
-* MLMD server, check [ml-metadata doc](https://github.com/google/ml-metadata/blob/f0fef74eae2bdf6650a79ba976b36bea0b777c2e/g3doc/get_started.md#use-mlmd-with-a-remote-grpc-server) for more details on how to startup a MLMD store server.
-* Go >= 1.21
-
-### Usage
-
-Assuming that MLMD server is already running at `localhost:9090`, as first step you should setup a gRPC connection to the server:
+<!-- TODO: https://github.com/kubeflow/model-registry/issues/194: drop DialContext from this example -->
 
 ```go
 import (
@@ -43,9 +47,9 @@ if err != nil {
 defer conn.Close()
 ```
 
-> NOTE: check [grpc doc](https://pkg.go.dev/google.golang.org/grpc#DialContext) for more details.
+> NOTE: Check the [go gRPC documentation](https://pkg.go.dev/google.golang.org/grpc#DialContext) for more details.
 
-Once the gRPC connection is setup, let's create the `ModelRegistryService`:
+Once the gRPC connection is established, you can create a `ModelRegistryService`:
 
 ```go
 import (
@@ -59,11 +63,11 @@ if err != nil {
 }
 ```
 
-Everything is ready, you can start using the `ModelRegistryService` library!
+### Example usage
 
-Here some usage examples:
+After setting up your Model Registry Service, you can try some of the following:
 
-#### Model Registration
+#### Creating models
 
 Create a `RegisteredModel`
 
@@ -81,7 +85,7 @@ if err != nil {
 }
 ```
 
-Create a new `ModelVersion` for the previous registered model
+Create a `ModelVersion` for the registered model
 
 ```go
 versionName := "VERSION_NAME"
@@ -105,7 +109,7 @@ if err != nil {
 }
 ```
 
-Create a new `ModelArtifact` for the newly created version
+Create a `ModelArtifact` for the version
 
 ```go
 artifactName := "ARTIFACT_NAME"
@@ -113,21 +117,52 @@ artifactDescription := "ARTIFACT_DESCRIPTION"
 artifactUri := "ARTIFACT_URI"
 
 // register model artifact
-modelArtifact, err := service.UpsertModelArtifact(&openapi.ModelArtifact{
+modelArtifact, err := service.UpsertModelVersionArtifact(&openapi.ModelArtifact{
   Name:        &artifactName,
   Description: &artifactDescription,
   Uri:         &artifactUri,
-}, modelVersion.Id)
+}, *modelVersion.Id)
 if err != nil {
   return fmt.Errorf("error creating model artifact: %v", err)
 }
 ```
 
-#### Model Query
+#### Updating models
 
-Get `RegisteredModel` by name, for now the `name` must match.
+The Model Registry Service provides `Upsert*` methods for all supported models, meaning that you can use them to
+in**sert** a new model, or **up**date it:
+
 ```go
-modelName := "QUERY_MODEL_NAME"
+artifactName := "ARTIFACT_NAME"
+artifactDescription := "ARTIFACT_DESCRIPTION"
+artifactUri := "ARTIFACT_URI"
+
+// register model artifact
+modelArtifact, err := service.UpsertModelVersionArtifact(&openapi.ModelArtifact{
+  Name:        &artifactName,
+  Description: &artifactDescription,
+  Uri:         &artifactUri,
+}, *modelVersion.Id)
+if err != nil {
+  return fmt.Errorf("error creating model artifact: %v", err)
+}
+
+newDescription := "update it!"
+modelArtifact.Description = &newDescription
+
+modelArtifact, err = service.UpsertModelVersionArtifact(modelArtifact, *modelVersion.Id)
+if err != nil {
+  return fmt.Errorf("error updating model artifact: %v", err)
+}
+```
+
+
+#### Querying models
+
+Get a `RegisteredModel` by name:
+
+```go
+modelName := "MODEL_NAME"
 registeredModel, err := service.GetRegisteredModelByParams(&modelName, nil)
 if err != nil {
   log.Printf("unable to find model %s: %v", getModelCfg.RegisteredModelName, err)
@@ -143,3 +178,7 @@ if err != nil {
   return fmt.Errorf("error retrieving model versions for model %s: %v", *registeredModel.Id, err)
 }
 ```
+
+## API documentation
+
+Check out the [Model Registry Service interface](../pkg/api/api.go) and the [core layer implementation](../pkg/core/) for additional details.
