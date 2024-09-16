@@ -52,7 +52,7 @@
     "cypress-high-resolution": "^1.0.0",
     "cypress-mochawesome-reporter": "^3.8.2",
     "cypress-multi-reporters": "^1.6.4",
-    "dotenv": "^8.2.0",
+    "dotenv": "^16.4.5",
     "dotenv-webpack": "^8.1.0",
     "expect": "^29.7.0",
     "html-webpack-plugin": "^5.6.0",
