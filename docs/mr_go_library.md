@@ -1,7 +1,7 @@
 # Model Registry
 
 > ⚠️  NOTE: UNSTABLE API  ⚠️
-> This library is provided as a convenience for Kubeflow developers.
+> This library is provided as a convenience for Kubeflow Model Registry developers.
 > If you are not actively involved in the development of Model Registry, please prefer the [REST API](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml).
 
 ## Getting Started
