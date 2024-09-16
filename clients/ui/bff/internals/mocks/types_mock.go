@@ -9,7 +9,7 @@ import (
 func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
 	var models []openapi.RegisteredModel
 	for i := 0; i < 2; i++ {
-		model := GenerateRegisteredModel()
+		model := GenerateMockRegisteredModel()
 		models = append(models, model)
 	}
 
@@ -21,7 +21,7 @@ func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
 	}
 }
 
-func GenerateRegisteredModel() openapi.RegisteredModel {
+func GenerateMockRegisteredModel() openapi.RegisteredModel {
 	model := openapi.RegisteredModel{
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"example_key": {
@@ -63,6 +63,22 @@ func GenerateMockModelVersion() openapi.ModelVersion {
 		State:                    stateToPointer(openapi.ModelVersionState(gofakeit.RandomString([]string{string(openapi.MODELVERSIONSTATE_LIVE), string(openapi.MODELVERSIONSTATE_ARCHIVED)}))),
 	}
 	return model
+}
+
+func GenerateMockModelVersionList() openapi.ModelVersionList {
+	var versions []openapi.ModelVersion
+
+	for i := 0; i < 2; i++ {
+		version := GenerateMockModelVersion()
+		versions = append(versions, version)
+	}
+
+	return openapi.ModelVersionList{
+		NextPageToken: gofakeit.UUID(),
+		PageSize:      int32(gofakeit.Number(1, 20)),
+		Size:          int32(len(versions)),
+		Items:         versions,
+	}
 }
 
 func stateToPointer[T any](s T) *T {

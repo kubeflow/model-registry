@@ -172,3 +172,28 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	//TODO (acreasy) implement pagination
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	versionList, err := app.modelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId))
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	responseBody := ModelVersionListEnvelope{
+		Data: versionList,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, responseBody, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}

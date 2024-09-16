@@ -38,7 +38,7 @@ func TestGetAllRegisteredModels(t *testing.T) {
 func TestCreateRegisteredModel(t *testing.T) {
 	gofakeit.Seed(0)
 
-	expected := mocks.GenerateRegisteredModel()
+	expected := mocks.GenerateMockRegisteredModel()
 
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 func TestGetRegisteredModel(t *testing.T) {
 	gofakeit.Seed(0)
 
-	expected := mocks.GenerateRegisteredModel()
+	expected := mocks.GenerateMockRegisteredModel()
 
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
@@ -85,7 +85,7 @@ func TestGetRegisteredModel(t *testing.T) {
 func TestUpdateRegisteredModel(t *testing.T) {
 	gofakeit.Seed(0)
 
-	expected := mocks.GenerateRegisteredModel()
+	expected := mocks.GenerateMockRegisteredModel()
 
 	mockData, err := json.Marshal(expected)
 	assert.NoError(t, err)
@@ -106,6 +106,34 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, *expected.Owner, *actual.Owner)
+
+	mockClient.AssertExpectations(t)
+}
+
+func TestGetAllModelVersions(t *testing.T) {
+	gofakeit.Seed(0)
+
+	expected := mocks.GenerateMockModelVersionList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	registeredModel := RegisteredModel{}
+
+	mockClient := new(mocks.MockHTTPClient)
+	path, err := url.JoinPath(registeredModelPath, "1", versionsPath)
+	assert.NoError(t, err)
+	mockClient.On("GET", path).Return(mockData, nil)
+
+	actual, err := registeredModel.GetAllModelVersions(mockClient, "1")
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
+	assert.Equal(t, expected.PageSize, actual.PageSize)
+	assert.Equal(t, expected.Size, actual.Size)
+	assert.Equal(t, len(expected.Items), len(actual.Items))
 
 	mockClient.AssertExpectations(t)
 }

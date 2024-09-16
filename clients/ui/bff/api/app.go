@@ -13,18 +13,19 @@ import (
 )
 
 const (
-	Version                 = "1.0.0"
-	PathPrefix              = "/api/v1"
-	ModelRegistryId         = "model_registry_id"
-	RegisteredModelId       = "registered_model_id"
-	ModelVersionId          = "model_version_id"
-	HealthCheckPath         = PathPrefix + "/healthcheck"
-	ModelRegistryListPath   = PathPrefix + "/model_registry"
-	ModelRegistryPath       = ModelRegistryListPath + "/:" + ModelRegistryId
-	RegisteredModelListPath = ModelRegistryPath + "/registered_models"
-	RegisteredModelPath     = RegisteredModelListPath + "/:" + RegisteredModelId
-	ModelVersionListPath    = ModelRegistryPath + "/model_versions"
-	ModelVersionPath        = ModelVersionListPath + "/:" + ModelVersionId
+	Version                     = "1.0.0"
+	PathPrefix                  = "/api/v1"
+	ModelRegistryId             = "model_registry_id"
+	RegisteredModelId           = "registered_model_id"
+	ModelVersionId              = "model_version_id"
+	HealthCheckPath             = PathPrefix + "/healthcheck"
+	ModelRegistryListPath       = PathPrefix + "/model_registry"
+	ModelRegistryPath           = ModelRegistryListPath + "/:" + ModelRegistryId
+	RegisteredModelListPath     = ModelRegistryPath + "/registered_models"
+	RegisteredModelPath         = RegisteredModelListPath + "/:" + RegisteredModelId
+	RegisteredModelVersionsPath = RegisteredModelPath + "/versions"
+	ModelVersionListPath        = ModelRegistryPath + "/model_versions"
+	ModelVersionPath            = ModelVersionListPath + "/:" + ModelVersionId
 )
 
 type App struct {
@@ -82,6 +83,7 @@ func (app *App) Routes() http.Handler {
 	router.GET(RegisteredModelPath, app.AttachRESTClient(app.GetRegisteredModelHandler))
 	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
 	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
+	router.GET(RegisteredModelVersionsPath, app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))
 
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
 	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))

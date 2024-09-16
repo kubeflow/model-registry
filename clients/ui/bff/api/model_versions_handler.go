@@ -12,6 +12,7 @@ import (
 )
 
 type ModelVersionEnvelope Envelope[*openapi.ModelVersion, None]
+type ModelVersionListEnvelope Envelope[*openapi.ModelVersionList, None]
 
 func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)

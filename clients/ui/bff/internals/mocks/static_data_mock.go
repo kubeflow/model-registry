@@ -100,3 +100,14 @@ func GetModelVersionMocks() []openapi.ModelVersion {
 
 	return []openapi.ModelVersion{model1, model2}
 }
+
+func GetModelVersionListMock() openapi.ModelVersionList {
+	versions := GetModelVersionMocks()
+
+	return openapi.ModelVersionList{
+		NextPageToken: "abcdefgh",
+		PageSize:      2,
+		Items:         versions,
+		Size:          2,
+	}
+}

@@ -54,17 +54,18 @@ make docker-build
 
 ### Endpoints
 
-| URL Pattern                                                                          | Handler                       | Action                                       |
-|--------------------------------------------------------------------------------------|-------------------------------|----------------------------------------------|
-| GET /v1/healthcheck                                                                  | HealthcheckHandler            | Show application information.                |
-| GET /v1/model_registry                                                               | ModelRegistryHandler          | Get all model registries,                    |
-| GET /v1/model_registry/{model_registry_id}/registered_models                         | GetAllRegisteredModelsHandler | Gets a list of all RegisteredModel entities. |
-| POST /v1/model_registry/{model_registry_id}/registered_models                        | CreateRegisteredModelHandler  | Create a RegisteredModel entity.             |
-| GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}   | GetRegisteredModelHandler     | Get a RegisteredModel entity by ID           |
-| PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id} | UpdateRegisteredModelHandler  | Update a RegisteredModel entity by ID        |
-| GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}     | GetModelVersionHandler        | Get a ModelVersion by ID                     |
-| POST /api/v1/model_registry/{model_registry_id}/model_versions                       | CreateModelVersionHandler     | Create a ModelVersion entity                 |
-| PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}   | UpdateModelVersionHandler     | Update a ModelVersion entity by ID           |
+| URL Pattern                                                                                 | Handler                                      | Action                                              |
+|---------------------------------------------------------------------------------------------|----------------------------------------------|-----------------------------------------------------|
+| GET /v1/healthcheck                                                                         | HealthcheckHandler                           | Show application information.                       |
+| GET /v1/model_registry                                                                      | ModelRegistryHandler                         | Get all model registries,                           |
+| GET /v1/model_registry/{model_registry_id}/registered_models                                | GetAllRegisteredModelsHandler                | Gets a list of all RegisteredModel entities.        |
+| POST /v1/model_registry/{model_registry_id}/registered_models                               | CreateRegisteredModelHandler                 | Create a RegisteredModel entity.                    |
+| GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}          | GetRegisteredModelHandler                    | Get a RegisteredModel entity by ID                  |
+| PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}        | UpdateRegisteredModelHandler                 | Update a RegisteredModel entity by ID               |
+| GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}            | GetModelVersionHandler                       | Get a ModelVersion by ID                            |
+| POST /api/v1/model_registry/{model_registry_id}/model_versions                              | CreateModelVersionHandler                    | Create a ModelVersion entity                        |
+| PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}          | UpdateModelVersionHandler                    | Update a ModelVersion entity by ID                  |
+| GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions | GetAllModelVersionsForRegisteredModelHandler | Get all ModelVersion entities by RegisteredModel ID |
 
 ### Sample local calls
 ```
@@ -160,4 +161,8 @@ curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/mod
   "author": "alex",
   "registeredModelId": "1"
 }}'
+```
+```
+# GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions
+curl -i localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions
 ```
