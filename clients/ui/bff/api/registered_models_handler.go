@@ -197,3 +197,54 @@ func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWrit
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+func (app *App) CreateModelVersionForRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	var envelope ModelVersionEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.badRequestResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	data := *envelope.Data
+
+	if err := validation.ValidateModelVersion(data); err != nil {
+		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling model to JSON: %w", err))
+	}
+
+	createdVersion, err := app.modelRegistryClient.CreateModelVersionForRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
+	if err != nil {
+		var httpErr *integrations.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if createdVersion == nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("created model version is nil"))
+		return
+	}
+
+	responseBody := ModelVersionEnvelope{
+		Data: createdVersion,
+	}
+
+	w.Header().Set("Location", ParseURLTemplate(ModelVersionPath, map[string]string{ModelRegistryId: ps.ByName(ModelRegistryId), ModelVersionId: createdVersion.GetId()}))
+	err = app.WriteJSON(w, http.StatusCreated, responseBody, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}

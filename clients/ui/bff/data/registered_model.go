@@ -18,6 +18,7 @@ type RegisteredModelInterface interface {
 	GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
 	UpdateRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error)
 	GetAllModelVersions(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersionList, error)
+	CreateModelVersionForRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 }
 
 type RegisteredModel struct {
@@ -107,6 +108,26 @@ func (m RegisteredModel) GetAllModelVersions(client integrations.HTTPClientInter
 	}
 
 	var model openapi.ModelVersionList
+	if err := json.Unmarshal(responseData, &model); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &model, nil
+}
+
+func (m RegisteredModel) CreateModelVersionForRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+	path, err := url.JoinPath(registeredModelPath, id, versionsPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	responseData, err := client.POST(path, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("error posting model version: %w", err)
+	}
+
+	var model openapi.ModelVersion
 	if err := json.Unmarshal(responseData, &model); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}

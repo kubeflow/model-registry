@@ -84,6 +84,7 @@ func (app *App) Routes() http.Handler {
 	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
 	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
 	router.GET(RegisteredModelVersionsPath, app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))
+	router.POST(RegisteredModelVersionsPath, app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))
 
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
 	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))

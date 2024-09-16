@@ -137,3 +137,31 @@ func TestGetAllModelVersions(t *testing.T) {
 
 	mockClient.AssertExpectations(t)
 }
+
+func TestCreateModelVersionForRegisteredModel(t *testing.T) {
+	gofakeit.Seed(0)
+
+	expected := mocks.GenerateMockModelVersion()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	registeredModel := RegisteredModel{}
+
+	path, err := url.JoinPath(registeredModelPath, "1", versionsPath)
+	assert.NoError(t, err)
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On(http.MethodPost, path, mock.Anything).Return(mockData, nil)
+
+	jsonInput, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	actual, err := registeredModel.CreateModelVersionForRegisteredModel(mockClient, "1", jsonInput)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expected.Name, actual.Name)
+	assert.Equal(t, *expected.Author, *actual.Author)
+	assert.Equal(t, expected.RegisteredModelId, actual.RegisteredModelId)
+
+	mockClient.AssertExpectations(t)
+}
