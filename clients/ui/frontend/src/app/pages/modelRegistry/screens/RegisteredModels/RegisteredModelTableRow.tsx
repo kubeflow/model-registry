@@ -13,6 +13,7 @@ import {
   registeredModelArchiveDetailsUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
@@ -36,7 +37,7 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
     {
       title: 'View details',
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onClick: () => {}, // TODO: @Griffin-Sullivan uncomment this once model versions is active ---> navigate(`${rmUrl}/${ModelVersionsTab.DETAILS}`),
+      onClick: () => navigate(`${rmUrl}/${ModelVersionsTab.DETAILS}`),
     },
     isArchiveRow
       ? {

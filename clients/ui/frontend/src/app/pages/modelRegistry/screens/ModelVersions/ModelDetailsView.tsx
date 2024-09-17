@@ -1,0 +1,106 @@
+import * as React from 'react';
+import { ClipboardCopy, DescriptionList, Flex, FlexItem, Content } from '@patternfly/react-core';
+import { RegisteredModel } from '~/app/types';
+import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
+import EditableTextDescriptionListGroup from '~/components/EditableTextDescriptionListGroup';
+import EditableLabelsDescriptionListGroup from '~/components/EditableLabelsDescriptionListGroup';
+import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
+import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
+import DashboardDescriptionListGroup from '~/components/DashboardDescriptionListGroup';
+import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
+
+type ModelDetailsViewProps = {
+  registeredModel: RegisteredModel;
+  refresh: () => void;
+};
+
+const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ registeredModel: rm, refresh }) => {
+  const { apiState } = React.useContext(ModelRegistryContext);
+  return (
+    <Flex
+      direction={{ default: 'column', md: 'row' }}
+      columnGap={{ default: 'columnGap4xl' }}
+      rowGap={{ default: 'rowGapLg' }}
+    >
+      <FlexItem flex={{ default: 'flex_1' }}>
+        <DescriptionList isFillColumns>
+          <EditableTextDescriptionListGroup
+            title="Description"
+            contentWhenEmpty="No description"
+            value={rm.description || ''}
+            saveEditedValue={(value) =>
+              apiState.api
+                .patchRegisteredModel(
+                  {},
+                  {
+                    description: value,
+                  },
+                  rm.id,
+                )
+                .then(refresh)
+            }
+          />
+          <EditableLabelsDescriptionListGroup
+            labels={getLabels(rm.customProperties)}
+            allExistingKeys={Object.keys(rm.customProperties)}
+            saveEditedLabels={(editedLabels) =>
+              apiState.api
+                .patchRegisteredModel(
+                  {},
+                  {
+                    customProperties: mergeUpdatedLabels(rm.customProperties, editedLabels),
+                  },
+                  rm.id,
+                )
+                .then(refresh)
+            }
+          />
+          <ModelPropertiesDescriptionListGroup
+            customProperties={rm.customProperties}
+            saveEditedCustomProperties={(editedProperties) =>
+              apiState.api
+                .patchRegisteredModel(
+                  {},
+                  {
+                    customProperties: editedProperties,
+                  },
+                  rm.id,
+                )
+                .then(refresh)
+            }
+          />
+        </DescriptionList>
+      </FlexItem>
+      <FlexItem flex={{ default: 'flex_1' }}>
+        <DescriptionList isFillColumns>
+          <DashboardDescriptionListGroup title="Model ID">
+            <ClipboardCopy hoverTip="Copy" clickTip="Copied" variant="inline-compact">
+              {rm.id}
+            </ClipboardCopy>
+          </DashboardDescriptionListGroup>
+          <DashboardDescriptionListGroup title="Owner">
+            <Content component="p" data-testid="registered-model-owner">
+              {rm.owner || '-'}
+            </Content>
+          </DashboardDescriptionListGroup>
+          <DashboardDescriptionListGroup
+            title="Last modified at"
+            isEmpty={!rm.lastUpdateTimeSinceEpoch}
+            contentWhenEmpty="Unknown"
+          >
+            <ModelTimestamp timeSinceEpoch={rm.lastUpdateTimeSinceEpoch} />
+          </DashboardDescriptionListGroup>
+          <DashboardDescriptionListGroup
+            title="Created at"
+            isEmpty={!rm.createTimeSinceEpoch}
+            contentWhenEmpty="Unknown"
+          >
+            <ModelTimestamp timeSinceEpoch={rm.createTimeSinceEpoch} />
+          </DashboardDescriptionListGroup>
+        </DescriptionList>
+      </FlexItem>
+    </Flex>
+  );
+};
+
+export default ModelDetailsView;

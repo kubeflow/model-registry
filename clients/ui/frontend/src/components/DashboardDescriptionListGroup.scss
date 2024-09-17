@@ -1,0 +1,4 @@
+.kubeflow-custom-description-list-term-with-action > span {
+  /* Workaround for missing functionality in PF DescriptionList, see https://github.com/patternfly/patternfly/issues/6583 */
+  width: 100%;
+}
