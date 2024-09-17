@@ -83,7 +83,8 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 	response := RegisteredModelEnvelope{
 		Data: createdModel,
 	}
-	w.Header().Set("Location", fmt.Sprintf("%s/%s", RegisteredModelsPath, *createdModel.Id))
+
+	w.Header().Set("Location", r.URL.JoinPath(*createdModel.Id).String())
 	err = app.WriteJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
@@ -116,5 +117,58 @@ func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request
 	err = app.WriteJSON(w, http.StatusOK, result, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	var envelope RegisteredModelEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	data := *envelope.Data
+
+	if err := validation.ValidateRegisteredModel(data); err != nil {
+		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
+		return
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling model to JSON: %w", err))
+		return
+	}
+
+	patchedModel, err := app.modelRegistryClient.UpdateRegisteredModel(client, ps.ByName("id"), jsonData)
+	if err != nil {
+		var httpErr *integrations.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if patchedModel == nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("patched model is nil"))
+		return
+	}
+
+	responseBody := RegisteredModelEnvelope{
+		Data: patchedModel,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, responseBody, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+		return
 	}
 }
