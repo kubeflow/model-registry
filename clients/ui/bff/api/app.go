@@ -13,19 +13,20 @@ import (
 )
 
 const (
-	Version                     = "1.0.0"
-	PathPrefix                  = "/api/v1"
-	ModelRegistryId             = "model_registry_id"
-	RegisteredModelId           = "registered_model_id"
-	ModelVersionId              = "model_version_id"
-	HealthCheckPath             = PathPrefix + "/healthcheck"
-	ModelRegistryListPath       = PathPrefix + "/model_registry"
-	ModelRegistryPath           = ModelRegistryListPath + "/:" + ModelRegistryId
-	RegisteredModelListPath     = ModelRegistryPath + "/registered_models"
-	RegisteredModelPath         = RegisteredModelListPath + "/:" + RegisteredModelId
-	RegisteredModelVersionsPath = RegisteredModelPath + "/versions"
-	ModelVersionListPath        = ModelRegistryPath + "/model_versions"
-	ModelVersionPath            = ModelVersionListPath + "/:" + ModelVersionId
+	Version                      = "1.0.0"
+	PathPrefix                   = "/api/v1"
+	ModelRegistryId              = "model_registry_id"
+	RegisteredModelId            = "registered_model_id"
+	ModelVersionId               = "model_version_id"
+	HealthCheckPath              = PathPrefix + "/healthcheck"
+	ModelRegistryListPath        = PathPrefix + "/model_registry"
+	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
+	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
+	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
+	RegisteredModelVersionsPath  = RegisteredModelPath + "/versions"
+	ModelVersionListPath         = ModelRegistryPath + "/model_versions"
+	ModelVersionPath             = ModelVersionListPath + "/:" + ModelVersionId
+	ModelVersionArtifactListPath = ModelVersionPath + "/artifacts"
 )
 
 type App struct {
@@ -89,6 +90,7 @@ func (app *App) Routes() http.Handler {
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
 	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
 	router.PATCH(ModelVersionPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
+	router.GET(ModelVersionArtifactListPath, app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))
 
 	// Kubernetes client routes
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)

@@ -59,3 +59,8 @@ func (m *ModelRegistryClientMock) CreateModelVersionForRegisteredModel(client in
 	mockData := GetModelVersionMocks()[0]
 	return &mockData, nil
 }
+
+func (m *ModelRegistryClientMock) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
+	mockData := GetModelArtifactListMock()
+	return &mockData, nil
+}

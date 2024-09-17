@@ -111,3 +111,65 @@ func GetModelVersionListMock() openapi.ModelVersionList {
 		Size:          2,
 	}
 }
+
+func GetModelArtifactMocks() []openapi.ModelArtifact {
+	artifact1 := openapi.ModelArtifact{
+		ArtifactType:             "TYPE_ONE",
+		CustomProperties:         newCustomProperties(),
+		Description:              stringToPointer("This artifact can do more than you would expect"),
+		ExternalId:               stringToPointer("1000001"),
+		Uri:                      stringToPointer("http://localhost/artifacts/1"),
+		State:                    stateToPointer(openapi.ARTIFACTSTATE_LIVE),
+		Name:                     stringToPointer("Artifact One"),
+		Id:                       stringToPointer("1"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
+		ModelFormatName:          stringToPointer("ONNX"),
+		StorageKey:               stringToPointer("key1"),
+		StoragePath:              stringToPointer("/artifacts/1"),
+		ModelFormatVersion:       stringToPointer("1.0.0"),
+		ServiceAccountName:       stringToPointer("service-1"),
+	}
+
+	artifact2 := openapi.ModelArtifact{
+		ArtifactType:             "TYPE_TWO",
+		CustomProperties:         newCustomProperties(),
+		Description:              stringToPointer("This artifact can do more than you would expect, but less than you would hope"),
+		ExternalId:               stringToPointer("1000002"),
+		Uri:                      stringToPointer("http://localhost/artifacts/2"),
+		State:                    stateToPointer(openapi.ARTIFACTSTATE_PENDING),
+		Name:                     stringToPointer("Artifact Two"),
+		Id:                       stringToPointer("2"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
+		ModelFormatName:          stringToPointer("TensorFlow"),
+		StorageKey:               stringToPointer("key2"),
+		StoragePath:              stringToPointer("/artifacts/2"),
+		ModelFormatVersion:       stringToPointer("1.0.0"),
+		ServiceAccountName:       stringToPointer("service-2"),
+	}
+
+	return []openapi.ModelArtifact{artifact1, artifact2}
+}
+
+func GetModelArtifactListMock() openapi.ModelArtifactList {
+	return openapi.ModelArtifactList{
+		NextPageToken: "abcdefgh",
+		PageSize:      2,
+		Items:         GetModelArtifactMocks(),
+		Size:          2,
+	}
+}
+
+func newCustomProperties() *map[string]openapi.MetadataValue {
+	result := map[string]openapi.MetadataValue{
+		"my-label9": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "property9",
+				MetadataType: "string",
+			},
+		},
+	}
+
+	return &result
+}

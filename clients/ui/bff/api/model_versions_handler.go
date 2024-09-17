@@ -13,6 +13,7 @@ import (
 
 type ModelVersionEnvelope Envelope[*openapi.ModelVersion, None]
 type ModelVersionListEnvelope Envelope[*openapi.ModelVersionList, None]
+type ModelArtifactListEnvelope Envelope[*openapi.ModelArtifactList, None]
 
 func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
@@ -146,5 +147,28 @@ func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
+	}
+}
+
+func (app *App) GetAllModelArtifactsByModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	data, err := app.modelRegistryClient.GetModelArtifactsByModelVersion(client, ps.ByName(ModelVersionId))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	result := ModelArtifactListEnvelope{
+		Data: data,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, result, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 	}
 }

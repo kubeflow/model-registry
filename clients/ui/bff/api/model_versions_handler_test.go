@@ -45,3 +45,17 @@ func TestUpdateModelVersionHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
 	assert.Equal(t, expected.Data.Name, actual.Data.Name)
 }
+
+func TestGetAllModelArtifactsByModelVersionHandler(t *testing.T) {
+	data := mocks.GetModelArtifactListMock()
+	expected := ModelArtifactListEnvelope{Data: &data}
+
+	actual, rs, err := setupApiTest[ModelArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, expected.Data.Size, actual.Data.Size)
+	assert.Equal(t, expected.Data.PageSize, actual.Data.PageSize)
+	assert.Equal(t, expected.Data.NextPageToken, actual.Data.NextPageToken)
+	assert.Equal(t, len(expected.Data.Items), len(actual.Data.Items))
+}
