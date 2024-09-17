@@ -14,6 +14,7 @@ import (
 type ModelVersionEnvelope Envelope[*openapi.ModelVersion, None]
 type ModelVersionListEnvelope Envelope[*openapi.ModelVersionList, None]
 type ModelArtifactListEnvelope Envelope[*openapi.ModelArtifactList, None]
+type ModelArtifactEnvelope Envelope[*openapi.ModelArtifact, None]
 
 func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
@@ -170,5 +171,62 @@ func (app *App) GetAllModelArtifactsByModelVersionHandler(w http.ResponseWriter,
 	err = app.WriteJSON(w, http.StatusOK, result, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *App) CreateModelArtifactByModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("REST client not found"))
+		return
+	}
+
+	var envelope ModelArtifactEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	data := *envelope.Data
+
+	if err := validation.ValidateModelArtifact(data); err != nil {
+		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
+		return
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling ModelVersion to JSON: %w", err))
+		return
+	}
+
+	createdArtifact, err := app.modelRegistryClient.CreateModelArtifactByModelVersion(client, ps.ByName(ModelVersionId), jsonData)
+	if err != nil {
+		var httpErr *integrations.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if createdArtifact == nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("created ModelArtifact is nil"))
+		return
+	}
+
+	response := ModelArtifactEnvelope{
+		Data: createdArtifact,
+	}
+
+	w.Header().Set("Location", ParseURLTemplate(ModelArtifactPath, map[string]string{
+		ModelRegistryId: ps.ByName(ModelRegistryId),
+		ModelArtifactId: createdArtifact.GetId(),
+	}))
+	err = app.WriteJSON(w, http.StatusCreated, response, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+		return
 	}
 }

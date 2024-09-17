@@ -59,3 +59,21 @@ func TestGetAllModelArtifactsByModelVersionHandler(t *testing.T) {
 	assert.Equal(t, expected.Data.NextPageToken, actual.Data.NextPageToken)
 	assert.Equal(t, len(expected.Data.Items), len(actual.Data.Items))
 }
+
+func TestCreateModelArtifactByModelVersionHandler(t *testing.T) {
+	data := mocks.GetModelArtifactMocks()[0]
+	expected := ModelArtifactEnvelope{Data: &data}
+
+	artifact := openapi.ModelArtifact{
+		Name:         openapi.PtrString("Artifact One"),
+		ArtifactType: "ARTIFACT_TYPE_ONE",
+	}
+	body := ModelArtifactEnvelope{Data: &artifact}
+
+	actual, rs, err := setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusCreated, rs.StatusCode)
+	assert.Equal(t, expected.Data.GetArtifactType(), actual.Data.GetArtifactType())
+	assert.Equal(t, rs.Header.Get("Location"), "/api/v1/model_registry/model-registry/model_artifacts/1")
+}

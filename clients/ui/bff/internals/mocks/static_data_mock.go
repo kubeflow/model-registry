@@ -6,14 +6,7 @@ import (
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
 	model1 := openapi.RegisteredModel{
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"my-label9": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue:  "property9",
-					MetadataType: "string",
-				},
-			},
-		},
+		CustomProperties:         newCustomProperties(),
 		Name:                     "Model One",
 		Description:              stringToPointer("This model does things and stuff"),
 		ExternalId:               stringToPointer("934589798"),
@@ -25,14 +18,7 @@ func GetRegisteredModelMocks() []openapi.RegisteredModel {
 	}
 
 	model2 := openapi.RegisteredModel{
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"my-label9": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue:  "property9",
-					MetadataType: "string",
-				},
-			},
-		},
+		CustomProperties:         newCustomProperties(),
 		Name:                     "Model Two",
 		Description:              stringToPointer("This model does things and stuff"),
 		ExternalId:               stringToPointer("345235987"),
@@ -59,14 +45,7 @@ func GetRegisteredModelListMock() openapi.RegisteredModelList {
 
 func GetModelVersionMocks() []openapi.ModelVersion {
 	model1 := openapi.ModelVersion{
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"my-label9": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue:  "property9",
-					MetadataType: "string",
-				},
-			},
-		},
+		CustomProperties:         newCustomProperties(),
 		Name:                     "Version One",
 		Description:              stringToPointer("This version improves stuff and things"),
 		ExternalId:               stringToPointer("934589798"),
@@ -79,14 +58,7 @@ func GetModelVersionMocks() []openapi.ModelVersion {
 	}
 
 	model2 := openapi.ModelVersion{
-		CustomProperties: &map[string]openapi.MetadataValue{
-			"my-label9": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue:  "property9",
-					MetadataType: "string",
-				},
-			},
-		},
+		CustomProperties:         newCustomProperties(),
 		Name:                     "Version Two",
 		Description:              stringToPointer("This version improves stuff and things"),
 		ExternalId:               stringToPointer("934589799"),

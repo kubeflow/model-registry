@@ -38,3 +38,20 @@ func TestValidateModelVersion(t *testing.T) {
 
 	validateTestSpecs(t, specs, ValidateModelVersion)
 }
+
+func TestValidateModel(t *testing.T) {
+	specs := []testSpec[openapi.ModelArtifact]{
+		{
+			name:    "Empty name",
+			input:   openapi.ModelArtifact{Name: openapi.PtrString("")},
+			wantErr: true,
+		},
+		{
+			name:    "Valid name",
+			input:   openapi.ModelArtifact{Name: openapi.PtrString("ValidName")},
+			wantErr: false,
+		},
+	}
+
+	validateTestSpecs(t, specs, ValidateModelArtifact)
+}

@@ -17,6 +17,7 @@ type ModelVersionInterface interface {
 	CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
 	UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 	GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error)
+	CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
 }
 
 type ModelVersion struct {
@@ -58,7 +59,7 @@ func (v ModelVersion) CreateModelVersion(client integrations.HTTPClientInterface
 	return &model, nil
 }
 
-func (m ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+func (v ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
 	path, err := url.JoinPath(modelVersionPath, id)
 
 	if err != nil {
@@ -78,7 +79,7 @@ func (m ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface
 	return &model, nil
 }
 
-func (m ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
+func (v ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
 	path, err := url.JoinPath(modelVersionPath, id, artifactsByModelVersionPath)
 
 	if err != nil {
@@ -91,6 +92,25 @@ func (m ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPCl
 	}
 
 	var model openapi.ModelArtifactList
+	if err := json.Unmarshal(responseData, &model); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &model, nil
+}
+
+func (v ModelVersion) CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
+	path, err := url.JoinPath(modelVersionPath, id, artifactsByModelVersionPath)
+	if err != nil {
+		return nil, err
+	}
+
+	responseData, err := client.POST(path, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("error posting model artifact: %w", err)
+	}
+
+	var model openapi.ModelArtifact
 	if err := json.Unmarshal(responseData, &model); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}

@@ -114,3 +114,29 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 	assert.Equal(t, expected.PageSize, actual.PageSize)
 	assert.Equal(t, len(expected.Items), len(actual.Items))
 }
+
+func TestCreateModelArtifactByModelVersion(t *testing.T) {
+	gofakeit.Seed(0)
+
+	expected := mocks.GenerateMockModelArtifact()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	modelVersion := ModelVersion{}
+
+	path, err := url.JoinPath(modelVersionPath, "1", artifactsByModelVersionPath)
+	assert.NoError(t, err)
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On(http.MethodPost, path, mock.Anything).Return(mockData, nil)
+
+	jsonInnput, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	actual, err := modelVersion.CreateModelArtifactByModelVersion(mockClient, "1", jsonInnput)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expected.Name, actual.Name)
+	assert.Equal(t, expected.ArtifactType, actual.ArtifactType)
+}

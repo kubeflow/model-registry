@@ -68,6 +68,7 @@ make docker-build
 | GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions  | GetAllModelVersionsForRegisteredModelHandler | Get all ModelVersion entities by RegisteredModel ID         |
 | POST /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions | CreateModelVersionForRegisteredModelHandler  | Create a ModelVersion entity for a specific RegisteredModel |
 | GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts   | GetAllModelArtifactsByModelVersionHandler    | Get all ModelArtifact entities by ModelVersion ID           |
+| POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts  | CreateModelArtifactByModelVersion            | Create a ModelArtifact entity for a specific ModelVersion   |
 
 ### Sample local calls
 ```
@@ -189,4 +190,22 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/regi
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
 curl -i http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts
+```
+```
+# POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
+curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts" \
+     -H "Content-Type: application/json" \
+     -d '{ "data": {
+  "customProperties": {
+    "my-label9": {
+      "metadataType": "MetadataStringValue",
+      "string_value": "val"
+    }
+  },
+  "description": "New description",
+  "externalId": "9927",
+  "name": "ModelArtifact One",
+  "state": "LIVE",
+  "artifactType": "TYPE_ONE"
+}}'
 ```
