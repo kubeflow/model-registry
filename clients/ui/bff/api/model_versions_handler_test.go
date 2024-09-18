@@ -37,7 +37,10 @@ func TestUpdateModelVersionHandler(t *testing.T) {
 	data := mocks.GetModelVersionMocks()[0]
 	expected := ModelVersionEnvelope{Data: &data}
 
-	body := ModelVersionEnvelope{Data: openapi.NewModelVersion("Model One", "1")}
+	reqData := openapi.ModelVersionUpdate{
+		Description: openapi.PtrString("New description"),
+	}
+	body := ModelVersionUpdateEnvelope{Data: &reqData}
 
 	actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/model_versions/1", body)
 	assert.NoError(t, err)

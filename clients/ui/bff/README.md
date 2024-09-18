@@ -110,17 +110,7 @@ curl -i localhost:4000/api/v1/model_registry/model-registry/registered_models/1
 curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1" \
 -H "Content-Type: application/json" \
 -d '{ "data": {
-"customProperties": {
-"my-label9": {
-"metadataType": "MetadataStringValue",
-"string_value": "val"
-}
-},
-"description": "bella description",
-"externalId": "9927",
-"name": "bella",
-"owner": "eder",
-"state": "LIVE"
+  "description": "New description"
 }}'
 ```
 ```
@@ -150,19 +140,8 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/mode
 # PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}
 curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1" \
      -H "Content-Type: application/json" \
-     -d '{ "data": {
-  "customProperties": {
-    "my-label9": {
-      "metadataType": "MetadataStringValue",
-      "string_value": "val"
-    }
-  },
-  "description": "New description",
-  "externalId": "9927",
-  "name": "ModelVersion One",
-  "state": "LIVE",
-  "author": "alex",
-  "registeredModelId": "1"
+-d '{ "data": {
+  "description": "New description 2"
 }}'
 ```
 ```
@@ -180,11 +159,12 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/regi
       "string_value": "val"
     }
   },
-  "description": "New description",
-  "externalId": "9927",
+  "description": "Description",
+  "externalId": "9928",
   "name": "ModelVersion One",
   "state": "LIVE",
   "author": "alex"
+  "registeredModelId: "1"
 }}'
 ```
 ```
