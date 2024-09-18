@@ -13,6 +13,7 @@ import (
 
 type RegisteredModelEnvelope Envelope[*openapi.RegisteredModel, None]
 type RegisteredModelListEnvelope Envelope[*openapi.RegisteredModelList, None]
+type RegisteredModelUpdateEnvelope Envelope[*openapi.RegisteredModelUpdate, None]
 
 func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	//TODO (ederign) implement pagination
@@ -127,7 +128,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var envelope RegisteredModelEnvelope
+	var envelope RegisteredModelUpdateEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
@@ -135,10 +136,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 
 	data := *envelope.Data
 
-	if err := validation.ValidateRegisteredModel(data); err != nil {
-		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
-		return
-	}
+	//TODO Validate body, note validation requirements are different to POST (fields are optional)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -146,7 +144,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	patchedModel, err := app.modelRegistryClient.UpdateRegisteredModel(client, ps.ByName("id"), jsonData)
+	patchedModel, err := app.modelRegistryClient.UpdateRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {

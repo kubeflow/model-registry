@@ -13,6 +13,8 @@ import (
 
 type ModelVersionEnvelope Envelope[*openapi.ModelVersion, None]
 type ModelVersionListEnvelope Envelope[*openapi.ModelVersionList, None]
+type ModelVersionUpdateEnvelope Envelope[*openapi.ModelVersionUpdate, None]
+
 type ModelArtifactListEnvelope Envelope[*openapi.ModelArtifactList, None]
 type ModelArtifactEnvelope Envelope[*openapi.ModelArtifact, None]
 
@@ -105,7 +107,7 @@ func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var envelope ModelVersionEnvelope
+	var envelope ModelVersionUpdateEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
@@ -113,10 +115,7 @@ func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request
 
 	data := *envelope.Data
 
-	if err := validation.ValidateModelVersion(data); err != nil {
-		app.badRequestResponse(w, r, fmt.Errorf("validation error:: %v", err.Error()))
-		return
-	}
+	//TODO add validation - note updating requires different rules to create as fields are optional.
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {

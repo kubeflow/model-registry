@@ -53,13 +53,17 @@ func TestUpdateRegisteredModelHandler(t *testing.T) {
 	data := mocks.GetRegisteredModelMocks()[0]
 	expected := RegisteredModelEnvelope{Data: &data}
 
-	body := RegisteredModelEnvelope{Data: openapi.NewRegisteredModel("Model One")}
+	reqData := openapi.RegisteredModelUpdate{
+		Description: openapi.PtrString("This is a new description"),
+	}
+	body := RegisteredModelUpdateEnvelope{Data: &reqData}
 
 	actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1", body)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
-	assert.Equal(t, expected.Data.Name, actual.Data.Name)
+	//TODO when mock client can handle changing state, update this to verify the changes are made.
+	assert.Equal(t, expected.Data.Description, actual.Data.Description)
 }
 
 func TestGetAllModelVersionsForRegisteredModelHandler(t *testing.T) {
