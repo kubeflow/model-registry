@@ -34,3 +34,37 @@ func (m *ModelRegistryClientMock) UpdateRegisteredModel(client integrations.HTTP
 	mockData := GetRegisteredModelMocks()[0]
 	return &mockData, nil
 }
+
+func (m *ModelRegistryClientMock) GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
+	mockData := GetModelVersionMocks()[0]
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error) {
+	mockData := GetModelVersionMocks()[0]
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+	mockData := GetModelVersionMocks()[0]
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) GetAllModelVersions(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersionList, error) {
+	mockData := GetModelVersionListMock()
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) CreateModelVersionForRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+	mockData := GetModelVersionMocks()[0]
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
+	mockData := GetModelArtifactListMock()
+	return &mockData, nil
+}
+func (m *ModelRegistryClientMock) CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
+	mockData := GetModelArtifactMocks()[0]
+	return &mockData, nil
+}
