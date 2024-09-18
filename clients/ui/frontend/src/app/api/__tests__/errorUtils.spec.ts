@@ -2,12 +2,13 @@ import { NotReadyError } from '~/utilities/useFetchState';
 import { APIError } from '~/app/api/types';
 import { handleRestFailures } from '~/app/api/errorUtils';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
+import { mockBFFResponse } from '~/__mocks__/utils';
 
 describe('handleRestFailures', () => {
   it('should successfully return registered models', async () => {
     const modelRegistryMock = mockRegisteredModel({});
-    const result = await handleRestFailures(Promise.resolve(modelRegistryMock));
-    expect(result).toStrictEqual(modelRegistryMock);
+    const result = await handleRestFailures(Promise.resolve(mockBFFResponse(modelRegistryMock)));
+    expect(result.data).toStrictEqual(modelRegistryMock);
   });
 
   it('should handle and throw model registry errors', async () => {

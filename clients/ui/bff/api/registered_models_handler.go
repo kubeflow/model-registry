@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/validation"
-	"net/http"
 )
 
 type RegisteredModelEnvelope Envelope[*openapi.RegisteredModel, None]

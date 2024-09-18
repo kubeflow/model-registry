@@ -22,8 +22,9 @@ export type ModelRegistry = {
 };
 
 // TODO: Change in the backend AND frontend to "items" instead of "model-registries"
-export type ModelRegistryResponse = {
-  model_registry: ModelRegistry[];
+export type ModelRegistryResponse<T> = {
+  data: T;
+  metadata?: Record<string, unknown>;
 };
 
 export enum ModelRegistryMetadataType {

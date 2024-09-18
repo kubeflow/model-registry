@@ -9,8 +9,8 @@ export const getListModelRegistries =
   (opts: APIOptions): Promise<ModelRegistry[]> =>
     handleRestFailures(restGET(hostPath, `/api/${BFF_API_VERSION}/model_registry`, {}, opts)).then(
       (response) => {
-        if (isModelRegistryResponse(response)) {
-          return response.model_registry;
+        if (isModelRegistryResponse<ModelRegistry[]>(response)) {
+          return response.data;
         }
         throw new Error('Invalid response format');
       },
