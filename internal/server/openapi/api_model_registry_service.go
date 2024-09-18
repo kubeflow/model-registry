@@ -77,11 +77,6 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/model_versions",
 			c.CreateModelVersion,
 		},
-		"CreateModelVersionArtifact": Route{
-			strings.ToUpper("Post"),
-			"/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
-			c.CreateModelVersionArtifact,
-		},
 		"CreateRegisteredModel": Route{
 			strings.ToUpper("Post"),
 			"/api/model_registry/v1alpha3/registered_models",
@@ -227,6 +222,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}",
 			c.UpdateServingEnvironment,
 		},
+		"UpsertModelVersionArtifact": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
+			c.UpsertModelVersionArtifact,
+		},
 	}
 }
 
@@ -358,34 +358,6 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 		return
 	}
 	result, err := c.service.CreateModelVersion(r.Context(), modelVersionCreateParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// CreateModelVersionArtifact - Create an Artifact in a ModelVersion
-func (c *ModelRegistryServiceAPIController) CreateModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
-	modelversionIdParam := chi.URLParam(r, "modelversionId")
-	artifactParam := model.Artifact{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&artifactParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertArtifactRequired(artifactParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertArtifactConstraints(artifactParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -942,6 +914,34 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 		return
 	}
 	result, err := c.service.UpdateServingEnvironment(r.Context(), servingenvironmentIdParam, servingEnvironmentUpdateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// UpsertModelVersionArtifact - Upsert an Artifact in a ModelVersion
+func (c *ModelRegistryServiceAPIController) UpsertModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
+	modelversionIdParam := chi.URLParam(r, "modelversionId")
+	artifactParam := model.Artifact{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactRequired(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactConstraints(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpsertModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

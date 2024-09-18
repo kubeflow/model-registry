@@ -183,7 +183,7 @@ class ModelRegistryAPIClient:
         return [RegisteredModel.from_basemodel(rm) for rm in rm_list.items or []]
 
     async def upsert_model_version(
-        self, model_version: ModelVersion, registered_model_id: str
+        self, model_version: ModelVersion, registered_model_id: str | None = None
     ) -> ModelVersion:
         """Upsert a model version.
 
@@ -191,7 +191,7 @@ class ModelRegistryAPIClient:
 
         Args:
             model_version: Model version to upsert.
-            registered_model_id: ID of the registered model this version will be associated to.
+            registered_model_id: ID of the registered model this version will be associated to. Can be None when updating an existing model version.
 
         Returns:
             New model version.
@@ -201,10 +201,13 @@ class ModelRegistryAPIClient:
                 mv = await client.update_model_version(
                     model_version.id, model_version.update()
                 )
-            else:
+            elif registered_model_id:
                 mv = await client.create_model_version(
                     model_version.create(registered_model_id=registered_model_id)
                 )
+            else:
+                msg = f"Registered model ID required for creating a new model version: {model_version}"
+                raise ValueError(msg)
 
         return ModelVersion.from_basemodel(mv)
 
@@ -295,7 +298,7 @@ class ModelRegistryAPIClient:
         return ModelVersion.from_basemodel(mv)
 
     async def upsert_model_artifact(
-        self, model_artifact: ModelArtifact, model_version_id: str
+        self, model_artifact: ModelArtifact
     ) -> ModelArtifact:
         """Upsert a model artifact.
 
@@ -308,19 +311,16 @@ class ModelRegistryAPIClient:
         Returns:
             New model artifact.
         """
-        if not model_artifact.id:
-            return await self.create_model_version_artifact(
-                model_artifact, model_version_id
-            )
-
         async with self.get_client() as client:
-            return ModelArtifact.from_basemodel(
-                await client.update_model_artifact(
+            if not model_artifact.id:
+                ma = await client.create_model_artifact(model_artifact.create())
+            else:
+                ma = await client.update_model_artifact(
                     model_artifact.id, model_artifact.update()
                 )
-            )
+        return ModelArtifact.from_basemodel(ma)
 
-    async def create_model_version_artifact(
+    async def upsert_model_version_artifact(
         self, artifact: ArtifactT, model_version_id: str
     ) -> ArtifactT:
         """Creates a model version artifact.
@@ -338,7 +338,7 @@ class ModelRegistryAPIClient:
             return cast(
                 ArtifactT,
                 Artifact.validate_artifact(
-                    await client.create_model_version_artifact(
+                    await client.upsert_model_version_artifact(
                         model_version_id, artifact.wrap()
                     )
                 ),

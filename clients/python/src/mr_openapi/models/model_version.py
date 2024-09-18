@@ -44,9 +44,7 @@ class ModelVersion(BaseModel):
     registered_model_id: StrictStr = Field(
         description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
     )
-    id: StrictStr | None = Field(
-        default=None, description="Output only. The unique server generated id of the resource."
-    )
+    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
         description="Output only. Create time of the resource in millisecond since epoch.",
@@ -101,10 +99,8 @@ class ModelVersion(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
-            "id",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }

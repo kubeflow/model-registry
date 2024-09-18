@@ -26,7 +26,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
-	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	createdVersionId := *createdVersion.Id
 	createdVersionIdAsInt, _ := converter.StringToInt64(&createdVersionId)
 	// end of data preparation
@@ -84,6 +84,10 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
 	// end of data preparation
 
+	_, err := service.UpsertServeModel(nil, nil)
+	suite.NotNil(err)
+	suite.Equal("invalid serve model pointer, can't upsert nil: bad request", err.Error())
+
 	eut := &openapi.ServeModel{
 		LastKnownState: (*openapi.ExecutionState)(&executionState),
 		ExternalId:     &entityExternalId2,
@@ -97,7 +101,7 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 		},
 	}
 
-	_, err := service.UpsertServeModel(eut, nil)
+	_, err = service.UpsertServeModel(eut, nil)
 	suite.NotNil(err)
 	suite.Equal("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: bad request", err.Error())
 
@@ -206,7 +210,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 	newState := "UNKNOWN"
 	createdEntity.LastKnownState = (*openapi.ExecutionState)(&newState)
 	updatedEntity, err := service.UpsertServeModel(createdEntity, &inferenceServiceId)
-	suite.Nilf(err, "error updating entity for %d: %v", inferenceServiceId, err)
+	suite.Nilf(err, "error updating entity for %s: %v", inferenceServiceId, err)
 
 	wrongId := "9998"
 	updatedEntity.Id = &wrongId
@@ -229,7 +233,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 		Author:      &author,
 	}
 	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
-	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	createdVersionId := *createdVersion.Id
 	// end of data preparation
 
@@ -247,10 +251,10 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 	}
 
 	createdEntity, err := service.UpsertServeModel(eut, &inferenceServiceId)
-	suite.Nilf(err, "error creating new ServeModel for %d", inferenceServiceId)
+	suite.Nilf(err, "error creating new ServeModel for %s", inferenceServiceId)
 
 	getById, err := service.GetServeModelById(*createdEntity.Id)
-	suite.Nilf(err, "error getting entity by id %d", *createdEntity.Id)
+	suite.Nilf(err, "error getting entity by id %s", *createdEntity.Id)
 
 	state, _ := openapi.NewExecutionStateFromValue(executionState)
 	suite.NotNil(createdEntity.Id, "created artifact id should not be nil")
@@ -272,19 +276,19 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 	modelVersion1Name := "v1"
 	modelVersion1 := &openapi.ModelVersion{Name: modelVersion1Name, Description: &modelVersionDescription}
 	createdVersion1, err := service.UpsertModelVersion(modelVersion1, &registeredModelId)
-	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	createdVersion1Id := *createdVersion1.Id
 
 	modelVersion2Name := "v2"
 	modelVersion2 := &openapi.ModelVersion{Name: modelVersion2Name, Description: &modelVersionDescription}
 	createdVersion2, err := service.UpsertModelVersion(modelVersion2, &registeredModelId)
-	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	createdVersion2Id := *createdVersion2.Id
 
 	modelVersion3Name := "v3"
 	modelVersion3 := &openapi.ModelVersion{Name: modelVersion3Name, Description: &modelVersionDescription}
 	createdVersion3, err := service.UpsertModelVersion(modelVersion3, &registeredModelId)
-	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
 	createdVersion3Id := *createdVersion3.Id
 	// end of data preparation
 
@@ -328,11 +332,11 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 	}
 
 	createdEntity1, err := service.UpsertServeModel(eut1, &inferenceServiceId)
-	suite.Nilf(err, "error creating new ServeModel for %d", inferenceServiceId)
+	suite.Nilf(err, "error creating new ServeModel for %s", inferenceServiceId)
 	createdEntity2, err := service.UpsertServeModel(eut2, &inferenceServiceId)
-	suite.Nilf(err, "error creating new ServeModel for %d", inferenceServiceId)
+	suite.Nilf(err, "error creating new ServeModel for %s", inferenceServiceId)
 	createdEntity3, err := service.UpsertServeModel(eut3, &inferenceServiceId)
-	suite.Nilf(err, "error creating new ServeModel for %d", inferenceServiceId)
+	suite.Nilf(err, "error creating new ServeModel for %s", inferenceServiceId)
 
 	createdEntityId1, _ := converter.StringToInt64(createdEntity1.Id)
 	createdEntityId2, _ := converter.StringToInt64(createdEntity2.Id)
@@ -351,8 +355,8 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &inferenceServiceId)
-	suite.Nilf(err, "error getting all ServeModels for %d", inferenceServiceId)
-	suite.Equalf(int32(3), getAllByInferenceService.Size, "expected three ServeModels for InferenceServiceId %d", inferenceServiceId)
+	suite.Nilf(err, "error getting all ServeModels for %s", inferenceServiceId)
+	suite.Equalf(int32(3), getAllByInferenceService.Size, "expected three ServeModels for InferenceServiceId %s", inferenceServiceId)
 
 	suite.Equal(*converter.Int64ToString(createdEntityId1), *getAllByInferenceService.Items[2].Id)
 	suite.Equal(*converter.Int64ToString(createdEntityId2), *getAllByInferenceService.Items[1].Id)

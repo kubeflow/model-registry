@@ -67,7 +67,6 @@ type ModelRegistryServiceAPIServicer interface {
 	CreateInferenceServiceServe(context.Context, string, model.ServeModelCreate) (ImplResponse, error)
 	CreateModelArtifact(context.Context, model.ModelArtifactCreate) (ImplResponse, error)
 	CreateModelVersion(context.Context, model.ModelVersionCreate) (ImplResponse, error)
-	CreateModelVersionArtifact(context.Context, string, model.Artifact) (ImplResponse, error)
 	CreateRegisteredModel(context.Context, model.RegisteredModelCreate) (ImplResponse, error)
 	CreateRegisteredModelVersion(context.Context, string, model.ModelVersion) (ImplResponse, error)
 	CreateServingEnvironment(context.Context, model.ServingEnvironmentCreate) (ImplResponse, error)
@@ -97,4 +96,5 @@ type ModelRegistryServiceAPIServicer interface {
 	UpdateModelVersion(context.Context, string, model.ModelVersionUpdate) (ImplResponse, error)
 	UpdateRegisteredModel(context.Context, string, model.RegisteredModelUpdate) (ImplResponse, error)
 	UpdateServingEnvironment(context.Context, string, model.ServingEnvironmentUpdate) (ImplResponse, error)
+	UpsertModelVersionArtifact(context.Context, string, model.Artifact) (ImplResponse, error)
 }
