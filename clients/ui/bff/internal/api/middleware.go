@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"k8s.io/client-go/rest"
 	"net/http"
 )

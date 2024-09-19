@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"

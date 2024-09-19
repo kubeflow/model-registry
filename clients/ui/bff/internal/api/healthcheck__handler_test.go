@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/config"
-	"github.com/kubeflow/model-registry/ui/bff/data"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/data"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
