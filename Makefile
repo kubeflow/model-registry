@@ -76,14 +76,10 @@ openapi/validate: bin/openapi-generator-cli
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli openapi/validate
-	@if git diff --cached --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
-		git diff --exit-code --name-only | grep -q "api/openapi/model-registry.yaml" || \
-		[ -n "${FORCE_SERVER_GENERATION}" ]; then \
-		./scripts/gen_openapi_server.sh; \
-	else \
-		echo "INFO api/openapi/model-registry.yaml is not staged or modified, will not re-generate server"; \
-	fi
+gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go
+
+internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+	ROOT_FOLDER=${PROJECT_PATH} ./scripts/gen_openapi_server.sh
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
@@ -102,7 +98,7 @@ vet:
 
 .PHONY: clean
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi internal/server/openapi/api_model_registry_service.go
 
 .PHONY: clean/odh
 clean/odh:
@@ -157,9 +153,21 @@ deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golang
 vendor:
 	${GO} mod vendor
 
-.PHONY: build
-build: gen vet lint
+# WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
+.PHONY: build/prepare
+build/prepare: gen vet lint
+
+# WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
+.PHONY: build/compile
+build/compile:
 	${GO} build -buildvcs=false
+
+# WARNING: DO NOT EDIT THIS TARGET DIRECTLY!!!
+# Use build/prepare to add build prerequisites
+# Use build/compile to add/edit go source compilation
+# WARNING: Editing this target directly WILL affect the Dockerfile image build!!!
+.PHONY: build
+build: build/prepare build/compile
 
 .PHONY: build/odh
 build/odh: vet
@@ -209,6 +217,32 @@ endif
 .PHONY: image/build
 image/build:
 	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
+
+# build docker image using buildx
+# PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
+# architectures. (i.e. make docker-buildx). To use this option you need to:
+# - be able to use docker buildx. More info: https://docs.docker.com/build/buildx/
+# - have enabled BuildKit. More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+# - be able to push the image to your registry (i.e. if you do not set a valid value via IMG=<myregistry/image:<tag>> then the export will fail)
+# To adequately provide solutions that are compatible with multiple platforms, you should consider using this option.
+PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
+.PHONY: image/buildx
+image/buildx:
+ifeq ($(DOCKER),docker)
+	# docker uses builder containers
+	- $(DOCKER) buildx rm model-registry-builder
+	$(DOCKER) buildx create --use --name model-registry-builder --platform=$(PLATFORMS)
+	$(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f ${DOCKERFILE} .
+	$(DOCKER) buildx rm model-registry-builder
+else ifeq ($(DOCKER),podman)
+	# podman uses image manifests
+	$(DOCKER) manifest create -a ${IMG}
+	$(DOCKER) buildx build --platform=$(PLATFORMS) --manifest ${IMG} -f ${DOCKERFILE} .
+	$(DOCKER) manifest push ${IMG}
+	$(DOCKER) manifest rm ${IMG}
+else
+	$(error Unsupported container tool $(DOCKER))
+endif
 
 # push docker image
 .PHONY: image/push
