@@ -1,10 +1,6 @@
 name: FOSSA License Scanning
 
-on:
-    push:
-      branches:
-        - main
-    pull_request:
+on: workflow_dispatch # disable this workflow only manually in midstream ODH
 
 jobs:
   fossa-scan:
