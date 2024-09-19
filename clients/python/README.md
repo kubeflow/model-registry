@@ -45,7 +45,7 @@ from model_registry import ModelRegistry
 registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
 ```
 
-Or you can set the `is_secure` flag to `False` to connect **without** TLS (should be avoided):
+Or you can set the `is_secure` flag to `False` to connect **without** TLS (not recommended):
 
 ```py
 registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # insecure port set to 1234
