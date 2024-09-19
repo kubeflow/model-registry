@@ -61,6 +61,10 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
+	_, err := service.UpsertModelVersion(nil, nil)
+	suite.NotNil(err)
+	suite.Equal("invalid model version pointer, can't upsert nil: bad request", err.Error())
+
 	registeredModelId := "9999"
 
 	modelVersion := &openapi.ModelVersion{
@@ -69,7 +73,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 		Author:     &author,
 	}
 
-	_, err := service.UpsertModelVersion(modelVersion, nil)
+	_, err = service.UpsertModelVersion(modelVersion, nil)
 	suite.NotNil(err)
 	suite.Equal("missing registered model id, cannot create model version without registered model: bad request", err.Error())
 

@@ -18,6 +18,9 @@ import (
 // UpsertInferenceService creates a new inference service if the provided inference service's ID is nil,
 // or updates an existing inference service if the ID is provided.
 func (serv *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.InferenceService) (*openapi.InferenceService, error) {
+	if inferenceService == nil {
+		return nil, fmt.Errorf("invalid inference service pointer, can't upsert nil: %w", api.ErrBadRequest)
+	}
 	var err error
 	var existing *openapi.InferenceService
 	var servingEnvironment *openapi.ServingEnvironment

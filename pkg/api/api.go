@@ -52,7 +52,9 @@ type ModelRegistryApi interface {
 
 	// ARTIFACT
 
-	UpsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error)
+	UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error)
+
+	UpsertArtifact(artifact *openapi.Artifact) (*openapi.Artifact, error)
 
 	GetArtifactById(id string) (*openapi.Artifact, error)
 
@@ -60,9 +62,8 @@ type ModelRegistryApi interface {
 
 	// MODEL ARTIFACT
 
-	// UpsertModelArtifact create a new Artifact or update an Artifact associated to a specific
-	// ModelVersion identified by modelVersionId parameter
-	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *string) (*openapi.ModelArtifact, error)
+	// UpsertModelArtifact creates or inserts an Artifact
+	UpsertModelArtifact(modelArtifact *openapi.ModelArtifact) (*openapi.ModelArtifact, error)
 
 	// GetModelArtifactById retrieve ModelArtifact by id
 	GetModelArtifactById(id string) (*openapi.ModelArtifact, error)

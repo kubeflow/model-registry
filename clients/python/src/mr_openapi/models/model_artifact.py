@@ -46,9 +46,7 @@ class ModelArtifact(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
-    id: StrictStr | None = Field(
-        default=None, description="Output only. The unique server generated id of the resource."
-    )
+    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
         description="Output only. Create time of the resource in millisecond since epoch.",
@@ -120,10 +118,8 @@ class ModelArtifact(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
-            "id",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }
