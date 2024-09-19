@@ -17,6 +17,9 @@ import (
 // UpsertServeModel creates a new serve model if the provided serve model's ID is nil,
 // or updates an existing serve model if the ID is provided.
 func (serv *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, inferenceServiceId *string) (*openapi.ServeModel, error) {
+	if serveModel == nil {
+		return nil, fmt.Errorf("invalid serve model pointer, can't upsert nil: %w", api.ErrBadRequest)
+	}
 	var err error
 	var existing *openapi.ServeModel
 

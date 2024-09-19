@@ -28,11 +28,6 @@ The make command shipped with Mac OSX (at the time of writing) is a bit old:
 ```
 % make --version
 GNU Make 3.81
-Copyright (C) 2006  Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-
 This program built for i386-apple-darwin11.3.0
 ```
 

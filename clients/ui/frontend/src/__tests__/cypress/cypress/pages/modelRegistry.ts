@@ -1,58 +1,56 @@
 import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
-// import { TableRow } from './components/table';
-// import { Modal } from './components/Modal';
+import { TableRow } from './components/table';
+import { Modal } from './components/Modal';
 
-// TODO: Uncomment when the modal is implemented
-// class LabelModal extends Modal {
-//   constructor() {
-//     super('Labels');
-//   }
+class LabelModal extends Modal {
+  constructor() {
+    super('Labels');
+  }
 
-//   findModalSearchInput() {
-//     return cy.findByTestId('label-modal-search');
-//   }
+  findModalSearchInput() {
+    return cy.findByTestId('label-modal-search');
+  }
 
-//   findCloseModal() {
-//     return cy.findByTestId('close-modal');
-//   }
+  findCloseModal() {
+    return cy.findByTestId('close-modal');
+  }
 
-//   shouldContainsModalLabels(labels: string[]) {
-//     cy.findByTestId('modal-label-group').within(() => labels.map((label) => cy.contains(label)));
-//     return this;
-//   }
-// }
+  shouldContainsModalLabels(labels: string[]) {
+    cy.findByTestId('modal-label-group').within(() => labels.map((label) => cy.contains(label)));
+    return this;
+  }
+}
 
-// TODO: Uncomment when the table is implemented
-// class ModelRegistryTableRow extends TableRow {
-//   findName() {
-//     return this.find().findByTestId('model-name');
-//   }
+class ModelRegistryTableRow extends TableRow {
+  findName() {
+    return this.find().findByTestId('model-name');
+  }
 
-//   findDescription() {
-//     return this.find().findByTestId('description');
-//   }
+  findDescription() {
+    return this.find().findByTestId('description');
+  }
 
-//   findOwner() {
-//     return this.find().findByTestId('registered-model-owner');
-//   }
+  findOwner() {
+    return this.find().findByTestId('registered-model-owner');
+  }
 
-//   findLabelPopoverText() {
-//     return this.find().findByTestId('popover-label-text');
-//   }
+  findLabelPopoverText() {
+    return this.find().findByTestId('popover-label-text');
+  }
 
-//   findLabelModalText() {
-//     return this.find().findByTestId('modal-label-text');
-//   }
+  findLabelModalText() {
+    return this.find().findByTestId('modal-label-text');
+  }
 
-//   shouldContainsPopoverLabels(labels: string[]) {
-//     cy.findByTestId('popover-label-group').within(() => labels.map((label) => cy.contains(label)));
-//     return this;
-//   }
+  shouldContainsPopoverLabels(labels: string[]) {
+    cy.findByTestId('popover-label-group').within(() => labels.map((label) => cy.contains(label)));
+    return this;
+  }
 
-//   findModelVersionName() {
-//     return this.find().findByTestId('model-version-name');
-//   }
-// }
+  findModelVersionName() {
+    return this.find().findByTestId('model-version-name');
+  }
+}
 
 class ModelRegistry {
   landingPage() {
@@ -132,20 +130,20 @@ class ModelRegistry {
   }
 
   // TODO: Uncomment when the table row is implemented
-  // getRow(name: string) {
-  //   return new ModelRegistryTableRow(() =>
-  //     this.findTable().find(`[data-label="Model name"]`).contains(name).parents('tr'),
-  //   );
-  // }
+  getRow(name: string) {
+    return new ModelRegistryTableRow(() =>
+      this.findTable().find(`[data-label="Model name"]`).contains(name).parents('tr'),
+    );
+  }
 
-  // getModelVersionRow(name: string) {
-  //   return new ModelRegistryTableRow(() =>
-  //     this.findModelVersionsTable()
-  //       .find(`[data-label="Version name"]`)
-  //       .contains(name)
-  //       .parents('tr'),
-  //   );
-  // }
+  getModelVersionRow(name: string) {
+    return new ModelRegistryTableRow(() =>
+      this.findModelVersionsTable()
+        .find(`[data-label="Version name"]`)
+        .contains(name)
+        .parents('tr'),
+    );
+  }
 
   findRegisteredModelTableHeaderButton(name: string) {
     return this.findTable().find('thead').findByRole('button', { name });
@@ -189,4 +187,4 @@ class ModelRegistry {
 }
 
 export const modelRegistry = new ModelRegistry();
-// export const labelModal = new LabelModal();
+export const labelModal = new LabelModal();

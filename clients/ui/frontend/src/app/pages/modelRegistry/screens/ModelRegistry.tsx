@@ -3,7 +3,9 @@ import ApplicationsPage from '~/app/components/ApplicationsPage';
 import TitleWithIcon from '~/app/components/design/TitleWithIcon';
 import { ProjectObjectType } from '~/app/components/design/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
+import { filterLiveModels } from '~/app/utils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
+import RegisteredModelListView from './RegisteredModels/RegisteredModelListView';
 import { modelRegistryUrl } from './routeUtils';
 
 type ModelRegistryProps = Omit<
@@ -18,7 +20,7 @@ type ModelRegistryProps = Omit<
 >;
 
 const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
-  const [, loaded, loadError] = useRegisteredModels();
+  const [registeredModels, loaded, loadError, refresh] = useRegisteredModels();
 
   return (
     <ApplicationsPage
@@ -37,7 +39,10 @@ const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
       provideChildrenPadding
       removeChildrenTopPadding
     >
-      TODO: Add table of registered models;
+      <RegisteredModelListView
+        registeredModels={filterLiveModels(registeredModels.items)}
+        refresh={refresh}
+      />
     </ApplicationsPage>
   );
 };

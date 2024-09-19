@@ -121,7 +121,7 @@ class ModelRegistry:
         self, mv: ModelVersion, name: str, uri: str, /, **kwargs
     ) -> ModelArtifact:
         assert mv.id is not None, "Model version must have an ID"
-        return await self._api.upsert_model_artifact(
+        return await self._api.upsert_model_version_artifact(
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
 
@@ -206,8 +206,8 @@ class ModelRegistry:
         if isinstance(model, RegisteredModel):
             return self.async_runner(self._api.upsert_registered_model(model))
         if isinstance(model, ModelVersion):
-            return self.async_runner(self._api.upsert_model_version(model, model.id))
-        return self.async_runner(self._api.upsert_model_artifact(model, model.id))
+            return self.async_runner(self._api.upsert_model_version(model, None))
+        return self.async_runner(self._api.upsert_model_artifact(model))
 
     def register_hf_model(
         self,

@@ -1,4 +1,4 @@
-import { restCREATE, restGET, restPATCH } from '~/app/api/apiUtils';
+import { isModelRegistryResponse, restCREATE, restGET, restPATCH } from '~/app/api/apiUtils';
 import { handleRestFailures } from '~/app/api/errorUtils';
 import { ModelState, ModelArtifactState } from '~/app/types';
 import {
@@ -21,436 +21,374 @@ import {
 } from '~/app/api/service';
 import { BFF_API_VERSION } from '~/app/const';
 
-const mockProxyPromise = Promise.resolve();
+const mockRestPromise = Promise.resolve({ data: {} });
+const mockRestResponse = {};
 
 jest.mock('~/app/api/apiUtils', () => ({
-  restCREATE: jest.fn(() => mockProxyPromise),
-  restGET: jest.fn(() => mockProxyPromise),
-  restPATCH: jest.fn(() => mockProxyPromise),
+  restCREATE: jest.fn(() => mockRestPromise),
+  restGET: jest.fn(() => mockRestPromise),
+  restPATCH: jest.fn(() => mockRestPromise),
+  isModelRegistryResponse: jest.fn(() => true),
 }));
 
-const mockResultPromise = Promise.resolve();
-
 jest.mock('~/app/api/errorUtils', () => ({
-  handleRestFailures: jest.fn(() => mockResultPromise),
+  handleRestFailures: jest.fn(() => mockRestPromise),
 }));
 
 const handleRestFailuresMock = jest.mocked(handleRestFailures);
 const restCREATEMock = jest.mocked(restCREATE);
 const restGETMock = jest.mocked(restGET);
 const restPATCHMock = jest.mocked(restPATCH);
+const isModelRegistryResponseMock = jest.mocked(isModelRegistryResponse);
 
-const K8sAPIOptionsMock = {};
+const APIOptionsMock = {};
 
 describe('createRegisteredModel', () => {
-  it('should call restCREATE and handleRestFailures to create registered model', () => {
-    expect(
-      createRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        {
-          description: 'test',
-          externalID: '1',
-          name: 'test new registered model',
-          state: ModelState.LIVE,
-          customProperties: {},
-        },
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restCREATE and handleRestFailures to create registered model', async () => {
+    const mockData = {
+      description: 'test',
+      externalID: '1',
+      name: 'test new registered model',
+      state: ModelState.LIVE,
+      customProperties: {},
+    };
+    const response = await createRegisteredModel(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData);
+    expect(response).toEqual(mockRestResponse);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
+    expect(isModelRegistryResponseMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models`,
-      {
-        description: 'test',
-        externalID: '1',
-        name: 'test new registered model',
-        state: ModelState.LIVE,
-        customProperties: {},
-      },
+      mockData,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('createModelVersion', () => {
-  it('should call restCREATE and handleRestFailures to create model version', () => {
-    expect(
-      createModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        {
-          description: 'test',
-          externalID: '1',
-          author: 'test author',
-          registeredModelId: '1',
-          name: 'test new model version',
-          state: ModelState.LIVE,
-          customProperties: {},
-        },
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restCREATE and handleRestFailures to create model version', async () => {
+    const mockData = {
+      description: 'test',
+      externalID: '1',
+      author: 'test author',
+      registeredModelId: '1',
+      name: 'test new model version',
+      state: ModelState.LIVE,
+      customProperties: {},
+    };
+    const response = await createModelVersion(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData);
+    expect(response).toEqual(mockRestResponse);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions`,
-      {
-        description: 'test',
-        externalID: '1',
-        author: 'test author',
-        registeredModelId: '1',
-        name: 'test new model version',
-        state: ModelState.LIVE,
-        customProperties: {},
-      },
+      mockData,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('createModelVersionForRegisteredModel', () => {
-  it('should call restCREATE and handleRestFailures to create model version for a model', () => {
-    expect(
-      createModelVersionForRegisteredModel(
-        `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
-      )(K8sAPIOptionsMock, '1', {
-        description: 'test',
-        externalID: '1',
-        author: 'test author',
-        registeredModelId: '1',
-        name: 'test new model version',
-        state: ModelState.LIVE,
-        customProperties: {},
-      }),
-    ).toBe(mockResultPromise);
+  it('should call restCREATE and handleRestFailures to create model version for a model', async () => {
+    const mockData = {
+      description: 'test',
+      externalID: '1',
+      author: 'test author',
+      registeredModelId: '1',
+      name: 'test new model version',
+      state: ModelState.LIVE,
+      customProperties: {},
+    };
+    const response = await createModelVersionForRegisteredModel(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, '1', mockData);
+    expect(response).toEqual(mockRestResponse);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1/versions`,
-      {
-        description: 'test',
-        externalID: '1',
-        author: 'test author',
-        registeredModelId: '1',
-        name: 'test new model version',
-        state: ModelState.LIVE,
-        customProperties: {},
-      },
+      mockData,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('createModelArtifact', () => {
-  it('should call restCREATE and handleRestFailures to create model artifact', () => {
-    expect(
-      createModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        {
-          description: 'test',
-          externalID: 'test',
-          uri: 'test-uri',
-          state: ModelArtifactState.LIVE,
-          name: 'test-name',
-          modelFormatName: 'test-modelformatname',
-          storageKey: 'teststoragekey',
-          storagePath: 'teststoragePath',
-          modelFormatVersion: 'testmodelFormatVersion',
-          serviceAccountName: 'testserviceAccountname',
-          customProperties: {},
-          artifactType: 'model-artifact',
-        },
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restCREATE and handleRestFailures to create model artifact', async () => {
+    const mockData = {
+      description: 'test',
+      externalID: 'test',
+      uri: 'test-uri',
+      state: ModelArtifactState.LIVE,
+      name: 'test-name',
+      modelFormatName: 'test-modelformatname',
+      storageKey: 'teststoragekey',
+      storagePath: 'teststoragePath',
+      modelFormatVersion: 'testmodelFormatVersion',
+      serviceAccountName: 'testserviceAccountname',
+      customProperties: {},
+      artifactType: 'model-artifact',
+    };
+    const response = await createModelArtifact(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData);
+    expect(response).toEqual(mockRestResponse);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts`,
-      {
-        description: 'test',
-        externalID: 'test',
-        uri: 'test-uri',
-        state: ModelArtifactState.LIVE,
-        name: 'test-name',
-        modelFormatName: 'test-modelformatname',
-        storageKey: 'teststoragekey',
-        storagePath: 'teststoragePath',
-        modelFormatVersion: 'testmodelFormatVersion',
-        serviceAccountName: 'testserviceAccountname',
-        customProperties: {},
-        artifactType: 'model-artifact',
-      },
+      mockData,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('createModelArtifactForModelVersion', () => {
-  it('should call restCREATE and handleRestFailures to create model artifact for version', () => {
-    expect(
-      createModelArtifactForModelVersion(
-        `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
-      )(K8sAPIOptionsMock, '2', {
-        description: 'test',
-        externalID: 'test',
-        uri: 'test-uri',
-        state: ModelArtifactState.LIVE,
-        name: 'test-name',
-        modelFormatName: 'test-modelformatname',
-        storageKey: 'teststoragekey',
-        storagePath: 'teststoragePath',
-        modelFormatVersion: 'testmodelFormatVersion',
-        serviceAccountName: 'testserviceAccountname',
-        customProperties: {},
-        artifactType: 'model-artifact',
-      }),
-    ).toBe(mockResultPromise);
+  it('should call restCREATE and handleRestFailures to create model artifact for version', async () => {
+    const mockData = {
+      description: 'test',
+      externalID: 'test',
+      uri: 'test-uri',
+      state: ModelArtifactState.LIVE,
+      name: 'test-name',
+      modelFormatName: 'test-modelformatname',
+      storageKey: 'teststoragekey',
+      storagePath: 'teststoragePath',
+      modelFormatVersion: 'testmodelFormatVersion',
+      serviceAccountName: 'testserviceAccountname',
+      customProperties: {},
+      artifactType: 'model-artifact',
+    };
+    const response = await createModelArtifactForModelVersion(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, '2', mockData);
+    expect(response).toEqual(mockRestResponse);
     expect(restCREATEMock).toHaveBeenCalledTimes(1);
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/2/artifacts`,
-      {
-        description: 'test',
-        externalID: 'test',
-        uri: 'test-uri',
-        state: ModelArtifactState.LIVE,
-        name: 'test-name',
-        modelFormatName: 'test-modelformatname',
-        storageKey: 'teststoragekey',
-        storagePath: 'teststoragePath',
-        modelFormatVersion: 'testmodelFormatVersion',
-        serviceAccountName: 'testserviceAccountname',
-        customProperties: {},
-        artifactType: 'model-artifact',
-      },
+      mockData,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getRegisteredModel', () => {
-  it('should call restGET and handleRestFailures to fetch registered model', () => {
-    expect(
-      getRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to fetch registered model', async () => {
+    const response = await getRegisteredModel(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getModelVersion', () => {
-  it('should call restGET and handleRestFailures to fetch model version', () => {
-    expect(
-      getModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to fetch model version', async () => {
+    const response = await getModelVersion(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/1`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getModelArtifact', () => {
-  it('should call restGET and handleRestFailures to fetch model version', () => {
-    expect(
-      getModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to fetch model version', async () => {
+    const response = await getModelArtifact(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts/1`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getListRegisteredModels', () => {
-  it('should call restGET and handleRestFailures to list registered models', () => {
-    expect(
-      getListRegisteredModels(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to list registered models', async () => {
+    const response = await getListRegisteredModels(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )({});
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getListModelArtifacts', () => {
-  it('should call restGET and handleRestFailures to list models artifacts', () => {
-    expect(
-      getListModelArtifacts(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to list models artifacts', async () => {
+    const response = await getListModelArtifacts(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )({});
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getListModelVersions', () => {
-  it('should call restGET and handleRestFailures to list models versions', () => {
-    expect(
-      getListModelVersions(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)({}),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to list models versions', async () => {
+    const response = await getListModelVersions(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )({});
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getModelVersionsByRegisteredModel', () => {
-  it('should call restGET and handleRestFailures to list models versions by registered model', () => {
-    expect(
-      getModelVersionsByRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        {},
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to list models versions by registered model', async () => {
+    const response = await getModelVersionsByRegisteredModel(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )({}, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1/versions`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('getModelArtifactsByModelVersion', () => {
-  it('should call restGET and handleRestFailures to list models artifacts by model version', () => {
-    expect(
-      getModelArtifactsByModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        {},
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restGET and handleRestFailures to list models artifacts by model version', async () => {
+    const response = await getModelArtifactsByModelVersion(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )({}, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restGETMock).toHaveBeenCalledTimes(1);
     expect(restGETMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/1/artifacts`,
       {},
-      K8sAPIOptionsMock,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('patchRegisteredModel', () => {
-  it('should call restPATCH and handleRestFailures to update registered model', () => {
-    expect(
-      patchRegisteredModel(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        { description: 'new test' },
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restPATCH and handleRestFailures to update registered model', async () => {
+    const mockData = { description: 'new test' };
+    const response = await patchRegisteredModel(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1`,
-      { description: 'new test' },
-      K8sAPIOptionsMock,
+      mockData,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('patchModelVersion', () => {
-  it('should call restPATCH and handleRestFailures to update model version', () => {
-    expect(
-      patchModelVersion(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        { description: 'new test' },
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restPATCH and handleRestFailures to update model version', async () => {
+    const mockData = { description: 'new test' };
+    const response = await patchModelVersion(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/1`,
-      { description: 'new test' },
-      K8sAPIOptionsMock,
+      mockData,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });
 
 describe('patchModelArtifact', () => {
-  it('should call restPATCH and handleRestFailures to update model artifact', () => {
-    expect(
-      patchModelArtifact(`/api/${BFF_API_VERSION}/model_registry/model-registry-1/`)(
-        K8sAPIOptionsMock,
-        { description: 'new test' },
-        '1',
-      ),
-    ).toBe(mockResultPromise);
+  it('should call restPATCH and handleRestFailures to update model artifact', async () => {
+    const mockData = { description: 'new test' };
+    const response = await patchModelArtifact(
+      `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+    )(APIOptionsMock, mockData, '1');
+    expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts/1`,
-      { description: 'new test' },
-      K8sAPIOptionsMock,
+      mockData,
+      APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
-    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockProxyPromise);
+    expect(handleRestFailuresMock).toHaveBeenCalledWith(mockRestPromise);
   });
 });

@@ -1,141 +1,94 @@
 package api
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestGetRegisteredModelHandler(t *testing.T) {
-	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
-	mockClient := new(mocks.MockHTTPClient)
+	data := mocks.GetRegisteredModelMocks()[0]
+	expected := RegisteredModelEnvelope{Data: &data}
 
-	testApp := App{
-		modelRegistryClient: mockMRClient,
-	}
-
-	req, err := http.NewRequest(http.MethodGet,
-		"/api/v1/model_registry/model-registry/registered_models/1", nil)
+	actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1", nil)
 	assert.NoError(t, err)
-
-	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
-	req = req.WithContext(ctx)
-
-	rr := httptest.NewRecorder()
-
-	testApp.GetRegisteredModelHandler(rr, req, nil)
-	rs := rr.Result()
-
-	defer rs.Body.Close()
-
-	body, err := io.ReadAll(rs.Body)
-	assert.NoError(t, err)
-	var registeredModelRes RegisteredModelEnvelope
-	err = json.Unmarshal(body, &registeredModelRes)
-	assert.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	mockModel := mocks.GetRegisteredModelMocks()[0]
-
-	var expected = RegisteredModelEnvelope{
-		Data: &mockModel,
-	}
 
 	//TODO assert the full structure, I couldn't get unmarshalling to work for the full customProperties values
 	// this issue is in the test only
-	assert.Equal(t, expected.Data.Name, registeredModelRes.Data.Name)
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, expected.Data.Name, actual.Data.Name)
 }
 
 func TestGetAllRegisteredModelsHandler(t *testing.T) {
-	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
-	mockClient := new(mocks.MockHTTPClient)
+	data := mocks.GetRegisteredModelListMock()
+	expected := RegisteredModelListEnvelope{Data: &data}
 
-	testApp := App{
-		modelRegistryClient: mockMRClient,
-	}
-
-	req, err := http.NewRequest(http.MethodGet,
-		"/api/v1/model_registry/model-registry/registered_models", nil)
+	actual, rs, err := setupApiTest[RegisteredModelListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
-	req = req.WithContext(ctx)
-
-	rr := httptest.NewRecorder()
-
-	testApp.GetAllRegisteredModelsHandler(rr, req, nil)
-	rs := rr.Result()
-
-	defer rs.Body.Close()
-
-	body, err := io.ReadAll(rs.Body)
-	assert.NoError(t, err)
-	var registeredModelsListRes RegisteredModelListEnvelope
-	err = json.Unmarshal(body, &registeredModelsListRes)
-	assert.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	modelList := mocks.GetRegisteredModelListMock()
-
-	var expected = RegisteredModelListEnvelope{
-		Data: &modelList,
-	}
-
-	assert.Equal(t, expected.Data.Size, registeredModelsListRes.Data.Size)
-	assert.Equal(t, expected.Data.PageSize, registeredModelsListRes.Data.PageSize)
-	assert.Equal(t, expected.Data.NextPageToken, registeredModelsListRes.Data.NextPageToken)
-	assert.Equal(t, len(expected.Data.Items), len(registeredModelsListRes.Data.Items))
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, expected.Data.Size, actual.Data.Size)
+	assert.Equal(t, expected.Data.PageSize, actual.Data.PageSize)
+	assert.Equal(t, expected.Data.NextPageToken, actual.Data.NextPageToken)
+	assert.Equal(t, len(expected.Data.Items), len(actual.Data.Items))
 }
 
 func TestCreateRegisteredModelHandler(t *testing.T) {
-	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
-	mockClient := new(mocks.MockHTTPClient)
+	data := mocks.GetRegisteredModelMocks()[0]
+	expected := RegisteredModelEnvelope{Data: &data}
 
-	testApp := App{
-		modelRegistryClient: mockMRClient,
+	body := RegisteredModelEnvelope{Data: openapi.NewRegisteredModel("Model One")}
+
+	actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models", body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusCreated, rs.StatusCode)
+	assert.Equal(t, expected.Data.Name, actual.Data.Name)
+	assert.Equal(t, rs.Header.Get("location"), "/api/v1/model_registry/model-registry/registered_models/1")
+}
+
+func TestUpdateRegisteredModelHandler(t *testing.T) {
+	data := mocks.GetRegisteredModelMocks()[0]
+	expected := RegisteredModelEnvelope{Data: &data}
+
+	reqData := openapi.RegisteredModelUpdate{
+		Description: openapi.PtrString("This is a new description"),
 	}
+	body := RegisteredModelUpdateEnvelope{Data: &reqData}
 
-	newModel := openapi.NewRegisteredModel("Model One")
-	newEnvelope := RegisteredModelEnvelope{Data: newModel}
-
-	newModelJSON, err := json.Marshal(newEnvelope)
+	actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1", body)
 	assert.NoError(t, err)
 
-	reqBody := bytes.NewReader(newModelJSON)
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	//TODO when mock client can handle changing state, update this to verify the changes are made.
+	assert.Equal(t, expected.Data.Description, actual.Data.Description)
+}
 
-	req, err := http.NewRequest(http.MethodPost,
-		"/api/v1/model_registry/model-registry/registered_models", reqBody)
+func TestGetAllModelVersionsForRegisteredModelHandler(t *testing.T) {
+	data := mocks.GetModelVersionListMock()
+	expected := ModelVersionListEnvelope{Data: &data}
+
+	actual, rs, err := setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1/versions", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
-	req = req.WithContext(ctx)
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, expected.Data.Size, actual.Data.Size)
+	assert.Equal(t, expected.Data.PageSize, actual.Data.PageSize)
+	assert.Equal(t, expected.Data.NextPageToken, actual.Data.NextPageToken)
+	assert.Equal(t, len(expected.Data.Items), len(actual.Data.Items))
+}
 
-	rr := httptest.NewRecorder()
+func TestCreateModelVersionForRegisteredModelHandler(t *testing.T) {
+	data := mocks.GetModelVersionMocks()[0]
+	expected := ModelVersionEnvelope{Data: &data}
 
-	testApp.CreateRegisteredModelHandler(rr, req, nil)
-	rs := rr.Result()
-
-	defer rs.Body.Close()
-
-	body, err := io.ReadAll(rs.Body)
+	body := ModelVersionEnvelope{Data: openapi.NewModelVersion("Version Fifty", "")}
+	actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models/1/versions", body)
 	assert.NoError(t, err)
-	var actual RegisteredModelEnvelope
-	err = json.Unmarshal(body, &actual)
-	assert.NoError(t, err)
 
-	assert.Equal(t, http.StatusCreated, rr.Code)
-
-	var expected = mocks.GetRegisteredModelMocks()[0]
-
-	assert.Equal(t, expected.Name, actual.Data.Name)
-	assert.NotEmpty(t, rs.Header.Get("location"))
+	assert.Equal(t, http.StatusCreated, rs.StatusCode)
+	assert.Equal(t, expected.Data.Name, actual.Data.Name)
+	assert.Equal(t, rs.Header.Get("Location"), "/api/v1/model_registry/model-registry/model_versions/1")
 }

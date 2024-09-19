@@ -94,3 +94,15 @@ func (app *App) ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error 
 
 	return nil
 }
+
+func ParseURLTemplate(tmpl string, params map[string]string) string {
+	args := make([]string, len(params)*2)
+
+	for k, v := range params {
+		args = append(args, ":"+k, v)
+	}
+
+	r := strings.NewReplacer(args...)
+
+	return r.Replace(tmpl)
+}

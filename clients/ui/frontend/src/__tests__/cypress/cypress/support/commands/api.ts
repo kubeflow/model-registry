@@ -2,6 +2,7 @@ import type { GenericStaticResponse, RouteHandlerController } from 'cypress/type
 import type {
   ModelArtifact,
   ModelArtifactList,
+  ModelRegistry,
   ModelRegistryResponse,
   ModelVersion,
   ModelVersionList,
@@ -31,7 +32,7 @@ declare global {
       interceptApi: ((
         type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
         options: { path: { modelRegistryName: string; apiVersion: string } },
-        response: ApiResponse<RegisteredModelList>,
+        response: ApiResponse<ModelRegistryResponse<RegisteredModelList>>,
       ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
@@ -43,7 +44,7 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<ModelVersionList>,
+          response: ApiResponse<ModelRegistryResponse<ModelVersionList>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions',
@@ -97,7 +98,7 @@ declare global {
         ((
           type: 'GET /api/:apiVersion/model_registry',
           options: { path: { apiVersion: string } },
-          response: ApiResponse<ModelRegistryResponse>,
+          response: ApiResponse<ModelRegistryResponse<ModelRegistry[]>>,
         ) => Cypress.Chainable<null>);
     }
   }

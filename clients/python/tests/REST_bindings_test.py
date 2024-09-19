@@ -1,5 +1,7 @@
 """Tests creation and retrieval of base models."""
 
+from collections.abc import AsyncIterator
+
 import pytest
 
 import mr_openapi
@@ -8,6 +10,7 @@ from mr_openapi import (
     DocArtifact,
     MetadataValue,
     ModelArtifact,
+    ModelRegistryServiceApi,
     ModelVersionCreate,
     RegisteredModelCreate,
 )
@@ -17,7 +20,7 @@ from .conftest import REGISTRY_URL, cleanup
 
 @pytest.fixture
 @cleanup
-async def client():
+async def client() -> AsyncIterator[ModelRegistryServiceApi]:
     config = mr_openapi.Configuration(REGISTRY_URL)
     api_client = mr_openapi.ApiClient(config)
     client = mr_openapi.ModelRegistryServiceApi(api_client)
@@ -30,21 +33,10 @@ def rm_create() -> RegisteredModelCreate:
     return RegisteredModelCreate(name="registered", description="a registered model")
 
 
-@pytest.fixture
-async def mv_create(client, rm_create) -> ModelVersionCreate:
-    # HACK: create an RM first because we need an ID for the instance
-    rm = await client.create_registered_model(rm_create)
-    assert rm is not None
-    return ModelVersionCreate(
-        name="version",
-        author="author",
-        registeredModelId=rm.id,
-        description="a model version",
-    )
-
-
 @pytest.mark.e2e
-async def test_registered_model(client, rm_create):
+async def test_registered_model(
+    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
+):
     rm_create.custom_properties = {
         "key1": MetadataValue.from_dict(
             {"string_value": "value1", "metadataType": "MetadataStringValue"},
@@ -65,8 +57,25 @@ async def test_registered_model(client, rm_create):
     assert new_rm.description == by_find.description
 
 
+@pytest.fixture
+async def mv_create(
+    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
+) -> ModelVersionCreate:
+    # HACK: create an RM first because we need an ID for the instance
+    rm = await client.create_registered_model(rm_create)
+    assert rm is not None
+    return ModelVersionCreate(
+        name="version",
+        author="author",
+        registeredModelId=str(rm.id),
+        description="a model version",
+    )
+
+
 @pytest.mark.e2e
-async def test_model_version(client, mv_create):
+async def test_model_version(
+    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
+):
     mv_create.custom_properties = {
         "key1": MetadataValue.from_dict(
             {"string_value": "value1", "metadataType": "MetadataStringValue"},
@@ -80,7 +89,7 @@ async def test_model_version(client, mv_create):
     assert mv_create.description == new_mv.description
     assert mv_create.custom_properties == new_mv.custom_properties
 
-    by_find = await client.get_model_version(new_mv.id)
+    by_find = await client.get_model_version(str(new_mv.id))
     print("found MV", by_find)
     assert new_mv.id == by_find.id
     assert new_mv.name == by_find.name
@@ -90,7 +99,9 @@ async def test_model_version(client, mv_create):
 
 
 @pytest.mark.e2e
-async def test_model_artifact(client, mv_create):
+async def test_model_artifact(
+    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
+):
     mv = await client.create_model_version(mv_create)
     assert mv is not None
 
@@ -107,7 +118,7 @@ async def test_model_artifact(client, mv_create):
     )
 
     new_ma = (
-        await client.create_model_version_artifact(mv.id, Artifact(ma_create))
+        await client.upsert_model_version_artifact(str(mv.id), Artifact(ma_create))
     ).actual_instance
     assert new_ma is not None
     print("created MA", new_ma, "with ID", new_ma.id)
@@ -117,7 +128,7 @@ async def test_model_artifact(client, mv_create):
     assert ma_create.description == new_ma.description
     assert ma_create.custom_properties == new_ma.custom_properties
 
-    by_find = await client.get_model_artifact(new_ma.id)
+    by_find = await client.get_model_artifact(str(new_ma.id))
     assert by_find is not None
     print("found MA", by_find)
     assert new_ma.id == by_find.id
@@ -137,7 +148,7 @@ async def test_model_artifact(client, mv_create):
     )
 
     new_da = (
-        await client.create_model_version_artifact(mv.id, Artifact(doc_art))
+        await client.upsert_model_version_artifact(str(mv.id), Artifact(doc_art))
     ).actual_instance
     assert new_da is not None
     print("created DA", new_da, "with ID", new_da.id)
@@ -145,7 +156,7 @@ async def test_model_artifact(client, mv_create):
     assert new_da.id != new_ma.id
     assert new_da.uri == doc_art.uri
 
-    list_artifacts = await client.get_model_version_artifacts(mv.id)
+    list_artifacts = await client.get_model_version_artifacts(str(mv.id))
     assert list_artifacts is not None
     print("list artifacts", list_artifacts)
     assert list_artifacts.size == 2

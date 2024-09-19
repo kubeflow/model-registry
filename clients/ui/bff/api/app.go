@@ -13,14 +13,23 @@ import (
 )
 
 const (
-	Version              = "1.0.0"
-	PathPrefix           = "/api/v1"
-	ModelRegistryId      = "model_registry_id"
-	RegisteredModelId    = "registered_model_id"
-	HealthCheckPath      = PathPrefix + "/healthcheck"
-	ModelRegistry        = PathPrefix + "/model_registry"
-	RegisteredModelsPath = ModelRegistry + "/:" + ModelRegistryId + "/registered_models"
-	RegisteredModelPath  = RegisteredModelsPath + "/:" + RegisteredModelId
+	Version                      = "1.0.0"
+	PathPrefix                   = "/api/v1"
+	ModelRegistryId              = "model_registry_id"
+	RegisteredModelId            = "registered_model_id"
+	ModelVersionId               = "model_version_id"
+	ModelArtifactId              = "model_artifact_id"
+	HealthCheckPath              = PathPrefix + "/healthcheck"
+	ModelRegistryListPath        = PathPrefix + "/model_registry"
+	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
+	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
+	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
+	RegisteredModelVersionsPath  = RegisteredModelPath + "/versions"
+	ModelVersionListPath         = ModelRegistryPath + "/model_versions"
+	ModelVersionPath             = ModelVersionListPath + "/:" + ModelVersionId
+	ModelVersionArtifactListPath = ModelVersionPath + "/artifacts"
+	ModelArtifactListPath        = ModelRegistryPath + "/model_artifacts"
+	ModelArtifactPath            = ModelArtifactListPath + "/:" + ModelArtifactId
 )
 
 type App struct {
@@ -54,7 +63,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create ModelRegistry client: %w", err)
+		return nil, fmt.Errorf("failed to create ModelRegistryListPath client: %w", err)
 	}
 
 	app := &App{
@@ -74,12 +83,22 @@ func (app *App) Routes() http.Handler {
 
 	// HTTP client routes
 	router.GET(HealthCheckPath, app.HealthcheckHandler)
-	router.GET(RegisteredModelsPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
+	router.GET(RegisteredModelListPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
 	router.GET(RegisteredModelPath, app.AttachRESTClient(app.GetRegisteredModelHandler))
-	router.POST(RegisteredModelsPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
+	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
+	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
+	router.GET(RegisteredModelVersionsPath, app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))
+	router.POST(RegisteredModelVersionsPath, app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))
+
+	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
+	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
+	router.PATCH(ModelVersionPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
+	router.GET(ModelVersionArtifactListPath, app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))
+	router.POST(ModelVersionArtifactListPath, app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))
 
 	// Kubernetes client routes
-	router.GET(ModelRegistry, app.ModelRegistryHandler)
+	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
+	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
 	return app.RecoverPanic(app.enableCORS(router))
 }

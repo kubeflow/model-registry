@@ -82,7 +82,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
-	result, err := s.coreApi.UpsertModelArtifact(entity, nil)
+	result, err := s.coreApi.UpsertModelArtifact(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -106,12 +106,17 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 }
 
 // CreateModelVersionArtifact - Create an Artifact in a ModelVersion
-func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
-	result, err := s.coreApi.UpsertArtifact(&artifact, &modelversionId)
+func (s *ModelRegistryServiceAPIService) UpsertModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
+	creating := (artifact.DocArtifact != nil && artifact.DocArtifact.Id == nil) || (artifact.ModelArtifact != nil && artifact.ModelArtifact.Id == nil)
+
+	result, err := s.coreApi.UpsertModelVersionArtifact(&artifact, modelversionId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	return Response(http.StatusCreated, result), nil
+	if creating {
+		return Response(http.StatusCreated, result), nil
+	}
+	return Response(http.StatusOK, result), nil
 	// return Response(http.StatusNotImplemented, nil), errors.New("unsupported artifactType")
 	// TODO return Response(http.StatusOK, Artifact{}), nil
 	// TODO return Response(http.StatusUnauthorized, Error{}), nil
@@ -445,7 +450,7 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
-	result, err := s.coreApi.UpsertModelArtifact(&update, nil)
+	result, err := s.coreApi.UpsertModelArtifact(&update)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
