@@ -76,11 +76,18 @@ model = registry.register_model(
 )
 
 model = registry.get_registered_model("my-model")
+print(model)
 
 version = registry.get_model_version("my-model", "2.0.0")
+print(version)
 
 experiment = registry.get_model_artifact("my-model", "2.0.0")
+print(experiment)
+```
 
+You can also update your models:
+
+```py
 # change is not reflected on pushed model version
 version.description = "Updated model version"
 
