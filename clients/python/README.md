@@ -144,30 +144,17 @@ hf_model = registry.register_hf_model(
 There are caveats to be noted when using this method:
 
 - It's only possible to import a single model file per Hugging Face Hub repo right now.
-- If the model you want to import is in a global namespace, you should provide an author, e.g.
-
-    ```py
-    hf_model = registry.register_hf_model(
-        "gpt2",  # this model implicitly has no author
-        "onnx/decoder_model.onnx",
-        author="OpenAI",  # Defaults to unknown in the absence of an author
-        version="1.0.0",
-        description="gpt-2 model",
-        model_format_name="onnx",
-        model_format_version="1",
-    )
-    ```
 
 ### Listing models
 
 To list models you can use
 ```py
 for model in registry.get_registered_models():
-    ...
+    ... # whatever you want here
 
 # and versions associated with a model
 for version in registry.get_model_versions("my-model"):
-    ...
+    ... # whatever you want here
 ```
 
 <!-- see https://github.com/kubeflow/model-registry/issues/358 until fixed, the below is just easier not to mention in the doc.
@@ -182,7 +169,7 @@ for version in latest_updates:
 
 By default, all queries will be `ascending`, but this method is also available for explicitness. -->
 
-> Note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
+> Advanced usage note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
 
 #### Implementation notes
