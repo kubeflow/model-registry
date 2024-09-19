@@ -101,6 +101,8 @@ When registering models stored on S3-compatible object storage, you should use `
 unambiguous URI for your artifact.
 
 ```py
+from model_registry import utils
+
 model = registry.register_model(
     "my-model",  # model name
     uri=utils.s3_uri_from("path/to/model", "my-bucket"),
