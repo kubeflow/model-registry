@@ -7,6 +7,7 @@ Model registry provides a central repository for model developers to store and m
 
 ![build checks status](https://github.com/kubeflow/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 
 ## Pre-requisites:
 - go >= 1.21
@@ -128,10 +129,7 @@ This allows to verify the expected "Core layer" of logical data mapping develope
 
 Python client is also tested with Unit Tests and Integration Tests written in Python.
 
-End-to-end testing is developed with Robot Framework; this higher-lever layer of testing is used to:
-- demonstrate *User Stories* from high level perspective
-- demonstrate coherent logical data mapping by performing the same high level capabilities, using REST API flow Vs Python client flow,
-directly checking the end results in the backend gRPC MLMD server.
+End-to-end testing is developed with Pytest and Robot Framework; this higher-lever layer of testing is used to demonstrate *User Stories* from high level perspective.
 
 ## FAQ
 
