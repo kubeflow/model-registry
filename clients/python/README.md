@@ -35,12 +35,27 @@ pip install huggingface-hub
 
 ## Basic usage
 
+### Connecting to MR
+
+You can connect to a secure Model Registry using the default constructor (recommended):
+
 ```py
 from model_registry import ModelRegistry
 
 registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+```
 
-# registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
+Or you can set the `is_secure` flag to `False` to connect **without** TLS (not recommended):
+
+```py
+registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False)  # insecure port set to 8080
+```
+
+### Registering models
+
+To register your first model, you can use the `register_model` method:
+
+```py
 
 model = registry.register_model(
     "my-model",  # model name
@@ -61,11 +76,18 @@ model = registry.register_model(
 )
 
 model = registry.get_registered_model("my-model")
+print(model)
 
 version = registry.get_model_version("my-model", "2.0.0")
+print(version)
 
 experiment = registry.get_model_artifact("my-model", "2.0.0")
+print(experiment)
+```
 
+You can also update your models:
+
+```py
 # change is not reflected on pushed model version
 version.description = "Updated model version"
 
@@ -79,6 +101,8 @@ When registering models stored on S3-compatible object storage, you should use `
 unambiguous URI for your artifact.
 
 ```py
+from model_registry import utils
+
 model = registry.register_model(
     "my-model",  # model name
     uri=utils.s3_uri_from("path/to/model", "my-bucket"),
@@ -120,31 +144,20 @@ hf_model = registry.register_hf_model(
 There are caveats to be noted when using this method:
 
 - It's only possible to import a single model file per Hugging Face Hub repo right now.
-- If the model you want to import is in a global namespace, you should provide an author, e.g.
-
-    ```py
-    hf_model = registry.register_hf_model(
-        "gpt2",  # this model implicitly has no author
-        "onnx/decoder_model.onnx",
-        author="OpenAI",  # Defaults to unknown in the absence of an author
-        version="1.0.0",
-        description="gpt-2 model",
-        model_format_name="onnx",
-        model_format_version="1",
-    )
-    ```
 
 ### Listing models
 
 To list models you can use
 ```py
 for model in registry.get_registered_models():
-    ...
+    ... # your logic using `model` loop variable here
 
 # and versions associated with a model
 for version in registry.get_model_versions("my-model"):
-    ...
+    ... # your logic using `version` loop variable here
 ```
+
+<!-- see https://github.com/kubeflow/model-registry/issues/358 until fixed, the below is just easier not to mention in the doc.
 
 You can also use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order
 
@@ -154,9 +167,9 @@ for version in latest_updates:
     ...
 ```
 
-By default, all queries will be `ascending`, but this method is also available for explicitness.
+By default, all queries will be `ascending`, but this method is also available for explicitness. -->
 
-> Note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
+> Advanced usage note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
 
 #### Implementation notes
