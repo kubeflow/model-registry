@@ -150,7 +150,7 @@ There are caveats to be noted when using this method:
 To list models you can use
 ```py
 for model in registry.get_registered_models():
-    ... # whatever you want here
+    ... # your logic using `model` loop variable here
 
 # and versions associated with a model
 for version in registry.get_model_versions("my-model"):
