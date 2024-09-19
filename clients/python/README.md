@@ -154,7 +154,7 @@ for model in registry.get_registered_models():
 
 # and versions associated with a model
 for version in registry.get_model_versions("my-model"):
-    ... # whatever you want here
+    ... # your logic using `version` loop variable here
 ```
 
 <!-- see https://github.com/kubeflow/model-registry/issues/358 until fixed, the below is just easier not to mention in the doc.
