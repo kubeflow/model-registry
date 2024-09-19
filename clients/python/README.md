@@ -146,6 +146,8 @@ for version in registry.get_model_versions("my-model"):
     ...
 ```
 
+<!-- see https://github.com/kubeflow/model-registry/issues/358 until fixed, the below is just easier not to mention in the doc.
+
 You can also use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order
 
 ```py
@@ -154,7 +156,7 @@ for version in latest_updates:
     ...
 ```
 
-By default, all queries will be `ascending`, but this method is also available for explicitness.
+By default, all queries will be `ascending`, but this method is also available for explicitness. -->
 
 > Note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
