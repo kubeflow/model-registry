@@ -35,12 +35,27 @@ pip install huggingface-hub
 
 ## Basic usage
 
+### Connecting to MR
+
+You can connect to a secure Model Registry using the default constructor (recommended):
+
 ```py
 from model_registry import ModelRegistry
 
 registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+```
 
-# registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # To use MR without TLS
+Or you can set the `is_secure` flag to `False` to connect **without** TLS (should be avoided):
+
+```py
+registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # insecure port set to 1234
+```
+
+### Registering models
+
+To register your first model, you can use the `register_model` method:
+
+```py
 
 model = registry.register_model(
     "my-model",  # model name
