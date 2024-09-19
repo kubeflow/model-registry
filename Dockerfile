@@ -15,8 +15,9 @@ USER root
 RUN yum remove -y nodejs npm
 RUN yum module -y reset nodejs
 RUN yum module -y enable nodejs:18
-# install npm and java for openapi-generator-cli
-RUN yum install -y nodejs npm java-11
+# install npm and java for openapi-generator-cli, python for makefile scripts
+RUN yum install -y nodejs npm java-11 python3 \
+    && ln -s /usr/bin/python3 /usr/bin/python
 
 # Copy the go source
 COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
