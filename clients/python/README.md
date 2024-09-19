@@ -48,7 +48,7 @@ registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Def
 Or you can set the `is_secure` flag to `False` to connect **without** TLS (not recommended):
 
 ```py
-registry = ModelRegistry("http://server-address", 1234, author="Ada Lovelace", is_secure=False)  # insecure port set to 1234
+registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False)  # insecure port set to 8080
 ```
 
 ### Registering models
