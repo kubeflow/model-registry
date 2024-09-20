@@ -10,7 +10,7 @@ import (
 )
 
 type Envelope[D any, M any] struct {
-	Data     D `json:"data,omitempty"`
+	Data     D `json:"data"`
 	Metadata M `json:"metadata,omitempty"`
 }
 
