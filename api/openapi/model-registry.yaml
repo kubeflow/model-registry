@@ -10,6 +10,129 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
+  /api/model_registry/v1alpha3/artifact:
+    summary: Path used to search for an artifact.
+    description: >-
+      The REST endpoint/path used to search for an `Artifact` entity.  This path contains a `GET` operation to perform the find task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findArtifact
+      summary: Get an Artifact that matches search parameters.
+      description: Gets the details of a single instance of an `Artifact` that matches search parameters.
+    parameters:
+      - $ref: "#/components/parameters/name"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
+  /api/model_registry/v1alpha3/artifacts:
+    summary: Path used to manage the list of artifacts.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Artifact` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getArtifacts
+      summary: List All Artifacts
+      description: Gets a list of all `Artifact` entities.
+    post:
+      requestBody:
+        description: A new `Artifact` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtifactCreate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "201":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createArtifact
+      summary: Create an Artifact
+      description: Creates a new instance of an `Artifact`.
+  /api/model_registry/v1alpha3/artifacts/{id}:
+    summary: Path used to manage a single Artifact.
+    description: >-
+      The REST endpoint/path used to get and update single instances of an `Artifact`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getArtifact
+      summary: Get an Artifact
+      description: Gets the details of a single instance of an `Artifact`.
+    patch:
+      requestBody:
+        description: Updated `Artifact` information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtifactUpdate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: updateArtifact
+      summary: Update an Artifact
+      description: Updates an existing `Artifact`.
+    parameters:
+      - name: id
+        description: A unique identifier for an `Artifact`.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_registry/v1alpha3/model_artifact:
     summary: Path used to search for a modelartifact.
     description: >-
@@ -970,36 +1093,37 @@ components:
       type: string
     ModelArtifact:
       description: An ML model artifact.
-      type: object
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
     DocArtifact:
       description: A document.
-      type: object
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
+        - $ref: "#/components/schemas/DocArtifactCreate"
+    DocArtifactCreate:
+      description: A document artifact to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/DocArtifactUpdate"
+    DocArtifactUpdate:
+      description: A document artifact to be updated.
+      required:
+        - artifactType
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
-        - type: object
         - $ref: "#/components/schemas/RegisteredModelCreate"
     ModelVersionList:
       description: List of ModelVersion entities.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1011,7 +1135,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactList:
       description: List of ModelArtifact entities.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1026,9 +1149,9 @@ components:
       required:
         - name
       allOf:
-        - type: object
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/RegisteredModelUpdate"
+        - type: object
           properties:
             name:
               description: |-
@@ -1098,12 +1221,10 @@ components:
     BaseExecution:
       allOf:
         - $ref: "#/components/schemas/BaseExecutionCreate"
-        - type: object
         - $ref: "#/components/schemas/BaseResource"
     BaseExecutionCreate:
       allOf:
         - $ref: "#/components/schemas/BaseExecutionUpdate"
-        - type: object
         - $ref: "#/components/schemas/BaseResourceCreate"
     BaseExecutionUpdate:
       type: object
@@ -1286,7 +1407,6 @@ components:
           type: integer
     ArtifactList:
       description: A list of Artifact entities.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1297,11 +1417,16 @@ components:
                 $ref: "#/components/schemas/Artifact"
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
-      description: An ML model artifact.
+      description: An ML model artifact to be updated.
+      required:
+        - artifactType
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
         - type: object
           properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
             modelFormatName:
               description: Name of the model format.
               type: string
@@ -1319,10 +1444,16 @@ components:
               type: string
     ModelArtifactCreate:
       description: An ML model artifact.
-      type: object
+      required:
+        - artifactType
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/ModelArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
     Error:
       description: Error code and message.
       required:
@@ -1363,9 +1494,28 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/BaseResource"
+    ArtifactCreate:
+      description: An Artifact to be created.
+      oneOf:
+        - $ref: "#/components/schemas/ModelArtifactCreate"
+        - $ref: "#/components/schemas/DocArtifactCreate"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/ModelArtifactCreate"
+          doc-artifact: "#/components/schemas/DocArtifactCreate"
+    ArtifactUpdate:
+      description: An Artifact to be updated.
+      oneOf:
+        - $ref: "#/components/schemas/ModelArtifactUpdate"
+        - $ref: "#/components/schemas/DocArtifactUpdate"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/ModelArtifactUpdate"
+          doc-artifact: "#/components/schemas/DocArtifactUpdate"
     ServingEnvironmentList:
       description: List of ServingEnvironments.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1378,7 +1528,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelList:
       description: List of RegisteredModels.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1402,7 +1551,6 @@ components:
     ServingEnvironmentCreate:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
-        - type: object
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ServingEnvironmentUpdate"
     InferenceService:
@@ -1413,7 +1561,6 @@ components:
         - $ref: "#/components/schemas/InferenceServiceCreate"
     InferenceServiceList:
       description: List of InferenceServices.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1426,7 +1573,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModelList:
       description: List of ServeModel entities.
-      type: object
       allOf:
         - type: object
           properties:
@@ -1438,7 +1584,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModel:
       description: An ML model serving action.
-      type: object
       allOf:
         - $ref: "#/components/schemas/BaseExecution"
         - $ref: "#/components/schemas/ServeModelCreate"
@@ -1448,12 +1593,12 @@ components:
         - $ref: "#/components/schemas/BaseExecutionUpdate"
     ServeModelCreate:
       description: An ML model serving action.
+      required:
+        - modelVersionId
       allOf:
         - $ref: "#/components/schemas/BaseExecutionCreate"
         - $ref: "#/components/schemas/ServeModelUpdate"
-        - required:
-            - modelVersionId
-          type: object
+        - type: object
           properties:
             modelVersionId:
               description: ID of the `ModelVersion` that was served in `InferenceService`.
@@ -1477,13 +1622,13 @@ components:
     InferenceServiceCreate:
       description: >-
         An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
+      required:
+        - registeredModelId
+        - servingEnvironmentId
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/InferenceServiceUpdate"
-        - required:
-            - registeredModelId
-            - servingEnvironmentId
-          type: object
+        - type: object
           properties:
             registeredModelId:
               description: ID of the `RegisteredModel` to serve.

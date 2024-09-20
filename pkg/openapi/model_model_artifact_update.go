@@ -17,7 +17,7 @@ import (
 // checks if the ModelArtifactUpdate type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelArtifactUpdate{}
 
-// ModelArtifactUpdate An ML model artifact.
+// ModelArtifactUpdate An ML model artifact to be updated.
 type ModelArtifactUpdate struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
@@ -26,8 +26,9 @@ type ModelArtifactUpdate struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
+	Uri          *string        `json:"uri,omitempty"`
+	State        *ArtifactState `json:"state,omitempty"`
+	ArtifactType string         `json:"artifactType"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -44,10 +45,11 @@ type ModelArtifactUpdate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelArtifactUpdate() *ModelArtifactUpdate {
+func NewModelArtifactUpdate(artifactType string) *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -58,6 +60,8 @@ func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -219,6 +223,30 @@ func (o *ModelArtifactUpdate) HasState() bool {
 // SetState gets a reference to the given ArtifactState and assigns it to the State field.
 func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
 	o.State = &v
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *ModelArtifactUpdate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *ModelArtifactUpdate) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetModelFormatName returns the ModelFormatName field value if set, zero value otherwise.
@@ -406,6 +434,7 @@ func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
 	}

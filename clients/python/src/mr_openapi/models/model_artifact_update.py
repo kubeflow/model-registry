@@ -23,7 +23,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 
 
 class ModelArtifactUpdate(BaseModel):
-    """An ML model artifact."""  # noqa: E501
+    """An ML model artifact to be updated."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -41,6 +41,7 @@ class ModelArtifactUpdate(BaseModel):
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
     state: ArtifactState | None = None
+    artifact_type: StrictStr = Field(alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
     )
@@ -60,6 +61,7 @@ class ModelArtifactUpdate(BaseModel):
         "externalId",
         "uri",
         "state",
+        "artifactType",
         "modelFormatName",
         "storageKey",
         "storagePath",
@@ -133,6 +135,7 @@ class ModelArtifactUpdate(BaseModel):
                 "externalId": obj.get("externalId"),
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
                 "storagePath": obj.get("storagePath"),

@@ -18,12 +18,12 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
+from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.metadata_value import MetadataValue
-from mr_openapi.models.registered_model_state import RegisteredModelState
 
 
-class RegisteredModelCreate(BaseModel):
-    """A registered model in model registry. A registered model has ModelVersion children."""  # noqa: E501
+class DocArtifactCreate(BaseModel):
+    """A document artifact to be created."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -36,12 +36,25 @@ class RegisteredModelCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
-        description="The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set."
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
-    owner: StrictStr | None = None
-    state: RegisteredModelState | None = None
-    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "name", "owner", "state"]
+    state: ArtifactState | None = None
+    name: StrictStr | None = Field(
+        default=None,
+        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
+    )
+    artifact_type: StrictStr = Field(alias="artifactType")
+    __properties: ClassVar[list[str]] = [
+        "customProperties",
+        "description",
+        "externalId",
+        "uri",
+        "state",
+        "name",
+        "artifactType",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -60,7 +73,7 @@ class RegisteredModelCreate(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of RegisteredModelCreate from a JSON string."""
+        """Create an instance of DocArtifactCreate from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -91,7 +104,7 @@ class RegisteredModelCreate(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of RegisteredModelCreate from a dict."""
+        """Create an instance of DocArtifactCreate from a dict."""
         if obj is None:
             return None
 
@@ -107,8 +120,9 @@ class RegisteredModelCreate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
-                "owner": obj.get("owner"),
+                "uri": obj.get("uri"),
                 "state": obj.get("state"),
+                "name": obj.get("name"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
             }
         )

@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the DocArtifact type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &DocArtifact{}
+// checks if the DocArtifactCreate type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &DocArtifactCreate{}
 
-// DocArtifact A document.
-type DocArtifact struct {
+// DocArtifactCreate A document artifact to be created.
+type DocArtifactCreate struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -29,33 +29,27 @@ type DocArtifact struct {
 	Uri   *string        `json:"uri,omitempty"`
 	State *ArtifactState `json:"state,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
-	// The unique server generated id of the resource.
-	Id *string `json:"id,omitempty"`
-	// Output only. Create time of the resource in millisecond since epoch.
-	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
-	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	ArtifactType             string  `json:"artifactType"`
+	Name         *string `json:"name,omitempty"`
+	ArtifactType string  `json:"artifactType"`
 }
 
-// NewDocArtifact instantiates a new DocArtifact object
+// NewDocArtifactCreate instantiates a new DocArtifactCreate object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewDocArtifact(artifactType string) *DocArtifact {
-	this := DocArtifact{}
+func NewDocArtifactCreate(artifactType string) *DocArtifactCreate {
+	this := DocArtifactCreate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	this.ArtifactType = artifactType
 	return &this
 }
 
-// NewDocArtifactWithDefaults instantiates a new DocArtifact object
+// NewDocArtifactCreateWithDefaults instantiates a new DocArtifactCreate object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewDocArtifactWithDefaults() *DocArtifact {
-	this := DocArtifact{}
+func NewDocArtifactCreateWithDefaults() *DocArtifactCreate {
+	this := DocArtifactCreate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	var artifactType string = "doc-artifact"
@@ -64,7 +58,7 @@ func NewDocArtifactWithDefaults() *DocArtifact {
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *DocArtifact) GetCustomProperties() map[string]MetadataValue {
+func (o *DocArtifactCreate) GetCustomProperties() map[string]MetadataValue {
 	if o == nil || IsNil(o.CustomProperties) {
 		var ret map[string]MetadataValue
 		return ret
@@ -74,7 +68,7 @@ func (o *DocArtifact) GetCustomProperties() map[string]MetadataValue {
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *DocArtifactCreate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
 		return nil, false
 	}
@@ -82,7 +76,7 @@ func (o *DocArtifact) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) 
 }
 
 // HasCustomProperties returns a boolean if a field has been set.
-func (o *DocArtifact) HasCustomProperties() bool {
+func (o *DocArtifactCreate) HasCustomProperties() bool {
 	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
@@ -91,12 +85,12 @@ func (o *DocArtifact) HasCustomProperties() bool {
 }
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *DocArtifact) SetCustomProperties(v map[string]MetadataValue) {
+func (o *DocArtifactCreate) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *DocArtifact) GetDescription() string {
+func (o *DocArtifactCreate) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -106,7 +100,7 @@ func (o *DocArtifact) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetDescriptionOk() (*string, bool) {
+func (o *DocArtifactCreate) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -114,7 +108,7 @@ func (o *DocArtifact) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *DocArtifact) HasDescription() bool {
+func (o *DocArtifactCreate) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -123,12 +117,12 @@ func (o *DocArtifact) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *DocArtifact) SetDescription(v string) {
+func (o *DocArtifactCreate) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *DocArtifact) GetExternalId() string {
+func (o *DocArtifactCreate) GetExternalId() string {
 	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
@@ -138,7 +132,7 @@ func (o *DocArtifact) GetExternalId() string {
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetExternalIdOk() (*string, bool) {
+func (o *DocArtifactCreate) GetExternalIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
@@ -146,7 +140,7 @@ func (o *DocArtifact) GetExternalIdOk() (*string, bool) {
 }
 
 // HasExternalId returns a boolean if a field has been set.
-func (o *DocArtifact) HasExternalId() bool {
+func (o *DocArtifactCreate) HasExternalId() bool {
 	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
@@ -155,12 +149,12 @@ func (o *DocArtifact) HasExternalId() bool {
 }
 
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *DocArtifact) SetExternalId(v string) {
+func (o *DocArtifactCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
 // GetUri returns the Uri field value if set, zero value otherwise.
-func (o *DocArtifact) GetUri() string {
+func (o *DocArtifactCreate) GetUri() string {
 	if o == nil || IsNil(o.Uri) {
 		var ret string
 		return ret
@@ -170,7 +164,7 @@ func (o *DocArtifact) GetUri() string {
 
 // GetUriOk returns a tuple with the Uri field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetUriOk() (*string, bool) {
+func (o *DocArtifactCreate) GetUriOk() (*string, bool) {
 	if o == nil || IsNil(o.Uri) {
 		return nil, false
 	}
@@ -178,7 +172,7 @@ func (o *DocArtifact) GetUriOk() (*string, bool) {
 }
 
 // HasUri returns a boolean if a field has been set.
-func (o *DocArtifact) HasUri() bool {
+func (o *DocArtifactCreate) HasUri() bool {
 	if o != nil && !IsNil(o.Uri) {
 		return true
 	}
@@ -187,12 +181,12 @@ func (o *DocArtifact) HasUri() bool {
 }
 
 // SetUri gets a reference to the given string and assigns it to the Uri field.
-func (o *DocArtifact) SetUri(v string) {
+func (o *DocArtifactCreate) SetUri(v string) {
 	o.Uri = &v
 }
 
 // GetState returns the State field value if set, zero value otherwise.
-func (o *DocArtifact) GetState() ArtifactState {
+func (o *DocArtifactCreate) GetState() ArtifactState {
 	if o == nil || IsNil(o.State) {
 		var ret ArtifactState
 		return ret
@@ -202,7 +196,7 @@ func (o *DocArtifact) GetState() ArtifactState {
 
 // GetStateOk returns a tuple with the State field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetStateOk() (*ArtifactState, bool) {
+func (o *DocArtifactCreate) GetStateOk() (*ArtifactState, bool) {
 	if o == nil || IsNil(o.State) {
 		return nil, false
 	}
@@ -210,7 +204,7 @@ func (o *DocArtifact) GetStateOk() (*ArtifactState, bool) {
 }
 
 // HasState returns a boolean if a field has been set.
-func (o *DocArtifact) HasState() bool {
+func (o *DocArtifactCreate) HasState() bool {
 	if o != nil && !IsNil(o.State) {
 		return true
 	}
@@ -219,12 +213,12 @@ func (o *DocArtifact) HasState() bool {
 }
 
 // SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *DocArtifact) SetState(v ArtifactState) {
+func (o *DocArtifactCreate) SetState(v ArtifactState) {
 	o.State = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
-func (o *DocArtifact) GetName() string {
+func (o *DocArtifactCreate) GetName() string {
 	if o == nil || IsNil(o.Name) {
 		var ret string
 		return ret
@@ -234,7 +228,7 @@ func (o *DocArtifact) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetNameOk() (*string, bool) {
+func (o *DocArtifactCreate) GetNameOk() (*string, bool) {
 	if o == nil || IsNil(o.Name) {
 		return nil, false
 	}
@@ -242,7 +236,7 @@ func (o *DocArtifact) GetNameOk() (*string, bool) {
 }
 
 // HasName returns a boolean if a field has been set.
-func (o *DocArtifact) HasName() bool {
+func (o *DocArtifactCreate) HasName() bool {
 	if o != nil && !IsNil(o.Name) {
 		return true
 	}
@@ -251,108 +245,12 @@ func (o *DocArtifact) HasName() bool {
 }
 
 // SetName gets a reference to the given string and assigns it to the Name field.
-func (o *DocArtifact) SetName(v string) {
+func (o *DocArtifactCreate) SetName(v string) {
 	o.Name = &v
 }
 
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *DocArtifact) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *DocArtifact) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *DocArtifact) SetId(v string) {
-	o.Id = &v
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *DocArtifact) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *DocArtifact) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *DocArtifact) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *DocArtifact) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *DocArtifact) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
-}
-
 // GetArtifactType returns the ArtifactType field value
-func (o *DocArtifact) GetArtifactType() string {
+func (o *DocArtifactCreate) GetArtifactType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -363,7 +261,7 @@ func (o *DocArtifact) GetArtifactType() string {
 
 // GetArtifactTypeOk returns a tuple with the ArtifactType field value
 // and a boolean to check if the value has been set.
-func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
+func (o *DocArtifactCreate) GetArtifactTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -371,11 +269,11 @@ func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
 }
 
 // SetArtifactType sets field value
-func (o *DocArtifact) SetArtifactType(v string) {
+func (o *DocArtifactCreate) SetArtifactType(v string) {
 	o.ArtifactType = v
 }
 
-func (o DocArtifact) MarshalJSON() ([]byte, error) {
+func (o DocArtifactCreate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -383,7 +281,7 @@ func (o DocArtifact) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o DocArtifact) ToMap() (map[string]interface{}, error) {
+func (o DocArtifactCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -403,51 +301,42 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
 	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
 	toSerialize["artifactType"] = o.ArtifactType
 	return toSerialize, nil
 }
 
-type NullableDocArtifact struct {
-	value *DocArtifact
+type NullableDocArtifactCreate struct {
+	value *DocArtifactCreate
 	isSet bool
 }
 
-func (v NullableDocArtifact) Get() *DocArtifact {
+func (v NullableDocArtifactCreate) Get() *DocArtifactCreate {
 	return v.value
 }
 
-func (v *NullableDocArtifact) Set(val *DocArtifact) {
+func (v *NullableDocArtifactCreate) Set(val *DocArtifactCreate) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableDocArtifact) IsSet() bool {
+func (v NullableDocArtifactCreate) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableDocArtifact) Unset() {
+func (v *NullableDocArtifactCreate) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableDocArtifact(val *DocArtifact) *NullableDocArtifact {
-	return &NullableDocArtifact{value: val, isSet: true}
+func NewNullableDocArtifactCreate(val *DocArtifactCreate) *NullableDocArtifactCreate {
+	return &NullableDocArtifactCreate{value: val, isSet: true}
 }
 
-func (v NullableDocArtifact) MarshalJSON() ([]byte, error) {
+func (v NullableDocArtifactCreate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableDocArtifact) UnmarshalJSON(src []byte) error {
+func (v *NullableDocArtifactCreate) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

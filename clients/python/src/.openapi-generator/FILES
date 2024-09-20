@@ -7,8 +7,10 @@ mr_openapi/configuration.py
 mr_openapi/exceptions.py
 mr_openapi/models/__init__.py
 mr_openapi/models/artifact.py
+mr_openapi/models/artifact_create.py
 mr_openapi/models/artifact_list.py
 mr_openapi/models/artifact_state.py
+mr_openapi/models/artifact_update.py
 mr_openapi/models/base_artifact.py
 mr_openapi/models/base_artifact_create.py
 mr_openapi/models/base_artifact_update.py
@@ -20,6 +22,8 @@ mr_openapi/models/base_resource_create.py
 mr_openapi/models/base_resource_list.py
 mr_openapi/models/base_resource_update.py
 mr_openapi/models/doc_artifact.py
+mr_openapi/models/doc_artifact_create.py
+mr_openapi/models/doc_artifact_update.py
 mr_openapi/models/error.py
 mr_openapi/models/execution_state.py
 mr_openapi/models/inference_service.py

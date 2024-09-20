@@ -14,47 +14,49 @@ import (
 	"encoding/json"
 )
 
-// checks if the RegisteredModelCreate type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &RegisteredModelCreate{}
+// checks if the DocArtifactUpdate type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &DocArtifactUpdate{}
 
-// RegisteredModelCreate A registered model in model registry. A registered model has ModelVersion children.
-type RegisteredModelCreate struct {
+// DocArtifactUpdate A document artifact to be updated.
+type DocArtifactUpdate struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set.
-	Name  string                `json:"name"`
-	Owner *string               `json:"owner,omitempty"`
-	State *RegisteredModelState `json:"state,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri          *string        `json:"uri,omitempty"`
+	State        *ArtifactState `json:"state,omitempty"`
+	ArtifactType string         `json:"artifactType"`
 }
 
-// NewRegisteredModelCreate instantiates a new RegisteredModelCreate object
+// NewDocArtifactUpdate instantiates a new DocArtifactUpdate object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegisteredModelCreate(name string) *RegisteredModelCreate {
-	this := RegisteredModelCreate{}
-	this.Name = name
-	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+func NewDocArtifactUpdate(artifactType string) *DocArtifactUpdate {
+	this := DocArtifactUpdate{}
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	this.ArtifactType = artifactType
 	return &this
 }
 
-// NewRegisteredModelCreateWithDefaults instantiates a new RegisteredModelCreate object
+// NewDocArtifactUpdateWithDefaults instantiates a new DocArtifactUpdate object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewRegisteredModelCreateWithDefaults() *RegisteredModelCreate {
-	this := RegisteredModelCreate{}
-	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
+func NewDocArtifactUpdateWithDefaults() *DocArtifactUpdate {
+	this := DocArtifactUpdate{}
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "doc-artifact"
+	this.ArtifactType = artifactType
 	return &this
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *RegisteredModelCreate) GetCustomProperties() map[string]MetadataValue {
+func (o *DocArtifactUpdate) GetCustomProperties() map[string]MetadataValue {
 	if o == nil || IsNil(o.CustomProperties) {
 		var ret map[string]MetadataValue
 		return ret
@@ -64,7 +66,7 @@ func (o *RegisteredModelCreate) GetCustomProperties() map[string]MetadataValue {
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *DocArtifactUpdate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
 		return nil, false
 	}
@@ -72,7 +74,7 @@ func (o *RegisteredModelCreate) GetCustomPropertiesOk() (*map[string]MetadataVal
 }
 
 // HasCustomProperties returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasCustomProperties() bool {
+func (o *DocArtifactUpdate) HasCustomProperties() bool {
 	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
@@ -81,12 +83,12 @@ func (o *RegisteredModelCreate) HasCustomProperties() bool {
 }
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *RegisteredModelCreate) SetCustomProperties(v map[string]MetadataValue) {
+func (o *DocArtifactUpdate) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *RegisteredModelCreate) GetDescription() string {
+func (o *DocArtifactUpdate) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -96,7 +98,7 @@ func (o *RegisteredModelCreate) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetDescriptionOk() (*string, bool) {
+func (o *DocArtifactUpdate) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -104,7 +106,7 @@ func (o *RegisteredModelCreate) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasDescription() bool {
+func (o *DocArtifactUpdate) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -113,12 +115,12 @@ func (o *RegisteredModelCreate) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *RegisteredModelCreate) SetDescription(v string) {
+func (o *DocArtifactUpdate) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *RegisteredModelCreate) GetExternalId() string {
+func (o *DocArtifactUpdate) GetExternalId() string {
 	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
@@ -128,7 +130,7 @@ func (o *RegisteredModelCreate) GetExternalId() string {
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetExternalIdOk() (*string, bool) {
+func (o *DocArtifactUpdate) GetExternalIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
@@ -136,7 +138,7 @@ func (o *RegisteredModelCreate) GetExternalIdOk() (*string, bool) {
 }
 
 // HasExternalId returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasExternalId() bool {
+func (o *DocArtifactUpdate) HasExternalId() bool {
 	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
@@ -145,70 +147,46 @@ func (o *RegisteredModelCreate) HasExternalId() bool {
 }
 
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *RegisteredModelCreate) SetExternalId(v string) {
+func (o *DocArtifactUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value
-func (o *RegisteredModelCreate) GetName() string {
-	if o == nil {
+// GetUri returns the Uri field value if set, zero value otherwise.
+func (o *DocArtifactUpdate) GetUri() string {
+	if o == nil || IsNil(o.Uri) {
 		var ret string
 		return ret
 	}
-
-	return o.Name
+	return *o.Uri
 }
 
-// GetNameOk returns a tuple with the Name field value
+// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetNameOk() (*string, bool) {
-	if o == nil {
+func (o *DocArtifactUpdate) GetUriOk() (*string, bool) {
+	if o == nil || IsNil(o.Uri) {
 		return nil, false
 	}
-	return &o.Name, true
+	return o.Uri, true
 }
 
-// SetName sets field value
-func (o *RegisteredModelCreate) SetName(v string) {
-	o.Name = v
-}
-
-// GetOwner returns the Owner field value if set, zero value otherwise.
-func (o *RegisteredModelCreate) GetOwner() string {
-	if o == nil || IsNil(o.Owner) {
-		var ret string
-		return ret
-	}
-	return *o.Owner
-}
-
-// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetOwnerOk() (*string, bool) {
-	if o == nil || IsNil(o.Owner) {
-		return nil, false
-	}
-	return o.Owner, true
-}
-
-// HasOwner returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasOwner() bool {
-	if o != nil && !IsNil(o.Owner) {
+// HasUri returns a boolean if a field has been set.
+func (o *DocArtifactUpdate) HasUri() bool {
+	if o != nil && !IsNil(o.Uri) {
 		return true
 	}
 
 	return false
 }
 
-// SetOwner gets a reference to the given string and assigns it to the Owner field.
-func (o *RegisteredModelCreate) SetOwner(v string) {
-	o.Owner = &v
+// SetUri gets a reference to the given string and assigns it to the Uri field.
+func (o *DocArtifactUpdate) SetUri(v string) {
+	o.Uri = &v
 }
 
 // GetState returns the State field value if set, zero value otherwise.
-func (o *RegisteredModelCreate) GetState() RegisteredModelState {
+func (o *DocArtifactUpdate) GetState() ArtifactState {
 	if o == nil || IsNil(o.State) {
-		var ret RegisteredModelState
+		var ret ArtifactState
 		return ret
 	}
 	return *o.State
@@ -216,7 +194,7 @@ func (o *RegisteredModelCreate) GetState() RegisteredModelState {
 
 // GetStateOk returns a tuple with the State field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetStateOk() (*RegisteredModelState, bool) {
+func (o *DocArtifactUpdate) GetStateOk() (*ArtifactState, bool) {
 	if o == nil || IsNil(o.State) {
 		return nil, false
 	}
@@ -224,7 +202,7 @@ func (o *RegisteredModelCreate) GetStateOk() (*RegisteredModelState, bool) {
 }
 
 // HasState returns a boolean if a field has been set.
-func (o *RegisteredModelCreate) HasState() bool {
+func (o *DocArtifactUpdate) HasState() bool {
 	if o != nil && !IsNil(o.State) {
 		return true
 	}
@@ -232,12 +210,36 @@ func (o *RegisteredModelCreate) HasState() bool {
 	return false
 }
 
-// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
-func (o *RegisteredModelCreate) SetState(v RegisteredModelState) {
+// SetState gets a reference to the given ArtifactState and assigns it to the State field.
+func (o *DocArtifactUpdate) SetState(v ArtifactState) {
 	o.State = &v
 }
 
-func (o RegisteredModelCreate) MarshalJSON() ([]byte, error) {
+// GetArtifactType returns the ArtifactType field value
+func (o *DocArtifactUpdate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *DocArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *DocArtifactUpdate) SetArtifactType(v string) {
+	o.ArtifactType = v
+}
+
+func (o DocArtifactUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -245,7 +247,7 @@ func (o RegisteredModelCreate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
+func (o DocArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -256,48 +258,48 @@ func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	toSerialize["name"] = o.Name
-	if !IsNil(o.Owner) {
-		toSerialize["owner"] = o.Owner
+	if !IsNil(o.Uri) {
+		toSerialize["uri"] = o.Uri
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}
+	toSerialize["artifactType"] = o.ArtifactType
 	return toSerialize, nil
 }
 
-type NullableRegisteredModelCreate struct {
-	value *RegisteredModelCreate
+type NullableDocArtifactUpdate struct {
+	value *DocArtifactUpdate
 	isSet bool
 }
 
-func (v NullableRegisteredModelCreate) Get() *RegisteredModelCreate {
+func (v NullableDocArtifactUpdate) Get() *DocArtifactUpdate {
 	return v.value
 }
 
-func (v *NullableRegisteredModelCreate) Set(val *RegisteredModelCreate) {
+func (v *NullableDocArtifactUpdate) Set(val *DocArtifactUpdate) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableRegisteredModelCreate) IsSet() bool {
+func (v NullableDocArtifactUpdate) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableRegisteredModelCreate) Unset() {
+func (v *NullableDocArtifactUpdate) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableRegisteredModelCreate(val *RegisteredModelCreate) *NullableRegisteredModelCreate {
-	return &NullableRegisteredModelCreate{value: val, isSet: true}
+func NewNullableDocArtifactUpdate(val *DocArtifactUpdate) *NullableDocArtifactUpdate {
+	return &NullableDocArtifactUpdate{value: val, isSet: true}
 }
 
-func (v NullableRegisteredModelCreate) MarshalJSON() ([]byte, error) {
+func (v NullableDocArtifactUpdate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableRegisteredModelCreate) UnmarshalJSON(src []byte) error {
+func (v *NullableDocArtifactUpdate) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

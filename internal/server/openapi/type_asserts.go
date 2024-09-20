@@ -21,6 +21,25 @@ func AssertArtifactConstraints(obj model.Artifact) error {
 	return nil
 }
 
+// AssertArtifactCreateConstraints checks if the values respects the defined constraints
+func AssertArtifactCreateConstraints(obj model.ArtifactCreate) error {
+	return nil
+}
+
+// AssertArtifactCreateRequired checks if the required fields are not zero-ed
+func AssertArtifactCreateRequired(obj model.ArtifactCreate) error {
+	// elements := map[string]interface{}{
+	// 	"artifactType": obj.ArtifactType,
+	// }
+	// for name, el := range elements {
+	// 	if isZero := IsZeroValue(el); isZero {
+	// 		return &RequiredError{Field: name}
+	// 	}
+	// }
+
+	return nil
+}
+
 // AssertArtifactListConstraints checks if the values respects the defined constraints
 func AssertArtifactListConstraints(obj model.ArtifactList) error {
 	return nil
@@ -49,6 +68,15 @@ func AssertArtifactListRequired(obj model.ArtifactList) error {
 
 // AssertArtifactRequired checks if the required fields are not zero-ed
 func AssertArtifactRequired(obj model.Artifact) error {
+	// elements := map[string]interface{}{
+	// 	"artifactType": obj.ArtifactType,
+	// }
+	// for name, el := range elements {
+	// 	if isZero := IsZeroValue(el); isZero {
+	// 		return &RequiredError{Field: name}
+	// 	}
+	// }
+
 	return nil
 }
 
@@ -59,6 +87,25 @@ func AssertArtifactStateConstraints(obj model.ArtifactState) error {
 
 // AssertArtifactStateRequired checks if the required fields are not zero-ed
 func AssertArtifactStateRequired(obj model.ArtifactState) error {
+	return nil
+}
+
+// AssertArtifactUpdateConstraints checks if the values respects the defined constraints
+func AssertArtifactUpdateConstraints(obj model.ArtifactUpdate) error {
+	return nil
+}
+
+// AssertArtifactUpdateRequired checks if the required fields are not zero-ed
+func AssertArtifactUpdateRequired(obj model.ArtifactUpdate) error {
+	// elements := map[string]interface{}{
+	// 	"artifactType": obj.ArtifactType,
+	// }
+	// for name, el := range elements {
+	// 	if isZero := IsZeroValue(el); isZero {
+	// 		return &RequiredError{Field: name}
+	// 	}
+	// }
+
 	return nil
 }
 
@@ -178,8 +225,46 @@ func AssertDocArtifactConstraints(obj model.DocArtifact) error {
 	return nil
 }
 
+// AssertDocArtifactCreateConstraints checks if the values respects the defined constraints
+func AssertDocArtifactCreateConstraints(obj model.DocArtifactCreate) error {
+	return nil
+}
+
+// AssertDocArtifactCreateRequired checks if the required fields are not zero-ed
+func AssertDocArtifactCreateRequired(obj model.DocArtifactCreate) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
 // AssertDocArtifactRequired checks if the required fields are not zero-ed
 func AssertDocArtifactRequired(obj model.DocArtifact) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertDocArtifactUpdateConstraints checks if the values respects the defined constraints
+func AssertDocArtifactUpdateConstraints(obj model.DocArtifactUpdate) error {
+	return nil
+}
+
+// AssertDocArtifactUpdateRequired checks if the required fields are not zero-ed
+func AssertDocArtifactUpdateRequired(obj model.DocArtifactUpdate) error {
 	elements := map[string]interface{}{
 		"artifactType": obj.ArtifactType,
 	}
@@ -468,6 +553,15 @@ func AssertModelArtifactCreateConstraints(obj model.ModelArtifactCreate) error {
 
 // AssertModelArtifactCreateRequired checks if the required fields are not zero-ed
 func AssertModelArtifactCreateRequired(obj model.ModelArtifactCreate) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 
@@ -518,6 +612,15 @@ func AssertModelArtifactUpdateConstraints(obj model.ModelArtifactUpdate) error {
 
 // AssertModelArtifactUpdateRequired checks if the required fields are not zero-ed
 func AssertModelArtifactUpdateRequired(obj model.ModelArtifactUpdate) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 

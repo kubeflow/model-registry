@@ -27,6 +27,11 @@ type OpenAPIReconciler interface {
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
+	UpdateExistingArtifact(source OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error)
+
+	// Ignore all fields that can't be updated
+	// goverter:default InitWithExisting
+	// goverter:autoMap Update
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
 	UpdateExistingDocArtifact(source OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error)
 

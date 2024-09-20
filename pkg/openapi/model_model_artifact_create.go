@@ -29,7 +29,8 @@ type ModelArtifactCreate struct {
 	Uri   *string        `json:"uri,omitempty"`
 	State *ArtifactState `json:"state,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
+	Name         *string `json:"name,omitempty"`
+	ArtifactType string  `json:"artifactType"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -46,10 +47,11 @@ type ModelArtifactCreate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelArtifactCreate() *ModelArtifactCreate {
+func NewModelArtifactCreate(artifactType string) *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -60,6 +62,8 @@ func NewModelArtifactCreateWithDefaults() *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -255,6 +259,30 @@ func (o *ModelArtifactCreate) SetName(v string) {
 	o.Name = &v
 }
 
+// GetArtifactType returns the ArtifactType field value
+func (o *ModelArtifactCreate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *ModelArtifactCreate) SetArtifactType(v string) {
+	o.ArtifactType = v
+}
+
 // GetModelFormatName returns the ModelFormatName field value if set, zero value otherwise.
 func (o *ModelArtifactCreate) GetModelFormatName() string {
 	if o == nil || IsNil(o.ModelFormatName) {
@@ -443,6 +471,7 @@ func (o ModelArtifactCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
 	}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
 	}

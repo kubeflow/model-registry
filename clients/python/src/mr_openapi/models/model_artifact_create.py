@@ -45,6 +45,7 @@ class ModelArtifactCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
+    artifact_type: StrictStr = Field(alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
     )
@@ -65,6 +66,7 @@ class ModelArtifactCreate(BaseModel):
         "uri",
         "state",
         "name",
+        "artifactType",
         "modelFormatName",
         "storageKey",
         "storagePath",
@@ -139,6 +141,7 @@ class ModelArtifactCreate(BaseModel):
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
                 "name": obj.get("name"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
                 "storagePath": obj.get("storagePath"),

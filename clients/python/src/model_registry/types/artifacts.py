@@ -152,6 +152,7 @@ class ModelArtifact(Artifact):
         return ModelArtifactCreate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "custom_properties")),
+            artifactType="model-artifact",
             **kwargs,
         )
 
@@ -161,6 +162,7 @@ class ModelArtifact(Artifact):
         return ModelArtifactUpdate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
+            artifactType="model-artifact",
             **kwargs,
         )
 

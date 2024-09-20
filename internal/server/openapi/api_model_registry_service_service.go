@@ -75,6 +75,21 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context
 	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
+// CreateArtifact - Create an Artifact
+func (s *ModelRegistryServiceAPIService) CreateArtifact(ctx context.Context, artifactCreate model.ArtifactCreate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertArtifactCreate(&artifactCreate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	result, err := s.coreApi.UpsertArtifact(entity)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
+}
+
 // CreateModelArtifact - Create a ModelArtifact
 func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context, modelArtifactCreate model.ModelArtifactCreate) (ImplResponse, error) {
 	entity, err := s.converter.ConvertModelArtifactCreate(&modelArtifactCreate)
@@ -165,6 +180,16 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 // FindInferenceService - Get an InferenceServices that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
 	result, err := s.coreApi.GetInferenceServiceByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+	// TODO return Response(http.StatusUnauthorized, Error{}), nil
+}
+
+// FindArtifact - Get an Artifact that matches search parameters.
+func (s *ModelRegistryServiceAPIService) FindArtifact(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetArtifactByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -277,6 +302,30 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Contex
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	result, err := s.coreApi.GetInferenceServices(listOpts, nil, nil)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+	// TODO return Response(http.StatusUnauthorized, Error{}), nil
+}
+
+// GetArtifact - Get a Artifact
+func (s *ModelRegistryServiceAPIService) GetArtifact(ctx context.Context, artifactId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetArtifactById(artifactId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
+}
+
+// GetArtifacts - List All Artifacts
+func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetArtifacts(listOpts, nil)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -428,6 +477,33 @@ func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Cont
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 	result, err := s.coreApi.UpsertInferenceService(&update)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+	// TODO return Response(http.StatusUnauthorized, Error{}), nil
+}
+
+// UpdateArtifact - Update a Artifact
+func (s *ModelRegistryServiceAPIService) UpdateArtifact(ctx context.Context, artifactId string, artifactUpdate model.ArtifactUpdate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertArtifactUpdate(&artifactUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	if artifactUpdate.DocArtifactUpdate != nil {
+		entity.DocArtifact.Id = &artifactId
+	} else {
+		entity.ModelArtifact.Id = &artifactId
+	}
+	existing, err := s.coreApi.GetArtifactById(artifactId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := s.reconciler.UpdateExistingArtifact(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	result, err := s.coreApi.UpsertArtifact(&update)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
