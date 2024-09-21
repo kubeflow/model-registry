@@ -16,6 +16,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
 		var openapiDocArtifact openapi.DocArtifact
+		xstring, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiDocArtifact.ArtifactType = xstring
 		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
@@ -23,23 +28,18 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 		openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
 		openapiDocArtifact.Description = converter.MapDescription((*source).Properties)
 		if (*source).ExternalId != nil {
-			xstring := *(*source).ExternalId
-			openapiDocArtifact.ExternalId = &xstring
+			xstring2 := *(*source).ExternalId
+			openapiDocArtifact.ExternalId = &xstring2
 		}
 		if (*source).Uri != nil {
-			xstring2 := *(*source).Uri
-			openapiDocArtifact.Uri = &xstring2
+			xstring3 := *(*source).Uri
+			openapiDocArtifact.Uri = &xstring3
 		}
 		openapiDocArtifact.State = converter.MapMLMDArtifactState((*source).State)
 		openapiDocArtifact.Name = converter.MapNameFromOwned((*source).Name)
 		openapiDocArtifact.Id = converter.Int64ToString((*source).Id)
 		openapiDocArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiDocArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		xstring3, err := converter.MapArtifactType(source)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
-		}
-		openapiDocArtifact.ArtifactType = xstring3
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
@@ -75,6 +75,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
 		var openapiModelArtifact openapi.ModelArtifact
+		xstring, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiModelArtifact.ArtifactType = xstring
 		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
@@ -82,23 +87,18 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		openapiModelArtifact.CustomProperties = &mapStringOpenapiMetadataValue
 		openapiModelArtifact.Description = converter.MapDescription((*source).Properties)
 		if (*source).ExternalId != nil {
-			xstring := *(*source).ExternalId
-			openapiModelArtifact.ExternalId = &xstring
+			xstring2 := *(*source).ExternalId
+			openapiModelArtifact.ExternalId = &xstring2
 		}
 		if (*source).Uri != nil {
-			xstring2 := *(*source).Uri
-			openapiModelArtifact.Uri = &xstring2
+			xstring3 := *(*source).Uri
+			openapiModelArtifact.Uri = &xstring3
 		}
 		openapiModelArtifact.State = converter.MapMLMDArtifactState((*source).State)
 		openapiModelArtifact.Name = converter.MapNameFromOwned((*source).Name)
 		openapiModelArtifact.Id = converter.Int64ToString((*source).Id)
 		openapiModelArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiModelArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		xstring3, err := converter.MapArtifactType(source)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
-		}
-		openapiModelArtifact.ArtifactType = xstring3
 		openapiModelArtifact.ModelFormatName = converter.MapModelArtifactFormatName((*source).Properties)
 		openapiModelArtifact.StorageKey = converter.MapModelArtifactStorageKey((*source).Properties)
 		openapiModelArtifact.StoragePath = converter.MapModelArtifactStoragePath((*source).Properties)

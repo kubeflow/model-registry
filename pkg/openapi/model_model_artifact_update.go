@@ -19,6 +19,7 @@ var _ MappedNullable = &ModelArtifactUpdate{}
 
 // ModelArtifactUpdate An ML model artifact to be updated.
 type ModelArtifactUpdate struct {
+	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -26,9 +27,8 @@ type ModelArtifactUpdate struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri          *string        `json:"uri,omitempty"`
-	State        *ArtifactState `json:"state,omitempty"`
-	ArtifactType string         `json:"artifactType"`
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -49,7 +49,6 @@ func NewModelArtifactUpdate(artifactType string) *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
-	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -58,11 +57,35 @@ func NewModelArtifactUpdate(artifactType string) *ModelArtifactUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "model-artifact"
 	this.ArtifactType = artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *ModelArtifactUpdate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *ModelArtifactUpdate) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -223,30 +246,6 @@ func (o *ModelArtifactUpdate) HasState() bool {
 // SetState gets a reference to the given ArtifactState and assigns it to the State field.
 func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
 	o.State = &v
-}
-
-// GetArtifactType returns the ArtifactType field value
-func (o *ModelArtifactUpdate) GetArtifactType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ArtifactType, true
-}
-
-// SetArtifactType sets field value
-func (o *ModelArtifactUpdate) SetArtifactType(v string) {
-	o.ArtifactType = v
 }
 
 // GetModelFormatName returns the ModelFormatName field value if set, zero value otherwise.
@@ -419,6 +418,7 @@ func (o ModelArtifactUpdate) MarshalJSON() ([]byte, error) {
 
 func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -434,7 +434,6 @@ func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}
-	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
 	}

@@ -19,6 +19,7 @@ var _ MappedNullable = &DocArtifact{}
 
 // DocArtifact A document.
 type DocArtifact struct {
+	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -36,7 +37,6 @@ type DocArtifact struct {
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	ArtifactType             string  `json:"artifactType"`
 }
 
 // NewDocArtifact instantiates a new DocArtifact object
@@ -47,7 +47,6 @@ func NewDocArtifact(artifactType string) *DocArtifact {
 	this := DocArtifact{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
-	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -56,11 +55,35 @@ func NewDocArtifact(artifactType string) *DocArtifact {
 // but it doesn't guarantee that properties required by API are set
 func NewDocArtifactWithDefaults() *DocArtifact {
 	this := DocArtifact{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "doc-artifact"
 	this.ArtifactType = artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *DocArtifact) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *DocArtifact) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -351,30 +374,6 @@ func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
-// GetArtifactType returns the ArtifactType field value
-func (o *DocArtifact) GetArtifactType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ArtifactType, true
-}
-
-// SetArtifactType sets field value
-func (o *DocArtifact) SetArtifactType(v string) {
-	o.ArtifactType = v
-}
-
 func (o DocArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -385,6 +384,7 @@ func (o DocArtifact) MarshalJSON() ([]byte, error) {
 
 func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -412,7 +412,6 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
-	toSerialize["artifactType"] = o.ArtifactType
 	return toSerialize, nil
 }
 

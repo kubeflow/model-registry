@@ -25,6 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifactUpdate(BaseModel):
     """A document artifact to be updated."""  # noqa: E501
 
+    artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -41,15 +42,7 @@ class DocArtifactUpdate(BaseModel):
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
     state: ArtifactState | None = None
-    artifact_type: StrictStr = Field(alias="artifactType")
-    __properties: ClassVar[list[str]] = [
-        "customProperties",
-        "description",
-        "externalId",
-        "uri",
-        "state",
-        "artifactType",
-    ]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "uri", "state"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -117,6 +110,5 @@ class DocArtifactUpdate(BaseModel):
                 "externalId": obj.get("externalId"),
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
             }
         )

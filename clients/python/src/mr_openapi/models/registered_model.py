@@ -37,7 +37,7 @@ class RegisteredModel(BaseModel):
         alias="externalId",
     )
     name: StrictStr = Field(
-        description="The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set."
+        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(

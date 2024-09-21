@@ -519,6 +519,7 @@ func (c *OpenAPIReconcilerImpl) pOpenapiDocArtifactToPOpenapiDocArtifact(source 
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
 		var openapiDocArtifact openapi.DocArtifact
+		openapiDocArtifact.ArtifactType = (*source).ArtifactType
 		if (*source).CustomProperties != nil {
 			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 			if (*(*source).CustomProperties) != nil {
@@ -564,7 +565,6 @@ func (c *OpenAPIReconcilerImpl) pOpenapiDocArtifactToPOpenapiDocArtifact(source 
 			xstring7 := *(*source).LastUpdateTimeSinceEpoch
 			openapiDocArtifact.LastUpdateTimeSinceEpoch = &xstring7
 		}
-		openapiDocArtifact.ArtifactType = (*source).ArtifactType
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
@@ -634,6 +634,7 @@ func (c *OpenAPIReconcilerImpl) pOpenapiModelArtifactToPOpenapiModelArtifact(sou
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
 		var openapiModelArtifact openapi.ModelArtifact
+		openapiModelArtifact.ArtifactType = (*source).ArtifactType
 		if (*source).CustomProperties != nil {
 			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 			if (*(*source).CustomProperties) != nil {
@@ -679,7 +680,6 @@ func (c *OpenAPIReconcilerImpl) pOpenapiModelArtifactToPOpenapiModelArtifact(sou
 			xstring7 := *(*source).LastUpdateTimeSinceEpoch
 			openapiModelArtifact.LastUpdateTimeSinceEpoch = &xstring7
 		}
-		openapiModelArtifact.ArtifactType = (*source).ArtifactType
 		if (*source).ModelFormatName != nil {
 			xstring8 := *(*source).ModelFormatName
 			openapiModelArtifact.ModelFormatName = &xstring8

@@ -19,6 +19,7 @@ var _ MappedNullable = &ModelArtifactCreate{}
 
 // ModelArtifactCreate An ML model artifact.
 type ModelArtifactCreate struct {
+	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -29,8 +30,7 @@ type ModelArtifactCreate struct {
 	Uri   *string        `json:"uri,omitempty"`
 	State *ArtifactState `json:"state,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
-	Name         *string `json:"name,omitempty"`
-	ArtifactType string  `json:"artifactType"`
+	Name *string `json:"name,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -51,7 +51,6 @@ func NewModelArtifactCreate(artifactType string) *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
-	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -60,11 +59,35 @@ func NewModelArtifactCreate(artifactType string) *ModelArtifactCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactCreateWithDefaults() *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "model-artifact"
 	this.ArtifactType = artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *ModelArtifactCreate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *ModelArtifactCreate) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -259,30 +282,6 @@ func (o *ModelArtifactCreate) SetName(v string) {
 	o.Name = &v
 }
 
-// GetArtifactType returns the ArtifactType field value
-func (o *ModelArtifactCreate) GetArtifactType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactCreate) GetArtifactTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ArtifactType, true
-}
-
-// SetArtifactType sets field value
-func (o *ModelArtifactCreate) SetArtifactType(v string) {
-	o.ArtifactType = v
-}
-
 // GetModelFormatName returns the ModelFormatName field value if set, zero value otherwise.
 func (o *ModelArtifactCreate) GetModelFormatName() string {
 	if o == nil || IsNil(o.ModelFormatName) {
@@ -453,6 +452,7 @@ func (o ModelArtifactCreate) MarshalJSON() ([]byte, error) {
 
 func (o ModelArtifactCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -471,7 +471,6 @@ func (o ModelArtifactCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
 	}
-	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
 	}

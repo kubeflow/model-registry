@@ -649,18 +649,18 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	openapiModelArtifact := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.ArtifactType
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiModelArtifact.Name = &xstring
+		openapiModelArtifact.ArtifactType = *pString
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = &source.Existing.ArtifactType
+		pString2 = source.Existing.Name
 	}
 	if pString2 != nil {
-		openapiModelArtifact.ArtifactType = *pString2
+		xstring := *pString2
+		openapiModelArtifact.Name = &xstring
 	}
 	return openapiModelArtifact, nil
 }

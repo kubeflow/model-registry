@@ -1093,16 +1093,37 @@ components:
       type: string
     ModelArtifact:
       description: An ML model artifact.
+      type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
     DocArtifact:
       description: A document.
+      type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/DocArtifactCreate"
     DocArtifactCreate:
       description: A document artifact to be created.
+      type: object
+      required:
+        - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/DocArtifactUpdate"
@@ -1110,13 +1131,12 @@ components:
       description: A document artifact to be updated.
       required:
         - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1420,13 +1440,14 @@ components:
       description: An ML model artifact to be updated.
       required:
         - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
         - type: object
           properties:
-            artifactType:
-              type: string
-              default: "model-artifact"
             modelFormatName:
               description: Name of the model format.
               type: string
@@ -1446,14 +1467,13 @@ components:
       description: An ML model artifact.
       required:
         - artifactType
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/ModelArtifactUpdate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "model-artifact"
     Error:
       description: Error code and message.
       required:
