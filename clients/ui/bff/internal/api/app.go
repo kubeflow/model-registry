@@ -2,14 +2,14 @@ package api
 
 import (
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/data"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"log/slog"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/config"
-	"github.com/kubeflow/model-registry/ui/bff/data"
-	"github.com/kubeflow/model-registry/ui/bff/integrations"
-	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 )
 
 const (

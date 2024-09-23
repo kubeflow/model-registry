@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	k8s "github.com/kubeflow/model-registry/ui/bff/integrations"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
 )
