@@ -73,6 +73,18 @@ The following tools need to be installed in your local environment:
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
+Choose the networking setup that fits your needs, either port-forwarding or Ingress.
+
+### Port-forwarding guide
+
+Create a Kind cluster with the following command:
+
+```sh
+kind create cluster
+```
+
+and then follow the steps from this link [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) to set up the port-forwarding and deploy the Model Registry on the cluster.
+
 ### Ingress guide
 
 Follow the [Ingress guide](docs/mr_kind_deploy_ingress.md) to set up the Ingress controller and deploy the Model Registry on the cluster.

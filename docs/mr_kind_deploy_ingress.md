@@ -37,7 +37,7 @@ nodes:
 
 2. Patch the ports inside the controller's deployment, by running the following commands:
 
-```
+```shell
 kubectl patch deployment -n ingress-nginx ingress-nginx-controller   --type='json'   -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 3080}]'
 
 kubectl patch deployment -n ingress-nginx ingress-nginx-controller   --type='json'   -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/ports/1/hostPort", "value": 30443}]'
@@ -84,7 +84,7 @@ spec:
 
 Run `curl http://model-registry.io:3080/api/model_registry/v1alpha3/registered_models`, you should see and output similar to this:
 
-```
+```json
 {"items":[],"nextPageToken":"","pageSize":0,"size":0}
 ```
 
