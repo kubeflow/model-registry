@@ -22,6 +22,11 @@ from .types import (
 ModelTypes = t.Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = t.TypeVar("TModel", bound=ModelTypes)
 
+DSC_CRD = "datasciencecluster.opendatahub.io/v1"
+DEFAULT_NS = "kubeflow"
+DSC_NS_CONFIG = "registriesNamespace"
+EXTERNAL_ADDR_ANNOTATION = "routing.opendatahub.io/external-address-rest"
+
 
 class ModelRegistry:
     """Model registry client."""
@@ -86,6 +91,76 @@ class ModelRegistry:
             self._api = ModelRegistryAPIClient.insecure_connection(
                 server_address, port, user_token
             )
+
+    @classmethod
+    def from_service(
+        cls, name: str, author: str, *, ns: str | None = None, is_secure: bool = True
+    ) -> ModelRegistry:
+        """Create a client from a service name.
+
+        Args:
+            name: Service name.
+            author: Name of the author.
+
+        Keyword Args:
+            ns: Namespace. Defaults to DSC registriesNamespace, or `kubeflow` if unavailable.
+            is_secure: Whether to use a secure connection. Defaults to True.
+        """
+        from kubernetes import client, config
+
+        config.load_incluster_config()
+        if not ns:
+            kcustom = client.CustomObjectsApi()
+            g, v = DSC_CRD.split("/")
+            p = f"{g.split('.')[0]}s"
+            try:
+                dsc_raw = kcustom.list_cluster_custom_object(
+                    group=g,
+                    version=v,
+                    plural=p,
+                )
+            except client.ApiException as e:
+                msg = f"Failed to list {p}: {e}"
+                warn(msg, stacklevel=2)
+                ns = DEFAULT_NS
+            else:
+                ns = t.cast(
+                    dict[str, t.Any],
+                    dsc_raw["items"][0],
+                )["status"]["components"]["modelregistry"][DSC_NS_CONFIG]
+
+        kcore = client.CoreV1Api()
+        serv = t.cast(client.V1Service, kcore.read_namespaced_service(name, ns))
+        meta = t.cast(client.V1ObjectMeta, serv.metadata)
+        ext_addr = t.cast(dict[str, str], meta.annotations).get(
+            EXTERNAL_ADDR_ANNOTATION
+        )
+        if ext_addr:
+            host, port = ext_addr.split(":")
+            host = f"https://{host}"
+            port = int(port)
+        elif not is_secure:
+            host = f"http://{meta.name}"
+            port = next(
+                (
+                    int(str(port.port))
+                    for port in t.cast(
+                        list[client.V1ServicePort],
+                        t.cast(client.V1ServiceSpec, serv.spec).ports,
+                    )
+                    if port.app_protocol == "http"
+                ),
+                8080,
+            )
+        else:
+            msg = "No external address found for secure connection"
+            raise StoreError(msg)
+
+        return cls(
+            host,
+            port,
+            author=author,
+        )
 
     def async_runner(self, coro: t.Any) -> t.Any:
         import asyncio
