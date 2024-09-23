@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import os
+import typing as t
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -19,8 +19,8 @@ from .types import (
     SupportedTypes,
 )
 
-ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
-TModel = TypeVar("TModel", bound=ModelTypes)
+ModelTypes = t.Union[RegisteredModel, ModelVersion, ModelArtifact]
+TModel = t.TypeVar("TModel", bound=ModelTypes)
 
 
 class ModelRegistry:
@@ -87,11 +87,11 @@ class ModelRegistry:
                 server_address, port, user_token
             )
 
-    def async_runner(self, coro: Any) -> Any:
+    def async_runner(self, coro: t.Any) -> t.Any:
         import asyncio
 
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -200,8 +200,8 @@ class ModelRegistry:
         if not model.id:
             msg = "Model must have an ID"
             raise StoreError(msg)
-        if not isinstance(model, get_args(ModelTypes)):
-            msg = f"Model must be one of {get_args(ModelTypes)}"
+        if not isinstance(model, t.get_args(ModelTypes)):
+            msg = f"Model must be one of {t.get_args(ModelTypes)}"
             raise StoreError(msg)
         if isinstance(model, RegisteredModel):
             return self.async_runner(self._api.upsert_registered_model(model))
@@ -298,7 +298,7 @@ class ModelRegistry:
                     k: v
                     for k, v in card_data.to_dict().items()
                     # TODO: (#151) preserve tags, possibly other complex metadata
-                    if isinstance(v, get_args(SupportedTypes))
+                    if isinstance(v, t.get_args(SupportedTypes))
                 }
             )
         return self.register_model(
