@@ -499,7 +499,7 @@ func (s *ModelRegistryServiceAPIService) UpdateArtifact(ctx context.Context, art
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	update, err := s.reconciler.UpdateExistingArtifact(converter.NewOpenapiUpdateWrapper(existing, entity))
+	update, err := converter.UpdateExistingArtifact(s.reconciler, converter.NewOpenapiUpdateWrapper(existing, entity))
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}

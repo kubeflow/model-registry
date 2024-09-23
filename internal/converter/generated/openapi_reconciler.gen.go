@@ -11,28 +11,6 @@ import (
 
 type OpenAPIReconcilerImpl struct{}
 
-func (c *OpenAPIReconcilerImpl) UpdateExistingArtifact(source converter.OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error) {
-	openapiArtifact := converter.InitWithExisting(source)
-	var pOpenapiDocArtifact *openapi.DocArtifact
-	if source.Update != nil {
-		pOpenapiDocArtifact = source.Update.DocArtifact
-	}
-	pOpenapiDocArtifact2, err := c.pOpenapiDocArtifactToPOpenapiDocArtifact(pOpenapiDocArtifact)
-	if err != nil {
-		return openapiArtifact, fmt.Errorf("error setting field DocArtifact: %w", err)
-	}
-	openapiArtifact.DocArtifact = pOpenapiDocArtifact2
-	var pOpenapiModelArtifact *openapi.ModelArtifact
-	if source.Update != nil {
-		pOpenapiModelArtifact = source.Update.ModelArtifact
-	}
-	pOpenapiModelArtifact2, err := c.pOpenapiModelArtifactToPOpenapiModelArtifact(pOpenapiModelArtifact)
-	if err != nil {
-		return openapiArtifact, fmt.Errorf("error setting field ModelArtifact: %w", err)
-	}
-	openapiArtifact.ModelArtifact = pOpenapiModelArtifact2
-	return openapiArtifact, nil
-}
 func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
 	openapiDocArtifact := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
@@ -515,60 +493,6 @@ func (c *OpenAPIReconcilerImpl) openapiRegisteredModelStateToOpenapiRegisteredMo
 	}
 	return openapiRegisteredModelState, nil
 }
-func (c *OpenAPIReconcilerImpl) pOpenapiDocArtifactToPOpenapiDocArtifact(source *openapi.DocArtifact) (*openapi.DocArtifact, error) {
-	var pOpenapiDocArtifact *openapi.DocArtifact
-	if source != nil {
-		var openapiDocArtifact openapi.DocArtifact
-		openapiDocArtifact.ArtifactType = (*source).ArtifactType
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiDocArtifact.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiDocArtifact.ExternalId = &xstring2
-		}
-		if (*source).Uri != nil {
-			xstring3 := *(*source).Uri
-			openapiDocArtifact.Uri = &xstring3
-		}
-		if (*source).State != nil {
-			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiDocArtifact.State = &openapiArtifactState
-		}
-		if (*source).Name != nil {
-			xstring4 := *(*source).Name
-			openapiDocArtifact.Name = &xstring4
-		}
-		if (*source).Id != nil {
-			xstring5 := *(*source).Id
-			openapiDocArtifact.Id = &xstring5
-		}
-		if (*source).CreateTimeSinceEpoch != nil {
-			xstring6 := *(*source).CreateTimeSinceEpoch
-			openapiDocArtifact.CreateTimeSinceEpoch = &xstring6
-		}
-		if (*source).LastUpdateTimeSinceEpoch != nil {
-			xstring7 := *(*source).LastUpdateTimeSinceEpoch
-			openapiDocArtifact.LastUpdateTimeSinceEpoch = &xstring7
-		}
-		pOpenapiDocArtifact = &openapiDocArtifact
-	}
-	return pOpenapiDocArtifact, nil
-}
 func (c *OpenAPIReconcilerImpl) pOpenapiMetadataBoolValueToPOpenapiMetadataBoolValue(source *openapi.MetadataBoolValue) *openapi.MetadataBoolValue {
 	var pOpenapiMetadataBoolValue *openapi.MetadataBoolValue
 	if source != nil {
@@ -629,78 +553,4 @@ func (c *OpenAPIReconcilerImpl) pOpenapiMetadataStructValueToPOpenapiMetadataStr
 		pOpenapiMetadataStructValue = &openapiMetadataStructValue
 	}
 	return pOpenapiMetadataStructValue
-}
-func (c *OpenAPIReconcilerImpl) pOpenapiModelArtifactToPOpenapiModelArtifact(source *openapi.ModelArtifact) (*openapi.ModelArtifact, error) {
-	var pOpenapiModelArtifact *openapi.ModelArtifact
-	if source != nil {
-		var openapiModelArtifact openapi.ModelArtifact
-		openapiModelArtifact.ArtifactType = (*source).ArtifactType
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiModelArtifact.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiModelArtifact.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiModelArtifact.ExternalId = &xstring2
-		}
-		if (*source).Uri != nil {
-			xstring3 := *(*source).Uri
-			openapiModelArtifact.Uri = &xstring3
-		}
-		if (*source).State != nil {
-			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiModelArtifact.State = &openapiArtifactState
-		}
-		if (*source).Name != nil {
-			xstring4 := *(*source).Name
-			openapiModelArtifact.Name = &xstring4
-		}
-		if (*source).Id != nil {
-			xstring5 := *(*source).Id
-			openapiModelArtifact.Id = &xstring5
-		}
-		if (*source).CreateTimeSinceEpoch != nil {
-			xstring6 := *(*source).CreateTimeSinceEpoch
-			openapiModelArtifact.CreateTimeSinceEpoch = &xstring6
-		}
-		if (*source).LastUpdateTimeSinceEpoch != nil {
-			xstring7 := *(*source).LastUpdateTimeSinceEpoch
-			openapiModelArtifact.LastUpdateTimeSinceEpoch = &xstring7
-		}
-		if (*source).ModelFormatName != nil {
-			xstring8 := *(*source).ModelFormatName
-			openapiModelArtifact.ModelFormatName = &xstring8
-		}
-		if (*source).StorageKey != nil {
-			xstring9 := *(*source).StorageKey
-			openapiModelArtifact.StorageKey = &xstring9
-		}
-		if (*source).StoragePath != nil {
-			xstring10 := *(*source).StoragePath
-			openapiModelArtifact.StoragePath = &xstring10
-		}
-		if (*source).ModelFormatVersion != nil {
-			xstring11 := *(*source).ModelFormatVersion
-			openapiModelArtifact.ModelFormatVersion = &xstring11
-		}
-		if (*source).ServiceAccountName != nil {
-			xstring12 := *(*source).ServiceAccountName
-			openapiModelArtifact.ServiceAccountName = &xstring12
-		}
-		pOpenapiModelArtifact = &openapiModelArtifact
-	}
-	return pOpenapiModelArtifact, nil
 }
