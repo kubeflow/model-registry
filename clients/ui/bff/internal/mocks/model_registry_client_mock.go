@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
 )

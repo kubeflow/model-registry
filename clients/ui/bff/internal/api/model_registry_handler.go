@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/data"
+	"github.com/kubeflow/model-registry/ui/bff/internal/data"
 	"net/http"
 )
 

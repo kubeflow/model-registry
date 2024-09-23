@@ -3,7 +3,7 @@ package data
 import (
 	"encoding/json"
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net/http"

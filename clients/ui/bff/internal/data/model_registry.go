@@ -2,8 +2,7 @@ package data
 
 import (
 	"fmt"
-
-	k8s "github.com/kubeflow/model-registry/ui/bff/integrations"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 )
 
 type ModelRegistryModel struct {

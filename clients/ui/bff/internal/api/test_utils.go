@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"io"
 	"net/http"
 	"net/http/httptest"
