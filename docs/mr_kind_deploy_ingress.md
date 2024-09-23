@@ -4,7 +4,7 @@
 
 1. Create a file named `kind-config.yaml` with the following content:
 
-```
+```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -55,14 +55,14 @@ kubectl patch deployment -n ingress-nginx ingress-nginx-controller   --type='jso
 
 1. Create a file named `mr-ingress.yaml` with the following content:
 
-```
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: model-registry
 spec:
   rules:
-  - host: "model-registry.io" // choose a name of your liking
+  - host: "model-registry.io" # choose a name of your liking
     http:
       paths:
       - pathType: Prefix
