@@ -43,7 +43,7 @@
     "@types/jest": "^29.5.12",
     "@types/react-router-dom": "^5.3.3",
     "@types/classnames": "^2.3.1",
-    "@types/dompurify": "^2.2.6",
+    "@types/dompurify": "^3.0.5",
     "@types/showdown": "^2.0.3",
     "@types/lodash-es": "^4.17.8",
     "chai-subset": "^1.6.0",
@@ -99,7 +99,7 @@
     "react": "^18",
     "react-dom": "^18",
     "sass": "^1.78.0",
-    "dompurify": "^2.2.6",
+    "dompurify": "^3.1.6",
     "showdown": "^2.1.0",
     "classnames": "^2.2.6"
   },
