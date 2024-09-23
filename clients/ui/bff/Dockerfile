@@ -12,13 +12,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the go source files
-COPY cmd/ cmd/
-COPY api/ api/
-COPY config/ config/
-COPY data/ data/
-COPY integrations/ integrations/
-COPY internals/ internals/
-COPY validation/ validation/
+COPY cmd/main.go cmd/main.go
+COPY internal/ internal/
 
 
 

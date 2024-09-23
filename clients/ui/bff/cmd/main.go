@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/api"
-	"github.com/kubeflow/model-registry/ui/bff/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/api"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 
 	"log/slog"
 	"net/http"

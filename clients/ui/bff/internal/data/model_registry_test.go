@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/kubeflow/model-registry/ui/bff/internals/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
