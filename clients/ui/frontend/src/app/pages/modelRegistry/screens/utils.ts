@@ -9,6 +9,13 @@ import {
 } from '~/app/types';
 import { KeyValuePair } from '~/types';
 
+export type ObjectStorageFields = {
+  endpoint: string;
+  bucket: string;
+  region?: string;
+  path: string;
+};
+
 // Retrieves the labels from customProperties that have non-empty string_value.
 export const getLabels = <T extends ModelRegistryCustomProperties>(customProperties: T): string[] =>
   Object.keys(customProperties).filter((key) => {
@@ -148,3 +155,23 @@ export const filterArchiveModels = (registeredModels: RegisteredModel[]): Regist
 
 export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
   registeredModels.filter((rm) => rm.state === ModelState.LIVE);
+
+export const uriToObjectStorageFields = (uri: string): ObjectStorageFields | null => {
+  try {
+    const urlObj = new URL(uri);
+    // Some environments include the first token after the protocol (our bucket) in the pathname and some have it as the hostname
+    const [bucket, ...pathSplit] = `${urlObj.hostname}/${urlObj.pathname}`
+      .split('/')
+      .filter(Boolean);
+    const path = pathSplit.join('/');
+    const searchParams = new URLSearchParams(urlObj.search);
+    const endpoint = searchParams.get('endpoint');
+    const region = searchParams.get('defaultRegion');
+    if (endpoint && bucket && path) {
+      return { endpoint, bucket, region: region || undefined, path };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};

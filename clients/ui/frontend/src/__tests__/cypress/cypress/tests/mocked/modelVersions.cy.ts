@@ -9,8 +9,7 @@ import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockBFFResponse } from '~/__mocks__/utils';
-
-const MODEL_REGISTRY_API_VERSION = 'v1';
+import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
 type HandlersProps = {
   registeredModelsSize?: number;
@@ -99,7 +98,7 @@ const initIntercepts = ({
         modelVersionId: 1,
       },
     },
-    mockModelVersion({ id: '1', name: 'model version' }),
+    mockBFFResponse(mockModelVersion({ id: '1', name: 'model version' })),
   );
 };
 
@@ -209,14 +208,12 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/modelRegistry/modelregistry-sample/registeredModels/1/versions`);
-    // TODO: Uncomment when we have model version details
-    // const modelVersionRow = modelRegistry.getModelVersionRow('model version');
-    // modelVersionRow.findModelVersionName().contains('model version').click();
-    // verifyRelativeURL('/modelRegistry/modelregistry-sample/registeredModels/1/versions/1/details');
-    // cy.findByTestId('app-page-title').should('have.text', 'model version');
-    // cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
-    // cy.go('back');
-    // verifyRelativeURL('/modelRegistry/modelregistry-sample/registeredModels/1/versions');
+    const modelVersionRow = modelRegistry.getModelVersionRow('model version');
+    modelVersionRow.findModelVersionName().contains('model version').click();
+    verifyRelativeURL('/modelRegistry/modelregistry-sample/registeredModels/1/versions/1/details');
+    cy.findByTestId('app-page-title').should('have.text', 'model version');
+    cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
+    cy.go('back');
+    verifyRelativeURL('/modelRegistry/modelregistry-sample/registeredModels/1/versions');
   });
 });

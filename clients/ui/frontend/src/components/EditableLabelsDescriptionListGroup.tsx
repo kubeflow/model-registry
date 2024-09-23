@@ -22,6 +22,7 @@ type EditableTextDescriptionListGroupProps = Partial<
   labels: string[];
   saveEditedLabels: (labels: string[]) => Promise<unknown>;
   allExistingKeys?: string[];
+  isArchive?: boolean;
 };
 
 const EditableLabelsDescriptionListGroup: React.FC<EditableTextDescriptionListGroupProps> = ({
@@ -29,6 +30,7 @@ const EditableLabelsDescriptionListGroup: React.FC<EditableTextDescriptionListGr
   contentWhenEmpty = 'No labels',
   labels,
   saveEditedLabels,
+  isArchive,
   allExistingKeys = labels,
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -98,7 +100,7 @@ const EditableLabelsDescriptionListGroup: React.FC<EditableTextDescriptionListGr
         title={title}
         isEmpty={labels.length === 0}
         contentWhenEmpty={contentWhenEmpty}
-        isEditable
+        isEditable={!isArchive}
         isEditing={isEditing}
         isSavingEdits={isSavingEdits}
         contentWhenEditing={

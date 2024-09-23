@@ -89,7 +89,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
           icon={<FilterIcon />}
         />
       </ToolbarFilter>
-      <ToolbarItem variant="label-group">
+      <ToolbarItem>
         <SearchInput
           placeholder={`Find by ${searchType.toLowerCase()}`}
           value={search}

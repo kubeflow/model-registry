@@ -12,9 +12,14 @@ import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTi
 type ModelDetailsViewProps = {
   registeredModel: RegisteredModel;
   refresh: () => void;
+  isArchiveModel?: boolean;
 };
 
-const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ registeredModel: rm, refresh }) => {
+const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
+  registeredModel: rm,
+  refresh,
+  isArchiveModel,
+}) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   return (
     <Flex
@@ -26,6 +31,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ registeredModel: rm
         <DescriptionList isFillColumns>
           <EditableTextDescriptionListGroup
             title="Description"
+            isArchive={isArchiveModel}
             contentWhenEmpty="No description"
             value={rm.description || ''}
             saveEditedValue={(value) =>
@@ -42,6 +48,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ registeredModel: rm
           />
           <EditableLabelsDescriptionListGroup
             labels={getLabels(rm.customProperties)}
+            isArchive={isArchiveModel}
             allExistingKeys={Object.keys(rm.customProperties)}
             saveEditedLabels={(editedLabels) =>
               apiState.api
@@ -56,6 +63,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ registeredModel: rm
             }
           />
           <ModelPropertiesDescriptionListGroup
+            isArchive={isArchiveModel}
             customProperties={rm.customProperties}
             saveEditedCustomProperties={(editedProperties) =>
               apiState.api

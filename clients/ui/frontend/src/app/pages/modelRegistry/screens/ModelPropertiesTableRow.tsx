@@ -18,6 +18,7 @@ type ModelPropertiesTableRowProps = {
   allExistingKeys: string[];
   setIsEditing: (isEditing: boolean) => void;
   isSavingEdits: boolean;
+  isArchive?: boolean;
   setIsSavingEdits: (isSaving: boolean) => void;
   saveEditedProperty: (oldKey: string, newPair: KeyValuePair) => Promise<unknown>;
 } & EitherNotBoth<
@@ -38,6 +39,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   setIsEditing,
   isSavingEdits,
   setIsSavingEdits,
+  isArchive,
   saveEditedProperty,
 }) => {
   const { key, value } = keyValuePair;
@@ -143,43 +145,45 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
           </ExpandableSection>
         )}
       </Td>
-      <Td isActionCell width={10}>
-        {isEditing ? (
-          <ActionList isIconList>
-            <ActionListItem>
-              <Button
-                data-testid={`save-edit-button-property-${key}`}
-                aria-label={`Save edits to property with key ${key}`}
-                variant="link"
-                onClick={onSaveEditsClick}
-                isDisabled={isSavingEdits || !unsavedKey || !unsavedValue || !!keyValidationError}
-              >
-                <CheckIcon />
-              </Button>
-            </ActionListItem>
-            <ActionListItem>
-              <Button
-                data-testid={`discard-edit-button-property-${key}`}
-                aria-label={`Discard edits to property with key ${key}`}
-                variant="plain"
-                onClick={onDiscardEditsClick}
-                isDisabled={isSavingEdits}
-              >
-                <TimesIcon />
-              </Button>
-            </ActionListItem>
-          </ActionList>
-        ) : (
-          <ActionsColumn
-            isDisabled={isSavingEdits}
-            popperProps={{ direction: 'up' }}
-            items={[
-              { title: 'Edit', onClick: onEditClick, isDisabled: isSavingEdits },
-              { title: 'Delete', onClick: onDeleteClick, isDisabled: isSavingEdits },
-            ]}
-          />
-        )}
-      </Td>
+      {!isArchive && (
+        <Td isActionCell width={10}>
+          {isEditing ? (
+            <ActionList isIconList>
+              <ActionListItem>
+                <Button
+                  data-testid={`save-edit-button-property-${key}`}
+                  aria-label={`Save edits to property with key ${key}`}
+                  variant="link"
+                  onClick={onSaveEditsClick}
+                  isDisabled={isSavingEdits || !unsavedKey || !unsavedValue || !!keyValidationError}
+                >
+                  <CheckIcon />
+                </Button>
+              </ActionListItem>
+              <ActionListItem>
+                <Button
+                  data-testid={`discard-edit-button-property-${key}`}
+                  aria-label={`Discard edits to property with key ${key}`}
+                  variant="plain"
+                  onClick={onDiscardEditsClick}
+                  isDisabled={isSavingEdits}
+                >
+                  <TimesIcon />
+                </Button>
+              </ActionListItem>
+            </ActionList>
+          ) : (
+            <ActionsColumn
+              isDisabled={isSavingEdits}
+              popperProps={{ direction: 'up' }}
+              items={[
+                { title: 'Edit', onClick: onEditClick, isDisabled: isSavingEdits },
+                { title: 'Delete', onClick: onDeleteClick, isDisabled: isSavingEdits },
+              ]}
+            />
+          )}
+        </Td>
+      )}
     </Tr>
   );
 };

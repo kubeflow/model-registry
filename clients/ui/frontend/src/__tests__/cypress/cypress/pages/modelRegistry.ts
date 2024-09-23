@@ -103,6 +103,10 @@ class ModelRegistry {
     cy.findByTestId('registered-models-table-toolbar').should('exist');
   }
 
+  shouldArchiveModelVersionsEmpty() {
+    cy.findByTestId('empty-archive-model-versions').should('exist');
+  }
+
   tabEnabled() {
     appChrome.findNavItem('Model Registry').should('exist');
     return this;
