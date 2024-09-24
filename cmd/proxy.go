@@ -50,6 +50,16 @@ func init() {
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
 
+	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreHostname, "mlmd-hostname", proxyCfg.DatastoreHostname, "MLMD hostname")
+	if err := proxyCmd.Flags().MarkDeprecated("mlmd-hostname", "please use --datastore-hostname instead"); err != nil {
+		glog.Errorf("error marking flag as deprecated: %v", err)
+	}
+
+	proxyCmd.Flags().IntVar(&proxyCfg.DatastorePort, "mlmd-port", proxyCfg.DatastorePort, "MLMD port")
+	if err := proxyCmd.Flags().MarkDeprecated("mlmd-port", "please use --datastore-port instead"); err != nil {
+		glog.Errorf("error marking flag as deprecated: %v", err)
+	}
+
 	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreHostname, "datastore-hostname", proxyCfg.DatastoreHostname, "Datastore hostname")
 	proxyCmd.Flags().IntVar(&proxyCfg.DatastorePort, "datastore-port", proxyCfg.DatastorePort, "Datastore port")
 	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreType, "datastore-type", proxyCfg.DatastoreType, "Datastore type")
