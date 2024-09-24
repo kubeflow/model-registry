@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "model-registry"
-version = "0.2.7a1"
+version = "0.2.8a1"
 description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
@@ -27,7 +27,7 @@ nest-asyncio = "^1.6.0"
 # necessary for modern type annotations using pydantic on 3.9
 eval-type-backport = "^0.2.0"
 
-huggingface-hub = { version = ">=0.20.1,<0.25.0", optional = true }
+huggingface-hub = { version = ">=0.20.1,<0.26.0", optional = true }
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
