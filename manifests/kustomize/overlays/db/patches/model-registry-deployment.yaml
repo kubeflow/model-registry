@@ -20,8 +20,9 @@ spec:
           args:
             - --hostname=0.0.0.0
             - --port=$(MODEL_REGISTRY_REST_SERVICE_PORT)
-            - --mlmd-hostname=localhost
-            - --mlmd-port=$(MODEL_REGISTRY_GRPC_SERVICE_PORT)
+            - --datastore-hostname=localhost
+            - --datastore-port=$(MODEL_REGISTRY_GRPC_SERVICE_PORT)
+            - --datastore-type=$(MODEL_REGISTRY_DATA_STORE_TYPE)
         - name: grpc-container
           # Remove existing environment variables
           env:
