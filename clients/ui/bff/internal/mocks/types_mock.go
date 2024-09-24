@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"net/url"
+	"strconv"
 )
 
 func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
@@ -123,6 +125,17 @@ func GenerateMockModelArtifactList() openapi.ModelArtifactList {
 		Size:          int32(len(artifacts)),
 		Items:         artifacts,
 	}
+}
+
+func GenerateMockPageValues() url.Values {
+	pageValues := url.Values{}
+
+	pageValues.Add("pageSize", strconv.Itoa(gofakeit.Number(1, 100)))
+	pageValues.Add("orderBy", gofakeit.RandomString([]string{"CREATE_TIME", "LAST_UPDATE_TIME", "ID"}))
+	pageValues.Add("sortOrder", gofakeit.RandomString([]string{"ASC", "DESC"}))
+	pageValues.Add("nextPageToken", gofakeit.UUID())
+
+	return pageValues
 }
 
 func randomEpochTime() *string {

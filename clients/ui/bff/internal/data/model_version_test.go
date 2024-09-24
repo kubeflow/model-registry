@@ -2,6 +2,7 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -106,7 +107,7 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On(http.MethodGet, path, mock.Anything).Return(mockData, nil)
 
-	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1")
+	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1", nil)
 	assert.NoError(t, err)
 
 	assert.NotNil(t, actual)
@@ -114,6 +115,31 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
 	assert.Equal(t, expected.PageSize, actual.PageSize)
 	assert.Equal(t, len(expected.Items), len(actual.Items))
+}
+
+func TestGetModelArtifactsByModelVersionWithPageParams(t *testing.T) {
+	gofakeit.Seed(0) //nolint:errcheck
+
+	pageValues := mocks.GenerateMockPageValues()
+	expected := mocks.GenerateMockModelArtifactList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	modelVersion := ModelVersion{}
+
+	path, err := url.JoinPath(modelVersionPath, "1", artifactsByModelVersionPath)
+	assert.NoError(t, err)
+	reqUrl := fmt.Sprintf("%s?%s", path, pageValues.Encode())
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On(http.MethodGet, reqUrl, mock.Anything).Return(mockData, nil)
+
+	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1", pageValues)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, actual)
+	mockClient.AssertExpectations(t)
 }
 
 func TestCreateModelArtifactByModelVersion(t *testing.T) {
