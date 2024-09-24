@@ -15,7 +15,7 @@ repeat_cmd_until() {
 
     current_time=$(date +%s)
     if (( (current_time - start_time) > max_wait_secs )); then
-      echo "Waited for expression "$1" to be true for $max_wait_secs seconds without luck. Returning with error."
+      echo "Waited for expression "$1" to satisfy condition "$2" for $max_wait_secs seconds without luck. Returning with error."
       return 1
     fi
 
