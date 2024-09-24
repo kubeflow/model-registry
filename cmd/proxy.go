@@ -3,19 +3,12 @@ package cmd
 import (
 	"fmt"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/internal/mlmdtypes"
-	"github.com/kubeflow/model-registry/internal/proxy"
+
+	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
-	"github.com/kubeflow/model-registry/pkg/core"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -28,104 +21,35 @@ const (
 // proxyCmd represents the proxy command
 var proxyCmd = &cobra.Command{
 	Use:   "proxy",
-	Short: "Starts the ml-metadata go OpenAPI proxy",
-	Long: `This command launches the ml-metadata go OpenAPI proxy server.
+	Short: "Starts the go OpenAPI proxy server to connect to a metadata store",
+	Long: `This command launches the go OpenAPI proxy server.
 
-The server connects to a mlmd CPP server. It supports options to customize the
-hostname and port where it listens.'`,
+The server connects to a metadata store, currently only MLMD is supported. It supports options to customize the
+hostname and port where it listens.`,
 	RunE: runProxyServer,
 }
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
-	var conn *grpc.ClientConn
+	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
-	router := proxy.NewDynamicRouter()
-
-	router.SetRouter(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, mlmdUnavailableMessage, http.StatusServiceUnavailable)
-	}))
-
-	errChan := make(chan error, 1)
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		defer close(errChan)
-		wg.Wait()
-	}()
-
-	// Start the connection to the MLMD server in a separate goroutine, so that
-	// we can start the proxy server and start serving requests while we wait
-	// for the connection to be established.
-	go func() {
-		defer wg.Done()
-
-		mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
-		glog.Infof("connecting to MLMD server %s..", mlmdAddr)
-		var err error
-		conn, err = grpc.NewClient(mlmdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			errChan <- fmt.Errorf("error dialing connection to mlmd server %s: %w", mlmdAddr, err)
-			return
-		}
-
-		mlmdTypeNamesConfig := mlmdtypes.NewMLMDTypeNamesConfigFromDefaults()
-
-		// Backoff and retry GRPC requests to the MLMD server, until the server
-		// becomes available or the maximum number of attempts is reached.
-		for i := 0; i < maxGRPCRetryAttempts; i++ {
-			_, err = mlmdtypes.CreateMLMDTypes(conn, mlmdTypeNamesConfig)
-			if err == nil {
-				break
-			}
-
-			st, ok := status.FromError(err)
-			if !ok || st.Code() != codes.Unavailable {
-				errChan <- fmt.Errorf("error creating MLMD types: %w", err)
-				return
-			}
-
-			time.Sleep(time.Duration(i+1) * time.Second)
-		}
-
-		service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
-		if err != nil {
-			errChan <- fmt.Errorf("error creating core service: %w", err)
-
-			return
-		}
-
-		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
-		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
-
-		router.SetRouter(openapi.NewRouter(ModelRegistryServiceAPIController))
-
-		glog.Infof("connected to MLMD server")
-	}()
-
-	// Start the proxy server in a separate goroutine so that we can handle
-	// errors from both the proxy server and the connection to the MLMD server.
-	go func() {
-		defer wg.Done()
-
-		glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
-
-		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
-		if err != nil {
-			errChan <- fmt.Errorf("error starting proxy server: %w", err)
-		}
-	}()
+	ds, dsTeardownF, err := datastore.NewDatastore(proxyCfg.DatastoreType, proxyCfg.DatastoreHostname, proxyCfg.DatastorePort)
+	if err != nil {
+		return fmt.Errorf("error creating datastore: %w", err)
+	}
 
 	defer func() {
-		if conn != nil {
-			glog.Info("closing connection to MLMD server")
-
-			conn.Close()
+		if err := dsTeardownF(); err != nil {
+			glog.Errorf("error during cleanup: %w", err)
 		}
 	}()
 
-	// Wait for either the MLMD server connection or the proxy server to return an error
-	// or for both to finish successfully.
-	return <-errChan
+	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(ds)
+	ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
+
+	router := openapi.NewRouter(ModelRegistryServiceAPIController)
+
+	glog.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
+	return nil
 }
 
 func init() {
@@ -134,16 +58,29 @@ func init() {
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
 
-	proxyCmd.Flags().StringVar(&proxyCfg.MLMDHostname, "mlmd-hostname", proxyCfg.MLMDHostname, "MLMD hostname")
-	proxyCmd.Flags().IntVar(&proxyCfg.MLMDPort, "mlmd-port", proxyCfg.MLMDPort, "MLMD port")
+	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreHostname, "mlmd-hostname", proxyCfg.DatastoreHostname, "MLMD hostname")
+	if err := proxyCmd.Flags().MarkDeprecated("mlmd-hostname", "please use --datastore-hostname instead"); err != nil {
+		glog.Errorf("error marking flag as deprecated: %v", err)
+	}
+
+	proxyCmd.Flags().IntVar(&proxyCfg.DatastorePort, "mlmd-port", proxyCfg.DatastorePort, "MLMD port")
+	if err := proxyCmd.Flags().MarkDeprecated("mlmd-port", "please use --datastore-port instead"); err != nil {
+		glog.Errorf("error marking flag as deprecated: %v", err)
+	}
+
+	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreHostname, "datastore-hostname", proxyCfg.DatastoreHostname, "Datastore hostname")
+	proxyCmd.Flags().IntVar(&proxyCfg.DatastorePort, "datastore-port", proxyCfg.DatastorePort, "Datastore port")
+	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreType, "datastore-type", proxyCfg.DatastoreType, "Datastore type")
 }
 
 type ProxyConfig struct {
-	MLMDHostname string
-	MLMDPort     int
+	DatastoreHostname string
+	DatastorePort     int
+	DatastoreType     string
 }
 
 var proxyCfg = ProxyConfig{
-	MLMDHostname: "localhost",
-	MLMDPort:     9090,
+	DatastoreHostname: "localhost",
+	DatastorePort:     9090,
+	DatastoreType:     "mlmd",
 }
