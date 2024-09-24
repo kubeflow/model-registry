@@ -58,7 +58,7 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<RegisteredModel>,
+          response: ApiResponse<ModelRegistryResponse<RegisteredModel>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
