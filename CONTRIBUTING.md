@@ -83,7 +83,7 @@ Create a Kind cluster with the following command:
 kind create cluster
 ```
 
-and then follow the steps from this link [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) to set up the port-forwarding and deploy the Model Registry on the cluster.
+and then follow the steps from the [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) on the Kubeflow website, to set up the port-forwarding and deploy the Model Registry on the cluster.
 
 ### Ingress guide
 
