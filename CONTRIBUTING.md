@@ -61,6 +61,34 @@ to your PATH from your bashrc like:
 
 and now you can substitute `gmake` every time the make command is mentioned in guides (or perform the path management per the caveat).
 
+## Local kubernetes deployment of Model Registry
+
+To test the Model Registry locally without mocking the k8s calls, the Model Registry backend can be deployed using Kind.
+
+### Prerequisites
+
+The following tools need to be installed in your local environment:
+
+- [Podman](https://podman.io/) (Docker should also work)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+
+Choose the networking setup that fits your needs, either port-forwarding or Ingress.
+
+### Port-forwarding guide
+
+Create a Kind cluster with the following command:
+
+```sh
+kind create cluster
+```
+
+and then follow the steps from the [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) on the Kubeflow website, to set up the port-forwarding and deploy the Model Registry on the cluster.
+
+### Ingress guide
+
+Follow the [Ingress guide](docs/mr_kind_deploy_ingress.md) to set up the Ingress controller and deploy the Model Registry on the cluster.
+
 ## Docker engine
 
 Several options of docker engines are available for Mac.
