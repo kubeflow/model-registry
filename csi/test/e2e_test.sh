@@ -16,6 +16,8 @@ wait_for_port() {
 
 DIR="$(dirname "$0")"
 
+source ./${DIR}/test_utils.sh
+
 KUBECTL=${KUBECTL:-"kubectl"}
 
 # You can provide a local version of the model registry storage initializer
@@ -145,7 +147,7 @@ spec:
 EOF
 
 # wait for pod predictor to be initialized
-sleep 2
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' | wc -l" "-gt 0" 60
 predictor=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 kubectl wait --for=condition=Ready pod/$predictor -n $KSERVE_TEST_NAMESPACE --timeout=5m
 
