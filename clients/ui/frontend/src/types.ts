@@ -1,3 +1,5 @@
+import { ValueOf } from '~/typeHelpers';
+
 //  TODO: Get the status config params
 export type UserSettings = {
   username: string;
@@ -24,3 +26,5 @@ export type KeyValuePair = {
   key: string;
   value: string;
 };
+
+export type UpdateObjectAtPropAndValue<T> = (propKey: keyof T, propValue: ValueOf<T>) => void;

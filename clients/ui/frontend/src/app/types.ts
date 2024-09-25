@@ -21,8 +21,7 @@ export type ModelRegistry = {
   description: string;
 };
 
-// TODO: Change in the backend AND frontend to "items" instead of "model-registries"
-export type ModelRegistryResponse<T> = {
+export type ModelRegistryBody<T> = {
   data: T;
   metadata?: Record<string, unknown>;
 };

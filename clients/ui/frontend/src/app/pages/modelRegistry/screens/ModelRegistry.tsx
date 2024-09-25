@@ -3,7 +3,7 @@ import ApplicationsPage from '~/app/components/ApplicationsPage';
 import TitleWithIcon from '~/app/components/design/TitleWithIcon';
 import { ProjectObjectType } from '~/app/components/design/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
-import { filterLiveModels } from '~/app/utils';
+import { filterLiveModels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
 import RegisteredModelListView from './RegisteredModels/RegisteredModelListView';
 import { modelRegistryUrl } from './routeUtils';
