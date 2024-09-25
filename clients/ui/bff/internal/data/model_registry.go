@@ -18,7 +18,7 @@ func (m ModelRegistryModel) FetchAllModelRegistries(client k8s.KubernetesClientI
 		return nil, fmt.Errorf("error fetching model registries: %w", err)
 	}
 
-	var registries []ModelRegistryModel
+	var registries []ModelRegistryModel = []ModelRegistryModel{}
 	for _, item := range resources {
 		registry := ModelRegistryModel{
 			Name:        item.Name,

@@ -34,7 +34,7 @@ export const useAdminSettings = (): NavDataItem[] => {
   return [
     {
       label: 'Settings',
-      children: [{ label: 'Model Registry', path: '/settings' }],
+      children: [{ label: 'Model Registry', path: '/modelRegistrySettings' }],
     },
   ];
 };
@@ -58,7 +58,9 @@ const AppRoutes: React.FC = () => {
       {
         // TODO: Remove the linter skip when we implement authentication
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        isAdmin && <Route path="/settings/*" element={<ModelRegistrySettingsRoutes />} />
+        isAdmin && (
+          <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
+        )
       }
     </Routes>
   );
