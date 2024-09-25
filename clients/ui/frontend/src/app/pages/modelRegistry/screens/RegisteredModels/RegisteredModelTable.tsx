@@ -23,7 +23,7 @@ const RegisteredModelTable: React.FC<RegisteredModelTableProps> = ({
     columns={rmColumns}
     toolbarContent={toolbarContent}
     defaultSortColumn={2}
-    enablePagination
+    enablePagination='compact'
     emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
     rowRenderer={(rm) => (
       <RegisteredModelTableRow key={rm.name} registeredModel={rm} refresh={refresh} />
