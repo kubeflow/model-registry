@@ -32,8 +32,10 @@ from mr_openapi.exceptions import ApiException
 
 # import models into sdk package
 from mr_openapi.models.artifact import Artifact
+from mr_openapi.models.artifact_create import ArtifactCreate
 from mr_openapi.models.artifact_list import ArtifactList
 from mr_openapi.models.artifact_state import ArtifactState
+from mr_openapi.models.artifact_update import ArtifactUpdate
 from mr_openapi.models.base_artifact import BaseArtifact
 from mr_openapi.models.base_artifact_create import BaseArtifactCreate
 from mr_openapi.models.base_artifact_update import BaseArtifactUpdate
@@ -45,6 +47,8 @@ from mr_openapi.models.base_resource_create import BaseResourceCreate
 from mr_openapi.models.base_resource_list import BaseResourceList
 from mr_openapi.models.base_resource_update import BaseResourceUpdate
 from mr_openapi.models.doc_artifact import DocArtifact
+from mr_openapi.models.doc_artifact_create import DocArtifactCreate
+from mr_openapi.models.doc_artifact_update import DocArtifactUpdate
 from mr_openapi.models.error import Error
 from mr_openapi.models.execution_state import ExecutionState
 from mr_openapi.models.inference_service import InferenceService

@@ -3,7 +3,8 @@ package converter
 import "github.com/kubeflow/model-registry/pkg/openapi"
 
 type OpenAPIModel interface {
-	openapi.RegisteredModel |
+	openapi.Artifact |
+		openapi.RegisteredModel |
 		openapi.ModelVersion |
 		openapi.ModelArtifact |
 		openapi.DocArtifact |

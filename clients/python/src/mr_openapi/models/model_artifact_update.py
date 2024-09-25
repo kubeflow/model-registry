@@ -23,8 +23,9 @@ from mr_openapi.models.metadata_value import MetadataValue
 
 
 class ModelArtifactUpdate(BaseModel):
-    """An ML model artifact."""  # noqa: E501
+    """An ML model artifact to be updated."""  # noqa: E501
 
+    artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",

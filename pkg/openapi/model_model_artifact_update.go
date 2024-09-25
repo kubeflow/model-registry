@@ -17,8 +17,9 @@ import (
 // checks if the ModelArtifactUpdate type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ModelArtifactUpdate{}
 
-// ModelArtifactUpdate An ML model artifact.
+// ModelArtifactUpdate An ML model artifact to be updated.
 type ModelArtifactUpdate struct {
+	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -44,7 +45,7 @@ type ModelArtifactUpdate struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelArtifactUpdate() *ModelArtifactUpdate {
+func NewModelArtifactUpdate(artifactType string) *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
@@ -56,9 +57,35 @@ func NewModelArtifactUpdate() *ModelArtifactUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *ModelArtifactUpdate) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *ModelArtifactUpdate) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -391,6 +418,7 @@ func (o ModelArtifactUpdate) MarshalJSON() ([]byte, error) {
 
 func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}

@@ -11,6 +11,120 @@ import (
 
 type OpenAPIConverterImpl struct{}
 
+func (c *OpenAPIConverterImpl) ConvertArtifactCreate(source *openapi.ArtifactCreate) (*openapi.Artifact, error) {
+	var pOpenapiArtifact *openapi.Artifact
+	if source != nil {
+		var openapiArtifact openapi.Artifact
+		pOpenapiDocArtifact, err := c.ConvertDocArtifactCreate((*source).DocArtifactCreate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field DocArtifact: %w", err)
+		}
+		openapiArtifact.DocArtifact = pOpenapiDocArtifact
+		pOpenapiModelArtifact, err := c.ConvertModelArtifactCreate((*source).ModelArtifactCreate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ModelArtifact: %w", err)
+		}
+		openapiArtifact.ModelArtifact = pOpenapiModelArtifact
+		pOpenapiArtifact = &openapiArtifact
+	}
+	return pOpenapiArtifact, nil
+}
+func (c *OpenAPIConverterImpl) ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error) {
+	var pOpenapiArtifact *openapi.Artifact
+	if source != nil {
+		var openapiArtifact openapi.Artifact
+		pOpenapiDocArtifact, err := c.ConvertDocArtifactUpdate((*source).DocArtifactUpdate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field DocArtifact: %w", err)
+		}
+		openapiArtifact.DocArtifact = pOpenapiDocArtifact
+		pOpenapiModelArtifact, err := c.ConvertModelArtifactUpdate((*source).ModelArtifactUpdate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ModelArtifact: %w", err)
+		}
+		openapiArtifact.ModelArtifact = pOpenapiModelArtifact
+		pOpenapiArtifact = &openapiArtifact
+	}
+	return pOpenapiArtifact, nil
+}
+func (c *OpenAPIConverterImpl) ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error) {
+	var pOpenapiDocArtifact *openapi.DocArtifact
+	if source != nil {
+		var openapiDocArtifact openapi.DocArtifact
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiDocArtifact.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiDocArtifact.ExternalId = &xstring2
+		}
+		if (*source).Uri != nil {
+			xstring3 := *(*source).Uri
+			openapiDocArtifact.Uri = &xstring3
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiDocArtifact.State = &openapiArtifactState
+		}
+		if (*source).Name != nil {
+			xstring4 := *(*source).Name
+			openapiDocArtifact.Name = &xstring4
+		}
+		pOpenapiDocArtifact = &openapiDocArtifact
+	}
+	return pOpenapiDocArtifact, nil
+}
+func (c *OpenAPIConverterImpl) ConvertDocArtifactUpdate(source *openapi.DocArtifactUpdate) (*openapi.DocArtifact, error) {
+	var pOpenapiDocArtifact *openapi.DocArtifact
+	if source != nil {
+		var openapiDocArtifact openapi.DocArtifact
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiDocArtifact.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiDocArtifact.ExternalId = &xstring2
+		}
+		if (*source).Uri != nil {
+			xstring3 := *(*source).Uri
+			openapiDocArtifact.Uri = &xstring3
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiDocArtifact.State = &openapiArtifactState
+		}
+		pOpenapiDocArtifact = &openapiDocArtifact
+	}
+	return pOpenapiDocArtifact, nil
+}
 func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.InferenceServiceCreate) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
 	if source != nil {
@@ -494,6 +608,11 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.S
 		pOpenapiServingEnvironment = &openapiServingEnvironment
 	}
 	return pOpenapiServingEnvironment, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForArtifact(source converter.OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error) {
+	openapiArtifact := converter.InitWithUpdate(source)
+	_ = source
+	return openapiArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
 	openapiDocArtifact := converter.InitWithUpdate(source)

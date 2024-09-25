@@ -412,6 +412,59 @@ func (suite *CoreTestSuite) TestGetArtifactById() {
 	suite.Equal(*createdArtifact, *getById, "artifacts returned during creation and on get by id should be equal")
 }
 
+func (suite *CoreTestSuite) TestGetArtifactByParams() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	docArtifact := &openapi.DocArtifact{
+		Name:       &artifactName,
+		State:      (*openapi.ArtifactState)(&artifactState),
+		Uri:        &artifactUri,
+		ExternalId: &artifactExtId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"custom_string_prop": {
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
+			},
+		},
+	}
+
+	art, err := service.UpsertModelVersionArtifact(&openapi.Artifact{DocArtifact: docArtifact}, modelVersionId)
+	suite.Nilf(err, "error creating new model artifact: %v", err)
+	da := art.DocArtifact
+
+	createdArtifactId, _ := converter.StringToInt64(da.Id)
+
+	state, _ := openapi.NewArtifactStateFromValue(artifactState)
+
+	artByName, err := service.GetArtifactByParams(&artifactName, &modelVersionId, nil)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
+	daByName := artByName.DocArtifact
+
+	suite.NotNil(da.Id, "created artifact id should not be nil")
+	suite.Equal(artifactName, *daByName.Name)
+	suite.Equal(artifactExtId, *daByName.ExternalId)
+	suite.Equal(*state, *daByName.State)
+	suite.Equal(artifactUri, *daByName.Uri)
+	suite.Equal(customString, (*daByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+
+	suite.Equal(*da, *daByName, "artifacts returned during creation and on get by name should be equal")
+
+	getByExtId, err := service.GetArtifactByParams(nil, nil, &artifactExtId)
+	suite.Nilf(err, "error getting model artifact by id %s: %v", *createdArtifactId, err)
+	daByExtId := getByExtId.DocArtifact
+
+	suite.NotNil(da.Id, "created artifact id should not be nil")
+	suite.Equal(artifactName, *daByExtId.Name)
+	suite.Equal(artifactExtId, *daByExtId.ExternalId)
+	suite.Equal(*state, *daByExtId.State)
+	suite.Equal(artifactUri, *daByExtId.Uri)
+	suite.Equal(customString, (*daByExtId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+
+	suite.Equal(*da, *daByExtId, "artifacts returned during creation and on get by ext id should be equal")
+}
+
 func (suite *CoreTestSuite) TestGetArtifacts() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()

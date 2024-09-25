@@ -52,6 +52,11 @@ func NewModelRegistryServiceAPIController(s ModelRegistryServiceAPIServicer, opt
 // Routes returns all the api routes for the ModelRegistryServiceAPIController
 func (c *ModelRegistryServiceAPIController) Routes() Routes {
 	return Routes{
+		"CreateArtifact": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/artifacts",
+			c.CreateArtifact,
+		},
 		"CreateEnvironmentInferenceService": Route{
 			strings.ToUpper("Post"),
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services",
@@ -92,6 +97,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/serving_environments",
 			c.CreateServingEnvironment,
 		},
+		"FindArtifact": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/artifact",
+			c.FindArtifact,
+		},
 		"FindInferenceService": Route{
 			strings.ToUpper("Get"),
 			"/api/model_registry/v1alpha3/inference_service",
@@ -116,6 +126,16 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			strings.ToUpper("Get"),
 			"/api/model_registry/v1alpha3/serving_environment",
 			c.FindServingEnvironment,
+		},
+		"GetArtifact": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/artifacts/{id}",
+			c.GetArtifact,
+		},
+		"GetArtifacts": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/artifacts",
+			c.GetArtifacts,
 		},
 		"GetEnvironmentInferenceServices": Route{
 			strings.ToUpper("Get"),
@@ -197,6 +217,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/serving_environments",
 			c.GetServingEnvironments,
 		},
+		"UpdateArtifact": Route{
+			strings.ToUpper("Patch"),
+			"/api/model_registry/v1alpha3/artifacts/{id}",
+			c.UpdateArtifact,
+		},
 		"UpdateInferenceService": Route{
 			strings.ToUpper("Patch"),
 			"/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}",
@@ -228,6 +253,33 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			c.UpsertModelVersionArtifact,
 		},
 	}
+}
+
+// CreateArtifact - Create an Artifact
+func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter, r *http.Request) {
+	artifactCreateParam := model.ArtifactCreate{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactCreateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactCreateRequired(artifactCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactCreateConstraints(artifactCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateArtifact(r.Context(), artifactCreateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
 // CreateEnvironmentInferenceService - Create a InferenceService in ServingEnvironment
@@ -449,6 +501,22 @@ func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.Resp
 	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
+// FindArtifact - Get an Artifact that matches search parameters.
+func (c *ModelRegistryServiceAPIController) FindArtifact(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	parentResourceIdParam := query.Get("parentResourceId")
+	result, err := c.service.FindArtifact(r.Context(), nameParam, externalIdParam, parentResourceIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
 // FindInferenceService - Get an InferenceServices that matches search parameters.
 func (c *ModelRegistryServiceAPIController) FindInferenceService(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -518,6 +586,36 @@ func (c *ModelRegistryServiceAPIController) FindServingEnvironment(w http.Respon
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
 	result, err := c.service.FindServingEnvironment(r.Context(), nameParam, externalIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetArtifact - Get an Artifact
+func (c *ModelRegistryServiceAPIController) GetArtifact(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	result, err := c.service.GetArtifact(r.Context(), idParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetArtifacts - List All Artifacts
+func (c *ModelRegistryServiceAPIController) GetArtifacts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetArtifacts(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -774,6 +872,34 @@ func (c *ModelRegistryServiceAPIController) GetServingEnvironments(w http.Respon
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
 	result, err := c.service.GetServingEnvironments(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// UpdateArtifact - Update an Artifact
+func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	artifactUpdateParam := model.ArtifactUpdate{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactUpdateRequired(artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactUpdateConstraints(artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpdateArtifact(r.Context(), idParam, artifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

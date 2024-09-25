@@ -22,8 +22,8 @@ from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.metadata_value import MetadataValue
 
 
-class ModelArtifactCreate(BaseModel):
-    """An ML model artifact."""  # noqa: E501
+class DocArtifactUpdate(BaseModel):
+    """A document artifact to be updated."""  # noqa: E501
 
     artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
@@ -42,37 +42,7 @@ class ModelArtifactCreate(BaseModel):
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
     state: ArtifactState | None = None
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
-    )
-    model_format_name: StrictStr | None = Field(
-        default=None, description="Name of the model format.", alias="modelFormatName"
-    )
-    storage_key: StrictStr | None = Field(default=None, description="Storage secret name.", alias="storageKey")
-    storage_path: StrictStr | None = Field(
-        default=None, description="Path for model in storage provided by `storageKey`.", alias="storagePath"
-    )
-    model_format_version: StrictStr | None = Field(
-        default=None, description="Version of the model format.", alias="modelFormatVersion"
-    )
-    service_account_name: StrictStr | None = Field(
-        default=None, description="Name of the service account with storage secret.", alias="serviceAccountName"
-    )
-    __properties: ClassVar[list[str]] = [
-        "customProperties",
-        "description",
-        "externalId",
-        "uri",
-        "state",
-        "name",
-        "artifactType",
-        "modelFormatName",
-        "storageKey",
-        "storagePath",
-        "modelFormatVersion",
-        "serviceAccountName",
-    ]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "uri", "state"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -91,7 +61,7 @@ class ModelArtifactCreate(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of ModelArtifactCreate from a JSON string."""
+        """Create an instance of DocArtifactUpdate from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -122,7 +92,7 @@ class ModelArtifactCreate(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of ModelArtifactCreate from a dict."""
+        """Create an instance of DocArtifactUpdate from a dict."""
         if obj is None:
             return None
 
@@ -140,12 +110,5 @@ class ModelArtifactCreate(BaseModel):
                 "externalId": obj.get("externalId"),
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
-                "name": obj.get("name"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
-                "modelFormatName": obj.get("modelFormatName"),
-                "storageKey": obj.get("storageKey"),
-                "storagePath": obj.get("storagePath"),
-                "modelFormatVersion": obj.get("modelFormatVersion"),
-                "serviceAccountName": obj.get("serviceAccountName"),
             }
         )
