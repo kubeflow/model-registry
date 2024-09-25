@@ -3,6 +3,14 @@
 set -e
 set -o xtrace
 
+# Function to check if the port is ready
+wait_for_port() {
+  local port=$1
+  while ! nc -z localhost $port; do
+    sleep 0.1
+  done
+}
+
 repeat_cmd_until() {
   local cmd=$1
   local condition=$2

@@ -6,14 +6,6 @@ set -o xtrace
 # This test assumes there is a Kubernetes environment up and running.
 # It could be either a remote one or a local one (e.g., using KinD or minikube).
 
-# Function to check if the port is ready
-wait_for_port() {
-  local port=$1
-  while ! nc -z localhost $port; do
-    sleep 0.1
-  done
-}
-
 DIR="$(dirname "$0")"
 
 source ./${DIR}/test_utils.sh
