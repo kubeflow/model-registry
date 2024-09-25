@@ -6,15 +6,9 @@ set -o xtrace
 # This test assumes there is a Kubernetes environment up and running.
 # It could be either a remote one or a local one (e.g., using KinD or minikube).
 
-# Function to check if the port is ready
-wait_for_port() {
-  local port=$1
-  while ! nc -z localhost $port; do
-    sleep 0.1
-  done
-}
-
 DIR="$(dirname "$0")"
+
+source ./${DIR}/test_utils.sh
 
 KUBECTL=${KUBECTL:-"kubectl"}
 
@@ -145,7 +139,7 @@ spec:
 EOF
 
 # wait for pod predictor to be initialized
-sleep 2
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' | wc -l" "-gt 0" 60
 predictor=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 kubectl wait --for=condition=Ready pod/$predictor -n $KSERVE_TEST_NAMESPACE --timeout=5m
 
