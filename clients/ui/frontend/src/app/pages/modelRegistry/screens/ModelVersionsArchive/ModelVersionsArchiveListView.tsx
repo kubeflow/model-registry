@@ -8,21 +8,21 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
-import { RegisteredModel } from '~/app/types';
+import { ModelVersion } from '~/app/types';
 import { SearchType } from '~/app/components/DashboardSearchField';
-import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
-import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import SimpleSelect from '~/app/components/SimpleSelect';
 import { asEnumMember } from '~/app/utils';
-import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
+import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
+import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import ModelVersionsArchiveTable from './ModelVersionsArchiveTable';
 
-type RegisteredModelsArchiveListViewProps = {
-  registeredModels: RegisteredModel[];
+type ModelVersionsArchiveListViewProps = {
+  modelVersions: ModelVersion[];
   refresh: () => void;
 };
 
-const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewProps> = ({
-  registeredModels: unfilteredRegisteredModels,
+const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> = ({
+  modelVersions: unfilteredmodelVersions,
   refresh,
 }) => {
   const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
@@ -30,28 +30,23 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
 
   const searchTypes = [SearchType.KEYWORD, SearchType.AUTHOR];
 
-  const filteredRegisteredModels = filterRegisteredModels(
-    unfilteredRegisteredModels,
-    search,
-    searchType,
-  );
+  const filteredModelVersions = filterModelVersions(unfilteredmodelVersions, search, searchType);
 
-  if (unfilteredRegisteredModels.length === 0) {
+  if (unfilteredmodelVersions.length === 0) {
     return (
       <EmptyModelRegistryState
-        testid="empty-archive-model-state"
-        title="No archived models"
-        description="You can archive the active models that you no longer use. You can restore an archived
-      model to make it active."
+        testid="empty-archive-state"
+        title="No archived versions"
+        description="You can archive the active versions that you no longer use. You can restore an archived version to make it active."
       />
     );
   }
 
   return (
-    <RegisteredModelsArchiveTable
+    <ModelVersionsArchiveTable
       refresh={refresh}
       clearFilters={() => setSearch('')}
-      registeredModels={filteredRegisteredModels}
+      modelVersions={filteredModelVersions}
       toolbarContent={
         <ToolbarContent>
           <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
@@ -69,9 +64,9 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                   }))}
                   value={searchType}
                   onChange={(newSearchType) => {
-                    const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
-                    if (newSearchTypeInput !== null) {
-                      setSearchType(newSearchTypeInput);
+                    const enumMember = asEnumMember(newSearchType, SearchType);
+                    if (enumMember) {
+                      setSearchType(enumMember);
                     }
                   }}
                   icon={<FilterIcon />}
@@ -86,7 +81,7 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                   }}
                   onClear={() => setSearch('')}
                   style={{ minWidth: '200px' }}
-                  data-testid="registered-models-archive-table-search"
+                  data-testid="model-versions-archive-table-search"
                 />
               </ToolbarItem>
             </ToolbarGroup>
@@ -97,4 +92,4 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
   );
 };
 
-export default RegisteredModelsArchiveListView;
+export default ModelVersionsArchiveListView;

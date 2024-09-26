@@ -11,11 +11,13 @@ import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/ModelProp
 
 type ModelPropertiesDescriptionListGroupProps = {
   customProperties: ModelRegistryCustomProperties;
+  isArchive?: boolean;
   saveEditedCustomProperties: (properties: ModelRegistryCustomProperties) => Promise<unknown>;
 };
 
 const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionListGroupProps> = ({
   customProperties = {},
+  isArchive,
   saveEditedCustomProperties,
 }) => {
   const [editingPropertyKeys, setEditingPropertyKeys] = React.useState<string[]>([]);
@@ -51,16 +53,18 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
     <DashboardDescriptionListGroup
       title="Properties"
       action={
-        <Button
-          isInline
-          variant="link"
-          icon={<PlusCircleIcon />}
-          iconPosition="start"
-          isDisabled={isAdding || isSavingEdits}
-          onClick={() => setIsAdding(true)}
-        >
-          Add property
-        </Button>
+        !isArchive && (
+          <Button
+            isInline
+            variant="link"
+            icon={<PlusCircleIcon />}
+            iconPosition="start"
+            isDisabled={isAdding || isSavingEdits}
+            onClick={() => setIsAdding(true)}
+          >
+            Add property
+          </Button>
+        )
       }
       isEmpty={!isAdding && keys.length === 0}
       contentWhenEmpty="No properties"
@@ -70,13 +74,14 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
           <Tr>
             <Th>Key {isEditingSomeRow && requiredAsterisk}</Th>
             <Th>Value {isEditingSomeRow && requiredAsterisk}</Th>
-            <Th />
+            <Th screenReaderText="Actions" />
           </Tr>
         </Thead>
         <Tbody>
           {shownKeys.map((key) => (
             <ModelPropertiesTableRow
               key={key}
+              isArchive={isArchive}
               keyValuePair={{ key, value: filteredProperties[key].string_value }}
               allExistingKeys={allExistingKeys}
               isEditing={editingPropertyKeys.includes(key)}

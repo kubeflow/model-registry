@@ -11,12 +11,14 @@ type EditableTextDescriptionListGroupProps = Pick<
   value: string;
   saveEditedValue: (value: string) => Promise<void>;
   testid?: string;
+  isArchive?: boolean;
 };
 
 const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGroupProps> = ({
   title,
   contentWhenEmpty,
   value,
+  isArchive,
   saveEditedValue,
   testid,
 }) => {
@@ -29,7 +31,7 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       title={title}
       isEmpty={!value}
       contentWhenEmpty={contentWhenEmpty}
-      isEditable
+      isEditable={!isArchive}
       isEditing={isEditing}
       isSavingEdits={isSavingEdits}
       contentWhenEditing={

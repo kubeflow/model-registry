@@ -10,6 +10,9 @@ import type {
   RegisteredModelList,
 } from '~/app/types';
 
+const MODEL_REGISTRY_API_VERSION = 'v1';
+export { MODEL_REGISTRY_API_VERSION };
+
 type SuccessErrorResponse = {
   success: boolean;
   error?: string;
@@ -65,21 +68,21 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<RegisteredModel>,
+          response: ApiResponse<ModelRegistryResponse<RegisteredModel>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelVersion>,
+          response: ApiResponse<ModelRegistryResponse<ModelVersion>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelArtifactList>,
+          response: ApiResponse<ModelRegistryResponse<ModelArtifactList>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',

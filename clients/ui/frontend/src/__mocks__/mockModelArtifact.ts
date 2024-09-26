@@ -1,34 +1,17 @@
-import { ModelArtifact, ModelArtifactState } from '~/app/types';
+import { ModelArtifact } from '~/app/types';
 
-type MockModelArtifact = {
-  id?: string;
-  name?: string;
-  uri?: string;
-  state?: ModelArtifactState;
-  author?: string;
-};
-
-export const mockModelArtifact = ({
-  id = '1',
-  name = 'test',
-  uri = 'test',
-  state = ModelArtifactState.LIVE,
-  author = 'Author 1',
-}: MockModelArtifact): ModelArtifact => ({
-  id,
-  name,
-  externalID: '1234132asdfasdf',
-  description: '',
-  createTimeSinceEpoch: '1710404288975',
-  lastUpdateTimeSinceEpoch: '1710404288975',
+export const mockModelArtifact = (partial?: Partial<ModelArtifact>): ModelArtifact => ({
+  createTimeSinceEpoch: '1712234877179',
+  id: '1',
+  lastUpdateTimeSinceEpoch: '1712234877179',
+  name: 'fraud detection model version 1',
+  description: 'Description of model version',
+  artifactType: 'model-artifact',
   customProperties: {},
-  uri,
-  state,
-  author,
-  modelFormatName: 'test',
-  storageKey: 'test',
-  storagePath: 'test',
-  modelFormatVersion: 'test',
-  serviceAccountName: 'test',
-  artifactType: 'test',
+  storageKey: 'test storage key',
+  storagePath: 'test path',
+  uri: 's3://test-bucket/demo-models/test-path?endpoint=test-endpoint&defaultRegion=test-region',
+  modelFormatName: 'test model format',
+  modelFormatVersion: 'test version 1',
+  ...partial,
 });
