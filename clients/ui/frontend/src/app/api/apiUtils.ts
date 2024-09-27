@@ -1,6 +1,6 @@
 import { APIOptions } from '~/app/api/types';
 import { EitherOrNone } from '~/typeHelpers';
-import { ModelRegistryResponse } from '~/app/types';
+import { ModelRegistryBody } from '~/app/types';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
@@ -163,14 +163,16 @@ export const restDELETE = <T>(
     parseJSON: options?.parseJSON,
   });
 
-export const isModelRegistryResponse = <T>(
-  response: unknown,
-): response is ModelRegistryResponse<T> => {
+export const isModelRegistryResponse = <T>(response: unknown): response is ModelRegistryBody<T> => {
   if (typeof response === 'object' && response !== null) {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const modelRegistryResponse = response as { data?: T };
+    const modelRegistryBody = response as { data?: T };
     // TODO: Check if data is conforming any type so we have a proper check
-    return modelRegistryResponse.data !== undefined;
+    return modelRegistryBody.data !== undefined;
   }
   return false;
 };
+
+export const assembleModelRegistryBody = <T>(data: T): ModelRegistryBody<T> => ({
+  data,
+});

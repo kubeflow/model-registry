@@ -9,26 +9,34 @@ import {
   RegisteredModelList,
   RegisteredModel,
 } from '~/app/types';
-import { isModelRegistryResponse, restCREATE, restGET, restPATCH } from '~/app/api/apiUtils';
+import {
+  assembleModelRegistryBody,
+  isModelRegistryResponse,
+  restCREATE,
+  restGET,
+  restPATCH,
+} from '~/app/api/apiUtils';
 import { APIOptions } from '~/app/api/types';
 import { handleRestFailures } from '~/app/api/errorUtils';
 
 export const createRegisteredModel =
   (hostPath: string) =>
   (opts: APIOptions, data: CreateRegisteredModelData): Promise<RegisteredModel> =>
-    handleRestFailures(restCREATE(hostPath, `/registered_models`, data, {}, opts)).then(
-      (response) => {
-        if (isModelRegistryResponse<RegisteredModel>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+    handleRestFailures(
+      restCREATE(hostPath, `/registered_models`, assembleModelRegistryBody(data), {}, opts),
+    ).then((response) => {
+      if (isModelRegistryResponse<RegisteredModel>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
 
 export const createModelVersion =
   (hostPath: string) =>
   (opts: APIOptions, data: CreateModelVersionData): Promise<ModelVersion> =>
-    handleRestFailures(restCREATE(hostPath, `/model_versions`, data, {}, opts)).then((response) => {
+    handleRestFailures(
+      restCREATE(hostPath, `/model_versions`, assembleModelRegistryBody(data), {}, opts),
+    ).then((response) => {
       if (isModelRegistryResponse<ModelVersion>(response)) {
         return response.data;
       }
@@ -43,7 +51,13 @@ export const createModelVersionForRegisteredModel =
     data: CreateModelVersionData,
   ): Promise<ModelVersion> =>
     handleRestFailures(
-      restCREATE(hostPath, `/registered_models/${registeredModelId}/versions`, data, {}, opts),
+      restCREATE(
+        hostPath,
+        `/registered_models/${registeredModelId}/versions`,
+        assembleModelRegistryBody(data),
+        {},
+        opts,
+      ),
     ).then((response) => {
       if (isModelRegistryResponse<ModelVersion>(response)) {
         return response.data;
@@ -54,14 +68,14 @@ export const createModelVersionForRegisteredModel =
 export const createModelArtifact =
   (hostPath: string) =>
   (opts: APIOptions, data: CreateModelArtifactData): Promise<ModelArtifact> =>
-    handleRestFailures(restCREATE(hostPath, `/model_artifacts`, data, {}, opts)).then(
-      (response) => {
-        if (isModelRegistryResponse<ModelArtifact>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+    handleRestFailures(
+      restCREATE(hostPath, `/model_artifacts`, assembleModelRegistryBody(data), {}, opts),
+    ).then((response) => {
+      if (isModelRegistryResponse<ModelArtifact>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
 
 export const createModelArtifactForModelVersion =
   (hostPath: string) =>
@@ -71,7 +85,13 @@ export const createModelArtifactForModelVersion =
     data: CreateModelArtifactData,
   ): Promise<ModelArtifact> =>
     handleRestFailures(
-      restCREATE(hostPath, `/model_versions/${modelVersionId}/artifacts`, data, {}, opts),
+      restCREATE(
+        hostPath,
+        `/model_versions/${modelVersionId}/artifacts`,
+        assembleModelRegistryBody(data),
+        {},
+        opts,
+      ),
     ).then((response) => {
       if (isModelRegistryResponse<ModelArtifact>(response)) {
         return response.data;
@@ -177,7 +197,12 @@ export const patchRegisteredModel =
     registeredModelId: string,
   ): Promise<RegisteredModel> =>
     handleRestFailures(
-      restPATCH(hostPath, `/registered_models/${registeredModelId}`, data, opts),
+      restPATCH(
+        hostPath,
+        `/registered_models/${registeredModelId}`,
+        assembleModelRegistryBody(data),
+        opts,
+      ),
     ).then((response) => {
       if (isModelRegistryResponse<RegisteredModel>(response)) {
         return response.data;
@@ -188,14 +213,19 @@ export const patchRegisteredModel =
 export const patchModelVersion =
   (hostPath: string) =>
   (opts: APIOptions, data: Partial<ModelVersion>, modelversionId: string): Promise<ModelVersion> =>
-    handleRestFailures(restPATCH(hostPath, `/model_versions/${modelversionId}`, data, opts)).then(
-      (response) => {
-        if (isModelRegistryResponse<ModelVersion>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+    handleRestFailures(
+      restPATCH(
+        hostPath,
+        `/model_versions/${modelversionId}`,
+        assembleModelRegistryBody(data),
+        opts,
+      ),
+    ).then((response) => {
+      if (isModelRegistryResponse<ModelVersion>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
 
 export const patchModelArtifact =
   (hostPath: string) =>
@@ -204,11 +234,16 @@ export const patchModelArtifact =
     data: Partial<ModelArtifact>,
     modelartifactId: string,
   ): Promise<ModelArtifact> =>
-    handleRestFailures(restPATCH(hostPath, `/model_artifacts/${modelartifactId}`, data, opts)).then(
-      (response) => {
-        if (isModelRegistryResponse<ModelArtifact>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+    handleRestFailures(
+      restPATCH(
+        hostPath,
+        `/model_artifacts/${modelartifactId}`,
+        assembleModelRegistryBody(data),
+        opts,
+      ),
+    ).then((response) => {
+      if (isModelRegistryResponse<ModelArtifact>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });

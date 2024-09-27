@@ -1,6 +1,6 @@
 import {
   ModelRegistryMetadataType,
-  ModelRegistryResponse,
+  ModelRegistryBody,
   ModelRegistryStringCustomProperties,
 } from '~/app/types';
 
@@ -16,6 +16,6 @@ export const createModelRegistryLabelsObject = (
     return acc;
   }, {} as ModelRegistryStringCustomProperties);
 
-export const mockBFFResponse = <T>(data: T): ModelRegistryResponse<T> => ({
+export const mockBFFResponse = <T>(data: T): ModelRegistryBody<T> => ({
   data,
 });

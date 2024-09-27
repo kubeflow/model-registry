@@ -144,6 +144,31 @@ export const filterRegisteredModels = (
     }
   });
 
+export const objectStorageFieldsToUri = (fields: ObjectStorageFields): string | null => {
+  const { endpoint, bucket, region, path } = fields;
+  if (!endpoint || !bucket || !path) {
+    return null;
+  }
+  const searchParams = new URLSearchParams();
+  searchParams.set('endpoint', endpoint);
+  if (region) {
+    searchParams.set('defaultRegion', region);
+  }
+  return `s3://${bucket}/${path}?${searchParams.toString()}`;
+};
+
+export const getLastCreatedItem = <T extends { createTimeSinceEpoch?: string }>(
+  items?: T[],
+): T | undefined =>
+  items?.toSorted(
+    ({ createTimeSinceEpoch: createTimeA }, { createTimeSinceEpoch: createTimeB }) => {
+      if (!createTimeA || !createTimeB) {
+        return 0;
+      }
+      return Number(createTimeB) - Number(createTimeA);
+    },
+  )[0];
+
 export const filterArchiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
   modelVersions.filter((mv) => mv.state === ModelState.ARCHIVED);
 
