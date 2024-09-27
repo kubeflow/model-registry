@@ -2,17 +2,18 @@ package data
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func TestGetAllRegisteredModels(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockRegisteredModelList()
 
@@ -36,7 +37,7 @@ func TestGetAllRegisteredModels(t *testing.T) {
 }
 
 func TestCreateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -61,7 +62,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -83,7 +84,7 @@ func TestGetRegisteredModel(t *testing.T) {
 }
 
 func TestUpdateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -111,7 +112,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 }
 
 func TestGetAllModelVersions(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelVersionList()
 
@@ -139,7 +140,7 @@ func TestGetAllModelVersions(t *testing.T) {
 }
 
 func TestCreateModelVersionForRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelVersion()
 
