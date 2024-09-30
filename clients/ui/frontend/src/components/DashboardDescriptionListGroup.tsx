@@ -110,9 +110,10 @@ const DashboardDescriptionListGroup: React.FC<DashboardDescriptionListGroupProps
           </Flex>
         </DescriptionListTerm>
       )}
-      {/* The text color below is a hack for a11y. 
-      PF6 team needs to update their disabled color to work for white backgrounds */}
-      <DescriptionListDescription className={isEmpty && !isEditing ? text.iconColorSubtle : ''}>
+      <DescriptionListDescription
+        className={isEmpty && !isEditing ? text.textColorDisabled : ''}
+        aria-disabled={!!(isEmpty && !isEditing)}
+      >
         {isEditing ? contentWhenEditing : isEmpty ? contentWhenEmpty : children}
       </DescriptionListDescription>
     </DescriptionListGroup>
