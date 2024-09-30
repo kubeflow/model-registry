@@ -9,6 +9,33 @@ Model registry provides a central repository for model developers to store and m
 [![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 
+## Documentation links:
+
+1. Introduction
+ - [What is Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/overview/)
+ - [Blog KF 1.9 introducing Model Registry](https://blog.kubeflow.org/kubeflow-1.9-release/#model-registry)
+2. Installation
+ - [installing Model Registry standalone](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation)
+ - [installing Model Registry with Kubeflow manifests](https://github.com/kubeflow/manifests/tree/master/apps/model-registry/upstream#readme)
+ - [installing Model Registry using ODH Operator](https://github.com/opendatahub-io/model-registry-operator/pull/137)
+3. Concepts
+ - [Logical Model](./docs/logical_model.md)
+4. Python client
+ - [installing and using the Model Registry Python client](https://model-registry.readthedocs.io/en/latest/)
+5. Tutorials
+ - [end-to-end tutorial](https://www.kubeflow.org/docs/components/model-registry/getting-started/)
+ - [demonstration video](https://www.youtube.com/watch?v=JVxUTkAKsMU)
+6. [FAQs](#faq)
+7. Development
+ - [introduction to local build and development](#pre-requisites)
+ - [contributing](./CONTRIBUTING.md)
+ - [Kubeflow community and the Model Registry working group](https://www.kubeflow.org/docs/about/community/)
+ - REST API
+   - [OpenAPI definition](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml) 
+   - [playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml)
+ - [license scanning](https://github.com/kubeflow/model-registry/issues/323)
+ - [monitoring image quality](https://github.com/kubeflow/model-registry/issues/327)
+
 ## Pre-requisites:
 - go >= 1.21
 - protoc v24.3 - [Protocol Buffers v24.3 Release](https://github.com/protocolbuffers/protobuf/releases/tag/v24.3)
