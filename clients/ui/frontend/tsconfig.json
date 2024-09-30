@@ -6,6 +6,7 @@
     "module": "esnext",
     "target": "es5",
     "lib": [
+      "ESNext.Array",
       "es6",
       "dom"
     ],

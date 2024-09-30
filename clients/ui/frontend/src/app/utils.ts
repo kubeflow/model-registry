@@ -1,5 +1,5 @@
 import { SearchType } from '~/app/components/DashboardSearchField';
-import { ModelState, RegisteredModel } from '~/app/types';
+import { RegisteredModel } from '~/app/types';
 
 export const asEnumMember = <T extends object>(
   member: T[keyof T] | string | number | undefined | null,
@@ -18,9 +18,6 @@ export const isEnumMember = <T extends object>(
   }
   return false;
 };
-
-export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
-  registeredModels.filter((rm) => rm.state === ModelState.LIVE);
 
 export const filterRegisteredModels = (
   unfilteredRegisteredModels: RegisteredModel[],

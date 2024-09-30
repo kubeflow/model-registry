@@ -1,5 +1,4 @@
 **/node_modules
-src/__tests__/cypress/cypress/downloads/
 dist
 yarn-error.log
 yarn.lock

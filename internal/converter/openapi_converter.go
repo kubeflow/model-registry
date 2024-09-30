@@ -26,6 +26,20 @@ type OpenAPIConverter interface {
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name RegisteredModelId
 	ConvertModelVersionUpdate(source *openapi.ModelVersionUpdate) (*openapi.ModelVersion, error)
 
+	// goverter:map DocArtifactCreate DocArtifact
+	// goverter:map ModelArtifactCreate ModelArtifact
+	ConvertArtifactCreate(source *openapi.ArtifactCreate) (*openapi.Artifact, error)
+
+	// goverter:map DocArtifactUpdate DocArtifact
+	// goverter:map ModelArtifactUpdate ModelArtifact
+	ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	ConvertDocArtifactUpdate(source *openapi.DocArtifactUpdate) (*openapi.DocArtifact, error)
+
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
 	ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error)
 
@@ -61,6 +75,12 @@ type OpenAPIConverter interface {
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Author
 	OverrideNotEditableForModelVersion(source OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error)
+
+	// Ignore all fields that ARE editable
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore DocArtifact ModelArtifact
+	OverrideNotEditableForArtifact(source OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate

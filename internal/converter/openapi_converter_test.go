@@ -20,7 +20,7 @@ type visitor struct {
 	entities map[string]*oapiEntity
 }
 
-func newVisitor(t *testing.T, f *ast.File) visitor {
+func newVisitor(t *testing.T, _ *ast.File) visitor {
 	return visitor{
 		t: t,
 		entities: map[string]*oapiEntity{
@@ -44,6 +44,9 @@ func newVisitor(t *testing.T, f *ast.File) visitor {
 			},
 			"ServeModel": {
 				obj: openapi.ServeModel{},
+			},
+			"Artifact": {
+				obj: openapi.Artifact{},
 			},
 		},
 	}

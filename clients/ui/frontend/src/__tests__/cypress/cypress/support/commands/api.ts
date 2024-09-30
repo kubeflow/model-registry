@@ -3,12 +3,15 @@ import type {
   ModelArtifact,
   ModelArtifactList,
   ModelRegistry,
-  ModelRegistryResponse,
+  ModelRegistryBody,
   ModelVersion,
   ModelVersionList,
   RegisteredModel,
   RegisteredModelList,
 } from '~/app/types';
+
+const MODEL_REGISTRY_API_VERSION = 'v1';
+export { MODEL_REGISTRY_API_VERSION };
 
 type SuccessErrorResponse = {
   success: boolean;
@@ -32,7 +35,7 @@ declare global {
       interceptApi: ((
         type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
         options: { path: { modelRegistryName: string; apiVersion: string } },
-        response: ApiResponse<ModelRegistryResponse<RegisteredModelList>>,
+        response: ApiResponse<ModelRegistryBody<RegisteredModelList>>,
       ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
@@ -44,7 +47,7 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<ModelRegistryResponse<ModelVersionList>>,
+          response: ApiResponse<ModelRegistryBody<ModelVersionList>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions',
@@ -58,28 +61,28 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<RegisteredModel>,
+          response: ApiResponse<ModelRegistryBody<RegisteredModel>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<RegisteredModel>,
+          response: ApiResponse<ModelRegistryBody<RegisteredModel>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelVersion>,
+          response: ApiResponse<ModelRegistryBody<ModelVersion>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelArtifactList>,
+          response: ApiResponse<ModelRegistryBody<ModelArtifactList>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',
@@ -98,7 +101,7 @@ declare global {
         ((
           type: 'GET /api/:apiVersion/model_registry',
           options: { path: { apiVersion: string } },
-          response: ApiResponse<ModelRegistryResponse<ModelRegistry[]>>,
+          response: ApiResponse<ModelRegistryBody<ModelRegistry[]>>,
         ) => Cypress.Chainable<null>);
     }
   }

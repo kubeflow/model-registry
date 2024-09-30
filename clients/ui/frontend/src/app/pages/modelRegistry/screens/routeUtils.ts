@@ -44,8 +44,13 @@ export const registerVersionForModelUrl = (
   preferredModelRegistry?: string,
 ): string => `${registeredModelUrl(rmId, preferredModelRegistry)}/registerVersion`;
 
-export const modelVersionDeploymentsUrl = (
+export const archiveModelVersionListUrl = (
+  rmId?: string,
+  preferredModelRegistry?: string,
+): string => `${registeredModelArchiveDetailsUrl(rmId, preferredModelRegistry)}/versions`;
+
+export const archiveModelVersionDetailsUrl = (
   mvId: string,
   rmId?: string,
   preferredModelRegistry?: string,
-): string => `${modelVersionUrl(mvId, rmId, preferredModelRegistry)}/deployments`;
+): string => `${archiveModelVersionListUrl(rmId, preferredModelRegistry)}/${mvId}`;

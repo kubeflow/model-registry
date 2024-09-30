@@ -25,6 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ModelArtifactCreate(BaseModel):
     """An ML model artifact."""  # noqa: E501
 
+    artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -65,6 +66,7 @@ class ModelArtifactCreate(BaseModel):
         "uri",
         "state",
         "name",
+        "artifactType",
         "modelFormatName",
         "storageKey",
         "storagePath",
@@ -139,6 +141,7 @@ class ModelArtifactCreate(BaseModel):
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
                 "name": obj.get("name"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
                 "storagePath": obj.get("storagePath"),

@@ -2,8 +2,10 @@ api_model_registry_service.go
 client.go
 configuration.go
 model_artifact.go
+model_artifact_create.go
 model_artifact_list.go
 model_artifact_state.go
+model_artifact_update.go
 model_base_artifact.go
 model_base_artifact_create.go
 model_base_artifact_update.go
@@ -15,6 +17,8 @@ model_base_resource_create.go
 model_base_resource_list.go
 model_base_resource_update.go
 model_doc_artifact.go
+model_doc_artifact_create.go
+model_doc_artifact_update.go
 model_error.go
 model_execution_state.go
 model_inference_service.go

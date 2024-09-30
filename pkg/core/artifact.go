@@ -18,6 +18,9 @@ import (
 // ID is provided.
 // Upon creation, new artifacts will be associated with their corresponding model version.
 func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error) {
+	if artifact == nil {
+		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
+	}
 	art, err := serv.upsertArtifact(artifact, &modelVersionId)
 	if err != nil {
 		return nil, err
@@ -151,6 +154,48 @@ func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact,
 		return nil, fmt.Errorf("no artifact found for id %s: %w", id, api.ErrNotFound)
 	}
 	return serv.mapper.MapToArtifact(artifactsResp.Artifacts[0])
+}
+
+// GetArtifactByParams retrieves an artifact based on specified parameters, such as (artifact name and model version ID), or external ID.
+// If multiple or no model artifacts are found, an error is returned.
+func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.Artifact, error) {
+	var artifact0 *proto.Artifact
+
+	filterQuery := ""
+	if externalId != nil {
+		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
+	} else if artifactName != nil && modelVersionId != nil {
+		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(modelVersionId, *artifactName))
+	} else {
+		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
+	}
+	glog.Info("filterQuery ", filterQuery)
+
+	artifactsResponse, err := serv.mlmdClient.GetArtifacts(context.Background(), &proto.GetArtifactsRequest{
+		Options: &proto.ListOperationOptions{
+			FilterQuery: &filterQuery,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(artifactsResponse.Artifacts) > 1 {
+		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	if len(artifactsResponse.Artifacts) == 0 {
+		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	artifact0 = artifactsResponse.Artifacts[0]
+
+	result, err := serv.mapper.MapToArtifact(artifact0)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return result, nil
 }
 
 // GetArtifacts retrieves a list of artifacts based on the provided list options and optional model version ID.

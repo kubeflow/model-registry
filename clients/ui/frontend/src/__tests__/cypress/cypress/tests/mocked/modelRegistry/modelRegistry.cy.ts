@@ -8,8 +8,7 @@ import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/mod
 import { mockBFFResponse } from '~/__mocks__/mockBFFResponse';
 import type { ModelRegistry, ModelVersion, RegisteredModel } from '~/app/types';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
-
-const MODEL_REGISTRY_API_VERSION = 'v1';
+import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];

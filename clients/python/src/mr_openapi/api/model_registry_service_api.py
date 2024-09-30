@@ -15,7 +15,9 @@ from pydantic import Field, StrictFloat, StrictInt, StrictStr, validate_call
 from mr_openapi.api_client import ApiClient, RequestSerialized
 from mr_openapi.api_response import ApiResponse
 from mr_openapi.models.artifact import Artifact
+from mr_openapi.models.artifact_create import ArtifactCreate
 from mr_openapi.models.artifact_list import ArtifactList
+from mr_openapi.models.artifact_update import ArtifactUpdate
 from mr_openapi.models.inference_service import InferenceService
 from mr_openapi.models.inference_service_create import InferenceServiceCreate
 from mr_openapi.models.inference_service_list import InferenceServiceList
@@ -55,6 +57,245 @@ class ModelRegistryServiceApi:
         if api_client is None:
             api_client = ApiClient.get_default()
         self.api_client = api_client
+
+    @validate_call
+    async def create_artifact(
+        self,
+        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Create an Artifact.
+
+        Creates a new instance of an `Artifact`.
+
+        :param artifact_create: A new `Artifact` to be created. (required)
+        :type artifact_create: ArtifactCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_artifact_serialize(
+            artifact_create=artifact_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def create_artifact_with_http_info(
+        self,
+        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Create an Artifact.
+
+        Creates a new instance of an `Artifact`.
+
+        :param artifact_create: A new `Artifact` to be created. (required)
+        :type artifact_create: ArtifactCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_artifact_serialize(
+            artifact_create=artifact_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def create_artifact_without_preload_content(
+        self,
+        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create an Artifact.
+
+        Creates a new instance of an `Artifact`.
+
+        :param artifact_create: A new `Artifact` to be created. (required)
+        :type artifact_create: ArtifactCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_artifact_serialize(
+            artifact_create=artifact_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _create_artifact_serialize(
+        self,
+        artifact_create,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if artifact_create is not None:
+            _body_params = artifact_create
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/artifacts",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
 
     @validate_call
     async def create_environment_inference_service(
@@ -2065,6 +2306,282 @@ class ModelRegistryServiceApi:
         )
 
     @validate_call
+    async def find_artifact(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Get an Artifact that matches search parameters.
+
+        Gets the details of a single instance of an `Artifact` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_artifact_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def find_artifact_with_http_info(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Get an Artifact that matches search parameters.
+
+        Gets the details of a single instance of an `Artifact` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_artifact_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def find_artifact_without_preload_content(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an Artifact that matches search parameters.
+
+        Gets the details of a single instance of an `Artifact` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_artifact_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _find_artifact_serialize(
+        self,
+        name,
+        external_id,
+        parent_resource_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if external_id is not None:
+
+            _query_params.append(("externalId", external_id))
+
+        if parent_resource_id is not None:
+
+            _query_params.append(("parentResourceId", parent_resource_id))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/artifact",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
     async def find_inference_service(
         self,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
@@ -3380,6 +3897,530 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="GET",
             resource_path="/api/model_registry/v1alpha3/serving_environment",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_artifact(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Get an Artifact.
+
+        Gets the details of a single instance of an `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifact_serialize(
+            id=id, _request_auth=_request_auth, _content_type=_content_type, _headers=_headers, _host_index=_host_index
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_artifact_with_http_info(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Get an Artifact.
+
+        Gets the details of a single instance of an `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifact_serialize(
+            id=id, _request_auth=_request_auth, _content_type=_content_type, _headers=_headers, _host_index=_host_index
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_artifact_without_preload_content(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an Artifact.
+
+        Gets the details of a single instance of an `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifact_serialize(
+            id=id, _request_auth=_request_auth, _content_type=_content_type, _headers=_headers, _host_index=_host_index
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_artifact_serialize(
+        self,
+        id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if id is not None:
+            _path_params["id"] = id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/artifacts/{id}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_artifacts(
+        self,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ArtifactList:
+        """List All Artifacts.
+
+        Gets a list of all `Artifact` entities.
+
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifacts_serialize(
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_artifacts_with_http_info(
+        self,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ArtifactList]:
+        """List All Artifacts.
+
+        Gets a list of all `Artifact` entities.
+
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifacts_serialize(
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_artifacts_without_preload_content(
+        self,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List All Artifacts.
+
+        Gets a list of all `Artifact` entities.
+
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_artifacts_serialize(
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_artifacts_serialize(
+        self,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/artifacts",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -7914,6 +8955,263 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="GET",
             resource_path="/api/model_registry/v1alpha3/serving_environments",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def update_artifact(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Update an Artifact.
+
+        Updates an existing `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param artifact_update: Updated `Artifact` information. (required)
+        :type artifact_update: ArtifactUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_artifact_serialize(
+            id=id,
+            artifact_update=artifact_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def update_artifact_with_http_info(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Update an Artifact.
+
+        Updates an existing `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param artifact_update: Updated `Artifact` information. (required)
+        :type artifact_update: ArtifactUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_artifact_serialize(
+            id=id,
+            artifact_update=artifact_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def update_artifact_without_preload_content(
+        self,
+        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Update an Artifact.
+
+        Updates an existing `Artifact`.
+
+        :param id: A unique identifier for an `Artifact`. (required)
+        :type id: str
+        :param artifact_update: Updated `Artifact` information. (required)
+        :type artifact_update: ArtifactUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_artifact_serialize(
+            id=id,
+            artifact_update=artifact_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _update_artifact_serialize(
+        self,
+        id,
+        artifact_update,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if id is not None:
+            _path_params["id"] = id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if artifact_update is not None:
+            _body_params = artifact_update
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="PATCH",
+            resource_path="/api/model_registry/v1alpha3/artifacts/{id}",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

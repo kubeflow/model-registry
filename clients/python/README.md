@@ -7,6 +7,12 @@
 
 This library provides a high level interface for interacting with a model registry server.
 
+> **Alpha**
+> 
+> This Kubeflow component has **alpha** status with limited support.
+> See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status).
+> The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/model-registry) about the usability of the feature.
+
 ## Installation
 
 In your Python environment, you can install the latest version of the Model Registry Python client with:

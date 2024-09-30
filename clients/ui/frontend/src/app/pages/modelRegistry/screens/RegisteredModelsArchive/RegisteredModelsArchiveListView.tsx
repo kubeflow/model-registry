@@ -77,7 +77,7 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                   icon={<FilterIcon />}
                 />
               </ToolbarFilter>
-              <ToolbarItem variant="label">
+              <ToolbarItem>
                 <SearchInput
                   placeholder={`Find by ${searchType.toLowerCase()}`}
                   value={search}

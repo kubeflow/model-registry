@@ -67,6 +67,7 @@ class DocArtifact(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "artifactType",
     ]
 
     model_config = ConfigDict(
@@ -145,5 +146,6 @@ class DocArtifact(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
             }
         )

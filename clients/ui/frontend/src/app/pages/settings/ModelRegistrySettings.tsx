@@ -2,14 +2,23 @@ import React from 'react';
 import { EmptyState, EmptyStateBody, EmptyStateVariant } from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 import ApplicationsPage from '~/app/components/ApplicationsPage';
+import useModelRegistries from '~/app/hooks/useModelRegistries';
+import TitleWithIcon from '~/app/components/design/TitleWithIcon';
+import { ProjectObjectType } from '~/app/components/design/utils';
+import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {
-  const [modelRegistries, loaded, loadError] = [[], true, undefined]; // TODO: change to real values
+  const [modelRegistries, loaded, loadError] = useModelRegistries();
   return (
     <>
       <ApplicationsPage
-        title="Model registry settings"
-        description="Manage model registry settings for all users in your organization."
+        title={
+          <TitleWithIcon
+            title="Model Registry Settings"
+            objectType={ProjectObjectType.registeredModels}
+          />
+        }
+        description="List all the model registries deployed in your environment."
         loaded={loaded}
         loadError={loadError}
         errorMessage="Unable to load model registries."
@@ -27,7 +36,7 @@ const ModelRegistrySettings: React.FC = () => {
         }
         provideChildrenPadding
       >
-        TODO: Add model registry settings
+        <ModelRegistriesTable modelRegistries={modelRegistries} />
       </ApplicationsPage>
     </>
   );

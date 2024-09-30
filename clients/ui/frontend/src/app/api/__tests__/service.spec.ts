@@ -28,6 +28,7 @@ jest.mock('~/app/api/apiUtils', () => ({
   restCREATE: jest.fn(() => mockRestPromise),
   restGET: jest.fn(() => mockRestPromise),
   restPATCH: jest.fn(() => mockRestPromise),
+  assembleModelRegistryBody: jest.fn(() => ({})),
   isModelRegistryResponse: jest.fn(() => true),
 }));
 
@@ -61,7 +62,7 @@ describe('createRegisteredModel', () => {
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models`,
-      mockData,
+      {},
       {},
       APIOptionsMock,
     );
@@ -89,7 +90,7 @@ describe('createModelVersion', () => {
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions`,
-      mockData,
+      {},
       {},
       APIOptionsMock,
     );
@@ -117,7 +118,7 @@ describe('createModelVersionForRegisteredModel', () => {
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1/versions`,
-      mockData,
+      {},
       {},
       APIOptionsMock,
     );
@@ -150,7 +151,7 @@ describe('createModelArtifact', () => {
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts`,
-      mockData,
+      {},
       {},
       APIOptionsMock,
     );
@@ -183,7 +184,7 @@ describe('createModelArtifactForModelVersion', () => {
     expect(restCREATEMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/2/artifacts`,
-      mockData,
+      {},
       {},
       APIOptionsMock,
     );
@@ -347,7 +348,7 @@ describe('patchRegisteredModel', () => {
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1`,
-      mockData,
+      {},
       APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
@@ -366,7 +367,7 @@ describe('patchModelVersion', () => {
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/1`,
-      mockData,
+      {},
       APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
@@ -385,7 +386,7 @@ describe('patchModelArtifact', () => {
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts/1`,
-      mockData,
+      {},
       APIOptionsMock,
     );
     expect(handleRestFailuresMock).toHaveBeenCalledTimes(1);
