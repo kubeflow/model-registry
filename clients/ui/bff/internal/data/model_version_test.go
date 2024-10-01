@@ -2,17 +2,18 @@ package data
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func TestGetModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -37,7 +38,7 @@ func TestGetModelVersion(t *testing.T) {
 }
 
 func TestCreateModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -62,7 +63,7 @@ func TestCreateModelVersion(t *testing.T) {
 }
 
 func TestUpdateModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -90,7 +91,7 @@ func TestUpdateModelVersion(t *testing.T) {
 }
 
 func TestGetModelArtifactsByModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelArtifactList()
 
@@ -116,7 +117,7 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 }
 
 func TestCreateModelArtifactByModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	gofakeit.Seed(0) //nolint:errcheck
 
 	expected := mocks.GenerateMockModelArtifact()
 

@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"net/http"
 	"strconv"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 )
 
 type HTTPError struct {
@@ -91,7 +92,8 @@ func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request)
 	app.errorResponse(w, r, httpError)
 }
 
-func (app *App) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+// TODO remove nolint comment below when we use this method
+func (app *App) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) { //nolint:unused
 
 	message, err := json.Marshal(errors)
 	if err != nil {
