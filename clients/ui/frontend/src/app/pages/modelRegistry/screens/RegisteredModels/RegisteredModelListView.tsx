@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  TextInput,
-  ToolbarFilter,
-  ToolbarGroup,
-  ToolbarItem,
-} from '@patternfly/react-core';
+import { TextInput, ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { RegisteredModel } from '~/app/types';
