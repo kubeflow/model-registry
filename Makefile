@@ -3,6 +3,8 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
+BFF_PATH := $(PROJECT_PATH)/clients/ui/bff
+UI_PATH := $(PROJECT_PATH)/clients/ui/frontend
 
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
@@ -21,11 +23,24 @@ IMG_ORG ?= kubeflow
 IMG_VERSION ?= main
 # container image repository
 IMG_REPO ?= model-registry
+# container image build path
+BUILD_PATH ?= .
 # container image
 ifdef IMG_REGISTRY
     IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
 else
     IMG := ${IMG_ORG}/${IMG_REPO}
+endif
+
+# Change Dockerfile path depending on IMG_REPO
+ifeq ($(IMG_REPO),model-registry-ui)
+    DOCKERFILE := $(UI_PATH)/Dockerfile
+	BUILD_PATH := $(UI_PATH)
+endif
+
+ifeq ($(IMG_REPO),model-registry-bff)
+    DOCKERFILE := $(BFF_PATH)/Dockerfile
+	BUILD_PATH := $(BFF_PATH)
 endif
 
 model-registry: build
@@ -216,7 +231,7 @@ endif
 # build docker image
 .PHONY: image/build
 image/build:
-	${DOCKER} build . -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
+	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
 
 # build docker image using buildx
 # PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
