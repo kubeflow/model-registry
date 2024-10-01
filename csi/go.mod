@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/kserve/kserve v0.13.1
-	github.com/kubeflow/model-registry v0.2.6-alpha
+	github.com/kubeflow/model-registry v0.2.7-alpha
 )
 
 require (
