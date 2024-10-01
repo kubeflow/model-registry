@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { SearchInput, ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
+import {
+  TextInput,
+  ToolbarFilter,
+  ToolbarGroup,
+  ToolbarItem,
+} from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { RegisteredModel } from '~/app/types';
@@ -89,17 +94,23 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
           icon={<FilterIcon />}
         />
       </ToolbarFilter>
-      <ToolbarItem>
-        <SearchInput
-          placeholder={`Find by ${searchType.toLowerCase()}`}
-          value={search}
-          onChange={(_, searchValue) => {
-            setSearch(searchValue);
-          }}
-          onClear={() => setSearch('')}
-          style={{ minWidth: '200px' }}
-          data-testid="registered-model-table-search"
-        />
+      <ToolbarItem variant="label-group">
+        <div className="form-fieldset-wrapper">
+          <TextInput
+            value={search}
+            type="text"
+            onChange={(_, searchValue) => {
+              setSearch(searchValue);
+            }}
+            style={{ minWidth: '200px' }}
+            data-testid="registered-model-table-search"
+          />
+          <fieldset aria-hidden="true" className="form-fieldset">
+            <legend className="form-fieldset-legend">
+              <span>{`Find by ${searchType.toLowerCase()}`}</span>
+            </legend>
+          </fieldset>
+        </div>
       </ToolbarItem>
     </ToolbarGroup>
   );
