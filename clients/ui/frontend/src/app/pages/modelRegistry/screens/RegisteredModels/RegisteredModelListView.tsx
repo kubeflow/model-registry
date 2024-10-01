@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  TextInput,
-  ToolbarFilter,
-  ToolbarGroup,
-  ToolbarItem,
-} from '@patternfly/react-core';
+import { TextInput, ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { RegisteredModel } from '~/app/types';
@@ -104,6 +99,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
             }}
             style={{ minWidth: '200px' }}
             data-testid="registered-model-table-search"
+            aria-label="Search"
           />
           <fieldset aria-hidden="true" className="form-fieldset">
             <legend className="form-fieldset-legend">
