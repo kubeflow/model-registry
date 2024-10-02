@@ -26,7 +26,7 @@ def test_create_tagged_version(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-def test_get_model_without_user_token(setup_env_user_token, client):
+def test_get_model_without_user_token(setup_env_user_token, client: ModelRegistry):
     """Test regression for using client methods without an user_token in the init arguments.
 
     Reported on: https://github.com/kubeflow/model-registry/issues/340
