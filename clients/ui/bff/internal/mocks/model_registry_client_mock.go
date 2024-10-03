@@ -5,17 +5,18 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
+	"net/url"
 )
 
 type ModelRegistryClientMock struct {
 	mock.Mock
 }
 
-func NewModelRegistryClient(logger *slog.Logger) (*ModelRegistryClientMock, error) {
+func NewModelRegistryClient(_ *slog.Logger) (*ModelRegistryClientMock, error) {
 	return &ModelRegistryClientMock{}, nil
 }
 
-func (m *ModelRegistryClientMock) GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error) {
+func (m *ModelRegistryClientMock) GetAllRegisteredModels(_ integrations.HTTPClientInterface, _ url.Values) (*openapi.RegisteredModelList, error) {
 	mockData := GetRegisteredModelListMock()
 	return &mockData, nil
 }
@@ -50,7 +51,7 @@ func (m *ModelRegistryClientMock) UpdateModelVersion(client integrations.HTTPCli
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) GetAllModelVersions(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersionList, error) {
+func (m *ModelRegistryClientMock) GetAllModelVersions(_ integrations.HTTPClientInterface, _ string, _ url.Values) (*openapi.ModelVersionList, error) {
 	mockData := GetModelVersionListMock()
 	return &mockData, nil
 }
@@ -60,10 +61,11 @@ func (m *ModelRegistryClientMock) CreateModelVersionForRegisteredModel(client in
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
+func (m *ModelRegistryClientMock) GetModelArtifactsByModelVersion(_ integrations.HTTPClientInterface, _ string, _ url.Values) (*openapi.ModelArtifactList, error) {
 	mockData := GetModelArtifactListMock()
 	return &mockData, nil
 }
+
 func (m *ModelRegistryClientMock) CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
 	mockData := GetModelArtifactMocks()[0]
 	return &mockData, nil

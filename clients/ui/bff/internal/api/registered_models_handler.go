@@ -4,27 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/validation"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type RegisteredModelEnvelope Envelope[*openapi.RegisteredModel, None]
 type RegisteredModelListEnvelope Envelope[*openapi.RegisteredModelList, None]
 type RegisteredModelUpdateEnvelope Envelope[*openapi.RegisteredModelUpdate, None]
 
-func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	//TODO (ederign) implement pagination
+func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
 	}
 
-	modelList, err := app.modelRegistryClient.GetAllRegisteredModels(client)
+	modelList, err := app.modelRegistryClient.GetAllRegisteredModels(client, r.URL.Query())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -40,7 +38,7 @@ func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
@@ -173,14 +171,13 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	//TODO (acreasy) implement pagination
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
 	}
 
-	versionList, err := app.modelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId))
+	versionList, err := app.modelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId), r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

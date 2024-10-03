@@ -13,11 +13,11 @@ const registeredModelPath = "/registered_models"
 const versionsPath = "/versions"
 
 type RegisteredModelInterface interface {
-	GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error)
+	GetAllRegisteredModels(client integrations.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error)
 	CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error)
 	GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
 	UpdateRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error)
-	GetAllModelVersions(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersionList, error)
+	GetAllModelVersions(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error)
 	CreateModelVersionForRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 }
 
@@ -25,9 +25,9 @@ type RegisteredModel struct {
 	RegisteredModelInterface
 }
 
-func (m RegisteredModel) GetAllRegisteredModels(client integrations.HTTPClientInterface) (*openapi.RegisteredModelList, error) {
+func (m RegisteredModel) GetAllRegisteredModels(client integrations.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error) {
+	responseData, err := client.GET(UrlWithPageParams(registeredModelPath, pageValues))
 
-	responseData, err := client.GET(registeredModelPath)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching registered models: %w", err)
 	}
@@ -94,14 +94,14 @@ func (m RegisteredModel) UpdateRegisteredModel(client integrations.HTTPClientInt
 	return &model, nil
 }
 
-func (m RegisteredModel) GetAllModelVersions(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersionList, error) {
+func (m RegisteredModel) GetAllModelVersions(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error) {
 	path, err := url.JoinPath(registeredModelPath, id, versionsPath)
 
 	if err != nil {
 		return nil, err
 	}
 
-	responseData, err := client.GET(path)
+	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching model versions: %w", err)
