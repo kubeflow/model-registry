@@ -4,6 +4,7 @@ set -e
 
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
 
+# modularity to allow re-use this script against a remote k8s cluster
 if [[ -n "$LOCAL" ]]; then
     CLUSTER_NAME="${CLUSTER_NAME:-kind}"
     IMG="${IMG:-docker.io/kubeflow/model-registry:main}"
