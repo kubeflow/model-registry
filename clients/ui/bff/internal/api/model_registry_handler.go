@@ -8,7 +8,7 @@ import (
 
 type ModelRegistryListEnvelope Envelope[[]data.ModelRegistryModel, None]
 
-func (app *App) ModelRegistryHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) ModelRegistryHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	registries, err := app.models.ModelRegistry.FetchAllModelRegistries(app.kubernetesClient)
 	if err != nil {

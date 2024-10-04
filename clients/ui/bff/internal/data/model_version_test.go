@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetModelVersion(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -39,7 +39,7 @@ func TestGetModelVersion(t *testing.T) {
 }
 
 func TestCreateModelVersion(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -64,7 +64,7 @@ func TestCreateModelVersion(t *testing.T) {
 }
 
 func TestUpdateModelVersion(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -92,7 +92,7 @@ func TestUpdateModelVersion(t *testing.T) {
 }
 
 func TestGetModelArtifactsByModelVersion(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelArtifactList()
 
@@ -143,7 +143,7 @@ func TestGetModelArtifactsByModelVersionWithPageParams(t *testing.T) {
 }
 
 func TestCreateModelArtifactByModelVersion(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelArtifact()
 

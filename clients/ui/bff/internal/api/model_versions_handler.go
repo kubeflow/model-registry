@@ -46,7 +46,7 @@ func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
-func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
