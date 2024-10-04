@@ -135,6 +135,7 @@ def event_loop():
 def client() -> ModelRegistry:
     return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
 
+
 @pytest.fixture(scope="module")
 def setup_env_user_token():
     with tempfile.NamedTemporaryFile(delete=False) as token_file:
