@@ -10,7 +10,7 @@ type KubernetesClientMock struct {
 	mock.Mock
 }
 
-func NewKubernetesClient(logger *slog.Logger) (k8s.KubernetesClientInterface, error) {
+func NewKubernetesClient(_ *slog.Logger) (k8s.KubernetesClientInterface, error) {
 	return &KubernetesClientMock{}, nil
 }
 

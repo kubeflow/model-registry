@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetAllRegisteredModels(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModelList()
 
@@ -60,7 +60,7 @@ func TestGetAllRegisteredModelsWithPageParams(t *testing.T) {
 }
 
 func TestCreateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -85,7 +85,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -107,7 +107,7 @@ func TestGetRegisteredModel(t *testing.T) {
 }
 
 func TestUpdateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -135,7 +135,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 }
 
 func TestGetAllModelVersions(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersionList()
 
@@ -188,7 +188,7 @@ func TestGetAllModelVersionsWithPageParams(t *testing.T) {
 }
 
 func TestCreateModelVersionForRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0) //nolint:errcheck
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
