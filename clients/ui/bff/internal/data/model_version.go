@@ -16,7 +16,7 @@ type ModelVersionInterface interface {
 	GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error)
 	CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
 	UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
-	GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error)
+	GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error)
 	CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
 }
 
@@ -79,14 +79,14 @@ func (v ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface
 	return &model, nil
 }
 
-func (v ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelArtifactList, error) {
+func (v ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error) {
 	path, err := url.JoinPath(modelVersionPath, id, artifactsByModelVersionPath)
 
 	if err != nil {
 		return nil, err
 	}
 
-	responseData, err := client.GET(path)
+	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching model version artifacts: %w", err)
 	}

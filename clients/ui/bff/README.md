@@ -189,3 +189,23 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/mode
   "artifactType": "TYPE_ONE"
 }}'
 ```
+
+### Pagination
+The following query parameters are supported by "Get All" style endpoints to control pagination.
+
+| Parameter Name | Description                                                                                               |
+|----------------|-----------------------------------------------------------------------------------------------------------|
+| pageSize       | Number of entities in each page                                                                           |
+| orderBy        | Specifies the order by criteria for listing entities. Available values: CREATE_TIME, LAST_UPDATE_TIME, ID |
+| sortOrder      | Specifies the sort order for listing entities. Available values: ASC, DESC. Default: ASC                  |
+| nextPageToken  | Token to use to retrieve next page of results.                                                            | 
+
+### Sample local calls
+```
+# Get with a page size of 5 getting a specific page.
+curl -i "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&nextPageToken=CAEQARoCCAE"
+```
+```
+# Get with a page size of 5, order by last update time in descending order.
+curl -i "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&orderBy=LAST_UPDATE_TIME&sortOrder=DESC"
+```

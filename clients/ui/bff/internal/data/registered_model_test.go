@@ -2,17 +2,19 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func TestGetAllRegisteredModels(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModelList()
 
@@ -24,7 +26,7 @@ func TestGetAllRegisteredModels(t *testing.T) {
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On("GET", registeredModelPath).Return(mockData, nil)
 
-	actual, err := registeredModel.GetAllRegisteredModels(mockClient)
+	actual, err := registeredModel.GetAllRegisteredModels(mockClient, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
@@ -35,8 +37,30 @@ func TestGetAllRegisteredModels(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestGetAllRegisteredModelsWithPageParams(t *testing.T) {
+	gofakeit.Seed(0) //nolint:errcheck
+
+	pageValues := mocks.GenerateMockPageValues()
+	expected := mocks.GenerateMockRegisteredModelList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	reqUrl := fmt.Sprintf("%s?%s", registeredModelPath, pageValues.Encode())
+
+	registeredModel := RegisteredModel{}
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On("GET", reqUrl).Return(mockData, nil)
+
+	actual, err := registeredModel.GetAllRegisteredModels(mockClient, pageValues)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	mockClient.AssertExpectations(t)
+}
+
 func TestCreateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -61,7 +85,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -83,7 +107,7 @@ func TestGetRegisteredModel(t *testing.T) {
 }
 
 func TestUpdateRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockRegisteredModel()
 
@@ -111,7 +135,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 }
 
 func TestGetAllModelVersions(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersionList()
 
@@ -125,7 +149,7 @@ func TestGetAllModelVersions(t *testing.T) {
 	assert.NoError(t, err)
 	mockClient.On("GET", path).Return(mockData, nil)
 
-	actual, err := registeredModel.GetAllModelVersions(mockClient, "1")
+	actual, err := registeredModel.GetAllModelVersions(mockClient, "1", nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.NoError(t, err)
@@ -138,8 +162,33 @@ func TestGetAllModelVersions(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestGetAllModelVersionsWithPageParams(t *testing.T) {
+	gofakeit.Seed(0) //nolint:errcheck
+
+	pageValues := mocks.GenerateMockPageValues()
+	expected := mocks.GenerateMockModelVersionList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	registeredModel := RegisteredModel{}
+
+	mockClient := new(mocks.MockHTTPClient)
+	path, err := url.JoinPath(registeredModelPath, "1", versionsPath)
+	assert.NoError(t, err)
+	reqUrl := fmt.Sprintf("%s?%s", path, pageValues.Encode())
+
+	mockClient.On("GET", reqUrl).Return(mockData, nil)
+
+	actual, err := registeredModel.GetAllModelVersions(mockClient, "1", pageValues)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+
+	mockClient.AssertExpectations(t)
+}
+
 func TestCreateModelVersionForRegisteredModel(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 

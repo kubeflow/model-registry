@@ -46,7 +46,7 @@ func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
-func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(httpClientKey).(integrations.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
@@ -157,7 +157,7 @@ func (app *App) GetAllModelArtifactsByModelVersionHandler(w http.ResponseWriter,
 		return
 	}
 
-	data, err := app.modelRegistryClient.GetModelArtifactsByModelVersion(client, ps.ByName(ModelVersionId))
+	data, err := app.modelRegistryClient.GetModelArtifactsByModelVersion(client, ps.ByName(ModelVersionId), r.URL.Query())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

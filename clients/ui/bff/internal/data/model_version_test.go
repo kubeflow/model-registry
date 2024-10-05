@@ -2,17 +2,19 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func TestGetModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -37,7 +39,7 @@ func TestGetModelVersion(t *testing.T) {
 }
 
 func TestCreateModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -62,7 +64,7 @@ func TestCreateModelVersion(t *testing.T) {
 }
 
 func TestUpdateModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersion()
 
@@ -90,7 +92,7 @@ func TestUpdateModelVersion(t *testing.T) {
 }
 
 func TestGetModelArtifactsByModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelArtifactList()
 
@@ -105,7 +107,7 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 	mockClient := new(mocks.MockHTTPClient)
 	mockClient.On(http.MethodGet, path, mock.Anything).Return(mockData, nil)
 
-	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1")
+	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1", nil)
 	assert.NoError(t, err)
 
 	assert.NotNil(t, actual)
@@ -115,8 +117,33 @@ func TestGetModelArtifactsByModelVersion(t *testing.T) {
 	assert.Equal(t, len(expected.Items), len(actual.Items))
 }
 
+func TestGetModelArtifactsByModelVersionWithPageParams(t *testing.T) {
+	gofakeit.Seed(0) //nolint:errcheck
+
+	pageValues := mocks.GenerateMockPageValues()
+	expected := mocks.GenerateMockModelArtifactList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	modelVersion := ModelVersion{}
+
+	path, err := url.JoinPath(modelVersionPath, "1", artifactsByModelVersionPath)
+	assert.NoError(t, err)
+	reqUrl := fmt.Sprintf("%s?%s", path, pageValues.Encode())
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On(http.MethodGet, reqUrl, mock.Anything).Return(mockData, nil)
+
+	actual, err := modelVersion.GetModelArtifactsByModelVersion(mockClient, "1", pageValues)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, actual)
+	mockClient.AssertExpectations(t)
+}
+
 func TestCreateModelArtifactByModelVersion(t *testing.T) {
-	gofakeit.Seed(0)
+	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelArtifact()
 
