@@ -10,6 +10,6 @@ resources:
 
 images:
   - name: model-registry-ui-image
-    newName: quay.io/gsulliva/mr-ui:latest
+    newName: kubeflow/model-registry-ui:latest
   - name: model-registry-bff-image
-    newName: quay.io/gsulliva/mr-bff:latest
+    newName: kubeflow/model-registry-bff:latest
