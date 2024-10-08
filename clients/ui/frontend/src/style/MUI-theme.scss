@@ -83,7 +83,7 @@
 
 
   --mui-spacing-4px: calc(0.5 * var(--mui-spacing));
-  --mui-spacing-8px: calc(0.5 * var(--mui-spacing));
+  --mui-spacing-8px: var(--mui-spacing);
   --mui-spacing-16px: calc(2 * var(--mui-spacing));
 
 
@@ -389,6 +389,19 @@
   --pf-v6-c-label--PaddingInlineStart: 0;
   --pf-v6-c-label--PaddingInlineEnd: 0;
   height: 24px;
+}
+.pf-v6-c-label.pf-m-overflow {
+  border: 1px solid var(--mui-palette-grey-400);
+
+  .pf-v6-c-label__text {
+    color: var(--mui-palette-common-black);
+    padding: none;
+  }
+}
+
+.pf-v6-c-label.pf-m-filled .pf-v6-c-label__actions .pf-v6-c-button {
+  margin: 0px 5px 0px -6px;
+  --pf-v6-c-button__icon--Color: var(--mui-palette-common-white);
 }
 
 .pf-v6-c-label__text {
