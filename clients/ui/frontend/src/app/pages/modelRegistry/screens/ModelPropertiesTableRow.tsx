@@ -13,6 +13,7 @@ import {
 import { CheckIcon, TimesIcon } from '@patternfly/react-icons';
 import { KeyValuePair } from '~/types';
 import { EitherNotBoth } from '~/typeHelpers';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ModelPropertiesTableRowProps = {
   allExistingKeys: string[];
@@ -94,19 +95,27 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
       <Td dataLabel="Key" width={45} modifier="breakWord">
         {isEditing ? (
           <>
-            <TextInput
-              data-testid={isAddRow ? `add-property-key-input` : `edit-property-${key}-key-input`}
-              aria-label={
-                isAddRow
-                  ? 'Key input for new property'
-                  : `Key input for editing property with key ${key}`
+            <FormFieldset
+              className="tr-fieldset-wrapper"
+              component={
+                <TextInput
+                  data-testid={
+                    isAddRow ? `add-property-key-input` : `edit-property-${key}-key-input`
+                  }
+                  aria-label={
+                    isAddRow
+                      ? 'Key input for new property'
+                      : `Key input for editing property with key ${key}`
+                  }
+                  isRequired
+                  type="text"
+                  value={unsavedKey}
+                  onChange={(_event, str) => setUnsavedKey(str)}
+                  validated={keyValidationError ? 'error' : 'default'}
+                />
               }
-              isRequired
-              type="text"
-              value={unsavedKey}
-              onChange={(_event, str) => setUnsavedKey(str)}
-              validated={keyValidationError ? 'error' : 'default'}
             />
+
             {keyValidationError && (
               <FormHelperText>
                 <HelperText>
@@ -121,17 +130,24 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
       </Td>
       <Td dataLabel="Value" width={45} modifier="breakWord">
         {isEditing ? (
-          <TextInput
-            data-testid={isAddRow ? `add-property-value-input` : `edit-property-${key}-value-input`}
-            aria-label={
-              isAddRow
-                ? 'Value input for new property'
-                : `Value input for editing property with key ${key}`
+          <FormFieldset
+            className="tr-fieldset-wrapper"
+            component={
+              <TextInput
+                data-testid={
+                  isAddRow ? `add-property-value-input` : `edit-property-${key}-value-input`
+                }
+                aria-label={
+                  isAddRow
+                    ? 'Value input for new property'
+                    : `Value input for editing property with key ${key}`
+                }
+                isRequired
+                type="text"
+                value={unsavedValue}
+                onChange={(_event, str) => setUnsavedValue(str)}
+              />
             }
-            isRequired
-            type="text"
-            value={unsavedValue}
-            onChange={(_event, str) => setUnsavedValue(str)}
           />
         ) : (
           <ExpandableSection
