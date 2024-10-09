@@ -1,5 +1,4 @@
 :root {
-
   // Alert
   --mui-alert--BoxShadow: none;
   --mui-alert-warning-text: #663c00;
@@ -46,6 +45,14 @@
   --mui-menu-toggle--PaddingInlineStart: 10px;
   --mui-menu-toggle--PaddingInlineEnd: 10px;
 
+  // Radio
+  --mui-radio--margin: 10px 0;
+  --mui-radio-PaddingLeft: 30px;
+  --mui-radio__label--Width: 20px;
+  --mui-radio__label--Height: 20px;
+  --mui-radio__input--Width: 10px;
+  --mui-radio__input--Height: 10px;
+
   // Table
   --mui-table__button--BackgroundColor: none;
   --mui-table__button--hover--BackgroundColor: none;
@@ -78,14 +85,11 @@
   --mui-tabs__item--m-current__link--after--BorderWidth: 2px;
   --mui-tabs__link--FontSize: 0.875rem;
 
-
   --mui-text-transform: uppercase;
-
 
   --mui-spacing-4px: calc(0.5 * var(--mui-spacing));
   --mui-spacing-8px: var(--mui-spacing);
   --mui-spacing-16px: calc(2 * var(--mui-spacing));
-
 
   --pf-t--global--border--width--box--status--default: 1px;
   --pf-t--global--border--radius--pill: var(--mui-shape-borderRadius);
@@ -98,11 +102,12 @@
   --pf-t--global--font--family--100: Roboto, Helvetica, Arial, sans-serif;
   --pf-t--global--font--family--200: Roboto, Helvetica, Arial, sans-serif;
   --pf-t--global--font--family--300: Roboto, Courier, monospace;
-
 }
 
 .pf-v6-c-alert {
-  --pf-v6-c-alert--m-warning__title--Color: var(--pf-t--global--text--color--status--warning--default);
+  --pf-v6-c-alert--m-warning__title--Color: var(
+    --pf-t--global--text--color--status--warning--default
+  );
   --pf-v6-c-alert__icon--MarginInlineEnd: var(--mui-alert__icon--MarginInlineEnd);
   --pf-v6-c-alert__title--FontWeight: var(--mui-alert-warning-font-weight);
   --pf-v6-c-alert__icon--MarginBlockStart: var(--mui-alert__icon--MarginBlockStart);
@@ -137,18 +142,168 @@
   position: relative;
 }
 
- .form-fieldset-wrapper {
+.pf-v6-c-form__group.model-description .pf-v6-c-form__group-label,
+.pf-v6-c-form__group.version-description .pf-v6-c-form__group-label {
+  padding-top: 10px;
+}
+
+.pf-v6-c-form__group.form-group-disabled .pf-v6-c-form__label {
+  color: var(--mui-palette-text-disabled);
+}
+
+.pf-v6-c-form__helper-text.path-helper-text {
+  margin-inline-start: var(--pf-t--global--spacer--lg);
+}
+
+.pf-v6-c-form__section-title {
+  margin: 0px 0px 0.35em;
+}
+
+.pf-v6-c-form__label {
+  position: absolute;
+  top: 35%;
+  left: 12px;
+  font-size: 14px;
+  color: var(--mui-palette-grey-600);
+  pointer-events: none;
+  transition: all 0.2s ease;
+  transform-origin: left center;
+  transform: translateY(-50%) scale(0.75);
+  background-color: var(--mui-palette-common-white);
+  padding: 0 4px;
+  z-index: 1;
+  --pf-v6-c-form__label-required--Color: currentColor;
+}
+
+.pf-v6-c-form-control input::placeholder {
+  color: var(--mui-palette-grey-600);
+}
+
+.pf-v6-c-form-control.pf-m-disabled {
+  background-color: var(--mui-palette-common-white);
+  --pf-v6-c-form-control--m-disabled--Color: var(--mui-palette-text-disabled);
+}
+
+.pf-v6-c-form-control.pf-m-resize-both {
+  // Resize is disabled in MUI.
+  resize: none;
+  padding-top: var(--mui-spacing-16px);
+  padding-bottom: var(--mui-spacing-16px);
+}
+
+.pf-v6-c-form-control > :is(input, select, textarea) {
+  padding-block-start: 0px; 
+  padding-block-end: 0px;
+}
+
+.pf-v6-c-form__section {
+  gap: 0px;
+}
+
+.toolbar-fieldset-wrapper .pf-v6-c-form-control input {
+  padding: 8px 14px;
+}
+
+.pf-v6-c-form-control input {
+  padding: 16.5px 14px;
+}
+
+.pf-v6-c-text-input-group__text-input {
+  padding: 16.5px 14px;
+  padding-left: 32px;
+}
+
+.pf-v6-c-text-input-group::before {
+  border: none;
+}
+
+.pf-v6-c-text-input-group__icon {
+  color: rgba(0, 0, 0, 0.38);
+  margin-right: var(--mui-spacing-4px);
+}
+
+.pf-v6-c-form__group-control textarea {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.pf-v6-c-form-control > :is(input, select, textarea):focus {
+  --pf-v6-c-form-control--OutlineOffset: none;
+  outline: none;
+}
+
+.pf-v6-c-text-input-group__text-input:focus {
+  --pf-v6-c-form-control--OutlineOffset: none;
+  outline: none;
+}
+
+.form-fieldset-wrapper {
   position: relative;
   width: 100%;
 }
 
- .form-fieldset-wrapper:focus-within .form-fieldset {
-  border-color: var(--mui-palette-primary-main);
-  border-width: 2px;
-  padding: 7px 7px
+.pf-v6-c-form__group .form-fieldset-legend {
+  float: unset;
+  width: auto;
+  overflow: hidden;
+  display: block;
+  padding: 0;
+  height: 11px;
+  font-size: 0.75em;
+  visibility: hidden;
+  max-width: 0.01px;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
- .form-fieldset {
+.form-fieldset-wrapper:hover .form-fieldset {
+  border-color: black;
+}
+
+.form-fieldset-wrapper:hover span.pf-v6-c-form-control.pf-m-disabled ~ .form-fieldset {
+  border-color: rgba(0, 0, 0, 0.23);
+}
+
+.form-fieldset-wrapper:focus-within .form-fieldset {
+  border-color: var(--mui-palette-primary-main);
+  border-width: 2px;
+  padding: 7px 7px;
+}
+
+.form-fieldset-legend {
+  float: unset;
+  width: auto;
+  overflow: hidden;
+  display: block;
+  padding: 0 5px 0 5px;
+  font-size: 0.75em;
+  max-width: 0.01px;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.form-fieldset-wrapper:focus-within {
+  color: var(--mui-palette-primary-main);
+}
+
+.form-fieldset-wrapper,
+.toolbar-fieldset-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.form-fieldset-wrapper .form-fieldset:hover {
+  border-color: var(--mui-palette-common-black);
+}
+
+.toolbar-fieldset-wrapper:focus-within .form-fieldset {
+  border-color: var(--mui-palette-primary-main);
+  border-width: 2px;
+  padding: 7px 7px;
+}
+
+.toolbar-fieldset-wrapper .form-fieldset,
+.form-fieldset {
   text-align: left;
   position: absolute;
   bottom: 0;
@@ -164,39 +319,51 @@
   overflow: hidden;
   min-width: 0%;
   border-color: rgba(0, 0, 0, 0.23);
-  border-radius: 4px;
+  border-radius: var(--mui-shape-borderRadius);
 }
 
- .form-fieldset-legend {
+.toolbar-fieldset-wrapper .form-fieldset-legend {
   float: unset;
   width: auto;
   overflow: hidden;
   display: block;
   padding: 0 5px 0 5px;
-  // height: 11px;
   font-size: 0.75em;
-  // visibility: hidden;
   max-width: 0.01px;
   white-space: nowrap;
   max-width: 100%;
 }
 
-.form-fieldset-wrapper:focus-within  {
+.toolbar-fieldset-wrapper:focus-within {
   color: var(--mui-palette-primary-main);
 }
 
-.pf-v6-c-form-control>:is(input,select,textarea):focus {
-  --pf-v6-c-form-control--OutlineOffset: none;
-  outline: none;
+.toolbar-fieldset-wrapper:focus-within .form-fieldset-legend {
+  color: var(--mui-palette-primary-main);
 }
 
- .form-fieldset-wrapper .pf-v6-c-form-control {
+.toolbar-fieldset-wrapper .pf-v6-c-form-control,
+.form-fieldset-wrapper .pf-v6-c-form-control {
   &::before,
   &::after {
     content: revert;
   }
 }
 
+.pf-v6-c-form__group .pf-v6-c-form-control:focus-within + .pf-v6-c-form__label,
+.pf-v6-c-form__group .pf-v6-c-form-control:not(:placeholder-shown) + .pf-v6-c-form__label {
+  color: var(--mui-palette-primary-main);
+}
+
+.pf-v6-c-form__group:focus-within .pf-v6-c-form-control {
+  --pf-v6-c-form-control--after--BorderWidth: 2px;
+  --pf-v6-c-form-control--after--BorderColor: var(--mui-palette-primary-main);
+}
+
+.pf-v6-c-form__group:focus-within .pf-v6-c-form__label {
+  /* Change color of the label when the input is focused */
+  color: var(--mui-palette-primary-main);
+}
 
 .pf-v6-c-menu {
   --pf-v6-c-menu--BoxShadow: var(--mui-shadows-8);
@@ -215,7 +382,9 @@
 .pf-v6-c-menu-toggle {
   --pf-v6-c-menu-toggle__toggle-icon--MinHeight: var(--mui-menu-toggle__toggle-icon--MinHeight);
   --pf-v6-c-menu-toggle__controls--MinWidth: var(--mui-menu-toggle__controls--MinWidth);
-  --pf-v6-c-menu-toggle--expanded--BackgroundColor: var(--mui-menu-toggle--expanded--BackgroundColor);
+  --pf-v6-c-menu-toggle--expanded--BackgroundColor: var(
+    --mui-menu-toggle--expanded--BackgroundColor
+  );
   --pf-v6-c-menu-toggle--expanded--BorderColor: var(--mui-menu-toggle--expanded--BorderColor);
   --pf-v6-c-menu-toggle--PaddingInlineStart: var(--mui-menu-toggle--PaddingInlineStart);
   --pf-v6-c-menu-toggle--PaddingInlineEnd: var(--mui-menu-toggle--PaddingInlineEnd);
@@ -223,9 +392,15 @@
   --pf-v6-c-menu-toggle--expanded--Color: var(--mui-palette-common-black);
   --pf-v6-c-menu-toggle--hover--BorderColor: var(--mui-menu-toggle--hover--BorderColor);
   --pf-v6-c-menu-toggle--BorderColor: var(--mui-menu-toggle--BorderColor);
-  --pf-v6-c-menu-toggle--hover--BackgroundColor: var(--pf-t--global--background--color--action--plain--hover);
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--expanded--child--BackgroundColor: var(--pf-t--global--color--brand--default);
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BorderInlineStartColor: var(--mui-palette-primary-dark);
+  --pf-v6-c-menu-toggle--hover--BackgroundColor: var(
+    --pf-t--global--background--color--action--plain--hover
+  );
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--expanded--child--BackgroundColor: var(
+    --pf-t--global--color--brand--default
+  );
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BorderInlineStartColor: var(
+    --mui-palette-primary-dark
+  );
 
   text-transform: var(--mui-text-transform);
   font-weight: var(--mui-button-font-weight);
@@ -247,8 +422,11 @@
   --pf-v6-c-menu-toggle--expanded--Color: var(--pf-t--global--text--color--on-brand--clicked);
 }
 
-.pf-v6-c-menu-toggle.pf-m-primary.pf-m-split-button .pf-v6-c-menu-toggle__button[aria-expanded="true"] {
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BackgroundColor: var(--mui-palette-primary-dark);
+.pf-v6-c-menu-toggle.pf-m-primary.pf-m-split-button
+  .pf-v6-c-menu-toggle__button[aria-expanded='true'] {
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BackgroundColor: var(
+    --mui-palette-primary-dark
+  );
 }
 
 .pf-v6-c-menu-toggle__button:has(.pf-v6-c-menu-toggle__toggle-icon) {
@@ -280,7 +458,64 @@
 
 .pf-v6-c-menu-toggle__icon {
   display: block;
-  padding-right: var(--mui-spacing-4px);
+}
+
+.pf-v6-radio {
+  --pf-v6-c-radio--AccentColor: var(--mui-palette-primary-main);
+}
+
+.pf-v6-c-radio {
+  display: flex;
+  align-items: center;
+  margin: var(--mui-radio--margin);
+}
+
+.pf-v6-c-radio__input {
+  display: none;
+  /* Hide default radio button */
+}
+
+.pf-v6-c-radio__label {
+  --pf-v6-c-radio__label--FontSize: 16px;
+  padding-left: var(--mui-radio-PaddingLeft);
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Custom radio circle */
+.pf-v6-c-radio__label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--mui-radio__label--Width);
+  height: var(--mui-radio__label--Height);
+  border: 2px solid var(--mui-palette-primary-main);
+  border-radius: 50%;
+  background: var(--mui-palette-common-white);
+}
+
+/* When radio is checked */
+.pf-v6-c-radio__input:checked + .pf-v6-c-radio__label::before {
+  background: var(--mui-palette-common-white);
+  border-color: var(--mui-palette-primary-main);
+}
+
+/* Inner dot for checked state */
+.pf-v6-c-radio__input:checked + .pf-v6-c-radio__label::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  /* Center the dot */
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--mui-radio__input--Width);
+  /* Size of inner dot */
+  height: var(--mui-radio__input--Height);
+  border-radius: 50%;
+  background: var(--mui-palette-primary-main);
 }
 
 .pf-v6-c-table {
@@ -299,11 +534,15 @@
   --pf-v6-c-table--cell--PaddingInlineEnd: var(--mui-table--cell--PaddingInlineEnd);
   --pf-v6-c-table--cell--PaddingBlockStart: var(--mui-table--cell--PaddingBlockStart);
   --pf-v6-c-table--cell--PaddingBlockEnd: var(--mui-table--cell--PaddingBlockEnd);
-  --pf-v6-c-table--cell--first-last-child--PaddingInline: var(--mui-table--cell--first-last-child--PaddingInline);
+  --pf-v6-c-table--cell--first-last-child--PaddingInline: var(
+    --mui-table--cell--first-last-child--PaddingInline
+  );
   --pf-v6-c-table__thead--cell--FontWeight: var(--mui-button-font-weight);
   --pf-v6-c-table__thead--cell--FontSize: var(--mui-table__thead--cell--FontSize);
   --pf-v6-c-table__tr--BorderBlockEndColor: var(--mui-palette-grey-300);
-  --pf-v6-c-table__sort-indicator--MarginInlineStart: var(--mui-table__sort-indicator--MarginInlineStart);
+  --pf-v6-c-table__sort-indicator--MarginInlineStart: var(
+    --mui-table__sort-indicator--MarginInlineStart
+  );
 
   letter-spacing: 0.01071em;
 }
@@ -315,7 +554,9 @@
 .pf-v6-c-table__sort-indicator {
   font-size: 18px;
   opacity: 0;
-  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, transform 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   transform-origin: center center;
   align-self: start;
 }
@@ -338,12 +579,12 @@
   opacity: 0.6;
 }
 
-.pf-v6-c-table__sort[aria-sort="ascending"] .pf-v6-c-table__sort-indicator {
+.pf-v6-c-table__sort[aria-sort='ascending'] .pf-v6-c-table__sort-indicator {
   transform: rotate(180deg);
   align-self: end;
 }
 
-.pf-v6-c-table__sort[aria-sort="descending"] .pf-v6-c-table__sort-indicator {
+.pf-v6-c-table__sort[aria-sort='descending'] .pf-v6-c-table__sort-indicator {
   align-self: start;
 }
 
@@ -365,7 +606,9 @@
   --pf-v6-c-tabs__link--PaddingInlineStart: var(--mui-tabs__link--PaddingInlineStart);
   --pf-v6-c-tabs__link--PaddingInlineEnd: var(--mui-tabs__link--PaddingInlineEnd);
   --pf-v6-c-tabs__item--m-current__link--Color: var(--pf-t--global--text--color--brand--default);
-  --pf-v6-c-tabs__item--m-current__link--after--BorderWidth: var(--mui-tabs__item--m-current__link--after--BorderWidth);
+  --pf-v6-c-tabs__item--m-current__link--after--BorderWidth: var(
+    --mui-tabs__item--m-current__link--after--BorderWidth
+  );
   --pf-v6-c-tabs__link--FontSize: 0.875rem;
 }
 
@@ -405,17 +648,16 @@
 }
 
 .pf-v6-c-label__text {
-  padding-right: var(--mui-spacing-8px);
-  padding-left: var(--mui-spacing-8px);
+  padding-right: var(--mui-spacing-4px);
+  padding-left: var(--mui-spacing-4px);
   color: var(--pf-t--global--text--color--inverse);
 }
 
-.pf-v6-c-label-group.pf-m-category
- {
+.pf-v6-c-label-group.pf-m-category {
   --pf-v6-c-label-group--m-category--BorderWidth: 0px;
   --pf-v6-c-label-group--m-category--BorderRadius: var(--mui-shape-borderRadius);
   box-shadow: var(--mui-shadows-1);
- }
+}
 
 .pf-v6-c-label.pf-m-outline {
   --pf-v6-c-label--BorderColor: none;
@@ -450,5 +692,5 @@
 }
 
 .pf-v6-c-pagination__page-menu::before {
-  content: "Rows per page:";
+  content: 'Rows per page:';
 }

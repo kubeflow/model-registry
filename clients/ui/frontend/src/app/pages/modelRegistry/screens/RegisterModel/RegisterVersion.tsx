@@ -101,7 +101,6 @@ const RegisterVersion: React.FC = () => {
             <StackItem className={spacing.mbLg}>
               <FormGroup
                 id="registered-model-container"
-                label="Model name"
                 isRequired
                 fieldId="model-name"
                 labelHelp={

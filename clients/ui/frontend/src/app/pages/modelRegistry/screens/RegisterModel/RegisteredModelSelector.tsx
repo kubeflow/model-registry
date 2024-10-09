@@ -1,7 +1,8 @@
 import React from 'react';
-import { TextInput } from '@patternfly/react-core';
+import { FormGroup, TextInput } from '@patternfly/react-core';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { RegisteredModel } from '~/app/types';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type RegisteredModelSelectorProps = {
   registeredModels: RegisteredModel[];
@@ -34,14 +35,21 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
         See related PatternFly issue https://github.com/patternfly/patternfly-react/issues/10842
     */
     return (
-      <TextInput
-        isDisabled
-        isRequired
-        type="text"
-        id="model-name"
-        name="registered-model-prefilled"
-        value={options.find(({ value }) => value === registeredModelId)?.content}
-      />
+      <FormGroup label="Model name" className="form-group-disabled" isRequired fieldId="model-name">
+        <FormFieldset
+          component={
+            <TextInput
+              isDisabled
+              isRequired
+              type="text"
+              id="model-name"
+              name="registered-model-prefilled"
+              value={options.find(({ value }) => value === registeredModelId)?.content}
+            />
+          }
+          field="Model Name"
+        />
+      </FormGroup>
     );
   }
 

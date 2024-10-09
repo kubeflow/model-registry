@@ -6,16 +6,17 @@ import {
   Radio,
   Split,
   SplitItem,
-  InputGroupText,
-  InputGroupItem,
   HelperText,
   HelperTextItem,
   FormHelperText,
+  TextInputGroup,
+  TextInputGroupMain,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from '~/types';
 // import { DataConnection, UpdateObjectAtPropAndValue } from '~/pages/projects/types';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/components/pf-overrides/FormSection';
 import { ModelVersion } from '~/app/types';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
@@ -61,6 +62,105 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
     modelLocationURI,
   } = formData;
 
+  const versionNameInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="version-name"
+      name="version-name"
+      value={versionName}
+      onChange={(_e, value) => setData('versionName', value)}
+    />
+  );
+
+  const versionDescriptionInput = (
+    <TextArea
+      type="text"
+      id="version-description"
+      name="version-description"
+      value={versionDescription}
+      onChange={(_e, value) => setData('versionDescription', value)}
+    />
+  );
+
+  const sourceModelFormatInput = (
+    <TextInput
+      type="text"
+      placeholder="Example, tensorflow"
+      id="source-model-format"
+      name="source-model-format"
+      value={sourceModelFormat}
+      onChange={(_e, value) => setData('sourceModelFormat', value)}
+    />
+  );
+
+  const sourceModelFormatVersionInput = (
+    <TextInput
+      type="text"
+      placeholder="Example, 1"
+      id="source-model-format-version"
+      name="source-model-format-version"
+      value={sourceModelFormatVersion}
+      onChange={(_e, value) => setData('sourceModelFormatVersion', value)}
+    />
+  );
+
+  const endpointInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="location-endpoint"
+      name="location-endpoint"
+      value={modelLocationEndpoint}
+      onChange={(_e, value) => setData('modelLocationEndpoint', value)}
+    />
+  );
+
+  const bucketInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="location-bucket"
+      name="location-bucket"
+      value={modelLocationBucket}
+      onChange={(_e, value) => setData('modelLocationBucket', value)}
+    />
+  );
+
+  const regionInput = (
+    <TextInput
+      type="text"
+      id="location-region"
+      name="location-region"
+      value={modelLocationRegion}
+      onChange={(_e, value) => setData('modelLocationRegion', value)}
+    />
+  );
+
+  const pathInput = (
+    <TextInputGroup>
+      <TextInputGroupMain
+        icon="/"
+        type="text"
+        id="location-path"
+        name="location-path"
+        value={modelLocationPath}
+        onChange={(_e, value) => setData('modelLocationPath', value)}
+      />
+    </TextInputGroup>
+  );
+
+  const uriInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="location-uri"
+      name="location-uri"
+      value={modelLocationURI}
+      onChange={(_e, value) => setData('modelLocationURI', value)}
+    />
+  );
+
   return (
     <>
       <FormSection
@@ -72,54 +172,34 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
         }
       >
         <FormGroup label="Version name" isRequired fieldId="version-name">
-          <TextInput
-            isRequired
-            type="text"
-            id="version-name"
-            name="version-name"
-            value={versionName}
-            onChange={(_e, value) => setData('versionName', value)}
-          />
-          {latestVersion && (
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem>Current version is {latestVersion.name}</HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          )}
+          <FormFieldset component={versionNameInput} field="Version Name" />
         </FormGroup>
-        <FormGroup label="Version description" fieldId="version-description">
-          <TextArea
-            type="text"
-            id="version-description"
-            name="version-description"
-            value={versionDescription}
-            onChange={(_e, value) => setData('versionDescription', value)}
-          />
+        {latestVersion && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>Current version is {latestVersion.name}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
+        <FormGroup
+          className="version-description"
+          label="Version description"
+          fieldId="version-description"
+        >
+          <FormFieldset component={versionDescriptionInput} field="Version Description" />
         </FormGroup>
         <FormGroup label="Source model format" fieldId="source-model-format">
-          <TextInput
-            type="text"
-            placeholder="Example, tensorflow"
-            id="source-model-format"
-            name="source-model-format"
-            value={sourceModelFormat}
-            onChange={(_e, value) => setData('sourceModelFormat', value)}
-          />
+          <FormFieldset component={sourceModelFormatInput} field="Source Model Format" />
         </FormGroup>
         <FormGroup label="Source model format version" fieldId="source-model-format-version">
-          <TextInput
-            type="text"
-            placeholder="Example, 1"
-            id="source-model-format-version"
-            name="source-model-format-version"
-            value={sourceModelFormatVersion}
-            onChange={(_e, value) => setData('sourceModelFormatVersion', value)}
+          <FormFieldset
+            component={sourceModelFormatVersionInput}
+            field="Source Model Format Version"
           />
         </FormGroup>
       </FormSection>
       <FormSection
-        title="Model location"
+        field="Model location"
         description="Specify the model location by providing either the object storage details or the URI."
       >
         <Split>
@@ -156,83 +236,46 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
               isRequired
               fieldId="location-endpoint"
             >
-              <TextInput
-                isRequired
-                type="text"
-                id="location-endpoint"
-                name="location-endpoint"
-                value={modelLocationEndpoint}
-                onChange={(_e, value) => setData('modelLocationEndpoint', value)}
-              />
+              <FormFieldset component={endpointInput} field="Endpoint" />
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Bucket" isRequired fieldId="location-bucket">
-              <TextInput
-                isRequired
-                type="text"
-                id="location-bucket"
-                name="location-bucket"
-                value={modelLocationBucket}
-                onChange={(_e, value) => setData('modelLocationBucket', value)}
-              />
+              <FormFieldset component={bucketInput} field="Bucket" />
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Region" fieldId="location-region">
-              <TextInput
-                type="text"
-                id="location-region"
-                name="location-region"
-                value={modelLocationRegion}
-                onChange={(_e, value) => setData('modelLocationRegion', value)}
-              />
+              <FormFieldset component={regionInput} field="Region" />
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Path" isRequired fieldId="location-path">
-              <Split hasGutter>
-                <SplitItem>
-                  <InputGroupText isPlain>/</InputGroupText>
-                </SplitItem>
-                <SplitItem isFilled>
-                  <InputGroupItem>
-                    <TextInput
-                      isRequired
-                      type="text"
-                      id="location-path"
-                      name="location-path"
-                      value={modelLocationPath}
-                      onChange={(_e, value) => setData('modelLocationPath', value)}
-                    />
-                  </InputGroupItem>
-                </SplitItem>
-              </Split>
+              <FormFieldset component={pathInput} field="Path" />
+            </FormGroup>
+            <FormHelperText className="path-helper-text">
               <HelperText>
                 <HelperTextItem>
                   Enter a path to a model or folder. This path cannot point to a root folder.
                 </HelperTextItem>
               </HelperText>
+            </FormHelperText>
+          </>
+        )}
+        <Split>
+          <SplitItem isFilled>
+            <Radio
+              isChecked={modelLocationType === ModelLocationType.URI}
+              name="location-type-uri"
+              onChange={() => {
+                setData('modelLocationType', ModelLocationType.URI);
+              }}
+              label="URI"
+              id="location-type-uri"
+            />
+          </SplitItem>
+        </Split>
+        {modelLocationType === ModelLocationType.URI && (
+          <>
+            <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
+              <FormFieldset component={uriInput} field="URI" />
             </FormGroup>
           </>
         )}
-        <Radio
-          isChecked={modelLocationType === ModelLocationType.URI}
-          name="location-type-uri"
-          onChange={() => {
-            setData('modelLocationType', ModelLocationType.URI);
-          }}
-          label="URI"
-          id="location-type-uri"
-          body={
-            modelLocationType === ModelLocationType.URI && (
-              <FormGroup label="URI" isRequired fieldId="location-uri">
-                <TextInput
-                  isRequired
-                  type="text"
-                  id="location-uri"
-                  name="location-uri"
-                  value={modelLocationURI}
-                  onChange={(_e, value) => setData('modelLocationURI', value)}
-                />
-              </FormGroup>
-            )
-          }
-        />
       </FormSection>
       {/* <ConnectionModal
         isOpen={isAutofillModalOpen}
