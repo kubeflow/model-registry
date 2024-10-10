@@ -1,6 +1,5 @@
 all: install tidy
 
-IMG_REGISTRY ?= docker.io
 IMG_VERSION ?= latest 
 
 .PHONY: install
@@ -14,12 +13,13 @@ install:
 clean:
 	rm -rf src/mr_openapi
 
-.PHONY: build-mr
-build-mr:
-	cd ../../ && IMG_REGISTRY=${IMG_REGISTRY} IMG_VERSION=${IMG_VERSION} make image/build
+.PHONY: deploy-latest-mr
+deploy-latest-mr:
+	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build && LOCAL=1 ./scripts/deploy_on_kind.sh
+	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 &
 
 .PHONY: test-e2e
-test-e2e: build-mr
+test-e2e: deploy-latest-mr
 	poetry run pytest --e2e -s
 
 .PHONY: test
