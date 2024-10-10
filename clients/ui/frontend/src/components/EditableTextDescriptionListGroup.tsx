@@ -3,6 +3,7 @@ import { ExpandableSection, TextArea } from '@patternfly/react-core';
 import DashboardDescriptionListGroup, {
   DashboardDescriptionListGroupProps,
 } from '~/components/DashboardDescriptionListGroup';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type EditableTextDescriptionListGroupProps = Pick<
   DashboardDescriptionListGroupProps,
@@ -35,14 +36,17 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       isEditing={isEditing}
       isSavingEdits={isSavingEdits}
       contentWhenEditing={
-        <TextArea
-          data-testid={`edit-text-area-${title}`}
-          aria-label={`Text box for editing ${title}`}
-          value={unsavedValue}
-          onChange={(_event, v) => setUnsavedValue(v)}
-          isDisabled={isSavingEdits}
-          rows={24}
-          resizeOrientation="vertical"
+        <FormFieldset
+          component={
+            <TextArea
+              data-testid={`edit-text-area-${title}`}
+              aria-label={`Text box for editing ${title}`}
+              value={unsavedValue}
+              onChange={(_event, v) => setUnsavedValue(v)}
+              isDisabled={isSavingEdits}
+              rows={24}
+            />
+          }
         />
       }
       onEditClick={() => {
