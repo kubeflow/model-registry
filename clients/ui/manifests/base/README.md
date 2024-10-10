@@ -61,3 +61,21 @@ curl http://localhost:4000/api/v1/model-registry
     "model_registry": null
 }
 ```
+
+### Troubleshooting
+
+#### Running on macOS
+When running locally on macOS you may find the pods fail to deploy, with one or more stuck in the `pending` state. This is usually due to insufficient memory allocated to your docker / podman virtual machine. You can verify this by running:
+```shell
+kubectl describe pods -n kubeflow
+```
+If you're experiencing this issue you'll see an output containing something similar to the following:
+```
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  29s   default-scheduler  0/1 nodes are available: 1 Insufficient memory. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+```
+
+To fix this, you'll need to increase the amount of memory available to the VM. This can be done through either the Podman Desktop or Docker Desktop GUI. 6-8GB of memory is generally a sufficient amount to use.
+
