@@ -184,6 +184,18 @@ func newCustomProperties() *map[string]openapi.MetadataValue {
 				MetadataType: "MetadataStringValue",
 			},
 		},
+		"AWS_KEY": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "asdf89asdf098asdfa",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"AWS_PASSWORD": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "*AadfeDs34adf",
+				MetadataType: "MetadataStringValue",
+			},
+		},
 	}
 
 	return &result
