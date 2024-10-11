@@ -7,7 +7,7 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
-  SearchInput,
+  TextInput,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -32,6 +32,7 @@ import {
 import { asEnumMember } from '~/app/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import SimpleSelect from '~/app/components/SimpleSelect';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
@@ -147,15 +148,21 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                   />
                 </ToolbarFilter>
                 <ToolbarItem>
-                  <SearchInput
-                    placeholder={`Find by ${searchType.toLowerCase()}`}
-                    value={search}
-                    onChange={(_, searchValue) => {
-                      setSearch(searchValue);
-                    }}
-                    onClear={() => setSearch('')}
-                    style={{ minWidth: '200px' }}
-                    data-testid="model-versions-table-search"
+                  <FormFieldset
+                    className="toolbar-fieldset-wrapper"
+                    component={
+                      <TextInput
+                        value={search}
+                        type="text"
+                        onChange={(_, searchValue) => {
+                          setSearch(searchValue);
+                        }}
+                        style={{ minWidth: '200px' }}
+                        data-testid="model-versions-table-search"
+                        aria-label="Search"
+                      />
+                    }
+                    field={`Find by ${searchType.toLowerCase()}`}
                   />
                 </ToolbarItem>
               </ToolbarGroup>
