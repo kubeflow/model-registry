@@ -37,7 +37,7 @@
     "@cypress/code-coverage": "^3.13.4",
     "@mui/material": "^6.1.1",
     "@mui/icons-material": "^6.1.2",
-    "@mui/types": "^7.2.17",
+    "@mui/types": "^7.2.18",
     "@testing-library/cypress": "^10.0.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
