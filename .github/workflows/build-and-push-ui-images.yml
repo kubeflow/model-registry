@@ -8,11 +8,11 @@ on:
     paths:
       - 'clients/ui/**'
 env:
-  IMG_ORG: kubeflow
+  IMG_ORG: opendatahub
   IMG_UI_REPO: model-registry-ui
   IMG_BFF_REPO: model-registry-bff
-  DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
+  DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
+  DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
   PUSH_IMAGE: true
 jobs:
   build-image:
@@ -46,7 +46,7 @@ jobs:
         shell: bash
         env:
           IMG_REPO: ${{ env.IMG_UI_REPO }}
-          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}
+          IMG: quay.io/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}
           BUILD_IMAGE: false # image is already built in "Build and Push UI Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
@@ -57,7 +57,7 @@ jobs:
         shell: bash
         env:
           IMG_REPO: ${{ env.IMG_BFF_REPO }}
-          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_BFF_REPO }}
+          IMG: quay.io/${{ env.IMG_ORG }}/${{ env.IMG_BFF_REPO }}
           BUILD_IMAGE: false # image is already built in "Build and Push BFF Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
