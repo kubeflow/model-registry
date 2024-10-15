@@ -13,6 +13,7 @@ import {
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/components/pf-overrides/FormSection';
 import ApplicationsPage from '~/app/components/ApplicationsPage';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
@@ -21,7 +22,6 @@ import { useRegisterModelData, RegistrationCommonFormData } from './useRegisterM
 import { isRegisterModelSubmitDisabled, registerModel } from './utils';
 import { useRegistrationCommonState } from './useRegistrationCommonState';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
-import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegistrationFormFooter from './RegistrationFormFooter';
 
 const RegisterModel: React.FC = () => {
@@ -42,6 +42,31 @@ const RegisterModel: React.FC = () => {
     });
   const onCancel = () => navigate(modelRegistryUrl(mrName));
 
+  const modelRegistryInput = (
+    <TextInput isDisabled isRequired type="text" id="mr-name" name="mr-name" value={mrName} />
+  );
+
+  const modelNameInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="model-name"
+      name="model-name"
+      value={modelName}
+      onChange={(_e, value) => setData('modelName', value)}
+    />
+  );
+
+  const modelDescriptionInput = (
+    <TextArea
+      type="text"
+      id="model-description"
+      name="model-description"
+      value={modelDescription}
+      onChange={(_e, value) => setData('modelDescription', value)}
+    />
+  );
+
   return (
     <ApplicationsPage
       title="Register model"
@@ -61,7 +86,14 @@ const RegisterModel: React.FC = () => {
         <Form isWidthLimited>
           <Stack hasGutter>
             <StackItem className={spacing.mbLg}>
-              <PrefilledModelRegistryField mrName={mrName} />
+              <FormGroup
+                className="form-group-disabled"
+                label="Model registry"
+                isRequired
+                fieldId="mr-name"
+              >
+                <FormFieldset component={modelRegistryInput} field="Model Registry" />
+              </FormGroup>
             </StackItem>
             <StackItem>
               <FormSection
@@ -69,23 +101,14 @@ const RegisterModel: React.FC = () => {
                 description="Provide general details that apply to all versions of this model."
               >
                 <FormGroup label="Model name" isRequired fieldId="model-name">
-                  <TextInput
-                    isRequired
-                    type="text"
-                    id="model-name"
-                    name="model-name"
-                    value={modelName}
-                    onChange={(_e, value) => setData('modelName', value)}
-                  />
+                  <FormFieldset component={modelNameInput} field="Model Name" />
                 </FormGroup>
-                <FormGroup label="Model description" fieldId="model-description">
-                  <TextArea
-                    type="text"
-                    id="model-description"
-                    name="model-description"
-                    value={modelDescription}
-                    onChange={(_e, value) => setData('modelDescription', value)}
-                  />
+                <FormGroup
+                  className="model-description"
+                  label="Model description"
+                  fieldId="model-description"
+                >
+                  <FormFieldset component={modelDescriptionInput} field="Model Description" />
                 </FormGroup>
               </FormSection>
               <RegistrationCommonFormSections

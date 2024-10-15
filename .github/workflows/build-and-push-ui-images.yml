@@ -1,0 +1,65 @@
+name: Build and Push UI and BFF Images
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths:
+      - 'clients/ui/**'
+env:
+  IMG_ORG: kubeflow
+  IMG_UI_REPO: model-registry-ui
+  IMG_BFF_REPO: model-registry-bff
+  DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
+  PUSH_IMAGE: true
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      # Assign context variable for various action contexts (main, CI)
+      - name: Assigning main context
+        if: github.head_ref == '' && github.ref == 'refs/heads/main'
+        run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
+      # checkout branch
+      - uses: actions/checkout@v4
+      # set image version
+      - name: Set main-branch environment
+        if: env.BUILD_CONTEXT == 'main'
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "VERSION=${tag}" >> $GITHUB_ENV
+      - name: Build and Push UI Image
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.IMG_UI_REPO }}
+        run: ./scripts/build_deploy.sh
+      - name: Build and Push BFF Image
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.IMG_BFF_REPO }}
+        run: ./scripts/build_deploy.sh
+      - name: Tag Latest UI Image
+        if: env.BUILD_CONTEXT == 'main'
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.IMG_UI_REPO }}
+          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}
+          BUILD_IMAGE: false # image is already built in "Build and Push UI Image" step
+        run: |
+          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
+          # BUILD_IMAGE=false skip the build, just push the tag made above
+          VERSION=latest ./scripts/build_deploy.sh
+      - name: Tag Latest BFF Image
+        if: env.BUILD_CONTEXT == 'main'
+        shell: bash
+        env:
+          IMG_REPO: ${{ env.IMG_BFF_REPO }}
+          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_BFF_REPO }}
+          BUILD_IMAGE: false # image is already built in "Build and Push BFF Image" step
+        run: |
+          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
+          # BUILD_IMAGE=false skip the build, just push the tag made above
+          VERSION=latest ./scripts/build_deploy.sh

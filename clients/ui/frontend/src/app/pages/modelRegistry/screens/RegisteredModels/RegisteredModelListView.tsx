@@ -13,6 +13,7 @@ import {
   registerModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
 
@@ -90,23 +91,22 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
         />
       </ToolbarFilter>
       <ToolbarItem variant="label-group">
-        <div className="form-fieldset-wrapper">
-          <TextInput
-            value={search}
-            type="text"
-            onChange={(_, searchValue) => {
-              setSearch(searchValue);
-            }}
-            style={{ minWidth: '200px' }}
-            data-testid="registered-model-table-search"
-            aria-label="Search"
-          />
-          <fieldset aria-hidden="true" className="form-fieldset">
-            <legend className="form-fieldset-legend">
-              <span>{`Find by ${searchType.toLowerCase()}`}</span>
-            </legend>
-          </fieldset>
-        </div>
+        <FormFieldset
+          className="toolbar-fieldset-wrapper"
+          component={
+            <TextInput
+              value={search}
+              type="text"
+              onChange={(_, searchValue) => {
+                setSearch(searchValue);
+              }}
+              style={{ minWidth: '200px' }}
+              data-testid="registered-model-table-search"
+              aria-label="Search"
+            />
+          }
+          field={`Find by ${searchType.toLowerCase()}`}
+        />
       </ToolbarItem>
     </ToolbarGroup>
   );
