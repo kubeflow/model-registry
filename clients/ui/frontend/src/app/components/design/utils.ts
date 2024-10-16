@@ -4,6 +4,8 @@ import modelRegistryMissingModelImg from '~/images/no-models-model-registry.svg'
 import modelRegistryMissingVersionImg from '~/images/no-versions-model-registry.svg';
 
 import './vars.scss';
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+// These conditions are required for future object types that may be added later.
 
 export enum ProjectObjectType {
   registeredModels = 'registered-models',
