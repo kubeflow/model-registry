@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -23,8 +24,8 @@ func setupApiTest[T any](method string, url string, body interface{}) (T, *http.
 	mockClient := new(mocks.MockHTTPClient)
 
 	testApp := App{
-		modelRegistryClient: mockMRClient,
-		kubernetesClient:    mockK8sClient,
+		repositories:     repositories.NewRepositories(mockMRClient),
+		kubernetesClient: mockK8sClient,
 	}
 
 	var req *http.Request

@@ -25,7 +25,7 @@ func (app *App) GetModelVersionHandler(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	model, err := app.modelRegistryClient.GetModelVersion(client, ps.ByName(ModelVersionId))
+	model, err := app.repositories.ModelRegistryClient.GetModelVersion(client, ps.ByName(ModelVersionId))
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -72,7 +72,7 @@ func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	createdVersion, err := app.modelRegistryClient.CreateModelVersion(client, jsonData)
+	createdVersion, err := app.repositories.ModelRegistryClient.CreateModelVersion(client, jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {
@@ -123,7 +123,7 @@ func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	patchedModel, err := app.modelRegistryClient.UpdateModelVersion(client, ps.ByName(ModelVersionId), jsonData)
+	patchedModel, err := app.repositories.ModelRegistryClient.UpdateModelVersion(client, ps.ByName(ModelVersionId), jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {
@@ -157,7 +157,7 @@ func (app *App) GetAllModelArtifactsByModelVersionHandler(w http.ResponseWriter,
 		return
 	}
 
-	data, err := app.modelRegistryClient.GetModelArtifactsByModelVersion(client, ps.ByName(ModelVersionId), r.URL.Query())
+	data, err := app.repositories.ModelRegistryClient.GetModelArtifactsByModelVersion(client, ps.ByName(ModelVersionId), r.URL.Query())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -199,7 +199,7 @@ func (app *App) CreateModelArtifactByModelVersionHandler(w http.ResponseWriter, 
 		return
 	}
 
-	createdArtifact, err := app.modelRegistryClient.CreateModelArtifactByModelVersion(client, ps.ByName(ModelVersionId), jsonData)
+	createdArtifact, err := app.repositories.ModelRegistryClient.CreateModelArtifactByModelVersion(client, ps.ByName(ModelVersionId), jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {

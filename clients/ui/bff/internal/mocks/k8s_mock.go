@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
@@ -8,6 +9,11 @@ import (
 
 type KubernetesClientMock struct {
 	mock.Mock
+}
+
+func (m *KubernetesClientMock) Shutdown(ctx context.Context, logger *slog.Logger) error {
+	logger.Error("Shutdown was called in mock")
+	return nil
 }
 
 func NewKubernetesClient(_ *slog.Logger) (k8s.KubernetesClientInterface, error) {
