@@ -1,11 +1,12 @@
 package mocks
 
 import (
+	"log/slog"
+	"net/url"
+
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/stretchr/testify/mock"
-	"log/slog"
-	"net/url"
 )
 
 type ModelRegistryClientMock struct {
@@ -26,7 +27,11 @@ func (m *ModelRegistryClientMock) CreateRegisteredModel(_ integrations.HTTPClien
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) GetRegisteredModel(_ integrations.HTTPClientInterface, _ string) (*openapi.RegisteredModel, error) {
+func (m *ModelRegistryClientMock) GetRegisteredModel(_ integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error) {
+	if id == "3" {
+		mockData := GetRegisteredModelMocks()[2]
+		return &mockData, nil
+	}
 	mockData := GetRegisteredModelMocks()[0]
 	return &mockData, nil
 }
@@ -36,7 +41,12 @@ func (m *ModelRegistryClientMock) UpdateRegisteredModel(_ integrations.HTTPClien
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) GetModelVersion(_ integrations.HTTPClientInterface, _ string) (*openapi.ModelVersion, error) {
+func (m *ModelRegistryClientMock) GetModelVersion(_ integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
+	if id == "3" {
+		mockData := GetModelVersionMocks()[2]
+		return &mockData, nil
+	}
+
 	mockData := GetModelVersionMocks()[0]
 	return &mockData, nil
 }
