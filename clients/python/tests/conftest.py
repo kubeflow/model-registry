@@ -6,7 +6,7 @@ import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from time import sleep
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -29,13 +29,14 @@ def pytest_collection_modifyitems(config, items):
             continue
 
 
-REGISTRY_HOST = "http://localhost"
-REGISTRY_PORT = 8080
-REGISTRY_URL = f"{REGISTRY_HOST}:{REGISTRY_PORT}"
-COMPOSE_FILE = "docker-compose.yaml"
-MAX_POLL_TIME = 1200  # the first build is extremely slow if using docker-compose-*local*.yaml for bootstrap of builder image
+REGISTRY_URL = os.environ.get("MR_URL", "http://localhost:8080")
+parsed = urlparse(REGISTRY_URL)
+host, port = parsed.netloc.split(":")
+REGISTRY_HOST = f"{parsed.scheme}://{host}"
+REGISTRY_PORT = int(port)
+
+MAX_POLL_TIME = 10
 POLL_INTERVAL = 1
-DOCKER = os.getenv("DOCKER", "docker")
 start_time = time.time()
 
 
@@ -64,38 +65,8 @@ def poll_for_ready():
         time.sleep(POLL_INTERVAL)
 
 
-@pytest.fixture(scope="session")
-def _compose_mr(root):
-    print("Assuming this is the Model Registry root directory:", root)
-    shared_volume = root / "test/config/ml-metadata"
-    sqlite_db_file = shared_volume / "metadata.sqlite.db"
-    if sqlite_db_file.exists():
-        msg = f"The file {sqlite_db_file} already exists; make sure to cancel it before running these tests."
-        raise FileExistsError(msg)
-    print(f" Starting Docker Compose in folder {root}")
-    p = subprocess.Popen(  # noqa: S602
-        f"{DOCKER} compose -f {COMPOSE_FILE} up",
-        shell=True,
-        cwd=root,
-    )
-    yield
-
-    p.kill()
-    print(f" Closing Docker Compose in folder {root}")
-    subprocess.call(  # noqa: S602
-        f"{DOCKER} compose -f {COMPOSE_FILE} down",
-        shell=True,
-        cwd=root,
-    )
-    try:
-        os.remove(sqlite_db_file)
-        print(f"Removed {sqlite_db_file} successfully.")
-    except Exception as e:
-        print(f"An error occurred while removing {sqlite_db_file}: {e}")
-
-
 def cleanup(client):
-    async def yield_and_restart(_compose_mr, root):
+    async def yield_and_restart(root):
         poll_for_ready()
         if inspect.iscoroutinefunction(client) or inspect.isasyncgenfunction(client):
             async with asynccontextmanager(client)() as async_client:
@@ -103,18 +74,9 @@ def cleanup(client):
         else:
             yield client()
 
-        sqlite_db_file = root / "test/config/ml-metadata/metadata.sqlite.db"
-        try:
-            os.remove(sqlite_db_file)
-            print(f"Removed {sqlite_db_file} successfully.")
-        except Exception as e:
-            print(f"An error occurred while removing {sqlite_db_file}: {e}")
-        # we have to wait to make sure the server restarts after the file is gone
-        sleep(1)
-
-        print("Restarting model-registry...")
+        print("Cleaning DB...")
         subprocess.call(  # noqa: S602
-            f"{DOCKER} compose -f {COMPOSE_FILE} restart model-registry",
+            "./scripts/cleanup.sh",
             shell=True,
             cwd=root,
         )
@@ -134,6 +96,7 @@ def event_loop():
 @cleanup
 def client() -> ModelRegistry:
     return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
+
 
 @pytest.fixture(scope="module")
 def setup_env_user_token():
