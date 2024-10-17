@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/kubeflow/model-registry/ui/bff/internal/api"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"os/signal"
+	"syscall"
 
 	"log/slog"
 	"net/http"
@@ -37,13 +40,39 @@ func main() {
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	logger.Info("starting server", "addr", srv.Addr)
+	// Start the server in a goroutine
+	go func() {
+		logger.Info("starting server", "addr", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("HTTP server ListenAndServe", "error", err)
+		}
+	}()
 
-	err = srv.ListenAndServe()
-	if err != nil {
-		logger.Error(err.Error())
+	// Graceful shutdown setup
+	shutdownCh := make(chan os.Signal, 1)
+	signal.Notify(shutdownCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+
+	// Wait for shutdown signal
+	<-shutdownCh
+	logger.Info("shutting down gracefully...")
+
+	// Create a context with timeout for the shutdown process
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Shutdown the HTTP server gracefully
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("server shutdown failed", "error", err)
 	}
-	os.Exit(1)
+
+	// Shutdown the Kubernetes manager gracefully
+	if err := app.Shutdown(ctx, logger); err != nil {
+		logger.Error("failed to shutdown Kubernetes manager", "error", err)
+	}
+
+	logger.Info("server stopped")
+	os.Exit(0)
+
 }
 
 func getEnvAsInt(name string, defaultVal int) int {
