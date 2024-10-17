@@ -2,7 +2,10 @@
 
 set -e
 
+DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
+
+source ./${DIR}/utils.sh
 
 # modularity to allow re-use this script against a remote k8s cluster
 if [[ -n "$LOCAL" ]]; then
@@ -33,6 +36,14 @@ else
 fi
 
 kubectl apply -k manifests/kustomize/overlays/db
-kubectl set image -n kubeflow deployment/model-registry-deployment rest-container="$IMG"
+kubectl patch deployment -n "$MR_NAMESPACE" model-registry-deployment \
+--patch '{"spec": {"template": {"spec": {"containers": [{"name": "rest-container", "image": "'$IMG'", "imagePullPolicy": "IfNotPresent"}]}}}}'
+
 kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-db --timeout=5m
+
+kubectl delete pod -n "$MR_NAMESPACE" --selector='component=model-registry-server'
+
+repeat_cmd_until "kubectl get pod -n "$MR_NAMESPACE" --selector='component=model-registry-server' \
+-o jsonpath=\"{.items[*].spec.containers[?(@.name=='rest-container')].image}\"" "= $IMG" 300 "kubectl describe pod -n $MR_NAMESPACE --selector='component=model-registry-server'"
+
 kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-deployment --timeout=5m

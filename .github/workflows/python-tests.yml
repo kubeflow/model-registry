@@ -125,15 +125,15 @@ jobs:
         uses: helm/kind-action@v1.10.0
         with:
           node_image: "kindest/node:v1.27.11"
+          cluster_name: chart-testing-py-${{ matrix.python }}
       - name: Load Local Registry Test Image
-        if: matrix.session == 'tests'
         env:
-          IMG: "docker.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
-          kind load docker-image -n chart-testing ${IMG}
+          kind load docker-image -n chart-testing-py-${{ matrix.python }} ${IMG}
       - name: Deploy Model Registry using manifests
         env:
-          IMG: "docker.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
       - name: Nox test end-to-end
         working-directory: clients/python
