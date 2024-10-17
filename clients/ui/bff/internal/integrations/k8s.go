@@ -3,14 +3,15 @@ package integrations
 import (
 	"context"
 	"fmt"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	corev1 "k8s.io/api/core/v1"
 	"log/slog"
 	"os"
+	"time"
+
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
+	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	"time"
 )
 
 const componentName = "model-registry-server"
@@ -202,12 +203,22 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 				continue
 			}
 
-			//TODO (acreasy) DisplayName and Description need to be included and not given a zero value once we
-			// know how this will be implemented.
+			displayName := service.Annotations["displayName"]
+			if displayName == "" {
+				kc.Logger.Error("service missing displayName annotation", "serviceName", service.Name)
+			}
+
+			description := service.Annotations["description"]
+			if description == "" {
+				kc.Logger.Error("service missing description annotation", "serviceName", service.Name)
+			}
+
 			serviceDetails := ServiceDetails{
-				Name:      service.Name,
-				ClusterIP: service.Spec.ClusterIP,
-				HTTPPort:  httpPort,
+				Name:        service.Name,
+				DisplayName: displayName,
+				Description: description,
+				ClusterIP:   service.Spec.ClusterIP,
+				HTTPPort:    httpPort,
 			}
 
 			services = append(services, serviceDetails)
