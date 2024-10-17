@@ -50,7 +50,7 @@ func main() {
 
 	// Graceful shutdown setup
 	shutdownCh := make(chan os.Signal, 1)
-	signal.Notify(shutdownCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(shutdownCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	// Wait for shutdown signal
 	<-shutdownCh
