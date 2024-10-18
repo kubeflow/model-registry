@@ -1,28 +1,28 @@
 package repositories
 
 import (
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
-	"github.com/stretchr/testify/assert"
-	"log/slog"
-	"os"
-	"testing"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestFetchAllModelRegistry(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	mockK8sClient, _ := mocks.NewKubernetesClient(logger)
+var _ = Describe("TestFetchAllModelRegistry", func() {
+	Context("with existing model registries", Ordered, func() {
 
-	mrClient := NewModelRegistryRepository()
+		It("should retrieve the get all service successfully", func() {
 
-	registries, err := mrClient.FetchAllModelRegistries(mockK8sClient)
+			By("fetching all model registries in the repository")
+			modelRegistryRepository := NewModelRegistryRepository()
+			registries, err := modelRegistryRepository.FetchAllModelRegistries(k8sClient)
+			Expect(err).NotTo(HaveOccurred())
 
-	assert.NoError(t, err)
-
-	expectedRegistries := []models.ModelRegistryModel{
-		{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-		{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
-		{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
-	}
-	assert.Equal(t, expectedRegistries, registries)
-}
+			By("should match the expected model registries")
+			expectedRegistries := []models.ModelRegistryModel{
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
+				{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
+				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
+			}
+			Expect(registries).To(ConsistOf(expectedRegistries))
+		})
+	})
+})

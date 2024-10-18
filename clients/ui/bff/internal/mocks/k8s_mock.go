@@ -32,8 +32,8 @@ func (m *KubernetesClientMock) Shutdown(ctx context.Context, logger *slog.Logger
 	return nil
 }
 
-func NewKubernetesClient(logger *slog.Logger) (k8s.KubernetesClientInterface, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func NewKubernetesClient(logger *slog.Logger, ctx context.Context, cancel context.CancelFunc) (k8s.KubernetesClientInterface, error) {
+
 	projectRoot, err := getProjectRoot()
 	if err != nil {
 		logger.Error("failed to find project root to locate binaries", err)

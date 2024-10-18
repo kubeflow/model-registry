@@ -4,22 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 )
 
-func setupApiTest[T any](method string, url string, body interface{}) (T, *http.Response, error) {
+func setupApiTest[T any](method string, url string, body interface{}, k8sClient k8s.KubernetesClientInterface) (T, *http.Response, error) {
 	mockMRClient, err := mocks.NewModelRegistryClient(nil)
-	if err != nil {
-		return *new(T), nil, err
-	}
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	mockK8sClient, err := mocks.NewKubernetesClient(logger)
 	if err != nil {
 		return *new(T), nil, err
 	}
@@ -28,7 +22,7 @@ func setupApiTest[T any](method string, url string, body interface{}) (T, *http.
 
 	testApp := App{
 		repositories:     repositories.NewRepositories(mockMRClient),
-		kubernetesClient: mockK8sClient,
+		kubernetesClient: k8sClient,
 	}
 
 	var req *http.Request

@@ -1,67 +1,62 @@
 package mocks
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"log/slog"
-	"os"
-	"testing"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestGetServiceDetails(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+var _ = Describe("Kubernetes Client Test", func() {
+	Context("with existing services", Ordered, func() {
 
-	k8sClient, err := NewKubernetesClient(logger)
-	require.NoError(t, err, "Failed to initialize KubernetesClientMock")
+		It("should retrieve the get all service successfully", func() {
 
-	services, err := k8sClient.GetServiceDetails()
-	require.NoError(t, err, "Failed to get service details")
+			By("getting service details")
+			services, err := k8sClient.GetServiceDetails()
+			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
-	// Check that all services have the modified ClusterIP and HTTPPort
-	for _, service := range services {
-		assert.Equal(t, "127.0.0.1", service.ClusterIP, "ClusterIP should be set to 127.0.0.1")
-		assert.Equal(t, int32(8080), service.HTTPPort, "HTTPPort should be set to 8080")
-	}
+			By("checking that all services have the modified ClusterIP and HTTPPort")
+			for _, service := range services {
+				Expect(service.ClusterIP).To(Equal("127.0.0.1"), "ClusterIP should be set to 127.0.0.1")
+				Expect(service.HTTPPort).To(Equal(int32(8080)), "HTTPPort should be set to 8080")
 
-	//Check that a specific service exists
-	foundService := false
-	for _, service := range services {
-		if service.Name == "model-registry" {
-			foundService = true
-			assert.Equal(t, "Model Registry", service.DisplayName)
-			assert.Equal(t, "Model Registry Description", service.Description)
-			break
-		}
-	}
-	assert.True(t, foundService, "Expected to find service 'model-registry'")
-}
+			}
 
-func TestGetServiceDetailsByName(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+			By("checking that that a specific service exists")
+			foundService := false
+			for _, service := range services {
+				if service.Name == "model-registry" {
+					foundService = true
+					Expect(service.DisplayName).To(Equal("Model Registry"))
+					Expect(service.Description).To(Equal("Model Registry Description"))
+					break
+				}
+			}
+			Expect(foundService).To(Equal(true), "Expected to find service 'model-registry'")
+		})
 
-	k8sClient, err := NewKubernetesClient(logger)
-	require.NoError(t, err, "Failed to initialize KubernetesClientMock")
+		It("should retrieve the service details by name", func() {
 
-	service, err := k8sClient.GetServiceDetailsByName("model-registry-dora")
-	require.NoError(t, err, "Failed to get service details")
+			By("getting service by name")
+			service, err := k8sClient.GetServiceDetailsByName("model-registry-dora")
+			Expect(err).NotTo(HaveOccurred(), "Failed to create k8s request")
 
-	assert.Equal(t, "model-registry-dora", service.Name)
-	assert.Equal(t, "Model Registry Dora description", service.Description)
-	assert.Equal(t, "Model Registry Dora", service.DisplayName)
+			By("checking that service details are correct")
+			Expect(service.Name).To(Equal("model-registry-dora"))
+			Expect(service.Description).To(Equal("Model Registry Dora description"))
+			Expect(service.DisplayName).To(Equal("Model Registry Dora"))
+		})
 
-}
+		It("should retrieve the services names", func() {
 
-func TestGetService(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+			By("getting service by name")
+			services, err := k8sClient.GetServiceNames()
+			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
-	k8sClient, err := NewKubernetesClient(logger)
-	require.NoError(t, err, "Failed to initialize KubernetesClientMock")
+			By("checking that service details are correct")
+			Expect(services[0]).To(Equal("model-registry"))
+			Expect(services[1]).To(Equal("model-registry-bella"))
+			Expect(services[2]).To(Equal("model-registry-dora"))
+		})
+	})
 
-	services, err := k8sClient.GetServiceNames()
-	require.NoError(t, err, "Failed to get service details")
-
-	assert.Equal(t, "model-registry", services[0])
-	assert.Equal(t, "model-registry-bella", services[1])
-	assert.Equal(t, "model-registry-dora", services[2])
-
-}
+})

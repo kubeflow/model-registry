@@ -2,53 +2,52 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"testing"
 )
 
-func TestModelRegistryHandler(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	mockK8sClient, _ := mocks.NewKubernetesClient(logger)
-	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
+var _ = Describe("TestModelRegistryHandler", func() {
+	Context("fetching model registries", Ordered, func() {
+		It("should retrieve the model registries successfully", func() {
 
-	testApp := App{
-		kubernetesClient: mockK8sClient,
-		repositories:     repositories.NewRepositories(mockMRClient),
-	}
+			By("creating the test app")
+			testApp := App{
+				kubernetesClient: k8sClient,
+				repositories:     repositories.NewRepositories(mockMRClient),
+				logger:           logger,
+			}
 
-	req, err := http.NewRequest(http.MethodGet, ModelRegistryListPath, nil)
-	assert.NoError(t, err)
+			By("creating the http test infrastructure")
+			req, err := http.NewRequest(http.MethodGet, ModelRegistryListPath, nil)
+			Expect(err).NotTo(HaveOccurred())
+			rr := httptest.NewRecorder()
 
-	rr := httptest.NewRecorder()
+			By("creating the http request for the handler")
+			testApp.ModelRegistryHandler(rr, req, nil)
+			rs := rr.Result()
+			defer rs.Body.Close()
+			body, err := io.ReadAll(rs.Body)
+			Expect(err).NotTo(HaveOccurred())
 
-	testApp.ModelRegistryHandler(rr, req, nil)
-	rs := rr.Result()
+			By("unmarshalling the model registries")
+			var actual ModelRegistryListEnvelope
+			err = json.Unmarshal(body, &actual)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rr.Code).To(Equal(http.StatusOK))
 
-	defer rs.Body.Close()
-	body, err := io.ReadAll(rs.Body)
-	assert.NoError(t, err)
-	var actual ModelRegistryListEnvelope
-	err = json.Unmarshal(body, &actual)
-	assert.NoError(t, err)
+			By("should match the expected model registries")
+			var expected = []models.ModelRegistryModel{
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
+				{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
+				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
+			}
+			Expect(actual.Data).To(ConsistOf(expected))
+		})
 
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	var expected = ModelRegistryListEnvelope{
-		Data: []models.ModelRegistryModel{
-			{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-			{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
-			{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
-		},
-	}
-
-	assert.Equal(t, expected, actual)
-
-}
+	})
+})
