@@ -7,8 +7,10 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 )
 
 func setupApiTest[T any](method string, url string, body interface{}) (T, *http.Response, error) {
@@ -16,7 +18,8 @@ func setupApiTest[T any](method string, url string, body interface{}) (T, *http.
 	if err != nil {
 		return *new(T), nil, err
 	}
-	mockK8sClient, err := mocks.NewKubernetesClient(nil)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	mockK8sClient, err := mocks.NewKubernetesClient(logger)
 	if err != nil {
 		return *new(T), nil, err
 	}

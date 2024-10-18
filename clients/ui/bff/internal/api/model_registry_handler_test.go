@@ -7,13 +7,16 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
 func TestModelRegistryHandler(t *testing.T) {
-	mockK8sClient, _ := mocks.NewKubernetesClient(nil)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	mockK8sClient, _ := mocks.NewKubernetesClient(logger)
 	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
 
 	testApp := App{
@@ -40,9 +43,9 @@ func TestModelRegistryHandler(t *testing.T) {
 
 	var expected = ModelRegistryListEnvelope{
 		Data: []models.ModelRegistryModel{
-			{Name: "model-registry", Description: "Model registry description", DisplayName: "Model Registry"},
-			{Name: "model-registry-dora", Description: "Model registry dora description", DisplayName: "Model Registry Dora"},
-			{Name: "model-registry-bella", Description: "Model registry bella description", DisplayName: "Model Registry Bella"},
+			{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
+			{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
+			{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
 		},
 	}
 

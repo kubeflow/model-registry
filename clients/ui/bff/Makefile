@@ -3,6 +3,8 @@ IMG ?= model-registry-bff:latest
 PORT ?= 4000
 MOCK_K8S_CLIENT ?= false
 MOCK_MR_CLIENT ?= false
+# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
+ENVTEST_K8S_VERSION = 1.29.0
 
 .PHONY: all
 all: build
@@ -32,7 +34,8 @@ vet:  .
 	go vet ./...
 
 .PHONY: test
-test:
+test: fmt vet envtest
+	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 	go test ./...
 
 .PHONY: build
@@ -54,8 +57,18 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
+## Tool Binaries
+ENVTEST ?= $(LOCALBIN)/setup-envtest-$(ENVTEST_VERSION)
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+
+## Tool Versions
 GOLANGCI_LINT_VERSION ?= v1.57.2
+ENVTEST_VERSION ?= release-0.17
+
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
