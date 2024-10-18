@@ -1,4 +1,4 @@
-package data
+package repositories
 
 import (
 	"fmt"

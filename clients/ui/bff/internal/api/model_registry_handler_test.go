@@ -2,8 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/data"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -13,9 +14,11 @@ import (
 
 func TestModelRegistryHandler(t *testing.T) {
 	mockK8sClient, _ := mocks.NewKubernetesClient(nil)
+	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
 
 	testApp := App{
 		kubernetesClient: mockK8sClient,
+		repositories:     repositories.NewRepositories(mockMRClient),
 	}
 
 	req, err := http.NewRequest(http.MethodGet, ModelRegistryListPath, nil)
@@ -36,7 +39,7 @@ func TestModelRegistryHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	var expected = ModelRegistryListEnvelope{
-		Data: []data.ModelRegistryModel{
+		Data: []models.ModelRegistryModel{
 			{Name: "model-registry", Description: "Model registry description", DisplayName: "Model Registry"},
 			{Name: "model-registry-dora", Description: "Model registry dora description", DisplayName: "Model Registry Dora"},
 			{Name: "model-registry-bella", Description: "Model registry bella description", DisplayName: "Model Registry Bella"},

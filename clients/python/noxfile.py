@@ -41,8 +41,8 @@ def lint(session: Session) -> None:
 @session(python=python_versions)
 def mypy(session: Session) -> None:
     """Type check using mypy."""
-    session.install(".")
     session.install(
+        ".",
         "mypy",
         "types-python-dateutil",
     )
@@ -53,21 +53,31 @@ def mypy(session: Session) -> None:
 @session(python=python_versions)
 def tests(session: Session) -> None:
     """Run the test suite."""
-    session.install(".")
     session.install(
-        "coverage[toml]",
+        ".",
+        "requests",
         "pytest",
         "pytest-asyncio",
-        "nest-asyncio",
+    )
+    session.run(
+        "pytest",
+        *session.posargs,
+    )
+
+
+@session(name="e2e", python=python_versions)
+def e2e_tests(session: Session) -> None:
+    """Run the test suite."""
+    session.install(
+        ".",
+        "requests",
+        "pytest",
+        "pytest-asyncio",
+        "coverage[toml]",
         "pytest-cov",
-        "pygments",
         "huggingface-hub",
     )
     try:
-        session.run(
-            "pytest",
-            *session.posargs,
-        )
         session.run(
             "pytest",
             "--e2e",
@@ -101,8 +111,12 @@ def docs_build(session: Session) -> None:
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
-    session.install(".")
-    session.install("sphinx", "myst-parser[linkify]", "furo")
+    session.install(
+        ".",
+        "sphinx",
+        "myst-parser[linkify]",
+        "furo",
+    )
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
@@ -115,8 +129,13 @@ def docs_build(session: Session) -> None:
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
-    session.install(".")
-    session.install("sphinx", "myst-parser[linkify]", "furo", "sphinx-autobuild")
+    session.install(
+        ".",
+        "sphinx",
+        "myst-parser[linkify]",
+        "furo",
+        "sphinx-autobuild",
+    )
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():

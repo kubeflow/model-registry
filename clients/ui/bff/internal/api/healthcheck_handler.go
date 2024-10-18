@@ -7,7 +7,7 @@ import (
 
 func (app *App) HealthcheckHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	healthCheck, err := app.models.HealthCheck.HealthCheck(Version)
+	healthCheck, err := app.repositories.HealthCheck.HealthCheck(Version)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -1,10 +1,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/data"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"log/slog"
 	"net/http"
 
@@ -33,11 +34,10 @@ const (
 )
 
 type App struct {
-	config              config.EnvConfig
-	logger              *slog.Logger
-	models              data.Models
-	kubernetesClient    integrations.KubernetesClientInterface
-	modelRegistryClient data.ModelRegistryClientInterface
+	config           config.EnvConfig
+	logger           *slog.Logger
+	kubernetesClient integrations.KubernetesClientInterface
+	repositories     *repositories.Repositories
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
@@ -54,12 +54,13 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	var mrClient data.ModelRegistryClientInterface
+	var mrClient repositories.ModelRegistryClientInterface
 
 	if cfg.MockMRClient {
+		//mock all model registry calls
 		mrClient, err = mocks.NewModelRegistryClient(logger)
 	} else {
-		mrClient, err = data.NewModelRegistryClient(logger)
+		mrClient, err = repositories.NewModelRegistryClient(logger)
 	}
 
 	if err != nil {
@@ -67,12 +68,16 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	}
 
 	app := &App{
-		config:              cfg,
-		logger:              logger,
-		kubernetesClient:    k8sClient,
-		modelRegistryClient: mrClient,
+		config:           cfg,
+		logger:           logger,
+		kubernetesClient: k8sClient,
+		repositories:     repositories.NewRepositories(mrClient),
 	}
 	return app, nil
+}
+
+func (app *App) Shutdown(ctx context.Context, logger *slog.Logger) error {
+	return app.kubernetesClient.Shutdown(ctx, logger)
 }
 
 func (app *App) Routes() http.Handler {
