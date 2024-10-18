@@ -74,9 +74,9 @@ jobs:
         python: ["3.12", "3.11", "3.10", "3.9"]
     env:
       FORCE_COLOR: "1"
-      IMG_ORG: kubeflow
+      IMG_ORG: opendatahub
       IMG_REPO: model-registry
-      MR_NAMESPACE: odh-model-registries # used for kind testing
+      MR_NAMESPACE: kubeflow # used for kind testing, align to /manifest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -129,12 +129,12 @@ jobs:
           cluster_name: chart-testing-py-${{ matrix.python }}
       - name: Load Local Registry Test Image
         env:
-          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing-py-${{ matrix.python }} ${IMG}
       - name: Deploy Model Registry using manifests
         env:
-          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
       - name: Nox test end-to-end
         working-directory: clients/python
