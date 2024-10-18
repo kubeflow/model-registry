@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  ActionList,
-  ActionListItem,
-  Alert,
-  Button,
-  ButtonProps,
-  Stack,
-  StackItem,
-} from '@patternfly/react-core';
+import { Alert, Button, ButtonProps } from '@patternfly/react-core';
 
 type DashboardModalFooterProps = {
   submitLabel: string;
@@ -33,42 +25,32 @@ const DashboardModalFooter: React.FC<DashboardModalFooterProps> = ({
   alertTitle,
 }) => (
   // make sure alert uses the full width
-  <Stack hasGutter style={{ flex: 'auto' }}>
+  <>
     {error && (
-      <StackItem>
-        <Alert data-testid="error-message-alert" isInline variant="danger" title={alertTitle}>
-          {error.message}
-        </Alert>
-      </StackItem>
+      <Alert data-testid="error-message-alert" isInline variant="danger" title={alertTitle}>
+        {error.message}
+      </Alert>
     )}
-    <StackItem>
-      <ActionList>
-        <ActionListItem>
-          <Button
-            key="submit"
-            variant={submitButtonVariant}
-            isDisabled={isSubmitDisabled}
-            onClick={onSubmit}
-            isLoading={isSubmitLoading}
-            data-testid="modal-submit-button"
-          >
-            {submitLabel}
-          </Button>
-        </ActionListItem>
-        <ActionListItem>
-          <Button
-            key="cancel"
-            variant="link"
-            isDisabled={isCancelDisabled}
-            onClick={onCancel}
-            data-testid="modal-cancel-button"
-          >
-            Cancel
-          </Button>
-        </ActionListItem>
-      </ActionList>
-    </StackItem>
-  </Stack>
+    <Button
+      key="submit"
+      variant={submitButtonVariant}
+      isDisabled={isSubmitDisabled}
+      onClick={onSubmit}
+      isLoading={isSubmitLoading}
+      data-testid="modal-submit-button"
+    >
+      {submitLabel}
+    </Button>
+    <Button
+      key="cancel"
+      variant="link"
+      isDisabled={isCancelDisabled}
+      onClick={onCancel}
+      data-testid="modal-cancel-button"
+    >
+      Cancel
+    </Button>
+  </>
 );
 
 export default DashboardModalFooter;
