@@ -43,18 +43,18 @@ pip install huggingface-hub
 
 ### Connecting to MR
 
-You can connect to a secure Model Registry using the default constructor (recommended):
+You can connect to a secure Model Registry using the service constructor (recommended):
 
 ```py
 from model_registry import ModelRegistry
 
-registry = ModelRegistry("https://server-address", author="Ada Lovelace")  # Defaults to a secure connection via port 443
+registry = ModelRegistry.from_service("modelregistry-sample", "Ada Lovelace")  # Defaults to a secure connection via port 443
 ```
 
 Or you can set the `is_secure` flag to `False` to connect **without** TLS (not recommended):
 
 ```py
-registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False)  # insecure port set to 8080
+registry = ModelRegistry.from_service("modelregistry-sample", "Ada Lovelace", is_secure=False)  # insecure port set to 8080
 ```
 
 ### Registering models
@@ -195,6 +195,14 @@ To run the tests you will need `docker` (or equivalent) and the `compose` extens
 This is necessary as the test suite will manage a Model Registry server and an MLMD instance to ensure a clean state on
 each run.
 You can use `make test` to execute `pytest`.
+
+### Connecting to MR outside a cluster
+
+You can simply use the default `ModelRegistry` constructor:
+
+```py
+registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False)  # insecure port set to 8080
+```
 
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
