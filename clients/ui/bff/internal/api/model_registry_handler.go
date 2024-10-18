@@ -2,15 +2,15 @@ package api
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/data"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"net/http"
 )
 
-type ModelRegistryListEnvelope Envelope[[]data.ModelRegistryModel, None]
+type ModelRegistryListEnvelope Envelope[[]models.ModelRegistryModel, None]
 
 func (app *App) ModelRegistryHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	registries, err := app.models.ModelRegistry.FetchAllModelRegistries(app.kubernetesClient)
+	registries, err := app.repositories.ModelRegistry.FetchAllModelRegistries(app.kubernetesClient)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

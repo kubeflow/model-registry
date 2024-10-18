@@ -22,7 +22,7 @@ func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	modelList, err := app.modelRegistryClient.GetAllRegisteredModels(client, r.URL.Query())
+	modelList, err := app.repositories.ModelRegistryClient.GetAllRegisteredModels(client, r.URL.Query())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -64,7 +64,7 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	createdModel, err := app.modelRegistryClient.CreateRegisteredModel(client, jsonData)
+	createdModel, err := app.repositories.ModelRegistryClient.CreateRegisteredModel(client, jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {
@@ -99,7 +99,7 @@ func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	model, err := app.modelRegistryClient.GetRegisteredModel(client, ps.ByName(RegisteredModelId))
+	model, err := app.repositories.ModelRegistryClient.GetRegisteredModel(client, ps.ByName(RegisteredModelId))
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -143,7 +143,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	patchedModel, err := app.modelRegistryClient.UpdateRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
+	patchedModel, err := app.repositories.ModelRegistryClient.UpdateRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {
@@ -177,7 +177,7 @@ func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWrit
 		return
 	}
 
-	versionList, err := app.modelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId), r.URL.Query())
+	versionList, err := app.repositories.ModelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId), r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -218,7 +218,7 @@ func (app *App) CreateModelVersionForRegisteredModelHandler(w http.ResponseWrite
 		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling model to JSON: %w", err))
 	}
 
-	createdVersion, err := app.modelRegistryClient.CreateModelVersionForRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
+	createdVersion, err := app.repositories.ModelRegistryClient.CreateModelVersionForRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
 	if err != nil {
 		var httpErr *integrations.HTTPError
 		if errors.As(err, &httpErr) {

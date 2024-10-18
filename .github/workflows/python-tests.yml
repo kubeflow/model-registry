@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
   pull_request:
     paths-ignore:
       - "LICENSE*"
@@ -12,26 +13,154 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
+
 jobs:
-  tests:
-    name: ${{ matrix.session }} ${{ matrix.python }}
+  lint:
+    name: ${{ matrix.session }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python: ["3.12"]
-        session: [lint, tests, mypy, docs-build]
-        include:
-          - python: "3.9"
-            session: tests
-          - python: "3.10"
-            session: tests
-          - python: "3.11"
-            session: tests
+        session: [lint, mypy]
     env:
       NOXSESSION: ${{ matrix.session }}
       FORCE_COLOR: "1"
-      PRE_COMMIT_COLOR: "always"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Upgrade pip in virtual environments
+        shell: python
+        run: |
+          import os
+          import pip
+
+          with open(os.environ["GITHUB_ENV"], mode="a") as io:
+              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
+      - name: Install Poetry
+        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+      - name: Install Nox
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
+          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
+          nox --version
+      - name: Nox lint
+        working-directory: clients/python
+        run: |
+          if [[ ${{ matrix.session }} == "mypy" ]]; then
+            nox --python=${{ matrix.python }} ||\
+              echo "::error title='mypy failure'::Check the logs for more details"
+          else
+            nox --python=${{ matrix.python }}
+          fi
+
+  test:
+    name: Test against Py ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.11", "3.10", "3.9"]
+    env:
+      FORCE_COLOR: "1"
+      IMG_ORG: kubeflow
+      IMG_REPO: model-registry
+      MR_NAMESPACE: odh-model-registries # used for kind testing
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Upgrade pip in virtual environments
+        shell: python
+        run: |
+          import os
+          import pip
+
+          with open(os.environ["GITHUB_ENV"], mode="a") as io:
+              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
+      - name: Install Poetry
+        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+      - name: Install Nox
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
+          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
+          nox --version
+      - name: Nox test
+        working-directory: clients/python
+        run: |
+          nox --python=${{ matrix.python }} --session=tests
+      - name: Generate Tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag=main-${commit_sha:0:7}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Build Image
+        shell: bash
+        env:
+          IMG_VERSION: ${{ steps.tags.outputs.tag }}
+        run: make image/build
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          node_image: "kindest/node:v1.27.11"
+          cluster_name: chart-testing-py-${{ matrix.python }}
+      - name: Load Local Registry Test Image
+        env:
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+        run: |
+          kind load docker-image -n chart-testing-py-${{ matrix.python }} ${IMG}
+      - name: Deploy Model Registry using manifests
+        env:
+          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+        run: ./scripts/deploy_on_kind.sh
+      - name: Nox test end-to-end
+        working-directory: clients/python
+        run: |
+          kubectl port-forward -n ${{ env.MR_NAMESPACE }} service/model-registry-service 8080:8080 &
+          sleep 2
+          nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
+      - name: Upload coverage report # we upload coverage stats for py once, regardless if previous step failed
+        uses: codecov/codecov-action@v4.5.0
+        if: always() && matrix.python == '3.12'
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  docs-build:
+    name: ${{ matrix.session }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12"]
+        session: [docs-build]
+    env:
+      NOXSESSION: ${{ matrix.session }}
+      FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -64,31 +193,14 @@ jobs:
       - name: Run Nox
         working-directory: clients/python
         run: |
-          if [[ ${{ matrix.session }} == "tests" ]]; then
-            make build-mr
-            nox --python=${{ matrix.python }} -- --cov-report=xml
-            poetry build
-          elif [[ ${{ matrix.session }} == "mypy" ]]; then
-            nox --python=${{ matrix.python }} ||\
-              echo "::error title='mypy failure'::Check the logs for more details"
-          else
-            nox --python=${{ matrix.python }}
-          fi
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4.5.0
-        if: always() && matrix.session == 'tests'
-        with:
-          files: coverage.xml
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          nox --python=${{ matrix.python }}
+          poetry build
       - name: Upload dist
-        if: matrix.session == 'tests' && matrix.python == '3.12'
         uses: actions/upload-artifact@v4
         with:
           name: py-dist
           path: clients/python/dist
       - name: Upload documentation
-        if: matrix.session == 'docs-build'
         uses: actions/upload-artifact@v4
         with:
           name: py-docs

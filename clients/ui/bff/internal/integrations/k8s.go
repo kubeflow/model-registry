@@ -3,18 +3,25 @@ package integrations
 import (
 	"context"
 	"fmt"
-	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"log/slog"
+	"os"
+	"time"
+
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
+	corev1 "k8s.io/api/core/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
+
+const componentName = "model-registry-server"
 
 type KubernetesClientInterface interface {
 	GetServiceNames() ([]string, error)
 	GetServiceDetailsByName(serviceName string) (ServiceDetails, error)
 	GetServiceDetails() ([]ServiceDetails, error)
 	BearerToken() (string, error)
+	Shutdown(ctx context.Context, logger *slog.Logger) error
 }
 
 type ServiceDetails struct {
@@ -26,62 +33,157 @@ type ServiceDetails struct {
 }
 
 type KubernetesClient struct {
-	ClientSet *kubernetes.Clientset
-	Namespace string
-	Token     string
-	//TODO (ederign) How and on which frequency should we update this cache?
-	//dont forget about mutexes
-	ServiceCache map[string]ServiceDetails
-}
-
-func (kc *KubernetesClient) BearerToken() (string, error) {
-
-	return kc.Token, nil
+	Client     client.Client
+	Mgr        ctrl.Manager
+	Token      string
+	Logger     *slog.Logger
+	stopFn     context.CancelFunc // Store a function to cancel the context for graceful shutdown
+	mgrStopped chan struct{}
 }
 
 func NewKubernetesClient(logger *slog.Logger) (KubernetesClientInterface, error) {
-	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(clientcmd.NewDefaultClientConfigLoadingRules(), &clientcmd.ConfigOverrides{})
-	restConfig, err := kubeConfig.ClientConfig()
+	// Create a context with a cancel function is used for shutdown the kubernetes client
+	ctx, cancel := context.WithCancel(ctrl.SetupSignalHandler())
 
+	kubeconfig, err := helper.GetKubeconfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Kubernetes restConfig: %w", err)
+		logger.Error("failed to get kubeconfig", "error", err)
+		os.Exit(1)
 	}
 
-	namespace, _, err := kubeConfig.Namespace()
+	scheme, err := helper.BuildScheme()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Kubernetes namespace: %w", err)
+		logger.Error("failed to build Kubernetes scheme", "error", err)
+		os.Exit(1)
 	}
 
-	clientSet, err := kubernetes.NewForConfig(restConfig)
+	// Create the manager with caching capabilities
+	mgr, err := ctrl.NewManager(kubeconfig, ctrl.Options{
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: "0", // disable metrics serving
+		},
+		HealthProbeBindAddress: "0", // disable health probe serving
+		LeaderElection:         false,
+		//Namespace:              "namespace", //TODO (ederign) do we need to specify the namespace to operate in
+		//There is also cache filters and Sync periods to assess later.
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Kubernetes clientset: %w", err)
-	}
-	//fetching services
-	services, err := clientSet.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list model-registry-server services: %w", err)
+		logger.Error("unable to create manager", "error", err)
+		cancel()
+		os.Exit(1)
 	}
 
-	//building serviceCache
-	serviceCache, err := buildModelRegistryServiceCache(logger, *services)
-	if err != nil {
-		return nil, err
+	// Channel to signal when the manager has stopped
+	mgrStopped := make(chan struct{})
+
+	// Start the manager in a goroutine
+	go func() {
+		defer close(mgrStopped) // Signal that the manager has stopped
+		if err := mgr.Start(ctx); err != nil {
+			logger.Error("problem running manager", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for the cache to sync before using the client
+	if !mgr.GetCache().WaitForCacheSync(ctx) {
+		cancel()
+		return nil, fmt.Errorf("failed to wait for cache to sync")
 	}
 
 	kc := &KubernetesClient{
-		ClientSet:    clientSet,
-		Namespace:    namespace,
-		Token:        restConfig.BearerToken,
-		ServiceCache: serviceCache,
-	}
+		Client:     mgr.GetClient(),
+		Mgr:        mgr,
+		Token:      kubeconfig.BearerToken,
+		Logger:     logger,
+		stopFn:     cancel,
+		mgrStopped: mgrStopped, // Store the stop channel
 
+		//Namespace:    namespace, //TODO (ederign) do we need to restrict service list by namespace?
+	}
 	return kc, nil
 }
 
-func buildModelRegistryServiceCache(logger *slog.Logger, services v1.ServiceList) (map[string]ServiceDetails, error) {
-	serviceCache := make(map[string]ServiceDetails)
-	for _, service := range services.Items {
-		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == "model-registry-server" {
+func (kc *KubernetesClient) Shutdown(ctx context.Context, logger *slog.Logger) error {
+	logger.Info("shutting down Kubernetes manager...")
+
+	// Use the saved cancel function to stop the manager
+	kc.stopFn()
+
+	// Wait for the manager to stop or for the context to be canceled
+	select {
+	case <-kc.mgrStopped:
+		logger.Info("Kubernetes manager stopped successfully")
+		return nil
+	case <-ctx.Done():
+		logger.Error("context canceled while waiting for Kubernetes manager to stop")
+		return ctx.Err()
+	case <-time.After(30 * time.Second):
+		logger.Error("timeout while waiting for Kubernetes manager to stop")
+		return fmt.Errorf("timeout while waiting for Kubernetes manager to stop")
+	}
+}
+
+func (kc *KubernetesClient) BearerToken() (string, error) {
+	return kc.Token, nil
+}
+
+func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
+	//TODO (ederign) when we develop the front-end, implement subject access review here
+	// and check if the username has actually permissions to access that server
+	// currently on kf dashboard, the user name comes in kubeflow-userid
+
+	//TODO (ederign) we should consider and rethinking listing all services on cluster
+	// what if we have thousand of those?
+	// we should consider label filtering for instance
+
+	serviceList := &corev1.ServiceList{}
+	//TODO (ederign) review the context timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	err := kc.Client.List(ctx, serviceList, &client.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list services: %w", err)
+	}
+
+	var serviceNames []string
+	for _, service := range serviceList.Items {
+		if value, ok := service.Spec.Selector["component"]; ok && value == componentName {
+			serviceNames = append(serviceNames, service.Name)
+		}
+	}
+
+	if len(serviceNames) == 0 {
+		return nil, fmt.Errorf("no services found with component: %s", componentName)
+	}
+
+	return serviceNames, nil
+}
+
+func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
+	//TODO (ederign) review the context timeout
+
+	//TODO (ederign) when we develop the front-end, implement subject access review here
+	// and check if the username has actually permissions to access that server
+	// currently on kf dashboard, the user name comes in kubeflow-userid
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel() // Ensure the context is canceled to free up resources
+
+	serviceList := &corev1.ServiceList{}
+
+	err := kc.Client.List(ctx, serviceList, &client.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list services: %w", err)
+	}
+
+	var services []ServiceDetails
+
+	for _, service := range serviceList.Items {
+		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == componentName {
 			var httpPort int32
 			hasHTTPPort := false
 			for _, port := range service.Spec.Ports {
@@ -92,62 +194,55 @@ func buildModelRegistryServiceCache(logger *slog.Logger, services v1.ServiceList
 				}
 			}
 			if !hasHTTPPort {
-				logger.Error("service missing HTTP port", "serviceName", service.Name)
+				kc.Logger.Error("service missing HTTP port", "serviceName", service.Name)
 				continue
 			}
+
 			if service.Spec.ClusterIP == "" {
-				logger.Error("service missing valid ClusterIP", "serviceName", service.Name)
+				kc.Logger.Error("service missing valid ClusterIP", "serviceName", service.Name)
 				continue
 			}
 
-			//TODO (acreasy) DisplayName and Description need to be included and not given a zero value once we
-			// know how this will be implemented.
-			serviceCache[service.Name] = ServiceDetails{
-				Name:      service.Name,
-				ClusterIP: service.Spec.ClusterIP,
-				HTTPPort:  httpPort,
+			displayName := service.Annotations["displayName"]
+			if displayName == "" {
+				kc.Logger.Error("service missing displayName annotation", "serviceName", service.Name)
 			}
-		}
-	}
-	return serviceCache, nil
-}
 
-func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
-	//TODO (ederign) when we develop the front-end, implement subject access review here
-	// and check if the username has actually permissions to access that server
-	// currently on kf dashboard, the user name comes in kubeflow-userid
+			description := service.Annotations["description"]
+			if description == "" {
+				kc.Logger.Error("service missing description annotation", "serviceName", service.Name)
+			}
 
-	var serviceNames []string
-
-	for _, service := range kc.ServiceCache {
-		if service.Name != "" {
-			serviceNames = append(serviceNames, service.Name)
-		}
-	}
-	return serviceNames, nil
-}
-
-func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
-	var services []ServiceDetails
-
-	for _, service := range kc.ServiceCache {
-		if service.Name != "" {
-			services = append(services, ServiceDetails{
+			serviceDetails := ServiceDetails{
 				Name:        service.Name,
-				DisplayName: service.DisplayName,
-				Description: service.Description,
-			})
+				DisplayName: displayName,
+				Description: description,
+				ClusterIP:   service.Spec.ClusterIP,
+				HTTPPort:    httpPort,
+			}
+
+			services = append(services, serviceDetails)
 		}
 	}
+
 	return services, nil
 }
 
 func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (ServiceDetails, error) {
+	//TODO (ederign) when we develop the front-end, implement subject access review here
+	// and check if the username has actually permissions to access that server
+	// currently on kf dashboard, the user name comes in kubeflow-userid
 
-	service, exists := kc.ServiceCache[serviceName]
-	if !exists {
-		return ServiceDetails{}, fmt.Errorf("service %s not found in cache", serviceName)
+	services, err := kc.GetServiceDetails()
+	if err != nil {
+		return ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}
 
-	return service, nil
+	for _, service := range services {
+		if service.Name == serviceName {
+			return service, nil
+		}
+	}
+
+	return ServiceDetails{}, fmt.Errorf("service %s not found", serviceName)
 }
