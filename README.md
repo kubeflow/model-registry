@@ -9,6 +9,10 @@ Model registry provides a central repository for model developers to store and m
 [![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 
+> **Alpha**
+>
+> This Kubeflow component has alpha status with limited support. See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status). The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/model-registry) about the usability of the feature.
+
 ## Documentation links:
 
 1. Introduction
@@ -17,7 +21,7 @@ Model registry provides a central repository for model developers to store and m
 2. Installation
  - [installing Model Registry standalone](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation)
  - [installing Model Registry with Kubeflow manifests](https://github.com/kubeflow/manifests/tree/master/apps/model-registry/upstream#readme)
- - [installing Model Registry using ODH Operator](https://github.com/opendatahub-io/model-registry-operator/pull/137)
+ - [installing Model Registry using ODH Operator](https://github.com/opendatahub-io/model-registry-operator/tree/main/docs#readme)
 3. Concepts
  - [Logical Model](./docs/logical_model.md)
 4. Python client
