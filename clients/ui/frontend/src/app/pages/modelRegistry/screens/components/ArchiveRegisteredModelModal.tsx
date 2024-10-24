@@ -1,6 +1,13 @@
 import * as React from 'react';
-import { Flex, FlexItem, Stack, StackItem, TextInput } from '@patternfly/react-core';
-import { Modal } from '@patternfly/react-core/deprecated';
+import {
+  Alert,
+  Form,
+  FormGroup,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  TextInput,
+} from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
 
 // import useNotification from '~/utilities/useNotification'; // TODO: Implement useNotification
@@ -45,36 +52,34 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
     }
   }, [onSubmit, onClose]);
 
+  const description = (
+    <>
+      <b>{registeredModelName}</b> and all of its versions will be archived and unavailable for use
+      unless it is restored.
+      <br />
+      <br />
+      Type <strong>{registeredModelName}</strong> to confirm archiving:
+    </>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       title="Archive model?"
-      titleIconVariant="warning"
       variant="small"
       onClose={onClose}
-      footer={
-        <DashboardModalFooter
-          onCancel={onClose}
-          onSubmit={onConfirm}
-          submitLabel="Archive"
-          isSubmitLoading={isSubmitting}
-          isSubmitDisabled={isDisabled}
-          error={error}
-          alertTitle="Error"
-        />
-      }
       data-testid="archive-registered-model-modal"
     >
-      <Stack hasGutter>
-        <StackItem>
-          <b>{registeredModelName}</b> and all of its versions will be archived and unavailable for
-          use unless it is restored.
-        </StackItem>
-        <StackItem>
-          <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
-            <FlexItem>
-              Type <strong>{registeredModelName}</strong> to confirm archiving:
-            </FlexItem>
+      <ModalHeader title="Archive model?" titleIconVariant="warning" />
+      <ModalBody>
+        <Form>
+          {error && (
+            <Alert data-testid="error-message-alert" isInline variant="danger" title="Error">
+              {error.message}
+            </Alert>
+          )}
+          <FormGroup>
+            {description}
             <TextInput
               id="confirm-archive-input"
               data-testid="confirm-archive-input"
@@ -87,9 +92,16 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
                 }
               }}
             />
-          </Flex>
-        </StackItem>
-      </Stack>
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <DashboardModalFooter
+        onCancel={onClose}
+        onSubmit={onConfirm}
+        submitLabel="Archive"
+        isSubmitLoading={isSubmitting}
+        isSubmitDisabled={isDisabled}
+      />
     </Modal>
   );
 };

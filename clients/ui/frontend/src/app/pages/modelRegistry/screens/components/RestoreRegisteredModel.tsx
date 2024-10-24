@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Modal } from '@patternfly/react-core/deprecated';
+import { Alert, Form, ModalHeader, Modal, ModalBody } from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
 
 // import useNotification from '~/utilities/useNotification'; TODO: Implement useNotification
@@ -41,27 +41,38 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
     }
   }, [onSubmit, onClose]);
 
+  const description = (
+    <>
+      <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
+      registered models list.
+    </>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
-      title="Restore model?"
       variant="small"
       onClose={onClose}
-      footer={
-        <DashboardModalFooter
-          onCancel={onClose}
-          onSubmit={onConfirm}
-          submitLabel="Restore"
-          isSubmitLoading={isSubmitting}
-          error={error}
-          alertTitle="Error"
-          isSubmitDisabled={isSubmitting}
-        />
-      }
       data-testid="restore-registered-model-modal"
     >
-      <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
-      registered models list.
+      <ModalHeader title="Restore model?" />
+      <ModalBody>
+        <Form>
+          {error && (
+            <Alert data-testid="error-message-alert" isInline variant="danger" title="Error">
+              {error.message}
+            </Alert>
+          )}
+        </Form>
+        {description}
+      </ModalBody>
+      <DashboardModalFooter
+        onCancel={onClose}
+        onSubmit={onConfirm}
+        submitLabel="Restore"
+        isSubmitLoading={isSubmitting}
+        isSubmitDisabled={isSubmitting}
+      />
     </Modal>
   );
 };

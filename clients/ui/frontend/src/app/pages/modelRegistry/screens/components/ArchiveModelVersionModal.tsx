@@ -1,6 +1,13 @@
 import * as React from 'react';
-import { Flex, FlexItem, Stack, StackItem, TextInput } from '@patternfly/react-core';
-import { Modal } from '@patternfly/react-core/deprecated';
+import {
+  Alert,
+  Form,
+  FormGroup,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  TextInput,
+} from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
 
 interface ArchiveModelVersionModalProps {
@@ -41,35 +48,32 @@ export const ArchiveModelVersionModal: React.FC<ArchiveModelVersionModalProps> =
     }
   }, [onSubmit, onClose]);
 
+  const description = (
+    <>
+      <b>{modelVersionName}</b> will be archived and unavailable for use unless it is restored.
+      <br />
+      <br />
+      Type <strong>{modelVersionName}</strong> to confirm archiving:
+    </>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
-      title="Archive version?"
-      titleIconVariant="warning"
       variant="small"
       onClose={onClose}
-      footer={
-        <DashboardModalFooter
-          onCancel={onClose}
-          onSubmit={onConfirm}
-          submitLabel="Archive"
-          isSubmitLoading={isSubmitting}
-          isSubmitDisabled={isDisabled}
-          error={error}
-          alertTitle="Error"
-        />
-      }
       data-testid="archive-model-version-modal"
     >
-      <Stack hasGutter>
-        <StackItem>
-          <b>{modelVersionName}</b> will be archived and unavailable for use unless it is restored.
-        </StackItem>
-        <StackItem>
-          <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
-            <FlexItem>
-              Type <strong>{modelVersionName}</strong> to confirm archiving:
-            </FlexItem>
+      <ModalHeader title="Archive version?" titleIconVariant="warning" />
+      <ModalBody>
+        <Form>
+          {error && (
+            <Alert data-testid="error-message-alert" isInline variant="danger" title="Error">
+              {error.message}
+            </Alert>
+          )}
+          <FormGroup>
+            {description}
             <TextInput
               id="confirm-archive-input"
               data-testid="confirm-archive-input"
@@ -82,9 +86,16 @@ export const ArchiveModelVersionModal: React.FC<ArchiveModelVersionModalProps> =
                 }
               }}
             />
-          </Flex>
-        </StackItem>
-      </Stack>
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <DashboardModalFooter
+        onCancel={onClose}
+        onSubmit={onConfirm}
+        submitLabel="Archive"
+        isSubmitLoading={isSubmitting}
+        isSubmitDisabled={isDisabled}
+      />
     </Modal>
   );
 };
