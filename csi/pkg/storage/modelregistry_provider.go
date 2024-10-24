@@ -71,7 +71,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 	log.Printf("Fetching model artifacts: version=%v", version)
 
 	artifacts, _, err := p.Client.ModelRegistryServiceAPI.GetModelVersionArtifacts(context.Background(), *version.Id).
-		// OrderBy(openapi.ORDERBYFIELD_CREATE_TIME). not supported
+		OrderBy(openapi.ORDERBYFIELD_CREATE_TIME).
 		SortOrder(openapi.SORTORDER_DESC).
 		Execute()
 	if err != nil {
