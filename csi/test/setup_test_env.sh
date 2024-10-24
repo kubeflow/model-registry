@@ -43,6 +43,10 @@ echo "============ KServe installed ============"
 kind load docker-image -n $CLUSTER $MR_IMG
 kind load docker-image -n $CLUSTER $MR_CSI_IMG
 
-echo "Installing Model Registry ${MR_IMG} ..."
+echo "Installing Model Registry ${MR_IMG} in kubeflow namespace..."
 ./${DIR}/../scripts/install_modelregistry.sh -i $MR_IMG
+echo "======== Model Registry installed ========"
+
+echo "Installing Model Registry ${MR_IMG} in test namespace..."
+./${DIR}/../scripts/install_modelregistry.sh -i $MR_IMG -n test
 echo "======== Model Registry installed ========"

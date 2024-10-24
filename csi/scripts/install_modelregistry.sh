@@ -40,9 +40,11 @@ if ! kubectl get namespace "$namespace" &> /dev/null; then
 fi
 # Apply model-registry kustomize manifests
 echo Using model registry image: $image
-cd $MR_ROOT/manifests/kustomize/base && kustomize edit set image kubeflow/model-registry:latest=${image} && cd -
+cd $MR_ROOT/manifests/kustomize/base && kustomize edit set image kubeflow/model-registry:latest=${image} && \
+kustomize edit set namespace $namespace && cd -
+cd $MR_ROOT/manifests/kustomize/overlays/db && kustomize edit set namespace $namespace && cd -
 kubectl -n $namespace apply -k "$MR_ROOT/manifests/kustomize/overlays/db"
 
 # Wait for model registry deployment
-modelregistry=$(kubectl get pod -n kubeflow --selector="component=model-registry-server" --output jsonpath='{.items[0].metadata.name}')
+modelregistry=$(kubectl get pod -n $namespace --selector="component=model-registry-server" --output jsonpath='{.items[0].metadata.name}')
 kubectl wait --for=condition=Ready pod/$modelregistry -n $namespace --timeout=6m

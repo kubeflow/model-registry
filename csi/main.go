@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/kubeflow/model-registry/csi/pkg/modelregistry"
 	"github.com/kubeflow/model-registry/csi/pkg/storage"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -38,7 +39,10 @@ func main() {
 	cfg := openapi.NewConfiguration()
 	cfg.Host = baseUrl
 	cfg.Scheme = scheme
-	provider, err := storage.NewModelRegistryProvider(cfg)
+
+	apiClient := modelregistry.NewAPIClient(cfg, sourceUri)
+
+	provider, err := storage.NewModelRegistryProvider(apiClient)
 	if err != nil {
 		log.Fatalf("Error initiliazing model registry provider: %v", err)
 	}

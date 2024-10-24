@@ -28,7 +28,7 @@ sequenceDiagram
     U->>+MR: Register ML Model
     MR-->>-U: Indexed Model
     U->>U: Create InferenceService CR
-    Note right of U: The InferenceService should<br/>point to the model registry<br/>indexed model, e.g.,:<br/> model-registry://<model>/<version>
+    Note right of U: The InferenceService should<br/>point to the model registry<br/>indexed model, e.g.,:<br/> model-registry://<model-registry-url>/<model>/<version>
     KC->>KC: React to InferenceService creation
     KC->>+MD: Create Model Deployment
     MD->>+MRSI: Initialization (Download Model)
@@ -66,13 +66,16 @@ Which wil create the executable under `bin/mr-storage-initializer`.
 
 You can run `main.go` (without building the executable) by running:
 ```bash
-./bin/mr-storage-initializer "model-registry://model/version" "./"
+./bin/mr-storage-initializer "model-registry://model-registry-url/model/version" "./"
 ```
 
 or directly running the `main.go` skipping the previous step:
 ```bash
-make SOURCE_URI=model-registry://model/version DEST_PATH=./ run
+make SOURCE_URI=model-registry://model-registry-url/model/version DEST_PATH=./ run
 ```
+
+> [!NOTE]
+> `model-registry-url` is optional, if not provided the value of `MODEL_REGISTRY_BASE_URL` env variable will be used.
 
 > [!NOTE]
 > A Model Registry service should be up and running at `localhost:8080`.
