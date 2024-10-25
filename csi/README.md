@@ -7,7 +7,7 @@ More details on what `Custom Storage Initializer` is can be found in the [KServe
 
 The Model Registry CSI is a simple Go executable that basically takes two positional arguments:
 1. __Source URI__: identifies the `storageUri` set in the `InferenceService`, this must be a model-registry custom URI, i.e., `model-registry://...` 
-2. __Deestination Path__: the location where the model should be stored, e.g., `/mnt/models`
+2. __Destination Path__: the location where the model should be stored, e.g., `/mnt/models`
 
 The core logic of this CSI is pretty simple and it consists of three main steps:
 1. Parse the custom URI in order to extract `registered model name` and `model version`
