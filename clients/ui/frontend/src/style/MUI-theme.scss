@@ -140,6 +140,7 @@
   --pf-v6-c-button--PaddingInlineStart: var(--mui-button--PaddingInlineStart);
   --pf-v6-c-button--PaddingInlineEnd: var(--mui-button--PaddingInlineEnd);
   --pf-v6-c-button--LineHeight: var(--mui-button--LineHeight);
+  --pf-v6-c-button--m-plain--BorderRadius: 50%;
 
   text-transform: var(--mui-text-transform);
   letter-spacing: 0.02857em;
@@ -667,8 +668,10 @@
 .pf-v6-c-label {
   --pf-v6-c-label--BorderRadius: 16px;
   --pf-v6-c-label--FontSize: 0.8125rem;
-  --pf-v6-c-label--PaddingInlineStart: 0;
-  --pf-v6-c-label--PaddingInlineEnd: 0;
+  --pf-v6-c-label--PaddingInlineEnd: var(--mui-spacing-8px);
+  --pf-v6-c-label--PaddingInlineStart: var(--mui-spacing-8px);
+  --pf-v6-c-label--PaddingBlockStart: 0;
+  --pf-v6-c-label--PaddingBlockEnd: 0;
   height: 24px;
 }
 
@@ -677,7 +680,6 @@
 
   .pf-v6-c-label__text {
     color: var(--mui-palette-common-black);
-    padding: none;
   }
 }
 
@@ -686,10 +688,8 @@
   --pf-v6-c-button__icon--Color: var(--mui-palette-common-white);
 }
 
-.pf-v6-c-label__text {
-  padding-right: var(--mui-spacing-4px);
-  padding-left: var(--mui-spacing-4px);
-  color: var(--pf-t--global--text--color--inverse);
+.pf-v6-c-label {
+  --pf-v6-c-label--m-blue--Color: var(--pf-t--global--text--color--inverse);
 }
 
 .pf-v6-c-label-group.pf-m-category {
@@ -705,7 +705,8 @@
 }
 
 .pf-v6-c-modal-box {
-  --pf-v6-c-modal-box--BorderRadius: var(--mui-shape-borderRadius);
+  --pf-v6-c-modal-box--BorderRadius: 0;
+  border: 2px solid var(--mui-palette-common-black);
 }
 
 .pf-v6-c-page__main-container {
