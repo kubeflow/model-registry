@@ -187,6 +187,10 @@ else
     echo "Scenario 1 - Test succeeded!"
 fi
 
+echo "Cleaning up inferenceservice sklearn-iris-scenario-one ..."
+
+kubectl delete inferenceservice sklearn-iris-scenario-one -n $KSERVE_TEST_NAMESPACE
+
 echo "======== Finished Scenario 1 ========"
 
 echo "======== Scenario 2 - Testing with default model registry service without model version ========"
@@ -228,6 +232,10 @@ if [ ! "$res_two" = "{\"predictions\":[1,1]}" ]; then
 else
     echo "Scenario 2 - Test succeeded!"
 fi
+
+echo "Cleaning up inferenceservice sklearn-iris-scenario-two ..."
+
+kubectl delete inferenceservice sklearn-iris-scenario-two -n $KSERVE_TEST_NAMESPACE
 
 echo "======== Finished Scenario 2 ========"
 
@@ -311,6 +319,10 @@ else
     echo "Scenario 3 - Test succeeded!"
 fi
 
+echo "Cleaning up inferenceservice sklearn-iris-scenario-three ..."
+
+kubectl delete inferenceservice sklearn-iris-scenario-three -n $KSERVE_TEST_NAMESPACE
+
 echo "======== Finished Scenario 3 ========"
 
 echo "======== Scenario 4 - Testing with custom model registry service without model version ========"
@@ -352,6 +364,10 @@ if [ ! "$res_four" = "{\"predictions\":[1,1]}" ]; then
 else
     echo "Scenario 4 - Test succeeded!"
 fi
+
+echo "Cleaning up inferenceservice sklearn-iris-scenario-four ..."
+
+kubectl delete inferenceservice sklearn-iris-scenario-four -n $KSERVE_TEST_NAMESPACE
 
 echo "======== Finished Scenario 4 ========"
 

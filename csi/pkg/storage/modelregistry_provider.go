@@ -52,6 +52,13 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return err
 	}
 
+	log.Printf("Parsed storageUri=%s as: modelRegistryUrl=%s, registeredModelName=%s, versionName=%v",
+		storageUri,
+		p.Client.GetConfig().Host,
+		registeredModelName,
+		versionName,
+	)
+
 	log.Printf("Fetching model: registeredModelName=%s, versionName=%v", registeredModelName, versionName)
 
 	// Fetch the registered model
