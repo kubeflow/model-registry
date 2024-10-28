@@ -43,7 +43,8 @@ build: fmt vet test
 	go build -o bin/bff cmd/main.go
 
 .PHONY: run
-run: fmt vet
+run: fmt vet envtest
+	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT)
 
 .PHONY: docker-build

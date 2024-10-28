@@ -36,7 +36,7 @@ func NewKubernetesClient(logger *slog.Logger, ctx context.Context, cancel contex
 
 	projectRoot, err := getProjectRoot()
 	if err != nil {
-		logger.Error("failed to find project root to locate binaries", err)
+		logger.Error("failed to find project root to locate binaries", slog.String("error", err.Error()))
 		cancel()
 		os.Exit(1)
 	}
