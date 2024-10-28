@@ -133,7 +133,6 @@ class ModelRegistry {
     return this.findModelVersionsTable().find('tbody tr');
   }
 
-  // TODO: Uncomment when the table row is implemented
   getRow(name: string) {
     return new ModelRegistryTableRow(() =>
       this.findTable().find(`[data-label="Model name"]`).contains(name).parents('tr'),

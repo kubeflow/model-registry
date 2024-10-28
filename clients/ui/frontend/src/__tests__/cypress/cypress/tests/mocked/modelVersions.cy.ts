@@ -130,7 +130,7 @@ describe('Model Versions', () => {
   });
 
   it('Model versions table', () => {
-    // TODO: Uncomment when we fix finding dropdown items
+    // TODO: Uncomment when we fix finding listbox items
 
     initIntercepts({
       modelRegistries: [

@@ -4,13 +4,18 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
-import { labelModal } from '~/__tests__/cypress/cypress/pages/modelRegistry';
+import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
 import type { ModelRegistry, ModelVersion } from '~/app/types';
 import { ModelState } from '~/app/types';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockBFFResponse } from '~/__mocks__/utils';
-import { modelVersionArchive } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionArchive';
+import {
+  archiveVersionModal,
+  modelVersionArchive,
+  restoreVersionModal,
+} from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionArchive';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { ToastNotification } from '~/__tests__/cypress/cypress/pages/components/Notification';
 
 type HandlersProps = {
   registeredModelsSize?: number;
@@ -129,12 +134,10 @@ describe('Model version archive list', () => {
     initIntercepts({ modelVersions: [mockModelVersion({ id: '3', name: 'model version 2' })] });
     modelVersionArchive.visitModelVersionList();
     verifyRelativeURL('/modelRegistry/modelregistry-sample/registeredModels/1/versions');
-    // TODO: Uncomment when dropdowns are fixed and remove the visit after the comments
-    // modelVersionArchive
-    //   .findModelVersionsTableKebab()
-    //   .findDropdownItem('View archived versions')
-    //   .click();
-    modelVersionArchive.visit();
+    modelVersionArchive
+      .findModelVersionsTableKebab()
+      .findDropdownItem('View archived versions')
+      .click();
     modelVersionArchive.shouldArchiveVersionsEmpty();
   });
 
@@ -185,119 +188,124 @@ describe('Model version archive list', () => {
   });
 });
 
-// TODO: Uncomment when we have restoring and archiving mocked
-// describe('Restoring archive version', () => {
-//   it('Restore from archive table', () => {
-//     cy.interceptApi(
-//       'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
-//       {
-//         path: {
-//           modelRegistryName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           modelVersionId: 2,
-//         },
-//       },
-//       mockModelVersion({}),
-//     ).as('versionRestored');
+describe('Restoring archive version', () => {
+  it('Restore from archive table', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelVersionId: 2,
+        },
+      },
+      mockBFFResponse(mockModelVersion({})),
+    ).as('versionRestored');
 
-//     initIntercepts({});
-//     modelVersionArchive.visit();
+    initIntercepts({});
+    modelVersionArchive.visit();
 
-//     const archiveVersionRow = modelVersionArchive.getRow('model version 2');
-//     archiveVersionRow.findKebabAction('Restore version').click();
+    const archiveVersionRow = modelVersionArchive.getRow('model version 2');
+    archiveVersionRow.findKebabAction('Restore version').click();
 
-//     restoreVersionModal.findRestoreButton().click();
+    restoreVersionModal.findRestoreButton().click();
 
-//     cy.wait('@versionRestored').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'LIVE',
-//       });
-//     });
-//   });
+    const notification = new ToastNotification('model version 2 restored.');
+    notification.find();
 
-//   it('Restore from archive version details', () => {
-//     cy.interceptApi(
-//       'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
-//       {
-//         path: {
-//           modelRegistryName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           modelVersionId: 2,
-//         },
-//       },
-//       mockModelVersion({}),
-//     ).as('versionRestored');
+    cy.wait('@versionRestored').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+    });
+  });
 
-//     initIntercepts({});
-//     modelVersionArchive.visitArchiveVersionDetail();
+  it('Restore from archive version details', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelVersionId: 2,
+        },
+      },
+      mockBFFResponse(mockModelVersion({})),
+    ).as('versionRestored');
 
-//     modelVersionArchive.findRestoreButton().click();
-//     restoreVersionModal.findRestoreButton().click();
+    initIntercepts({});
+    modelVersionArchive.visitArchiveVersionDetail();
 
-//     cy.wait('@versionRestored').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'LIVE',
-//       });
-//     });
-//   });
-// });
+    modelVersionArchive.findRestoreButton().click();
+    restoreVersionModal.findRestoreButton().click();
 
-// describe('Archiving version', () => {
-//   it('Archive version from versions table', () => {
-//     cy.interceptApi(
-//       'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/model_versions/:modelVersionId',
-//       {
-//         path: {
-//           serviceName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           modelVersionId: 3,
-//         },
-//       },
-//       mockModelVersion({}),
-//     ).as('versionArchived');
+    const notification = new ToastNotification('model version 2 restored.');
+    notification.find();
 
-//     initIntercepts({});
-//     modelVersionArchive.visitModelVersionList();
+    cy.wait('@versionRestored').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+    });
+  });
+});
 
-//     const modelVersionRow = modelRegistry.getModelVersionRow('model version 3');
-//     modelVersionRow.findKebabAction('Archive model version').click();
-//     archiveVersionModal.findArchiveButton().should('be.disabled');
-//     archiveVersionModal.findModalTextInput().fill('model version 3');
-//     archiveVersionModal.findArchiveButton().should('be.enabled').click();
-//     cy.wait('@versionArchived').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'ARCHIVED',
-//       });
-//     });
-//   });
+describe('Archiving version', () => {
+  it('Archive version from versions table', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelVersionId: 3,
+        },
+      },
+      mockBFFResponse(mockModelVersion({})),
+    ).as('versionArchived');
 
-//   it('Archive version from versions details', () => {
-//     cy.interceptApi(
-//       'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/model_versions/:modelVersionId',
-//       {
-//         path: {
-//           serviceName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           modelVersionId: 3,
-//         },
-//       },
-//       mockModelVersion({}),
-//     ).as('versionArchived');
+    initIntercepts({});
+    modelVersionArchive.visitModelVersionList();
 
-//     initIntercepts({});
-//     modelVersionArchive.visitModelVersionDetails();
-//     modelVersionArchive
-//       .findModelVersionsDetailsHeaderAction()
-//       .findDropdownItem('Archive version')
-//       .click();
+    const modelVersionRow = modelRegistry.getModelVersionRow('model version 3');
+    modelVersionRow.findKebabAction('Archive model version').click();
+    archiveVersionModal.findArchiveButton().should('be.disabled');
+    archiveVersionModal.findModalTextInput().fill('model version 3');
+    archiveVersionModal.findArchiveButton().should('be.enabled').click();
 
-//     archiveVersionModal.findArchiveButton().should('be.disabled');
-//     archiveVersionModal.findModalTextInput().fill('model version 3');
-//     archiveVersionModal.findArchiveButton().should('be.enabled').click();
-//     cy.wait('@versionArchived').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'ARCHIVED',
-//       });
-//     });
-//   });
-// });
+    const notification = new ToastNotification('model version 3 archived.');
+    notification.find();
+
+    cy.wait('@versionArchived').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+    });
+  });
+
+  it('Archive version from versions details', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelVersionId: 3,
+        },
+      },
+      mockBFFResponse(mockModelVersion({})),
+    ).as('versionArchived');
+
+    initIntercepts({});
+    modelVersionArchive.visitModelVersionDetails();
+    modelVersionArchive
+      .findModelVersionsDetailsHeaderAction()
+      .findDropdownItem('Archive version')
+      .click();
+
+    archiveVersionModal.findArchiveButton().should('be.disabled');
+    archiveVersionModal.findModalTextInput().fill('model version 3');
+    archiveVersionModal.findArchiveButton().should('be.enabled').click();
+
+    const notification = new ToastNotification('model version 3 archived.');
+    notification.find();
+
+    cy.wait('@versionArchived').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+    });
+  });
+});

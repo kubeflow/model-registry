@@ -9,6 +9,7 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
+import { useNotification } from '~/app/hooks/useNotification';
 
 interface ArchiveModelVersionModalProps {
   onCancel: () => void;
@@ -27,6 +28,7 @@ export const ArchiveModelVersionModal: React.FC<ArchiveModelVersionModalProps> =
   const [error, setError] = React.useState<Error>();
   const [confirmInputValue, setConfirmInputValue] = React.useState('');
   const isDisabled = confirmInputValue.trim() !== modelVersionName || isSubmitting;
+  const notification = useNotification();
 
   const onClose = React.useCallback(() => {
     setConfirmInputValue('');
@@ -39,6 +41,7 @@ export const ArchiveModelVersionModal: React.FC<ArchiveModelVersionModalProps> =
     try {
       await onSubmit();
       onClose();
+      notification.success(`${modelVersionName} archived.`);
     } catch (e) {
       if (e instanceof Error) {
         setError(e);
@@ -46,7 +49,7 @@ export const ArchiveModelVersionModal: React.FC<ArchiveModelVersionModalProps> =
     } finally {
       setIsSubmitting(false);
     }
-  }, [onSubmit, onClose]);
+  }, [notification, modelVersionName, onSubmit, onClose]);
 
   const description = (
     <>

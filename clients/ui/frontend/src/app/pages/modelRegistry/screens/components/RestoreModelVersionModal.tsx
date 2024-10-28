@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Form, Modal, ModalHeader, ModalBody, Alert } from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
+import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreModelVersionModalProps {
   onCancel: () => void;
@@ -17,6 +18,7 @@ export const RestoreModelVersionModal: React.FC<RestoreModelVersionModalProps> =
 }) => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<Error>();
+  const notification = useNotification();
 
   const onClose = React.useCallback(() => {
     onCancel();
@@ -28,6 +30,7 @@ export const RestoreModelVersionModal: React.FC<RestoreModelVersionModalProps> =
     try {
       await onSubmit();
       onClose();
+      notification.success(`${modelVersionName} restored.`);
     } catch (e) {
       if (e instanceof Error) {
         setError(e);
@@ -35,7 +38,7 @@ export const RestoreModelVersionModal: React.FC<RestoreModelVersionModalProps> =
     } finally {
       setIsSubmitting(false);
     }
-  }, [onSubmit, onClose]);
+  }, [notification, modelVersionName, onSubmit, onClose]);
 
   const description = (
     <>

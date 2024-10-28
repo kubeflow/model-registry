@@ -19,6 +19,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { BarsIcon } from '@patternfly/react-icons';
+import ToastNotifications from '~/components/ToastNotifications';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />
         </ModelRegistrySelectorContextProvider>
+        <ToastNotifications />
       </Page>
     </AppContext.Provider>
   );

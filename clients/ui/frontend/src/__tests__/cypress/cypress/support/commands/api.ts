@@ -96,7 +96,7 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelVersion | undefined>,
+          response: ApiResponse<ModelRegistryBody<ModelVersion | undefined>>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry',
