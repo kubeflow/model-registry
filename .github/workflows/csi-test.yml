@@ -62,7 +62,6 @@ jobs:
         uses: helm/kind-action@v1.10.0
         with:
           node_image: "kindest/node:v1.27.11"
-          config: ./csi/test/kind_config.yaml
 
       - name: Install kustomize
         run: ./csi/scripts/install_kustomize.sh
