@@ -26,7 +26,7 @@ We assume all [prerequisites](#prerequisites) are satisfied at this point.
 
 3. Setup local deployment of *Kserve* using the provided *Kserve quick installation* script
     ```bash
-    curl -s "https://raw.githubusercontent.com/kserve/kserve/release-0.12/hack/quick_install.sh" | bash
+    curl -s "https://raw.githubusercontent.com/kserve/kserve/release-0.14/hack/quick_install.sh" | bash
     ```
 
 4. Install *model registry* in the local cluster
@@ -257,5 +257,5 @@ EOF
     If you do not have DNS, you can still curl with the ingress gateway external IP using the HOST Header.
     ```bash
     SERVICE_HOSTNAME=$(kubectl get inferenceservice iris-model -n kserve-test -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-    curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/iris-v1:predict" -d @/tmp/iris-input.json
+    curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/iris-model:predict" -d @/tmp/iris-input.json
     ```
