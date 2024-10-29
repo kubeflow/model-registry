@@ -1,7 +1,7 @@
 apiVersion: "serving.kserve.io/v1alpha1"
 kind: ClusterStorageContainer
 metadata:
-  name: model-registry-storage-initializer-2
+  name: model-registry-storage-initializer
 spec:
   container:
     name: storage-initializer
