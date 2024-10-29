@@ -62,7 +62,7 @@
     "dotenv": "^16.4.5",
     "dotenv-webpack": "^8.1.0",
     "expect": "^29.7.0",
-    "html-webpack-plugin": "^5.6.0",
+    "html-webpack-plugin": "^5.6.3",
     "imagemin": "^9.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
