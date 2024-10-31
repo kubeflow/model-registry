@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { InputGroup, SearchInput, InputGroupItem } from '@patternfly/react-core';
+import { InputGroup, InputGroupItem, TextInput } from '@patternfly/react-core';
 import SimpleSelect from '~/app/components/SimpleSelect';
 import { asEnumMember } from '~/app/utils';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 // List all the possible search fields here
 export enum SearchType {
@@ -59,14 +60,20 @@ const DashboardSearchField: React.FC<DashboardSearchFieldProps> = ({
       />
     </InputGroupItem>
     <InputGroupItem>
-      <SearchInput
-        placeholder={`Find by ${searchType.toLowerCase()}`}
-        value={searchValue}
-        onChange={(_, newSearch) => {
-          onSearchValueChange(newSearch);
-        }}
-        onClear={() => onSearchValueChange('')}
-        style={{ minWidth: '200px' }}
+      <FormFieldset
+        className="toolbar-fieldset-wrapper"
+        component={
+          <TextInput
+            value={searchValue}
+            type="text"
+            onChange={(_, newSearch) => {
+              onSearchValueChange(newSearch);
+            }}
+            style={{ minWidth: '200px' }}
+            aria-label="Search"
+          />
+        }
+        field={`Find by ${searchType.toLowerCase()}`}
       />
     </InputGroupItem>
   </InputGroup>
