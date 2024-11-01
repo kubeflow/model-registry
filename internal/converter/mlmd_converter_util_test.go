@@ -618,19 +618,19 @@ func TestMapArtifactType(t *testing.T) {
 		Type: of(defaults.ModelArtifactTypeName),
 	})
 	assertion.Nil(err)
-	assertion.Equal("model-artifact", artifactType)
+	assertion.Equal(of("model-artifact"), artifactType)
 
 	artifactType, err = MapArtifactType(&proto.Artifact{
 		Type: of(defaults.DocArtifactTypeName),
 	})
 	assertion.Nil(err)
-	assertion.Equal("doc-artifact", artifactType)
+	assertion.Equal(of("doc-artifact"), artifactType)
 
 	artifactType, err = MapArtifactType(&proto.Artifact{
 		Type: of("Invalid"),
 	})
 	assertion.NotNil(err)
-	assertion.Equal("", artifactType)
+	assertion.Nil(artifactType)
 }
 
 func TestMapMLMDArtifactState(t *testing.T) {

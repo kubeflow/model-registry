@@ -1093,50 +1093,43 @@ components:
       type: string
     ModelArtifact:
       description: An ML model artifact.
-      type: object
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
     DocArtifact:
       description: A document.
-      type: object
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/DocArtifactCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
     DocArtifactCreate:
       description: A document artifact to be created.
-      type: object
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/DocArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
     DocArtifactUpdate:
       description: A document artifact to be updated.
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "doc-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1247,7 +1240,6 @@ components:
         - $ref: "#/components/schemas/BaseExecutionUpdate"
         - $ref: "#/components/schemas/BaseResourceCreate"
     BaseExecutionUpdate:
-      type: object
       allOf:
         - type: object
           properties:
@@ -1438,16 +1430,13 @@ components:
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
-      required:
-        - artifactType
-      properties:
-        artifactType:
-          type: string
-          default: "model-artifact"
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
         - type: object
           properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
             modelFormatName:
               description: Name of the model format.
               type: string
@@ -1465,8 +1454,6 @@ components:
               type: string
     ModelArtifactCreate:
       description: An ML model artifact.
-      required:
-        - artifactType
       properties:
         artifactType:
           type: string
@@ -1562,7 +1549,6 @@ components:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
-        - type: object
         - $ref: "#/components/schemas/ServingEnvironmentCreate"
     ServingEnvironmentUpdate:
       description: A Model Serving environment for serving `RegisteredModels`.
