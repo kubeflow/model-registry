@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifact(BaseModel):
     """A document."""  # noqa: E501
 
-    artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -57,6 +56,7 @@ class DocArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",

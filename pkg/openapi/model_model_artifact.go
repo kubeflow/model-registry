@@ -19,7 +19,6 @@ var _ MappedNullable = &ModelArtifact{}
 
 // ModelArtifact An ML model artifact.
 type ModelArtifact struct {
-	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -37,6 +36,7 @@ type ModelArtifact struct {
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	ArtifactType             *string `json:"artifactType,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -53,10 +53,12 @@ type ModelArtifact struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelArtifact(artifactType string) *ModelArtifact {
+func NewModelArtifact() *ModelArtifact {
 	this := ModelArtifact{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "model-artifact"
+	this.ArtifactType = &artifactType
 	return &this
 }
 
@@ -65,35 +67,11 @@ func NewModelArtifact(artifactType string) *ModelArtifact {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactWithDefaults() *ModelArtifact {
 	this := ModelArtifact{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "model-artifact"
+	this.ArtifactType = &artifactType
 	return &this
-}
-
-// GetArtifactType returns the ArtifactType field value
-func (o *ModelArtifact) GetArtifactType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value
-// and a boolean to check if the value has been set.
-func (o *ModelArtifact) GetArtifactTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ArtifactType, true
-}
-
-// SetArtifactType sets field value
-func (o *ModelArtifact) SetArtifactType(v string) {
-	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -384,6 +362,38 @@ func (o *ModelArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
+func (o *ModelArtifact) GetArtifactType() string {
+	if o == nil || IsNil(o.ArtifactType) {
+		var ret string
+		return ret
+	}
+	return *o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifact) GetArtifactTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.ArtifactType) {
+		return nil, false
+	}
+	return o.ArtifactType, true
+}
+
+// HasArtifactType returns a boolean if a field has been set.
+func (o *ModelArtifact) HasArtifactType() bool {
+	if o != nil && !IsNil(o.ArtifactType) {
+		return true
+	}
+
+	return false
+}
+
+// SetArtifactType gets a reference to the given string and assigns it to the ArtifactType field.
+func (o *ModelArtifact) SetArtifactType(v string) {
+	o.ArtifactType = &v
+}
+
 // GetModelFormatName returns the ModelFormatName field value if set, zero value otherwise.
 func (o *ModelArtifact) GetModelFormatName() string {
 	if o == nil || IsNil(o.ModelFormatName) {
@@ -554,7 +564,6 @@ func (o ModelArtifact) MarshalJSON() ([]byte, error) {
 
 func (o ModelArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -581,6 +590,9 @@ func (o ModelArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	}
+	if !IsNil(o.ArtifactType) {
+		toSerialize["artifactType"] = o.ArtifactType
 	}
 	if !IsNil(o.ModelFormatName) {
 		toSerialize["modelFormatName"] = o.ModelFormatName
