@@ -188,7 +188,7 @@ async def test_patch_mm(client: ModelRegistry):
 
     payload = { "modelFormatName": "foo" }
     from .conftest import REGISTRY_HOST, REGISTRY_PORT
-    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}", json=payload, headers={"Content-Type": "application/json"})
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
     assert ma
