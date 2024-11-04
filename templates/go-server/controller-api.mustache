@@ -406,7 +406,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{paramName}}Param := r.Header.Get("{{baseName}}")
 	{{/isHeaderParam}}
 	{{#isBodyParam}}
-	{{paramName}}Param := model.{{dataType}}{}
+	{{paramName}}Param := *model.New{{dataType}}WithDefaults()
 	d := json.NewDecoder(r.Body)
 	{{^isAdditionalPropertiesTrue}}
 	d.DisallowUnknownFields()
