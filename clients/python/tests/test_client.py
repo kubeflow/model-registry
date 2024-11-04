@@ -2,6 +2,7 @@ import os
 from itertools import islice
 
 import pytest
+import requests
 
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
@@ -160,6 +161,39 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.custom_properties == ma_labels
+
+
+@pytest.mark.e2e
+async def test_patch_mm(client: ModelRegistry):
+    """Patching ModelArtifact requires `artifactType` value which was previously not required
+
+    reported with https://issues.redhat.com/browse/RHOAIENG-15326
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+    mv = client.get_model_version(name, version)
+    assert mv
+    assert mv.id
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+
+    payload = { "modelFormatName": "foo" }
+    from .conftest import REGISTRY_HOST, REGISTRY_PORT
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}", json=payload, headers={"Content-Type": "application/json"})
+    assert response.status_code == 200
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+    assert ma.model_format_name == "foo"
 
 
 @pytest.mark.e2e
