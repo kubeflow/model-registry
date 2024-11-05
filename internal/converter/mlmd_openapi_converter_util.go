@@ -134,17 +134,17 @@ func MapRegisteredModelIdFromOwned(source *string) (string, error) {
 
 // ARTIFACT
 
-func MapArtifactType(source *proto.Artifact) (string, error) {
+func MapArtifactType(source *proto.Artifact) (*string, error) {
 	if source.Type == nil {
-		return "", fmt.Errorf("artifact type is nil")
+		return nil, fmt.Errorf("artifact type is nil")
 	}
 	switch *source.Type {
 	case defaults.ModelArtifactTypeName:
-		return "model-artifact", nil
+		return of("model-artifact"), nil
 	case defaults.DocArtifactTypeName:
-		return "doc-artifact", nil
+		return of("doc-artifact"), nil
 	default:
-		return "", fmt.Errorf("invalid artifact type found: %v", source.Type)
+		return nil, fmt.Errorf("invalid artifact type found: %v", source.Type)
 	}
 }
 

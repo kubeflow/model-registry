@@ -19,7 +19,6 @@ var _ MappedNullable = &DocArtifactUpdate{}
 
 // DocArtifactUpdate A document artifact to be updated.
 type DocArtifactUpdate struct {
-	ArtifactType string `json:"artifactType"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -27,18 +26,21 @@ type DocArtifactUpdate struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
+	Uri          *string        `json:"uri,omitempty"`
+	State        *ArtifactState `json:"state,omitempty"`
+	ArtifactType *string        `json:"artifactType,omitempty"`
 }
 
 // NewDocArtifactUpdate instantiates a new DocArtifactUpdate object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewDocArtifactUpdate(artifactType string) *DocArtifactUpdate {
+func NewDocArtifactUpdate() *DocArtifactUpdate {
 	this := DocArtifactUpdate{}
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "doc-artifact"
+	this.ArtifactType = &artifactType
 	return &this
 }
 
@@ -47,35 +49,11 @@ func NewDocArtifactUpdate(artifactType string) *DocArtifactUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewDocArtifactUpdateWithDefaults() *DocArtifactUpdate {
 	this := DocArtifactUpdate{}
-	var artifactType string = "doc-artifact"
-	this.ArtifactType = artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
+	var artifactType string = "doc-artifact"
+	this.ArtifactType = &artifactType
 	return &this
-}
-
-// GetArtifactType returns the ArtifactType field value
-func (o *DocArtifactUpdate) GetArtifactType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value
-// and a boolean to check if the value has been set.
-func (o *DocArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ArtifactType, true
-}
-
-// SetArtifactType sets field value
-func (o *DocArtifactUpdate) SetArtifactType(v string) {
-	o.ArtifactType = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -238,6 +216,38 @@ func (o *DocArtifactUpdate) SetState(v ArtifactState) {
 	o.State = &v
 }
 
+// GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
+func (o *DocArtifactUpdate) GetArtifactType() string {
+	if o == nil || IsNil(o.ArtifactType) {
+		var ret string
+		return ret
+	}
+	return *o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifactUpdate) GetArtifactTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.ArtifactType) {
+		return nil, false
+	}
+	return o.ArtifactType, true
+}
+
+// HasArtifactType returns a boolean if a field has been set.
+func (o *DocArtifactUpdate) HasArtifactType() bool {
+	if o != nil && !IsNil(o.ArtifactType) {
+		return true
+	}
+
+	return false
+}
+
+// SetArtifactType gets a reference to the given string and assigns it to the ArtifactType field.
+func (o *DocArtifactUpdate) SetArtifactType(v string) {
+	o.ArtifactType = &v
+}
+
 func (o DocArtifactUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -248,7 +258,6 @@ func (o DocArtifactUpdate) MarshalJSON() ([]byte, error) {
 
 func (o DocArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["artifactType"] = o.ArtifactType
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -263,6 +272,9 @@ func (o DocArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
+	}
+	if !IsNil(o.ArtifactType) {
+		toSerialize["artifactType"] = o.ArtifactType
 	}
 	return toSerialize, nil
 }
