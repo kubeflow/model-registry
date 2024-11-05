@@ -164,7 +164,7 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_patch_mm(client: ModelRegistry):
+async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     """Patching ModelArtifact requires `artifactType` value which was previously not required
 
     reported with https://issues.redhat.com/browse/RHOAIENG-15326
