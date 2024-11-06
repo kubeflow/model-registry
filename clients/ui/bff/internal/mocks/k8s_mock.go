@@ -3,14 +3,15 @@ package mocks
 import (
 	"context"
 	"fmt"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
@@ -50,21 +51,21 @@ func NewKubernetesClient(logger *slog.Logger, ctx context.Context, cancel contex
 	}
 	cfg, err := testEnv.Start()
 	if err != nil {
-		logger.Error("failed to start test environment", err)
+		logger.Error("failed to start test environment", slog.String("error", err.Error()))
 		cancel()
 		os.Exit(1)
 	}
 
 	mockK8sClient, err := client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	if err != nil {
-		logger.Error("failed to create Kubernetes client", err)
+		logger.Error("failed to create Kubernetes client", slog.String("error", err.Error()))
 		cancel()
 		os.Exit(1)
 	}
 
 	err = setupMock(mockK8sClient, ctx)
 	if err != nil {
-		logger.Error("failed on mock setup", err)
+		logger.Error("failed on mock setup", slog.String("error", err.Error()))
 		cancel()
 		os.Exit(1)
 	}
