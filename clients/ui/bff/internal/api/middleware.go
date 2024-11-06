@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"strings"
-
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"log/slog"
+	"net/http"
+	"strings"
 )
 
 type contextKey string
@@ -25,6 +26,9 @@ const (
 	KubeflowUserIDHeader                  = "kubeflow-userid"
 	KubeflowUserGroupsKey      contextKey = "kubeflowUserGroups" // kubeflow-groups : Holds a comma-separated list of user groups
 	KubeflowUserGroupsIdHeader            = "kubeflow-groups"
+
+	TraceIdKey     contextKey = "TraceIdKey"
+	TraceLoggerKey contextKey = "TraceLoggerKey"
 )
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
@@ -87,6 +91,31 @@ func (app *App) enableCORS(next http.Handler) http.Handler {
 	})
 }
 
+func (app *App) EnableTelemetry(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Adds a unique id to the context to allow tracing of requests
+		traceId := uuid.NewString()
+		ctx := context.WithValue(r.Context(), TraceIdKey, traceId)
+
+		// logger will only be nil in tests.
+		if app.logger != nil {
+			traceLogger := app.logger.With(slog.String("trace_id", traceId))
+			ctx = context.WithValue(ctx, TraceLoggerKey, traceLogger)
+
+			if traceLogger.Enabled(ctx, slog.LevelDebug) {
+				cloneBody, err := integrations.CloneBody(r)
+				if err != nil {
+					traceLogger.Debug("Error reading request body for debug logging", "error", err)
+				}
+				////TODO (Alex) Log headers, BUT we must ensure we don't log confidential data like tokens etc.
+				traceLogger.Debug("Incoming HTTP request", "method", r.Method, "url", r.URL.String(), "body", cloneBody)
+			}
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
@@ -103,7 +132,19 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			return
 		}
 
-		client, err := integrations.NewHTTPClient(modelRegistryID, modelRegistryBaseURL)
+		// Set up a child logger for the rest client that automatically adds the request id to all statements for
+		// tracing.
+		restClientLogger := app.logger
+		traceId, ok := r.Context().Value(TraceIdKey).(string)
+		if app.logger != nil {
+			if ok {
+				restClientLogger = app.logger.With(slog.String("trace_id", traceId))
+			} else {
+				app.logger.Warn("Failed to set trace_id for tracing")
+			}
+		}
+
+		client, err := integrations.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return
