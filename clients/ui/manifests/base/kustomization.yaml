@@ -7,6 +7,7 @@ resources:
   - model-registry-bff-deployment.yaml
   - model-registry-ui-service.yaml
   - model-registry-ui-deployment.yaml
+  - model-registry-service-account.yaml
 
 images:
   - name: model-registry-ui-image

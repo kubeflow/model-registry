@@ -7,7 +7,7 @@
 
 The Kubeflow Model Registry UI is a standalone web app for Kubeflow Model Registry.
 
-## Contributing:
+## Contributing
 
 Individual bug fixes are welcome, it is recommended that you create a bug [issue] at the same time to describe the fix you're applying. If you are unsure how best to solve it, start with the issue and note your desire to contribute.
 

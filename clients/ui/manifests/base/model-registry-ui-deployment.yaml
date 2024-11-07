@@ -26,3 +26,6 @@ spec:
             memory: 2Gi
         ports:
           - containerPort: 8080
+        env:
+          - name: API_URL
+            value: "http://model-registry-bff-service:4000"
