@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import App from './app/App';
 import { BrowserStorageContextProvider } from './components/browserStorage/BrowserStorageContext';
+import { NotificationContextProvider } from './app/context/NotificationContext';
 
 const theme = createTheme({ cssVariables: true });
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -13,7 +14,9 @@ root.render(
     <Router>
       <BrowserStorageContextProvider>
         <ThemeProvider theme={theme}>
-          <App />
+          <NotificationContextProvider>
+            <App />
+          </NotificationContextProvider>
         </ThemeProvider>
       </BrowserStorageContextProvider>
     </Router>

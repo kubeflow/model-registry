@@ -171,7 +171,7 @@ Cypress.Commands.add(
         if ($el.attr('aria-expanded') === 'false') {
           cy.wrap($el).click();
         }
-        return cy.wrap($el.parent()).findByRole('menuitem', { name });
+        return cy.get('body').findByRole('menuitem', { name });
       });
   },
 );
@@ -182,7 +182,7 @@ Cypress.Commands.add('findDropdownItem', { prevSubject: 'element' }, (subject, n
     if ($el.attr('aria-expanded') === 'false') {
       cy.wrap($el).click();
     }
-    return cy.wrap($el).parent().findByRole('menuitem', { name });
+    return cy.get('body').findByRole('menuitem', { name });
   });
 });
 
