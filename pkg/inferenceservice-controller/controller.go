@@ -18,24 +18,28 @@ import (
 type InferenceServiceController struct {
 	client                        client.Client
 	log                           logr.Logger
+	bearerToken                   string
 	inferenceServiceIDLabel       string
 	registeredModelIDLabel        string
 	modelVersionIDLabel           string
 	modelRegistryNamespaceLabel   string
 	modelRegistryNameLabel        string
+	modelRegistryURLLabel         string
 	modelRegistryFinalizer        string
 	defaultModelRegistryNamespace string
 }
 
-func NewInferenceServiceController(client client.Client, log logr.Logger, isIDLabel, regModelIDLabel, modelVerIDLabel, mrNamespaceLabel, mrNameLabel, mrFinalizer, defaultMRNamespace string) *InferenceServiceController {
+func NewInferenceServiceController(client client.Client, log logr.Logger, bearerToken, isIDLabel, regModelIDLabel, modelVerIDLabel, mrNamespaceLabel, mrNameLabel, mrURLLabel, mrFinalizer, defaultMRNamespace string) *InferenceServiceController {
 	return &InferenceServiceController{
 		client:                        client,
 		log:                           log,
+		bearerToken:                   bearerToken,
 		inferenceServiceIDLabel:       isIDLabel,
 		registeredModelIDLabel:        regModelIDLabel,
 		modelVersionIDLabel:           modelVerIDLabel,
 		modelRegistryNamespaceLabel:   mrNamespaceLabel,
 		modelRegistryNameLabel:        mrNameLabel,
+		modelRegistryURLLabel:         mrURLLabel,
 		modelRegistryFinalizer:        mrFinalizer,
 		defaultModelRegistryNamespace: defaultMRNamespace,
 	}
@@ -45,6 +49,11 @@ func NewInferenceServiceController(client client.Client, log logr.Logger, isIDLa
 func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	mrNamespace := r.defaultModelRegistryNamespace
 	mrIs := &openapi.InferenceService{}
+	mrApiCtx := context.Background()
+
+	if r.bearerToken != "" {
+		mrApiCtx = context.WithValue(context.Background(), openapi.ContextAccessToken, r.bearerToken)
+	}
 
 	// Initialize logger format
 	log := r.log.WithValues("InferenceService", req.Name, "namespace", req.Namespace)
@@ -63,8 +72,9 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 
 	mrIsvcId, okMrIsvcId := isvc.Labels[r.inferenceServiceIDLabel]
 	registeredModelId, okRegisteredModelId := isvc.Labels[r.registeredModelIDLabel]
-	modelVersionId, _ := isvc.Labels[r.modelVersionIDLabel]
+	modelVersionId := isvc.Labels[r.modelVersionIDLabel]
 	mrName, okMrName := isvc.Labels[r.modelRegistryNameLabel]
+	mrUrl := isvc.Labels[r.modelRegistryURLLabel]
 
 	if !okMrIsvcId && !okRegisteredModelId && !okMrName {
 		// Early check: no model registry specific labels set in the ISVC, ignore the CR
@@ -77,7 +87,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	log.Info("Creating model registry service..")
-	mrApi, err := r.initModelRegistryService(ctx, log, mrName, mrNamespace)
+	mrApi, err := r.initModelRegistryService(ctx, log, mrName, mrNamespace, mrUrl)
 	if err != nil {
 		log.Error(err, "Unable to initialize Model Registry Service")
 		return ctrl.Result{}, err
@@ -107,7 +117,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	// Retrieve or create the ServingEnvironment associated to the current namespace
-	servingEnvironment, err := r.getOrCreateServingEnvironment(log, mrApi, req.Namespace)
+	servingEnvironment, err := r.getOrCreateServingEnvironment(mrApiCtx, log, mrApi, req.Namespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -115,13 +125,13 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	if okMrIsvcId {
 		// Retrieve the IS from model registry using the id
 		log.Info("Retrieving model registry InferenceService by id", "mrIsvcId", mrIsvcId)
-		mrIs, _, err = mrApi.ModelRegistryServiceAPI.GetInferenceService(context.Background(), mrIsvcId).Execute()
+		mrIs, _, err = mrApi.ModelRegistryServiceAPI.GetInferenceService(mrApiCtx, mrIsvcId).Execute()
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("unable to find InferenceService with id %s in model registry: %w", mrIsvcId, err)
 		}
 	} else if okRegisteredModelId {
 		// No corresponding InferenceService in model registry, create new one
-		mrIs, err = r.createMRInferenceService(log, mrApi, isvc, *servingEnvironment.Id, registeredModelId, modelVersionId)
+		mrIs, err = r.createMRInferenceService(mrApiCtx, log, mrApi, isvc, *servingEnvironment.Id, registeredModelId, modelVersionId)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -133,7 +143,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if isMarkedToBeDeleted {
-		err := r.onDeletion(mrApi, log, isvc, mrIs)
+		err := r.onDeletion(ctx, mrApi, log, isvc, mrIs)
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -178,17 +188,45 @@ func (r *InferenceServiceController) SetupWithManager(mgr ctrl.Manager) error {
 	return builder.Complete(r)
 }
 
-func (r *InferenceServiceController) initModelRegistryService(ctx context.Context, log logr.Logger, name, namespace string) (*openapi.APIClient, error) {
+func (r *InferenceServiceController) initModelRegistryService(ctx context.Context, log logr.Logger, name, namespace, url string) (*openapi.APIClient, error) {
+	var err error
+
 	log1 := log.WithValues("mr-namespace", namespace, "mr-name", name)
+	scheme := "https"
 
-	log1.Info("Retrieving api http port from deployed model registry service")
+	if url != "" {
+		log1.Info("Retrieving api http port from deployed model registry service")
 
+		url, err = r.getMRUrlFromService(ctx, name, namespace)
+		if err != nil {
+			log1.Error(err, "Unable to fetch the Model Registry Service")
+			return nil, err
+		}
+
+		scheme = "http"
+	}
+
+	cfg := &openapi.Configuration{
+		Host:   url,
+		Scheme: scheme,
+		Servers: openapi.ServerConfigurations{
+			{
+				URL: url,
+			},
+		},
+	}
+
+	client := openapi.NewAPIClient(cfg)
+
+	return client, nil
+}
+
+func (r *InferenceServiceController) getMRUrlFromService(ctx context.Context, name, namespace string) (string, error) {
 	svc := &corev1.Service{}
 
 	err := r.client.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, svc)
 	if err != nil {
-		log1.Error(err, "Unable to fetch the Model Registry Service")
-		return nil, err
+		return "", err
 	}
 
 	var restApiPort *int32
@@ -201,20 +239,14 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 	}
 
 	if restApiPort == nil {
-		return nil, fmt.Errorf("unable to find the http port in the Model Registry Service")
+		return "", fmt.Errorf("unable to find the http port in the Model Registry Service")
 	}
 
-	cfg := &openapi.Configuration{
-		Host:   fmt.Sprintf("%s.%s.svc.cluster.local:%d", name, namespace, *restApiPort),
-		Scheme: "http",
-	}
-
-	client := openapi.NewAPIClient(cfg)
-
-	return client, nil
+	return fmt.Sprintf("%s.%s.svc.cluster.local:%d", name, namespace, *restApiPort), nil
 }
 
 func (r *InferenceServiceController) createMRInferenceService(
+	ctx context.Context,
 	log logr.Logger,
 	mr *openapi.APIClient,
 	isvc *kservev1beta1.InferenceService,
@@ -229,12 +261,12 @@ func (r *InferenceServiceController) createMRInferenceService(
 
 	isName := fmt.Sprintf("%s/%s", isvc.Name, isvc.UID)
 
-	is, _, err := mr.ModelRegistryServiceAPI.FindInferenceService(context.Background()).
+	is, _, err := mr.ModelRegistryServiceAPI.FindInferenceService(ctx).
 		Name(isName).ParentResourceId(servingEnvironmentId).Execute()
 	if err != nil {
 		log.Info("Creating new model registry InferenceService", "name", isName, "registeredModelId", registeredModelId, "modelVersionId", modelVersionId)
 
-		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(context.Background()).InferenceServiceCreate(openapi.InferenceServiceCreate{
+		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceServiceCreate(openapi.InferenceServiceCreate{
 			DesiredState:         openapi.INFERENCESERVICESTATE_DEPLOYED.Ptr(),
 			ModelVersionId:       modelVersionIdPtr,
 			Name:                 &isName,
@@ -247,12 +279,12 @@ func (r *InferenceServiceController) createMRInferenceService(
 	return is, err
 }
 
-func (r *InferenceServiceController) getOrCreateServingEnvironment(log logr.Logger, mr *openapi.APIClient, namespace string) (*openapi.ServingEnvironment, error) {
-	servingEnvironment, _, err := mr.ModelRegistryServiceAPI.FindServingEnvironment(context.Background()).Name(namespace).Execute()
+func (r *InferenceServiceController) getOrCreateServingEnvironment(ctx context.Context, log logr.Logger, mr *openapi.APIClient, namespace string) (*openapi.ServingEnvironment, error) {
+	servingEnvironment, _, err := mr.ModelRegistryServiceAPI.FindServingEnvironment(ctx).Name(namespace).Execute()
 	if err != nil {
 		log.Info("ServingEnvironment not found, creating it..")
 
-		servingEnvironment, _, err = mr.ModelRegistryServiceAPI.CreateServingEnvironment(context.Background()).ServingEnvironmentCreate(openapi.ServingEnvironmentCreate{
+		servingEnvironment, _, err = mr.ModelRegistryServiceAPI.CreateServingEnvironment(ctx).ServingEnvironmentCreate(openapi.ServingEnvironmentCreate{
 			Name: &namespace,
 		}).Execute()
 		if err != nil {
@@ -264,12 +296,12 @@ func (r *InferenceServiceController) getOrCreateServingEnvironment(log logr.Logg
 }
 
 // onDeletion mark model registry inference service to UNDEPLOYED desired state
-func (r *InferenceServiceController) onDeletion(mr *openapi.APIClient, log logr.Logger, isvc *kservev1beta1.InferenceService, is *openapi.InferenceService) (err error) {
+func (r *InferenceServiceController) onDeletion(ctx context.Context, mr *openapi.APIClient, log logr.Logger, isvc *kservev1beta1.InferenceService, is *openapi.InferenceService) (err error) {
 	log.Info("Running onDeletion logic")
 	if is.DesiredState != nil && *is.DesiredState != openapi.INFERENCESERVICESTATE_UNDEPLOYED {
 		log.Info("InferenceService going to be deleted from cluster, setting desired state to UNDEPLOYED in model registry")
 
-		_, _, err = mr.ModelRegistryServiceAPI.UpdateInferenceService(context.Background(), *is.Id).InferenceServiceUpdate(openapi.InferenceServiceUpdate{
+		_, _, err = mr.ModelRegistryServiceAPI.UpdateInferenceService(ctx, *is.Id).InferenceServiceUpdate(openapi.InferenceServiceUpdate{
 			DesiredState: openapi.INFERENCESERVICESTATE_UNDEPLOYED.Ptr(),
 		}).Execute()
 	}
