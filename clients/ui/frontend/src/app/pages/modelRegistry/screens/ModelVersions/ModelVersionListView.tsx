@@ -18,20 +18,20 @@ import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { SearchType } from '~/app/components/DashboardSearchField';
+import { SearchType } from '~/shared/components/DashboardSearchField';
 import {
   filterModelVersions,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import { ProjectObjectType, typedEmptyImage } from '~/app/components/design/utils';
+import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { asEnumMember } from '~/app/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
-import SimpleSelect from '~/app/components/SimpleSelect';
+import SimpleSelect from '~/shared/components/SimpleSelect';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ModelVersionListViewProps = {

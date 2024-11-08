@@ -14,7 +14,7 @@ import ArchiveModelVersionDetails from './screens/ModelVersionsArchive/ArchiveMo
 import RegisteredModelsArchiveDetails from './screens/RegisteredModelsArchive/RegisteredModelArchiveDetails';
 import RegisterModel from './screens/RegisterModel/RegisterModel';
 import RegisterVersion from './screens/RegisterModel/RegisterVersion';
-import '~/style/MUI-theme.scss';
+import '~/shared/style/MUI-theme.scss';
 
 const ModelRegistryRoutes: React.FC = () => (
   <Routes>

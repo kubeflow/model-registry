@@ -1,5 +1,5 @@
 import { AlertVariant } from '@patternfly/react-core';
-import { APIOptions } from '~/app/api/types';
+import { APIOptions } from '~/shared/api/types';
 
 export enum ModelState {
   LIVE = 'LIVE',

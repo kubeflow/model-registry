@@ -1,4 +1,6 @@
-import useGenericObjectState, { GenericObjectState } from '~/utilities/useGenericObjectState';
+import useGenericObjectState, {
+  GenericObjectState,
+} from '~/shared/utilities/useGenericObjectState';
 
 export enum ModelLocationType {
   ObjectStorage = 'Object storage',

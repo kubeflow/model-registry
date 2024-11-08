@@ -8,7 +8,7 @@ import {
   ModalHeader,
   TextInput,
 } from '@patternfly/react-core';
-import DashboardModalFooter from '~/app/components/DashboardModalFooter';
+import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface ArchiveModelVersionModalProps {

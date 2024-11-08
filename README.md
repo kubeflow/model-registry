@@ -39,6 +39,7 @@ Model registry provides a central repository for model developers to store and m
    - [playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml)
  - [license scanning](https://github.com/kubeflow/model-registry/issues/323)
  - [monitoring image quality](https://github.com/kubeflow/model-registry/issues/327)
+8. [UI](.clients/ui/README.md)
 
 ## Pre-requisites:
 - go >= 1.21

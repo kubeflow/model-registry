@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Table } from '~/app/components/table';
+import { Table } from '~/shared/components/table';
 import { RegisteredModel } from '~/app/types';
-import DashboardEmptyTableView from '~/app/components/DashboardEmptyTableView';
+import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import { rmColumns } from './RegisteredModelsTableColumns';
 import RegisteredModelTableRow from './RegisteredModelTableRow';
 

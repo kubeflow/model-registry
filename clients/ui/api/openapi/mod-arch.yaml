@@ -86,7 +86,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ModelVersionUpdate"
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/ModelVersionUpdate"
         required: true
       tags:
         - ModelRegistryService
@@ -141,7 +147,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisteredModelCreate"
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/RegisteredModelCreate"
         required: true
       tags:
         - ModelRegistryService
@@ -186,7 +198,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisteredModelUpdate"
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/RegisteredModelUpdate"
         required: true
       tags:
         - ModelRegistryService
@@ -244,7 +262,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Artifact"
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/Artifact"
         required: true
       tags:
         - ModelRegistryService
@@ -305,7 +329,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ModelVersion"
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/ModelVersion"
         required: true
       tags:
         - ModelRegistryService
@@ -972,99 +1002,195 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Config"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/Config"
       description: A response containing a list of ModelArtifact entities.
     ModelRegistryRespone:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ModelRegistry"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModelRegistry"
       description: A response containing a list of ModelArtifact entities.
     ModelArtifactListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ModelArtifactList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelArtifactList"
       description: A response containing a list of ModelArtifact entities.
     ModelArtifactResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ModelArtifact"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelArtifact"
       description: A response containing a `ModelArtifact` entity.
     ModelVersionListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ModelVersionList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelVersionList"
       description: A response containing a list of `ModelVersion` entities.
     ModelVersionResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ModelVersion"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelVersion"
       description: A response containing a `ModelVersion` entity.
     RegisteredModelListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/RegisteredModelList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/RegisteredModelList"
       description: A response containing a list of `RegisteredModel` entities.
     RegisteredModelResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/RegisteredModel"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/RegisteredModel"
       description: A response containing a `RegisteredModel` entity.
     ArtifactResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Artifact"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/Artifact"
       description: A response containing an `Artifact` entity.
     ArtifactListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ArtifactList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ArtifactList"
       description: A response containing a list of `Artifact` entities.
     ServingEnvironmentListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ServingEnvironmentList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ServingEnvironmentList"
       description: A response containing a list of `ServingEnvironment` entities.
     ServingEnvironmentResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ServingEnvironment"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ServingEnvironment"
       description: A response containing a `ServingEnvironment` entity.
     InferenceServiceListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/InferenceServiceList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/InferenceServiceList"
       description: A response containing a list of `InferenceService` entities.
     InferenceServiceResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/InferenceService"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/InferenceService"
       description: A response containing a `InferenceService` entity.
     ServeModelListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ServeModelList"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ServeModelList"
       description: A response containing a list of `ServeModel` entities.
     ServeModelResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ServeModel"
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ServeModel"
       description: A response containing a `ServeModel` entity.
   parameters:
     modelRegistryName:

@@ -13,11 +13,11 @@ import {
   TextInputGroupMain,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
-import { UpdateObjectAtPropAndValue } from '~/types';
+import { UpdateObjectAtPropAndValue } from '~/shared/types';
 // import { DataConnection, UpdateObjectAtPropAndValue } from '~/pages/projects/types';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import FormSection from '~/app/components/pf-overrides/FormSection';
+import FormSection from '~/shared/components/pf-overrides/FormSection';
 import { ModelVersion } from '~/app/types';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 // import { ConnectionModal } from './ConnectionModal';
@@ -35,7 +35,8 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
   isFirstVersion,
   latestVersion,
 }) => {
-  // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false); TODO: Check wether we should use data connections
+  // TODO: [Data connections] Check wether we should use data connections
+  // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
 
   // const connectionDataMap: Record<string, keyof RegistrationCommonFormData> = {
   //   AWS_S3_ENDPOINT: 'modelLocationEndpoint',

@@ -9,8 +9,8 @@ import {
 } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
-import { SearchType } from '~/app/components/DashboardSearchField';
-import SimpleSelect from '~/app/components/SimpleSelect';
+import { SearchType } from '~/shared/components/DashboardSearchField';
+import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/app/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';

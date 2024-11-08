@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Table } from '~/app/components/table';
+import { Table } from '~/shared/components/table';
 import { ModelVersion } from '~/app/types';
 import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
-import DashboardEmptyTableView from '~/app/components/DashboardEmptyTableView';
+import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import ModelVersionsTableRow from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
 
 type ModelVersionsTableProps = {
