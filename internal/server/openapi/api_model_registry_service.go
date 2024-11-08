@@ -257,7 +257,7 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 
 // CreateArtifact - Create an Artifact
 func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter, r *http.Request) {
-	artifactCreateParam := model.ArtifactCreate{}
+	artifactCreateParam := *model.NewArtifactCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&artifactCreateParam); err != nil {
@@ -285,7 +285,7 @@ func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter
 // CreateEnvironmentInferenceService - Create a InferenceService in ServingEnvironment
 func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w http.ResponseWriter, r *http.Request) {
 	servingenvironmentIdParam := chi.URLParam(r, "servingenvironmentId")
-	inferenceServiceCreateParam := model.InferenceServiceCreate{}
+	inferenceServiceCreateParam := *model.NewInferenceServiceCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&inferenceServiceCreateParam); err != nil {
@@ -312,7 +312,7 @@ func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w 
 
 // CreateInferenceService - Create a InferenceService
 func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.ResponseWriter, r *http.Request) {
-	inferenceServiceCreateParam := model.InferenceServiceCreate{}
+	inferenceServiceCreateParam := *model.NewInferenceServiceCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&inferenceServiceCreateParam); err != nil {
@@ -340,7 +340,7 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.Respon
 // CreateInferenceServiceServe - Create a ServeModel action in a InferenceService
 func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.ResponseWriter, r *http.Request) {
 	inferenceserviceIdParam := chi.URLParam(r, "inferenceserviceId")
-	serveModelCreateParam := model.ServeModelCreate{}
+	serveModelCreateParam := *model.NewServeModelCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&serveModelCreateParam); err != nil {
@@ -367,7 +367,7 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.R
 
 // CreateModelArtifact - Create a ModelArtifact
 func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseWriter, r *http.Request) {
-	modelArtifactCreateParam := model.ModelArtifactCreate{}
+	modelArtifactCreateParam := *model.NewModelArtifactCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&modelArtifactCreateParam); err != nil {
@@ -394,7 +394,7 @@ func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseW
 
 // CreateModelVersion - Create a ModelVersion
 func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWriter, r *http.Request) {
-	modelVersionCreateParam := model.ModelVersionCreate{}
+	modelVersionCreateParam := *model.NewModelVersionCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&modelVersionCreateParam); err != nil {
@@ -421,7 +421,7 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 
 // CreateRegisteredModel - Create a RegisteredModel
 func (c *ModelRegistryServiceAPIController) CreateRegisteredModel(w http.ResponseWriter, r *http.Request) {
-	registeredModelCreateParam := model.RegisteredModelCreate{}
+	registeredModelCreateParam := *model.NewRegisteredModelCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&registeredModelCreateParam); err != nil {
@@ -449,7 +449,7 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModel(w http.Respons
 // CreateRegisteredModelVersion - Create a ModelVersion in RegisteredModel
 func (c *ModelRegistryServiceAPIController) CreateRegisteredModelVersion(w http.ResponseWriter, r *http.Request) {
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
-	modelVersionParam := model.ModelVersion{}
+	modelVersionParam := *model.NewModelVersionWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&modelVersionParam); err != nil {
@@ -476,7 +476,7 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModelVersion(w http.
 
 // CreateServingEnvironment - Create a ServingEnvironment
 func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.ResponseWriter, r *http.Request) {
-	servingEnvironmentCreateParam := model.ServingEnvironmentCreate{}
+	servingEnvironmentCreateParam := *model.NewServingEnvironmentCreateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&servingEnvironmentCreateParam); err != nil {
@@ -884,7 +884,7 @@ func (c *ModelRegistryServiceAPIController) GetServingEnvironments(w http.Respon
 // UpdateArtifact - Update an Artifact
 func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-	artifactUpdateParam := model.ArtifactUpdate{}
+	artifactUpdateParam := *model.NewArtifactUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&artifactUpdateParam); err != nil {
@@ -912,7 +912,7 @@ func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter
 // UpdateInferenceService - Update a InferenceService
 func (c *ModelRegistryServiceAPIController) UpdateInferenceService(w http.ResponseWriter, r *http.Request) {
 	inferenceserviceIdParam := chi.URLParam(r, "inferenceserviceId")
-	inferenceServiceUpdateParam := model.InferenceServiceUpdate{}
+	inferenceServiceUpdateParam := *model.NewInferenceServiceUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&inferenceServiceUpdateParam); err != nil {
@@ -940,7 +940,7 @@ func (c *ModelRegistryServiceAPIController) UpdateInferenceService(w http.Respon
 // UpdateModelArtifact - Update a ModelArtifact
 func (c *ModelRegistryServiceAPIController) UpdateModelArtifact(w http.ResponseWriter, r *http.Request) {
 	modelartifactIdParam := chi.URLParam(r, "modelartifactId")
-	modelArtifactUpdateParam := model.ModelArtifactUpdate{}
+	modelArtifactUpdateParam := *model.NewModelArtifactUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&modelArtifactUpdateParam); err != nil {
@@ -968,7 +968,7 @@ func (c *ModelRegistryServiceAPIController) UpdateModelArtifact(w http.ResponseW
 // UpdateModelVersion - Update a ModelVersion
 func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWriter, r *http.Request) {
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
-	modelVersionUpdateParam := model.ModelVersionUpdate{}
+	modelVersionUpdateParam := *model.NewModelVersionUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&modelVersionUpdateParam); err != nil {
@@ -996,7 +996,7 @@ func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWr
 // UpdateRegisteredModel - Update a RegisteredModel
 func (c *ModelRegistryServiceAPIController) UpdateRegisteredModel(w http.ResponseWriter, r *http.Request) {
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
-	registeredModelUpdateParam := model.RegisteredModelUpdate{}
+	registeredModelUpdateParam := *model.NewRegisteredModelUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&registeredModelUpdateParam); err != nil {
@@ -1024,7 +1024,7 @@ func (c *ModelRegistryServiceAPIController) UpdateRegisteredModel(w http.Respons
 // UpdateServingEnvironment - Update a ServingEnvironment
 func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.ResponseWriter, r *http.Request) {
 	servingenvironmentIdParam := chi.URLParam(r, "servingenvironmentId")
-	servingEnvironmentUpdateParam := model.ServingEnvironmentUpdate{}
+	servingEnvironmentUpdateParam := *model.NewServingEnvironmentUpdateWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&servingEnvironmentUpdateParam); err != nil {
@@ -1052,7 +1052,7 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 // UpsertModelVersionArtifact - Upsert an Artifact in a ModelVersion
 func (c *ModelRegistryServiceAPIController) UpsertModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
-	artifactParam := model.Artifact{}
+	artifactParam := *model.NewArtifactWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 	if err := d.Decode(&artifactParam); err != nil {

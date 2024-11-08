@@ -14,7 +14,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
 
-const componentName = "model-registry-server"
+const ComponentName = "model-registry-server"
 
 type KubernetesClientInterface interface {
 	GetServiceNames() ([]string, error)
@@ -37,7 +37,7 @@ type KubernetesClient struct {
 	Mgr        ctrl.Manager
 	Token      string
 	Logger     *slog.Logger
-	stopFn     context.CancelFunc // Store a function to cancel the context for graceful shutdown
+	StopFn     context.CancelFunc // Store a function to cancel the context for graceful shutdown
 	mgrStopped chan struct{}
 }
 
@@ -98,7 +98,7 @@ func NewKubernetesClient(logger *slog.Logger) (KubernetesClientInterface, error)
 		Mgr:        mgr,
 		Token:      kubeconfig.BearerToken,
 		Logger:     logger,
-		stopFn:     cancel,
+		StopFn:     cancel,
 		mgrStopped: mgrStopped, // Store the stop channel
 
 		//Namespace:    namespace, //TODO (ederign) do we need to restrict service list by namespace?
@@ -110,7 +110,7 @@ func (kc *KubernetesClient) Shutdown(ctx context.Context, logger *slog.Logger) e
 	logger.Info("shutting down Kubernetes manager...")
 
 	// Use the saved cancel function to stop the manager
-	kc.stopFn()
+	kc.StopFn()
 
 	// Wait for the manager to stop or for the context to be canceled
 	select {
@@ -151,13 +151,13 @@ func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
 
 	var serviceNames []string
 	for _, service := range serviceList.Items {
-		if value, ok := service.Spec.Selector["component"]; ok && value == componentName {
+		if value, ok := service.Spec.Selector["component"]; ok && value == ComponentName {
 			serviceNames = append(serviceNames, service.Name)
 		}
 	}
 
 	if len(serviceNames) == 0 {
-		return nil, fmt.Errorf("no services found with component: %s", componentName)
+		return nil, fmt.Errorf("no services found with component: %s", ComponentName)
 	}
 
 	return serviceNames, nil
@@ -183,7 +183,7 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 	var services []ServiceDetails
 
 	for _, service := range serviceList.Items {
-		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == componentName {
+		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == ComponentName {
 			var httpPort int32
 			hasHTTPPort := false
 			for _, port := range service.Spec.Ports {
@@ -203,14 +203,20 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 				continue
 			}
 
-			displayName := service.Annotations["displayName"]
-			if displayName == "" {
-				kc.Logger.Error("service missing displayName annotation", "serviceName", service.Name)
+			displayName := ""
+			description := ""
+
+			if service.Annotations != nil {
+				displayName = service.Annotations["displayName"]
+				description = service.Annotations["description"]
 			}
 
-			description := service.Annotations["description"]
+			if displayName == "" {
+				kc.Logger.Warn("service missing displayName annotation", "serviceName", service.Name)
+			}
+
 			if description == "" {
-				kc.Logger.Error("service missing description annotation", "serviceName", service.Name)
+				kc.Logger.Warn("service missing description annotation", "serviceName", service.Name)
 			}
 
 			serviceDetails := ServiceDetails{
