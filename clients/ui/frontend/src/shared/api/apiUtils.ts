@@ -1,6 +1,7 @@
 import { APIOptions } from '~/shared/api/types';
 import { EitherOrNone } from '~/shared/typeHelpers';
 import { ModelRegistryBody } from '~/app/types';
+import { USER_ACCESS_TOKEN } from '~/shared/utilities/const';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
@@ -58,6 +59,19 @@ const callRestJSON = <T>(
     // It's OK for contentType and requestData to BOTH be undefined for e.g. a GET request or POST with no body.
     contentType = 'application/json;charset=UTF-8';
     requestData = JSON.stringify(data);
+  }
+
+  // Get from the browser storage the value from the key USER_ACCESS_TOKEN
+  // and set it as the value for the header key 'x-forwarded-access-token'
+  // This is a security measure to ensure that the user is authenticated
+  // before making any API calls. Local Storage is not secure, but it is
+  // enough for this PoC.
+  const token = localStorage.getItem(USER_ACCESS_TOKEN);
+  if (token) {
+    otherOptions.headers = {
+      ...otherOptions.headers,
+      [USER_ACCESS_TOKEN]: token,
+    };
   }
 
   return fetch(`${host}${path}${searchParams ? `?${searchParams}` : ''}`, {

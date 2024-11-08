@@ -41,6 +41,15 @@ kubectl apply -n kubeflow -k ./manifests/base
 echo "Waiting Model Registry UI to be available..."
 kubectl wait --for=condition=available -n kubeflow deployment/model-registry-ui --timeout=1m
 
+# Step 5: Apply admin user service account in the cluster
+echo "Applying admin user service account and rolebinding..."
+kubectl apply -k ./manifests/user-rbac
+
+# Step 6: Generate token for admin user and display it
+echo "Generating token for admin user, copy the following token in the local storage with key 'x-forwarded-access-token'..."
+echo -e "\033[32m$(kubectl -n kube-system create token admin-user)\033[0m"
+
 # Step 5: Port-forward the service
-echo "Model Registry should be available in localhost:8080"
+echo "Portfowarding Model Registry UI..."
+echo -e "\033[32mDashboard available in http://localhost:8080\033[0m"
 kubectl port-forward svc/model-registry-ui-service -n kubeflow 8080:8080
