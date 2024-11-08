@@ -1,4 +1,4 @@
-// TODO: Trimed down version of the original file. Needs to be updated with the original file.
+// TODO: [Reusable Codebase] Trimed down version of the original file. Needs to be updated with the original file.
 
 const printAgo = (time: number, unit: string) => `${time} ${unit}${time > 1 ? 's' : ''} ago`;
 const printIn = (time: number, unit: string) => `in ${time} ${unit}${time > 1 ? 's' : ''}`;

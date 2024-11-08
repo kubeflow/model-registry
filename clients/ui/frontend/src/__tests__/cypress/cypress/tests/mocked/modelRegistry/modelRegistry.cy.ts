@@ -205,35 +205,22 @@ describe('Model Registry core', () => {
   });
 });
 
-// TODO: Enable when model registration is there
-// describe('Register Model button', () => {
-//   it('Navigates to register page from empty state', () => {
-//     initIntercepts({ disableModelRegistryFeature: false, registeredModels: [] });
-//     modelRegistry.visit();
-//     modelRegistry.findRegisterModelButton().click();
-//     cy.findByTestId('app-page-title').should('exist');
-//     cy.findByTestId('app-page-title').contains('Register model');
-//     cy.findByText('Model registry - modelregistry-sample').should('exist');
-//   });
+describe('Register Model button', () => {
+  it('Navigates to register page from empty state', () => {
+    initIntercepts({ registeredModels: [] });
+    modelRegistry.visit();
+    modelRegistry.findRegisterModelButton().click();
+    cy.findByTestId('app-page-title').should('exist');
+    cy.findByTestId('app-page-title').contains('Register model');
+    cy.findByText('Model registry - modelregistry-sample').should('exist');
+  });
 
-//   it('Navigates to register page from table toolbar', () => {
-//     initIntercepts({ disableModelRegistryFeature: false });
-//     modelRegistry.visit();
-//     modelRegistry.findRegisterModelButton().click();
-//     cy.findByTestId('app-page-title').should('exist');
-//     cy.findByTestId('app-page-title').contains('Register model');
-//     cy.findByText('Model registry - modelregistry-sample').should('exist');
-//   });
-
-//   it('should be accessible for non-admin users', () => {
-//     asProjectEditUser();
-//     initIntercepts({
-//       disableModelRegistryFeature: false,
-//       allowed: false,
-//     });
-
-//     modelRegistry.visit();
-//     modelRegistry.navigate();
-//     modelRegistry.shouldModelRegistrySelectorExist();
-//   });
-// });
+  it('Navigates to register page from table toolbar', () => {
+    initIntercepts({ registeredModels: [] });
+    modelRegistry.visit();
+    modelRegistry.findRegisterModelButton().click();
+    cy.findByTestId('app-page-title').should('exist');
+    cy.findByTestId('app-page-title').contains('Register model');
+    cy.findByText('Model registry - modelregistry-sample').should('exist');
+  });
+});

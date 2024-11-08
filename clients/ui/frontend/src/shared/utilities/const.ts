@@ -1,4 +1,4 @@
-// TODO: Fetch the .env variable here.
+// TODO: [Env Handling] Fetch the .env variable here.
 const POLL_INTERVAL = 30000;
 
 export { POLL_INTERVAL };

@@ -167,7 +167,6 @@ export const isModelRegistryResponse = <T>(response: unknown): response is Model
   if (typeof response === 'object' && response !== null) {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const modelRegistryBody = response as { data?: T };
-    // TODO: Check if data is conforming any type so we have a proper check
     return modelRegistryBody.data !== undefined;
   }
   return false;

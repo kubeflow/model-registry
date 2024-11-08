@@ -25,7 +25,7 @@ export const useAdminSettings = (): NavDataItem[] => {
   // get auth access for example set admin as true
   const isAdmin = true; //this should be a call to getting auth / role access
 
-  // TODO: Remove the linter skip when we implement authentication
+  // TODO: [Auth-enablement] Remove the linter skip when we implement authentication
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!isAdmin) {
     return [];
@@ -56,7 +56,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
       {
-        // TODO: Remove the linter skip when we implement authentication
+        // TODO: [Auth-enablement] Remove the linter skip when we implement authentication
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         isAdmin && (
           <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />

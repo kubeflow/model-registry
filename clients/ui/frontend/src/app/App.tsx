@@ -62,7 +62,7 @@ const App: React.FC = () => {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  // TODO: logout
+                  // TODO: [Auth-enablement] Logout when auth is enabled
                 }}
               >
                 Logout
@@ -94,7 +94,9 @@ const App: React.FC = () => {
         </MastheadBrand>
       </MastheadMain>
 
-      <MastheadContent>{/* TODO: Change this into a component for Header Tools */}</MastheadContent>
+      <MastheadContent>
+        {/* TODO: [Auth-enablement] Add logout and user status once we enable itNavigates to register page from table toolbar */}
+      </MastheadContent>
     </Masthead>
   );
 

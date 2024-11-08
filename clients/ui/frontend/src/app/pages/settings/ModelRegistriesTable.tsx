@@ -9,7 +9,7 @@ type ModelRegistriesTableProps = {
 };
 
 const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({ modelRegistries }) => (
-  // TODO: Add toolbar once we manage permissions
+  // TODO: [Model Registry RBAC] Add toolbar once we manage permissions
   <Table
     data-testid="model-registries-table"
     data={modelRegistries}

@@ -8,7 +8,7 @@ export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
     sortable: (a, b) => a.name.localeCompare(b.name),
     width: 30,
   },
-  // TODO: Add once we manage permissions
+  // TODO: [Model Registry RBAC] Add once we manage permissions
   // {
   //   field: 'status',
   //   label: 'Status',

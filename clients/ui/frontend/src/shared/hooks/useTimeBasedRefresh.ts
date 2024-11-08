@@ -33,7 +33,7 @@ const useTimeBasedRefresh = (): SetTime => {
     if (lastDate < refreshDateMarker) {
       setNewDateString(refreshDateMarker.toString());
       console.log('Logging out and refreshing');
-      // TODO: Replace with actual logout function
+      // TODO: [Auth-enablement] Replace with actual logout function
       //logout().then(() => window.location.reload());
     } else {
       console.error(

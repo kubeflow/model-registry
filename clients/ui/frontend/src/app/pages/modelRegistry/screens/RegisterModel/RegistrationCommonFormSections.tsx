@@ -35,7 +35,8 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
   isFirstVersion,
   latestVersion,
 }) => {
-  // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false); TODO: Check wether we should use data connections
+  // TODO: [Data connections] Check wether we should use data connections
+  // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
 
   // const connectionDataMap: Record<string, keyof RegistrationCommonFormData> = {
   //   AWS_S3_ENDPOINT: 'modelLocationEndpoint',
