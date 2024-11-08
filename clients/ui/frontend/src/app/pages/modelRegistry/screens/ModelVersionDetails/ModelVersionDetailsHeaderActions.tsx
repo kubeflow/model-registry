@@ -9,7 +9,6 @@ import { modelVersionArchiveDetailsUrl } from '~/app/pages/modelRegistry/screens
 
 interface ModelVersionsDetailsHeaderActionsProps {
   mv: ModelVersion;
-  refresh: () => void;
 }
 
 const ModelVersionsDetailsHeaderActions: React.FC<ModelVersionsDetailsHeaderActionsProps> = ({

@@ -25,7 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ModelArtifactCreate(BaseModel):
     """An ML model artifact."""  # noqa: E501
 
-    artifact_type: StrictStr = Field(alias="artifactType")
+    artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",

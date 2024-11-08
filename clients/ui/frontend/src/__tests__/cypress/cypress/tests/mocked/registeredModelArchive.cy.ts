@@ -11,7 +11,12 @@ import { ModelState } from '~/app/types';
 import { mockBFFResponse } from '~/__mocks__/utils';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { registeredModelArchive } from '~/__tests__/cypress/cypress/pages/modelRegistryView/registeredModelArchive';
+import {
+  archiveModelModal,
+  registeredModelArchive,
+  restoreModelModal,
+} from '~/__tests__/cypress/cypress/pages/modelRegistryView/registeredModelArchive';
+import { ToastNotification } from '~/__tests__/cypress/cypress/pages/components/Notification';
 
 type HandlersProps = {
   registeredModels?: RegisteredModel[];
@@ -220,136 +225,144 @@ describe('Model archive list', () => {
       .findRegisteredModelsArchiveTableHeaderButton('Model name')
       .should(be.sortDescending);
   });
+
+  it('Opens the detail page when we select "View Details" from action menu', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    const archiveModelRow = registeredModelArchive.getRow('model 2');
+    archiveModelRow.findKebabAction('View details').click();
+    cy.location('pathname').should(
+      'be.equals',
+      '/modelRegistry/modelregistry-sample/registeredModels/archive/2/details',
+    );
+  });
 });
 
-// TODO: Uncomment when dropdowns are fixed
-// it('Opens the detail page when we select "View Details" from action menu', () => {
-//   initIntercepts({});
-//   registeredModelArchive.visit();
-//   const archiveModelRow = registeredModelArchive.getRow('model 2');
-//   archiveModelRow.findKebabAction('View details').click();
-//   cy.location('pathname').should(
-//     'be.equals',
-//     '/modelRegistry/modelregistry-sample/registeredModels/archive/2/details',
-//   );
-// });
+describe('Restoring archive model', () => {
+  it('Restore from archive models table', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          registeredModelId: 2,
+        },
+      },
+      mockBFFResponse(mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.LIVE })),
+    ).as('modelRestored');
 
-// TODO: Uncomment when we have mock data for restoring and archiving
-// describe('Restoring archive model', () => {
-//   it('Restore from archive models table', () => {
-//     cy.interceptApi(
-//       'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
-//       {
-//         path: {
-//           modelRegistryName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           registeredModelId: 2,
-//         },
-//       },
-//       mockBFFResponse(mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.LIVE })),
-//     ).as('modelRestored');
+    initIntercepts({});
+    registeredModelArchive.visit();
 
-//     initIntercepts({});
-//     registeredModelArchive.visit();
+    const archiveModelRow = registeredModelArchive.getRow('model 2');
+    archiveModelRow.findKebabAction('Restore model').click();
 
-//     const archiveModelRow = registeredModelArchive.getRow('model 2');
-//     archiveModelRow.findKebabAction('Restore model').click();
+    restoreModelModal.findRestoreButton().click();
 
-//     restoreModelModal.findRestoreButton().click();
+    const notification = new ToastNotification(`model 2 and all its versions restored.`);
+    notification.find();
 
-//     cy.wait('@modelRestored').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'LIVE',
-//       });
-//     });
-//   });
+    cy.wait('@modelRestored').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+    });
+  });
 
-//   it('Restore from archive model details', () => {
-//     cy.interceptApi(
-//       'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/registered_models/:registeredModelId',
-//       {
-//         path: {
-//           serviceName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           registeredModelId: 2,
-//         },
-//       },
-//       mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.LIVE }),
-//     ).as('modelRestored');
+  it('Restore from archive model details', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          registeredModelId: 2,
+        },
+      },
+      mockBFFResponse(mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.LIVE })),
+    ).as('modelRestored');
 
-//     initIntercepts({});
-//     registeredModelArchive.visitArchiveModelDetail();
+    initIntercepts({});
+    registeredModelArchive.visitArchiveModelDetail();
 
-//     registeredModelArchive.findRestoreButton().click();
-//     restoreModelModal.findRestoreButton().click();
+    registeredModelArchive.findRestoreButton().click();
+    restoreModelModal.findRestoreButton().click();
 
-//     cy.wait('@modelRestored').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'LIVE',
-//       });
-//     });
-//   });
-// });
+    const notification = new ToastNotification(`model 2 and all its versions restored.`);
+    notification.find();
 
-// describe('Archiving model', () => {
-//   it('Archive model from registered models table', () => {
-//     cy.interceptApi(
-//       'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/registered_models/:registeredModelId',
-//       {
-//         path: {
-//           serviceName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           registeredModelId: 3,
-//         },
-//       },
-//       mockRegisteredModel({ id: '3', name: 'model 3', state: ModelState.ARCHIVED }),
-//     ).as('modelArchived');
+    cy.wait('@modelRestored').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+    });
+  });
+});
 
-//     initIntercepts({});
-//     registeredModelArchive.visitModelList();
+describe('Archiving model', () => {
+  it('Archive model from registered models table', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          registeredModelId: 3,
+        },
+      },
+      mockBFFResponse(
+        mockRegisteredModel({ id: '3', name: 'model 3', state: ModelState.ARCHIVED }),
+      ),
+    ).as('modelArchived');
 
-//     const modelRow = modelRegistry.getRow('model 3');
-//     modelRow.findKebabAction('Archive model').click();
-//     archiveModelModal.findArchiveButton().should('be.disabled');
-//     archiveModelModal.findModalTextInput().fill('model 3');
-//     archiveModelModal.findArchiveButton().should('be.enabled').click();
-//     cy.wait('@modelArchived').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'ARCHIVED',
-//       });
-//     });
-//   });
+    initIntercepts({});
+    registeredModelArchive.visitModelList();
 
-//   it('Archive model from model details', () => {
-//     cy.interceptApi(
-//       'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/registered_models/:registeredModelId',
-//       {
-//         path: {
-//           serviceName: 'modelregistry-sample',
-//           apiVersion: MODEL_REGISTRY_API_VERSION,
-//           registeredModelId: 3,
-//         },
-//       },
-//       mockRegisteredModel({ id: '3', name: 'model 3', state: ModelState.ARCHIVED }),
-//     ).as('modelArchived');
+    const modelRow = modelRegistry.getRow('model 3');
+    modelRow.findKebabAction('Archive model').click();
+    archiveModelModal.findArchiveButton().should('be.disabled');
+    archiveModelModal.findModalTextInput().fill('model 3');
+    archiveModelModal.findArchiveButton().should('be.enabled').click();
 
-//     initIntercepts({});
-//     registeredModelArchive.visitModelList();
+    const notification = new ToastNotification('model 3 and all its versions archived.');
+    notification.find();
 
-//     const modelRow = modelRegistry.getRow('model 3');
-//     modelRow.findName().contains('model 3').click();
-//     registeredModelArchive
-//       .findModelVersionsDetailsHeaderAction()
-//       .findDropdownItem('Archive model')
-//       .click();
+    cy.wait('@modelArchived').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+    });
+  });
 
-//     archiveModelModal.findArchiveButton().should('be.disabled');
-//     archiveModelModal.findModalTextInput().fill('model 3');
-//     archiveModelModal.findArchiveButton().should('be.enabled').click();
-//     cy.wait('@modelArchived').then((interception) => {
-//       expect(interception.request.body).to.eql({
-//         state: 'ARCHIVED',
-//       });
-//     });
-//   });
-//});
+  it('Archive model from model details', () => {
+    cy.interceptApi(
+      'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
+      {
+        path: {
+          modelRegistryName: 'modelregistry-sample',
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          registeredModelId: 3,
+        },
+      },
+      mockBFFResponse(
+        mockRegisteredModel({ id: '3', name: 'model 3', state: ModelState.ARCHIVED }),
+      ),
+    ).as('modelArchived');
+
+    initIntercepts({});
+    registeredModelArchive.visitModelList();
+
+    const modelRow = modelRegistry.getRow('model 3');
+    modelRow.findName().contains('model 3').click();
+    registeredModelArchive
+      .findModelVersionsDetailsHeaderAction()
+      .findDropdownItem('Archive model')
+      .click();
+
+    archiveModelModal.findArchiveButton().should('be.disabled');
+    archiveModelModal.findModalTextInput().fill('model 3');
+    archiveModelModal.findArchiveButton().should('be.enabled').click();
+
+    const notification = new ToastNotification('model 3 and all its versions archived.');
+    notification.find();
+
+    cy.wait('@modelArchived').then((interception) => {
+      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+    });
+  });
+});

@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifactCreate(BaseModel):
     """A document artifact to be created."""  # noqa: E501
 
-    artifact_type: StrictStr = Field(alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -46,6 +45,7 @@ class DocArtifactCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
+    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",

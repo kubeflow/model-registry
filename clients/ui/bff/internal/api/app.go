@@ -45,7 +45,8 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	var err error
 	if cfg.MockK8Client {
 		//mock all k8s calls
-		k8sClient, err = mocks.NewKubernetesClient(logger)
+		ctx, cancel := context.WithCancel(context.Background())
+		k8sClient, err = mocks.NewKubernetesClient(logger, ctx, cancel)
 	} else {
 		k8sClient, err = integrations.NewKubernetesClient(logger)
 	}

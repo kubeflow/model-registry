@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  SearchInput,
+  TextInput,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -14,6 +14,7 @@ import SimpleSelect from '~/app/components/SimpleSelect';
 import { asEnumMember } from '~/app/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import ModelVersionsArchiveTable from './ModelVersionsArchiveTable';
 
 type ModelVersionsArchiveListViewProps = {
@@ -73,15 +74,21 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
                 />
               </ToolbarFilter>
               <ToolbarItem>
-                <SearchInput
-                  placeholder={`Find by ${searchType.toLowerCase()}`}
-                  value={search}
-                  onChange={(_, searchValue) => {
-                    setSearch(searchValue);
-                  }}
-                  onClear={() => setSearch('')}
-                  style={{ minWidth: '200px' }}
-                  data-testid="model-versions-archive-table-search"
+                <FormFieldset
+                  className="toolbar-fieldset-wrapper"
+                  component={
+                    <TextInput
+                      value={search}
+                      type="text"
+                      onChange={(_, searchValue) => {
+                        setSearch(searchValue);
+                      }}
+                      style={{ minWidth: '200px' }}
+                      data-testid="model-versions-archive-table-search"
+                      aria-label="Search"
+                    />
+                  }
+                  field={`Find by ${searchType.toLowerCase()}`}
                 />
               </ToolbarItem>
             </ToolbarGroup>

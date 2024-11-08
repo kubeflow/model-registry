@@ -9,8 +9,7 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
-
-// import useNotification from '~/utilities/useNotification'; // TODO: Implement useNotification
+import { useNotification } from '~/app/hooks/useNotification';
 
 interface ArchiveRegisteredModelModalProps {
   onCancel: () => void;
@@ -25,7 +24,7 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
   isOpen,
   registeredModelName,
 }) => {
-  // const notification = useNotification();
+  const notification = useNotification();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<Error>();
   const [confirmInputValue, setConfirmInputValue] = React.useState('');
@@ -42,7 +41,7 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
     try {
       await onSubmit();
       onClose();
-      // notification.success(`${registeredModelName} and all its versions archived.`);
+      notification.success(`${registeredModelName} and all its versions archived.`);
     } catch (e) {
       if (e instanceof Error) {
         setError(e);
@@ -50,7 +49,7 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
     } finally {
       setIsSubmitting(false);
     }
-  }, [onSubmit, onClose]);
+  }, [notification, registeredModelName, onSubmit, onClose]);
 
   const description = (
     <>

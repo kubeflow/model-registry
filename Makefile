@@ -100,8 +100,7 @@ internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli
 .PHONY: gen/openapi
 gen/openapi: bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
 
-pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
-	rm -rf pkg/openapi
+pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi
 	${OPENAPI_GENERATOR} generate \
 		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
@@ -111,9 +110,12 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 vet:
 	${GO} vet ./...
 
-.PHONY: clean
+.PHONY: clean-pkg-openapi
+	while IFS= read -r file; do rm -f "pkg/openapi/$file"; done < pkg/openapi/.openapi-generator/FILES
+
+.PHONY: clean clean-pkg-openapi
 clean:
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go pkg/openapi internal/server/openapi/api_model_registry_service.go
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go internal/server/openapi/api_model_registry_service.go
 
 .PHONY: clean/odh
 clean/odh:

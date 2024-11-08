@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Alert, Form, ModalHeader, Modal, ModalBody } from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/components/DashboardModalFooter';
-
-// import useNotification from '~/utilities/useNotification'; TODO: Implement useNotification
+import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreRegisteredModelModalProps {
   onCancel: () => void;
@@ -17,7 +16,7 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
   isOpen,
   registeredModelName,
 }) => {
-  // const notification = useNotification();
+  const notification = useNotification();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<Error>();
 
@@ -31,7 +30,7 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
     try {
       await onSubmit();
       onClose();
-      // notification.success(`${registeredModelName} and all its versions restored.`);
+      notification.success(`${registeredModelName} and all its versions restored.`);
     } catch (e) {
       if (e instanceof Error) {
         setError(e);
@@ -39,7 +38,7 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
     } finally {
       setIsSubmitting(false);
     }
-  }, [onSubmit, onClose]);
+  }, [notification, registeredModelName, onSubmit, onClose]);
 
   const description = (
     <>
