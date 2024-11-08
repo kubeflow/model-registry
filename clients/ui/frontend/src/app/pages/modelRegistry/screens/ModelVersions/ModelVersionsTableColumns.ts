@@ -1,4 +1,4 @@
-import { SortableData } from '~/app/components/table';
+import { SortableData } from '~/shared/components/table';
 import { ModelVersion } from '~/app/types';
 
 export const mvColumns: SortableData<ModelVersion>[] = [

@@ -12,10 +12,10 @@ import {
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import ApplicationsPage from '~/app/components/ApplicationsPage';
+import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
-import { ValueOf } from '~/typeHelpers';
+import { ValueOf } from '~/shared/typeHelpers';
 import { filterLiveModels } from '~/app/pages/modelRegistry/screens/utils';
 import { RegistrationCommonFormData, useRegisterVersionData } from './useRegisterModelData';
 import { isRegisterVersionSubmitDisabled, registerVersion } from './utils';

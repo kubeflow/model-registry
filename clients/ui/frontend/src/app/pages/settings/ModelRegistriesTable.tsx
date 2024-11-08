@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModelRegistry } from '~/app/types';
-import { Table } from '~/app/components/table';
+import { Table } from '~/shared/components/table';
 import { modelRegistryColumns } from './columns';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 

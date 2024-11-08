@@ -4,10 +4,10 @@ import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { SearchType } from '~/app/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/app/components/design/utils';
+import { SearchType } from '~/shared/components/DashboardSearchField';
+import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
 import { asEnumMember, filterRegisteredModels } from '~/app/utils';
-import SimpleSelect from '~/app/components/SimpleSelect';
+import SimpleSelect from '~/shared/components/SimpleSelect';
 import {
   registeredModelArchiveUrl,
   registerModelUrl,

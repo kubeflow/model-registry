@@ -1,4 +1,4 @@
-import { SortableData } from '~/app/components/table';
+import { SortableData } from '~/shared/components/table';
 import { ModelRegistry } from '~/app/types';
 
 export const modelRegistryColumns: SortableData<ModelRegistry>[] = [

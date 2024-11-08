@@ -20,7 +20,7 @@ import {
 } from '@patternfly/react-core';
 import truncateStyles from '@patternfly/react-styles/css/components/Truncate/truncate';
 import { InfoCircleIcon, BlueprintIcon } from '@patternfly/react-icons';
-import { useBrowserStorage } from '~/components/browserStorage';
+import { useBrowserStorage } from '~/shared/components/browserStorage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';
 

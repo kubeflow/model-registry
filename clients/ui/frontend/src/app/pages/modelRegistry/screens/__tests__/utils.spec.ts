@@ -18,7 +18,7 @@ import {
   mergeUpdatedProperty,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
-import { SearchType } from '~/app/components/DashboardSearchField';
+import { SearchType } from '~/shared/components/DashboardSearchField';
 
 describe('getLabels', () => {
   it('should return an empty array when customProperties is empty', () => {

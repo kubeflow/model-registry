@@ -1,4 +1,4 @@
-import { SearchType } from '~/app/components/DashboardSearchField';
+import { SearchType } from '~/shared/components/DashboardSearchField';
 import { RegisteredModel } from '~/app/types';
 
 export const asEnumMember = <T extends object>(

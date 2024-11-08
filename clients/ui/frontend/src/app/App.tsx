@@ -19,11 +19,11 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { BarsIcon } from '@patternfly/react-icons';
-import ToastNotifications from '~/components/ToastNotifications';
+import ToastNotifications from '~/shared/components/ToastNotifications';
+import { useSettings } from '~/shared/hooks/useSettings';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
-import { useSettings } from './useSettings';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
 
 const App: React.FC = () => {
