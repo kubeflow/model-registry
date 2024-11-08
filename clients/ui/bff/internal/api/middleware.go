@@ -49,8 +49,7 @@ func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request
 		var bearerToken string
 		bearerToken, err = resolveBearerToken(app.kubernetesClient)
 		if err != nil {
-			app.serverErrorResponse(w, r, fmt.Errorf("failed to resolve BearerToken): %v", err))
-			return
+			app.logger.Warn("failed to resolve bearer token", "error", err)
 		}
 
 		client, err := integrations.NewHTTPClient(modelRegistryBaseURL, bearerToken)
@@ -69,7 +68,7 @@ func resolveBearerToken(k8s integrations.KubernetesClientInterface) (string, err
 	if err == nil {
 		//in cluster
 		//TODO (eder) load bearerToken probably from x-forwarded-access-bearerToken
-		return "", fmt.Errorf("failed to create Rest client (not implemented yet - inside cluster): %v", err)
+		return "", fmt.Errorf("failed to fetch bearer token: %v", err)
 	} else {
 		//off cluster (development)
 		bearerToken, err = k8s.BearerToken()
