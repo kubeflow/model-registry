@@ -3,7 +3,7 @@ module github.com/kubeflow/model-registry/csi
 go 1.21
 
 require (
-	github.com/kserve/kserve v0.13.1
+	github.com/kserve/kserve v0.12.1
 	github.com/kubeflow/model-registry v0.2.9
 )
 
@@ -53,8 +53,8 @@ require (
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.28.4 // indirect
-	k8s.io/apimachinery v0.28.4 // indirect
+	k8s.io/api v0.29.0 // indirect
+	k8s.io/apimachinery v0.29.0 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	knative.dev/pkg v0.0.0-20231115001034-97c7258e3a98 // indirect
