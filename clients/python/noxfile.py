@@ -61,6 +61,7 @@ def tests(session: Session) -> None:
     )
     session.run(
         "pytest",
+        "-rA",
         *session.posargs,
     )
 
@@ -81,6 +82,7 @@ def e2e_tests(session: Session) -> None:
         session.run(
             "pytest",
             "--e2e",
+            "-rA",
             "--cov",
             "--cov-config=pyproject.toml",
             *session.posargs,

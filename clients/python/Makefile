@@ -24,7 +24,7 @@ test-e2e: deploy-latest-mr
 
 .PHONY: test
 test:
-	poetry run pytest -s
+	poetry run pytest -s -rA
 
 .PHONY: lint
 lint:
