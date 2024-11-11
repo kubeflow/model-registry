@@ -20,7 +20,7 @@ deploy-latest-mr:
 
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr
-	poetry run pytest --e2e -s
+	poetry run pytest --e2e -s -rA
 
 .PHONY: test
 test:
