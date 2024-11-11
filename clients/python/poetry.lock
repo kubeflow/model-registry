@@ -125,13 +125,13 @@ speedups = ["Brotli", "aiodns (>=3.2.0)", "brotlicffi"]
 
 [[package]]
 name = "aiohttp-retry"
-version = "2.9.0"
+version = "2.9.1"
 description = "Simple retry client for aiohttp"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "aiohttp_retry-2.9.0-py3-none-any.whl", hash = "sha256:7661af92471e9a96c69d9b8f32021360272073397e6a15bc44c1726b12f46056"},
-    {file = "aiohttp_retry-2.9.0.tar.gz", hash = "sha256:92c47f1580040208bac95d9a8389a87227ef22758530f2e3f4683395e42c41b5"},
+    {file = "aiohttp_retry-2.9.1-py3-none-any.whl", hash = "sha256:66d2759d1921838256a05a3f80ad7e724936f083e35be5abb5e16eed6be6dc54"},
+    {file = "aiohttp_retry-2.9.1.tar.gz", hash = "sha256:8eb75e904ed4ee5c2ec242fefe85bf04240f685391c4879d8f541d6028ff01f1"},
 ]
 
 [package.dependencies]
