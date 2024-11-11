@@ -231,7 +231,7 @@ async def test_update_preserves_model_info(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_update_model_artifact_uri_reuse(client: ModelRegistry):
+async def test_update_existing_model_artifact(client: ModelRegistry):
     """Updating uri (or other properties) by re-using and call to update
 
     reported via slack
