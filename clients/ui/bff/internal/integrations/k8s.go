@@ -3,6 +3,7 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/rest"
 	"log/slog"
 	"os"
 	"time"
@@ -22,6 +23,7 @@ type KubernetesClientInterface interface {
 	GetServiceDetails() ([]ServiceDetails, error)
 	BearerToken() (string, error)
 	Shutdown(ctx context.Context, logger *slog.Logger) error
+	IsInCluster() bool
 }
 
 type ServiceDetails struct {
@@ -124,6 +126,11 @@ func (kc *KubernetesClient) Shutdown(ctx context.Context, logger *slog.Logger) e
 		logger.Error("timeout while waiting for Kubernetes manager to stop")
 		return fmt.Errorf("timeout while waiting for Kubernetes manager to stop")
 	}
+}
+
+func (kc *KubernetesClient) IsInCluster() bool {
+	_, err := rest.InClusterConfig()
+	return err == nil
 }
 
 func (kc *KubernetesClient) BearerToken() (string, error) {

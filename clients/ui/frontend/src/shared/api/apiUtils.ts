@@ -76,7 +76,10 @@ const callRestJSON = <T>(
 
   return fetch(`${host}${path}${searchParams ? `?${searchParams}` : ''}`, {
     ...otherOptions,
-    ...(contentType && { headers: { 'Content-Type': contentType } }),
+    headers: {
+      ...otherOptions.headers,
+      ...(contentType && { 'Content-Type': contentType }),
+    },
     method,
     body: formData ?? requestData,
   }).then((response) =>
