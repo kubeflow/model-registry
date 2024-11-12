@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 )
 
 type contextKey string
@@ -41,7 +43,7 @@ func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request
 
 		modelRegistryID := ps.ByName(ModelRegistryId)
 
-		modelRegistryBaseURL, err := resolveModelRegistryURL(modelRegistryID, app.kubernetesClient)
+		modelRegistryBaseURL, err := resolveModelRegistryURL(modelRegistryID, app.kubernetesClient, app.config)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to resolve model registry base URL): %v", err))
 			return
@@ -83,11 +85,17 @@ func resolveBearerToken(k8s integrations.KubernetesClientInterface, header http.
 	return bearerToken, nil
 }
 
-func resolveModelRegistryURL(id string, client integrations.KubernetesClientInterface) (string, error) {
+func resolveModelRegistryURL(id string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
 	serviceDetails, err := client.GetServiceDetailsByName(id)
 	if err != nil {
 		return "", err
 	}
+
+	if config.DevMode {
+		serviceDetails.ClusterIP = "localhost"
+		serviceDetails.HTTPPort = int32(config.DevModePort)
+	}
+
 	url := fmt.Sprintf("http://%s:%d/api/model_registry/v1alpha3", serviceDetails.ClusterIP, serviceDetails.HTTPPort)
 	return url, nil
 }
