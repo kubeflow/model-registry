@@ -18,6 +18,7 @@ import FormSection from '~/shared/components/pf-overrides/FormSection';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ValueOf } from '~/shared/typeHelpers';
+import { isMUITheme } from '~/shared/utilities/const';
 import { useRegisterModelData, RegistrationCommonFormData } from './useRegisterModelData';
 import { isRegisterModelSubmitDisabled, registerModel } from './utils';
 import { useRegistrationCommonState } from './useRegistrationCommonState';
@@ -92,7 +93,11 @@ const RegisterModel: React.FC = () => {
                 isRequired
                 fieldId="mr-name"
               >
-                <FormFieldset component={modelRegistryInput} field="Model Registry" />
+                {isMUITheme() ? (
+                  <FormFieldset component={modelRegistryInput} field="Model Registry" />
+                ) : (
+                  modelRegistryInput
+                )}
               </FormGroup>
             </StackItem>
             <StackItem>
@@ -101,14 +106,22 @@ const RegisterModel: React.FC = () => {
                 description="Provide general details that apply to all versions of this model."
               >
                 <FormGroup label="Model name" isRequired fieldId="model-name">
-                  <FormFieldset component={modelNameInput} field="Model Name" />
+                  {isMUITheme() ? (
+                    <FormFieldset component={modelNameInput} field="Model Name" />
+                  ) : (
+                    modelNameInput
+                  )}
                 </FormGroup>
                 <FormGroup
                   className="model-description"
                   label="Model description"
                   fieldId="model-description"
                 >
-                  <FormFieldset component={modelDescriptionInput} field="Model Description" />
+                  {isMUITheme() ? (
+                    <FormFieldset component={modelDescriptionInput} field="Model Description" />
+                  ) : (
+                    modelDescriptionInput
+                  )}
                 </FormGroup>
               </FormSection>
               <RegistrationCommonFormSections
