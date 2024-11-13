@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import os
+import typing as t
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -19,8 +19,8 @@ from .types import (
     SupportedTypes,
 )
 
-ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
-TModel = TypeVar("TModel", bound=ModelTypes)
+ModelTypes = t.Union[RegisteredModel, ModelVersion, ModelArtifact]
+TModel = t.TypeVar("TModel", bound=ModelTypes)
 
 
 class ModelRegistry:
@@ -87,11 +87,66 @@ class ModelRegistry:
                 server_address, port, user_token
             )
 
-    def async_runner(self, coro: Any) -> Any:
+    @classmethod
+    def from_service(
+        cls,
+        name: str,
+        author: str,
+        *,
+        ns: str | None = None,
+        is_secure: bool = True,
+        user_token: str | None = None,
+        custom_ca: str | None = None,
+    ) -> ModelRegistry:
+        """Create a client from a service name.
+
+        Args:
+            name: Service name.
+            author: Name of the author.
+
+        Keyword Args:
+            ns: Namespace. Defaults to DSC registriesNamespace, or `kubeflow` if unavailable.
+            is_secure: Whether to use a secure connection. Defaults to True.
+            user_token: The PEM-encoded user token as a string. Defaults to content of path on envvar KF_PIPELINES_SA_TOKEN_PATH.
+            custom_ca: Path to the PEM-encoded root certificates as a string. Defaults to path on envvar CERT.
+        """
+        from ._utils import Address, Kube
+
+        with Kube(user_token) as kc:
+            if not ns:
+                res = kc.get_mr_ns()
+                if e := res.error:
+                    warn(str(e), stacklevel=2)
+                ns = res.value
+                assert isinstance(ns, str)
+
+            res = kc.get_service_addr(name, ns)
+            if e := res.error:
+                if not res.value:
+                    raise e
+                warn(str(e), stacklevel=2)
+            addr = res.value
+            assert isinstance(addr, Address)
+            if addr.protocol != "https" and is_secure:
+                msg = "Service does not support secure connection. To proceed with insecure connection, set is_secure=False"
+                raise StoreError(msg)
+            host = f"{addr.protocol}://{addr.host}"
+            port = addr.port
+
+        return cls(
+            host,
+            port,
+            author=author,
+            is_secure=is_secure,
+            user_token=user_token,
+            custom_ca=custom_ca,
+        )
+
+    def async_runner(self, coro: t.Any) -> t.Any:
         import asyncio
 
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -200,8 +255,8 @@ class ModelRegistry:
         if not model.id:
             msg = "Model must have an ID"
             raise StoreError(msg)
-        if not isinstance(model, get_args(ModelTypes)):
-            msg = f"Model must be one of {get_args(ModelTypes)}"
+        if not isinstance(model, t.get_args(ModelTypes)):
+            msg = f"Model must be one of {t.get_args(ModelTypes)}"
             raise StoreError(msg)
         if isinstance(model, RegisteredModel):
             return self.async_runner(self._api.upsert_registered_model(model))
@@ -298,7 +353,7 @@ class ModelRegistry:
                     k: v
                     for k, v in card_data.to_dict().items()
                     # TODO: (#151) preserve tags, possibly other complex metadata
-                    if isinstance(v, get_args(SupportedTypes))
+                    if isinstance(v, t.get_args(SupportedTypes))
                 }
             )
         return self.register_model(
