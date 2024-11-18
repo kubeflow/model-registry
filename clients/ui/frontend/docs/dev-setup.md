@@ -8,10 +8,6 @@ This project requires the following tools to be installed on your system:
   - Node recommended version -> `20.17.0`
   - NPM recommended version -> `10.8.2`
 
-### Additional tooling
-
-[TBD]
-
 ## Development
 
 1. Clone the repository

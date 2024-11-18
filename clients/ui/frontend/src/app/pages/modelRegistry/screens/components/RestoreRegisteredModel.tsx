@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, Form, ModalHeader, Modal, ModalBody } from '@patternfly/react-core';
-import DashboardModalFooter from '~/app/components/DashboardModalFooter';
+import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreRegisteredModelModalProps {

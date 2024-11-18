@@ -1,5 +1,8 @@
 import * as React from 'react';
-import useFetchState, { FetchState, FetchStateCallbackPromise } from '~/utilities/useFetchState';
+import useFetchState, {
+  FetchState,
+  FetchStateCallbackPromise,
+} from '~/shared/utilities/useFetchState';
 import { ModelVersionList } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 

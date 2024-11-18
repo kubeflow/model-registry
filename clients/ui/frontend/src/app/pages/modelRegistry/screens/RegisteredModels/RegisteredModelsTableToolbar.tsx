@@ -52,20 +52,17 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
                 ref={toggleRef}
                 onClick={() => setIsRegisterNewVersionOpen(!isRegisterNewVersionOpen)}
                 isExpanded={isRegisterNewVersionOpen}
-                splitButtonOptions={{
-                  variant: 'action',
-                  items: [
-                    <MenuToggleAction
-                      id="register-model-button"
-                      key="register-model-button"
-                      data-testid="register-model-button"
-                      aria-label="Register model"
-                      onClick={() => navigate(registerModelUrl(preferredModelRegistry?.name))}
-                    >
-                      Register model
-                    </MenuToggleAction>,
-                  ],
-                }}
+                splitButtonItems={[
+                  <MenuToggleAction
+                    id="register-model-button"
+                    key="register-model-button"
+                    data-testid="register-model-button"
+                    aria-label="Register model"
+                    onClick={() => navigate(registerModelUrl(preferredModelRegistry?.name))}
+                  >
+                    Register model
+                  </MenuToggleAction>,
+                ]}
                 aria-label="Register model toggle"
                 data-testid="register-model-split-button"
               />

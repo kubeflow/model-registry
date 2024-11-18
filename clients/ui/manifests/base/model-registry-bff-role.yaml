@@ -15,7 +15,7 @@ metadata:
   name: bff-read-services
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: model-registry-bff
   namespace: kubeflow
 roleRef:
   kind: ClusterRole

@@ -1,7 +1,7 @@
 import React from 'react';
-import ApplicationsPage from '~/app/components/ApplicationsPage';
-import TitleWithIcon from '~/app/components/design/TitleWithIcon';
-import { ProjectObjectType } from '~/app/components/design/utils';
+import ApplicationsPage from '~/shared/components/ApplicationsPage';
+import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
+import { ProjectObjectType } from '~/shared/components/design/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';

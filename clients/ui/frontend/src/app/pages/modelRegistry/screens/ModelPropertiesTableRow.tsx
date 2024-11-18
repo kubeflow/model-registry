@@ -11,8 +11,8 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import { CheckIcon, TimesIcon } from '@patternfly/react-icons';
-import { KeyValuePair } from '~/types';
-import { EitherNotBoth } from '~/typeHelpers';
+import { KeyValuePair } from '~/shared/types';
+import { EitherNotBoth } from '~/shared/typeHelpers';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ModelPropertiesTableRowProps = {

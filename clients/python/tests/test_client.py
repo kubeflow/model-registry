@@ -231,6 +231,39 @@ async def test_update_preserves_model_info(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+async def test_update_existing_model_artifact(client: ModelRegistry):
+    """Updating uri (or other properties) by re-using and call to update
+
+    reported via slack
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+    mv = client.get_model_version(name, version)
+    assert mv
+    assert mv.id
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+
+    something_else = "https://something.else/model.onnx"
+    ma.uri = something_else
+    response = client.update(ma)
+    assert response
+    assert response.uri == something_else
+
+    ma = client.get_model_artifact(name, version)
+    assert ma.uri == something_else
+
+
+@pytest.mark.e2e
 async def test_get(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"

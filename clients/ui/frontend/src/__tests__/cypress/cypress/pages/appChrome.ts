@@ -9,7 +9,7 @@ class AppChrome {
     cy.testA11y();
   }
 
-  // TODO: implement when authorization is enabled
+  // TODO: [Auth-enablement] Uncomment once auth is enabled
   // shouldBeUnauthorized() {
   //   cy.findByTestId('unauthorized-error');
   //   return this;

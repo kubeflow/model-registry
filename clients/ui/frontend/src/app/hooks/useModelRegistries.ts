@@ -1,7 +1,10 @@
 import * as React from 'react';
-import useFetchState, { FetchState, FetchStateCallbackPromise } from '~/utilities/useFetchState';
+import useFetchState, {
+  FetchState,
+  FetchStateCallbackPromise,
+} from '~/shared/utilities/useFetchState';
 import { ModelRegistry } from '~/app/types';
-import { getListModelRegistries } from '~/app/api/k8s';
+import { getListModelRegistries } from '~/shared/api/k8s';
 
 const useModelRegistries = (): FetchState<ModelRegistry[]> => {
   const listModelRegistries = React.useMemo(() => getListModelRegistries(''), []);

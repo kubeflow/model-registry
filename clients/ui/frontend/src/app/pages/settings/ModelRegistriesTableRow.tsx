@@ -17,6 +17,6 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({ model
   </>
 );
 
-// TODO: Get rest of columns once we manage permissions
+// TODO: [Model Registry RBAC] Get rest of columns once we manage permissions
 
 export default ModelRegistriesTableRow;

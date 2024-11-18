@@ -9,10 +9,10 @@ import {
 } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { RegisteredModel } from '~/app/types';
-import { SearchType } from '~/app/components/DashboardSearchField';
+import { SearchType } from '~/shared/components/DashboardSearchField';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/app/components/SimpleSelect';
+import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/app/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';

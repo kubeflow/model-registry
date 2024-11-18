@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Table } from '~/app/components/table';
+import { Table } from '~/shared/components/table';
 import { RegisteredModel } from '~/app/types';
 import { rmColumns } from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelsTableColumns';
-import DashboardEmptyTableView from '~/app/components/DashboardEmptyTableView';
+import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import RegisteredModelTableRow from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelTableRow';
 
 type RegisteredModelsArchiveTableProps = {

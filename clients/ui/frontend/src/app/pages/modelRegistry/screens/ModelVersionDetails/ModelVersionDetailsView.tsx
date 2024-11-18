@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { DescriptionList, Flex, FlexItem, ContentVariants, Title } from '@patternfly/react-core';
-import DashboardDescriptionListGroup from '~/components/DashboardDescriptionListGroup';
-import EditableTextDescriptionListGroup from '~/components/EditableTextDescriptionListGroup';
-import EditableLabelsDescriptionListGroup from '~/components/EditableLabelsDescriptionListGroup';
+import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
+import EditableTextDescriptionListGroup from '~/shared/components/EditableTextDescriptionListGroup';
+import EditableLabelsDescriptionListGroup from '~/shared/components/EditableLabelsDescriptionListGroup';
 import { ModelVersion } from '~/app/types';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import InlineTruncatedClipboardCopy from '~/components/InlineTruncatedClipboardCopy';
-import DashboardHelpTooltip from '~/components/DashboardHelpTooltip';
+import InlineTruncatedClipboardCopy from '~/shared/components/InlineTruncatedClipboardCopy';
+import DashboardHelpTooltip from '~/shared/components/DashboardHelpTooltip';
 import {
   getLabels,
   mergeUpdatedLabels,

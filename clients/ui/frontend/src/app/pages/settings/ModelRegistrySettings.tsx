@@ -1,10 +1,10 @@
 import React from 'react';
 import { EmptyState, EmptyStateBody, EmptyStateVariant } from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
-import ApplicationsPage from '~/app/components/ApplicationsPage';
+import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
-import TitleWithIcon from '~/app/components/design/TitleWithIcon';
-import { ProjectObjectType } from '~/app/components/design/utils';
+import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
+import { ProjectObjectType } from '~/shared/components/design/utils';
 import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {

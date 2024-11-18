@@ -5,7 +5,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      API_URL: http://model-registry-bff:4001
+      API_URL: http://model-registry-bff:4000
     networks:
       - model_registry
     depends_on:
@@ -15,6 +15,7 @@ services:
     container_name: model-registry-bff
     command:
       - "--mock-k8s-client=true"
+      - "--mock-mr-client=true"
     networks:
       - model_registry
 

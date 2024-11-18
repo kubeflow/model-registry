@@ -17,7 +17,7 @@ export const useRegistrationCommonState = (): RegistrationCommonState => {
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
   const { apiState } = React.useContext(ModelRegistryContext);
-  const author = 'kubeflow-user'; // TODO: enable this once we have users ---> useAppSelector((state) => state.user || '');
+  const author = 'kubeflow-user'; // TODO: [Auth-enablement] Enable this once we have users ---> useAppSelector((state) => state.user || '');
 
   const handleSubmit = (doSubmit: () => Promise<unknown>) => {
     setIsSubmitting(true);

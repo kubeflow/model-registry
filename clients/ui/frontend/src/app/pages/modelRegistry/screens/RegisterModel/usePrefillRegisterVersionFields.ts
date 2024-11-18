@@ -5,7 +5,7 @@ import {
   getLastCreatedItem,
   uriToObjectStorageFields,
 } from '~/app/pages/modelRegistry/screens/utils';
-import { UpdateObjectAtPropAndValue } from '~/types';
+import { UpdateObjectAtPropAndValue } from '~/shared/types';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { RegisterVersionFormData, ModelLocationType } from './useRegisterModelData';
