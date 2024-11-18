@@ -3,6 +3,8 @@ IMG ?= model-registry-bff:latest
 PORT ?= 4000
 MOCK_K8S_CLIENT ?= false
 MOCK_MR_CLIENT ?= false
+DEV_MODE ?= false
+DEV_MODE_PORT ?= 8080
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29.0
 
@@ -45,7 +47,7 @@ build: fmt vet test
 .PHONY: run
 run: fmt vet envtest
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
-	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT)
+	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)
 
 .PHONY: docker-build
 docker-build:
