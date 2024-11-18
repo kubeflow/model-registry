@@ -91,26 +91,28 @@ class ModelRegistry:
 
         if not user_token and user_token_envvar:
             logger.info("Reading user token from %s", user_token_envvar)
-            if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
-                logger.warning(
-                    "Using default user token envvar, if you want to use a different one, pass it as `user_token`"
-                )
             # /var/run/secrets/kubernetes.io/serviceaccount/token
-            sa_token = os.environ.get(user_token_envvar)
-            if sa_token:
+            if sa_token := os.environ.get(user_token_envvar):
+                if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
+                    logger.warning(
+                        f"Sourcing user token from default envvar: {DEFAULT_USER_TOKEN_ENVVAR}"
+                    )
                 user_token = Path(sa_token).read_text()
             else:
                 warn("User access token is missing", stacklevel=2)
 
         if is_secure:
-            if not custom_ca and custom_ca_envvar:
+            if (
+                not custom_ca
+                and custom_ca_envvar
+                and (cert := os.getenv(custom_ca_envvar))
+            ):
                 logger.info(
-                    "Custom CA not provided, checking for envvar %s",
+                    "Using custom CA envvar %s",
                     custom_ca_envvar,
                 )
-                if cert := os.getenv(custom_ca_envvar):
-                    custom_ca = cert
-                    # client might have a default CA setup
+                custom_ca = cert
+                # client might have a default CA setup
 
             if not user_token:
                 msg = "user token must be provided for secure connection"
