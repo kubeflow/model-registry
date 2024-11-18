@@ -107,7 +107,7 @@
     "react-dom": "^18",
     "react-router": "^6.26.2",
     "sass": "^1.78.0",
-    "dompurify": "^3.1.7",
+    "dompurify": "^3.2.0",
     "showdown": "^2.1.0",
     "classnames": "^2.2.6"
   },
