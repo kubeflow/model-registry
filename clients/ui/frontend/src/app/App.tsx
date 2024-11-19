@@ -79,21 +79,7 @@ const App: React.FC = () => {
 
   const masthead = (
     <Masthead>
-      <MastheadMain>
-        {/* <MastheadToggle>
-          <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
-            <BarsIcon />
-          </PageToggleButton>
-        </MastheadToggle> */}
-        {/* <MastheadBrand>
-          <Brand
-            className="kubeflow_brand"
-            src={`${window.location.origin}/images/logo.svg`}
-            alt="Kubeflow Logo"
-          />
-        </MastheadBrand> */}
-      </MastheadMain>
-
+      <MastheadMain />
       <MastheadContent>
         {/* TODO: [Auth-enablement] Add logout and user status once we enable itNavigates to register page from table toolbar */}
       </MastheadContent>
