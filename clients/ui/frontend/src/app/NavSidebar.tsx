@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  Brand,
   Nav,
   NavExpandable,
   NavItem,
@@ -46,6 +47,11 @@ const NavSidebar: React.FC = () => {
       <PageSidebarBody>
         <Nav id="nav-primary-simple">
           <NavList id="nav-list-simple">
+              <Brand
+                className="kubeflow_brand"
+                src={`${window.location.origin}/images/logo.svg`}
+                alt="Kubeflow Logo"
+              />
             {navData.map((item) =>
               isNavDataGroup(item) ? (
                 <NavGroup key={item.label} item={item} />

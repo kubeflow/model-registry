@@ -80,18 +80,18 @@ const App: React.FC = () => {
   const masthead = (
     <Masthead>
       <MastheadMain>
-        <MastheadToggle>
+        {/* <MastheadToggle>
           <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
             <BarsIcon />
           </PageToggleButton>
-        </MastheadToggle>
-        <MastheadBrand>
+        </MastheadToggle> */}
+        {/* <MastheadBrand>
           <Brand
             className="kubeflow_brand"
             src={`${window.location.origin}/images/logo.svg`}
             alt="Kubeflow Logo"
           />
-        </MastheadBrand>
+        </MastheadBrand> */}
       </MastheadMain>
 
       <MastheadContent>
