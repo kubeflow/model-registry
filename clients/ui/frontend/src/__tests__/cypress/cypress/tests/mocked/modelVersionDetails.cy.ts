@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { mockBFFResponse } from '~/__mocks__/utils';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
@@ -34,7 +33,7 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(modelRegistries),
+    modelRegistries,
   );
 
   cy.interceptApi(
@@ -46,7 +45,7 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(mockRegisteredModel({})),
+    mockRegisteredModel({}),
   );
 
   cy.interceptApi(
@@ -58,19 +57,17 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(
-      mockModelVersionList({
-        items: [
-          mockModelVersion({ name: 'Version 1', author: 'Author 1', registeredModelId: '1' }),
-          mockModelVersion({
-            author: 'Author 2',
-            registeredModelId: '1',
-            id: '2',
-            name: 'Version 2',
-          }),
-        ],
-      }),
-    ),
+    mockModelVersionList({
+      items: [
+        mockModelVersion({ name: 'Version 1', author: 'Author 1', registeredModelId: '1' }),
+        mockModelVersion({
+          author: 'Author 2',
+          registeredModelId: '1',
+          id: '2',
+          name: 'Version 2',
+        }),
+      ],
+    }),
   );
 
   cy.interceptApi(
@@ -82,23 +79,21 @@ const initIntercepts = ({
         modelVersionId: 1,
       },
     },
-    mockBFFResponse(
-      mockModelVersion({
-        id: '1',
-        name: 'Version 1',
-        labels: [
-          'Testing label',
-          'Financial data',
-          'Fraud detection',
-          'Long label data to be truncated abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc',
-          'Machine learning',
-          'Next data to be overflow',
-          'Label x',
-          'Label y',
-          'Label z',
-        ],
-      }),
-    ),
+    mockModelVersion({
+      id: '1',
+      name: 'Version 1',
+      labels: [
+        'Testing label',
+        'Financial data',
+        'Fraud detection',
+        'Long label data to be truncated abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc',
+        'Machine learning',
+        'Next data to be overflow',
+        'Label x',
+        'Label y',
+        'Label z',
+      ],
+    }),
   );
 
   cy.interceptApi(
@@ -110,7 +105,7 @@ const initIntercepts = ({
         modelVersionId: 2,
       },
     },
-    mockBFFResponse(mockModelVersion({ id: '2', name: 'Version 2' })),
+    mockModelVersion({ id: '2', name: 'Version 2' }),
   );
 
   cy.interceptApi(
@@ -122,18 +117,16 @@ const initIntercepts = ({
         modelVersionId: 1,
       },
     },
-    mockBFFResponse(
-      mockModelArtifactList({
-        items: [
-          mockModelArtifact({}),
-          mockModelArtifact({
-            author: 'Author 2',
-            id: '2',
-            name: 'Artifact 2',
-          }),
-        ],
-      }),
-    ),
+    mockModelArtifactList({
+      items: [
+        mockModelArtifact({}),
+        mockModelArtifact({
+          author: 'Author 2',
+          id: '2',
+          name: 'Artifact 2',
+        }),
+      ],
+    }),
   );
 };
 

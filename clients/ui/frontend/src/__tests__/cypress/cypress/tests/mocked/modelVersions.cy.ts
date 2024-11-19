@@ -8,7 +8,6 @@ import type { ModelRegistry, ModelVersion } from '~/app/types';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockBFFResponse } from '~/__mocks__/utils';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
 type HandlersProps = {
@@ -54,7 +53,7 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(modelRegistries),
+    modelRegistries,
   );
 
   cy.interceptApi(
@@ -62,7 +61,7 @@ const initIntercepts = ({
     {
       path: { modelRegistryName: 'modelregistry-sample', apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(mockRegisteredModelList({ size: registeredModelsSize })),
+    mockRegisteredModelList({ size: registeredModelsSize }),
   );
 
   cy.interceptApi(
@@ -74,7 +73,7 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(mockModelVersionList({ items: modelVersions })),
+    mockModelVersionList({ items: modelVersions }),
   );
 
   cy.interceptApi(
@@ -86,7 +85,7 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(mockRegisteredModel({})),
+    mockRegisteredModel({}),
   );
 
   cy.interceptApi(
@@ -98,7 +97,7 @@ const initIntercepts = ({
         modelVersionId: 1,
       },
     },
-    mockBFFResponse(mockModelVersion({ id: '1', name: 'model version' })),
+    mockModelVersion({ id: '1', name: 'model version' }),
   );
 };
 

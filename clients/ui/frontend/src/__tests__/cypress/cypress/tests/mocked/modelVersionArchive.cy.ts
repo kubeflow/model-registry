@@ -63,7 +63,7 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(modelRegistries),
+    modelRegistries,
   );
 
   cy.interceptApi(
@@ -71,7 +71,7 @@ const initIntercepts = ({
     {
       path: { modelRegistryName: 'modelregistry-sample', apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(mockRegisteredModelList({ size: registeredModelsSize })),
+    mockRegisteredModelList({ size: registeredModelsSize }),
   );
 
   cy.interceptApi(
@@ -83,11 +83,9 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(
-      mockModelVersionList({
-        items: modelVersions,
-      }),
-    ),
+    mockModelVersionList({
+      items: modelVersions,
+    }),
   );
 
   cy.interceptApi(
@@ -99,7 +97,7 @@ const initIntercepts = ({
         registeredModelId: 1,
       },
     },
-    mockBFFResponse(mockRegisteredModel({ name: 'test-1' })),
+    mockRegisteredModel({ name: 'test-1' }),
   );
 
   cy.interceptApi(
@@ -111,9 +109,7 @@ const initIntercepts = ({
         modelVersionId: 2,
       },
     },
-    mockBFFResponse(
-      mockModelVersion({ id: '2', name: 'model version 2', state: ModelState.ARCHIVED }),
-    ),
+    mockModelVersion({ id: '2', name: 'model version 2', state: ModelState.ARCHIVED }),
   );
 
   cy.interceptApi(
@@ -125,7 +121,7 @@ const initIntercepts = ({
         modelVersionId: 3,
       },
     },
-    mockBFFResponse(mockModelVersion({ id: '3', name: 'model version 3', state: ModelState.LIVE })),
+    mockModelVersion({ id: '3', name: 'model version 3', state: ModelState.LIVE }),
   );
 };
 
@@ -199,7 +195,7 @@ describe('Restoring archive version', () => {
           modelVersionId: 2,
         },
       },
-      mockBFFResponse(mockModelVersion({})),
+      mockModelVersion({}),
     ).as('versionRestored');
 
     initIntercepts({});
@@ -228,7 +224,7 @@ describe('Restoring archive version', () => {
           modelVersionId: 2,
         },
       },
-      mockBFFResponse(mockModelVersion({})),
+      mockModelVersion({}),
     ).as('versionRestored');
 
     initIntercepts({});
@@ -257,7 +253,7 @@ describe('Archiving version', () => {
           modelVersionId: 3,
         },
       },
-      mockBFFResponse(mockModelVersion({})),
+      mockModelVersion({}),
     ).as('versionArchived');
 
     initIntercepts({});
@@ -287,7 +283,7 @@ describe('Archiving version', () => {
           modelVersionId: 3,
         },
       },
-      mockBFFResponse(mockModelVersion({})),
+      mockModelVersion({}),
     ).as('versionArchived');
 
     initIntercepts({});
