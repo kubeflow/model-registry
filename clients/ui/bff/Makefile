@@ -16,41 +16,41 @@ help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: fmt
-fmt:
+fmt: ## Applies the correct code style to source files using go fmt.
 	go fmt ./...
 
-.PHONY: clean
+.PHONY: clean ## Deletes previously built binaries.
 clean:
 	rm -Rf ./bin
 
 .PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter
+lint: golangci-lint ## Run golangci-lint to automatically check source code for programmatic and stylistic errors.
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
+lint-fix: golangci-lint ## Run golangci-lint to automatically check source code for programmatic and stylistic errors and, additionally perform fixes where possible.
 	$(GOLANGCI_LINT) run --fix
 
 .PHONY: vet
-vet:  .
+vet:  . ## Runs static analysis tools on source files and reports suspicious constructs that could be bugs or syntactical errors.
 	go vet ./...
 
 .PHONY: test
-test: fmt vet envtest
+test: fmt vet envtest ## Runs the full test suite.
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 	go test ./...
 
 .PHONY: build
-build: fmt vet test
+build: fmt vet test ## Builds the project to produce a binary executable.
 	go build -o bin/bff cmd/main.go
 
 .PHONY: run
-run: fmt vet envtest
+run: fmt vet envtest ## Runs the project.
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 	go run ./cmd/main.go  --port=$(PORT) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)
 
 .PHONY: docker-build
-docker-build:
+docker-build: ## Builds a container for the project.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
 ##@ Dependencies
