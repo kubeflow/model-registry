@@ -121,9 +121,7 @@
 }
 
 .pf-v6-c-alert {
-  --pf-v6-c-alert--m-warning__title--Color: var(
-    --pf-t--global--text--color--status--warning--default
-  );
+  --pf-v6-c-alert--m-warning__title--Color: var(--pf-t--global--text--color--status--warning--default);
   --pf-v6-c-alert__icon--MarginInlineEnd: var(--mui-alert__icon--MarginInlineEnd);
   --pf-v6-c-alert__title--FontWeight: var(--mui-alert-warning-font-weight);
   --pf-v6-c-alert__icon--MarginBlockStart: var(--mui-alert__icon--MarginBlockStart);
@@ -254,7 +252,7 @@
 
 .pf-v6-c-form-control {
   // Using CSS property here since PF vars for input padding do not exist.
-   // PF can add custom vars for padding on text input, text area, and form select
+  // PF can add custom vars for padding on text input, text area, and form select
 
   --pf-v6-c-form-control--PaddingBlockStart: 16.5px;
   --pf-v6-c-form-control--PaddingBlockEnd: 16.5px;
@@ -278,7 +276,7 @@
   box-sizing: border-box;
 }
 
-.pf-v6-c-form-control > :is(input, select, textarea):focus {
+.pf-v6-c-form-control> :is(input, select, textarea):focus {
   --pf-v6-c-form-control--OutlineOffset: none;
   outline: none;
 }
@@ -311,7 +309,7 @@
   border-color: black;
 }
 
-.form-fieldset-wrapper:hover span.pf-v6-c-form-control.pf-m-disabled ~ .form-fieldset {
+.form-fieldset-wrapper:hover span.pf-v6-c-form-control.pf-m-disabled~.form-fieldset {
   border-color: rgba(0, 0, 0, 0.23);
 }
 
@@ -404,8 +402,8 @@
   --pf-v6-c-form-control--after--BorderColor: transparent !important;
 }
 
-.pf-v6-c-form__group .pf-v6-c-form-control:focus-within + .pf-v6-c-form__label,
-.pf-v6-c-form__group .pf-v6-c-form-control:not(:placeholder-shown) + .pf-v6-c-form__label {
+.pf-v6-c-form__group .pf-v6-c-form-control:focus-within+.pf-v6-c-form__label,
+.pf-v6-c-form__group .pf-v6-c-form-control:not(:placeholder-shown)+.pf-v6-c-form__label {
   color: var(--mui-palette-primary-main);
 }
 
@@ -438,9 +436,7 @@
 .pf-v6-c-menu-toggle {
   --pf-v6-c-menu-toggle__toggle-icon--MinHeight: var(--mui-menu-toggle__toggle-icon--MinHeight);
   --pf-v6-c-menu-toggle__controls--MinWidth: var(--mui-menu-toggle__controls--MinWidth);
-  --pf-v6-c-menu-toggle--expanded--BackgroundColor: var(
-    --mui-menu-toggle--expanded--BackgroundColor
-  );
+  --pf-v6-c-menu-toggle--expanded--BackgroundColor: var(--mui-menu-toggle--expanded--BackgroundColor);
   --pf-v6-c-menu-toggle--expanded--BorderColor: var(--mui-menu-toggle--expanded--BorderColor);
   --pf-v6-c-menu-toggle--PaddingInlineStart: var(--mui-menu-toggle--PaddingInlineStart);
   --pf-v6-c-menu-toggle--PaddingInlineEnd: var(--mui-menu-toggle--PaddingInlineEnd);
@@ -448,15 +444,9 @@
   --pf-v6-c-menu-toggle--expanded--Color: var(--mui-palette-common-black);
   --pf-v6-c-menu-toggle--hover--BorderColor: var(--mui-menu-toggle--hover--BorderColor);
   --pf-v6-c-menu-toggle--BorderColor: var(--mui-menu-toggle--BorderColor);
-  --pf-v6-c-menu-toggle--hover--BackgroundColor: var(
-    --pf-t--global--background--color--action--plain--hover
-  );
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--expanded--child--BackgroundColor: var(
-    --pf-t--global--color--brand--default
-  );
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BorderInlineStartColor: var(
-    --mui-palette-primary-dark
-  );
+  --pf-v6-c-menu-toggle--hover--BackgroundColor: var(--pf-t--global--background--color--action--plain--hover);
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--expanded--child--BackgroundColor: var(--pf-t--global--color--brand--default);
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BorderInlineStartColor: var(--mui-palette-primary-dark);
 
   text-transform: var(--mui-text-transform);
   font-weight: var(--mui-button-font-weight);
@@ -478,11 +468,8 @@
   --pf-v6-c-menu-toggle--expanded--Color: var(--pf-t--global--text--color--on-brand--clicked);
 }
 
-.pf-v6-c-menu-toggle.pf-m-primary.pf-m-split-button
-  .pf-v6-c-menu-toggle__button[aria-expanded='true'] {
-  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BackgroundColor: var(
-    --mui-palette-primary-dark
-  );
+.pf-v6-c-menu-toggle.pf-m-primary.pf-m-split-button .pf-v6-c-menu-toggle__button[aria-expanded='true'] {
+  --pf-v6-c-menu-toggle--m-split-button--m-action--m-primary--child--BackgroundColor: var(--mui-palette-primary-dark);
 }
 
 .pf-v6-c-menu-toggle__button:has(.pf-v6-c-menu-toggle__toggle-icon) {
@@ -558,7 +545,7 @@
 }
 
 /* When radio is checked */
-.pf-v6-c-radio__input:checked + .pf-v6-c-radio__label::before {
+.pf-v6-c-radio__input:checked+.pf-v6-c-radio__label::before {
   background: var(--mui-palette-common-white);
   border-color: var(--mui-palette-primary-main);
 }
@@ -574,7 +561,7 @@
 }
 
 /* Inner dot for checked state */
-.pf-v6-c-radio__input:checked + .pf-v6-c-radio__label::after {
+.pf-v6-c-radio__input:checked+.pf-v6-c-radio__label::after {
   content: '';
   position: absolute;
   left: 5px;
@@ -604,15 +591,11 @@
   --pf-v6-c-table--cell--PaddingInlineEnd: var(--mui-table--cell--PaddingInlineEnd);
   --pf-v6-c-table--cell--PaddingBlockStart: var(--mui-table--cell--PaddingBlockStart);
   --pf-v6-c-table--cell--PaddingBlockEnd: var(--mui-table--cell--PaddingBlockEnd);
-  --pf-v6-c-table--cell--first-last-child--PaddingInline: var(
-    --mui-table--cell--first-last-child--PaddingInline
-  );
+  --pf-v6-c-table--cell--first-last-child--PaddingInline: var(--mui-table--cell--first-last-child--PaddingInline);
   --pf-v6-c-table__thead--cell--FontWeight: var(--mui-button-font-weight);
   --pf-v6-c-table__thead--cell--FontSize: var(--mui-table__thead--cell--FontSize);
   --pf-v6-c-table__tr--BorderBlockEndColor: var(--mui-palette-grey-300);
-  --pf-v6-c-table__sort-indicator--MarginInlineStart: var(
-    --mui-table__sort-indicator--MarginInlineStart
-  );
+  --pf-v6-c-table__sort-indicator--MarginInlineStart: var(--mui-table__sort-indicator--MarginInlineStart);
 
   letter-spacing: 0.01071em;
 }
@@ -676,9 +659,7 @@
   --pf-v6-c-tabs__link--PaddingInlineStart: var(--mui-tabs__link--PaddingInlineStart);
   --pf-v6-c-tabs__link--PaddingInlineEnd: var(--mui-tabs__link--PaddingInlineEnd);
   --pf-v6-c-tabs__item--m-current__link--Color: var(--pf-t--global--text--color--brand--default);
-  --pf-v6-c-tabs__item--m-current__link--after--BorderWidth: var(
-    --mui-tabs__item--m-current__link--after--BorderWidth
-  );
+  --pf-v6-c-tabs__item--m-current__link--after--BorderWidth: var(--mui-tabs__item--m-current__link--after--BorderWidth);
   --pf-v6-c-tabs__link--FontSize: 0.875rem;
 }
 
@@ -775,16 +756,14 @@
   content: 'Rows per page:';
 }
 
-/* Sidebar styling: Take full height and overlap the masthead */
+// Sidebar styling: full height and overlap the masthead
 .pf-v6-c-page__sidebar {
-  position: absolute; 
-  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width); /* Sidebar width */
-  height: 100vh; /* Full height of the viewport */
-  z-index: 999; /* Ensure the sidebar is above the masthead */
+  position: absolute;
+  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width); // Sidebar width 
+  height: 100vh; // Full height of viewport
+  z-index: 999; // Make sure sidebar is above masthead
 }
 
-/* Main content styling */
 .pf-v6-c-page__main-container {
-  margin-left: var(--kf-central-app-drawer-width); /* Move content area to the right of the sidebar */
+  margin-left: var(--kf-central-app-drawer-width); // Move to the right of the sidebar
 }
-
