@@ -1,0 +1,18 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: example-onnx-mnist
+  namespace: default
+  labels:
+    modelregistry.kubeflow.org/registered-model-id: "1"
+    modelregistry.kubeflow.org/name: "model-registry"
+    modelregistry.kubeflow.org/namespace: "default"
+spec:
+  predictor:
+    model:
+      modelFormat:
+        name: onnx
+      runtime: kserve-ovms
+      storage:
+        key: testkey
+        path: /testpath/test

@@ -3,6 +3,7 @@ package inferenceservicecontroller
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/go-logr/logr"
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
@@ -17,6 +18,7 @@ import (
 
 type InferenceServiceController struct {
 	client                        client.Client
+	customHTTPClient              *http.Client
 	log                           logr.Logger
 	bearerToken                   string
 	inferenceServiceIDLabel       string
@@ -43,6 +45,10 @@ func NewInferenceServiceController(client client.Client, log logr.Logger, bearer
 		modelRegistryFinalizer:        mrFinalizer,
 		defaultModelRegistryNamespace: defaultMRNamespace,
 	}
+}
+
+func (r *InferenceServiceController) OverrideHTTPClient(client *http.Client) {
+	r.customHTTPClient = client
 }
 
 // Reconcile performs the reconciliation of the model registry based on Kubeflow InferenceService CRs
@@ -143,7 +149,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if isMarkedToBeDeleted {
-		err := r.onDeletion(ctx, mrApi, log, isvc, mrIs)
+		err := r.onDeletion(ctx, mrApi, log, mrIs)
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -192,9 +198,8 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 	var err error
 
 	log1 := log.WithValues("mr-namespace", namespace, "mr-name", name)
-	scheme := "https"
 
-	if url != "" {
+	if url == "" {
 		log1.Info("Retrieving api http port from deployed model registry service")
 
 		url, err = r.getMRUrlFromService(ctx, name, namespace)
@@ -202,13 +207,10 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 			log1.Error(err, "Unable to fetch the Model Registry Service")
 			return nil, err
 		}
-
-		scheme = "http"
 	}
 
 	cfg := &openapi.Configuration{
-		Host:   url,
-		Scheme: scheme,
+		HTTPClient: r.customHTTPClient,
 		Servers: openapi.ServerConfigurations{
 			{
 				URL: url,
@@ -242,7 +244,7 @@ func (r *InferenceServiceController) getMRUrlFromService(ctx context.Context, na
 		return "", fmt.Errorf("unable to find the http port in the Model Registry Service")
 	}
 
-	return fmt.Sprintf("%s.%s.svc.cluster.local:%d", name, namespace, *restApiPort), nil
+	return fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", name, namespace, *restApiPort), nil
 }
 
 func (r *InferenceServiceController) createMRInferenceService(
@@ -296,7 +298,7 @@ func (r *InferenceServiceController) getOrCreateServingEnvironment(ctx context.C
 }
 
 // onDeletion mark model registry inference service to UNDEPLOYED desired state
-func (r *InferenceServiceController) onDeletion(ctx context.Context, mr *openapi.APIClient, log logr.Logger, isvc *kservev1beta1.InferenceService, is *openapi.InferenceService) (err error) {
+func (r *InferenceServiceController) onDeletion(ctx context.Context, mr *openapi.APIClient, log logr.Logger, is *openapi.InferenceService) (err error) {
 	log.Info("Running onDeletion logic")
 	if is.DesiredState != nil && *is.DesiredState != openapi.INFERENCESERVICESTATE_UNDEPLOYED {
 		log.Info("InferenceService going to be deleted from cluster, setting desired state to UNDEPLOYED in model registry")
