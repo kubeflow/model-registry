@@ -1,9 +1,9 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
+import { mockBFFResponse } from '~/__mocks__/utils';
 import type {
   ModelArtifact,
   ModelArtifactList,
   ModelRegistry,
-  ModelRegistryBody,
   ModelVersion,
   ModelVersionList,
   RegisteredModel,
@@ -35,7 +35,7 @@ declare global {
       interceptApi: ((
         type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
         options: { path: { modelRegistryName: string; apiVersion: string } },
-        response: ApiResponse<ModelRegistryBody<RegisteredModelList>>,
+        response: ApiResponse<RegisteredModelList>,
       ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
@@ -47,7 +47,7 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<ModelRegistryBody<ModelVersionList>>,
+          response: ApiResponse<ModelVersionList>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions',
@@ -61,28 +61,28 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<ModelRegistryBody<RegisteredModel>>,
+          response: ApiResponse<RegisteredModel>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId',
           options: {
             path: { modelRegistryName: string; apiVersion: string; registeredModelId: number };
           },
-          response: ApiResponse<ModelRegistryBody<RegisteredModel>>,
+          response: ApiResponse<RegisteredModel>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelRegistryBody<ModelVersion>>,
+          response: ApiResponse<ModelVersion>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelRegistryBody<ModelArtifactList>>,
+          response: ApiResponse<ModelArtifactList>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts',
@@ -96,12 +96,12 @@ declare global {
           options: {
             path: { modelRegistryName: string; apiVersion: string; modelVersionId: number };
           },
-          response: ApiResponse<ModelRegistryBody<ModelVersion | undefined>>,
+          response: ApiResponse<ModelVersion | undefined>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_registry',
           options: { path: { apiVersion: string } },
-          response: ApiResponse<ModelRegistryBody<ModelRegistry[]>>,
+          response: ApiResponse<ModelRegistry[]>,
         ) => Cypress.Chainable<null>);
     }
   }
@@ -136,7 +136,7 @@ Cypress.Commands.add(
     }
     return cy.intercept(
       { method, pathname, query: options?.query, ...(options?.times && { times: options.times }) },
-      response,
+      mockBFFResponse(response),
     );
   },
 );
