@@ -1,6 +1,5 @@
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { ModelRegistry } from '~/app/types';
-import { mockBFFResponse } from '~/__mocks__/mockBFFResponse';
 import { modelRegistrySettings } from '~/__tests__/cypress/cypress/pages/modelRegistrySettings';
 
 type HandlersProps = {
@@ -28,7 +27,7 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    mockBFFResponse(modelRegistries),
+    modelRegistries,
   );
 };
 

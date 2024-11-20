@@ -83,3 +83,14 @@ You should receive a 200 response if everything is working correctly, the body s
 ```json
 {"items":[],"nextPageToken":"","pageSize":0,"size":0}
 ```
+
+#### 6. Run BFF locally in Dev Mode
+To access your local kind cluster when running the BFF locally, you can use the `DEV_MODE` option. This is useful for when
+you want to test live changes on real cluster. To do so, simply run:
+```shell
+make run DEV_MODE=true
+```
+You can also specify the port you are forwarding to if it is something other than 8080:
+```shell
+make run DEV_MODE=true DEV_MODE_PORT=8081
+```
