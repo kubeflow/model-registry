@@ -7,6 +7,7 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
+  SearchInput,
   TextInput,
   ToolbarContent,
   ToolbarFilter,
@@ -33,6 +34,7 @@ import { asEnumMember } from '~/app/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import SimpleSelect from '~/shared/components/SimpleSelect';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { isMUITheme } from '~/shared/utilities/const';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
@@ -148,22 +150,35 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                   />
                 </ToolbarFilter>
                 <ToolbarItem>
-                  <FormFieldset
-                    className="toolbar-fieldset-wrapper"
-                    component={
-                      <TextInput
-                        value={search}
-                        type="text"
-                        onChange={(_, searchValue) => {
-                          setSearch(searchValue);
-                        }}
-                        style={{ minWidth: '200px' }}
-                        data-testid="model-versions-table-search"
-                        aria-label="Search"
-                      />
-                    }
-                    field={`Find by ${searchType.toLowerCase()}`}
-                  />
+                  {isMUITheme() ? (
+                    <FormFieldset
+                      className="toolbar-fieldset-wrapper"
+                      component={
+                        <TextInput
+                          value={search}
+                          type="text"
+                          onChange={(_, searchValue) => {
+                            setSearch(searchValue);
+                          }}
+                          style={{ minWidth: '200px' }}
+                          data-testid="model-versions-table-search"
+                          aria-label="Search"
+                        />
+                      }
+                      field={`Find by ${searchType.toLowerCase()}`}
+                    />
+                  ) : (
+                    <SearchInput
+                      placeholder={`Find by ${searchType.toLowerCase()}`}
+                      value={search}
+                      onChange={(_, searchValue) => {
+                        setSearch(searchValue);
+                      }}
+                      onClear={() => setSearch('')}
+                      style={{ minWidth: '200px' }}
+                      data-testid="model-versions-table-search"
+                    />
+                  )}
                 </ToolbarItem>
               </ToolbarGroup>
             </ToolbarToggleGroup>

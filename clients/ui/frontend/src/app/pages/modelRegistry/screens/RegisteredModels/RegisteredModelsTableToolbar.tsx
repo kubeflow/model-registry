@@ -45,7 +45,7 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
             isOpen={isRegisterNewVersionOpen}
             onSelect={() => setIsRegisterNewVersionOpen(false)}
             onOpenChange={(isOpen) => setIsRegisterNewVersionOpen(isOpen)}
-            toggle={(toggleRef) => (
+            toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
               <MenuToggle
                 isFullWidth
                 variant="primary"
