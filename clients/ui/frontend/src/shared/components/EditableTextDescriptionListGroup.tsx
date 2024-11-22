@@ -4,6 +4,7 @@ import DashboardDescriptionListGroup, {
   DashboardDescriptionListGroupProps,
 } from '~/shared/components/DashboardDescriptionListGroup';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { isMUITheme } from '~/shared/utilities/const';
 
 type EditableTextDescriptionListGroupProps = Pick<
   DashboardDescriptionListGroupProps,
@@ -27,6 +28,17 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
   const [unsavedValue, setUnsavedValue] = React.useState(value);
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
   const [isTextExpanded, setIsTextExpanded] = React.useState(false);
+
+  const editableTextArea = (
+    <TextArea
+      data-testid={`edit-text-area-${title}`}
+      aria-label={`Text box for editing ${title}`}
+      value={unsavedValue}
+      onChange={(_event, v) => setUnsavedValue(v)}
+      isDisabled={isSavingEdits}
+      rows={24}
+    />
+  );
   return (
     <DashboardDescriptionListGroup
       title={title}
@@ -36,18 +48,7 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       isEditing={isEditing}
       isSavingEdits={isSavingEdits}
       contentWhenEditing={
-        <FormFieldset
-          component={
-            <TextArea
-              data-testid={`edit-text-area-${title}`}
-              aria-label={`Text box for editing ${title}`}
-              value={unsavedValue}
-              onChange={(_event, v) => setUnsavedValue(v)}
-              isDisabled={isSavingEdits}
-              rows={24}
-            />
-          }
-        />
+        isMUITheme() ? <FormFieldset component={editableTextArea} /> : editableTextArea
       }
       onEditClick={() => {
         setUnsavedValue(value);

@@ -21,6 +21,7 @@ import {
 import { BarsIcon } from '@patternfly/react-icons';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
+import { isMUITheme, Theme } from '~/shared/utilities/const';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -33,6 +34,15 @@ const App: React.FC = () => {
     loaded: configLoaded,
     loadError: configError,
   } = useSettings();
+
+  React.useEffect(() => {
+    // Apply the theme based on the value of STYLE_THEME
+    if (isMUITheme()) {
+      document.documentElement.classList.add(Theme.MUI);
+    } else {
+      document.documentElement.classList.remove(Theme.MUI);
+    }
+  }, []);
 
   const contextValue = React.useMemo(
     () =>
