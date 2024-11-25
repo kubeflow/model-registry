@@ -94,7 +94,7 @@
     "webpack-merge": "^6.0.1"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.0",
+    "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.0",
     "@patternfly/react-core": "6.0.0",
     "@patternfly/react-icons": "6.0.0",
