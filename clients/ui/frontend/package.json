@@ -27,7 +27,7 @@
     "cypress:open:mock": "CY_MOCK=1 npm run cypress:open -- ",
     "cypress:run": "cypress run -b chrome --project src/__tests__/cypress",
     "cypress:run:mock": "CY_MOCK=1 npm run cypress:run -- ",
-    "cypress:server:build": "DIST_DIR=./public-cypress POLL_INTERVAL=9999999 FAST_POLL_INTERVAL=9999999 npm run build",
+    "cypress:server:build": "DIST_DIR=./public-cypress POLL_INTERVAL=9999999 DEPLOYMENT_MODE=standalone MOCK_AUTH=true npm run build",
     "cypress:server": "serve ./public-cypress -p 9001 -s -L"
   },
   "devDependencies": {

@@ -22,5 +22,15 @@ const AUTH_HEADER = process.env.AUTH_HEADER || 'kubeflow-userid';
 const USERNAME = process.env.USERNAME || 'user@example.com';
 const IMAGE_DIR = process.env.IMAGE_DIR || 'images';
 const LOGO_LIGHT = process.env.LOGO || 'logo-light-theme.svg';
+const URL_PREFIX = DEPLOYMENT_MODE === DeploymentMode.Integrated ? '/model-registry' : '';
 
-export { POLL_INTERVAL, DEV_MODE, AUTH_HEADER, USERNAME, IMAGE_DIR, LOGO_LIGHT, MOCK_AUTH };
+export {
+  POLL_INTERVAL,
+  DEV_MODE,
+  AUTH_HEADER,
+  USERNAME,
+  IMAGE_DIR,
+  LOGO_LIGHT,
+  MOCK_AUTH,
+  URL_PREFIX,
+};

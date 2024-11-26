@@ -29,7 +29,7 @@ const ModelVersionsArchive: React.FC<ModelVersionsArchiveProps> = ({ ...pageProp
         <Breadcrumb>
           <BreadcrumbItem
             render={() => (
-              <Link to="/modelRegistry">Model registry - {preferredModelRegistry?.name}</Link>
+              <Link to="/model-registry">Model registry - {preferredModelRegistry?.name}</Link>
             )}
           />
           <BreadcrumbItem

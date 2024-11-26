@@ -139,7 +139,7 @@ describe('Model version details', () => {
 
     it('Model version details page header', () => {
       verifyRelativeURL(
-        '/modelRegistry/modelregistry-sample/registeredModels/1/versions/1/details',
+        '/model-registry/modelregistry-sample/registeredModels/1/versions/1/details',
       );
       cy.findByTestId('app-page-title').should('have.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');

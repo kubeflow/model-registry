@@ -11,7 +11,7 @@ patchesJson6902:
       version: v1
       kind: Deployment
       name: model-registry-bff-deployment
-  - path: deployment.yaml
+  - path: model-registry-bff-deployment.yaml
     target:
       group: apps
       version: v1
