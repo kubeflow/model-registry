@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-ui
+  labels:
+    app: model-registry-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-registry-ui
+  template:
+    metadata:
+      labels:
+        app: model-registry-ui
+    spec:
+      serviceAccountName: model-registry-ui 
+      containers:
+      - name: model-registry-ui
+        image: model-registry-ui-image
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        ports:
+          - containerPort: 8080
+        env:
+        # TODO: Add env variables
+          - name: API_URL
+            value: "http://model-registry-bff-service.kubeflow.svc.cluster.local:4000"
+          - name: APP_PREFIX
+            value: /model-registry
+          - name: USERID_HEADER
+            value: kubeflow-userid
+          # TODO: Come back to this before committing
+          # - name: USERID_PREFIX
+          #   value: ""

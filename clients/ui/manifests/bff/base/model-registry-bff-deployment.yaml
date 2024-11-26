@@ -1,22 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: model-registry-ui
+  name: model-registry-bff
   labels:
-    app: model-registry-ui
+    app: model-registry-bff
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: model-registry-ui
+      app: model-registry-bff
   template:
     metadata:
       labels:
-        app: model-registry-ui
+        app: model-registry-bff
     spec:
+      serviceAccountName: model-registry-bff
       containers:
-      - name: model-registry-ui
-        image: model-registry-ui-image
+      - name: model-registry-bff
+        image: model-registry-bff-image
+        imagePullPolicy: Never
         resources:
           limits:
             cpu: 500m
@@ -25,7 +27,4 @@ spec:
             cpu: 500m
             memory: 2Gi
         ports:
-          - containerPort: 8080
-        env:
-          - name: API_URL
-            value: "http://model-registry-bff-service:4000"
+          - containerPort: 4000

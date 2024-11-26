@@ -5,14 +5,9 @@ resources:
 - model-registry-bff-role.yaml
 - model-registry-bff-service.yaml
 - model-registry-bff-deployment.yaml
-- model-registry-ui-service.yaml
-- model-registry-ui-deployment.yaml
 - model-registry-service-account.yaml
 
 images:
 - name: model-registry-bff-image
-  newName: kubeflow/model-registry-bff
-  newTag: latest
-- name: model-registry-ui-image
-  newName: kubeflow/model-registry-ui
-  newTag: latest
+  newName: docker.io/kubeflow/model-registry-bff
+  newTag: main-648c8fe
