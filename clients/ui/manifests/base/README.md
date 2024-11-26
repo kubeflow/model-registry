@@ -79,3 +79,4 @@ Events:
 
 To fix this, you'll need to increase the amount of memory available to the VM. This can be done through either the Podman Desktop or Docker Desktop GUI. 6-8GB of memory is generally a sufficient amount to use.
 
+## TODO: Add istio instructions
