@@ -191,7 +191,7 @@ var _ = AfterSuite(func() {
 	mrMockServer.Close()
 
 	// Clean up CRDs
-	err = os.RemoveAll(testCRDLocalPath)
+	err = os.Remove(filepath.Join(testCRDLocalPath, "serving.kserve.io_inferenceservices.yaml"))
 	Expect(err).NotTo(HaveOccurred())
 
 })

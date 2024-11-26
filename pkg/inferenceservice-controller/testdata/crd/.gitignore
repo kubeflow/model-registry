@@ -1,0 +1,3 @@
+# CRDs files will be fetched from the test suite
+
+*.yaml
