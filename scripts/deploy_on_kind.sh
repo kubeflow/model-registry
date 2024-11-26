@@ -4,13 +4,13 @@ set -e
 
 DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
+IMG="${IMG:-kubeflow/model-registry:latest}"
 
 source ./${DIR}/utils.sh
 
 # modularity to allow re-use this script against a remote k8s cluster
 if [[ -n "$LOCAL" ]]; then
     CLUSTER_NAME="${CLUSTER_NAME:-kind}"
-    IMG="${IMG:-kubeflow/model-registry:latest}"
 
     echo 'Creating local Kind cluster and loading image'
 
