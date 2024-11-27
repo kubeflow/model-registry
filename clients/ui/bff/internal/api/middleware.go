@@ -13,7 +13,6 @@ import (
 type contextKey string
 
 const httpClientKey contextKey = "httpClientKey"
-const userAccessToken = "x-forwarded-access-token"
 const kubeflowUserId = "kubeflow-userid"
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
