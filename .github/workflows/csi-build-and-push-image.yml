@@ -56,7 +56,7 @@ jobs:
           IMG_REPO: ${{ env.IMG_REPO }}
           IMG_VERSION: ${{ env.VERSION }}
         run: |
-          make docker-build-dev
+          make docker-build
       - name: Push CSI Image
         if: env.PUSH_IMAGE == 'true'
         shell: bash

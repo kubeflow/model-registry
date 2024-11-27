@@ -56,7 +56,7 @@ jobs:
         env:
           IMG_REPO: ${{ env.MODEL_REGISTRY_CSI_IMG }}
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
-        run: make docker-build-dev
+        run: make docker-build
 
       - name: Start KinD cluster
         uses: helm/kind-action@v1.10.0
