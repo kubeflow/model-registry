@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Kubernetes Client Test", func() {
+var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 	Context("with existing services", Ordered, func() {
 
 		It("should retrieve the get all service successfully", func() {
@@ -59,4 +59,24 @@ var _ = Describe("Kubernetes Client Test", func() {
 		})
 	})
 
+})
+
+var _ = Describe("KubernetesNativeClient SAR Test", func() {
+	Context("Subject Access Review", func() {
+
+		It("should allow allowed user to access services", func() {
+			By("performing SAR for Kubeflow User ID")
+			allowed, err := k8sClient.PerformSAR(KubeflowUserIDHeaderValue)
+			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for Kubeflow User ID\"")
+			Expect(allowed).To(BeTrue(), "Expected Kubeflow User ID to have access")
+		})
+
+		It("should deny access for another user", func() {
+			By("performing SAR for another user")
+			allowed, err := k8sClient.PerformSAR("unauthorized-dora@example.com")
+			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for unauthorized-dora@example.com")
+			Expect(allowed).To(BeFalse(), "Expected unauthorized-dora@example.com to be denied access")
+		})
+
+	})
 })

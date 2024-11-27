@@ -106,5 +106,5 @@ func (app *App) Routes() http.Handler {
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
 	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
-	return app.RecoverPanic(app.enableCORS(router))
+	return app.RecoverPanic(app.enableCORS(app.RequireAccessControl(router)))
 }

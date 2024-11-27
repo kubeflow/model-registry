@@ -12,7 +12,7 @@ import (
 	"net/http/httptest"
 )
 
-func setupApiTest[T any](method string, url string, body interface{}, k8sClient k8s.KubernetesClientInterface) (T, *http.Response, error) {
+func setupApiTest[T any](method string, url string, body interface{}, k8sClient k8s.KubernetesClientInterface, kubeflowUserIDHeader string) (T, *http.Response, error) {
 	mockMRClient, err := mocks.NewModelRegistryClient(nil)
 	if err != nil {
 		return *new(T), nil, err
@@ -42,6 +42,9 @@ func setupApiTest[T any](method string, url string, body interface{}, k8sClient 
 			return *new(T), nil, err
 		}
 	}
+
+	// Set the kubeflow-userid header
+	req.Header.Set(kubeflowUserId, kubeflowUserIDHeader)
 
 	ctx := context.WithValue(req.Context(), httpClientKey, mockClient)
 	req = req.WithContext(ctx)

@@ -71,21 +71,23 @@ make docker-build
 | POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts  | CreateModelArtifactByModelVersion            | Create a ModelArtifact entity for a specific ModelVersion   |
 
 ### Sample local calls
+
+You will need to inject your requests with a kubeflow-userid header for authorization purposes. When running the service with the mocked Kubernetes client (MOCK_K8S_CLIENT=true), the user user@example.com is preconfigured with the necessary RBAC permissions to perform these actions.
 ```
 # GET /v1/healthcheck
-curl -i localhost:4000/api/v1/healthcheck
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/healthcheck
 ```
 ```
 # GET /v1/model_registry 
-curl -i localhost:4000/api/v1/model_registry
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models
-curl -i localhost:4000/api/v1/model_registry/model-registry/registered_models
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models
 ```
 ```
 #POST /v1/model_registry/{model_registry_id}/registered_models
-curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -103,11 +105,11 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/regi
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}
-curl -i localhost:4000/api/v1/model_registry/model-registry/registered_models/1
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models/1
 ```
 ```
 # PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}
-curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1" \
+curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1" \
 -H "Content-Type: application/json" \
 -d '{ "data": {
   "description": "New description"
@@ -115,11 +117,11 @@ curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/reg
 ```
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id} 
-curl -i http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1
+curl -i -H "kubeflow-userid: user@example.com" http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1
 ```
 ```
 # POST /api/v1/model_registry/{model_registry_id}/model_versions
-curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -138,7 +140,7 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/mode
 ```
 ```
 # PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}
-curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1" \
+curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1" \
      -H "Content-Type: application/json" \
 -d '{ "data": {
   "description": "New description 2"
@@ -146,11 +148,11 @@ curl -i -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/mod
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions
-curl -i localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions
 ```
 ```
 # POST /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions
-curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -163,17 +165,17 @@ curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/regi
   "externalId": "9928",
   "name": "ModelVersion One",
   "state": "LIVE",
-  "author": "alex"
+  "author": "alex",
   "registeredModelId: "1"
 }}'
 ```
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
-curl -i http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts
+curl -i -H "kubeflow-userid: user@example.com" http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts
 ```
 ```
 # POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
-curl -i -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -203,9 +205,9 @@ The following query parameters are supported by "Get All" style endpoints to con
 ### Sample local calls
 ```
 # Get with a page size of 5 getting a specific page.
-curl -i "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&nextPageToken=CAEQARoCCAE"
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&nextPageToken=CAEQARoCCAE"
 ```
 ```
 # Get with a page size of 5, order by last update time in descending order.
-curl -i "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&orderBy=LAST_UPDATE_TIME&sortOrder=DESC"
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&orderBy=LAST_UPDATE_TIME&sortOrder=DESC"
 ```

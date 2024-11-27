@@ -16,9 +16,8 @@ type HTTPClientInterface interface {
 }
 
 type HTTPClient struct {
-	client      *http.Client
-	baseURL     string
-	bearerToken string
+	client  *http.Client
+	baseURL string
 }
 
 type ErrorResponse struct {
@@ -35,14 +34,13 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s - %s", e.StatusCode, e.Code, e.Message)
 }
 
-func NewHTTPClient(baseURL string, bearerToken string) (HTTPClientInterface, error) {
+func NewHTTPClient(baseURL string) (HTTPClientInterface, error) {
 
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}},
-		baseURL:     baseURL,
-		bearerToken: bearerToken,
+		baseURL: baseURL,
 	}, nil
 }
 
@@ -53,7 +51,6 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+c.bearerToken)
 	response, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -76,7 +73,6 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+c.bearerToken)
 
 	response, err := c.client.Do(req)
 	if err != nil {
@@ -118,7 +114,6 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+c.bearerToken)
 
 	response, err := c.client.Do(req)
 	if err != nil {

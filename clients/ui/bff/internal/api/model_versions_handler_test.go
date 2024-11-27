@@ -15,7 +15,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			By("fetching a model version")
 			data := mocks.GetModelVersionMocks()[0]
 			expected := ModelVersionEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1", nil, k8sClient)
+			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1", nil, k8sClient, mocks.KubeflowUserIDHeaderValue)
 			Expect(err).NotTo(HaveOccurred())
 			By("should match the expected model version")
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
@@ -27,7 +27,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			data := mocks.GetModelVersionMocks()[0]
 			expected := ModelVersionEnvelope{Data: &data}
 			body := ModelVersionEnvelope{Data: openapi.NewModelVersion("Model One", "1")}
-			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions", body, k8sClient)
+			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions", body, k8sClient, mocks.KubeflowUserIDHeaderValue)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model version created")
@@ -46,7 +46,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			}
 			body := ModelVersionUpdateEnvelope{Data: &reqData}
 
-			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/model_versions/1", body, k8sClient)
+			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/model_versions/1", body, k8sClient, mocks.KubeflowUserIDHeaderValue)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model version updated")
@@ -58,7 +58,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			By("getting a model artifacts by model version")
 			data := mocks.GetModelArtifactListMock()
 			expected := ModelArtifactListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[ModelArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", nil, k8sClient)
+			actual, rs, err := setupApiTest[ModelArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", nil, k8sClient, mocks.KubeflowUserIDHeaderValue)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should get all expected model version artifacts")
@@ -79,7 +79,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 				ArtifactType: "ARTIFACT_TYPE_ONE",
 			}
 			body := ModelArtifactEnvelope{Data: &artifact}
-			actual, rs, err := setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", body, k8sClient)
+			actual, rs, err := setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", body, k8sClient, mocks.KubeflowUserIDHeaderValue)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should get all expected model artifacts")
@@ -87,6 +87,55 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			Expect(actual.Data.GetArtifactType()).To(Equal(expected.Data.GetArtifactType()))
 			Expect(rs.Header.Get("Location")).To(Equal("/api/v1/model_registry/model-registry/model_artifacts/1"))
 
+		})
+
+		It("should return 403 when not using the wrong KubeflowUserIDHeaderValue", func() {
+			By("making a request with an incorrect username")
+			wrongUserIDHeader := "bella@dora.com" // Incorrect username header value
+
+			// Test: GET /model_versions/1
+			_, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1", nil, k8sClient, wrongUserIDHeader)
+
+			Expect(err).NotTo(HaveOccurred())
+			By("should return a 403 Forbidden response")
+			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
+
+			// Test: POST /model_versions/1/artifacts
+			artifact := openapi.ModelArtifact{
+				Name:         openapi.PtrString("Artifact One"),
+				ArtifactType: "ARTIFACT_TYPE_ONE",
+			}
+			body := ModelArtifactEnvelope{Data: &artifact}
+			_, rs, err = setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", body, k8sClient, wrongUserIDHeader)
+
+			Expect(err).NotTo(HaveOccurred())
+			By("should return a 403 Forbidden response")
+			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
+
+			// Test: GET /model_versions/1/artifacts
+			_, rs, err = setupApiTest[ModelArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions/1/artifacts", nil, k8sClient, wrongUserIDHeader)
+
+			Expect(err).NotTo(HaveOccurred())
+			By("should return a 403 Forbidden response")
+			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
+
+			// Test: PATCH /model_versions/1
+			reqData := openapi.ModelVersionUpdate{
+				Description: openapi.PtrString("New description"),
+			}
+			body1 := ModelVersionUpdateEnvelope{Data: &reqData}
+			_, rs, err = setupApiTest[ModelVersionEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/model_versions/1", body1, k8sClient, wrongUserIDHeader)
+
+			Expect(err).NotTo(HaveOccurred())
+			By("should return a 403 Forbidden response")
+			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
+
+			// Test: POST /model_versions
+			body2 := ModelVersionEnvelope{Data: openapi.NewModelVersion("Model One", "1")}
+			_, rs, err = setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions", body2, k8sClient, wrongUserIDHeader)
+			Expect(err).NotTo(HaveOccurred())
+			By("should return a 403 Forbidden response")
+			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
 		})
 	})
 })
