@@ -13,7 +13,7 @@ on:
       - "docs/**"
   pull_request:
     paths:
-      - "csi/**"
+      - "clients/csi/**"
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"
       # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
@@ -51,12 +51,11 @@ jobs:
         run: ./scripts/build_deploy.sh
 
       - name: Build local custom storage initializer
-        working-directory: ./csi
         shell: bash
         env:
           IMG_REPO: ${{ env.MODEL_REGISTRY_CSI_IMG }}
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
-        run: make docker-build-dev
+        run: make image/build
 
       - name: Start KinD cluster
         uses: helm/kind-action@v1.10.0
@@ -64,13 +63,12 @@ jobs:
           node_image: "kindest/node:v1.27.11"
 
       - name: Install kustomize
-        run: ./csi/scripts/install_kustomize.sh
+        run: ./test/scripts/install_kustomize.sh
 
       - name: Run tests
-        working-directory: ./csi
         shell: bash
         env:
           MR_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
           MR_CSI_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
           CLUSTER: chart-testing
-        run: ./test/e2e_test.sh
+        run: ./test/csi/e2e_test.sh

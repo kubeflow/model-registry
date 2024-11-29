@@ -12,6 +12,8 @@ Embark on your journey with this custom storage initializer by exploring a simpl
 
 We assume all [prerequisites](#prerequisites) are satisfied at this point.
 
+All the following instructions should be performed from the model-registry root directory.
+
 ### Create the environment
 
 1. After having kind installed, create a kind cluster with:
@@ -35,38 +37,27 @@ We assume all [prerequisites](#prerequisites) are satisfied at this point.
 
     ```bash
     TAG=$(git rev-parse HEAD) && \
-    MR_IMG=quay.io/$USER/model-registry:$TAG && \
-    make -C ../ IMG_ORG=$USER IMG_VERSION=$TAG image/build && \
+    MR_IMG=kubeflow/model-registry:$TAG && \
+    make IMG_VERSION=$TAG image/build && \
     kind load docker-image $MR_IMG
-    ```
-    or
-    ```bash
-    TAG=... && \
-    MR_IMG=kubeflow/model-registry:$TAG
     ```
 
     then:
 
     ```bash
-    bash ./scripts/install_modelregistry.sh -i $MR_IMG
+    bash ./test/scripts/install_modelregistry.sh -i $MR_IMG
     ```
 
 > [!NOTE]
-> The `./scripts/install_modelregistry.sh` will make some change to [base/kustomization.yaml](../manifests/kustomize/base/kustomization.yaml) that you DON'T need to commit!!
+> The `./test/scripts/install_modelregistry.sh` will make some change to [base/kustomization.yaml](../manifests/kustomize/base/kustomization.yaml) that you DON'T need to commit!!
 
 5. [Optional] Use local CSI container image
 
     Either, using the local model-registry library as dependency:
     ```bash
-    IMG=$USER/model-registry-storage-initializer:$(git rev-parse HEAD) && \ 
-    make IMG=$IMG docker-build-dev && \
-    kind load docker-image $IMG
-    ```
-
-    Or using a fixed version of model-registry library:
-    ```bash
-    IMG=$USER/model-registry-storage-initializer:$(git rev-parse HEAD) && \ 
-    make IMG=$IMG docker-build && \
+    TAG=$(git rev-parse HEAD)
+    IMG=kubeflow/model-registry-storage-initializer:$TAG && \ 
+    make IMG_VERSION=$TAG IMG_REPO=model-registry-storage-initializer image/build && \
     kind load docker-image $IMG
     ```
 
