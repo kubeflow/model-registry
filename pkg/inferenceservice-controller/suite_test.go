@@ -41,7 +41,7 @@ const (
 	modelVersionIDLabel     = "modelregistry.kubeflow.org/model-version-id"
 	namespaceLabel          = "modelregistry.kubeflow.org/namespace"
 	nameLabel               = "modelregistry.kubeflow.org/name"
-	skipTLSVerify           = "modelregistry.kubeflow.org/skip-tls-verify"
+	skipTLSVerifyAnnotation = "modelregistry.kubeflow.org/skip-tls-verify"
 	urlAnnotation           = "modelregistry.kubeflow.org/url"
 	finalizerLabel          = "modelregistry.kubeflow.org/finalizer"
 	defaultNamespace        = "default"
@@ -142,7 +142,7 @@ var _ = BeforeSuite(func() {
 		modelVersionIDLabel,
 		namespaceLabel,
 		nameLabel,
-		skipTLSVerify,
+		skipTLSVerifyAnnotation,
 		urlAnnotation,
 		finalizerLabel,
 		defaultNamespace,
