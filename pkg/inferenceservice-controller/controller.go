@@ -2,6 +2,7 @@ package inferenceservicecontroller
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 
@@ -17,33 +18,48 @@ import (
 )
 
 type InferenceServiceController struct {
-	client                        client.Client
-	customHTTPClient              *http.Client
-	log                           logr.Logger
-	bearerToken                   string
-	inferenceServiceIDLabel       string
-	registeredModelIDLabel        string
-	modelVersionIDLabel           string
-	modelRegistryNamespaceLabel   string
-	modelRegistryNameLabel        string
-	modelRegistryURLLabel         string
-	modelRegistryFinalizer        string
-	defaultModelRegistryNamespace string
+	client                               client.Client
+	customHTTPClient                     *http.Client
+	log                                  logr.Logger
+	bearerToken                          string
+	inferenceServiceIDLabel              string
+	registeredModelIDLabel               string
+	modelVersionIDLabel                  string
+	modelRegistryNamespaceLabel          string
+	modelRegistryNameLabel               string
+	modelRegistrySkipTLSVerifyAnnotation string
+	modelRegistryURLAnnotation           string
+	modelRegistryFinalizer               string
+	defaultModelRegistryNamespace        string
 }
 
-func NewInferenceServiceController(client client.Client, log logr.Logger, bearerToken, isIDLabel, regModelIDLabel, modelVerIDLabel, mrNamespaceLabel, mrNameLabel, mrURLLabel, mrFinalizer, defaultMRNamespace string) *InferenceServiceController {
+func NewInferenceServiceController(
+	client client.Client,
+	log logr.Logger,
+	bearerToken,
+	isIDLabel,
+	regModelIDLabel,
+	modelVerIDLabel,
+	mrNamespaceLabel,
+	mrNameLabel,
+	mrSkipTLSVerifyAnnotation,
+	mrURLAnnotation,
+	mrFinalizer,
+	defaultMRNamespace string,
+) *InferenceServiceController {
 	return &InferenceServiceController{
-		client:                        client,
-		log:                           log,
-		bearerToken:                   bearerToken,
-		inferenceServiceIDLabel:       isIDLabel,
-		registeredModelIDLabel:        regModelIDLabel,
-		modelVersionIDLabel:           modelVerIDLabel,
-		modelRegistryNamespaceLabel:   mrNamespaceLabel,
-		modelRegistryNameLabel:        mrNameLabel,
-		modelRegistryURLLabel:         mrURLLabel,
-		modelRegistryFinalizer:        mrFinalizer,
-		defaultModelRegistryNamespace: defaultMRNamespace,
+		client:                               client,
+		log:                                  log,
+		bearerToken:                          bearerToken,
+		inferenceServiceIDLabel:              isIDLabel,
+		registeredModelIDLabel:               regModelIDLabel,
+		modelVersionIDLabel:                  modelVerIDLabel,
+		modelRegistryNamespaceLabel:          mrNamespaceLabel,
+		modelRegistryNameLabel:               mrNameLabel,
+		modelRegistrySkipTLSVerifyAnnotation: mrSkipTLSVerifyAnnotation,
+		modelRegistryURLAnnotation:           mrURLAnnotation,
+		modelRegistryFinalizer:               mrFinalizer,
+		defaultModelRegistryNamespace:        defaultMRNamespace,
 	}
 }
 
@@ -56,6 +72,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	mrNamespace := r.defaultModelRegistryNamespace
 	mrIs := &openapi.InferenceService{}
 	mrApiCtx := context.Background()
+	mrSkipTLSVerify := false
 
 	if r.bearerToken != "" {
 		mrApiCtx = context.WithValue(context.Background(), openapi.ContextAccessToken, r.bearerToken)
@@ -80,12 +97,23 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	registeredModelId, okRegisteredModelId := isvc.Labels[r.registeredModelIDLabel]
 	modelVersionId := isvc.Labels[r.modelVersionIDLabel]
 	mrName, okMrName := isvc.Labels[r.modelRegistryNameLabel]
-	mrUrl := isvc.Labels[r.modelRegistryURLLabel]
+	mrUrl, okMrUrl := isvc.Annotations[r.modelRegistryURLAnnotation]
+	mrSkipTLSVerifyFromAnnotation := isvc.Annotations[r.modelRegistrySkipTLSVerifyAnnotation]
 
-	if !okMrIsvcId && !okRegisteredModelId && !okMrName {
+	if !okMrIsvcId && !okRegisteredModelId {
 		// Early check: no model registry specific labels set in the ISVC, ignore the CR
 		log.Error(fmt.Errorf("missing model registry specific label, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
 		return ctrl.Result{}, nil
+	}
+
+	if !okMrName && !okMrUrl {
+		// Early check: it's required to have the model registry name or url set in the ISVC
+		log.Error(fmt.Errorf("missing model registry name or url, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
+		return ctrl.Result{}, nil
+	}
+
+	if mrSkipTLSVerifyFromAnnotation == "true" {
+		mrSkipTLSVerify = true
 	}
 
 	if mrNSFromISVC, ok := isvc.Labels[r.modelRegistryNamespaceLabel]; ok {
@@ -93,7 +121,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	log.Info("Creating model registry service..")
-	mrApi, err := r.initModelRegistryService(ctx, log, mrName, mrNamespace, mrUrl)
+	mrApi, err := r.initModelRegistryService(ctx, log, mrSkipTLSVerify, mrName, mrNamespace, mrUrl)
 	if err != nil {
 		log.Error(err, "Unable to initialize Model Registry Service")
 		return ctrl.Result{}, err
@@ -194,7 +222,7 @@ func (r *InferenceServiceController) SetupWithManager(mgr ctrl.Manager) error {
 	return builder.Complete(r)
 }
 
-func (r *InferenceServiceController) initModelRegistryService(ctx context.Context, log logr.Logger, name, namespace, url string) (*openapi.APIClient, error) {
+func (r *InferenceServiceController) initModelRegistryService(ctx context.Context, log logr.Logger, skipTLSVerify bool, name, namespace, url string) (*openapi.APIClient, error) {
 	var err error
 
 	log1 := log.WithValues("mr-namespace", namespace, "mr-name", name)
@@ -209,8 +237,18 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 		}
 	}
 
+	httpClient := http.DefaultClient
+
+	if r.customHTTPClient != nil {
+		httpClient = r.customHTTPClient
+	}
+
+	httpClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipTLSVerify},
+	}
+
 	cfg := &openapi.Configuration{
-		HTTPClient: r.customHTTPClient,
+		HTTPClient: httpClient,
 		Servers: openapi.ServerConfigurations{
 			{
 				URL: url,

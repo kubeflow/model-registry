@@ -41,7 +41,8 @@ const (
 	modelVersionIDLabel     = "modelregistry.kubeflow.org/model-version-id"
 	namespaceLabel          = "modelregistry.kubeflow.org/namespace"
 	nameLabel               = "modelregistry.kubeflow.org/name"
-	urlLabel                = "modelregistry.kubeflow.org/url"
+	skipTLSVerify           = "modelregistry.kubeflow.org/skip-tls-verify"
+	urlAnnotation           = "modelregistry.kubeflow.org/url"
 	finalizerLabel          = "modelregistry.kubeflow.org/finalizer"
 	defaultNamespace        = "default"
 	accessToken             = ""
@@ -141,7 +142,8 @@ var _ = BeforeSuite(func() {
 		modelVersionIDLabel,
 		namespaceLabel,
 		nameLabel,
-		urlLabel,
+		skipTLSVerify,
+		urlAnnotation,
 		finalizerLabel,
 		defaultNamespace,
 	)
