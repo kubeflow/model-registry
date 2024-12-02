@@ -243,8 +243,15 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 		httpClient = r.customHTTPClient
 	}
 
-	httpClient.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipTLSVerify},
+	if httpClient.Transport == nil {
+		httpClient.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: skipTLSVerify},
+		}
+	} else {
+		tranport, ok := httpClient.Transport.(*http.Transport)
+		if ok {
+			tranport.TLSClientConfig = &tls.Config{InsecureSkipVerify: skipTLSVerify}
+		}
 	}
 
 	cfg := &openapi.Configuration{
