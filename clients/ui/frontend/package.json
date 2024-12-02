@@ -95,7 +95,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
-    "@emotion/styled": "^11.13.0",
+    "@emotion/styled": "^11.13.5",
     "@patternfly/react-core": "6.0.0",
     "@patternfly/react-icons": "6.0.0",
     "@patternfly/react-styles": "6.0.0",
