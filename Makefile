@@ -203,8 +203,8 @@ gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 
 .PHONY: lint
 lint:
-	${GOLANGCI_LINT} run main.go
-	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...
+	${GOLANGCI_LINT} run main.go  --timeout 3m
+	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...  --timeout 3m
 
 .PHONY: test
 test: gen bin/envtest
@@ -256,12 +256,12 @@ ifeq ($(DOCKER),docker)
 	# docker uses builder containers
 	- $(DOCKER) buildx rm model-registry-builder
 	$(DOCKER) buildx create --use --name model-registry-builder --platform=$(PLATFORMS)
-	$(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f ${DOCKERFILE} .
+	$(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG}:$(IMG_VERSION) -f ${DOCKERFILE} .
 	$(DOCKER) buildx rm model-registry-builder
 else ifeq ($(DOCKER),podman)
 	# podman uses image manifests
 	$(DOCKER) manifest create -a ${IMG}
-	$(DOCKER) buildx build --platform=$(PLATFORMS) --manifest ${IMG} -f ${DOCKERFILE} .
+	$(DOCKER) buildx build --platform=$(PLATFORMS) --manifest ${IMG}:$(IMG_VERSION) -f ${DOCKERFILE} .
 	$(DOCKER) manifest push ${IMG}
 	$(DOCKER) manifest rm ${IMG}
 else
