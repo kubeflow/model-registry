@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/api"
@@ -24,9 +25,12 @@ func main() {
 	flag.BoolVar(&cfg.MockMRClient, "mock-mr-client", false, "Use mock Model Registry client")
 	flag.BoolVar(&cfg.DevMode, "dev-mode", false, "Use development mode for access to local K8s cluster")
 	flag.IntVar(&cfg.DevModePort, "dev-mode-port", getEnvAsInt("DEV_MODE_PORT", 8080), "Use port when in development mode")
+	flag.StringVar(&cfg.LogLevel, "log-level", getEnvAsString("LOG_LEVEL", "info"), "Sets server log level, possible values: debug, info, warn, error, fatal")
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: getLogLevelFromString(cfg.LogLevel),
+	}))
 
 	app, err := api.NewApp(cfg, logger)
 	if err != nil {
@@ -85,4 +89,28 @@ func getEnvAsInt(name string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+func getEnvAsString(name string, defaultVal string) string {
+	if value, exists := os.LookupEnv(name); exists {
+		return value
+	}
+	return defaultVal
+}
+
+func getLogLevelFromString(level string) slog.Level {
+	switch strings.ToLower(level) {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	case "fatal":
+		return slog.LevelError
+
+	}
+	return slog.LevelInfo
 }

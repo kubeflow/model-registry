@@ -6,4 +6,5 @@ type EnvConfig struct {
 	MockMRClient bool
 	DevMode      bool
 	DevModePort  int
+	LogLevel     string
 }

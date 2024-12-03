@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"log/slog"
 )
 
 type contextKey string
 
+const traceIdKey contextKey = "traceIdKey"
 const httpClientKey contextKey = "httpClientKey"
 const userAccessToken = "x-forwarded-access-token"
 
@@ -38,6 +41,15 @@ func (app *App) enableCORS(next http.Handler) http.Handler {
 	})
 }
 
+func (app *App) InitializeContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Adds a unique id to the context to allow tracing of requests
+		ctx := context.WithValue(r.Context(), traceIdKey, uuid.NewString())
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
@@ -55,7 +67,19 @@ func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request
 			return
 		}
 
-		client, err := integrations.NewHTTPClient(modelRegistryBaseURL, bearerToken)
+		// Set up a child logger for the rest client that automatically adds the request id to all statements for
+		// tracing.
+		restClientLogger := app.logger
+		traceId, ok := r.Context().Value(traceIdKey).(string)
+		if app.logger != nil {
+			if ok {
+				restClientLogger = app.logger.With(slog.String("trace_id", traceId))
+			} else {
+				app.logger.Warn("Failed to set trace_id for tracing")
+			}
+		}
+
+		client, err := integrations.NewHTTPClient(modelRegistryBaseURL, bearerToken, restClientLogger)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return
