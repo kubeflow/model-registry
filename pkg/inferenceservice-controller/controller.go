@@ -2,6 +2,7 @@ package inferenceservicecontroller
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 
@@ -18,7 +19,7 @@ import (
 
 type InferenceServiceController struct {
 	client                        client.Client
-	customHTTPClient              *http.Client
+	httpClient                    *http.Client
 	log                           logr.Logger
 	bearerToken                   string
 	inferenceServiceIDLabel       string
@@ -26,14 +27,36 @@ type InferenceServiceController struct {
 	modelVersionIDLabel           string
 	modelRegistryNamespaceLabel   string
 	modelRegistryNameLabel        string
-	modelRegistryURLLabel         string
+	modelRegistryURLAnnotation    string
 	modelRegistryFinalizer        string
 	defaultModelRegistryNamespace string
 }
 
-func NewInferenceServiceController(client client.Client, log logr.Logger, bearerToken, isIDLabel, regModelIDLabel, modelVerIDLabel, mrNamespaceLabel, mrNameLabel, mrURLLabel, mrFinalizer, defaultMRNamespace string) *InferenceServiceController {
+func NewInferenceServiceController(
+	client client.Client,
+	log logr.Logger,
+	skipTLSVerify bool,
+	bearerToken,
+	isIDLabel,
+	regModelIDLabel,
+	modelVerIDLabel,
+	mrNamespaceLabel,
+	mrNameLabel,
+	mrURLAnnotation,
+	mrFinalizer,
+	defaultMRNamespace string,
+) *InferenceServiceController {
+	httpClient := http.DefaultClient
+
+	if skipTLSVerify {
+		httpClient.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
 	return &InferenceServiceController{
 		client:                        client,
+		httpClient:                    httpClient,
 		log:                           log,
 		bearerToken:                   bearerToken,
 		inferenceServiceIDLabel:       isIDLabel,
@@ -41,14 +64,14 @@ func NewInferenceServiceController(client client.Client, log logr.Logger, bearer
 		modelVersionIDLabel:           modelVerIDLabel,
 		modelRegistryNamespaceLabel:   mrNamespaceLabel,
 		modelRegistryNameLabel:        mrNameLabel,
-		modelRegistryURLLabel:         mrURLLabel,
+		modelRegistryURLAnnotation:    mrURLAnnotation,
 		modelRegistryFinalizer:        mrFinalizer,
 		defaultModelRegistryNamespace: defaultMRNamespace,
 	}
 }
 
 func (r *InferenceServiceController) OverrideHTTPClient(client *http.Client) {
-	r.customHTTPClient = client
+	r.httpClient = client
 }
 
 // Reconcile performs the reconciliation of the model registry based on Kubeflow InferenceService CRs
@@ -80,11 +103,17 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	registeredModelId, okRegisteredModelId := isvc.Labels[r.registeredModelIDLabel]
 	modelVersionId := isvc.Labels[r.modelVersionIDLabel]
 	mrName, okMrName := isvc.Labels[r.modelRegistryNameLabel]
-	mrUrl := isvc.Labels[r.modelRegistryURLLabel]
+	mrUrl, okMrUrl := isvc.Annotations[r.modelRegistryURLAnnotation]
 
-	if !okMrIsvcId && !okRegisteredModelId && !okMrName {
+	if !okMrIsvcId && !okRegisteredModelId {
 		// Early check: no model registry specific labels set in the ISVC, ignore the CR
 		log.Error(fmt.Errorf("missing model registry specific label, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
+		return ctrl.Result{}, nil
+	}
+
+	if !okMrName && !okMrUrl {
+		// Early check: it's required to have the model registry name or url set in the ISVC
+		log.Error(fmt.Errorf("missing model registry name or url, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
 		return ctrl.Result{}, nil
 	}
 
@@ -210,7 +239,7 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 	}
 
 	cfg := &openapi.Configuration{
-		HTTPClient: r.customHTTPClient,
+		HTTPClient: r.httpClient,
 		Servers: openapi.ServerConfigurations{
 			{
 				URL: url,
