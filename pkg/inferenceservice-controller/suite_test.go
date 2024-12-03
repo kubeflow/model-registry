@@ -41,7 +41,8 @@ const (
 	modelVersionIDLabel     = "modelregistry.kubeflow.org/model-version-id"
 	namespaceLabel          = "modelregistry.kubeflow.org/namespace"
 	nameLabel               = "modelregistry.kubeflow.org/name"
-	urlLabel                = "modelregistry.kubeflow.org/url"
+	skipTLSVerify           = true
+	urlAnnotation           = "modelregistry.kubeflow.org/url"
 	finalizerLabel          = "modelregistry.kubeflow.org/finalizer"
 	defaultNamespace        = "default"
 	accessToken             = ""
@@ -135,13 +136,14 @@ var _ = BeforeSuite(func() {
 	inferenceServiceController := inferenceservicecontroller.NewInferenceServiceController(
 		cli,
 		ctrl.Log.WithName("controllers").WithName("ModelRegistry-InferenceService-Controller"),
+		skipTLSVerify,
 		accessToken,
 		inferenceServiceIDLabel,
 		registeredModelIDLabel,
 		modelVersionIDLabel,
 		namespaceLabel,
 		nameLabel,
-		urlLabel,
+		urlAnnotation,
 		finalizerLabel,
 		defaultNamespace,
 	)
