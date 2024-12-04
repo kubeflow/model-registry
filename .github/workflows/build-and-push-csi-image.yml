@@ -49,14 +49,13 @@ jobs:
         run: make docker/login
       # build & push
       - name: Build CSI Image
-        working-directory: ./csi
         shell: bash
         env:
           IMG_ORG: ${{ env.IMG_ORG }}
           IMG_REPO: ${{ env.IMG_REPO }}
           IMG_VERSION: ${{ env.VERSION }}
         run: |
-          make docker-build-dev
+          make image/build
       - name: Push CSI Image
         if: env.PUSH_IMAGE == 'true'
         shell: bash
