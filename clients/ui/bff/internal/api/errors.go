@@ -43,6 +43,17 @@ func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err e
 	app.errorResponse(w, r, httpError)
 }
 
+func (app *App) forbiddenResponse(w http.ResponseWriter, r *http.Request, message string) {
+	httpError := &integrations.HTTPError{
+		StatusCode: http.StatusForbidden,
+		ErrorResponse: integrations.ErrorResponse{
+			Code:    strconv.Itoa(http.StatusForbidden),
+			Message: message,
+		},
+	}
+	app.errorResponse(w, r, httpError)
+}
+
 func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *integrations.HTTPError) {
 
 	env := ErrorEnvelope{Error: error}

@@ -3,16 +3,18 @@ package integrations
 import (
 	"context"
 	"fmt"
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
+	authv1 "k8s.io/api/authorization/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log/slog"
 	"os"
-	"time"
-
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"time"
 )
 
 const ComponentName = "model-registry-server"
@@ -24,6 +26,7 @@ type KubernetesClientInterface interface {
 	BearerToken() (string, error)
 	Shutdown(ctx context.Context, logger *slog.Logger) error
 	IsInCluster() bool
+	PerformSAR(user string) (bool, error)
 }
 
 type ServiceDetails struct {
@@ -35,12 +38,13 @@ type ServiceDetails struct {
 }
 
 type KubernetesClient struct {
-	Client     client.Client
-	Mgr        ctrl.Manager
-	Token      string
-	Logger     *slog.Logger
-	StopFn     context.CancelFunc // Store a function to cancel the context for graceful shutdown
-	mgrStopped chan struct{}
+	ControllerRuntimeClient client.Client        //Controller-runtime client: used for high-level operations with caching.
+	KubernetesNativeClient  kubernetes.Interface //Native KubernetesNativeClient client: only for specific non-cached subresources like SAR.
+	Mgr                     ctrl.Manager
+	Token                   string
+	Logger                  *slog.Logger
+	StopFn                  context.CancelFunc // Store a function to cancel the context for graceful shutdown
+	mgrStopped              chan struct{}
 }
 
 func NewKubernetesClient(logger *slog.Logger) (KubernetesClientInterface, error) {
@@ -67,7 +71,6 @@ func NewKubernetesClient(logger *slog.Logger) (KubernetesClientInterface, error)
 		},
 		HealthProbeBindAddress: "0", // disable health probe serving
 		LeaderElection:         false,
-		//Namespace:              "namespace", //TODO (ederign) do we need to specify the namespace to operate in
 		//There is also cache filters and Sync periods to assess later.
 	})
 
@@ -95,15 +98,22 @@ func NewKubernetesClient(logger *slog.Logger) (KubernetesClientInterface, error)
 		return nil, fmt.Errorf("failed to wait for cache to sync")
 	}
 
-	kc := &KubernetesClient{
-		Client:     mgr.GetClient(),
-		Mgr:        mgr,
-		Token:      kubeconfig.BearerToken,
-		Logger:     logger,
-		StopFn:     cancel,
-		mgrStopped: mgrStopped, // Store the stop channel
+	//Native KubernetesNativeClient client: only for specific non-cached subresources like SAR.
+	k8sClient, err := kubernetes.NewForConfig(kubeconfig)
+	if err != nil {
+		logger.Error("failed to create native KubernetesNativeClient client", "error", err)
+		cancel()
+		return nil, fmt.Errorf("failed to create KubernetesNativeClient client: %w", err)
+	}
 
-		//Namespace:    namespace, //TODO (ederign) do we need to restrict service list by namespace?
+	kc := &KubernetesClient{
+		ControllerRuntimeClient: mgr.GetClient(),
+		KubernetesNativeClient:  k8sClient,
+		Mgr:                     mgr,
+		Token:                   kubeconfig.BearerToken,
+		Logger:                  logger,
+		StopFn:                  cancel,
+		mgrStopped:              mgrStopped,
 	}
 	return kc, nil
 }
@@ -138,10 +148,6 @@ func (kc *KubernetesClient) BearerToken() (string, error) {
 }
 
 func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
-	//TODO (ederign) when we develop the front-end, implement subject access review here
-	// and check if the username has actually permissions to access that server
-	// currently on kf dashboard, the user name comes in kubeflow-userid
-
 	//TODO (ederign) we should consider and rethinking listing all services on cluster
 	// what if we have thousand of those?
 	// we should consider label filtering for instance
@@ -151,7 +157,7 @@ func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	err := kc.Client.List(ctx, serviceList, &client.ListOptions{})
+	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list services: %w", err)
 	}
@@ -172,17 +178,12 @@ func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
 
 func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 	//TODO (ederign) review the context timeout
-
-	//TODO (ederign) when we develop the front-end, implement subject access review here
-	// and check if the username has actually permissions to access that server
-	// currently on kf dashboard, the user name comes in kubeflow-userid
-
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel() // Ensure the context is canceled to free up resources
 
 	serviceList := &corev1.ServiceList{}
 
-	err := kc.Client.List(ctx, serviceList, &client.ListOptions{})
+	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list services: %w", err)
 	}
@@ -242,10 +243,6 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 }
 
 func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (ServiceDetails, error) {
-	//TODO (ederign) when we develop the front-end, implement subject access review here
-	// and check if the username has actually permissions to access that server
-	// currently on kf dashboard, the user name comes in kubeflow-userid
-
 	services, err := kc.GetServiceDetails()
 	if err != nil {
 		return ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
@@ -258,4 +255,34 @@ func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (Service
 	}
 
 	return ServiceDetails{}, fmt.Errorf("service %s not found", serviceName)
+}
+
+func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
+	verbs := []string{"get", "list"}
+	resource := "services"
+
+	for _, verb := range verbs {
+		sar := &authv1.SubjectAccessReview{
+			Spec: authv1.SubjectAccessReviewSpec{
+				User: user,
+				ResourceAttributes: &authv1.ResourceAttributes{
+					Verb:     verb,
+					Resource: resource,
+				},
+			},
+		}
+
+		// Perform the SAR using the native KubernetesNativeClient client
+		response, err := kc.KubernetesNativeClient.AuthorizationV1().SubjectAccessReviews().Create(context.TODO(), sar, metav1.CreateOptions{})
+		if err != nil {
+			return false, fmt.Errorf("failed to create SubjectAccessReview for verb %q on resource %q: %w", verb, resource, err)
+		}
+
+		if !response.Status.Allowed {
+			kc.Logger.Warn("access denied", "user", user, "verb", verb, "resource", resource)
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

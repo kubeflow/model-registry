@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
   - admin-rbac.yaml
+  - kubeflow-dashboard-rbac.yaml

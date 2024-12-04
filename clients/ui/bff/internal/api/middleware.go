@@ -13,7 +13,7 @@ import (
 type contextKey string
 
 const httpClientKey contextKey = "httpClientKey"
-const userAccessToken = "x-forwarded-access-token"
+const kubeflowUserId = "kubeflow-userid"
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,14 +48,8 @@ func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to resolve model registry base URL): %v", err))
 			return
 		}
-		var bearerToken string
-		bearerToken, err = resolveBearerToken(app.kubernetesClient, r.Header)
-		if err != nil {
-			app.serverErrorResponse(w, r, fmt.Errorf("failed to resolve BearerToken): %v", err))
-			return
-		}
 
-		client, err := integrations.NewHTTPClient(modelRegistryBaseURL, bearerToken)
+		client, err := integrations.NewHTTPClient(modelRegistryBaseURL)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return
@@ -63,26 +57,6 @@ func (app *App) AttachRESTClient(handler func(http.ResponseWriter, *http.Request
 		ctx := context.WithValue(r.Context(), httpClientKey, client)
 		handler(w, r.WithContext(ctx), ps)
 	}
-}
-
-func resolveBearerToken(k8s integrations.KubernetesClientInterface, header http.Header) (string, error) {
-	var bearerToken string
-	//check if I'm inside cluster
-	if k8s.IsInCluster() {
-		//in cluster
-		bearerToken = header.Get(userAccessToken)
-		if bearerToken == "" {
-			return "", fmt.Errorf("failed to create Rest client (not able to get bearerToken on cluster)")
-		}
-	} else {
-		//off cluster (development)
-		var err error
-		bearerToken, err = k8s.BearerToken()
-		if err != nil {
-			return "", fmt.Errorf("failed to fetch BearerToken in development mode: %v", err)
-		}
-	}
-	return bearerToken, nil
 }
 
 func resolveModelRegistryURL(id string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
@@ -98,4 +72,33 @@ func resolveModelRegistryURL(id string, client integrations.KubernetesClientInte
 
 	url := fmt.Sprintf("http://%s:%d/api/model_registry/v1alpha3", serviceDetails.ClusterIP, serviceDetails.HTTPPort)
 	return url, nil
+}
+
+func (app *App) RequireAccessControl(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Skip SAR for health check
+		if r.URL.Path == HealthCheckPath {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user := r.Header.Get(kubeflowUserId)
+		if user == "" {
+			app.forbiddenResponse(w, r, "missing kubeflow-userid header")
+			return
+		}
+
+		allowed, err := app.kubernetesClient.PerformSAR(user)
+		if err != nil {
+			app.forbiddenResponse(w, r, "failed to perform SAR: %v")
+			return
+		}
+		if !allowed {
+			app.forbiddenResponse(w, r, "access denied")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
