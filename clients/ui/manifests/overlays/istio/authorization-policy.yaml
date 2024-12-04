@@ -1,0 +1,36 @@
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: model-registry-ui
+  namespace: kubeflow
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+  - to:
+    - {}
+  selector:
+    matchLabels:
+      app: model-registry-ui
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: model-registry-bff
+  namespace: kubeflow
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+              - cluster.local/ns/kubeflow/sa/model-registry-ui
+  selector:
+    matchLabels:
+      app: model-registry-bff

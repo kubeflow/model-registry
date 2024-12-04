@@ -14,6 +14,7 @@ spec:
       labels:
         app: model-registry-ui
     spec:
+      serviceAccountName: model-registry-ui 
       containers:
       - name: model-registry-ui
         image: model-registry-ui-image
@@ -27,5 +28,13 @@ spec:
         ports:
           - containerPort: 8080
         env:
+        # TODO: Add env variables
           - name: API_URL
-            value: "http://model-registry-bff-service:4000"
+            value: "http://model-registry-bff-service.kubeflow.svc.cluster.local:4000"
+          - name: APP_PREFIX
+            value: /model-registry
+          - name: USERID_HEADER
+            value: kubeflow-userid
+          # TODO: Come back to this before committing
+          # - name: USERID_PREFIX
+          #   value: ""
