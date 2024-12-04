@@ -29,9 +29,6 @@ COPY scripts/ scripts/
 COPY pkg/ pkg/
 COPY patches/ patches/
 COPY templates/ templates/
-# csi specific source code
-COPY clients/csi/main.go clients/csi/
-COPY clients/csi/pkg/ clients/csi/pkg/
 
 # Download tools
 RUN make deps

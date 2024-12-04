@@ -5,7 +5,7 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
 BFF_PATH := $(PROJECT_PATH)/clients/ui/bff
 UI_PATH := $(PROJECT_PATH)/clients/ui/frontend
-CSI_PATH := $(PROJECT_PATH)/clients/csi
+CSI_PATH := $(PROJECT_PATH)/cmd/csi
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29
@@ -50,7 +50,7 @@ endif
 
 # The BUILD_PATH is still the root
 ifeq ($(IMG_REPO),model-registry-storage-initializer)
-    DOCKERFILE := Dockerfile.csi
+    DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 
 model-registry: build
@@ -229,7 +229,7 @@ lint:
 .PHONY: lint/csi
 lint/csi:
 	${GOLANGCI_LINT} run ${CSI_PATH}/main.go
-	${GOLANGCI_LINT} run ${CSI_PATH}/pkg/...
+	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
 test: gen bin/envtest

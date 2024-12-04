@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	kserve "github.com/kserve/kserve/pkg/agent/storage"
-	"github.com/kubeflow/model-registry/clients/csi/pkg/constants"
+	"github.com/kubeflow/model-registry/internal/csi/constants"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
