@@ -7,7 +7,9 @@ import (
 
 func (app *App) HealthcheckHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	healthCheck, err := app.repositories.HealthCheck.HealthCheck(Version)
+	userID := r.Header.Get(kubeflowUserId)
+
+	healthCheck, err := app.repositories.HealthCheck.HealthCheck(Version, userID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

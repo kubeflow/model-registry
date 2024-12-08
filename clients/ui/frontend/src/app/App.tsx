@@ -3,22 +3,17 @@ import '@patternfly/react-core/dist/styles/base.css';
 import './app.css';
 import {
   Alert,
-  Brand,
   Bullseye,
   Button,
   Masthead,
-  MastheadBrand,
   MastheadContent,
   MastheadMain,
-  MastheadToggle,
   Page,
   PageSection,
-  PageToggleButton,
   Spinner,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { BarsIcon } from '@patternfly/react-icons';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
 import { isMUITheme, Theme } from '~/shared/utilities/const';
@@ -89,21 +84,7 @@ const App: React.FC = () => {
 
   const masthead = (
     <Masthead>
-      <MastheadMain>
-        <MastheadToggle>
-          <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
-            <BarsIcon />
-          </PageToggleButton>
-        </MastheadToggle>
-        <MastheadBrand>
-          <Brand
-            className="kubeflow_brand"
-            src={`${window.location.origin}/images/logo.svg`}
-            alt="Kubeflow Logo"
-          />
-        </MastheadBrand>
-      </MastheadMain>
-
+      <MastheadMain />
       <MastheadContent>
         {/* TODO: [Auth-enablement] Add logout and user status once we enable itNavigates to register page from table toolbar */}
       </MastheadContent>

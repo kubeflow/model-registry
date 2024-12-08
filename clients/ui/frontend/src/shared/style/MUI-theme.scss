@@ -55,6 +55,12 @@
   --mui-radio__input--Width: 10px;
   --mui-radio__input--Height: 10px;
 
+  // Sidebar from https://github.com/kubeflow/kubeflow/blob/4275d99754ac91f6cf5654b03824a73825e9fe55/components/centraldashboard/public/components/main-page.css#L7C1-L13C51 
+  --kf-central-primary-background-color: #0a3b71;
+  --kf-central-sidebar-default-color: #ffffff90;
+  --kf-central-app-drawer-width: 240px;
+  --kf-central-app-bar-height: 64px;
+
   // Table
   --mui-table__button--BackgroundColor: none;
   --mui-table__button--hover--BackgroundColor: none;
@@ -131,6 +137,10 @@
 
 .mui-theme .pf-v6-c-alert__icon {
   --pf-v6-c-alert__icon--MarginBlockEnd: var(--mui-alert__icon--MarginBlockEnd);
+}
+
+.mui-theme .pf-v6-c-brand.kubeflow_brand {
+  padding: var(--pf-t--global--spacer--md);
 }
 
 .mui-theme .pf-v6-c-button {
@@ -490,6 +500,36 @@
   display: block;
 }
 
+.mui-theme .pf-v6-c-nav {
+  padding-block-start: 0;
+}
+
+.mui-theme .pf-v6-c-nav__link {
+  --pf-v6-c-nav__link--BorderRadius: 0px;
+  --pf-v6-c-nav__link--hover--BackgroundColor: #ffffff1b;
+  --pf-v6-c-nav__link--Color: var(--kf-central-sidebar-default-color);
+  --pf-v6-c-nav__link--hover--Color: var(--kf-central-sidebar-default-color);
+  --pf-v6-c-nav__link--FontSize: var(--pf-t--global--font--size--md);
+
+  &.active {
+    border-left: 3px solid var(--mui-palette-common-white);
+    --pf-v6-c-nav__link--Color: var(--mui-palette-common-white);
+    --pf-v6-c-nav__link--hover--Color: var(--mui-palette-common-white);
+  }
+
+  &.pf-v6-c-brand {
+    --pf-v6-c-nav__link--hover--BackgroundColor: none;
+  }
+}
+
+.mui-theme .pf-v6-c-nav__link:focus {
+  --pf-v6-c-nav__link--Color: var(--mui-palette-common-white);
+}
+
+.mui-theme .pf-v6-c-nav__list {
+  row-gap: none;
+}
+
 .mui-theme .pf-v6-radio {
   --pf-v6-c-radio--AccentColor: var(--mui-palette-primary-main);
 }
@@ -531,6 +571,16 @@
 .mui-theme .pf-v6-c-radio__input:checked+.pf-v6-c-radio__label::before {
   background: var(--mui-palette-common-white);
   border-color: var(--mui-palette-primary-main);
+}
+
+.mui-theme .pf-v6-c-page__sidebar {
+  --pf-v6-c-page__sidebar--BackgroundColor: var(--kf-central-primary-background-color);
+}
+
+.mui-theme .pf-v6-c-page__sidebar-body {
+  --pf-v6-c-page__sidebar-body--PaddingInlineStart: 0px;
+  --pf-v6-c-page__sidebar-body--PaddingInlineEnd: 0px;
+
 }
 
 /* Inner dot for checked state */
@@ -693,6 +743,11 @@
   --pf-v6-c-label--BackgroundColor: var(--mui-palette-grey-200);
   padding: 4px;
 }
+.mui-theme .pf-v6-c-masthead {
+  --pf-v6-c-masthead--BackgroundColor: var(--mui-palette-common-white);
+  box-shadow: var(--mui-shadows-1);
+  min-height: var(--kf-central-app-bar-height);
+}
 
 .mui-theme .pf-v6-c-modal-box {
   --pf-v6-c-modal-box--BorderRadius: 0;
@@ -731,3 +786,16 @@
 .mui-theme .pf-v6-c-pagination__page-menu::before {
   content: 'Rows per page:';
 }
+
+.mui-theme .pf-v6-c-page__sidebar {
+  position: absolute; 
+  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width); /* Sidebar width */
+  height: 100vh; /* Take full height of viewport */
+  z-index: 300; /* Position sidebar above the masthead */
+}
+
+.mui-theme .pf-v6-c-page__main-container {
+  margin-left: var(--kf-central-app-drawer-width); /* Move content area to right of the sidebar */
+  margin-top: var(--kf-central-app-bar-height); /* Move content area below the app bar */
+}
+

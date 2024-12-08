@@ -32,6 +32,8 @@ npm run build
 
 This is the default context for running a local UI.  Make sure you build the project using the instructions above prior to running the command below.
 
+You will need to inject your requests with a kubeflow-userid header for authorization purposes. For example, you can use the [Header Editor](https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh) extension in Chrome to set the kubeflow-userid header to user@example.com.
+
 ```bash
 npm run start:dev
 ```

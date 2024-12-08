@@ -52,10 +52,10 @@ echo "Applying admin user service account and rolebinding..."
 kubectl apply -k .
 
 # Step 6: Generate token for admin user and display it
-echo "Generating token for admin user, copy the following token in the local storage with key 'x-forwarded-access-token'..."
-echo -e "\033[32m$(kubectl -n kube-system create token admin-user)\033[0m"
+echo "In your browser, you will need to inject your requests with a kubeflow-userid header for authorization purposes."
+echo "For example, you can use the Header Editor - https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh extension in Chrome to set the kubeflow-userid header to user@example.com."
 
 # Step 5: Port-forward the service
-echo "Port-fowarding Model Registry UI..."
+echo "Port-forwarding Model Registry UI..."
 echo -e "\033[32mDashboard available in http://localhost:8080\033[0m"
 kubectl port-forward svc/model-registry-ui-service -n kubeflow 8080:8080

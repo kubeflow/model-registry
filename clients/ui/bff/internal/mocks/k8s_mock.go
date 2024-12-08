@@ -3,18 +3,21 @@ package mocks
 import (
 	"context"
 	"fmt"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
-
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
+
+const KubeflowUserIDHeaderValue = "user@example.com"
 
 type KubernetesClientMock struct {
 	*k8s.KubernetesClient
@@ -63,6 +66,13 @@ func NewKubernetesClient(logger *slog.Logger, ctx context.Context, cancel contex
 		os.Exit(1)
 	}
 
+	nativeK8sClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		logger.Error("failed to create native KubernetesNativeClient client", slog.String("error", err.Error()))
+		cancel()
+		os.Exit(1)
+	}
+
 	err = setupMock(mockK8sClient, ctx)
 	if err != nil {
 		logger.Error("failed on mock setup", slog.String("error", err.Error()))
@@ -72,9 +82,10 @@ func NewKubernetesClient(logger *slog.Logger, ctx context.Context, cancel contex
 
 	return &KubernetesClientMock{
 		KubernetesClient: &k8s.KubernetesClient{
-			Client: mockK8sClient,
-			Logger: logger,
-			StopFn: cancel,
+			ControllerRuntimeClient: mockK8sClient,
+			KubernetesNativeClient:  nativeK8sClient,
+			Logger:                  logger,
+			StopFn:                  cancel,
 		},
 		testEnv: testEnv,
 	}, nil
@@ -115,6 +126,12 @@ func setupMock(mockK8sClient client.Client, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	err = createRBAC(mockK8sClient, ctx, KubeflowUserIDHeaderValue)
+	if err != nil {
+		return fmt.Errorf("failed to create RBAC for KubeflowUserIDHeaderValue: %w", err)
+	}
+
 	return nil
 }
 
@@ -204,6 +221,50 @@ func createService(k8sClient client.Client, ctx context.Context, name string, na
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func createRBAC(k8sClient client.Client, ctx context.Context, username string) error {
+	clusterRole := &rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "service-access-role",
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""}, // Core API group
+				Resources: []string{"services"},
+				Verbs:     []string{"get", "list"},
+			},
+		},
+	}
+
+	err := k8sClient.Create(ctx, clusterRole)
+	if err != nil {
+		return fmt.Errorf("failed to create ClusterRole: %w", err)
+	}
+
+	clusterRoleBinding := &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "service-access-binding",
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: username,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     "service-access-role",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+
+	err = k8sClient.Create(ctx, clusterRoleBinding)
+	if err != nil {
+		return fmt.Errorf("failed to create ClusterRoleBinding: %w", err)
+	}
+
 	return nil
 }
 

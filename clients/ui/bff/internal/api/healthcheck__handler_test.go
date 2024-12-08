@@ -27,6 +27,8 @@ func TestHealthCheckHandler(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, HealthCheckPath, nil)
 	assert.NoError(t, err)
 
+	req.Header.Set(kubeflowUserId, mocks.KubeflowUserIDHeaderValue)
+
 	app.HealthcheckHandler(rr, req, nil)
 	rs := rr.Result()
 
@@ -46,6 +48,7 @@ func TestHealthCheckHandler(t *testing.T) {
 		SystemInfo: models.SystemInfo{
 			Version: Version,
 		},
+		UserID: mocks.KubeflowUserIDHeaderValue,
 	}
 
 	assert.Equal(t, expected, healthCheckRes)
