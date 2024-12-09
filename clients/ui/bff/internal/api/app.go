@@ -21,6 +21,7 @@ const (
 	ModelVersionId               = "model_version_id"
 	ModelArtifactId              = "model_artifact_id"
 	HealthCheckPath              = PathPrefix + "/healthcheck"
+	UserPath                     = PathPrefix + "/user"
 	ModelRegistryListPath        = PathPrefix + "/model_registry"
 	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
 	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
@@ -103,6 +104,7 @@ func (app *App) Routes() http.Handler {
 	router.POST(ModelVersionArtifactListPath, app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))
 
 	// Kubernetes client routes
+	router.GET(UserPath, app.UserHandler)
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
 	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
