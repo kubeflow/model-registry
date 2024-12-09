@@ -15,7 +15,7 @@ Help() {
   echo
 }
 
-MR_ROOT=${MR_ROOT:-".."}
+MR_ROOT="$(dirname "$0")/../.."
 
 namespace=kubeflow
 image=kubeflow/model-registry:latest
