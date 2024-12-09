@@ -79,7 +79,7 @@ You will need to inject your requests with a kubeflow-userid header for authoriz
 curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/healthcheck
 ```
 ```
-# GET /v1/healthcheck
+# GET /v1/user
 curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/user
 ```
 ```
