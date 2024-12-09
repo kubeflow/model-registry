@@ -18,7 +18,8 @@ env:
   IMG_REPO: model-registry
   DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
-  PUSH_IMAGE: true
+  BUILD_PUSH_IMAGE: true # multi-arch image is build and pushed
+  BUILD_IMAGE: false
 jobs:
   build-image:
     runs-on: ubuntu-latest
@@ -43,26 +44,18 @@ jobs:
         if: env.BUILD_CONTEXT == 'tag'
         run: |
           echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Build and Push Image
         shell: bash
         run: ./scripts/build_deploy.sh
       - name: Tag Latest
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
-        env:
-          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
-          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
-        run: |
-          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
-          # BUILD_IMAGE=false skip the build, just push the tag made above
-          VERSION=latest ./scripts/build_deploy.sh
+        run: VERSION=latest ./scripts/build_deploy.sh
       - name: Tag Main
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
-        env:
-          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_REPO }}
-          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
-        run: |
-          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
-          # BUILD_IMAGE=false skip the build, just push the tag made above
-          VERSION=main ./scripts/build_deploy.sh
+        run: VERSION=main ./scripts/build_deploy.sh
