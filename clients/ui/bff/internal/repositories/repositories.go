@@ -5,6 +5,7 @@ type Repositories struct {
 	HealthCheck         *HealthCheckRepository
 	ModelRegistry       *ModelRegistryRepository
 	ModelRegistryClient ModelRegistryClientInterface
+	User                *UserRepository
 }
 
 func NewRepositories(modelRegistryClient ModelRegistryClientInterface) *Repositories {
@@ -12,5 +13,6 @@ func NewRepositories(modelRegistryClient ModelRegistryClientInterface) *Reposito
 		HealthCheck:         NewHealthCheckRepository(),
 		ModelRegistry:       NewModelRegistryRepository(),
 		ModelRegistryClient: modelRegistryClient,
+		User:                NewUserRepository(),
 	}
 }

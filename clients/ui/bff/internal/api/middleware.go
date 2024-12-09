@@ -83,6 +83,12 @@ func (app *App) RequireAccessControl(next http.Handler) http.Handler {
 			return
 		}
 
+		// Skip SAR for user info
+		if r.URL.Path == UserPath {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		user := r.Header.Get(kubeflowUserId)
 		if user == "" {
 			app.forbiddenResponse(w, r, "missing kubeflow-userid header")

@@ -57,6 +57,7 @@ make docker-build
 | URL Pattern                                                                                  | Handler                                      | Action                                                      |
 |----------------------------------------------------------------------------------------------|----------------------------------------------|-------------------------------------------------------------|
 | GET /v1/healthcheck                                                                          | HealthcheckHandler                           | Show application information.                               |
+| GET /v1/user                                                                                 | UserHandler                                  | Show "kubeflow-user-id" from header information.            |
 | GET /v1/model_registry                                                                       | ModelRegistryHandler                         | Get all model registries,                                   |
 | GET /v1/model_registry/{model_registry_id}/registered_models                                 | GetAllRegisteredModelsHandler                | Gets a list of all RegisteredModel entities.                |
 | POST /v1/model_registry/{model_registry_id}/registered_models                                | CreateRegisteredModelHandler                 | Create a RegisteredModel entity.                            |
@@ -76,6 +77,10 @@ You will need to inject your requests with a kubeflow-userid header for authoriz
 ```
 # GET /v1/healthcheck
 curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/healthcheck
+```
+```
+# GET /v1/user
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/user
 ```
 ```
 # GET /v1/model_registry 
