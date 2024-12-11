@@ -9,7 +9,6 @@ updates:
     directories: 
       - "/"
       - "/clients/ui/bff/"
-      - "/csi"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"

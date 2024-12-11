@@ -5,6 +5,7 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
 BFF_PATH := $(PROJECT_PATH)/clients/ui/bff
 UI_PATH := $(PROJECT_PATH)/clients/ui/frontend
+CSI_PATH := $(PROJECT_PATH)/cmd/csi
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29
@@ -45,6 +46,11 @@ endif
 ifeq ($(IMG_REPO),model-registry-bff)
     DOCKERFILE := $(BFF_PATH)/Dockerfile
 	BUILD_PATH := $(BFF_PATH)
+endif
+
+# The BUILD_PATH is still the root
+ifeq ($(IMG_REPO),model-registry-storage-initializer)
+    DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 
 model-registry: build
@@ -114,11 +120,15 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 vet:
 	${GO} vet ./...
 
+.PHONY: clean/csi
+clean/csi:
+	rm -Rf ./mr-storage-initializer
+
 .PHONY: clean-pkg-openapi
 	while IFS= read -r file; do rm -f "pkg/openapi/$file"; done < pkg/openapi/.openapi-generator/FILES
 
-.PHONY: clean clean-pkg-openapi
-clean:
+.PHONY: clean 
+clean: clean-pkg-openapi clean/csi
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go internal/server/openapi/api_model_registry_service.go
 
 .PHONY: clean/odh
@@ -197,6 +207,16 @@ build: build/prepare build/compile
 build/odh: vet
 	${GO} build -buildvcs=false
 
+.PHONY: build/prepare/csi
+build/prepare/csi: build/prepare lint/csi
+
+.PHONY: build/compile/csi
+build/compile/csi:
+	${GO} build -buildvcs=false -o mr-storage-initializer ${CSI_PATH}/main.go
+
+.PHONY: build/csi
+build/csi: build/prepare/csi build/compile/csi
+
 .PHONY: gen
 gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
@@ -205,6 +225,11 @@ gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 lint:
 	${GOLANGCI_LINT} run main.go  --timeout 3m
 	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...  --timeout 3m
+
+.PHONY: lint/csi
+lint/csi:
+	${GOLANGCI_LINT} run ${CSI_PATH}/main.go
+	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
 test: gen bin/envtest
@@ -235,7 +260,6 @@ ifdef IMG_REGISTRY
 else
 	$(DOCKER) login -u "${DOCKER_USER}" -p "${DOCKER_PWD}"
 endif
-
 
 # build docker image
 .PHONY: image/build
