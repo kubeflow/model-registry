@@ -6,6 +6,7 @@ import (
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,6 +28,7 @@ type KubernetesClientInterface interface {
 	Shutdown(ctx context.Context, logger *slog.Logger) error
 	IsInCluster() bool
 	PerformSAR(user string) (bool, error)
+	IsClusterAdmin(user string) (bool, error)
 }
 
 type ServiceDetails struct {
@@ -285,4 +287,30 @@ func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (kc *KubernetesClient) IsClusterAdmin(user string) (bool, error) {
+	//using a context here, because checking ClusterRoleBindings could be expensive in large clusters
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clusterRoleBindings := &rbacv1.ClusterRoleBindingList{}
+	err := kc.ControllerRuntimeClient.List(ctx, clusterRoleBindings)
+	if err != nil {
+		return false, fmt.Errorf("failed to list ClusterRoleBindings: %w", err)
+	}
+
+	for _, crb := range clusterRoleBindings.Items {
+		if crb.RoleRef.Name != "cluster-admin" {
+			continue
+		}
+		for _, subject := range crb.Subjects {
+
+			if subject.Kind == "User" && subject.Name == user {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
