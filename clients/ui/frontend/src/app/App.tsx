@@ -28,7 +28,7 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
-  const username = userSettings?.username;
+  const username = userSettings?.userId;
 
   React.useEffect(() => {
     // Apply the theme based on the value of STYLE_THEME

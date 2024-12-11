@@ -12,5 +12,6 @@ export const isMUITheme = (): boolean => STYLE_THEME === Theme.MUI;
 export const STYLE_THEME = process.env.STYLE_THEME || Theme.MUI;
 
 export const USER_ID = 'kubeflow-userid';
+export const mockedUsername = 'user@example.com';
 
 export { POLL_INTERVAL };

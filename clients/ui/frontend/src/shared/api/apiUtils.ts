@@ -9,6 +9,10 @@ export const mergeRequestInit = (
 ): RequestInit => ({
   ...specificOpts,
   ...(opts.signal && { signal: opts.signal }),
+  headers: {
+    ...(opts.headers ?? {}),
+    ...(specificOpts.headers ?? {}),
+  },
 });
 
 type CallRestJSONOptions = {

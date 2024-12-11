@@ -2,8 +2,8 @@ import { ValueOf } from '~/shared/typeHelpers';
 
 //  TODO: [Data Flow] Get the status config params
 export type UserSettings = {
-  username: string;
-  isAdmin?: boolean;
+  userId: string;
+  clusterAdmin?: boolean;
 };
 
 // TODO: [Data Flow] Add more config parameters

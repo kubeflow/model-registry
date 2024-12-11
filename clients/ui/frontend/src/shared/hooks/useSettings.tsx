@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { POLL_INTERVAL } from '~/shared/utilities/const';
+import { mockedUsername, POLL_INTERVAL, USER_ID } from '~/shared/utilities/const';
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 import { ConfigSettings, UserSettings } from '~/shared/types';
 import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
+import { getUser } from '~/shared/api/k8s';
 
 export const useSettings = (): {
   configSettings: ConfigSettings | null;
@@ -14,13 +15,17 @@ export const useSettings = (): {
   const [loadError, setLoadError] = React.useState<Error>();
   const [config, setConfig] = React.useState<ConfigSettings | null>(null);
   const [user, setUser] = React.useState<UserSettings | null>(null);
+  const userSettings = React.useMemo(() => getUser(''), []);
   const setRefreshMarker = useTimeBasedRefresh();
 
   React.useEffect(() => {
     let watchHandle: ReturnType<typeof setTimeout>;
     let cancelled = false;
     const watchConfig = () => {
-      Promise.all([fetchConfig(), fetchUser()])
+      // TODO: [Env Handling] Add mocked mode for frontend in dev
+      // const headers = process.env.mocked === 'true' ? { [USER_ID]: mockedUsername } : undefined;
+      const headers = { [USER_ID]: mockedUsername };
+      Promise.all([fetchConfig(), userSettings({ headers })])
         .then(([fetchedConfig, fetchedUser]) => {
           if (cancelled) {
             return;
@@ -53,7 +58,7 @@ export const useSettings = (): {
       cancelled = true;
       clearTimeout(watchHandle);
     };
-  }, [setRefreshMarker]);
+  }, [setRefreshMarker, userSettings]);
 
   const retConfig = useDeepCompareMemoize<ConfigSettings | null>(config);
   const retUser = useDeepCompareMemoize<UserSettings | null>(user);
@@ -69,11 +74,4 @@ export const fetchConfig = async (): Promise<ConfigSettings> => ({
       modelRegistry: true,
     },
   },
-});
-
-// Mock a settings user call
-// TODO: [Auth-enablement] replace with the actual call once we have the endpoint
-export const fetchUser = async (): Promise<UserSettings> => ({
-  username: 'user@example.com',
-  isAdmin: true,
 });

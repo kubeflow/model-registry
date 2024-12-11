@@ -23,9 +23,9 @@ export type NavDataGroup = NavDataCommon & {
 type NavDataItem = NavDataHref | NavDataGroup;
 
 export const useAdminSettings = (): NavDataItem[] => {
-  const { isAdmin } = useAppContext().user;
+  const { clusterAdmin } = useAppContext().user;
 
-  if (!isAdmin) {
+  if (!clusterAdmin) {
     return [];
   }
 
@@ -46,14 +46,14 @@ export const useNavData = (): NavDataItem[] => [
 ];
 
 const AppRoutes: React.FC = () => {
-  const { isAdmin } = useAppContext().user;
+  const { clusterAdmin } = useAppContext().user;
 
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/modelRegistry" replace />} />
       <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
-      {isAdmin && (
+      {clusterAdmin && (
         <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
       )}
     </Routes>
