@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log/slog"
@@ -18,7 +19,7 @@ import (
 	"time"
 )
 
-const ComponentName = "model-registry-server"
+const ComponentLabelValue = "model-registry"
 
 type KubernetesClientInterface interface {
 	GetServiceNames() ([]string, error)
@@ -150,42 +151,32 @@ func (kc *KubernetesClient) BearerToken() (string, error) {
 }
 
 func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
-	//TODO (ederign) we should consider and rethinking listing all services on cluster
-	// what if we have thousand of those?
-	// we should consider label filtering for instance
-
-	serviceList := &corev1.ServiceList{}
-	//TODO (ederign) review the context timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-
-	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{})
+	services, err := kc.GetServiceDetails()
 	if err != nil {
-		return nil, fmt.Errorf("failed to list services: %w", err)
+		return nil, err
 	}
 
-	var serviceNames []string
-	for _, service := range serviceList.Items {
-		if value, ok := service.Spec.Selector["component"]; ok && value == ComponentName {
-			serviceNames = append(serviceNames, service.Name)
-		}
+	names := make([]string, 0, len(services))
+	for _, svc := range services {
+		names = append(names, svc.Name)
 	}
 
-	if len(serviceNames) == 0 {
-		return nil, fmt.Errorf("no services found with component: %s", ComponentName)
-	}
-
-	return serviceNames, nil
+	return names, nil
 }
 
 func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
-	//TODO (ederign) review the context timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel() // Ensure the context is canceled to free up resources
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	serviceList := &corev1.ServiceList{}
 
-	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{})
+	labelSelector := labels.SelectorFromSet(labels.Set{
+		"component": ComponentLabelValue,
+	})
+
+	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{
+		LabelSelector: labelSelector,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list services: %w", err)
 	}
@@ -193,52 +184,51 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 	var services []ServiceDetails
 
 	for _, service := range serviceList.Items {
-		if svcComponent, exists := service.Spec.Selector["component"]; exists && svcComponent == ComponentName {
-			var httpPort int32
-			hasHTTPPort := false
-			for _, port := range service.Spec.Ports {
-				if port.Name == "http-api" {
-					httpPort = port.Port
-					hasHTTPPort = true
-					break
-				}
+		var httpPort int32
+		hasHTTPPort := false
+		for _, port := range service.Spec.Ports {
+			if port.Name == "http-api" {
+				httpPort = port.Port
+				hasHTTPPort = true
+				break
 			}
-			if !hasHTTPPort {
-				kc.Logger.Error("service missing HTTP port", "serviceName", service.Name)
-				continue
-			}
-
-			if service.Spec.ClusterIP == "" {
-				kc.Logger.Error("service missing valid ClusterIP", "serviceName", service.Name)
-				continue
-			}
-
-			displayName := ""
-			description := ""
-
-			if service.Annotations != nil {
-				displayName = service.Annotations["displayName"]
-				description = service.Annotations["description"]
-			}
-
-			if displayName == "" {
-				kc.Logger.Warn("service missing displayName annotation", "serviceName", service.Name)
-			}
-
-			if description == "" {
-				kc.Logger.Warn("service missing description annotation", "serviceName", service.Name)
-			}
-
-			serviceDetails := ServiceDetails{
-				Name:        service.Name,
-				DisplayName: displayName,
-				Description: description,
-				ClusterIP:   service.Spec.ClusterIP,
-				HTTPPort:    httpPort,
-			}
-
-			services = append(services, serviceDetails)
 		}
+		if !hasHTTPPort {
+			kc.Logger.Error("service missing HTTP port", "serviceName", service.Name)
+			continue
+		}
+
+		if service.Spec.ClusterIP == "" {
+			kc.Logger.Error("service missing valid ClusterIP", "serviceName", service.Name)
+			continue
+		}
+
+		displayName := ""
+		description := ""
+
+		if service.Annotations != nil {
+			displayName = service.Annotations["displayName"]
+			description = service.Annotations["description"]
+		}
+
+		if displayName == "" {
+			kc.Logger.Warn("service missing displayName annotation", "serviceName", service.Name)
+		}
+
+		if description == "" {
+			kc.Logger.Warn("service missing description annotation", "serviceName", service.Name)
+		}
+
+		serviceDetails := ServiceDetails{
+			Name:        service.Name,
+			DisplayName: displayName,
+			Description: description,
+			ClusterIP:   service.Spec.ClusterIP,
+			HTTPPort:    httpPort,
+		}
+
+		services = append(services, serviceDetails)
+
 	}
 
 	return services, nil
@@ -260,6 +250,8 @@ func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (Service
 }
 
 func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	verbs := []string{"get", "list"}
 	resource := "services"
 
@@ -275,7 +267,7 @@ func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
 		}
 
 		// Perform the SAR using the native KubernetesNativeClient client
-		response, err := kc.KubernetesNativeClient.AuthorizationV1().SubjectAccessReviews().Create(context.TODO(), sar, metav1.CreateOptions{})
+		response, err := kc.KubernetesNativeClient.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
 		if err != nil {
 			return false, fmt.Errorf("failed to create SubjectAccessReview for verb %q on resource %q: %w", verb, resource, err)
 		}
@@ -291,7 +283,7 @@ func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
 
 func (kc *KubernetesClient) IsClusterAdmin(user string) (bool, error) {
 	//using a context here, because checking ClusterRoleBindings could be expensive in large clusters
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	clusterRoleBindings := &rbacv1.ClusterRoleBindingList{}
