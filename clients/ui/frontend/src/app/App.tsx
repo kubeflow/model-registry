@@ -5,23 +5,11 @@ import {
   Alert,
   Bullseye,
   Button,
-  Dropdown,
-  DropdownItem,
-  DropdownList,
-  Masthead,
-  MastheadContent,
-  MastheadMain,
-  MenuToggle,
-  MenuToggleElement,
   Page,
   PageSection,
   Spinner,
   Stack,
   StackItem,
-  Toolbar,
-  ToolbarContent,
-  ToolbarGroup,
-  ToolbarItem,
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
@@ -30,8 +18,7 @@ import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
-import { Select } from '@mui/material';
-import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import NavBar from './NavBar';
 
 const App: React.FC = () => {
   const {
@@ -54,7 +41,7 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     // Add the user to localStorage if in PoC
-    // TODO: [Env Handling] Remove this when auth is enabled
+    // TODO: [Env Handling] Just add this logic in PoC mode
     if (username) {
       localStorage.setItem(USER_ID, username);
     } else {
@@ -72,19 +59,6 @@ const App: React.FC = () => {
         : null,
     [configSettings, userSettings],
   );
-
-  const handleLogout = () => {
-    setUserMenuOpen(false);
-    // TODO: [Auth-enablement] Logout when auth is enabled
-  };
-
-
-  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
-  const userMenuItems = [
-    <DropdownItem key="logout" onClick={handleLogout}>
-      Log out
-    </DropdownItem>,
-  ];
 
   // We lack the critical data to startup the app
   if (configError) {
@@ -118,62 +92,6 @@ const App: React.FC = () => {
   // Waiting on the API to finish
   const loading = !configLoaded || !userSettings || !configSettings || !contextValue;
 
-  const Options: SimpleSelectOption[] = [
-    { content: 'All Namespaces', value: 'All' },
-  ];
-
-  const [selected, setSelected] = React.useState<string | undefined>('All');
-
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(
-    () => Options.map((o) => ({ ...o, selected: o.value === selected })),
-    [selected]
-  );
-
-  const masthead = (
-    <Masthead>
-      <MastheadMain />
-      <MastheadContent>
-        <Toolbar>
-          <ToolbarContent>
-            <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
-              <ToolbarItem>
-                <SimpleSelect
-                  isDisabled
-                  initialOptions={initialOptions}
-                  onSelect={(_ev, selection) => setSelected(String(selection))}
-                >
-                </SimpleSelect>
-              </ToolbarItem>
-            </ToolbarGroup>
-            <ToolbarGroup variant="action-group-plain" align={{ default: 'alignEnd' }}>
-              <ToolbarItem>
-                {/* TODO: [Auth-enablement] Add logout button */}
-                <Dropdown
-                  popperProps={{ position: 'right' }}
-                  onOpenChange={(isOpen) => setUserMenuOpen(isOpen)}
-                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                    <MenuToggle
-                      aria-label="User menu"
-                      id="user-menu-toggle"
-                      ref={toggleRef}
-                      onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      isExpanded={userMenuOpen}
-                    >
-                      {username}
-                    </MenuToggle>
-                  )}
-                  isOpen={userMenuOpen}
-                >
-                  <DropdownList>{userMenuItems}</DropdownList>
-                </Dropdown>
-              </ToolbarItem>
-            </ToolbarGroup>
-          </ToolbarContent>
-        </Toolbar>
-      </MastheadContent>
-    </Masthead>
-  );
-
   return loading ? (
     <Bullseye>
       <Spinner />
@@ -182,7 +100,14 @@ const App: React.FC = () => {
     <AppContext.Provider value={contextValue}>
       <Page
         mainContainerId="primary-app-container"
-        masthead={masthead}
+        masthead={
+          <NavBar
+            username={username}
+            onLogout={() => {
+              //TODO: [Auth-enablement] Logout when auth is enabled
+            }}
+          />
+        }
         isManagedSidebar
         sidebar={<NavSidebar />}
       >

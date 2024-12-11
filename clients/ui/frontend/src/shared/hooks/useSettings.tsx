@@ -75,4 +75,5 @@ export const fetchConfig = async (): Promise<ConfigSettings> => ({
 // TODO: [Auth-enablement] replace with the actual call once we have the endpoint
 export const fetchUser = async (): Promise<UserSettings> => ({
   username: 'user@example.com',
+  isAdmin: true,
 });
