@@ -1,6 +1,6 @@
 package models
 
 type User struct {
-	UserID       string `json:"user-id"`
-	ClusterAdmin bool   `json:"cluster-admin"`
+	UserID       string `json:"userId"`
+	ClusterAdmin bool   `json:"clusterAdmin"`
 }

@@ -5,9 +5,6 @@ import {
   Alert,
   Bullseye,
   Button,
-  Masthead,
-  MastheadContent,
-  MastheadMain,
   Page,
   PageSection,
   Spinner,
@@ -16,11 +13,12 @@ import {
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme } from '~/shared/utilities/const';
+import { isMUITheme, Theme, USER_ID } from '~/shared/utilities/const';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
+import NavBar from './NavBar';
 
 const App: React.FC = () => {
   const {
@@ -30,6 +28,8 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
+  const username = userSettings?.userId;
+
   React.useEffect(() => {
     // Apply the theme based on the value of STYLE_THEME
     if (isMUITheme()) {
@@ -38,6 +38,16 @@ const App: React.FC = () => {
       document.documentElement.classList.remove(Theme.MUI);
     }
   }, []);
+
+  React.useEffect(() => {
+    // Add the user to localStorage if in PoC
+    // TODO: [Env Handling] Just add this logic in PoC mode
+    if (username) {
+      localStorage.setItem(USER_ID, username);
+    } else {
+      localStorage.removeItem(USER_ID);
+    }
+  }, [username]);
 
   const contextValue = React.useMemo(
     () =>
@@ -82,15 +92,6 @@ const App: React.FC = () => {
   // Waiting on the API to finish
   const loading = !configLoaded || !userSettings || !configSettings || !contextValue;
 
-  const masthead = (
-    <Masthead>
-      <MastheadMain />
-      <MastheadContent>
-        {/* TODO: [Auth-enablement] Add logout and user status once we enable itNavigates to register page from table toolbar */}
-      </MastheadContent>
-    </Masthead>
-  );
-
   return loading ? (
     <Bullseye>
       <Spinner />
@@ -99,7 +100,14 @@ const App: React.FC = () => {
     <AppContext.Provider value={contextValue}>
       <Page
         mainContainerId="primary-app-container"
-        masthead={masthead}
+        masthead={
+          <NavBar
+            username={username}
+            onLogout={() => {
+              //TODO: [Auth-enablement] Logout when auth is enabled
+            }}
+          />
+        }
         isManagedSidebar
         sidebar={<NavSidebar />}
       >
