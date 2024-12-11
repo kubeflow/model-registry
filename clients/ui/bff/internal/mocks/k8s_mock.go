@@ -117,6 +117,7 @@ func getProjectRoot() (string, error) {
 }
 
 func setupMock(mockK8sClient client.Client, ctx context.Context) error {
+
 	err := createNamespace(mockK8sClient, ctx, "kubeflow")
 	if err != nil {
 		return err
@@ -127,15 +128,19 @@ func setupMock(mockK8sClient client.Client, ctx context.Context) error {
 		return err
 	}
 
-	err = createService(mockK8sClient, ctx, "model-registry", "kubeflow", "Model Registry", "Model Registry Description", "10.0.0.10")
+	err = createService(mockK8sClient, ctx, "model-registry", "kubeflow", "Model Registry", "Model Registry Description", "10.0.0.10", "model-registry")
 	if err != nil {
 		return err
 	}
-	err = createService(mockK8sClient, ctx, "model-registry-dora", "dora-namespace", "Model Registry Dora", "Model Registry Dora description", "10.0.0.11")
+	err = createService(mockK8sClient, ctx, "model-registry-dora", "dora-namespace", "Model Registry Dora", "Model Registry Dora description", "10.0.0.11", "model-registry")
 	if err != nil {
 		return err
 	}
-	err = createService(mockK8sClient, ctx, "model-registry-bella", "kubeflow", "Model Registry Bella", "Model Registry Bella description", "10.0.0.12")
+	err = createService(mockK8sClient, ctx, "model-registry-bella", "kubeflow", "Model Registry Bella", "Model Registry Bella description", "10.0.0.12", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createService(mockK8sClient, ctx, "non-model-registry", "kubeflow", "Not a Model Registry", "Not a Model Registry Bella description", "10.0.0.13", "")
 	if err != nil {
 		return err
 	}
@@ -183,7 +188,7 @@ func (m *KubernetesClientMock) BearerToken() (string, error) {
 	return "FAKE BEARER TOKEN", nil
 }
 
-func createService(k8sClient client.Client, ctx context.Context, name string, namespace string, displayName string, description string, clusterIP string) error {
+func createService(k8sClient client.Client, ctx context.Context, name string, namespace string, displayName string, description string, clusterIP string, componentLabel string) error {
 
 	annotations := map[string]string{}
 
@@ -195,15 +200,21 @@ func createService(k8sClient client.Client, ctx context.Context, name string, na
 		annotations["description"] = description
 	}
 
+	labels := map[string]string{}
+	if componentLabel != "" {
+		labels["component"] = componentLabel
+	}
+
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   namespace,
 			Annotations: annotations,
+			Labels:      labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"component": k8s.ComponentName,
+				"component": k8s.ComponentLabelValue,
 			},
 			Type:      corev1.ServiceTypeClusterIP,
 			ClusterIP: clusterIP,
