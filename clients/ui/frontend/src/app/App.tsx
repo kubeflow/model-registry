@@ -5,9 +5,14 @@ import {
   Alert,
   Bullseye,
   Button,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
   Masthead,
   MastheadContent,
   MastheadMain,
+  MenuToggle,
+  MenuToggleElement,
   Page,
   PageSection,
   Spinner,
@@ -25,6 +30,8 @@ import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
+import { Select } from '@mui/material';
+import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
 
 const App: React.FC = () => {
   const {
@@ -66,6 +73,19 @@ const App: React.FC = () => {
     [configSettings, userSettings],
   );
 
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    // TODO: [Auth-enablement] Logout when auth is enabled
+  };
+
+
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const userMenuItems = [
+    <DropdownItem key="logout" onClick={handleLogout}>
+      Log out
+    </DropdownItem>,
+  ];
+
   // We lack the critical data to startup the app
   if (configError) {
     // There was an error fetching critical data
@@ -98,6 +118,17 @@ const App: React.FC = () => {
   // Waiting on the API to finish
   const loading = !configLoaded || !userSettings || !configSettings || !contextValue;
 
+  const Options: SimpleSelectOption[] = [
+    { content: 'All Namespaces', value: 'All' },
+  ];
+
+  const [selected, setSelected] = React.useState<string | undefined>('All');
+
+  const initialOptions = React.useMemo<SimpleSelectOption[]>(
+    () => Options.map((o) => ({ ...o, selected: o.value === selected })),
+    [selected]
+  );
+
   const masthead = (
     <Masthead>
       <MastheadMain />
@@ -106,12 +137,35 @@ const App: React.FC = () => {
           <ToolbarContent>
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
               <ToolbarItem>
-                {/* TODO: [Auth-enablement] Namespace selector */}
+                <SimpleSelect
+                  isDisabled
+                  initialOptions={initialOptions}
+                  onSelect={(_ev, selection) => setSelected(String(selection))}
+                >
+                </SimpleSelect>
               </ToolbarItem>
             </ToolbarGroup>
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignEnd' }}>
               <ToolbarItem>
                 {/* TODO: [Auth-enablement] Add logout button */}
+                <Dropdown
+                  popperProps={{ position: 'right' }}
+                  onOpenChange={(isOpen) => setUserMenuOpen(isOpen)}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      aria-label="User menu"
+                      id="user-menu-toggle"
+                      ref={toggleRef}
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      isExpanded={userMenuOpen}
+                    >
+                      {username}
+                    </MenuToggle>
+                  )}
+                  isOpen={userMenuOpen}
+                >
+                  <DropdownList>{userMenuItems}</DropdownList>
+                </Dropdown>
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarContent>
