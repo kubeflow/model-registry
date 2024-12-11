@@ -13,10 +13,14 @@ import {
   Spinner,
   Stack,
   StackItem,
+  Toolbar,
+  ToolbarContent,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme } from '~/shared/utilities/const';
+import { isMUITheme, Theme, USER_ID } from '~/shared/utilities/const';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -30,6 +34,8 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
+  const username = userSettings?.username;
+
   React.useEffect(() => {
     // Apply the theme based on the value of STYLE_THEME
     if (isMUITheme()) {
@@ -38,6 +44,16 @@ const App: React.FC = () => {
       document.documentElement.classList.remove(Theme.MUI);
     }
   }, []);
+
+  React.useEffect(() => {
+    // Add the user to localStorage if in PoC
+    // TODO: [Env Handling] Remove this when auth is enabled
+    if (username) {
+      localStorage.setItem(USER_ID, username);
+    } else {
+      localStorage.removeItem(USER_ID);
+    }
+  }, [username]);
 
   const contextValue = React.useMemo(
     () =>
@@ -86,7 +102,20 @@ const App: React.FC = () => {
     <Masthead>
       <MastheadMain />
       <MastheadContent>
-        {/* TODO: [Auth-enablement] Add logout and user status once we enable itNavigates to register page from table toolbar */}
+        <Toolbar>
+          <ToolbarContent>
+            <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
+              <ToolbarItem>
+                {/* TODO: [Auth-enablement] Namespace selector */}
+              </ToolbarItem>
+            </ToolbarGroup>
+            <ToolbarGroup variant="action-group-plain" align={{ default: 'alignEnd' }}>
+              <ToolbarItem>
+                {/* TODO: [Auth-enablement] Add logout button */}
+              </ToolbarItem>
+            </ToolbarGroup>
+          </ToolbarContent>
+        </Toolbar>
       </MastheadContent>
     </Masthead>
   );

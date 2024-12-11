@@ -62,7 +62,7 @@ export const useSettings = (): {
 };
 
 // Mock a settings config call
-// TODO: [Data Flow] replace with thea actual call once we have the endpoint
+// TODO: [Data Flow] replace with the actual call once we have the endpoint
 export const fetchConfig = async (): Promise<ConfigSettings> => ({
   common: {
     featureFlags: {
@@ -72,9 +72,7 @@ export const fetchConfig = async (): Promise<ConfigSettings> => ({
 });
 
 // Mock a settings user call
-// TODO: [Auth-enablement] replace with thea actual call once we have the endpoint
+// TODO: [Auth-enablement] replace with the actual call once we have the endpoint
 export const fetchUser = async (): Promise<UserSettings> => ({
-  username: 'admin',
-  isAdmin: true,
-  isAllowed: true,
+  username: 'user@example.com',
 });

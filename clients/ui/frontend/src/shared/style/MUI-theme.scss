@@ -747,6 +747,7 @@
   --pf-v6-c-masthead--BackgroundColor: var(--mui-palette-common-white);
   box-shadow: var(--mui-shadows-1);
   min-height: var(--kf-central-app-bar-height);
+  margin-left: var(--kf-central-app-drawer-width);
 }
 
 .mui-theme .pf-v6-c-modal-box {
@@ -795,7 +796,5 @@
 }
 
 .mui-theme .pf-v6-c-page__main-container {
-  margin-left: var(--kf-central-app-drawer-width); /* Move content area to right of the sidebar */
   margin-top: var(--kf-central-app-bar-height); /* Move content area below the app bar */
 }
-
