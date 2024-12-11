@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/kubeflow/model-registry/csi/pkg/modelregistry"
-	"github.com/kubeflow/model-registry/csi/pkg/storage"
+	"github.com/kubeflow/model-registry/internal/csi/modelregistry"
+	"github.com/kubeflow/model-registry/internal/csi/storage"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
@@ -48,6 +48,6 @@ func main() {
 	}
 
 	if err := provider.DownloadModel(destPath, "", sourceUri); err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("Error downloading the model: %s", err.Error())
 	}
 }
