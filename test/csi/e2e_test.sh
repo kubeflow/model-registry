@@ -18,8 +18,8 @@ KUBECTL=${KUBECTL:-"kubectl"}
 MRCSI_IMG=${MRCSI_IMG:-"kubeflow/model-registry-storage-initializer:main"}
 
 KSERVE_VERSION=${KSERVE_VERSION:-"0.12"}
-MODELREGISTRY_VERSION=${MODELREGISTRY_VERSION:-"v0.2.2-alpha"}
-MODELREGISTRY_CSI=${MODELREGISTRY_CSI:-"v0.2.2-alpha"}
+MODELREGISTRY_VERSION=${MODELREGISTRY_VERSION:-"v0.2.10"}
+MODELREGISTRY_CSI=${MODELREGISTRY_CSI:-"v0.2.10"}
 
 # You can provide a local model registry container image
 MR_IMG=${MR_IMG:-"kubeflow/model-registry:$MODELREGISTRY_VERSION"}

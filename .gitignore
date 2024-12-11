@@ -45,3 +45,9 @@ readme.txt
 certs/
 #OSX files
 **/.DS_Store
+
+# CSI executable
+mr-storage-initializer
+
+# KServe manifests
+istio-*
