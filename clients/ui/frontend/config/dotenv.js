@@ -159,7 +159,7 @@ const setupDotenvFilesForEnv = ({ env }) => {
   const OUTPUT_ONLY = process.env._OUTPUT_ONLY === 'true';
 
   process.env._RELATIVE_DIRNAME = RELATIVE_DIRNAME;
-  process.env._UI_IS_PROJECT_ROOT_DIR = IS_ROOT;
+  process.env._IS_PROJECT_ROOT_DIR = IS_ROOT;
   process.env._IMAGES_DIRNAME = IMAGES_DIRNAME;
   process.env._PUBLIC_PATH = PUBLIC_PATH;
   process.env._SRC_DIR = SRC_DIR;

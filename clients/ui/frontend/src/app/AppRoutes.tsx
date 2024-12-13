@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { NotFound } from './pages/notFound/NotFound';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
-import { useAppContext } from './AppContext';
+import useUser from './hooks/useUser';
 
 export const isNavDataGroup = (navItem: NavDataItem): navItem is NavDataGroup =>
   'children' in navItem;
@@ -23,7 +23,7 @@ export type NavDataGroup = NavDataCommon & {
 type NavDataItem = NavDataHref | NavDataGroup;
 
 export const useAdminSettings = (): NavDataItem[] => {
-  const { clusterAdmin } = useAppContext().user;
+  const { clusterAdmin } = useUser();
 
   if (!clusterAdmin) {
     return [];
@@ -46,7 +46,7 @@ export const useNavData = (): NavDataItem[] => [
 ];
 
 const AppRoutes: React.FC = () => {
-  const { clusterAdmin } = useAppContext().user;
+  const { clusterAdmin } = useUser();
 
   return (
     <Routes>

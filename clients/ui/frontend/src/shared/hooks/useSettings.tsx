@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { mockedUsername, POLL_INTERVAL, USER_ID } from '~/shared/utilities/const';
+import { USERNAME, POLL_INTERVAL, AUTH_HEADER, DEV_MODE } from '~/shared/utilities/const';
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 import { ConfigSettings, UserSettings } from '~/shared/types';
 import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
@@ -22,9 +22,7 @@ export const useSettings = (): {
     let watchHandle: ReturnType<typeof setTimeout>;
     let cancelled = false;
     const watchConfig = () => {
-      // TODO: [Env Handling] Add mocked mode for frontend in dev
-      // const headers = process.env.mocked === 'true' ? { [USER_ID]: mockedUsername } : undefined;
-      const headers = { [USER_ID]: mockedUsername };
+      const headers = DEV_MODE ? { [AUTH_HEADER]: USERNAME } : undefined;
       Promise.all([fetchConfig(), userSettings({ headers })])
         .then(([fetchedConfig, fetchedUser]) => {
           if (cancelled) {

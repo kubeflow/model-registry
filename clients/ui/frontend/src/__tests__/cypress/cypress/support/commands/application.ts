@@ -1,13 +1,11 @@
 import type { MatcherOptions } from '@testing-library/cypress';
 import type { Matcher, MatcherOptions as DTLMatcherOptions } from '@testing-library/dom';
-// import type { UserAuthConfig } from '~/__tests__/cypress/cypress/types';
-// import { TEST_USER } from '~/__tests__/cypress/cypress/utils/e2eUsers';
 
 /* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Cypress {
     interface Chainable {
-      // TODO: [Auth-enablement] Uncomment once auth is enabled
+      // TODO: [Global auth] Uncomment once auth is enabled
       // /**
       //  * Visits the URL and performs a login if necessary.
       //  * Uses credentials supplied by environment variables if not provided.
@@ -121,7 +119,7 @@ declare global {
   }
 }
 
-// TODO: [Auth-enablement] Uncomment once auth is enabled
+// TODO: [Global auth] Uncomment once auth is enabled
 // Cypress.Commands.add('visitWithLogin', (url, user = TEST_USER) => {
 //   if (Cypress.env('MOCK')) {
 //     cy.visit(url);
