@@ -30,6 +30,7 @@ type KubernetesClientInterface interface {
 	IsInCluster() bool
 	PerformSAR(user string) (bool, error)
 	IsClusterAdmin(user string) (bool, error)
+	GetNamespaces(user string) ([]corev1.Namespace, error)
 }
 
 type ServiceDetails struct {
@@ -305,4 +306,44 @@ func (kc *KubernetesClient) IsClusterAdmin(user string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (kc *KubernetesClient) GetNamespaces(user string) ([]corev1.Namespace, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	//list all namespaces
+	namespaceList := &corev1.NamespaceList{}
+	err := kc.ControllerRuntimeClient.List(ctx, namespaceList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list namespaces: %w", err)
+	}
+
+	//check user access with SAR for each namespace
+	var namespaces []corev1.Namespace
+	for _, ns := range namespaceList.Items {
+		sar := &authv1.SubjectAccessReview{
+			Spec: authv1.SubjectAccessReviewSpec{
+				User: user,
+				ResourceAttributes: &authv1.ResourceAttributes{
+					Namespace: ns.Name,
+					Verb:      "get",
+					Resource:  "namespaces",
+				},
+			},
+		}
+
+		response, err := kc.KubernetesNativeClient.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+		if err != nil {
+			kc.Logger.Error("failed to perform SubjectAccessReview", "namespace", ns.Name, "error", err)
+			continue
+		}
+
+		if response.Status.Allowed {
+			namespaces = append(namespaces, ns)
+		}
+	}
+
+	return namespaces, nil
+
 }

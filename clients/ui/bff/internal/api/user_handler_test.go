@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -32,9 +34,9 @@ var _ = Describe("TestUserHandler", func() {
 		It("should show that KubeflowUserIDHeaderValue (user@example.com) is a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
+			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
+			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
-
-			req.Header.Set(kubeflowUserId, KubeflowUserIDHeaderValue)
 
 			By("creating the http test infrastructure")
 			rr := httptest.NewRecorder()
@@ -60,9 +62,9 @@ var _ = Describe("TestUserHandler", func() {
 		It("should show that DoraNonAdminUser (doraNonAdmin@example.com) is not a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
+			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, DoraNonAdminUser)
+			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
-
-			req.Header.Set(kubeflowUserId, DoraNonAdminUser)
 
 			By("creating the http test infrastructure")
 			rr := httptest.NewRecorder()
@@ -90,9 +92,9 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
+			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, randomUser)
+			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
-
-			req.Header.Set(kubeflowUserId, randomUser)
 
 			By("creating the http test infrastructure")
 			rr := httptest.NewRecorder()
