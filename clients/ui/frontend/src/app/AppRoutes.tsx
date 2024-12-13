@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { NotFound } from './pages/notFound/NotFound';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
+import { useAppContext } from './AppContext';
 
 export const isNavDataGroup = (navItem: NavDataItem): navItem is NavDataGroup =>
   'children' in navItem;
@@ -22,12 +23,9 @@ export type NavDataGroup = NavDataCommon & {
 type NavDataItem = NavDataHref | NavDataGroup;
 
 export const useAdminSettings = (): NavDataItem[] => {
-  // get auth access for example set admin as true
-  const isAdmin = true; //this should be a call to getting auth / role access
+  const { clusterAdmin } = useAppContext().user;
 
-  // TODO: [Auth-enablement] Remove the linter skip when we implement authentication
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!isAdmin) {
+  if (!clusterAdmin) {
     return [];
   }
 
@@ -48,20 +46,16 @@ export const useNavData = (): NavDataItem[] => [
 ];
 
 const AppRoutes: React.FC = () => {
-  const isAdmin = true;
+  const { clusterAdmin } = useAppContext().user;
 
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/modelRegistry" replace />} />
       <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
-      {
-        // TODO: [Auth-enablement] Remove the linter skip when we implement authentication
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        isAdmin && (
-          <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
-        )
-      }
+      {clusterAdmin && (
+        <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
+      )}
     </Routes>
   );
 };

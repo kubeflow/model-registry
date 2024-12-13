@@ -25,13 +25,15 @@ paths:
       operationId: healthcheck
       summary: HealthCheck
       description: HealthCheck endpoint.
-  /api/v1/config:
-    summary: Path used to manage Configuration information regarding the UI.
+  /api/v1/user:
+    summary: Path used to Retrieve a user based on the header.
     description: >-
       The REST endpoint/path used pass all the config information needed for the UI.
     get:
       tags:
         - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ConfigResponse"
@@ -49,6 +51,8 @@ paths:
     get:
       tags:
         - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ModelRegistryRespone"
@@ -68,6 +72,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ModelVersionResponse"
@@ -112,6 +117,7 @@ paths:
       description: Updates an existing `ModelVersion`.
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
+      - $ref: "#/components/parameters/kubeflowUserId"
       - name: modelversionId
         description: A unique identifier for a `ModelVersion`.
         schema:
@@ -131,6 +137,7 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/RegisteredModelListResponse"
@@ -159,6 +166,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "201":
           $ref: "#/components/responses/RegisteredModelResponse"
@@ -180,6 +188,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/RegisteredModelResponse"
@@ -224,6 +233,7 @@ paths:
       description: Updates an existing `RegisteredModel`.
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
+      - $ref: "#/components/parameters/kubeflowUserId"
       - name: registeredmodelId
         description: A unique identifier for a `RegisteredModel`.
         schema:
@@ -245,6 +255,7 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ArtifactListResponse"
@@ -274,6 +285,7 @@ paths:
         - ModelRegistryService
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ArtifactResponse"
@@ -311,6 +323,7 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
           $ref: "#/components/responses/ModelVersionListResponse"
@@ -355,6 +368,7 @@ paths:
       description: Creates a new instance of a `ModelVersion`.
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
+      - $ref: "#/components/parameters/kubeflowUserId"
       - name: registeredmodelId
         description: A unique identifier for a `RegisteredModel`.
         schema:
@@ -365,12 +379,16 @@ components:
   schemas:
     Config:
       required:
-        - username
+        - userId
+        - clusterAdmin
       type: object
       properties:
-        username:
+        userId:
           type: string
-          example: username-1
+          example: user@example.com
+        clusterAdmin:
+          type: boolean
+          example: true
     ModelRegistry:
       required:
         - name
@@ -1193,6 +1211,12 @@ components:
                 $ref: "#/components/schemas/ServeModel"
       description: A response containing a `ServeModel` entity.
   parameters:
+    kubeflowUserId:
+      in: header
+      name: kubeflow-userid
+      schema:
+        type: string
+      required: true
     modelRegistryName:
       name: modelRegistryName
       description: Name of the Model Registry selected.
