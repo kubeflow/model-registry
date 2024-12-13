@@ -217,7 +217,7 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
         </FormGroup>
       </FormSection>
       <FormSection
-        field="Model location"
+        title="Model location"
         description="Specify the model location by providing either the object storage details or the URI."
       >
         <Split>

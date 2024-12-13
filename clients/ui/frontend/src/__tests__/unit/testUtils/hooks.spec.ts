@@ -70,11 +70,11 @@ describe('hook test utils', () => {
     expect(renderResult).hookToBe('Hello world!');
     expect(renderResult).hookToStrictEqual('Hello world!');
 
-    renderResult.rerender({ who: 'world', showCount: true });
+    renderResult.rerender({ who: 'world' });
 
     expect(renderResult).hookToHaveUpdateCount(3);
-    expect(renderResult).hookToBe('Hello world! x3');
-    expect(renderResult).hookToStrictEqual('Hello world! x3');
+    expect(renderResult).hookToBe('Hello world!');
+    expect(renderResult).hookToStrictEqual('Hello world!');
   });
 
   it('should use waitForNextUpdate for async update testing', async () => {

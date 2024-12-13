@@ -5,4 +5,4 @@ yarn.lock
 stats.json
 coverage
 .idea
-.env
+public-cypress

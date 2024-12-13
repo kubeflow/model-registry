@@ -1,4 +1,4 @@
-{
+module.exports = {
   "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
@@ -11,7 +11,7 @@
     "js": true,
     "useJSXTextNode": true,
     "project": "./tsconfig.json",
-    "tsconfigRootDir": "."
+    "tsconfigRootDir": __dirname
   },
   // includes the typescript specific rules found here: https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin#supported-rules
   "plugins": [
