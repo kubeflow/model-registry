@@ -13,7 +13,8 @@ import {
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme, USER_ID } from '~/shared/utilities/const';
+import { isMUITheme, Theme, AUTH_HEADER, DEV_MODE } from '~/shared/utilities/const';
+import { logout } from '~/shared/utilities/appUtils';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -40,12 +41,10 @@ const App: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    // Add the user to localStorage if in PoC
-    // TODO: [Env Handling] Just add this logic in PoC mode
-    if (username) {
-      localStorage.setItem(USER_ID, username);
+    if (DEV_MODE && username) {
+      localStorage.setItem(AUTH_HEADER, username);
     } else {
-      localStorage.removeItem(USER_ID);
+      localStorage.removeItem(AUTH_HEADER);
     }
   }, [username]);
 
@@ -76,9 +75,7 @@ const App: React.FC = () => {
             <StackItem>
               <Button
                 variant="secondary"
-                onClick={() => {
-                  // TODO: [Auth-enablement] Logout when auth is enabled
-                }}
+                onClick={() => logout().then(() => window.location.reload())}
               >
                 Logout
               </Button>
@@ -104,7 +101,7 @@ const App: React.FC = () => {
           <NavBar
             username={username}
             onLogout={() => {
-              //TODO: [Auth-enablement] Logout when auth is enabled
+              logout().then(() => window.location.reload());
             }}
           />
         }

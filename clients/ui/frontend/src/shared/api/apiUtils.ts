@@ -1,7 +1,7 @@
 import { APIOptions } from '~/shared/api/types';
 import { EitherOrNone } from '~/shared/typeHelpers';
 import { ModelRegistryBody } from '~/app/types';
-import { USER_ID } from '~/shared/utilities/const';
+import { DEV_MODE, AUTH_HEADER } from '~/shared/utilities/const';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
@@ -65,17 +65,11 @@ const callRestJSON = <T>(
     requestData = JSON.stringify(data);
   }
 
-  // Get from the browser storage the value from the key USER_ID
-  // and set it as a header value for the request.
-  // THIS IS ONLY INTENEDED FOR THE POC WHEN YOU CANNOT INJECT IT WITH A PROXY
-  // TODO: [Env Handling] Just add it when in PoC
-  const userID = localStorage.getItem(USER_ID);
-
   return fetch(`${host}${path}${searchParams ? `?${searchParams}` : ''}`, {
     ...otherOptions,
     headers: {
       ...otherOptions.headers,
-      ...(userID && { [USER_ID]: userID }), // TODO: [Env Handling] Just add it when in PoC
+      ...(DEV_MODE && { [AUTH_HEADER]: localStorage.getItem(AUTH_HEADER) }),
       ...(contentType && { 'Content-Type': contentType }),
     },
     method,

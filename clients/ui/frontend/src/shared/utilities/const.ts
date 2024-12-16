@@ -1,6 +1,3 @@
-// TODO: [Env Handling] Fetch the .env variable here.
-const POLL_INTERVAL = 30000;
-
 export enum Theme {
   Default = 'default-theme',
   MUI = 'mui-theme',
@@ -9,9 +6,12 @@ export enum Theme {
 
 export const isMUITheme = (): boolean => STYLE_THEME === Theme.MUI;
 
-export const STYLE_THEME = process.env.STYLE_THEME || Theme.MUI;
+const STYLE_THEME = process.env.STYLE_THEME || Theme.MUI;
+const DEV_MODE = process.env.APP_ENV === 'development';
+const POLL_INTERVAL = process.env.POLL_INTERVAL ? parseInt(process.env.POLL_INTERVAL) : 30000;
+const AUTH_HEADER = process.env.AUTH_HEADER || 'kubeflow-userid';
+const USERNAME = process.env.USERNAME || 'user@example.com';
+const IMAGE_DIR = process.env.IMAGE_DIR || 'images';
+const LOGO_LIGHT = process.env.LOGO || 'logo-light-theme.svg';
 
-export const USER_ID = 'kubeflow-userid';
-export const mockedUsername = 'user@example.com';
-
-export { POLL_INTERVAL };
+export { POLL_INTERVAL, DEV_MODE, AUTH_HEADER, USERNAME, IMAGE_DIR, LOGO_LIGHT };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { ModelRegistryAPIState } from '~/app/context/useModelRegistryAPIState';
+import useUser from '~/app/hooks/useUser';
 
 type RegistrationCommonState = {
   isSubmitting: boolean;
@@ -17,7 +18,7 @@ export const useRegistrationCommonState = (): RegistrationCommonState => {
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
   const { apiState } = React.useContext(ModelRegistryContext);
-  const author = 'kubeflow-user'; // TODO: [Auth-enablement] Enable this once we have users ---> useAppSelector((state) => state.user || '');
+  const { userId } = useUser();
 
   const handleSubmit = (doSubmit: () => Promise<unknown>) => {
     setIsSubmitting(true);
@@ -35,6 +36,6 @@ export const useRegistrationCommonState = (): RegistrationCommonState => {
     setSubmitError,
     handleSubmit,
     apiState,
-    author,
+    author: userId,
   };
 };
