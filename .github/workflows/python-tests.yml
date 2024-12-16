@@ -73,11 +73,10 @@ jobs:
       matrix:
         python: ["3.12"] # see below for versions 3.9-3.11
         kubernetes-version: ["v1.27.11", "v1.28.7", "v1.29.2", "v1.30.6"]
-        # DEMO on PR how it would look on main-merges
-        # exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
-        #   - kubernetes-version: ${{ github.event_name != 'push' && 'v1.28.7' }}
-        #   - kubernetes-version: ${{ github.event_name != 'push' && 'v1.29.2' }}
-        #   - kubernetes-version: ${{ github.event_name != 'push' && 'v1.30.6' }}
+        exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.28.7' }}
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.29.2' }}
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.30.6' }}
         include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.27.11
           - python: "3.11"
             kubernetes-version: "v1.27.11"
