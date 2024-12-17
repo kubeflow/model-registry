@@ -18,7 +18,14 @@ func (app *App) GetNamespacesHandler(w http.ResponseWriter, r *http.Request, _ h
 		return
 	}
 
-	namespaces, err := app.repositories.Namespace.GetNamespaces(app.kubernetesClient, userId)
+	var userGroups []string
+	if groups, ok := r.Context().Value(KubeflowUserGroupsKey).([]string); ok {
+		userGroups = groups
+	} else {
+		userGroups = []string{}
+	}
+
+	namespaces, err := app.repositories.Namespace.GetNamespaces(app.kubernetesClient, userId, userGroups)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

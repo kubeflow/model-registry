@@ -22,15 +22,16 @@ import (
 const ComponentLabelValue = "model-registry"
 
 type KubernetesClientInterface interface {
-	GetServiceNames() ([]string, error)
-	GetServiceDetailsByName(serviceName string) (ServiceDetails, error)
-	GetServiceDetails() ([]ServiceDetails, error)
+	GetServiceNames(namespace string) ([]string, error)
+	GetServiceDetailsByName(namespace string, serviceName string) (ServiceDetails, error)
+	GetServiceDetails(namespace string) ([]ServiceDetails, error)
 	BearerToken() (string, error)
 	Shutdown(ctx context.Context, logger *slog.Logger) error
 	IsInCluster() bool
-	PerformSAR(user string) (bool, error)
+	PerformSARonGetListServicesByNamespace(user string, groups []string, namespace string) (bool, error)
+	PerformSARonSpecificService(user string, groups []string, namespace string, serviceName string) (bool, error)
 	IsClusterAdmin(user string) (bool, error)
-	GetNamespaces(user string) ([]corev1.Namespace, error)
+	GetNamespaces(user string, groups []string) ([]corev1.Namespace, error)
 }
 
 type ServiceDetails struct {
@@ -151,8 +152,8 @@ func (kc *KubernetesClient) BearerToken() (string, error) {
 	return kc.Token, nil
 }
 
-func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
-	services, err := kc.GetServiceDetails()
+func (kc *KubernetesClient) GetServiceNames(namespace string) ([]string, error) {
+	services, err := kc.GetServiceDetails(namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,12 @@ func (kc *KubernetesClient) GetServiceNames() ([]string, error) {
 	return names, nil
 }
 
-func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
+func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetails, error) {
+
+	if namespace == "" {
+		return nil, fmt.Errorf("namespace cannot be empty")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -177,6 +183,7 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 
 	err := kc.ControllerRuntimeClient.List(ctx, serviceList, &client.ListOptions{
 		LabelSelector: labelSelector,
+		Namespace:     namespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list services: %w", err)
@@ -235,8 +242,8 @@ func (kc *KubernetesClient) GetServiceDetails() ([]ServiceDetails, error) {
 	return services, nil
 }
 
-func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (ServiceDetails, error) {
-	services, err := kc.GetServiceDetails()
+func (kc *KubernetesClient) GetServiceDetailsByName(namespace string, serviceName string) (ServiceDetails, error) {
+	services, err := kc.GetServiceDetails(namespace)
 	if err != nil {
 		return ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}
@@ -250,19 +257,22 @@ func (kc *KubernetesClient) GetServiceDetailsByName(serviceName string) (Service
 	return ServiceDetails{}, fmt.Errorf("service %s not found", serviceName)
 }
 
-func (kc *KubernetesClient) PerformSAR(user string) (bool, error) {
+func (kc *KubernetesClient) PerformSARonGetListServicesByNamespace(user string, groups []string, namespace string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
 	verbs := []string{"get", "list"}
 	resource := "services"
 
 	for _, verb := range verbs {
 		sar := &authv1.SubjectAccessReview{
 			Spec: authv1.SubjectAccessReviewSpec{
-				User: user,
+				User:   user,
+				Groups: groups,
 				ResourceAttributes: &authv1.ResourceAttributes{
-					Verb:     verb,
-					Resource: resource,
+					Verb:      verb,
+					Resource:  resource,
+					Namespace: namespace,
 				},
 			},
 		}
@@ -308,7 +318,7 @@ func (kc *KubernetesClient) IsClusterAdmin(user string) (bool, error) {
 	return false, nil
 }
 
-func (kc *KubernetesClient) GetNamespaces(user string) ([]corev1.Namespace, error) {
+func (kc *KubernetesClient) GetNamespaces(user string, groups []string) ([]corev1.Namespace, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -324,7 +334,8 @@ func (kc *KubernetesClient) GetNamespaces(user string) ([]corev1.Namespace, erro
 	for _, ns := range namespaceList.Items {
 		sar := &authv1.SubjectAccessReview{
 			Spec: authv1.SubjectAccessReviewSpec{
-				User: user,
+				User:   user,
+				Groups: groups,
 				ResourceAttributes: &authv1.ResourceAttributes{
 					Namespace: ns.Name,
 					Verb:      "get",
@@ -346,4 +357,44 @@ func (kc *KubernetesClient) GetNamespaces(user string) ([]corev1.Namespace, erro
 
 	return namespaces, nil
 
+}
+
+func (kc *KubernetesClient) PerformSARonSpecificService(user string, groups []string, namespace string, serviceName string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	resource := "services"
+	verb := "get"
+
+	sar := &authv1.SubjectAccessReview{
+		Spec: authv1.SubjectAccessReviewSpec{
+			User:   user,
+			Groups: groups,
+			ResourceAttributes: &authv1.ResourceAttributes{
+				Verb:      verb,
+				Resource:  resource,
+				Namespace: namespace,
+				Name:      serviceName,
+			},
+		},
+	}
+
+	// Perform the SAR using the native KubernetesNativeClient client
+	response, err := kc.KubernetesNativeClient.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+	if err != nil {
+		return false, fmt.Errorf(
+			"failed to create SubjectAccessReview for verb %q on resource %q (service: %q) in namespace %q: %w",
+			verb, resource, serviceName, namespace, err,
+		)
+	}
+
+	if !response.Status.Allowed {
+		kc.Logger.Warn(
+			"access denied", "user", user, "verb", verb, "resource", resource,
+			"namespace", namespace, "service", serviceName,
+		)
+		return false, nil
+	}
+
+	return true, nil
 }

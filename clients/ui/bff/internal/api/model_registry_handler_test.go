@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
@@ -23,7 +25,12 @@ var _ = Describe("TestModelRegistryHandler", func() {
 			}
 
 			By("creating the http test infrastructure")
-			req, err := http.NewRequest(http.MethodGet, ModelRegistryListPath, nil)
+			requestPath := fmt.Sprintf(" %s?namespace=kubeflow", ModelRegistryListPath)
+			req, err := http.NewRequest(http.MethodGet, requestPath, nil)
+
+			ctx := context.WithValue(req.Context(), NamespaceHeaderParameterKey, "kubeflow")
+			req = req.WithContext(ctx)
+
 			Expect(err).NotTo(HaveOccurred())
 			rr := httptest.NewRecorder()
 
@@ -43,8 +50,7 @@ var _ = Describe("TestModelRegistryHandler", func() {
 			By("should match the expected model registries")
 			var expected = []models.ModelRegistryModel{
 				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-				{Name: "model-registry-bella", Description: "Model Registry Bella description", DisplayName: "Model Registry Bella"},
-				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
+				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One"},
 			}
 			Expect(actual.Data).To(ConsistOf(expected))
 		})

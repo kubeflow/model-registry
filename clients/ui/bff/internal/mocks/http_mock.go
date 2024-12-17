@@ -9,6 +9,10 @@ type MockHTTPClient struct {
 	mock.Mock
 }
 
+func (c *MockHTTPClient) GetModelRegistryID() string {
+	return "model-registry"
+}
+
 func (m *MockHTTPClient) GET(url string) ([]byte, error) {
 	args := m.Called(url)
 	return args.Get(0).([]byte), args.Error(1)
