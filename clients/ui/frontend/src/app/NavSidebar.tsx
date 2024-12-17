@@ -9,6 +9,7 @@ import {
   PageSidebar,
   PageSidebarBody,
 } from '@patternfly/react-core';
+import { LOGO_LIGHT } from '~/shared/utilities/const';
 import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from './AppRoutes';
 
 const NavHref: React.FC<{ item: NavDataHref }> = ({ item }) => (
@@ -50,7 +51,7 @@ const NavSidebar: React.FC = () => {
             <NavItem>
               <Brand
                 className="kubeflow_brand"
-                src={`${window.location.origin}/images/logo.svg`}
+                src={`${window.location.origin}/images/${LOGO_LIGHT}`}
                 alt="Kubeflow Logo"
               />
             </NavItem>

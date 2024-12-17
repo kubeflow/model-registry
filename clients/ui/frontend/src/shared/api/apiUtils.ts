@@ -1,7 +1,7 @@
 import { APIOptions } from '~/shared/api/types';
 import { EitherOrNone } from '~/shared/typeHelpers';
 import { ModelRegistryBody } from '~/app/types';
-import { USER_ACCESS_TOKEN } from '~/shared/utilities/const';
+import { DEV_MODE, AUTH_HEADER } from '~/shared/utilities/const';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
@@ -9,6 +9,10 @@ export const mergeRequestInit = (
 ): RequestInit => ({
   ...specificOpts,
   ...(opts.signal && { signal: opts.signal }),
+  headers: {
+    ...(opts.headers ?? {}),
+    ...(specificOpts.headers ?? {}),
+  },
 });
 
 type CallRestJSONOptions = {
@@ -61,23 +65,11 @@ const callRestJSON = <T>(
     requestData = JSON.stringify(data);
   }
 
-  // Get from the browser storage the value from the key USER_ACCESS_TOKEN
-  // and set it as the value for the header key 'x-forwarded-access-token'
-  // This is a security measure to ensure that the user is authenticated
-  // before making any API calls. Local Storage is not secure, but it is
-  // enough for this PoC.
-  const token = localStorage.getItem(USER_ACCESS_TOKEN);
-  if (token) {
-    otherOptions.headers = {
-      ...otherOptions.headers,
-      [USER_ACCESS_TOKEN]: token,
-    };
-  }
-
   return fetch(`${host}${path}${searchParams ? `?${searchParams}` : ''}`, {
     ...otherOptions,
     headers: {
       ...otherOptions.headers,
+      ...(DEV_MODE && { [AUTH_HEADER]: localStorage.getItem(AUTH_HEADER) }),
       ...(contentType && { 'Content-Type': contentType }),
     },
     method,

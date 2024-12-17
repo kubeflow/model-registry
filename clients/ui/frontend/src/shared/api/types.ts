@@ -2,6 +2,7 @@ export type APIOptions = {
   dryRun?: boolean;
   signal?: AbortSignal;
   parseJSON?: boolean;
+  headers?: Record<string, string>;
 };
 
 export type APIError = {

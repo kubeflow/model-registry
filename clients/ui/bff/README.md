@@ -57,6 +57,7 @@ make docker-build
 | URL Pattern                                                                                  | Handler                                      | Action                                                      |
 |----------------------------------------------------------------------------------------------|----------------------------------------------|-------------------------------------------------------------|
 | GET /v1/healthcheck                                                                          | HealthcheckHandler                           | Show application information.                               |
+| GET /v1/user                                                                                 | UserHandler                                  | Show "kubeflow-user-id" from header information.            |
 | GET /v1/model_registry                                                                       | ModelRegistryHandler                         | Get all model registries,                                   |
 | GET /v1/model_registry/{model_registry_id}/registered_models                                 | GetAllRegisteredModelsHandler                | Gets a list of all RegisteredModel entities.                |
 | POST /v1/model_registry/{model_registry_id}/registered_models                                | CreateRegisteredModelHandler                 | Create a RegisteredModel entity.                            |
@@ -76,6 +77,10 @@ You will need to inject your requests with a kubeflow-userid header for authoriz
 ```
 # GET /v1/healthcheck
 curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/healthcheck
+```
+```
+# GET /v1/user
+curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/user
 ```
 ```
 # GET /v1/model_registry 
@@ -211,3 +216,38 @@ curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/mod
 # Get with a page size of 5, order by last update time in descending order.
 curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?pageSize=5&orderBy=LAST_UPDATE_TIME&sortOrder=DESC"
 ```
+
+
+### FAQ
+
+#### 1. How do we filter model registry services from other Kubernetes services?
+
+We filter Model Registry services by using the Kubernetes label `component: model-registry. This label helps distinguish Model Registry services from other services in the cluster.
+
+For example, in our service manifest, the `component label is defined as follows:
+```yaml
+# ...
+labels:
+  # ...
+  component: model-registry
+#...
+```
+You can view the complete Model Registry service manifest [here](https://github.com/kubeflow/model-registry/blob/main/manifests/kustomize/base/model-registry-service.yaml#L10).
+
+#### 2. What is the structure of the mock Kubernetes environment?
+
+The mock Kubernetes environment is activated when the environment variable `MOCK_K8S_CLIENT` is set to `true`. It is based on `env-test` and is designed to simulate a realistic Kubernetes setup for testing. The mock has the following characteristics:
+
+- **Namespaces**:
+  - `kubeflow`
+  - `dora-namespace`
+
+- **Users**:
+  - `user@example.com` (has `cluster-admin` privileges)
+  - `doraNonAdmin@example.com` (restricted to the `dora-namespace`)
+
+- **Services (Model Registries)**:
+  - `model-registry`: resides in the `kubeflow` namespace with the label `component: model-registry`.
+  - `model-registry-dora`: resides in the `dora-namespace` namespace with the label `component: model-registry`.
+  - `model-registry-bella`: resides in the `kubeflow` namespace with the label `component: model-registry`.
+  - `non-model-registry`: resides in the `kubeflow` namespace *without* the label `component: model-registry`.

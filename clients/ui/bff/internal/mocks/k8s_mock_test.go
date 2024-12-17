@@ -53,9 +53,8 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
 			By("checking that service details are correct")
-			Expect(services[0]).To(Equal("model-registry"))
-			Expect(services[1]).To(Equal("model-registry-bella"))
-			Expect(services[2]).To(Equal("model-registry-dora"))
+			Expect(services).To(ConsistOf("model-registry", "model-registry-bella", "model-registry-dora"))
+
 		})
 	})
 
@@ -78,5 +77,25 @@ var _ = Describe("KubernetesNativeClient SAR Test", func() {
 			Expect(allowed).To(BeFalse(), "Expected unauthorized-dora@example.com to be denied access")
 		})
 
+	})
+})
+
+var _ = Describe("KubernetesClient isClusterAdmin Test", func() {
+	Context("checking cluster admin status", func() {
+		It("should confirm that user@example.com(KubeflowUserIDHeaderValue) is a cluster-admin", func() {
+			isAdmin, err := k8sClient.IsClusterAdmin(KubeflowUserIDHeaderValue)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(isAdmin).To(BeTrue())
+		})
+		It("should confirm that doraNonAdmin@example.com(DoraNonAdminUser) is a not cluster-admin", func() {
+			isAdmin, err := k8sClient.IsClusterAdmin(DoraNonAdminUser)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(isAdmin).To(BeFalse())
+		})
+		It("should confirm that non existent user is not a cluster-admin", func() {
+			isAdmin, err := k8sClient.IsClusterAdmin("bella@non-existent.com")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(isAdmin).To(BeFalse())
+		})
 	})
 })

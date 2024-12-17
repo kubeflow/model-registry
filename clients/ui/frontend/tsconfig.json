@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "baseUrl": "./src",
     "rootDir": ".",
     "outDir": "dist",
     "module": "esnext",
     "target": "es5",
     "lib": [
-      "ESNext.Array",
       "es6",
-      "dom"
+      "dom",
+      "ES2023.Array"
     ],
     "sourceMap": true,
     "jsx": "react",
@@ -22,21 +21,26 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "baseUrl": "./src",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ]
     },
     "importHelpers": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noErrorTruncation": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "**/*.jsx",
-    "**/*.js",
+    "**/*.js"
   ],
   "exclude": [
     "node_modules",
     "dist",
+    "public-cypress",
     "src/__tests__/cypress"
   ]
 }

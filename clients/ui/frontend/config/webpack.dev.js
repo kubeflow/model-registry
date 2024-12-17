@@ -1,48 +1,100 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
+const { execSync } = require('child_process');
 const path = require('path');
 const { merge } = require('webpack-merge');
-const common = require('./webpack.common.js');
-const { stylePaths } = require('./stylePaths');
-const HOST = process.env.HOST || 'localhost';
-const PORT = process.env.PORT || '9000';
-const PROXY_HOST = process.env.PROXY_HOST || 'localhost';
-const PROXY_PORT = process.env.PROXY_PORT || '4000';
-const PROXY_PROTOCOL = process.env.PROXY_PROTOCOL || 'http:';
-const relativeDir = path.resolve(__dirname, '..');
+const { setupWebpackDotenvFilesForEnv, setupDotenvFilesForEnv } = require('./dotenv');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 
-module.exports = merge(common('development'), {
-  mode: 'development',
-  devtool: 'eval-source-map',
-  devServer: {
-    host: HOST,
-    port: PORT,
-    historyApiFallback: true,
-    static: {
-      directory: path.resolve(relativeDir, 'dist'),
+const smp = new SpeedMeasurePlugin({ disable: !process.env.MEASURE });
+
+setupDotenvFilesForEnv({ env: 'development' });
+const webpackCommon = require('./webpack.common.js');
+
+const RELATIVE_DIRNAME = process.env._RELATIVE_DIRNAME;
+const IS_PROJECT_ROOT_DIR = process.env._IS_PROJECT_ROOT_DIR;
+const SRC_DIR = process.env._SRC_DIR;
+const COMMON_DIR = process.env._COMMON_DIR;
+const DIST_DIR = process.env._DIST_DIR;
+const HOST = process.env._HOST;
+const PORT = process.env._PORT;
+const PROXY_PROTOCOL = process.env._PROXY_PROTOCOL;
+const PROXY_HOST = process.env._PROXY_HOST;
+const PROXY_PORT = process.env._PROXY_PORT;
+
+module.exports = smp.wrap(
+  merge(
+    {
+      plugins: [
+        ...setupWebpackDotenvFilesForEnv({
+          directory: RELATIVE_DIRNAME,
+          env: 'development',
+          isRoot: IS_PROJECT_ROOT_DIR,
+        }),
+      ],
     },
-    client: {
-      overlay: true,
-    },
-    proxy: [
-      {
-        context: ["/api"],
-        target: {
-          host: PROXY_HOST,
-          protocol: PROXY_PROTOCOL,
-          port: PROXY_PORT,
+    webpackCommon('development'),
+    {
+      mode: 'development',
+      devtool: 'eval-source-map',
+      optimization: {
+        runtimeChunk: 'single',
+        removeEmptyChunks: true,
+      },
+      devServer: {
+        host: HOST,
+        port: PORT,
+        compress: true,
+        historyApiFallback: true,
+        hot: true,
+        open: false,
+        proxy: [
+          {
+            context: ["/api"],
+            target: {
+              host: PROXY_HOST,
+              protocol: PROXY_PROTOCOL,
+              port: PROXY_PORT,
+            },
+            changeOrigin: true,
+          },
+        ],
+        devMiddleware: {
+          stats: 'errors-only',
         },
-        changeOrigin: true,
+        client: {
+          overlay: false,
+        },
+        static: {
+          directory: DIST_DIR,
+        },
+        onListening: (devServer) => {
+          if (devServer) {
+            console.log(
+              `\x1b[32m✓ Dashboard available at: \x1b[4mhttp://localhost:${
+                devServer.server.address().port
+              }\x1b[0m`,
+            );
+          }
+        },
       },
-    ],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        include: [...stylePaths],
-        use: ['style-loader', 'css-loader'],
+      module: {
+        rules: [
+          {
+            test: /\.css$/,
+            include: [
+              SRC_DIR,
+              COMMON_DIR,
+              path.resolve(RELATIVE_DIRNAME, 'node_modules/@patternfly'),
+            ],
+            use: ['style-loader', 'css-loader'],
+          },
+        ],
       },
-    ],
-  },
-});
+      plugins: [
+        new ForkTsCheckerWebpackPlugin(),
+        new ReactRefreshWebpackPlugin({ overlay: false }),
+      ],
+    },
+  ),
+);

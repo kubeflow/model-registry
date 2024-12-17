@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { POLL_INTERVAL } from '~/shared/utilities/const';
+import { USERNAME, POLL_INTERVAL, AUTH_HEADER, DEV_MODE } from '~/shared/utilities/const';
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 import { ConfigSettings, UserSettings } from '~/shared/types';
 import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
+import { getUser } from '~/shared/api/k8s';
 
 export const useSettings = (): {
   configSettings: ConfigSettings | null;
@@ -14,13 +15,15 @@ export const useSettings = (): {
   const [loadError, setLoadError] = React.useState<Error>();
   const [config, setConfig] = React.useState<ConfigSettings | null>(null);
   const [user, setUser] = React.useState<UserSettings | null>(null);
+  const userSettings = React.useMemo(() => getUser(''), []);
   const setRefreshMarker = useTimeBasedRefresh();
 
   React.useEffect(() => {
     let watchHandle: ReturnType<typeof setTimeout>;
     let cancelled = false;
     const watchConfig = () => {
-      Promise.all([fetchConfig(), fetchUser()])
+      const headers = DEV_MODE ? { [AUTH_HEADER]: USERNAME } : undefined;
+      Promise.all([fetchConfig(), userSettings({ headers })])
         .then(([fetchedConfig, fetchedUser]) => {
           if (cancelled) {
             return;
@@ -53,7 +56,7 @@ export const useSettings = (): {
       cancelled = true;
       clearTimeout(watchHandle);
     };
-  }, [setRefreshMarker]);
+  }, [setRefreshMarker, userSettings]);
 
   const retConfig = useDeepCompareMemoize<ConfigSettings | null>(config);
   const retUser = useDeepCompareMemoize<UserSettings | null>(user);
@@ -62,19 +65,11 @@ export const useSettings = (): {
 };
 
 // Mock a settings config call
-// TODO: [Data Flow] replace with thea actual call once we have the endpoint
+// TODO: [Data Flow] replace with the actual call once we have the endpoint
 export const fetchConfig = async (): Promise<ConfigSettings> => ({
   common: {
     featureFlags: {
       modelRegistry: true,
     },
   },
-});
-
-// Mock a settings user call
-// TODO: [Auth-enablement] replace with thea actual call once we have the endpoint
-export const fetchUser = async (): Promise<UserSettings> => ({
-  username: 'admin',
-  isAdmin: true,
-  isAllowed: true,
 });

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useBrowserStorage } from '~/shared/components/browserStorage';
+import { logout } from '~/shared/utilities/appUtils';
 
 export type SetTime = (refreshDateMarker: Date) => void;
 
@@ -33,8 +34,7 @@ const useTimeBasedRefresh = (): SetTime => {
     if (lastDate < refreshDateMarker) {
       setNewDateString(refreshDateMarker.toString());
       console.log('Logging out and refreshing');
-      // TODO: [Auth-enablement] Replace with actual logout function
-      //logout().then(() => window.location.reload());
+      logout().then(() => window.location.reload());
     } else {
       console.error(
         `We should have refreshed but it appears the last time we auto-refreshed was less than an hour ago. '${KEY_NAME}' session storage setting can be cleared for this to refresh again within the hour from the last refresh.`,
