@@ -10,14 +10,16 @@ import (
 )
 
 type HTTPClientInterface interface {
+	GetModelRegistryID() (modelRegistryService string)
 	GET(url string) ([]byte, error)
 	POST(url string, body io.Reader) ([]byte, error)
 	PATCH(url string, body io.Reader) ([]byte, error)
 }
 
 type HTTPClient struct {
-	client  *http.Client
-	baseURL string
+	client          *http.Client
+	baseURL         string
+	ModelRegistryID string
 }
 
 type ErrorResponse struct {
@@ -34,14 +36,19 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s - %s", e.StatusCode, e.Code, e.Message)
 }
 
-func NewHTTPClient(baseURL string) (HTTPClientInterface, error) {
+func NewHTTPClient(modelRegistryID string, baseURL string) (HTTPClientInterface, error) {
 
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}},
-		baseURL: baseURL,
+		baseURL:         baseURL,
+		ModelRegistryID: modelRegistryID,
 	}, nil
+}
+
+func (c *HTTPClient) GetModelRegistryID() string {
+	return c.ModelRegistryID
 }
 
 func (c *HTTPClient) GET(url string) ([]byte, error) {
