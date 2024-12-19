@@ -84,7 +84,7 @@ var _ = Describe("TestNamespacesHandler", func() {
 			Expect(actual.Data).To(ContainElements(expected))
 		})
 
-		It("should return all namespaces for non-existent user", func() {
+		It("should return no namespaces for non-existent user", func() {
 			By("creating the HTTP request with a non-existent kubeflow-userid")
 			req, err := http.NewRequest(http.MethodGet, NamespaceListPath, nil)
 			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, "nonexistent@example.com")
