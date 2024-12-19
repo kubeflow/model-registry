@@ -6,6 +6,7 @@ type Repositories struct {
 	ModelRegistry       *ModelRegistryRepository
 	ModelRegistryClient ModelRegistryClientInterface
 	User                *UserRepository
+	Namespace           *NamespaceRepository
 }
 
 func NewRepositories(modelRegistryClient ModelRegistryClientInterface) *Repositories {
@@ -14,5 +15,6 @@ func NewRepositories(modelRegistryClient ModelRegistryClientInterface) *Reposito
 		ModelRegistry:       NewModelRegistryRepository(),
 		ModelRegistryClient: modelRegistryClient,
 		User:                NewUserRepository(),
+		Namespace:           NewNamespaceRepository(),
 	}
 }

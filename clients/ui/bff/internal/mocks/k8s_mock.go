@@ -303,7 +303,7 @@ func createNamespaceRestrictedRBAC(k8sClient client.Client, ctx context.Context,
 		Rules: []rbacv1.PolicyRule{
 			{
 				APIGroups: []string{""},
-				Resources: []string{"services"},
+				Resources: []string{"services", "namespaces"},
 				Verbs:     []string{"get", "list"},
 			},
 		},
