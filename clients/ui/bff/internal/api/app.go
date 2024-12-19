@@ -23,6 +23,7 @@ const (
 	HealthCheckPath              = PathPrefix + "/healthcheck"
 	UserPath                     = PathPrefix + "/user"
 	ModelRegistryListPath        = PathPrefix + "/model_registry"
+	NamespaceListPath            = PathPrefix + "/namespaces"
 	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
 	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
 	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
@@ -96,17 +97,25 @@ func (app *App) Routes() http.Handler {
 	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
 	router.GET(RegisteredModelVersionsPath, app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))
 	router.POST(RegisteredModelVersionsPath, app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))
-
 	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
 	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
 	router.PATCH(ModelVersionPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 	router.GET(ModelVersionArtifactListPath, app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))
 	router.POST(ModelVersionArtifactListPath, app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))
+	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
 
 	// Kubernetes client routes
 	router.GET(UserPath, app.UserHandler)
 	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
-	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
+	if app.config.DevMode {
+		router.GET(NamespaceListPath, app.GetNamespacesHandler)
+	}
 
-	return app.RecoverPanic(app.enableCORS(app.RequireAccessControl(router)))
+	accessControlExemptPaths := map[string]struct{}{
+		HealthCheckPath:   {},
+		UserPath:          {},
+		NamespaceListPath: {},
+	}
+
+	return app.RecoverPanic(app.enableCORS(app.RequireAccessControl(app.InjectUserHeaders(router), accessControlExemptPaths)))
 }
