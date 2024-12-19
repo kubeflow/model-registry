@@ -22,4 +22,8 @@ export type KeyValuePair = {
   value: string;
 };
 
+export type Namespace = {
+  name: string;
+};
+
 export type UpdateObjectAtPropAndValue<T> = (propKey: keyof T, propValue: ValueOf<T>) => void;

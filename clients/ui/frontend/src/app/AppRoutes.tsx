@@ -53,6 +53,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Navigate to="/modelRegistry" replace />} />
       <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
+      {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode*/}
       {clusterAdmin && (
         <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
       )}

@@ -342,12 +342,14 @@ describe('patchRegisteredModel', () => {
     const mockData = { description: 'new test' };
     const response = await patchRegisteredModel(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      {},
     )(APIOptionsMock, mockData, '1');
     expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/registered_models/1`,
+      {},
       {},
       APIOptionsMock,
     );
@@ -361,12 +363,14 @@ describe('patchModelVersion', () => {
     const mockData = { description: 'new test' };
     const response = await patchModelVersion(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      {},
     )(APIOptionsMock, mockData, '1');
     expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_versions/1`,
+      {},
       {},
       APIOptionsMock,
     );
@@ -380,12 +384,14 @@ describe('patchModelArtifact', () => {
     const mockData = { description: 'new test' };
     const response = await patchModelArtifact(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
+      {},
     )(APIOptionsMock, mockData, '1');
     expect(response).toEqual(mockRestResponse);
     expect(restPATCHMock).toHaveBeenCalledTimes(1);
     expect(restPATCHMock).toHaveBeenCalledWith(
       `/api/${BFF_API_VERSION}/model_registry/model-registry-1/`,
       `/model_artifacts/1`,
+      {},
       {},
       APIOptionsMock,
     );

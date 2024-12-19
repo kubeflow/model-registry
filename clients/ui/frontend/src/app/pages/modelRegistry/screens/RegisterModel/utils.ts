@@ -5,7 +5,7 @@ import {
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
-import { ModelRegistryAPIState } from '~/app/context/useModelRegistryAPIState';
+import { ModelRegistryAPIState } from '~/app/hooks/useModelRegistryAPIState';
 import { objectStorageFieldsToUri } from '~/app/pages/modelRegistry/screens/utils';
 import {
   ModelLocationType,

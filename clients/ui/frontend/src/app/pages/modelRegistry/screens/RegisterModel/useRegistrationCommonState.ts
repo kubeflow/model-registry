@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { ModelRegistryAPIState } from '~/app/context/useModelRegistryAPIState';
+import { ModelRegistryAPIState } from '~/app/hooks/useModelRegistryAPIState';
 import useUser from '~/app/hooks/useUser';
 
 type RegistrationCommonState = {
