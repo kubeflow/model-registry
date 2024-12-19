@@ -13,9 +13,9 @@ func NewModelRegistryRepository() *ModelRegistryRepository {
 	return &ModelRegistryRepository{}
 }
 
-func (m *ModelRegistryRepository) FetchAllModelRegistries(client k8s.KubernetesClientInterface) ([]models.ModelRegistryModel, error) {
+func (m *ModelRegistryRepository) GetAllModelRegistries(client k8s.KubernetesClientInterface, namespace string) ([]models.ModelRegistryModel, error) {
 
-	resources, err := client.GetServiceDetails()
+	resources, err := client.GetServiceDetails(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching model registries: %w", err)
 	}

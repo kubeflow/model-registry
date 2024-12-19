@@ -12,9 +12,9 @@ func NewNamespaceRepository() *NamespaceRepository {
 	return &NamespaceRepository{}
 }
 
-func (r *NamespaceRepository) GetNamespaces(client k8s.KubernetesClientInterface, user string) ([]models.NamespaceModel, error) {
+func (r *NamespaceRepository) GetNamespaces(client k8s.KubernetesClientInterface, user string, groups []string) ([]models.NamespaceModel, error) {
 
-	namespaces, err := client.GetNamespaces(user)
+	namespaces, err := client.GetNamespaces(user, groups)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching namespaces: %w", err)
 	}

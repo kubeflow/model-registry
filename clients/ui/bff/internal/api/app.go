@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	Version                      = "1.0.0"
+	Version = "1.0.0"
+
 	PathPrefix                   = "/api/v1"
 	ModelRegistryId              = "model_registry_id"
 	RegisteredModelId            = "registered_model_id"
@@ -89,33 +90,29 @@ func (app *App) Routes() http.Handler {
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	// HTTP client routes
+	// HTTP client routes (requests that we forward to Model Registry API)
+	// on those, we perform SAR on Specific Service on a given namespace
 	router.GET(HealthCheckPath, app.HealthcheckHandler)
-	router.GET(RegisteredModelListPath, app.AttachRESTClient(app.GetAllRegisteredModelsHandler))
-	router.GET(RegisteredModelPath, app.AttachRESTClient(app.GetRegisteredModelHandler))
-	router.POST(RegisteredModelListPath, app.AttachRESTClient(app.CreateRegisteredModelHandler))
-	router.PATCH(RegisteredModelPath, app.AttachRESTClient(app.UpdateRegisteredModelHandler))
-	router.GET(RegisteredModelVersionsPath, app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))
-	router.POST(RegisteredModelVersionsPath, app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))
-	router.GET(ModelVersionPath, app.AttachRESTClient(app.GetModelVersionHandler))
-	router.POST(ModelVersionListPath, app.AttachRESTClient(app.CreateModelVersionHandler))
-	router.PATCH(ModelVersionPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
-	router.GET(ModelVersionArtifactListPath, app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))
-	router.POST(ModelVersionArtifactListPath, app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))
-	router.PATCH(ModelRegistryPath, app.AttachRESTClient(app.UpdateModelVersionHandler))
+	router.GET(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
+	router.GET(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
+	router.POST(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
+	router.PATCH(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
+	router.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
+	router.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
+	router.GET(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient((app.GetModelVersionHandler)))))
+	router.POST(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionHandler))))
+	router.PATCH(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	router.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
+	router.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
+	router.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
 
-	// Kubernetes client routes
+	// Kubernetes routes
 	router.GET(UserPath, app.UserHandler)
-	router.GET(ModelRegistryListPath, app.ModelRegistryHandler)
+	// Perform SAR to Get List Services by Namspace
+	router.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
 	if app.config.DevMode {
-		router.GET(NamespaceListPath, app.GetNamespacesHandler)
+		router.GET(NamespaceListPath, app.AttachNamespace(app.GetNamespacesHandler))
 	}
 
-	accessControlExemptPaths := map[string]struct{}{
-		HealthCheckPath:   {},
-		UserPath:          {},
-		NamespaceListPath: {},
-	}
-
-	return app.RecoverPanic(app.enableCORS(app.RequireAccessControl(app.InjectUserHeaders(router), accessControlExemptPaths)))
+	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(router)))
 }
