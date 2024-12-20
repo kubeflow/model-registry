@@ -3,11 +3,12 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
-	"log/slog"
-	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -110,8 +111,8 @@ func (app *App) Routes() http.Handler {
 	router.GET(UserPath, app.UserHandler)
 	// Perform SAR to Get List Services by Namspace
 	router.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
-	if app.config.DevMode {
-		router.GET(NamespaceListPath, app.AttachNamespace(app.GetNamespacesHandler))
+	if app.config.StandaloneMode {
+		router.GET(NamespaceListPath, app.GetNamespacesHandler)
 	}
 
 	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(router)))

@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { USERNAME, POLL_INTERVAL, AUTH_HEADER, DEV_MODE } from '~/shared/utilities/const';
+import { USERNAME, POLL_INTERVAL, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 import { ConfigSettings, UserSettings } from '~/shared/types';
 import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
-import { getUser } from '~/shared/api/k8s';
+import { getNamespaces, getUser } from '~/shared/api/k8s';
 
 export const useSettings = (): {
   configSettings: ConfigSettings | null;
@@ -15,15 +15,16 @@ export const useSettings = (): {
   const [loadError, setLoadError] = React.useState<Error>();
   const [config, setConfig] = React.useState<ConfigSettings | null>(null);
   const [user, setUser] = React.useState<UserSettings | null>(null);
-  const userSettings = React.useMemo(() => getUser(''), []);
+  const userRest = React.useMemo(() => getUser(''), []);
+  const namespaceRest = React.useMemo(() => getNamespaces(''), []);
   const setRefreshMarker = useTimeBasedRefresh();
 
   React.useEffect(() => {
     let watchHandle: ReturnType<typeof setTimeout>;
     let cancelled = false;
     const watchConfig = () => {
-      const headers = DEV_MODE ? { [AUTH_HEADER]: USERNAME } : undefined;
-      Promise.all([fetchConfig(), userSettings({ headers })])
+      const headers = MOCK_AUTH ? { [AUTH_HEADER]: USERNAME } : undefined;
+      Promise.all([fetchConfig(), userRest({ headers })])
         .then(([fetchedConfig, fetchedUser]) => {
           if (cancelled) {
             return;
@@ -56,12 +57,17 @@ export const useSettings = (): {
       cancelled = true;
       clearTimeout(watchHandle);
     };
-  }, [setRefreshMarker, userSettings]);
+  }, [setRefreshMarker, userRest, namespaceRest]);
 
   const retConfig = useDeepCompareMemoize<ConfigSettings | null>(config);
   const retUser = useDeepCompareMemoize<UserSettings | null>(user);
 
-  return { configSettings: retConfig, userSettings: retUser, loaded, loadError };
+  return {
+    configSettings: retConfig,
+    userSettings: retUser,
+    loaded,
+    loadError,
+  };
 };
 
 // Mock a settings config call

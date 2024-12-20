@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ModelRegistry } from '~/app/types';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
+import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
 
 export type ModelRegistrySelectorContextType = {
   modelRegistriesLoaded: boolean;
@@ -33,7 +34,9 @@ export const ModelRegistrySelectorContextProvider: React.FC<
 const EnabledModelRegistrySelectorContextProvider: React.FC<
   ModelRegistrySelectorContextProviderProps
 > = ({ children }) => {
-  const [modelRegistries, isLoaded, error] = useModelRegistries();
+  const queryParams = useQueryParamNamespaces();
+
+  const [modelRegistries, isLoaded, error] = useModelRegistries(queryParams);
   const [preferredModelRegistry, setPreferredModelRegistry] =
     React.useState<ModelRegistrySelectorContextType['preferredModelRegistry']>(undefined);
 

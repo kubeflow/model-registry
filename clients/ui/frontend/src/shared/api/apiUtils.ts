@@ -1,7 +1,7 @@
 import { APIOptions } from '~/shared/api/types';
 import { EitherOrNone } from '~/shared/typeHelpers';
 import { ModelRegistryBody } from '~/app/types';
-import { DEV_MODE, AUTH_HEADER } from '~/shared/utilities/const';
+import { AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
@@ -65,11 +65,14 @@ const callRestJSON = <T>(
     requestData = JSON.stringify(data);
   }
 
+  // Workaround if we wanna force in a call to add the AUTH_HEADER
+  const authHeader = Object.keys(otherOptions.headers || {}).some((key) => key === AUTH_HEADER);
+
   return fetch(`${host}${path}${searchParams ? `?${searchParams}` : ''}`, {
     ...otherOptions,
     headers: {
       ...otherOptions.headers,
-      ...(DEV_MODE && { [AUTH_HEADER]: localStorage.getItem(AUTH_HEADER) }),
+      ...(MOCK_AUTH && !authHeader && { [AUTH_HEADER]: localStorage.getItem(AUTH_HEADER) }),
       ...(contentType && { 'Content-Type': contentType }),
     },
     method,
@@ -152,10 +155,12 @@ export const restPATCH = <T>(
   host: string,
   path: string,
   data: Record<string, unknown>,
+  queryParams: Record<string, unknown> = {},
   options?: APIOptions,
 ): Promise<T> =>
   callRestJSON<T>(host, path, mergeRequestInit(options, { method: 'PATCH' }), {
     data,
+    queryParams,
     parseJSON: options?.parseJSON,
   });
 
@@ -184,3 +189,8 @@ export const isModelRegistryResponse = <T>(response: unknown): response is Model
 export const assembleModelRegistryBody = <T>(data: T): ModelRegistryBody<T> => ({
   data,
 });
+
+export const getNamespaceQueryParam = (): string | null => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ns');
+};
