@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,7 +18,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
 	authv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -44,6 +43,7 @@ const (
 	skipTLSVerify           = true
 	urlAnnotation           = "modelregistry.kubeflow.org/url"
 	finalizerLabel          = "modelregistry.kubeflow.org/finalizer"
+	serviceURLAnnotation    = "routing.kubeflow.org/external-address-rest"
 	defaultNamespace        = "default"
 	accessToken             = ""
 	kserveVersion           = "v0.12.1"
@@ -122,17 +122,6 @@ var _ = BeforeSuite(func() {
 
 	Expect(err).NotTo(HaveOccurred())
 
-	const ModelRegistrySVCPath = "./testdata/deploy/model-registry-svc.yaml"
-
-	mrSvc := &corev1.Service{}
-	Expect(ConvertFileToStructuredResource(ModelRegistrySVCPath, mrSvc)).To(Succeed())
-
-	mrSvc.SetNamespace(defaultNamespace)
-
-	if err := cli.Create(ctx, mrSvc); err != nil && !errors.IsAlreadyExists(err) {
-		Fail(err.Error())
-	}
-
 	inferenceServiceController := inferenceservicecontroller.NewInferenceServiceController(
 		cli,
 		ctrl.Log.WithName("controllers").WithName("ModelRegistry-InferenceService-Controller"),
@@ -145,33 +134,20 @@ var _ = BeforeSuite(func() {
 		nameLabel,
 		urlAnnotation,
 		finalizerLabel,
+		serviceURLAnnotation,
 		defaultNamespace,
 	)
 
 	mrMockServer = ModelRegistryDefaultMockServer()
 
-	inferenceServiceController.OverrideHTTPClient(&http.Client{
-		Transport: &http.Transport{
-			Proxy: func(req *http.Request) (*url.URL, error) {
-				if strings.Contains(req.URL.String(), "svc.cluster.local") {
-					url, err := url.Parse(mrMockServer.URL)
-					if err != nil {
-						return nil, err
-					}
+	mockUrl, _ := url.Parse(mrMockServer.URL)
 
-					logf.Log.Info("Proxying request", "request", req.URL)
+	mrMockServer.Client().Transport = RewriteTransport{
+		Transport: mrMockServer.Client().Transport,
+		URL:       mockUrl,
+	}
 
-					proxyUrl, err := http.ProxyURL(url)(req)
-
-					logf.Log.Info("Proxying request", "proxyUrl", proxyUrl)
-
-					return proxyUrl, err
-				}
-
-				return req.URL, nil
-			},
-		},
-	})
+	inferenceServiceController.OverrideHTTPClient(mrMockServer.Client())
 
 	err = inferenceServiceController.SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
@@ -269,7 +245,7 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	return httptest.NewServer(handler)
+	return httptest.NewTLSServer(handler)
 }
 
 func RegisterSchemes(s *runtime.Scheme) {
@@ -320,4 +296,20 @@ func DownloadFile(url string, path string) error {
 	}
 
 	return nil
+}
+
+type RewriteTransport struct {
+	Transport http.RoundTripper
+	URL       *url.URL
+}
+
+func (t RewriteTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.URL.Scheme = t.URL.Scheme
+	req.URL.Host = t.URL.Host
+	req.URL.Path = path.Join(t.URL.Path, req.URL.Path)
+	rt := t.Transport
+	if rt == nil {
+		rt = http.DefaultTransport
+	}
+	return rt.RoundTrip(req)
 }
