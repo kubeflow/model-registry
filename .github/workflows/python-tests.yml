@@ -66,12 +66,25 @@ jobs:
           fi
 
   test:
-    name: Test against Py ${{ matrix.python }}
+    name: Test against Py ${{ matrix.python }} and K8s ${{ matrix.kubernetes-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.12", "3.11", "3.10", "3.9"]
+        python: ["3.12"] # see below for versions 3.9-3.11
+        kubernetes-version: ["v1.27.11", "v1.28.7", "v1.29.2", "v1.30.6", "v1.31.0"]
+        exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.28.7' }}
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.29.2' }}
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.30.6' }}
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.31.0' }}
+        include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.27.11
+          - python: "3.11"
+            kubernetes-version: "v1.27.11"
+          - python: "3.10"
+            kubernetes-version: "v1.27.11"
+          - python: "3.9"
+            kubernetes-version: "v1.27.11"
     env:
       FORCE_COLOR: "1"
       IMG_ORG: opendatahub
@@ -123,10 +136,11 @@ jobs:
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
         run: make image/build
       - name: Start Kind Cluster
-        uses: helm/kind-action@v1.11.0
+        uses: helm/kind-action@v1.12.0
         with:
-          node_image: "kindest/node:v1.27.11"
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
           cluster_name: chart-testing-py-${{ matrix.python }}
+          kubectl_version: ${{ matrix.kubernetes-version }}
       - name: Load Local Registry Test Image
         env:
           IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"

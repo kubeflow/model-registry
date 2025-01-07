@@ -5,10 +5,13 @@ import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
 import { ProjectObjectType } from '~/shared/components/design/utils';
+import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
 import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {
-  const [modelRegistries, loaded, loadError] = useModelRegistries();
+  const queryParams = useQueryParamNamespaces();
+
+  const [modelRegistries, loaded, loadError] = useModelRegistries(queryParams);
   return (
     <>
       <ApplicationsPage

@@ -58,6 +58,7 @@ make docker-build
 |----------------------------------------------------------------------------------------------|----------------------------------------------|-------------------------------------------------------------|
 | GET /v1/healthcheck                                                                          | HealthcheckHandler                           | Show application information.                               |
 | GET /v1/user                                                                                 | UserHandler                                  | Show "kubeflow-user-id" from header information.            |
+| GET /v1/namespaces                                                                           | NamespacesHandler                            | Get all user namespaces. (only enabled in devmode)          |
 | GET /v1/model_registry                                                                       | ModelRegistryHandler                         | Get all model registries,                                   |
 | GET /v1/model_registry/{model_registry_id}/registered_models                                 | GetAllRegisteredModelsHandler                | Gets a list of all RegisteredModel entities.                |
 | POST /v1/model_registry/{model_registry_id}/registered_models                                | CreateRegisteredModelHandler                 | Create a RegisteredModel entity.                            |
@@ -71,28 +72,51 @@ make docker-build
 | GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts   | GetAllModelArtifactsByModelVersionHandler    | Get all ModelArtifact entities by ModelVersion ID           |
 | POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts  | CreateModelArtifactByModelVersion            | Create a ModelArtifact entity for a specific ModelVersion   |
 
+Note: Most API paths require the namespace parameter to be passed as a query parameter.
+The only exceptions are the health check (/v1/healthcheck) and user (/v1/user) paths, which do not require the namespace parameter.
+
 ### Sample local calls
 
-You will need to inject your requests with a kubeflow-userid header for authorization purposes. When running the service with the mocked Kubernetes client (MOCK_K8S_CLIENT=true), the user user@example.com is preconfigured with the necessary RBAC permissions to perform these actions.
+You will need to inject your requests with a `kubeflow-userid` header and namespace for authorization purposes.
+
+When running the service with the mocked Kubernetes client (MOCK_K8S_CLIENT=true), the user `user@example.com` is preconfigured with the necessary RBAC permissions to perform these actions.
 ```
 # GET /v1/healthcheck
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/healthcheck
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/healthcheck"
 ```
 ```
 # GET /v1/user
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/user
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/user"
+```
+```
+# GET /v1/namespaces (only works when DEV_MODE=true)
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/namespaces"
 ```
 ```
 # GET /v1/model_registry 
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry?namespace=kubeflow"
+```
+```
+# GET /v1/model_registry using groups permissions
+curl -i \                                                                                                                                      
+  -H "kubeflow-userid: non-user@example.com" \
+  -H "kubeflow-groups: dora-namespace-group ,group2,group3" \
+  "http://localhost:4000/api/v1/model_registry?namespace=dora-namespace"
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow"
+```
+```
+# GET /v1/model_registry/{model_registry_id}/registered_models using group permissions
+curl -i \
+  -H "kubeflow-userid: non-user@example.com" \
+  -H "kubeflow-groups: dora-namespace-group ,dora-service-group,group3" \
+  "http://localhost:4000/api/v1/model_registry/model-registry-dora/registered_models?namespace=dora-namespace"
 ```
 ```
 #POST /v1/model_registry/{model_registry_id}/registered_models
-curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -110,11 +134,11 @@ curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/ap
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models/1
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow"
 ```
 ```
 # PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}
-curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1" \
+curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow" \
 -H "Content-Type: application/json" \
 -d '{ "data": {
   "description": "New description"
@@ -122,11 +146,11 @@ curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/a
 ```
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id} 
-curl -i -H "kubeflow-userid: user@example.com" http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1?namespace=kubeflow"
 ```
 ```
 # POST /api/v1/model_registry/{model_registry_id}/model_versions
-curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions?namespace=kubeflow" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -145,7 +169,7 @@ curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/ap
 ```
 ```
 # PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}
-curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1" \
+curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1?namespace=kubeflow" \
      -H "Content-Type: application/json" \
 -d '{ "data": {
   "description": "New description 2"
@@ -153,11 +177,11 @@ curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/a
 ```
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions
-curl -i -H "kubeflow-userid: user@example.com" localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions
+curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow"
 ```
 ```
 # POST /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions
-curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -171,16 +195,16 @@ curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/ap
   "name": "ModelVersion One",
   "state": "LIVE",
   "author": "alex",
-  "registeredModelId: "1"
+  "registeredModelId": "1"
 }}'
 ```
 ```
-# GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
-curl -i -H "kubeflow-userid: user@example.com" http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts
+# GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts 
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts?namespace=kubeflow"
 ```
 ```
 # POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts
-curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts" \
+curl -i -H "kubeflow-userid: user@example.com" -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1/artifacts?namespace=kubeflow" \
      -H "Content-Type: application/json" \
      -d '{ "data": {
   "customProperties": {
@@ -241,13 +265,35 @@ The mock Kubernetes environment is activated when the environment variable `MOCK
 - **Namespaces**:
   - `kubeflow`
   - `dora-namespace`
+  - `bella-namespace`
 
 - **Users**:
   - `user@example.com` (has `cluster-admin` privileges)
   - `doraNonAdmin@example.com` (restricted to the `dora-namespace`)
+  - `bellaNonAdmin@example.com` (restricted to the `bella-namespace`)
 
+- **Groups**:
+  - `dora-service-group` (has access to `model-registry-dora` inside `dora-namespace`)
+  - `dora-namespace-group` (has access to the `dora-namespace`) 
+  
 - **Services (Model Registries)**:
   - `model-registry`: resides in the `kubeflow` namespace with the label `component: model-registry`.
-  - `model-registry-dora`: resides in the `dora-namespace` namespace with the label `component: model-registry`.
-  - `model-registry-bella`: resides in the `kubeflow` namespace with the label `component: model-registry`.
+  - `model-registry-one`: resides in the `kubeflow` namespace with the label `component: model-registry`.
   - `non-model-registry`: resides in the `kubeflow` namespace *without* the label `component: model-registry`.
+  - `model-registry-dora`: resides in the `dora-namespace` namespace with the label `component: model-registry`.
+
+#### 3. How BFF authorization works for kubeflow-userid and kubeflow-groups?
+
+Authorization is performed using Kubernetes SubjectAccessReview (SAR), which validates user access to resources.
+
+- `kubeflow-userid`: Required header that specifies the user’s email. Access is checked directly for the user via SAR.
+- `kubeflow-groups`: Optional header with a comma-separated list of groups. If the user does not have access, SAR checks group permissions using OR logic. If any group has access, the request is authorized.
+
+
+Access to Model Registry List:
+- To list all model registries (/v1/model_registry), we perform a SAR check for get and list verbs on services within the specified namespace.
+- If the user or any group has permission to get and list services in the namespace, the request is authorized.
+
+Access to Specific Model Registry Endpoints:
+- For other endpoints (e.g., /v1/model_registry/{model_registry_id}/...), we perform a SAR check for get and list verbs on the specific service (identified by model_registry_id) within the namespace.
+- If the user or any group has permission to get or list the specific service, the request is authorized.

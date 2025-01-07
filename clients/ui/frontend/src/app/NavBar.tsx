@@ -13,23 +13,25 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
+import { SimpleSelect } from '@patternfly/react-templates';
+import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 
 interface NavBarProps {
   username?: string;
   onLogout: () => void;
 }
 
-const Options: SimpleSelectOption[] = [{ content: 'All Namespaces', value: 'All' }];
-
 const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
-  const [selected, setSelected] = React.useState<string | undefined>('All');
+  const { namespaces, preferredNamespace, updatePreferredNamespace } =
+    React.useContext(NamespaceSelectorContext);
+
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
-  const initialOptions = React.useMemo<SimpleSelectOption[]>(
-    () => Options.map((o) => ({ ...o, selected: o.value === selected })),
-    [selected],
-  );
+  const options = namespaces.map((namespace) => ({
+    content: namespace.name,
+    value: namespace.name,
+    selected: namespace.name === preferredNamespace?.name,
+  }));
 
   const handleLogout = () => {
     setUserMenuOpen(false);
@@ -51,9 +53,10 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
               <ToolbarItem>
                 <SimpleSelect
-                  isDisabled
-                  initialOptions={initialOptions}
-                  onSelect={(_ev, selection) => setSelected(String(selection))}
+                  initialOptions={options}
+                  onSelect={(_ev, selection) => {
+                    updatePreferredNamespace({ name: String(selection) });
+                  }}
                 />
               </ToolbarItem>
             </ToolbarGroup>

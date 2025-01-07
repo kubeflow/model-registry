@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { BFF_API_VERSION } from '~/app/const';
-import useModelRegistryAPIState, { ModelRegistryAPIState } from './useModelRegistryAPIState';
+import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
+import useModelRegistryAPIState, {
+  ModelRegistryAPIState,
+} from '~/app/hooks/useModelRegistryAPIState';
 
 export type ModelRegistryContextType = {
   apiState: ModelRegistryAPIState;
@@ -26,7 +29,9 @@ export const ModelRegistryContextProvider: React.FC<ModelRegistryContextProvider
     ? `/api/${BFF_API_VERSION}/model_registry/${modelRegistryName}`
     : null;
 
-  const [apiState, refreshAPIState] = useModelRegistryAPIState(hostPath);
+  const queryParams = useQueryParamNamespaces();
+
+  const [apiState, refreshAPIState] = useModelRegistryAPIState(hostPath, queryParams);
 
   return (
     <ModelRegistryContext.Provider

@@ -13,8 +13,9 @@ import {
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme, AUTH_HEADER, DEV_MODE } from '~/shared/utilities/const';
+import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
 import { logout } from '~/shared/utilities/appUtils';
+import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -29,6 +30,8 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
+  const { namespacesLoaded, namespacesLoadError } = React.useContext(NamespaceSelectorContext);
+
   const username = userSettings?.userId;
 
   React.useEffect(() => {
@@ -41,7 +44,7 @@ const App: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    if (DEV_MODE && username) {
+    if (MOCK_AUTH && username) {
       localStorage.setItem(AUTH_HEADER, username);
     } else {
       localStorage.removeItem(AUTH_HEADER);
@@ -59,8 +62,10 @@ const App: React.FC = () => {
     [configSettings, userSettings],
   );
 
+  const error = configError || namespacesLoadError;
+
   // We lack the critical data to startup the app
-  if (configError) {
+  if (error) {
     // There was an error fetching critical data
     return (
       <Page>
@@ -68,7 +73,11 @@ const App: React.FC = () => {
           <Stack hasGutter>
             <StackItem>
               <Alert variant="danger" isInline title="General loading error">
-                <p>{configError.message || 'Unknown error occurred during startup.'}</p>
+                <p>
+                  {configError?.message ||
+                    namespacesLoadError?.message ||
+                    'Unknown error occurred during startup.'}
+                </p>
                 <p>Logging out and logging back in may solve the issue.</p>
               </Alert>
             </StackItem>
@@ -87,7 +96,8 @@ const App: React.FC = () => {
   }
 
   // Waiting on the API to finish
-  const loading = !configLoaded || !userSettings || !configSettings || !contextValue;
+  const loading =
+    !configLoaded || !userSettings || !configSettings || !contextValue || !namespacesLoaded;
 
   return loading ? (
     <Bullseye>

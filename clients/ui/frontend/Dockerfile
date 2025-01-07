@@ -6,7 +6,7 @@ COPY . /usr/src/app
 
 RUN npm cache clean --force
 RUN npm ci --omit=optional
-RUN npm run build
+RUN npm run build:prod
 
 FROM nginxinc/nginx-unprivileged
 

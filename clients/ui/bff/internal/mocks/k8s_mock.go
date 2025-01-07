@@ -20,6 +20,9 @@ import (
 const (
 	KubeflowUserIDHeaderValue = "user@example.com"
 	DoraNonAdminUser          = "doraNonAdmin@example.com"
+	BellaNonAdminUser         = "bellaNonAdmin@example.com"
+	DoraServiceGroup          = "dora-service-group"
+	DoraNamespaceGroup        = "dora-namespace-group"
 )
 
 type KubernetesClientMock struct {
@@ -128,19 +131,28 @@ func setupMock(mockK8sClient client.Client, ctx context.Context) error {
 		return err
 	}
 
+	err = createNamespace(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
 	err = createService(mockK8sClient, ctx, "model-registry", "kubeflow", "Model Registry", "Model Registry Description", "10.0.0.10", "model-registry")
 	if err != nil {
 		return err
 	}
-	err = createService(mockK8sClient, ctx, "model-registry-dora", "dora-namespace", "Model Registry Dora", "Model Registry Dora description", "10.0.0.11", "model-registry")
+	err = createService(mockK8sClient, ctx, "model-registry-one", "kubeflow", "Model Registry One", "Model Registry One description", "10.0.0.11", "model-registry")
 	if err != nil {
 		return err
 	}
-	err = createService(mockK8sClient, ctx, "model-registry-bella", "kubeflow", "Model Registry Bella", "Model Registry Bella description", "10.0.0.12", "model-registry")
+	err = createService(mockK8sClient, ctx, "model-registry-dora", "dora-namespace", "Model Registry Dora", "Model Registry Dora description", "10.0.0.12", "model-registry")
 	if err != nil {
 		return err
 	}
-	err = createService(mockK8sClient, ctx, "non-model-registry", "kubeflow", "Not a Model Registry", "Not a Model Registry Bella description", "10.0.0.13", "")
+	err = createService(mockK8sClient, ctx, "model-registry-bella", "bella-namespace", "Model Registry Bella", "Model Registry Bella description", "10.0.0.13", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createService(mockK8sClient, ctx, "non-model-registry", "kubeflow", "Not a Model Registry", "Not a Model Registry Bella description", "10.0.0.14", "")
 	if err != nil {
 		return err
 	}
@@ -155,11 +167,26 @@ func setupMock(mockK8sClient client.Client, ctx context.Context) error {
 		return fmt.Errorf("failed to create namespace-restricted RBAC: %w", err)
 	}
 
+	err = createNamespaceRestrictedRBAC(mockK8sClient, ctx, BellaNonAdminUser, "bella-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to create namespace-restricted RBAC: %w", err)
+	}
+
+	err = createGroupAccessRBAC(mockK8sClient, ctx, DoraServiceGroup, "dora-namespace", "model-registry-dora")
+	if err != nil {
+		return fmt.Errorf("failed to create group-based RBAC: %w", err)
+	}
+
+	err = createGroupNamespaceAccessRBAC(mockK8sClient, ctx, DoraNamespaceGroup, "dora-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to set up group access to namespace: %w", err)
+	}
+
 	return nil
 }
 
-func (m *KubernetesClientMock) GetServiceDetails() ([]k8s.ServiceDetails, error) {
-	originalServices, err := m.KubernetesClient.GetServiceDetails()
+func (m *KubernetesClientMock) GetServiceDetails(namespace string) ([]k8s.ServiceDetails, error) {
+	originalServices, err := m.KubernetesClient.GetServiceDetails(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service details: %w", err)
 	}
@@ -172,8 +199,8 @@ func (m *KubernetesClientMock) GetServiceDetails() ([]k8s.ServiceDetails, error)
 	return originalServices, nil
 }
 
-func (m *KubernetesClientMock) GetServiceDetailsByName(serviceName string) (k8s.ServiceDetails, error) {
-	originalService, err := m.KubernetesClient.GetServiceDetailsByName(serviceName)
+func (m *KubernetesClientMock) GetServiceDetailsByName(namespace string, serviceName string) (k8s.ServiceDetails, error) {
+	originalService, err := m.KubernetesClient.GetServiceDetailsByName(namespace, serviceName)
 	if err != nil {
 		return k8s.ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}
@@ -303,7 +330,7 @@ func createNamespaceRestrictedRBAC(k8sClient client.Client, ctx context.Context,
 		Rules: []rbacv1.PolicyRule{
 			{
 				APIGroups: []string{""},
-				Resources: []string{"services"},
+				Resources: []string{"services", "namespaces"},
 				Verbs:     []string{"get", "list"},
 			},
 		},
@@ -335,6 +362,98 @@ func createNamespaceRestrictedRBAC(k8sClient client.Client, ctx context.Context,
 	err = k8sClient.Create(ctx, roleBinding)
 	if err != nil {
 		return fmt.Errorf("failed to create RoleBinding: %w", err)
+	}
+
+	return nil
+}
+
+func createGroupAccessRBAC(k8sClient client.Client, ctx context.Context, groupName, namespace, serviceName string) error {
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "group-model-registry-access",
+			Namespace: namespace,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"services"},
+				Verbs:     []string{"get", "list"},
+				ResourceNames: []string{
+					serviceName,
+				},
+			},
+		},
+	}
+
+	if err := k8sClient.Create(ctx, role); err != nil {
+		return fmt.Errorf("failed to create Role for group: %w", err)
+	}
+
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "group-access-binding",
+			Namespace: namespace,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "Group",
+				Name: groupName,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "Role",
+			Name:     "group-model-registry-access",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+
+	if err := k8sClient.Create(ctx, roleBinding); err != nil {
+		return fmt.Errorf("failed to create RoleBinding for group: %w", err)
+	}
+
+	return nil
+}
+
+func createGroupNamespaceAccessRBAC(k8sClient client.Client, ctx context.Context, groupName, namespace string) error {
+
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "group-namespace-access-role",
+			Namespace: namespace,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"namespaces", "services"},
+				Verbs:     []string{"get", "list"},
+			},
+		},
+	}
+
+	if err := k8sClient.Create(ctx, role); err != nil {
+		return fmt.Errorf("failed to create Role for group namespace access: %w", err)
+	}
+
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "group-namespace-access-binding",
+			Namespace: namespace,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "Group",
+				Name: groupName,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "Role",
+			Name:     "group-namespace-access-role",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+
+	if err := k8sClient.Create(ctx, roleBinding); err != nil {
+		return fmt.Errorf("failed to create RoleBinding for group namespace access: %w", err)
 	}
 
 	return nil

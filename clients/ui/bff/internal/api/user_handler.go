@@ -11,13 +11,13 @@ type UserEnvelope Envelope[*models.User, None]
 
 func (app *App) UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	userHeader := r.Header.Get(kubeflowUserId)
-	if userHeader == "" {
-		app.serverErrorResponse(w, r, errors.New("kubeflow-userid not present on header"))
+	userId, ok := r.Context().Value(KubeflowUserIdKey).(string)
+	if !ok || userId == "" {
+		app.serverErrorResponse(w, r, errors.New("failed to retrieve kubeflow-userid from context"))
 		return
 	}
 
-	user, err := app.repositories.User.GetUser(app.kubernetesClient, userHeader)
+	user, err := app.repositories.User.GetUser(app.kubernetesClient, userId)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -1,15 +1,20 @@
 package api
 
 import (
+	"errors"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
 func (app *App) HealthcheckHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	userID := r.Header.Get(kubeflowUserId)
+	userId, ok := r.Context().Value(KubeflowUserIdKey).(string)
+	if !ok || userId == "" {
+		app.serverErrorResponse(w, r, errors.New("failed to retrieve kubeflow-userid from context"))
+		return
+	}
 
-	healthCheck, err := app.repositories.HealthCheck.HealthCheck(Version, userID)
+	healthCheck, err := app.repositories.HealthCheck.HealthCheck(Version, userId)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

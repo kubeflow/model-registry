@@ -11,7 +11,7 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the get all service successfully", func() {
 
 			By("getting service details")
-			services, err := k8sClient.GetServiceDetails()
+			services, err := k8sClient.GetServiceDetails("kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
 			By("checking that all services have the modified ClusterIP and HTTPPort")
@@ -37,7 +37,7 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the service details by name", func() {
 
 			By("getting service by name")
-			service, err := k8sClient.GetServiceDetailsByName("model-registry-dora")
+			service, err := k8sClient.GetServiceDetailsByName("dora-namespace", "model-registry-dora")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create k8s request")
 
 			By("checking that service details are correct")
@@ -49,11 +49,11 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the services names", func() {
 
 			By("getting service by name")
-			services, err := k8sClient.GetServiceNames()
+			services, err := k8sClient.GetServiceNames("kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
 			By("checking that service details are correct")
-			Expect(services).To(ConsistOf("model-registry", "model-registry-bella", "model-registry-dora"))
+			Expect(services).To(ConsistOf("model-registry", "model-registry-one"))
 
 		})
 	})
@@ -65,18 +65,86 @@ var _ = Describe("KubernetesNativeClient SAR Test", func() {
 
 		It("should allow allowed user to access services", func() {
 			By("performing SAR for Kubeflow User ID")
-			allowed, err := k8sClient.PerformSAR(KubeflowUserIDHeaderValue)
+			allowed, err := k8sClient.PerformSARonGetListServicesByNamespace(KubeflowUserIDHeaderValue, []string{}, "kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for Kubeflow User ID\"")
 			Expect(allowed).To(BeTrue(), "Expected Kubeflow User ID to have access")
 		})
 
+		It("check dora access to namespaces", func() {
+			By("performing SAR for dora user")
+			allowed, err := k8sClient.PerformSARonGetListServicesByNamespace(DoraNonAdminUser, []string{}, "kubeflow")
+			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for unauthorized-dora@example.com")
+			Expect(allowed).To(BeFalse(), "Expected doraNonAdmin@example.com to be denied access")
+
+			allowed, err = k8sClient.PerformSARonGetListServicesByNamespace(DoraNonAdminUser, []string{}, "dora-namespace")
+			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for unauthorized-dora@example.com")
+			Expect(allowed).To(BeTrue(), "Expected doraNonAdmin@example.com ID to have access")
+		})
+
 		It("should deny access for another user", func() {
 			By("performing SAR for another user")
-			allowed, err := k8sClient.PerformSAR("unauthorized-dora@example.com")
+			allowed, err := k8sClient.PerformSARonGetListServicesByNamespace("unauthorized-dora@example.com", []string{}, "kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to perform SAR for unauthorized-dora@example.com")
 			Expect(allowed).To(BeFalse(), "Expected unauthorized-dora@example.com to be denied access")
 		})
 
+	})
+})
+
+var _ = Describe("KubernetesClient PerformSARonSpecificService Group Tests", func() {
+	Context("checking access using group memberships", func() {
+		const (
+			namespace    = "dora-namespace"
+			serviceName  = "model-registry-dora"
+			existingUser = "bentoOnlyGroupAccess@example.com"
+		)
+
+		It("should deny access for a group that does not exist", func() {
+			groups := []string{"non-existent-group"}
+
+			allowed, err := k8sClient.PerformSARonSpecificService(existingUser, groups, namespace, serviceName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeFalse(), "Access should be denied for a non-existent group")
+		})
+
+		It("should allow service access for the DoraServiceGroup", func() {
+			groups := []string{DoraServiceGroup}
+
+			allowed, err := k8sClient.PerformSARonSpecificService(existingUser, groups, namespace, serviceName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue(), "Access should be allowed for the DoraServiceGroup group")
+		})
+
+		It("should allow access when one group exists and the other does not", func() {
+			groups := []string{DoraServiceGroup, "non-existent-group"}
+
+			allowed, err := k8sClient.PerformSARonSpecificService(existingUser, groups, namespace, serviceName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue(), "Access should be allowed if any group in the list has access")
+		})
+
+		It("should allow access only when I've service access and namespace access", func() {
+			groups := []string{DoraServiceGroup}
+
+			allowed, err := k8sClient.PerformSARonSpecificService(existingUser, groups, namespace, serviceName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue(), "Access should be allowed for the DoraServiceGroup group")
+
+			allowed, err = k8sClient.PerformSARonGetListServicesByNamespace(existingUser, groups, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeFalse(), "Access should not be allowed for only DoraServiceGroup group")
+
+			allGroups := []string{DoraServiceGroup, DoraNamespaceGroup}
+
+			allowed, err = k8sClient.PerformSARonGetListServicesByNamespace(existingUser, allGroups, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue(), "Access should be allowed for both groups")
+
+			allowed, err = k8sClient.PerformSARonSpecificService(existingUser, allGroups, namespace, serviceName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue(), "Access should be allowed for for both groups")
+
+		})
 	})
 })
 
