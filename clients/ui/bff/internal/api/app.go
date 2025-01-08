@@ -3,12 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"net/http"
-
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"log/slog"
+	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -86,34 +85,45 @@ func (app *App) Shutdown(ctx context.Context, logger *slog.Logger) error {
 }
 
 func (app *App) Routes() http.Handler {
-	router := httprouter.New()
+	// Router for /api/v1/*
+	apiRouter := httprouter.New()
 
-	router.NotFound = http.HandlerFunc(app.notFoundResponse)
-	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
+	apiRouter.NotFound = http.HandlerFunc(app.notFoundResponse)
+	apiRouter.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// HTTP client routes (requests that we forward to Model Registry API)
 	// on those, we perform SAR on Specific Service on a given namespace
-	router.GET(HealthCheckPath, app.HealthcheckHandler)
-	router.GET(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
-	router.GET(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
-	router.POST(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
-	router.PATCH(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
-	router.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
-	router.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
-	router.GET(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient((app.GetModelVersionHandler)))))
-	router.POST(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionHandler))))
-	router.PATCH(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	router.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
-	router.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
-	router.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.GET(HealthCheckPath, app.HealthcheckHandler)
+	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
+	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
+	apiRouter.PATCH(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
+	apiRouter.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
+	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient((app.GetModelVersionHandler)))))
+	apiRouter.POST(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionHandler))))
+	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
+	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
+	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
 
 	// Kubernetes routes
-	router.GET(UserPath, app.UserHandler)
+	apiRouter.GET(UserPath, app.UserHandler)
 	// Perform SAR to Get List Services by Namspace
-	router.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
+	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
 	if app.config.StandaloneMode {
-		router.GET(NamespaceListPath, app.GetNamespacesHandler)
+		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
 	}
 
-	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(router)))
+	// App Router
+	appMux := http.NewServeMux()
+	// handler for api calls
+	appMux.Handle("/api/v1/", apiRouter)
+
+	// file server for the frontend
+	staticAccessDir := http.Dir(app.config.StaticAssetsDir)
+	fileServer := http.FileServer(staticAccessDir)
+	appMux.Handle("/", fileServer)
+
+	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(appMux)))
 }
