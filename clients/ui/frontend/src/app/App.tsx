@@ -74,11 +74,12 @@ const App: React.FC = () => {
             <StackItem>
               <Alert variant="danger" isInline title="General loading error">
                 <p>
+                  {String(error)}
                   {configError?.message ||
                     namespacesLoadError?.message ||
-                    'Unknown error occurred during startup.'}
+                    'Unknown error occurred during startup!!!!!!'}
                 </p>
-                <p>Logging out and logging back in may solve the issue.</p>
+                <p>Logging out and logging back in may solve the issue!!!!!c.</p>
               </Alert>
             </StackItem>
             <StackItem>
