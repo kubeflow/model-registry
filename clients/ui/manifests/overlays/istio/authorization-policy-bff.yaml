@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: model-registry-bff
+  labels:
+    app: model-registry-bff
+spec:
+  action: ALLOW
+  rules:
+    - {}
+  selector:
+    matchLabels:
+      app: model-registry-bff

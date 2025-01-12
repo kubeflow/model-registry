@@ -17,7 +17,7 @@ export enum FormFieldSelector {
 class RegisterModelPage {
   visit() {
     const preferredModelRegistry = 'modelregistry-sample';
-    cy.visit(`/modelRegistry/${preferredModelRegistry}/registerModel`);
+    cy.visit(`/model-registry/${preferredModelRegistry}/registerModel`);
     this.wait();
   }
 

@@ -13,7 +13,7 @@ import {
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
+import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
 import { logout } from '~/shared/utilities/appUtils';
 import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 import NavSidebar from './NavSidebar';
@@ -108,15 +108,19 @@ const App: React.FC = () => {
       <Page
         mainContainerId="primary-app-container"
         masthead={
-          <NavBar
-            username={username}
-            onLogout={() => {
-              logout().then(() => window.location.reload());
-            }}
-          />
+          isStandalone() ? (
+            <NavBar
+              username={username}
+              onLogout={() => {
+                logout().then(() => window.location.reload());
+              }}
+            />
+          ) : (
+            ''
+          )
         }
-        isManagedSidebar
-        sidebar={<NavSidebar />}
+        isManagedSidebar={isStandalone()}
+        sidebar={isStandalone() ? <NavSidebar /> : ''}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />

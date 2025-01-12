@@ -20,7 +20,7 @@ const ModelVersionArchiveDetailsBreadcrumb: React.FC<ModelVersionArchiveDetailsB
 }) => (
   <Breadcrumb>
     <BreadcrumbItem
-      render={() => <Link to="/modelRegistry">Model registry - {preferredModelRegistry}</Link>}
+      render={() => <Link to="/model-registry">Model registry - {preferredModelRegistry}</Link>}
     />
     <BreadcrumbItem
       render={() => (

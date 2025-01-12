@@ -2,11 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: model-registry-ui-service
+  labels:
+    app: model-registry-ui
+    run: model-registry-ui
 spec:
   selector:
     app: model-registry-ui
   ports:
-    - protocol: TCP
+    - name: http
       port: 8080
+      protocol: TCP
       targetPort: 8080
-      name: http
+  type: ClusterIP
