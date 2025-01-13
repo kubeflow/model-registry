@@ -189,8 +189,3 @@ export const isModelRegistryResponse = <T>(response: unknown): response is Model
 export const assembleModelRegistryBody = <T>(data: T): ModelRegistryBody<T> => ({
   data,
 });
-
-export const getNamespaceQueryParam = (): string | null => {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('ns');
-};
