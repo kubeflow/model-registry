@@ -16,7 +16,7 @@ COPY cmd/main.go cmd/main.go
 COPY internal/ internal/
 
 # Copy the static assets
-COPY static/ static/
+COPY $STATIC_ASSETS_DIR static/
 
 # Build the Go application
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd/main.go
