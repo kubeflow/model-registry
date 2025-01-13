@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
@@ -28,7 +30,8 @@ var _ = Describe("TestModelRegistryHandler", func() {
 			requestPath := fmt.Sprintf(" %s?namespace=kubeflow", ModelRegistryListPath)
 			req, err := http.NewRequest(http.MethodGet, requestPath, nil)
 
-			ctx := context.WithValue(req.Context(), NamespaceHeaderParameterKey, "kubeflow")
+			ctx := mocks.NewMockSessionContext(req.Context())
+			ctx = context.WithValue(ctx, constants.NamespaceHeaderParameterKey, "kubeflow")
 			req = req.WithContext(ctx)
 
 			Expect(err).NotTo(HaveOccurred())

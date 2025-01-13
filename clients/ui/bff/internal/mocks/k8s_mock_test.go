@@ -11,7 +11,7 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the get all service successfully", func() {
 
 			By("getting service details")
-			services, err := k8sClient.GetServiceDetails("kubeflow")
+			services, err := k8sClient.GetServiceDetails(NewMockSessionContextNoParent(), "kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
 			By("checking that all services have the modified ClusterIP and HTTPPort")
@@ -37,7 +37,7 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the service details by name", func() {
 
 			By("getting service by name")
-			service, err := k8sClient.GetServiceDetailsByName("dora-namespace", "model-registry-dora")
+			service, err := k8sClient.GetServiceDetailsByName(NewMockSessionContextNoParent(), "dora-namespace", "model-registry-dora")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create k8s request")
 
 			By("checking that service details are correct")
@@ -49,7 +49,7 @@ var _ = Describe("Kubernetes ControllerRuntimeClient Test", func() {
 		It("should retrieve the services names", func() {
 
 			By("getting service by name")
-			services, err := k8sClient.GetServiceNames("kubeflow")
+			services, err := k8sClient.GetServiceNames(NewMockSessionContextNoParent(), "kubeflow")
 			Expect(err).NotTo(HaveOccurred(), "Failed to create HTTP request")
 
 			By("checking that service details are correct")

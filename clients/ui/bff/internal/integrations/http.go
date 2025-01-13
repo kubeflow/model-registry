@@ -174,11 +174,11 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 
 func logUpstreamReq(logger *slog.Logger, reqId string, req *http.Request) {
 	if logger.Enabled(context.TODO(), slog.LevelDebug) {
-		body, err := req.GetBody()
-		if err != nil {
-			logger.Debug("Error reading request body for debug logging", "requestId", reqId, "error", err)
+		var body []byte
+		if req.Body != nil {
+			body, _ = CloneBody(req)
 		}
-		logger.Debug("Making upstream HTTP request", "request_id", reqId, "method", req.Method, "url", req.URL.String(), "body", StreamToString(body))
+		logger.Debug("Making upstream HTTP request", "request_id", reqId, "method", req.Method, "url", req.URL.String(), "body", body)
 	}
 }
 

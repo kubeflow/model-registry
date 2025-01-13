@@ -2,30 +2,22 @@ package integrations
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 )
 
-func StreamToString(stream io.Reader) string {
-	if stream == nil {
-		return ""
-	}
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(stream)
-	if err != nil {
-		return ""
-	}
-	return buf.String()
-}
-
 func CloneBody(r *http.Request) ([]byte, error) {
+	if r.Body == nil {
+		return nil, fmt.Errorf("no body provided")
+	}
 	buf, _ := io.ReadAll(r.Body)
-	rdr1 := io.NopCloser(bytes.NewBuffer(buf))
-	rdr2 := io.NopCloser(bytes.NewBuffer(buf))
-	r.Body = rdr2 // OK since rdr2 implements the io.ReadCloser interface
+	readerCopy := io.NopCloser(bytes.NewBuffer(buf))
+	readerOriginal := io.NopCloser(bytes.NewBuffer(buf))
+	r.Body = readerOriginal
 
-	defer rdr1.Close()
-	cloneBody, err := io.ReadAll(rdr2)
+	defer readerCopy.Close()
+	cloneBody, err := io.ReadAll(readerCopy)
 
 	return cloneBody, err
 }
