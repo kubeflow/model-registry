@@ -43,6 +43,12 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		//skip use headers check if we are not on /api/v1
+		if !strings.HasPrefix(r.URL.Path, PathPrefix) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		userIdHeader := r.Header.Get(KubeflowUserIDHeader)
 		userGroupsHeader := r.Header.Get(KubeflowUserGroupsIdHeader)
 		//`kubeflow-userid`: Contains the user's email address.

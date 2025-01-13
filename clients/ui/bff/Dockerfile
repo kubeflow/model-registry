@@ -15,7 +15,8 @@ RUN go mod download
 COPY cmd/main.go cmd/main.go
 COPY internal/ internal/
 
-
+# Copy the static assets
+COPY $STATIC_ASSETS_DIR static/
 
 # Build the Go application
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd/main.go
@@ -29,4 +30,4 @@ USER 65532:65532
 # Expose port 4000
 EXPOSE 4000
 
-ENTRYPOINT ["/bff"]
+ENTRYPOINT ["/bff", "--static-assets-dir=/static"]
