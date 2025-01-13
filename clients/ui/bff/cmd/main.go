@@ -19,7 +19,7 @@ import (
 
 func main() {
 	var cfg config.EnvConfig
-	flag.IntVar(&cfg.Port, "port", getEnvAsInt("PORT", 4000), "API server port")
+	flag.IntVar(&cfg.Port, "port", getEnvAsInt("PORT", 8080), "API server port")
 	flag.BoolVar(&cfg.MockK8Client, "mock-k8s-client", false, "Use mock Kubernetes client")
 	flag.BoolVar(&cfg.MockMRClient, "mock-mr-client", false, "Use mock Model Registry client")
 	flag.BoolVar(&cfg.DevMode, "dev-mode", false, "Use development mode for access to local K8s cluster")

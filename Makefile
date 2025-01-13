@@ -3,8 +3,7 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
-BFF_PATH := $(PROJECT_PATH)/clients/ui/bff
-UI_PATH := $(PROJECT_PATH)/clients/ui/frontend
+UI_PATH := $(PROJECT_PATH)/clients/ui
 CSI_PATH := $(PROJECT_PATH)/cmd/csi
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -41,11 +40,6 @@ endif
 ifeq ($(IMG_REPO),model-registry-ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
 	BUILD_PATH := $(UI_PATH)
-endif
-
-ifeq ($(IMG_REPO),model-registry-bff)
-    DOCKERFILE := $(BFF_PATH)/Dockerfile
-	BUILD_PATH := $(BFF_PATH)
 endif
 
 # The BUILD_PATH is still the root

@@ -1,4 +1,30 @@
 ---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: model-registry-ui-services-reader
+rules:
+- apiGroups:
+    - ''
+  resources:
+    - services
+  verbs:
+    - get
+    - list
+    - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: model-registry-ui-services-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: model-registry-ui
+roleRef:
+  kind: ClusterRole
+  name: model-registry-ui-services-reader
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -11,6 +37,7 @@ rules:
   verbs:
   - get
   - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -22,8 +49,7 @@ roleRef:
   name: model-registry-retrieve-clusterrolebindings
 subjects:
 - kind: ServiceAccount
-  name: model-registry-bff
-  namespace: kubeflow
+  name: model-registry-ui
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -47,5 +73,4 @@ roleRef:
   name: model-registry-create-sars
 subjects:
 - kind: ServiceAccount
-  name: model-registry-bff
-  namespace: kubeflow
+  name: model-registry-ui
