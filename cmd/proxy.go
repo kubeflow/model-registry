@@ -4,19 +4,26 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/golang/glog"
-	mrGrpc "github.com/kubeflow/model-registry/internal/grpc"
 	"github.com/kubeflow/model-registry/internal/mlmdtypes"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
 	"github.com/kubeflow/model-registry/pkg/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
-const mlmdUnavailableMessage = "MLMD server is down or unavailable. Please check that the database is reachable and try again later."
+const (
+	// mlmdUnavailableMessage is the message returned when the MLMD server is down or unavailable.
+	mlmdUnavailableMessage = "MLMD server is down or unavailable. Please check that the database is reachable and try again later."
+	// maxGRPCRetryAttempts is the maximum number of attempts to retry GRPC requests to the MLMD server.
+	maxGRPCRetryAttempts = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
+)
 
 // proxyCmd represents the proxy command
 var proxyCmd = &cobra.Command{
@@ -59,12 +66,24 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		mlmdTypeNamesConfig := mlmdtypes.NewMLMDTypeNamesConfigFromDefaults()
 
-		_, err = mrGrpc.RetryOnGRPCError[map[string]int64](mlmdtypes.CreateMLMDTypes, conn, mlmdTypeNamesConfig)
-		if err != nil {
-			errChan <- fmt.Errorf("error creating MLMD types: %w", err)
+		// Backoff and retry GRPC requests to the MLMD server, until the server
+		// becomes available or the maximum number of attempts is reached.
+		for i := 0; i < maxGRPCRetryAttempts; i++ {
+			_, err := mlmdtypes.CreateMLMDTypes(conn, mlmdTypeNamesConfig)
+			if err == nil {
+				break
+			}
 
-			return
+			st, ok := status.FromError(err)
+			if !ok || st.Code() != codes.Unavailable {
+				errChan <- fmt.Errorf("error creating MLMD types: %w", err)
+
+				return
+			}
+
+			time.Sleep(time.Duration(i+1) * time.Second)
 		}
+
 		service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
 		if err != nil {
 			errChan <- fmt.Errorf("error creating core service: %w", err)
