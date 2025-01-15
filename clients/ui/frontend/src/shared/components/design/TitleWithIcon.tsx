@@ -5,6 +5,7 @@ import {
   typedBackgroundColor,
   typedObjectImage,
 } from '~/shared/components/design/utils';
+import TypedObjectIcon from '~/shared/components/design/TypedObjectIcon';
 
 interface TitleWithIconProps {
   title: React.ReactNode;
@@ -30,7 +31,11 @@ const TitleWithIcon: React.FC<TitleWithIconProps> = ({
           height: iconSize,
         }}
       >
-        <img style={{ height: iconSize - padding * 2 }} src={typedObjectImage(objectType)} alt="" />
+        <TypedObjectIcon
+          resourceType={objectType}
+          style={{ width: iconSize - padding * 2, height: iconSize - padding * 2 }}
+          src={typedObjectImage(objectType)}
+        />
       </div>
     </FlexItem>
     <FlexItem>{title}</FlexItem>

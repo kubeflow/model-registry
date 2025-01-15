@@ -14,6 +14,7 @@ import {
 } from '@patternfly/react-core';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
+import { filterLiveVersions } from '~/app/utils';
 
 type ModelVersionSelectorProps = {
   rmId?: string;
@@ -33,8 +34,9 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
   const menuRef = React.useRef(null);
 
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
+  const liveModelVersions = filterLiveVersions(modelVersions.items);
 
-  const menuListItems = modelVersions.items
+  const menuListItems = liveModelVersions
     .filter((item) => !input || item.name.toLowerCase().includes(input.toString().toLowerCase()))
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
@@ -42,7 +44,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       </MenuItem>
     ));
 
-  if (input && modelVersions.size === 0) {
+  if (input && liveModelVersions.length === 0) {
     menuListItems.push(
       <MenuItem isDisabled key="no result">
         No results found
@@ -74,8 +76,8 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
             />
           </MenuSearchInput>
           <HelperText style={{ paddingTop: '0.5rem' }}>
-            <HelperTextItem variant="indeterminate">
-              {`Type a name to search your ${modelVersions.size} versions.`}
+            <HelperTextItem>
+              {`Type a name to search your ${liveModelVersions.length} versions.`}
             </HelperTextItem>
           </HelperText>
         </MenuSearch>

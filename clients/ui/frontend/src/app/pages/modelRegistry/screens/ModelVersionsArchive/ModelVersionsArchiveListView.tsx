@@ -8,11 +8,11 @@ import {
   ToolbarItem,
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
-import { FilterIcon } from '@patternfly/react-icons';
+import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import { SearchType } from '~/shared/components/DashboardSearchField';
 import SimpleSelect from '~/shared/components/SimpleSelect';
-import { asEnumMember } from '~/app/utils';
+import { asEnumMember } from '~/shared/utilities/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
@@ -38,9 +38,10 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
   if (unfilteredmodelVersions.length === 0) {
     return (
       <EmptyModelRegistryState
+        headerIcon={SearchIcon}
         testid="empty-archive-state"
         title="No archived versions"
-        description="You can archive the active versions that you no longer use. You can restore an archived version to make it active."
+        description="You can archive the active versions that you no longer use. You can restore archived versions to make it active."
       />
     );
   }

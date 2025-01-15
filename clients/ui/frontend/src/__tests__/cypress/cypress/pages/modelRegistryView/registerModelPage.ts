@@ -1,3 +1,5 @@
+import { SearchSelector } from '~/__tests__/cypress/cypress/pages/components/subComponents/SearchSelector';
+
 export enum FormFieldSelector {
   MODEL_NAME = '#model-name',
   MODEL_DESCRIPTION = '#model-description',
@@ -15,6 +17,8 @@ export enum FormFieldSelector {
 }
 
 class RegisterModelPage {
+  projectDropdown = new SearchSelector('project-selector', 'connection-autofill-modal');
+
   visit() {
     const preferredModelRegistry = 'modelregistry-sample';
     cy.visit(`/model-registry/${preferredModelRegistry}/registerModel`);
@@ -39,10 +43,6 @@ class RegisterModelPage {
 
   findConnectionAutofillModal() {
     return cy.findByTestId('connection-autofill-modal');
-  }
-
-  findProjectSelector() {
-    return this.findConnectionAutofillModal().findByTestId('project-selector-dropdown');
   }
 
   findConnectionSelector() {

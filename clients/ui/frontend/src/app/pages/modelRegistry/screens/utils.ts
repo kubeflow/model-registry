@@ -3,7 +3,6 @@ import {
   ModelRegistryCustomProperties,
   ModelRegistryMetadataType,
   ModelRegistryStringCustomProperties,
-  ModelState,
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
@@ -51,6 +50,12 @@ export const getProperties = <T extends ModelRegistryCustomProperties>(
 ): ModelRegistryStringCustomProperties => {
   const initial: ModelRegistryStringCustomProperties = {};
   return Object.keys(customProperties).reduce((acc, key) => {
+    // _lastModified is a property that is required to update the timestamp on the backend and we have a workaround for it. It should be resolved by
+    // backend team
+    if (key === '_lastModified') {
+      return acc;
+    }
+
     const prop = customProperties[key];
     if (prop.metadataType === ModelRegistryMetadataType.STRING && prop.string_value !== '') {
       return { ...acc, [key]: prop };
@@ -87,8 +92,10 @@ export const filterModelVersions = (
   unfilteredModelVersions: ModelVersion[],
   search: string,
   searchType: SearchType,
-): ModelVersion[] =>
-  unfilteredModelVersions.filter((mv: ModelVersion) => {
+): ModelVersion[] => {
+  const searchLower = search.toLowerCase();
+
+  return unfilteredModelVersions.filter((mv: ModelVersion) => {
     if (!search) {
       return true;
     }
@@ -96,21 +103,20 @@ export const filterModelVersions = (
     switch (searchType) {
       case SearchType.KEYWORD:
         return (
-          mv.name.toLowerCase().includes(search.toLowerCase()) ||
-          (mv.description && mv.description.toLowerCase().includes(search.toLowerCase()))
+          mv.name.toLowerCase().includes(searchLower) ||
+          (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
+          getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(searchLower))
         );
 
-      case SearchType.AUTHOR:
-        return (
-          mv.author &&
-          (mv.author.toLowerCase().includes(search.toLowerCase()) ||
-            (mv.author && mv.author.toLowerCase().includes(search.toLowerCase())))
-        );
+      case SearchType.AUTHOR: {
+        return mv.author && mv.author.toLowerCase().includes(searchLower);
+      }
 
       default:
         return true;
     }
   });
+};
 
 export const sortModelVersionsByCreateTime = (registeredModels: ModelVersion[]): ModelVersion[] =>
   registeredModels.toSorted((a, b) => {
@@ -121,82 +127,46 @@ export const sortModelVersionsByCreateTime = (registeredModels: ModelVersion[]):
 
 export const filterRegisteredModels = (
   unfilteredRegisteredModels: RegisteredModel[],
+  unfilteredModelVersions: ModelVersion[],
   search: string,
   searchType: SearchType,
-): RegisteredModel[] =>
-  unfilteredRegisteredModels.filter((rm: RegisteredModel) => {
+): RegisteredModel[] => {
+  const searchLower = search.toLowerCase();
+
+  return unfilteredRegisteredModels.filter((rm: RegisteredModel) => {
     if (!search) {
       return true;
     }
 
+    const modelVersions = unfilteredModelVersions.filter((mv) => mv.registeredModelId === rm.id);
+
     switch (searchType) {
-      case SearchType.KEYWORD:
-        return (
-          rm.name.toLowerCase().includes(search.toLowerCase()) ||
-          (rm.description && rm.description.toLowerCase().includes(search.toLowerCase()))
+      case SearchType.KEYWORD: {
+        const matchesModel =
+          rm.name.toLowerCase().includes(searchLower) ||
+          (rm.description && rm.description.toLowerCase().includes(searchLower)) ||
+          getLabels(rm.customProperties).some((label) => label.toLowerCase().includes(searchLower));
+
+        const matchesVersion = modelVersions.some(
+          (mv: ModelVersion) =>
+            mv.name.toLowerCase().includes(searchLower) ||
+            (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
+            getLabels(mv.customProperties).some((label) =>
+              label.toLowerCase().includes(searchLower),
+            ),
         );
 
-      case SearchType.OWNER:
-        return rm.owner && rm.owner.toLowerCase().includes(search.toLowerCase());
+        return matchesModel || matchesVersion;
+      }
+      case SearchType.OWNER: {
+        return rm.owner && rm.owner.toLowerCase().includes(searchLower);
+      }
 
       default:
         return true;
     }
   });
-
-export const objectStorageFieldsToUri = (fields: ObjectStorageFields): string | null => {
-  const { endpoint, bucket, region, path } = fields;
-  if (!endpoint || !bucket || !path) {
-    return null;
-  }
-  const searchParams = new URLSearchParams();
-  searchParams.set('endpoint', endpoint);
-  if (region) {
-    searchParams.set('defaultRegion', region);
-  }
-  return `s3://${bucket}/${path}?${searchParams.toString()}`;
 };
 
-export const getLastCreatedItem = <T extends { createTimeSinceEpoch?: string }>(
-  items?: T[],
-): T | undefined =>
-  items?.toSorted(
-    ({ createTimeSinceEpoch: createTimeA }, { createTimeSinceEpoch: createTimeB }) => {
-      if (!createTimeA || !createTimeB) {
-        return 0;
-      }
-      return Number(createTimeB) - Number(createTimeA);
-    },
-  )[0];
-
-export const filterArchiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
-  modelVersions.filter((mv) => mv.state === ModelState.ARCHIVED);
-
-export const filterLiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
-  modelVersions.filter((mv) => mv.state === ModelState.LIVE);
-
-export const filterArchiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
-  registeredModels.filter((rm) => rm.state === ModelState.ARCHIVED);
-
-export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
-  registeredModels.filter((rm) => rm.state === ModelState.LIVE);
-
-export const uriToObjectStorageFields = (uri: string): ObjectStorageFields | null => {
-  try {
-    const urlObj = new URL(uri);
-    // Some environments include the first token after the protocol (our bucket) in the pathname and some have it as the hostname
-    const [bucket, ...pathSplit] = `${urlObj.hostname}/${urlObj.pathname}`
-      .split('/')
-      .filter(Boolean);
-    const path = pathSplit.join('/');
-    const searchParams = new URLSearchParams(urlObj.search);
-    const endpoint = searchParams.get('endpoint');
-    const region = searchParams.get('defaultRegion');
-    if (endpoint && bucket && path) {
-      return { endpoint, bucket, region: region || undefined, path };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
+// export const getServerAddress = (resource: ServiceKind): string =>
+//   resource.metadata.annotations?.['routing.opendatahub.io/external-address-rest'] || '';

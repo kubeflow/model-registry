@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Button, Flex, FlexItem, Label, Content, Truncate } from '@patternfly/react-core';
+import { Button, Flex, FlexItem, Label, Truncate } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
@@ -60,19 +60,15 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
         }
         title={
           mv && (
-            <Flex>
-              <FlexItem>
-                <Content>{mv.name}</Content>
-              </FlexItem>
-              <FlexItem>
-                <Label>Archived</Label>
-              </FlexItem>
+            <Flex alignItems={{ default: 'alignItemsCenter' }}>
+              <FlexItem>{mv.name}</FlexItem>
+              <Label>Archived</Label>
             </Flex>
           )
         }
         headerAction={
           <Button data-testid="restore-button" onClick={() => setIsRestoreModalOpen(true)}>
-            Restore version
+            Restore model version
           </Button>
         }
         description={<Truncate content={mv?.description || ''} />}
@@ -89,7 +85,7 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
           />
         )}
       </ApplicationsPage>
-      {mv !== null && (
+      {mv !== null && isRestoreModalOpen ? (
         <RestoreModelVersionModal
           onCancel={() => setIsRestoreModalOpen(false)}
           onSubmit={() =>
@@ -103,10 +99,9 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
               )
               .then(() => navigate(modelVersionUrl(mv.id, rm?.id, preferredModelRegistry?.name)))
           }
-          isOpen={isRestoreModalOpen}
           modelVersionName={mv.name}
         />
-      )}
+      ) : null}
     </>
   );
 };

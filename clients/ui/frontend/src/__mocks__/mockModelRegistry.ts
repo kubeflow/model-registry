@@ -8,7 +8,7 @@ type MockModelRegistry = {
 
 export const mockModelRegistry = ({
   name = 'modelregistry-sample',
-  description = 'New model registry',
+  description = 'Model registry description',
   displayName = 'Model Registry Sample',
 }: MockModelRegistry): ModelRegistry => ({
   name,

@@ -19,11 +19,13 @@ const mockModelRegistryAPIs: ModelRegistryAPIs = {
   createModelArtifactForModelVersion: jest.fn(),
   getRegisteredModel: jest.fn(),
   getModelVersion: jest.fn(),
+  listModelVersions: jest.fn(),
   listRegisteredModels: jest.fn(),
   getModelVersionsByRegisteredModel: jest.fn(),
   getModelArtifactsByModelVersion: jest.fn(),
   patchRegisteredModel: jest.fn(),
   patchModelVersion: jest.fn(),
+  patchModelArtifact: jest.fn(),
 };
 
 describe('useModelArtifactsByVersionId', () => {
@@ -47,7 +49,7 @@ describe('useModelArtifactsByVersionId', () => {
     });
   });
 
-  it('should return NotReadyError if modelVersionId is not provided', async () => {
+  it('should silently fail if modelVersionId is not provided', async () => {
     mockUseModelRegistryAPI.mockReturnValue({
       api: mockModelRegistryAPIs,
       apiAvailable: true,
@@ -58,8 +60,7 @@ describe('useModelArtifactsByVersionId', () => {
 
     await waitFor(() => {
       const [, , error] = result.current;
-      expect(error?.message).toBe('No model registeredModel id');
-      expect(error).toBeInstanceOf(Error);
+      expect(error?.message).toBe(undefined);
     });
   });
 

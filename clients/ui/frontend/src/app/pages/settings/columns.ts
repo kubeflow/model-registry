@@ -1,5 +1,6 @@
-import { SortableData } from '~/shared/components/table';
+import { kebabTableColumn, SortableData } from '~/shared/components/table';
 import { ModelRegistry } from '~/app/types';
+import { isPlatformDefault } from '~/shared/utilities/const';
 
 export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
   {
@@ -8,16 +9,19 @@ export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
     sortable: (a, b) => a.name.localeCompare(b.name),
     width: 30,
   },
-  // TODO: [Model Registry RBAC] Add once we manage permissions
-  // {
-  //   field: 'status',
-  //   label: 'Status',
-  //   sortable: false,
-  // },
-  // {
-  //   field: 'manage permissions',
-  //   label: '',
-  //   sortable: false,
-  // },
-  // kebabTableColumn(),
+  {
+    field: 'status',
+    label: 'Status',
+    sortable: false,
+  },
+  ...(isPlatformDefault()
+    ? [
+        {
+          field: 'manage permissions',
+          label: '',
+          sortable: false,
+        },
+        kebabTableColumn(),
+      ]
+    : []),
 ];

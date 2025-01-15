@@ -8,33 +8,35 @@ import {
   ToolbarItem,
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
-import { FilterIcon } from '@patternfly/react-icons';
-import { RegisteredModel } from '~/app/types';
+import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import { SearchType } from '~/shared/components/DashboardSearchField';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import SimpleSelect from '~/shared/components/SimpleSelect';
-import { asEnumMember } from '~/app/utils';
+import { asEnumMember } from '~/shared/utilities/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isMUITheme } from '~/shared/utilities/const';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
 
 type RegisteredModelsArchiveListViewProps = {
   registeredModels: RegisteredModel[];
+  modelVersions: ModelVersion[];
   refresh: () => void;
 };
 
 const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewProps> = ({
   registeredModels: unfilteredRegisteredModels,
+  modelVersions,
   refresh,
 }) => {
   const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
   const [search, setSearch] = React.useState('');
 
-  const searchTypes = [SearchType.KEYWORD, SearchType.AUTHOR];
-
+  const searchTypes = [SearchType.KEYWORD, SearchType.OWNER];
   const filteredRegisteredModels = filterRegisteredModels(
     unfilteredRegisteredModels,
+    modelVersions,
     search,
     searchType,
   );
@@ -42,6 +44,7 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
   if (unfilteredRegisteredModels.length === 0) {
     return (
       <EmptyModelRegistryState
+        headerIcon={SearchIcon}
         testid="empty-archive-model-state"
         title="No archived models"
         description="You can archive the active models that you no longer use. You can restore an archived

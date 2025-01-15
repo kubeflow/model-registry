@@ -1,5 +1,4 @@
-import { ModelState, RegisteredModel } from '~/app/types';
-import { createModelRegistryLabelsObject } from './utils';
+import { ModelRegistryCustomProperties, ModelState, RegisteredModel } from '~/app/types';
 
 type MockRegisteredModelType = {
   id?: string;
@@ -7,7 +6,7 @@ type MockRegisteredModelType = {
   owner?: string;
   state?: ModelState;
   description?: string;
-  labels?: string[];
+  customProperties?: ModelRegistryCustomProperties;
 };
 
 export const mockRegisteredModel = ({
@@ -15,7 +14,7 @@ export const mockRegisteredModel = ({
   owner = 'Author 1',
   state = ModelState.LIVE,
   description = '',
-  labels = [],
+  customProperties = {},
   id = '1',
 }: MockRegisteredModelType): RegisteredModel => ({
   createTimeSinceEpoch: '1710404288975',
@@ -26,5 +25,5 @@ export const mockRegisteredModel = ({
   name,
   state,
   owner,
-  customProperties: createModelRegistryLabelsObject(labels),
+  customProperties,
 });

@@ -162,6 +162,8 @@ export type GetRegisteredModel = (
 
 export type GetModelVersion = (opts: APIOptions, modelversionId: string) => Promise<ModelVersion>;
 
+export type GetListModelVersions = (opts: APIOptions) => Promise<ModelVersionList>;
+
 export type GetListRegisteredModels = (opts: APIOptions) => Promise<RegisteredModelList>;
 
 export type GetModelVersionsByRegisteredModel = (
@@ -186,17 +188,25 @@ export type PatchModelVersion = (
   modelversionId: string,
 ) => Promise<ModelVersion>;
 
+export type PatchModelArtifact = (
+  opts: APIOptions,
+  data: Partial<ModelArtifact>,
+  modelartifactId: string,
+) => Promise<ModelArtifact>;
+
 export type ModelRegistryAPIs = {
   createRegisteredModel: CreateRegisteredModel;
   createModelVersionForRegisteredModel: CreateModelVersionForRegisteredModel;
   createModelArtifactForModelVersion: CreateModelArtifactForModelVersion;
   getRegisteredModel: GetRegisteredModel;
   getModelVersion: GetModelVersion;
+  listModelVersions: GetListModelVersions;
   listRegisteredModels: GetListRegisteredModels;
   getModelVersionsByRegisteredModel: GetModelVersionsByRegisteredModel;
   getModelArtifactsByModelVersion: GetModelArtifactsByModelVersion;
   patchRegisteredModel: PatchRegisteredModel;
   patchModelVersion: PatchModelVersion;
+  patchModelArtifact: PatchModelArtifact;
 };
 
 export type Notification = {

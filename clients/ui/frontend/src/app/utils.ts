@@ -1,45 +1,86 @@
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { RegisteredModel } from '~/app/types';
+import { ModelRegistry, ModelState, ModelVersion, RegisteredModel } from '~/app/types';
+import { K8sResourceCommon } from '~/shared/types';
 
-export const asEnumMember = <T extends object>(
-  member: T[keyof T] | string | number | undefined | null,
-  e: T,
-): T[keyof T] | null => (isEnumMember(member, e) ? member : null);
-
-export const isEnumMember = <T extends object>(
-  member: T[keyof T] | string | number | undefined | unknown | null,
-  e: T,
-): member is T[keyof T] => {
-  if (member != null) {
-    return Object.entries(e)
-      .filter(([key]) => Number.isNaN(Number(key)))
-      .map(([, value]) => value)
-      .includes(member);
-  }
-  return false;
+export type ObjectStorageFields = {
+  endpoint: string;
+  bucket: string;
+  region?: string;
+  path: string;
 };
 
-export const filterRegisteredModels = (
-  unfilteredRegisteredModels: RegisteredModel[],
-  search: string,
-  searchType: SearchType,
-): RegisteredModel[] =>
-  unfilteredRegisteredModels.filter((rm: RegisteredModel) => {
-    if (!search) {
-      return true;
+export const objectStorageFieldsToUri = (fields: ObjectStorageFields): string | null => {
+  const { endpoint, bucket, region, path } = fields;
+  if (!endpoint || !bucket || !path) {
+    return null;
+  }
+  const searchParams = new URLSearchParams();
+  searchParams.set('endpoint', endpoint);
+  if (region) {
+    searchParams.set('defaultRegion', region);
+  }
+  return `s3://${bucket}/${path}?${searchParams.toString()}`;
+};
+
+export const uriToObjectStorageFields = (uri: string): ObjectStorageFields | null => {
+  try {
+    const urlObj = new URL(uri);
+    // Some environments include the first token after the protocol (our bucket) in the pathname and some have it as the hostname
+    const [bucket, ...pathSplit] = `${urlObj.hostname}/${urlObj.pathname}`
+      .split('/')
+      .filter(Boolean);
+    const path = pathSplit.join('/');
+    const searchParams = new URLSearchParams(urlObj.search);
+    const endpoint = searchParams.get('endpoint');
+    const region = searchParams.get('defaultRegion');
+    if (endpoint && bucket && path) {
+      return { endpoint, bucket, region: region || undefined, path };
     }
+    return null;
+  } catch {
+    return null;
+  }
+};
 
-    switch (searchType) {
-      case SearchType.KEYWORD:
-        return (
-          rm.name.toLowerCase().includes(search.toLowerCase()) ||
-          (rm.description && rm.description.toLowerCase().includes(search.toLowerCase()))
-        );
+export const getLastCreatedItem = <T extends { createTimeSinceEpoch?: string }>(
+  items?: T[],
+): T | undefined =>
+  items?.toSorted(
+    ({ createTimeSinceEpoch: createTimeA }, { createTimeSinceEpoch: createTimeB }) => {
+      if (!createTimeA || !createTimeB) {
+        return 0;
+      }
+      return Number(createTimeB) - Number(createTimeA);
+    },
+  )[0];
 
-      case SearchType.OWNER:
-        return rm.owner && rm.owner.toLowerCase().includes(search.toLowerCase());
+export const filterArchiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
+  modelVersions.filter((mv) => mv.state === ModelState.ARCHIVED);
 
-      default:
-        return true;
-    }
-  });
+export const filterLiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
+  modelVersions.filter((mv) => mv.state === ModelState.LIVE);
+
+export const filterArchiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
+  registeredModels.filter((rm) => rm.state === ModelState.ARCHIVED);
+
+export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
+  registeredModels.filter((rm) => rm.state === ModelState.LIVE);
+
+export const convertToK8sResourceCommon = (modelRegistry: ModelRegistry): K8sResourceCommon => ({
+  apiVersion: 'v1',
+  kind: 'ModelRegistry',
+  metadata: {
+    name: modelRegistry.name,
+  },
+  spec: {
+    // Add any additional fields from ModelRegistry to K8sResourceCommon spec if needed
+  },
+  status: {
+    conditions: [
+      {
+        type: 'Degrading',
+        status: 'True',
+        lastTransitionTime: new Date().toISOString(),
+      },
+    ],
+  },
+});

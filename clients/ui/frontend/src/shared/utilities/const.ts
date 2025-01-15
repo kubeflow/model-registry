@@ -9,11 +9,20 @@ export enum DeploymentMode {
   Integrated = 'integrated',
 }
 
+export enum PlatformMode {
+  Default = 'default',
+  Kubeflow = 'kubeflow',
+}
+
 export const isMUITheme = (): boolean => STYLE_THEME === Theme.MUI;
 export const isStandalone = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Standalone;
 export const isIntegrated = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Integrated;
 
+export const isPlatformKubeflow = (): boolean => PLATFORM_MODE === PlatformMode.Kubeflow;
+export const isPlatformDefault = (): boolean => PLATFORM_MODE === PlatformMode.Default;
+
 const STYLE_THEME = process.env.STYLE_THEME || Theme.Default;
+const PLATFORM_MODE = process.env.PLATFORM_MODE || PlatformMode.Default;
 const DEV_MODE = process.env.APP_ENV === 'development';
 const MOCK_AUTH = process.env.MOCK_AUTH === 'true';
 const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || DeploymentMode.Integrated;
@@ -33,4 +42,11 @@ export {
   LOGO_LIGHT,
   MOCK_AUTH,
   URL_PREFIX,
+  PLATFORM_MODE,
 };
+
+export const FindAdministratorOptions = [
+  'The person who gave you your username, or who helped you to log in for the first time',
+  'Someone in your IT department or help desk',
+  'A project manager or developer',
+];

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ExpandableSection, TextArea } from '@patternfly/react-core';
+import { ExpandableSection, TextArea, TextInput } from '@patternfly/react-core';
 import DashboardDescriptionListGroup, {
   DashboardDescriptionListGroupProps,
 } from '~/shared/components/DashboardDescriptionListGroup';
@@ -12,8 +12,9 @@ type EditableTextDescriptionListGroupProps = Pick<
 > & {
   value: string;
   saveEditedValue: (value: string) => Promise<void>;
-  testid?: string;
+  baseTestId?: string;
   isArchive?: boolean;
+  editableVariant: 'TextInput' | 'TextArea';
 };
 
 const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGroupProps> = ({
@@ -22,23 +23,36 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
   value,
   isArchive,
   saveEditedValue,
-  testid,
+  baseTestId,
+  editableVariant,
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [unsavedValue, setUnsavedValue] = React.useState(value);
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
   const [isTextExpanded, setIsTextExpanded] = React.useState(false);
 
-  const editableTextArea = (
-    <TextArea
-      data-testid={`edit-text-area-${title}`}
-      aria-label={`Text box for editing ${title}`}
-      value={unsavedValue}
-      onChange={(_event, v) => setUnsavedValue(v)}
-      isDisabled={isSavingEdits}
-      rows={24}
-    />
-  );
+  const editableTextArea =
+    editableVariant === 'TextInput' ? (
+      <TextInput
+        autoFocus
+        data-testid={baseTestId && `${baseTestId}-input`}
+        aria-label={`Text input for editing ${title}`}
+        value={unsavedValue}
+        onChange={(_event, v) => setUnsavedValue(v)}
+        isDisabled={isSavingEdits}
+      />
+    ) : (
+      <TextArea
+        autoFocus
+        data-testid={baseTestId && `${baseTestId}-input`}
+        aria-label={`Text box for editing ${title}`}
+        value={unsavedValue}
+        onChange={(_event, v) => setUnsavedValue(v)}
+        isDisabled={isSavingEdits}
+        rows={24}
+        resizeOrientation="vertical"
+      />
+    );
   return (
     <DashboardDescriptionListGroup
       title={title}
@@ -47,6 +61,10 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       isEditable={!isArchive}
       isEditing={isEditing}
       isSavingEdits={isSavingEdits}
+      groupTestId={baseTestId && `${baseTestId}-group`}
+      editButtonTestId={baseTestId && `${baseTestId}-edit`}
+      saveButtonTestId={baseTestId && `${baseTestId}-save`}
+      cancelButtonTestId={baseTestId && `${baseTestId}-cancel`}
       contentWhenEditing={
         isMUITheme() ? <FormFieldset component={editableTextArea} /> : editableTextArea
       }
@@ -69,7 +87,7 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       }}
     >
       <ExpandableSection
-        data-testid={testid}
+        data-testid={baseTestId}
         variant="truncate"
         truncateMaxLines={12}
         toggleText={isTextExpanded ? 'Show less' : 'Show more'}

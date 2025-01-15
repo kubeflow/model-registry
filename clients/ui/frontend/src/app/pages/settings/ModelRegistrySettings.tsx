@@ -10,18 +10,20 @@ import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
+  const [modelRegistries, mrloaded, loadError] = useModelRegistries(queryParams);
+  // TODO: [Midstream] Implement this when adding logic for rules review
+  const loaded = mrloaded; //&& roleBindings.loaded;
 
-  const [modelRegistries, loaded, loadError] = useModelRegistries(queryParams);
   return (
     <>
       <ApplicationsPage
         title={
           <TitleWithIcon
             title="Model Registry Settings"
-            objectType={ProjectObjectType.registeredModels}
+            objectType={ProjectObjectType.modelRegistrySettings}
           />
         }
-        description="List all the model registries deployed in your environment."
+        description="Manage model registry settings for all users in your organization."
         loaded={loaded}
         loadError={loadError}
         errorMessage="Unable to load model registries."
@@ -34,7 +36,9 @@ const ModelRegistrySettings: React.FC = () => {
             variant={EmptyStateVariant.lg}
             data-testid="mr-settings-empty-state"
           >
-            <EmptyStateBody>To get started, create a model registry.</EmptyStateBody>
+            <EmptyStateBody>
+              To get started, create a model registry. You can manage permissions after creation.
+            </EmptyStateBody>
           </EmptyState>
         }
         provideChildrenPadding

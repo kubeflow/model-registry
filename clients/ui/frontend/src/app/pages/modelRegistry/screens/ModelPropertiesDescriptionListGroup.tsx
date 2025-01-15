@@ -55,12 +55,15 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
       action={
         !isArchive && (
           <Button
-            isInline
             variant="link"
+            data-testid="add-property-button"
             icon={<PlusCircleIcon />}
             iconPosition="start"
             isDisabled={isAdding || isSavingEdits}
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              setIsShowingMoreProperties(true);
+              setIsAdding(true);
+            }}
           >
             Add property
           </Button>
@@ -120,6 +123,7 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
         <Button
           variant="link"
           className={spacing.mtSm}
+          data-testid="expand-control-button"
           onClick={() => setIsShowingMoreProperties(!isShowingMoreProperties)}
         >
           {isShowingMoreProperties

@@ -28,9 +28,9 @@ export const rmColumns: SortableData<RegisteredModel>[] = [
     label: 'Owner',
     sortable: true,
     info: {
-      tooltip: 'The owner is the user who registered the model.',
-      tooltipProps: {
-        isContentLeftAligned: true,
+      popover: 'The owner is the user who registered the model.',
+      popoverProps: {
+        position: 'left',
       },
     },
   },

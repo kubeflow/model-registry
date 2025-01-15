@@ -7,7 +7,7 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { filterArchiveVersions } from '~/app/pages/modelRegistry/screens/utils';
+import { filterArchiveVersions } from '~/app/utils';
 import ModelVersionsArchiveListView from './ModelVersionsArchiveListView';
 
 type ModelVersionsArchiveProps = Omit<

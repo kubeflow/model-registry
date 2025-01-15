@@ -2,29 +2,31 @@ import * as React from 'react';
 import {
   sectionTypeBackgroundColor,
   typedBackgroundColor,
-  typedObjectImage,
   ProjectObjectType,
   SectionType,
+  sectionTypeIconColor,
+  typedIconColor,
 } from '~/shared/components/design/utils';
+import TypedObjectIcon from '~/shared/components/design/TypedObjectIcon';
 
 interface HeaderIconProps {
   size?: number;
   padding?: number;
-  image?: string;
+  display?: string;
   type: ProjectObjectType;
   sectionType?: SectionType;
 }
 
 const HeaderIcon: React.FC<HeaderIconProps> = ({
   size = 40,
-  padding = 2,
-  image,
+  padding = 4,
+  display = 'inline-block',
   type,
   sectionType,
 }) => (
   <div
     style={{
-      display: 'inline-block',
+      display,
       width: size,
       height: size,
       padding,
@@ -32,13 +34,12 @@ const HeaderIcon: React.FC<HeaderIconProps> = ({
       background: sectionType
         ? sectionTypeBackgroundColor(sectionType)
         : typedBackgroundColor(type),
+      color: sectionType ? sectionTypeIconColor(sectionType) : typedIconColor(type),
     }}
   >
-    <img
-      width={size - padding * 2}
-      height={size - padding * 2}
-      src={image || typedObjectImage(type)}
-      alt=""
+    <TypedObjectIcon
+      resourceType={type}
+      style={{ width: size - padding * 2, height: size - padding * 2 }}
     />
   </div>
 );

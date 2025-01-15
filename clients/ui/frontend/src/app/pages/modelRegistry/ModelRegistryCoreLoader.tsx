@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
-import { Bullseye, Alert, Popover, List, ListItem, Button } from '@patternfly/react-core';
-import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import { Bullseye, Alert } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
+import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';
@@ -27,7 +27,6 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
   getInvalidRedirectPath,
 }) => {
   const { modelRegistry } = useParams<{ modelRegistry: string }>();
-
   const {
     modelRegistriesLoaded,
     modelRegistriesLoadError,
@@ -69,27 +68,7 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
           headerIcon={() => (
             <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
           )}
-          customAction={
-            <Popover
-              showClose
-              position="bottom"
-              headerContent="Your administrator might be:"
-              bodyContent={
-                <List>
-                  <ListItem>
-                    The person who gave you your username, or who helped you to log in for the first
-                    time
-                  </ListItem>
-                  <ListItem>Someone in your IT department or help desk</ListItem>
-                  <ListItem>A project manager or developer</ListItem>
-                </List>
-              }
-            >
-              <Button variant="link" icon={<OutlinedQuestionCircleIcon />}>
-                Who&apos;s my administrator?
-              </Button>
-            </Popover>
-          }
+          customAction={<WhosMyAdministrator />}
         />
       ),
       headerContent: null,
@@ -104,7 +83,6 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
         </ModelRegistryContextProvider>
       );
     }
-
     // They ended up on a non-valid project path
     renderStateProps = {
       empty: true,
