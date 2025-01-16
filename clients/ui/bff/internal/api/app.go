@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"log/slog"
 	"net/http"
+	"path"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -117,13 +118,24 @@ func (app *App) Routes() http.Handler {
 
 	// App Router
 	appMux := http.NewServeMux()
+
 	// handler for api calls
 	appMux.Handle("/api/v1/", apiRouter)
 
-	// file server for the frontend
-	staticAccessDir := http.Dir(app.config.StaticAssetsDir)
-	fileServer := http.FileServer(staticAccessDir)
-	appMux.Handle("/", fileServer)
+	// file server for the frontend file and SPA routes
+	staticDir := http.Dir(app.config.StaticAssetsDir)
+	fileServer := http.FileServer(staticDir)
+	appMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Check if the requested file exists
+		if _, err := staticDir.Open(r.URL.Path); err == nil {
+			// Serve the file if it exists
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		// Fallback to index.html for SPA routes
+		http.ServeFile(w, r, path.Join(app.config.StaticAssetsDir, "index.html"))
+	})
 
 	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(appMux)))
 }

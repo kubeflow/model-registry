@@ -62,12 +62,17 @@ var _ = Describe("Static File serving Test", func() {
 			Expect(string(body)).To(ContainSubstring("BFF Stub Subfolder Page"))
 		})
 
-		It("should return 404 for a non-existent static file", func() {
+		It("should return index.html for a non-existent static file", func() {
 			resp, err := client.Get(server.URL + "/non-existent.html")
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
 
-			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			body, err := io.ReadAll(resp.Body)
+			Expect(err).NotTo(HaveOccurred())
+			//BFF Stub page is the context of index.html
+			Expect(string(body)).To(ContainSubstring("BFF Stub Page"))
 		})
 
 	})
