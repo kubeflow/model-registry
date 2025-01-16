@@ -7,6 +7,7 @@ import {
   Button,
   Page,
   PageSection,
+  PageSidebar,
   Spinner,
   Stack,
   StackItem,
@@ -96,6 +97,8 @@ const App: React.FC = () => {
     );
   }
 
+  const sidebar = <PageSidebar isSidebarOpen={false} />;
+
   // Waiting on the API to finish
   const loading =
     !configLoaded || !userSettings || !configSettings || !contextValue || !namespacesLoaded;
@@ -121,7 +124,7 @@ const App: React.FC = () => {
           )
         }
         isManagedSidebar={isStandalone()}
-        sidebar={isStandalone() ? <NavSidebar /> : ''}
+        sidebar={isStandalone() ? <NavSidebar /> : sidebar}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />
