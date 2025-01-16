@@ -11,6 +11,18 @@ import (
 var _ = Describe("TestGetModelVersionHandler", func() {
 	Context("testing Model Version Handler", Ordered, func() {
 
+		It("should retrieve all model versions", func() {
+			By("fetching all model versions")
+			data := mocks.GetModelVersionListMock()
+			expected := ModelVersionListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/model_versions?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+			By("should match the expected model versions")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+		})
+
 		It("should retrieve a model version", func() {
 			By("fetching a model version")
 			data := mocks.GetModelVersionMocks()[0]

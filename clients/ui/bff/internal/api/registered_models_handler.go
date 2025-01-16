@@ -177,7 +177,7 @@ func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWrit
 		return
 	}
 
-	versionList, err := app.repositories.ModelRegistryClient.GetAllModelVersions(client, ps.ByName(RegisteredModelId), r.URL.Query())
+	versionList, err := app.repositories.ModelRegistryClient.GetAllModelVersionsForRegisteredModel(client, ps.ByName(RegisteredModelId), r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
