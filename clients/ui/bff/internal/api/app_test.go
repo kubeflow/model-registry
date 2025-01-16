@@ -1,13 +1,14 @@
 package api
 
 import (
+	"io"
+	"net/http"
+	httptest "net/http/httptest"
+
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"io"
-	"net/http"
-	httptest "net/http/httptest"
 )
 
 var _ = Describe("Static File serving Test", func() {

@@ -13,7 +13,7 @@ export const isMUITheme = (): boolean => STYLE_THEME === Theme.MUI;
 export const isStandalone = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Standalone;
 export const isIntegrated = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Integrated;
 
-const STYLE_THEME = process.env.STYLE_THEME || Theme.MUI;
+const STYLE_THEME = process.env.STYLE_THEME || Theme.Default;
 const DEV_MODE = process.env.APP_ENV === 'development';
 const MOCK_AUTH = process.env.MOCK_AUTH === 'true';
 const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || DeploymentMode.Integrated;

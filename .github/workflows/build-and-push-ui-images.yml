@@ -10,7 +10,6 @@ on:
 env:
   IMG_ORG: kubeflow
   IMG_UI_REPO: model-registry-ui
-  IMG_BFF_REPO: model-registry-bff
   DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
   PUSH_IMAGE: true
@@ -36,11 +35,6 @@ jobs:
         env:
           IMG_REPO: ${{ env.IMG_UI_REPO }}
         run: ./scripts/build_deploy.sh
-      - name: Build and Push BFF Image
-        shell: bash
-        env:
-          IMG_REPO: ${{ env.IMG_BFF_REPO }}
-        run: ./scripts/build_deploy.sh
       - name: Tag Latest UI Image
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
@@ -48,17 +42,6 @@ jobs:
           IMG_REPO: ${{ env.IMG_UI_REPO }}
           IMG: ${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}
           BUILD_IMAGE: false # image is already built in "Build and Push UI Image" step
-        run: |
-          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
-          # BUILD_IMAGE=false skip the build, just push the tag made above
-          VERSION=latest ./scripts/build_deploy.sh
-      - name: Tag Latest BFF Image
-        if: env.BUILD_CONTEXT == 'main'
-        shell: bash
-        env:
-          IMG_REPO: ${{ env.IMG_BFF_REPO }}
-          IMG: ${{ env.IMG_ORG }}/${{ env.IMG_BFF_REPO }}
-          BUILD_IMAGE: false # image is already built in "Build and Push BFF Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
           # BUILD_IMAGE=false skip the build, just push the tag made above

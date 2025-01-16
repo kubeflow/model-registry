@@ -1,5 +1,3 @@
-CONTAINER_TOOL ?= docker
-IMG ?= model-registry-bff:latest
 PORT ?= 4000
 MOCK_K8S_CLIENT ?= false
 MOCK_MR_CLIENT ?= false
@@ -51,10 +49,6 @@ build: fmt vet test ## Builds the project to produce a binary executable.
 run: fmt vet envtest ## Runs the project.
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 	go run ./cmd/main.go  --port=$(PORT) --static-assets-dir=$(STATIC_ASSETS_DIR) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)  --standalone-mode=$(STANDALONE_MODE)
-
-.PHONY: docker-build
-docker-build: ## Builds a container for the project.
-	$(CONTAINER_TOOL) build -t ${IMG} .
 
 ##@ Dependencies
 
