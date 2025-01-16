@@ -126,6 +126,10 @@ curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/a
 }}'
 ```
 ```
+# GET /api/v1/model_registry/{model_registry_id}/model_versions
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_versions?namespace=kubeflow"
+```
+```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id} 
 curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_versions/1?namespace=kubeflow"
 ```

@@ -134,7 +134,7 @@ func TestUpdateRegisteredModel(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func TestGetAllModelVersions(t *testing.T) {
+func TestGetAllModelVersionsByRegisteredModel(t *testing.T) {
 	_ = gofakeit.Seed(0)
 
 	expected := mocks.GenerateMockModelVersionList()
@@ -149,7 +149,7 @@ func TestGetAllModelVersions(t *testing.T) {
 	assert.NoError(t, err)
 	mockClient.On("GET", path).Return(mockData, nil)
 
-	actual, err := registeredModel.GetAllModelVersions(mockClient, "1", nil)
+	actual, err := registeredModel.GetAllModelVersionsForRegisteredModel(mockClient, "1", nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 	assert.NoError(t, err)
@@ -180,7 +180,7 @@ func TestGetAllModelVersionsWithPageParams(t *testing.T) {
 
 	mockClient.On("GET", reqUrl).Return(mockData, nil)
 
-	actual, err := registeredModel.GetAllModelVersions(mockClient, "1", pageValues)
+	actual, err := registeredModel.GetAllModelVersionsForRegisteredModel(mockClient, "1", pageValues)
 	assert.NoError(t, err)
 	assert.NotNil(t, actual)
 

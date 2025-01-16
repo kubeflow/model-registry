@@ -13,6 +13,7 @@ const modelVersionPath = "/model_versions"
 const artifactsByModelVersionPath = "/artifacts"
 
 type ModelVersionInterface interface {
+	GetAllModelVersions(client integrations.HTTPClientInterface) (*openapi.ModelVersionList, error)
 	GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error)
 	CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
 	UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
@@ -22,6 +23,21 @@ type ModelVersionInterface interface {
 
 type ModelVersion struct {
 	ModelVersionInterface
+}
+
+func (v ModelVersion) GetAllModelVersions(client integrations.HTTPClientInterface) (*openapi.ModelVersionList, error) {
+	response, err := client.GET(modelVersionPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("error fetching model versions: %w", err)
+	}
+
+	var models openapi.ModelVersionList
+	if err := json.Unmarshal(response, &models); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &models, nil
 }
 
 func (v ModelVersion) GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
