@@ -3,6 +3,7 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -22,9 +23,9 @@ import (
 const ComponentLabelValue = "model-registry"
 
 type KubernetesClientInterface interface {
-	GetServiceNames(namespace string) ([]string, error)
-	GetServiceDetailsByName(namespace string, serviceName string) (ServiceDetails, error)
-	GetServiceDetails(namespace string) ([]ServiceDetails, error)
+	GetServiceNames(sessionCtx context.Context, namespace string) ([]string, error)
+	GetServiceDetailsByName(sessionCtx context.Context, namespace string, serviceName string) (ServiceDetails, error)
+	GetServiceDetails(sessionCtx context.Context, namespace string) ([]ServiceDetails, error)
 	BearerToken() (string, error)
 	Shutdown(ctx context.Context, logger *slog.Logger) error
 	IsInCluster() bool
@@ -152,8 +153,8 @@ func (kc *KubernetesClient) BearerToken() (string, error) {
 	return kc.Token, nil
 }
 
-func (kc *KubernetesClient) GetServiceNames(namespace string) ([]string, error) {
-	services, err := kc.GetServiceDetails(namespace)
+func (kc *KubernetesClient) GetServiceNames(sessionCtx context.Context, namespace string) ([]string, error) {
+	services, err := kc.GetServiceDetails(sessionCtx, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (kc *KubernetesClient) GetServiceNames(namespace string) ([]string, error) 
 	return names, nil
 }
 
-func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetails, error) {
+func (kc *KubernetesClient) GetServiceDetails(sessionCtx context.Context, namespace string) ([]ServiceDetails, error) {
 
 	if namespace == "" {
 		return nil, fmt.Errorf("namespace cannot be empty")
@@ -174,6 +175,8 @@ func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetail
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	sessionLogger := sessionCtx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
 	serviceList := &corev1.ServiceList{}
 
@@ -202,12 +205,12 @@ func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetail
 			}
 		}
 		if !hasHTTPPort {
-			kc.Logger.Error("service missing HTTP port", "serviceName", service.Name)
+			sessionLogger.Error("service missing HTTP port", "serviceName", service.Name)
 			continue
 		}
 
 		if service.Spec.ClusterIP == "" {
-			kc.Logger.Error("service missing valid ClusterIP", "serviceName", service.Name)
+			sessionLogger.Error("service missing valid ClusterIP", "serviceName", service.Name)
 			continue
 		}
 
@@ -220,11 +223,11 @@ func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetail
 		}
 
 		if displayName == "" {
-			kc.Logger.Warn("service missing displayName annotation", "serviceName", service.Name)
+			sessionLogger.Warn("service missing displayName annotation", "serviceName", service.Name)
 		}
 
 		if description == "" {
-			kc.Logger.Warn("service missing description annotation", "serviceName", service.Name)
+			sessionLogger.Warn("service missing description annotation", "serviceName", service.Name)
 		}
 
 		serviceDetails := ServiceDetails{
@@ -242,8 +245,8 @@ func (kc *KubernetesClient) GetServiceDetails(namespace string) ([]ServiceDetail
 	return services, nil
 }
 
-func (kc *KubernetesClient) GetServiceDetailsByName(namespace string, serviceName string) (ServiceDetails, error) {
-	services, err := kc.GetServiceDetails(namespace)
+func (kc *KubernetesClient) GetServiceDetailsByName(sessionCtx context.Context, namespace string, serviceName string) (ServiceDetails, error) {
+	services, err := kc.GetServiceDetails(sessionCtx, namespace)
 	if err != nil {
 		return ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}

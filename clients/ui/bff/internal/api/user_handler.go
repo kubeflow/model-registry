@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"net/http"
 )
@@ -11,7 +12,7 @@ type UserEnvelope Envelope[*models.User, None]
 
 func (app *App) UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	userId, ok := r.Context().Value(KubeflowUserIdKey).(string)
+	userId, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
 	if !ok || userId == "" {
 		app.serverErrorResponse(w, r, errors.New("failed to retrieve kubeflow-userid from context"))
 		return

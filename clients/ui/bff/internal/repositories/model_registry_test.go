@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -13,7 +14,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(k8sClient, "kubeflow")
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model registries")
@@ -28,7 +29,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(k8sClient, "dora-namespace")
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "dora-namespace")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model registries")
@@ -42,7 +43,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(k8sClient, "no-namespace")
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "no-namespace")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should be empty")

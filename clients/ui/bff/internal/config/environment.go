@@ -8,4 +8,5 @@ type EnvConfig struct {
 	StandaloneMode  bool
 	DevModePort     int
 	StaticAssetsDir string
+	LogLevel        string
 }

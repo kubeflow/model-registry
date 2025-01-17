@@ -35,6 +35,11 @@ If you want to use a different port, mock kubernetes client or model registry cl
 ```shell
 make run PORT=8000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true
 ```
+If you want to change the log level on deployment, add the LOG_LEVEL argument when running, supported levels are: ERROR, WARN, INFO, DEBUG. The default level is INFO.
+```shell
+# Run with debug logging
+make run LOG_LEVEL=DEBUG  
+```
 
 # Building and Deploying
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
@@ -26,7 +27,7 @@ func TestHealthCheckHandler(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, HealthCheckPath, nil)
-	ctx := context.WithValue(req.Context(), KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
+	ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
 	req = req.WithContext(ctx)
 	assert.NoError(t, err)
 

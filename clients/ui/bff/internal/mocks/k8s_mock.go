@@ -185,8 +185,8 @@ func setupMock(mockK8sClient client.Client, ctx context.Context) error {
 	return nil
 }
 
-func (m *KubernetesClientMock) GetServiceDetails(namespace string) ([]k8s.ServiceDetails, error) {
-	originalServices, err := m.KubernetesClient.GetServiceDetails(namespace)
+func (m *KubernetesClientMock) GetServiceDetails(sessionCtx context.Context, namespace string) ([]k8s.ServiceDetails, error) {
+	originalServices, err := m.KubernetesClient.GetServiceDetails(sessionCtx, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service details: %w", err)
 	}
@@ -199,8 +199,8 @@ func (m *KubernetesClientMock) GetServiceDetails(namespace string) ([]k8s.Servic
 	return originalServices, nil
 }
 
-func (m *KubernetesClientMock) GetServiceDetailsByName(namespace string, serviceName string) (k8s.ServiceDetails, error) {
-	originalService, err := m.KubernetesClient.GetServiceDetailsByName(namespace, serviceName)
+func (m *KubernetesClientMock) GetServiceDetailsByName(sessionCtx context.Context, namespace string, serviceName string) (k8s.ServiceDetails, error) {
+	originalService, err := m.KubernetesClient.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
 	if err != nil {
 		return k8s.ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}

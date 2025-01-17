@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
@@ -13,9 +14,9 @@ func NewModelRegistryRepository() *ModelRegistryRepository {
 	return &ModelRegistryRepository{}
 }
 
-func (m *ModelRegistryRepository) GetAllModelRegistries(client k8s.KubernetesClientInterface, namespace string) ([]models.ModelRegistryModel, error) {
+func (m *ModelRegistryRepository) GetAllModelRegistries(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace string) ([]models.ModelRegistryModel, error) {
 
-	resources, err := client.GetServiceDetails(namespace)
+	resources, err := client.GetServiceDetails(sessionCtx, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching model registries: %w", err)
 	}
