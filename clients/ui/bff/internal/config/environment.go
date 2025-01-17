@@ -9,4 +9,5 @@ type EnvConfig struct {
 	DevModePort     int
 	StaticAssetsDir string
 	LogLevel        string
+	AllowedOrigins  string
 }

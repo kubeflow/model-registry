@@ -28,6 +28,7 @@ func main() {
 	flag.BoolVar(&cfg.StandaloneMode, "standalone-mode", false, "Use standalone mode for enabling endpoints in standalone mode")
 	flag.StringVar(&cfg.StaticAssetsDir, "static-assets-dir", "./static", "Configure frontend static assets root directory")
 	flag.StringVar(&cfg.LogLevel, "log-level", getEnvAsString("LOG_LEVEL", "info"), "Sets server log level, possible values: debug, info, warn, error, fatal")
+	flag.StringVar(&cfg.AllowedOrigins, "allowed-origins", getEnvAsString("ALLOWED_ORIGINS", ""), "Sets allowed origins for CORS purposes, accepts a comma separated list of origins or * to allow all, default none")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{

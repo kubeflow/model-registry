@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/rs/cors"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
@@ -66,14 +67,23 @@ func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(ederign) restrict CORS to a much smaller set of trusted origins.
-		// TODO(ederign) deal with preflight requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+func (app *App) EnableCORS(next http.Handler) http.Handler {
+	allowedOrigins, ok := ParseOriginList(app.config.AllowedOrigins)
 
-		next.ServeHTTP(w, r)
+	if !ok {
+		return next
+	}
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:     allowedOrigins,
+		AllowCredentials:   true,
+		AllowedMethods:     []string{"GET", "PUT", "POST", "PATCH", "DELETE"},
+		AllowedHeaders:     []string{constants.KubeflowUserIDHeader, constants.KubeflowUserGroupsIdHeader},
+		Debug:              strings.ToLower(app.config.LogLevel) == "debug",
+		OptionsPassthrough: false,
 	})
+
+	return c.Handler(next)
 }
 
 func (app *App) EnableTelemetry(next http.Handler) http.Handler {

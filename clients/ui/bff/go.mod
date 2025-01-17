@@ -4,10 +4,12 @@ go 1.22.2
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.1.2
+	github.com/google/uuid v1.6.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kubeflow/model-registry v0.2.9
 	github.com/onsi/ginkgo/v2 v2.21.0
 	github.com/onsi/gomega v1.35.1
+	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.9.0
 	k8s.io/api v0.31.2
 	k8s.io/apimachinery v0.31.4
@@ -36,7 +38,6 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20241029153458-d1b30febd7db // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
