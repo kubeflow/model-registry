@@ -54,26 +54,7 @@ make docker-build
 
 ### Endpoints
 
-| URL Pattern                                                                                  | Handler                                      | Action                                                      |
-|----------------------------------------------------------------------------------------------|----------------------------------------------|-------------------------------------------------------------|
-| GET /v1/healthcheck                                                                          | HealthcheckHandler                           | Show application information.                               |
-| GET /v1/user                                                                                 | UserHandler                                  | Show "kubeflow-user-id" from header information.            |
-| GET /v1/namespaces                                                                           | NamespacesHandler                            | Get all user namespaces. (only enabled in devmode)          |
-| GET /v1/model_registry                                                                       | ModelRegistryHandler                         | Get all model registries,                                   |
-| GET /v1/model_registry/{model_registry_id}/registered_models                                 | GetAllRegisteredModelsHandler                | Gets a list of all RegisteredModel entities.                |
-| POST /v1/model_registry/{model_registry_id}/registered_models                                | CreateRegisteredModelHandler                 | Create a RegisteredModel entity.                            |
-| GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}           | GetRegisteredModelHandler                    | Get a RegisteredModel entity by ID                          |
-| PATCH /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}         | UpdateRegisteredModelHandler                 | Update a RegisteredModel entity by ID                       |
-| GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}             | GetModelVersionHandler                       | Get a ModelVersion by ID                                    |
-| POST /api/v1/model_registry/{model_registry_id}/model_versions                               | CreateModelVersionHandler                    | Create a ModelVersion entity                                |
-| PATCH /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}           | UpdateModelVersionHandler                    | Update a ModelVersion entity by ID                          |
-| GET /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions  | GetAllModelVersionsForRegisteredModelHandler | Get all ModelVersion entities by RegisteredModel ID         |
-| POST /v1/model_registry/{model_registry_id}/registered_models/{registered_model_id}/versions | CreateModelVersionForRegisteredModelHandler  | Create a ModelVersion entity for a specific RegisteredModel |
-| GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts   | GetAllModelArtifactsByModelVersionHandler    | Get all ModelArtifact entities by ModelVersion ID           |
-| POST /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id}/artifacts  | CreateModelArtifactByModelVersion            | Create a ModelArtifact entity for a specific ModelVersion   |
-
-Note: Most API paths require the namespace parameter to be passed as a query parameter.
-The only exceptions are the health check (/v1/healthcheck) and user (/v1/user) paths, which do not require the namespace parameter.
+See the [OpenAPI specification](../api/openapi/mod-arch.yaml) for a complete list of endpoints.
 
 ### Sample local calls
 
@@ -143,6 +124,10 @@ curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/a
 -d '{ "data": {
   "description": "New description"
 }}'
+```
+```
+# GET /api/v1/model_registry/{model_registry_id}/model_versions
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_versions?namespace=kubeflow"
 ```
 ```
 # GET /api/v1/model_registry/{model_registry_id}/model_versions/{model_version_id} 

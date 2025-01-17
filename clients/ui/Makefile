@@ -44,36 +44,58 @@ dev-start:
 
 ############ Build ############
 
-.PHONY: build-bff
-build-bff:
-	$(CONTAINER_TOOL) build -t ${IMG_BFF} ./bff
+.PHONY: docker-build
+docker-build:
+	$(CONTAINER_TOOL) build -t ${IMG_UI} .
 
-.PHONY: build-frontend
-build-frontend:
-	$(CONTAINER_TOOL) build -t ${IMG_FRONTEND} ./frontend
+.PHONY: docker-build-standalone
+docker-build-standalone:
+	MOCK_AUTH=true DEPLOYMENT_MODE=standalone $(CONTAINER_TOOL) build -t ${IMG_UI_STANDALONE} .
 
-.PHONY: build
-build: build-bff build-frontend
+.PHONY: docker-buildx
+docker-buildx:
+	docker buildx build --platform ${PLATFORM} -t ${IMG_UI} --push .
+
+.PHONY: docker-buildx-standalone
+docker-buildx-standalone:
+	MOCK_AUTH=true DEPLOYMENT_MODE=standalone docker buildx build --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
 
 ############ Push ############
 
-.PHONY: push-bff
-push-bff:
-	${CONTAINER_TOOL} push ${IMG_BFF}
+.PHONY: docker-push
+docker-push:
+	${CONTAINER_TOOL} push ${IMG_UI}
 
-.PHONY: push-frontend
-push-frontend:
-	${CONTAINER_TOOL} push ${IMG_FRONTEND}
-
-.PHONY: push
-push: push-bff push-frontend
+.PHONY: docker-push-standalone
+docker-push-standalone:
+	${CONTAINER_TOOL} push ${IMG_UI_STANDALONE}
 
 ############ Deployment ############
-
-.PHONY: docker-compose
-docker-compose:
-	$(CONTAINER_TOOL) compose -f docker-compose.yaml up
 
 .PHONY: kind-deployment
 kind-deployment:
 	./scripts/deploy_kind_cluster.sh
+
+############ Build ############	
+.PHONY: frontend-build
+frontend-build:
+	cd frontend && npm run build:prod
+
+.PHONY: frontend-build-standalone
+frontend-build-standalone:
+	MOCK_AUTH=true DEPLOYMENT_MODE=standalone cd frontend && npm run build:prod
+
+.PHONY: bff-build
+bff-build:
+	cd bff && make build
+
+.PHONY: build
+build: frontend-build bff-build
+
+############ Run mocked ########
+.PHONY: run-local-mocked
+run-local-mocked: frontend-build-standalone bff-build
+	rm -r ./bff/static-local-run && cp -r ./frontend/dist/ ./bff/static-local-run/ && cd bff && make run STATIC_ASSETS_DIR=./static-local-run MOCK_K8S_CLIENT=true DEV_MODE=true
+
+
+	

@@ -6,3 +6,5 @@
 .DS_Store
 
 .env*.local
+
+!*.test

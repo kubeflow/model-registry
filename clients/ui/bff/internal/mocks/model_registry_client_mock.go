@@ -41,6 +41,11 @@ func (m *ModelRegistryClientMock) UpdateRegisteredModel(_ integrations.HTTPClien
 	return &mockData, nil
 }
 
+func (m *ModelRegistryClientMock) GetAllModelVersions(_ integrations.HTTPClientInterface) (*openapi.ModelVersionList, error) {
+	mockData := GetModelVersionListMock()
+	return &mockData, nil
+}
+
 func (m *ModelRegistryClientMock) GetModelVersion(_ integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
 	if id == "3" {
 		mockData := GetModelVersionMocks()[2]
@@ -61,7 +66,7 @@ func (m *ModelRegistryClientMock) UpdateModelVersion(_ integrations.HTTPClientIn
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) GetAllModelVersions(_ integrations.HTTPClientInterface, _ string, _ url.Values) (*openapi.ModelVersionList, error) {
+func (m *ModelRegistryClientMock) GetAllModelVersionsForRegisteredModel(_ integrations.HTTPClientInterface, _ string, _ url.Values) (*openapi.ModelVersionList, error) {
 	mockData := GetModelVersionListMock()
 	return &mockData, nil
 }

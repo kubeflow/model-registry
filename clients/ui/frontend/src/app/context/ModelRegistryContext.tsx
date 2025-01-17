@@ -4,6 +4,7 @@ import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
 import useModelRegistryAPIState, {
   ModelRegistryAPIState,
 } from '~/app/hooks/useModelRegistryAPIState';
+import { URL_PREFIX } from '~/shared/utilities/const';
 
 export type ModelRegistryContextType = {
   apiState: ModelRegistryAPIState;
@@ -26,7 +27,7 @@ export const ModelRegistryContextProvider: React.FC<ModelRegistryContextProvider
   modelRegistryName,
 }) => {
   const hostPath = modelRegistryName
-    ? `/api/${BFF_API_VERSION}/model_registry/${modelRegistryName}`
+    ? `${URL_PREFIX}/api/${BFF_API_VERSION}/model_registry/${modelRegistryName}`
     : null;
 
   const queryParams = useQueryParamNamespaces();

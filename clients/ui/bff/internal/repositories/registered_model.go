@@ -17,7 +17,7 @@ type RegisteredModelInterface interface {
 	CreateRegisteredModel(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error)
 	GetRegisteredModel(client integrations.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
 	UpdateRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error)
-	GetAllModelVersions(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error)
+	GetAllModelVersionsForRegisteredModel(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error)
 	CreateModelVersionForRegisteredModel(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 }
 
@@ -94,7 +94,7 @@ func (m RegisteredModel) UpdateRegisteredModel(client integrations.HTTPClientInt
 	return &model, nil
 }
 
-func (m RegisteredModel) GetAllModelVersions(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error) {
+func (m RegisteredModel) GetAllModelVersionsForRegisteredModel(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error) {
 	path, err := url.JoinPath(registeredModelPath, id, versionsPath)
 
 	if err != nil {

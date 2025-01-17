@@ -5,6 +5,12 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but it's not
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but it's not installed. Aborting."; exit 1; }
 command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not installed. Aborting."; exit 1; }
 
+# Check if the script has rights to push an image into the registry
+if ! docker push "${IMG_UI_STANDALONE}" --dry-run >/dev/null 2>&1; then
+  echo -e "\033[31mError: No rights to push the image to the registry ${IMG_UI_STANDALONE}, you can change the image in the env variable IMG_UI_STANDALONE\033[0m"
+  exit 1
+fi
+
 if kubectl get deployment model-registry-deployment -n kubeflow >/dev/null 2>&1; then
   echo "Model Registry deployment already exists. Skipping to step 4."
 else
@@ -33,27 +39,24 @@ else
     kubectl get pods -n kubeflow
 fi
 
-pushd  ./manifests/base
-kustomize edit set namespace kubeflow
-kustomize edit set image model-registry-ui-image=${IMG_FRONTEND}
-kustomize edit set image model-registry-bff-image=${IMG_BFF}
+# Step 4: Build Model Registry and push in standalone mode
+echo "Building Model Registry UI..."
+make docker-build-standalone
+make docker-push-standalone
 
+echo "Editing kustomize image..."
+pushd  ./manifests/base
+kustomize edit set image model-registry-ui-image=${IMG_UI_STANDALONE}
+
+pushd  ../overlays/standalone
 # Step 4: Deploy model registry UI
 echo "Deploying Model Registry UI..."
+kustomize edit set namespace kubeflow
 kubectl apply -n kubeflow -k .
 
 # Wait for deployment to be available
 echo "Waiting Model Registry UI to be available..."
 kubectl wait --for=condition=available -n kubeflow deployment/model-registry-ui --timeout=1m
-
-pushd  ../user-rbac
-# Step 5: Apply admin user service account in the cluster
-echo "Applying admin user service account and rolebinding..."
-kubectl apply -k .
-
-# Step 6: Generate token for admin user and display it
-echo "In your browser, you will need to inject your requests with a kubeflow-userid header for authorization purposes."
-echo "For example, you can use the Header Editor - https://chromewebstore.google.com/detail/eningockdidmgiojffjmkdblpjocbhgh extension in Chrome to set the kubeflow-userid header to user@example.com."
 
 # Step 5: Port-forward the service
 echo "Port-forwarding Model Registry UI..."

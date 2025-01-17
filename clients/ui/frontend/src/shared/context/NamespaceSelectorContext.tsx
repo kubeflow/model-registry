@@ -1,6 +1,7 @@
 import * as React from 'react';
 import useNamespaces from '~/shared/hooks/useNamespaces';
 import { Namespace } from '~/shared/types';
+import { isIntegrated } from '~/shared/utilities/const';
 
 export type NamespaceSelectorContextType = {
   namespacesLoaded: boolean;
@@ -31,6 +32,13 @@ export const NamespaceSelectorContextProvider: React.FC<NamespaceSelectorContext
   </EnabledNamespaceSelectorContextProvider>
 );
 
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    centraldashboard: any;
+  }
+}
+
 const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContextProviderProps> = ({
   children,
 }) => {
@@ -39,6 +47,24 @@ const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContext
     React.useState<NamespaceSelectorContextType['preferredNamespace']>(undefined);
 
   const firstNamespace = namespaces.length > 0 ? namespaces[0] : null;
+
+  React.useEffect(() => {
+    if (isIntegrated()) {
+      // Initialize the central dashboard client
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        window.centraldashboard.CentralDashboardEventHandler.init((cdeh: any) => {
+          // eslint-disable-next-line no-param-reassign
+          cdeh.onNamespaceSelected = (newNamespace: string) => {
+            setPreferredNamespace({ name: newNamespace });
+          };
+        });
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.error('Failed to initialize central dashboard client', err);
+      }
+    }
+  }, []);
 
   const contextValue = React.useMemo(
     () => ({

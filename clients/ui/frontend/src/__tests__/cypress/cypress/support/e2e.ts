@@ -18,6 +18,7 @@ import '@cypress/code-coverage/support';
 import { mockUserSettings } from '~/__mocks__/mockUserSettings';
 import 'cypress-mochawesome-reporter/register';
 import './commands';
+import { mockNamespace } from '~/__mocks__/mockNamespace';
 import { MODEL_REGISTRY_API_VERSION } from './commands/api';
 
 chai.use(chaiSubset);
@@ -39,6 +40,16 @@ beforeEach(() => {
         },
       },
       mockUserSettings({}),
+    );
+
+    cy.interceptApi(
+      'GET /api/:apiVersion/namespaces',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+        },
+      },
+      [mockNamespace({})],
     );
   }
 });

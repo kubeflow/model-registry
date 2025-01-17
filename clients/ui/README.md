@@ -2,6 +2,7 @@
 [BFF requirements]: ./bff/README.md#pre-requisites
 [frontend dev setup]: ./frontend/docs/dev-setup.md#development
 [BFF dev setup]: ./bff/README.md#development
+[Model registry UI]: ./docs/README.md
 
 # Model Registry UI
 
@@ -24,14 +25,6 @@ To run the a mocked dev environment you can either:
 
 * Or follow the [frontend dev setup] and [BFF dev setup].
 
-### Docker deployment
-
-To build the Model Registry UI container, run the following command:
-
-```shell
-make docker-compose
-```
-
 ### Kubernetes Deployment
 
 For a in-depth guide on how to deploy the Model Registry UI, please refer to the [local kubernetes deployment](./bff/docs/dev-guide.md) documentation.
@@ -47,6 +40,14 @@ make kind-deployment
 You can find the OpenAPI specification for the Model Registry UI in the [openapi](./api/openapi) directory.
 A live version of the OpenAPI specification can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/clients/ui/api/openapi/mod-arch.yaml).
 
+## Targeted environments
+
+There's two main environments that the Model Registry UI is targeted for:
+
+1. **Standalone**: This is the default environment for local development. The UI is served by the BFF and the BFF is responsible for serving the API requests. The BFF exposes a `/namespace` endpoint that returns all the namespaces in the cluster and the UI sends a user header `kubeflow-user` to authenticate the calls.
+
+2. **Integrated**: This is the environment where the UI is served by the Kubeflow Ingress and the BFF is served by the Kubeflow API Gateway. The BFF is responsible for serving the API requests and namespace selection is leveraged from Kubeflow.
+
 ## Environment Variables
 
 The following environment variables are used to configure the deployment and development environment for the Model Registry UI. These variables should be defined in a `.env.local` file in the `clients/ui` directory of the project. **This values will affect the build and push commands**.
@@ -58,17 +59,35 @@ The following environment variables are used to configure the deployment and dev
 * **Possible Values**: `docker`, `podman`, etc.
 * **Example**: `CONTAINER_TOOL=docker`
 
-### `IMG_BFF`
+### `IMG_UI`
 
-* **Description**: Specifies the image name and tag for the Backend For Frontend (BFF) service.
-* **Default Value**: `model-registry-bff:latest`
-* **Example**: `IMG_BFF=model-registry-bff:latest`
+* **Description**: Specifies the image name and tag for the UI (with BFF).
+* **Default Value**: `model-registry-ui:latest`
+* **Example**: `IMG_UI=model-registry-bff:latest`
 
-### `IMG_FRONTEND`
+### `IMG_UI_STANDALONE`
 
-* **Description**: Specifies the image name and tag for the frontend service.
-* **Default Value**: `model-registry-frontend:latest`
-* **Example**: `IMG_FRONTEND=model-registry-frontend:latest`
+* **Description**: Specifies the image name and tag for the UI (with BFF) in **standalone mode**, used for local kind deployment.
+* **Default Value**: `model-registry-ui-standalone:latest`
+* **Example**: `IMG_UI_STANDALONE=model-registry-bff:latest`
+
+### `PLATFORM`
+
+* **Description**: Specifies the platform for a **docker buildx** build.
+* **Default Value**: `linux/amd64`
+* **Example**: `PLATFORM=linux/amd64`
+
+### `MOCK_AUTH`
+
+* **Description**: Specifies whether to mock authentication in the UI.
+* **Default Value**: `true` (in dev mode) / `false` (in production mode)
+* **Possible Values**: `true`, `false`
+
+### `DEPLOYMENT_MODE`
+
+* **Description**: Specifies the deployment mode for the UI.
+* **Default Value**: `standalone` (in dev mode) / `integrated` (in production mode)
+* **Possible Values**: `standalone`, `integrated`
 
 ### Example `.env.local` File
 
@@ -76,38 +95,43 @@ Here is an example of what your `.env.local` file might look like:
 
 ```shell
 CONTAINER_TOOL=docker
-IMG_BFF=model-registry-bff:latest
-IMG_FRONTEND=model-registry-frontend:latest
+IMG_UI=quay.io/<personal-registry>/model-registry-ui:latest
+IMG_UI_STANDALONE=quay.io/<personal-registry>/model-registry-ui-standalone:latest
+PLATFORM=linux/amd64
 ```
 
 ## Build and Push Commands
 
-The following Makefile targets are used to build and push the Docker images for the Backend For Frontend (BFF) and frontend services. These targets utilize the environment variables defined in the `.env.local` file.
+The following Makefile targets are used to build and push the Docker images the UI images. These targets utilize the environment variables defined in the `.env.local` file.
 
 ### Build Commands
 
-* **`build-bff`**: Builds the Docker image for the BFF service.
-  * Command: `make build-bff`
-  * This command uses the `CONTAINER_TOOL` and `IMG_BFF` environment variables to build the image.
+* **`docker-build`**: Builds the Docker image for the UI platform.
+  * Command: `make docker-build`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI` environment variables to push the image.
 
-* **`build-frontend`**: Builds the Docker image for the frontend service.
-  * Command: `make build-frontend`
-  * This command uses the `CONTAINER_TOOL` and `IMG_FRONTEND` environment variables to build the image.
+* **`docker-buildx`**: Builds the Docker image with buildX for multiarch support.
+  * Command: `make docker-buildx`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI` environment variables to push the image.
 
-* **`build`**: Builds the Docker images for both the BFF and frontend services.
-  * Command: `make build`
-  * This command runs both `build-bff` and `build-frontend` targets.
+* **`docker-build-standalone`**: Builds the Docker image for the UI platform **in standalone mode**.
+  * Command: `make docker-build-standalone`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI_STANDALONE` environment variables to push the image.
+
+* **`docker-buildx-standalone`**: Builds the Docker image with buildX for multiarch support **in standalone mode**.
+  * Command: `make docker-buildx-standalone`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI_STANDALONE` environment variables to push the image.
 
 ### Push Commands
 
-* **`push-bff`**: Pushes the Docker image for the BFF service to the container registry.
-  * Command: `make push-bff`
-  * This command uses the `CONTAINER_TOOL` and `IMG_BFF` environment variables to push the image.
+* **`docker-push`**: Pushes the Docker image for the UI service to the container registry.
+  * Command: `make docker-push`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI` environment variables to push the image.
 
-* **`push-frontend`**: Pushes the Docker image for the frontend service to the container registry.
-  * Command: `make push-frontend`
-  * This command uses the `CONTAINER_TOOL` and `IMG_FRONTEND` environment variables to push the image.
+* **`docker-push-standalone`**: Pushes the Docker image for the UI service to the container registry **in standalone mode**.
+  * Command: `make docker-push-standalone`
+  * This command uses the `CONTAINER_TOOL` and `IMG_UI_STANDALONE` environment variables to push the image.
 
-* **`push`**: Pushes the Docker images for both the BFF and frontend services to the container registry.
-  * Command: `make push`
-  * This command runs both `push-bff` and `push-frontend` targets.
+## Deployments
+
+For more information on how to deploy the Model Registry UI, please refer to the [Model registry UI] documentation.
