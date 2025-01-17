@@ -7,13 +7,14 @@ import {
   Button,
   Page,
   PageSection,
+  PageSidebar,
   Spinner,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
+import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
 import { logout } from '~/shared/utilities/appUtils';
 import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 import NavSidebar from './NavSidebar';
@@ -76,9 +77,9 @@ const App: React.FC = () => {
                 <p>
                   {configError?.message ||
                     namespacesLoadError?.message ||
-                    'Unknown error occurred during startup.'}
+                    'Unknown error occurred during startup'}
                 </p>
-                <p>Logging out and logging back in may solve the issue.</p>
+                <p>Logging out and logging back in may solve the issue</p>
               </Alert>
             </StackItem>
             <StackItem>
@@ -95,6 +96,8 @@ const App: React.FC = () => {
     );
   }
 
+  const sidebar = <PageSidebar isSidebarOpen={false} />;
+
   // Waiting on the API to finish
   const loading =
     !configLoaded || !userSettings || !configSettings || !contextValue || !namespacesLoaded;
@@ -108,15 +111,19 @@ const App: React.FC = () => {
       <Page
         mainContainerId="primary-app-container"
         masthead={
-          <NavBar
-            username={username}
-            onLogout={() => {
-              logout().then(() => window.location.reload());
-            }}
-          />
+          isStandalone() ? (
+            <NavBar
+              username={username}
+              onLogout={() => {
+                logout().then(() => window.location.reload());
+              }}
+            />
+          ) : (
+            ''
+          )
         }
-        isManagedSidebar
-        sidebar={<NavSidebar />}
+        isManagedSidebar={isStandalone()}
+        sidebar={isStandalone() ? <NavSidebar /> : sidebar}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />

@@ -32,7 +32,7 @@ export const useAdminSettings = (): NavDataItem[] => {
   return [
     {
       label: 'Settings',
-      children: [{ label: 'Model Registry', path: '/modelRegistrySettings' }],
+      children: [{ label: 'Model Registry', path: '/model-registry-settings' }],
     },
   ];
 };
@@ -40,7 +40,7 @@ export const useAdminSettings = (): NavDataItem[] => {
 export const useNavData = (): NavDataItem[] => [
   {
     label: 'Model Registry',
-    path: '/modelRegistry',
+    path: '/model-registry',
   },
   ...useAdminSettings(),
 ];
@@ -50,12 +50,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/modelRegistry" replace />} />
-      <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
+      <Route path="/" element={<Navigate to="/model-registry" replace />} />
+      <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode*/}
       {clusterAdmin && (
-        <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
+        <Route path="/model-registry-settings/*" element={<ModelRegistrySettingsRoutes />} />
       )}
     </Routes>
   );

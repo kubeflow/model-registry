@@ -38,6 +38,32 @@ func TestGetModelVersion(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestGetAllModelVersions(t *testing.T) {
+	_ = gofakeit.Seed(0)
+
+	expected := mocks.GenerateMockModelVersionList()
+
+	mockData, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	modelVersion := ModelVersion{}
+
+	mockClient := new(mocks.MockHTTPClient)
+	mockClient.On("GET", modelVersionPath).Return(mockData, nil)
+
+	actual, err := modelVersion.GetAllModelVersions(mockClient)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expected.NextPageToken, actual.NextPageToken)
+	assert.Equal(t, expected.PageSize, actual.PageSize)
+	assert.Equal(t, expected.Size, actual.Size)
+	assert.Equal(t, len(expected.Items), len(actual.Items))
+
+	mockClient.AssertExpectations(t)
+}
+
 func TestCreateModelVersion(t *testing.T) {
 	_ = gofakeit.Seed(0)
 

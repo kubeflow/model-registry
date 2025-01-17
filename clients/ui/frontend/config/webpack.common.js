@@ -14,6 +14,8 @@ const OUTPUT_ONLY = process.env._OUTPUT_ONLY;
 const FAVICON = process.env.FAVICON;
 const PRODUCT_NAME = process.env.PRODUCT_NAME;
 const COVERAGE = process.env.COVERAGE;
+const DEPLOYMENT_MODE = process.env._DEPLOYMENT_MODE;
+const BASE_PATH = DEPLOYMENT_MODE === 'integrated' ? '/model-registry/' : PUBLIC_PATH;
 
 if (OUTPUT_ONLY !== 'true') {
   console.info(
@@ -173,7 +175,7 @@ module.exports = (env) => {
     output: {
       filename: '[name].bundle.js',
       path: DIST_DIR,
-      publicPath: PUBLIC_PATH,
+      publicPath: BASE_PATH,
     },
     plugins: [
       ...setupWebpackDotenvFilesForEnv({
@@ -184,6 +186,7 @@ module.exports = (env) => {
         template: path.join(SRC_DIR, 'index.html'),
         title: PRODUCT_NAME,
         favicon: path.join(SRC_DIR, 'images', FAVICON),
+        baseUrl: BASE_PATH
       }),
       new CopyPlugin({
         patterns: [

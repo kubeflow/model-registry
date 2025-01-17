@@ -1,9 +1,0 @@
-- op: add
-  path: /spec/template/spec/containers/0/env
-  value: 
-    - name: API_URL
-      value: "http://model-registry-bff-service:4000"
-    - name: MOCK_AUTH
-      value: "false"
-    - name: DEPLOYMENT_MODE
-      value: "integrated"

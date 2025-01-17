@@ -27,7 +27,7 @@
     "cypress:open:mock": "CY_MOCK=1 npm run cypress:open -- ",
     "cypress:run": "cypress run -b chrome --project src/__tests__/cypress",
     "cypress:run:mock": "CY_MOCK=1 npm run cypress:run -- ",
-    "cypress:server:build": "DIST_DIR=./public-cypress POLL_INTERVAL=9999999 FAST_POLL_INTERVAL=9999999 npm run build",
+    "cypress:server:build": "DIST_DIR=./public-cypress POLL_INTERVAL=9999999 DEPLOYMENT_MODE=standalone MOCK_AUTH=true npm run build",
     "cypress:server": "serve ./public-cypress -p 9001 -s -L"
   },
   "devDependencies": {
@@ -54,10 +54,10 @@
     "@types/showdown": "^2.0.3",
     "chai-subset": "^1.6.0",
     "copy-webpack-plugin": "^12.0.2",
-    "core-js": "^3.37.1",
+    "core-js": "^3.40.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.0",
-    "cypress": "^13.16.0",
+    "cypress": "^13.17.0",
     "cypress-axe": "^1.5.0",
     "cypress-high-resolution": "^1.0.0",
     "cypress-mochawesome-reporter": "^3.8.2",

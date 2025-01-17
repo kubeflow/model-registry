@@ -9,7 +9,7 @@ import type {
   RegisteredModel,
   RegisteredModelList,
 } from '~/app/types';
-import type { UserSettings } from '~/shared/types';
+import type { Namespace, UserSettings } from '~/shared/types';
 
 const MODEL_REGISTRY_API_VERSION = 'v1';
 export { MODEL_REGISTRY_API_VERSION };
@@ -108,6 +108,11 @@ declare global {
           type: 'GET /api/:apiVersion/user',
           options: { path: { apiVersion: string } },
           response: ApiResponse<UserSettings>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/namespaces',
+          options: { path: { apiVersion: string } },
+          response: ApiResponse<Namespace[]>,
         ) => Cypress.Chainable<null>);
     }
   }

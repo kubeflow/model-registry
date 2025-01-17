@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 [
   `.env.cypress${env.CY_MOCK ? '.mock' : ''}.local`,
   `.env.cypress${env.CY_MOCK ? '.mock' : ''}`,
+  '.env.test',
   '.env.local',
   '.env',
 ].forEach((file) =>
