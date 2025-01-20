@@ -1,7 +1,12 @@
 package mocks
 
 import (
+	"context"
+	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"log/slog"
+	"os"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -199,4 +204,20 @@ func newCustomProperties() *map[string]openapi.MetadataValue {
 	}
 
 	return &result
+}
+
+func NewMockSessionContext(parent context.Context) context.Context {
+	if parent == nil {
+		parent = context.TODO()
+	}
+	traceId := uuid.NewString()
+	ctx := context.WithValue(parent, constants.TraceIdKey, traceId)
+
+	traceLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	ctx = context.WithValue(ctx, constants.TraceLoggerKey, traceLogger)
+	return ctx
+}
+
+func NewMockSessionContextNoParent() context.Context {
+	return NewMockSessionContext(context.TODO())
 }

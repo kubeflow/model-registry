@@ -19,3 +19,42 @@ func TestParseURLTemplateWhenEmpty(t *testing.T) {
 	actual := ParseURLTemplate("", nil)
 	assert.Empty(t, actual)
 }
+
+func TestParseOriginListAllowAll(t *testing.T) {
+	expected := []string{"*"}
+
+	actual, ok := ParseOriginList("*")
+
+	assert.True(t, ok)
+	assert.Equal(t, expected, actual)
+}
+
+func TestParseOriginListEmpty(t *testing.T) {
+	actual, ok := ParseOriginList("")
+
+	assert.False(t, ok)
+	assert.Empty(t, actual)
+}
+
+func TestParseOriginListSingle(t *testing.T) {
+	expected := []string{"http://test.com"}
+
+	actual, ok := ParseOriginList("http://test.com")
+
+	assert.True(t, ok)
+	assert.Equal(t, expected, actual)
+}
+
+func TestParseOriginListMultiple(t *testing.T) {
+	expected := []string{"http://test.com", "http://test2.com"}
+	actual, ok := ParseOriginList("http://test.com,http://test2.com")
+	assert.True(t, ok)
+	assert.Equal(t, expected, actual)
+}
+
+func TestParseOriginListMultipleAndSpaces(t *testing.T) {
+	expected := []string{"http://test.com", "http://test2.com"}
+	actual, ok := ParseOriginList("http://test.com, http://test2.com")
+	assert.True(t, ok)
+	assert.Equal(t, expected, actual)
+}

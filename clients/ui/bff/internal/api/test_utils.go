@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
@@ -46,16 +47,16 @@ func setupApiTest[T any](method string, url string, body interface{}, k8sClient 
 	}
 
 	// Set the kubeflow-userid header
-	req.Header.Set(KubeflowUserIDHeader, kubeflowUserIDHeaderValue)
+	req.Header.Set(constants.KubeflowUserIDHeader, kubeflowUserIDHeaderValue)
 
-	ctx := req.Context()
-	ctx = context.WithValue(ctx, ModelRegistryHttpClientKey, mockClient)
-	ctx = context.WithValue(ctx, KubeflowUserIdKey, kubeflowUserIDHeaderValue)
-	ctx = context.WithValue(ctx, NamespaceHeaderParameterKey, namespace)
+	ctx := mocks.NewMockSessionContext(req.Context())
+	ctx = context.WithValue(ctx, constants.ModelRegistryHttpClientKey, mockClient)
+	ctx = context.WithValue(ctx, constants.KubeflowUserIdKey, kubeflowUserIDHeaderValue)
+	ctx = context.WithValue(ctx, constants.NamespaceHeaderParameterKey, namespace)
 	mrHttpClient := k8s.HTTPClient{
 		ModelRegistryID: "model-registry",
 	}
-	ctx = context.WithValue(ctx, ModelRegistryHttpClientKey, mrHttpClient)
+	ctx = context.WithValue(ctx, constants.ModelRegistryHttpClientKey, mrHttpClient)
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()

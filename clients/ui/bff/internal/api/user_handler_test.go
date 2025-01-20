@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"io"
 	"net/http"
@@ -34,7 +35,7 @@ var _ = Describe("TestUserHandler", func() {
 		It("should show that KubeflowUserIDHeaderValue (user@example.com) is a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
+			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -62,7 +63,7 @@ var _ = Describe("TestUserHandler", func() {
 		It("should show that DoraNonAdminUser (doraNonAdmin@example.com) is not a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, DoraNonAdminUser)
+			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, DoraNonAdminUser)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -92,7 +93,7 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), KubeflowUserIdKey, randomUser)
+			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, randomUser)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 

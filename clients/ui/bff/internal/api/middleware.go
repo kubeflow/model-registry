@@ -4,27 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"strings"
-
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-)
-
-type contextKey string
-
-const (
-	ModelRegistryHttpClientKey  contextKey = "ModelRegistryHttpClientKey"
-	NamespaceHeaderParameterKey contextKey = "namespace"
-
-	//Kubeflow authorization operates using custom authentication headers:
-	// Note: The functionality for `kubeflow-groups` is not fully operational at Kubeflow platform at this time
-	// but it's supported on Model Registry BFF
-	KubeflowUserIdKey          contextKey = "kubeflowUserId" // kubeflow-userid :contains the user's email address
-	KubeflowUserIDHeader                  = "kubeflow-userid"
-	KubeflowUserGroupsKey      contextKey = "kubeflowUserGroups" // kubeflow-groups : Holds a comma-separated list of user groups
-	KubeflowUserGroupsIdHeader            = "kubeflow-groups"
+	"github.com/rs/cors"
+	"log/slog"
+	"net/http"
+	"runtime/debug"
+	"strings"
 )
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
@@ -33,6 +22,7 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
 				app.serverErrorResponse(w, r, fmt.Errorf("%s", err))
+				app.logger.Error("Recover from panic: " + string(debug.Stack()))
 			}
 		}()
 
@@ -49,8 +39,8 @@ func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 			return
 		}
 
-		userIdHeader := r.Header.Get(KubeflowUserIDHeader)
-		userGroupsHeader := r.Header.Get(KubeflowUserGroupsIdHeader)
+		userIdHeader := r.Header.Get(constants.KubeflowUserIDHeader)
+		userGroupsHeader := r.Header.Get(constants.KubeflowUserGroupsIdHeader)
 		//`kubeflow-userid`: Contains the user's email address.
 		if userIdHeader == "" {
 			app.badRequestResponse(w, r, errors.New("missing required header: kubeflow-userid"))
@@ -70,20 +60,54 @@ func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, KubeflowUserIdKey, userIdHeader)
-		ctx = context.WithValue(ctx, KubeflowUserGroupsKey, userGroups)
+		ctx = context.WithValue(ctx, constants.KubeflowUserIdKey, userIdHeader)
+		ctx = context.WithValue(ctx, constants.KubeflowUserGroupsKey, userGroups)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (app *App) enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(ederign) restrict CORS to a much smaller set of trusted origins.
-		// TODO(ederign) deal with preflight requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+func (app *App) EnableCORS(next http.Handler) http.Handler {
+	allowedOrigins, ok := ParseOriginList(app.config.AllowedOrigins)
 
-		next.ServeHTTP(w, r)
+	if !ok {
+		return next
+	}
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:     allowedOrigins,
+		AllowCredentials:   true,
+		AllowedMethods:     []string{"GET", "PUT", "POST", "PATCH", "DELETE"},
+		AllowedHeaders:     []string{constants.KubeflowUserIDHeader, constants.KubeflowUserGroupsIdHeader},
+		Debug:              strings.ToLower(app.config.LogLevel) == "debug",
+		OptionsPassthrough: false,
+	})
+
+	return c.Handler(next)
+}
+
+func (app *App) EnableTelemetry(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Adds a unique id to the context to allow tracing of requests
+		traceId := uuid.NewString()
+		ctx := context.WithValue(r.Context(), constants.TraceIdKey, traceId)
+
+		// logger will only be nil in tests.
+		if app.logger != nil {
+			traceLogger := app.logger.With(slog.String("trace_id", traceId))
+			ctx = context.WithValue(ctx, constants.TraceLoggerKey, traceLogger)
+
+			if traceLogger.Enabled(ctx, slog.LevelDebug) {
+				cloneBody, err := integrations.CloneBody(r)
+				if err != nil {
+					traceLogger.Debug("Error reading request body for debug logging", "error", err)
+				}
+				////TODO (Alex) Log headers, BUT we must ensure we don't log confidential data like tokens etc.
+				traceLogger.Debug("Incoming HTTP request", "method", r.Method, "url", r.URL.String(), "body", cloneBody)
+			}
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
@@ -92,30 +116,42 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 
 		modelRegistryID := ps.ByName(ModelRegistryId)
 
-		namespace, ok := r.Context().Value(NamespaceHeaderParameterKey).(string)
+		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 		}
 
-		modelRegistryBaseURL, err := resolveModelRegistryURL(namespace, modelRegistryID, app.kubernetesClient, app.config)
+		modelRegistryBaseURL, err := resolveModelRegistryURL(r.Context(), namespace, modelRegistryID, app.kubernetesClient, app.config)
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
 		}
 
-		client, err := integrations.NewHTTPClient(modelRegistryID, modelRegistryBaseURL)
+		// Set up a child logger for the rest client that automatically adds the request id to all statements for
+		// tracing.
+		restClientLogger := app.logger
+		traceId, ok := r.Context().Value(constants.TraceIdKey).(string)
+		if app.logger != nil {
+			if ok {
+				restClientLogger = app.logger.With(slog.String("trace_id", traceId))
+			} else {
+				app.logger.Warn("Failed to set trace_id for tracing")
+			}
+		}
+
+		client, err := integrations.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return
 		}
-		ctx := context.WithValue(r.Context(), ModelRegistryHttpClientKey, client)
+		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, client)
 		next(w, r.WithContext(ctx), ps)
 	}
 }
 
-func resolveModelRegistryURL(namespace string, serviceName string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
+func resolveModelRegistryURL(sessionCtx context.Context, namespace string, serviceName string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
 
-	serviceDetails, err := client.GetServiceDetailsByName(namespace, serviceName)
+	serviceDetails, err := client.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
 	if err != nil {
 		return "", err
 	}
@@ -131,13 +167,13 @@ func resolveModelRegistryURL(namespace string, serviceName string, client integr
 
 func (app *App) AttachNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		namespace := r.URL.Query().Get(string(NamespaceHeaderParameterKey))
+		namespace := r.URL.Query().Get(string(constants.NamespaceHeaderParameterKey))
 		if namespace == "" {
-			app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: %s", NamespaceHeaderParameterKey))
+			app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: %s", constants.NamespaceHeaderParameterKey))
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), NamespaceHeaderParameterKey, namespace)
+		ctx := context.WithValue(r.Context(), constants.NamespaceHeaderParameterKey, namespace)
 		r = r.WithContext(ctx)
 
 		next(w, r, ps)
@@ -146,19 +182,19 @@ func (app *App) AttachNamespace(next func(http.ResponseWriter, *http.Request, ht
 
 func (app *App) PerformSARonGetListServicesByNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		user, ok := r.Context().Value(KubeflowUserIdKey).(string)
+		user, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
 		if !ok || user == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing user in context"))
 			return
 		}
-		namespace, ok := r.Context().Value(NamespaceHeaderParameterKey).(string)
+		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 			return
 		}
 
 		var userGroups []string
-		if groups, ok := r.Context().Value(KubeflowUserGroupsKey).([]string); ok {
+		if groups, ok := r.Context().Value(constants.KubeflowUserGroupsKey).([]string); ok {
 			userGroups = groups
 		} else {
 			userGroups = []string{}
@@ -181,13 +217,13 @@ func (app *App) PerformSARonGetListServicesByNamespace(next func(http.ResponseWr
 func (app *App) PerformSARonSpecificService(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-		user, ok := r.Context().Value(KubeflowUserIdKey).(string)
+		user, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
 		if !ok || user == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing user in context"))
 			return
 		}
 
-		namespace, ok := r.Context().Value(NamespaceHeaderParameterKey).(string)
+		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 			return
@@ -200,7 +236,7 @@ func (app *App) PerformSARonSpecificService(next func(http.ResponseWriter, *http
 		}
 
 		var userGroups []string
-		if groups, ok := r.Context().Value(KubeflowUserGroupsKey).([]string); ok {
+		if groups, ok := r.Context().Value(constants.KubeflowUserGroupsKey).([]string); ok {
 			userGroups = groups
 		} else {
 			userGroups = []string{}

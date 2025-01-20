@@ -1,16 +1,18 @@
 package integrations
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
 
 type HTTPClientInterface interface {
-	GetModelRegistryID() (modelRegistryService string)
 	GET(url string) ([]byte, error)
 	POST(url string, body io.Reader) ([]byte, error)
 	PATCH(url string, body io.Reader) ([]byte, error)
@@ -20,6 +22,7 @@ type HTTPClient struct {
 	client          *http.Client
 	baseURL         string
 	ModelRegistryID string
+	logger          *slog.Logger
 }
 
 type ErrorResponse struct {
@@ -36,7 +39,7 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s - %s", e.StatusCode, e.Code, e.Message)
 }
 
-func NewHTTPClient(modelRegistryID string, baseURL string) (HTTPClientInterface, error) {
+func NewHTTPClient(logger *slog.Logger, modelRegistryID string, baseURL string) (HTTPClientInterface, error) {
 
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
@@ -44,6 +47,7 @@ func NewHTTPClient(modelRegistryID string, baseURL string) (HTTPClientInterface,
 		}},
 		baseURL:         baseURL,
 		ModelRegistryID: modelRegistryID,
+		logger:          logger,
 	}, nil
 }
 
@@ -52,11 +56,15 @@ func (c *HTTPClient) GetModelRegistryID() string {
 }
 
 func (c *HTTPClient) GET(url string) ([]byte, error) {
+	requestId := uuid.NewString()
+
 	fullURL := c.baseURL + url
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	logUpstreamReq(c.logger, requestId, req)
 
 	response, err := c.client.Do(req)
 	if err != nil {
@@ -65,6 +73,7 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
+	logUpstreamResp(c.logger, requestId, response, body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
@@ -72,6 +81,8 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 }
 
 func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
+	requestId := uuid.NewString()
+
 	fullURL := c.baseURL + url
 	fmt.Println(fullURL)
 	req, err := http.NewRequest("POST", fullURL, body)
@@ -81,6 +92,8 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 
+	logUpstreamReq(c.logger, requestId, req)
+
 	response, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -88,6 +101,7 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	defer response.Body.Close()
 
 	responseBody, err := io.ReadAll(response.Body)
+	logUpstreamResp(c.logger, requestId, response, responseBody)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
@@ -120,7 +134,11 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
+	requestId := uuid.NewString()
+
 	req.Header.Set("Content-Type", "application/json")
+
+	logUpstreamReq(c.logger, requestId, req)
 
 	response, err := c.client.Do(req)
 	if err != nil {
@@ -129,6 +147,7 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 	defer response.Body.Close()
 
 	responseBody, err := io.ReadAll(response.Body)
+	logUpstreamResp(c.logger, requestId, response, responseBody)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
@@ -151,4 +170,20 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 		return nil, httpError
 	}
 	return responseBody, nil
+}
+
+func logUpstreamReq(logger *slog.Logger, reqId string, req *http.Request) {
+	if logger.Enabled(context.TODO(), slog.LevelDebug) {
+		var body []byte
+		if req.Body != nil {
+			body, _ = CloneBody(req)
+		}
+		logger.Debug("Making upstream HTTP request", "request_id", reqId, "method", req.Method, "url", req.URL.String(), "body", body)
+	}
+}
+
+func logUpstreamResp(logger *slog.Logger, reqId string, resp *http.Response, body []byte) {
+	if logger.Enabled(context.TODO(), slog.LevelDebug) {
+		logger.Debug("Received upstream HTTP response", "request_id", reqId, "status_code", resp.StatusCode, "body", body)
+	}
 }

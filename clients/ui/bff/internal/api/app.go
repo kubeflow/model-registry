@@ -138,5 +138,5 @@ func (app *App) Routes() http.Handler {
 		http.ServeFile(w, r, path.Join(app.config.StaticAssetsDir, "index.html"))
 	})
 
-	return app.RecoverPanic(app.enableCORS(app.InjectUserHeaders(appMux)))
+	return app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectUserHeaders(appMux))))
 }

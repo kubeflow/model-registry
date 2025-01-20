@@ -35,6 +35,11 @@ If you want to use a different port, mock kubernetes client or model registry cl
 ```shell
 make run PORT=8000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true
 ```
+If you want to change the log level on deployment, add the LOG_LEVEL argument when running, supported levels are: ERROR, WARN, INFO, DEBUG. The default level is INFO.
+```shell
+# Run with debug logging
+make run LOG_LEVEL=DEBUG  
+```
 
 # Building and Deploying
 
@@ -282,3 +287,41 @@ Access to Model Registry List:
 Access to Specific Model Registry Endpoints:
 - For other endpoints (e.g., /v1/model_registry/{model_registry_id}/...), we perform a SAR check for get and list verbs on the specific service (identified by model_registry_id) within the namespace.
 - If the user or any group has permission to get or list the specific service, the request is authorized.
+
+#### 4. How do I allow CORS requests from other origins
+
+When serving the UI directly from the BFF there is no need for any CORS headers to be served, by default they are turned off for security reasons. 
+
+If you need to enable CORS for any reasons you can add origins to the allow-list in several ways:
+
+##### Via the make command
+Add the following parameter to your command: `ALLOWED_ORIGINS` this takes a comma separated list of origins to permit serving to, alterantively you can specify the value `*` to allow all origins, **Note this is not recommended in production deployments as it poses a security risk**
+
+Examples:
+
+```shell
+# Allow only the origin http://example.com:8081
+make run ALLOWED_ORIGINS="http://example.com:8081"
+
+# Allow the origins http://example.com and http://very-nice.com
+make run ALLOWED_ORIGINS="http://example.com,http://very-nice.com"
+
+# Allow all origins
+make run ALLOWED_ORIGINS="*"
+
+# Explicitly disable CORS (default behaviour)
+make run ALLOWED_ORIGINS=""
+```
+
+#### Via environment variable
+Setting CORS via environment variable follows the same rules as using the Makefile, simply set the environment variable `ALLOWED_ORIGINS` with the same value as above.
+
+#### Via the command line arguments
+
+Setting CORS via command line arguments follows the same rules as using the Makefile. Simply add the `--allowed-origins=` flag to your command.
+
+Examples:
+```shell
+./bff --allowed-origins="http://my-domain.com,http://my-other-domain.com"
+```
+
