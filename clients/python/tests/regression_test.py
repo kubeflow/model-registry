@@ -124,8 +124,7 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     assert ma
     assert ma.id
 
-    # payload = { "modelFormatName": "foo", "artifactType": "model-artifact" }
-    payload = { "modelFormatName": "foo"}
+    payload = { "modelFormatName": "foo", "artifactType": "model-artifact" }
     from .conftest import REGISTRY_HOST, REGISTRY_PORT
     response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
     assert response.status_code == 200
