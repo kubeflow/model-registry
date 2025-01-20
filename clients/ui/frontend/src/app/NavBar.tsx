@@ -6,14 +6,17 @@ import {
   Masthead,
   MastheadContent,
   MastheadMain,
+  MastheadToggle,
   MenuToggle,
   MenuToggleElement,
+  PageToggleButton,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
 import { SimpleSelect } from '@patternfly/react-templates';
+import { BarsIcon } from '@patternfly/react-icons';
 import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 
 interface NavBarProps {
@@ -46,7 +49,13 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
 
   return (
     <Masthead>
-      <MastheadMain />
+      <MastheadMain>
+        <MastheadToggle>
+          <PageToggleButton id="page-nav-toggle" variant="plain" aria-label="Dashboard navigation">
+            <BarsIcon />
+          </PageToggleButton>
+        </MastheadToggle>
+      </MastheadMain>
       <MastheadContent>
         <Toolbar>
           <ToolbarContent>

@@ -747,7 +747,6 @@
   --pf-v6-c-masthead--BackgroundColor: var(--mui-palette-common-white);
   box-shadow: var(--mui-shadows-1);
   min-height: var(--kf-central-app-bar-height);
-  margin-left: var(--kf-central-app-drawer-width);
 }
 
 .mui-theme .pf-v6-c-modal-box {
@@ -798,3 +797,17 @@
 .mui-theme .pf-v6-c-page__main-container {
   margin-top: var(--kf-central-app-bar-height); /* Move content area below the app bar */
 }
+
+/* Hide Masthead Toggle by default */
+.mui-theme .pf-v6-c-masthead__toggle {
+  display: none;
+}
+
+/* Show Masthead Toggle on viewports below 1270px */
+@media (max-width: 1270px) {
+  .mui-theme .pf-v6-c-masthead__toggle {
+    display: block;
+    padding-block-start: var(--mui-spacing-4px);
+  }
+}
+
