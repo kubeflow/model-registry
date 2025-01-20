@@ -14,11 +14,11 @@ var _ = Describe("TestArtifactsHandler", func() {
 		Context("successful operations", func() {
 			It("should retrieve an artifact", func() {
 				By("fetching a specific artifact")
-				gofakeit.Seed(123)
+				_ = gofakeit.Seed(123)
 				data := mocks.GenerateMockArtifact()
 				expected := ArtifactEnvelope{Data: &data}
 
-				gofakeit.Seed(123)
+				_ = gofakeit.Seed(123)
 				actual, rs, err := setupApiTest[ArtifactEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts/1?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -31,7 +31,7 @@ var _ = Describe("TestArtifactsHandler", func() {
 
 			It("should list all artifacts", func() {
 				By("fetching all artifacts")
-				gofakeit.Seed(123)
+				_ = gofakeit.Seed(123)
 
 				actual, rs, err := setupApiTest[ArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
 				Expect(err).NotTo(HaveOccurred())
