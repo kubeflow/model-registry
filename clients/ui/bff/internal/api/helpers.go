@@ -106,3 +106,15 @@ func ParseURLTemplate(tmpl string, params map[string]string) string {
 
 	return r.Replace(tmpl)
 }
+
+func ParseOriginList(origins string) ([]string, bool) {
+	if origins == "" {
+		return []string{}, false
+	}
+
+	if origins == "*" {
+		return []string{"*"}, true
+	}
+	originsTrimmed := strings.ReplaceAll(origins, " ", "")
+	return strings.Split(originsTrimmed, ","), true
+}
