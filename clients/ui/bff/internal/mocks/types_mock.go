@@ -2,10 +2,11 @@ package mocks
 
 import (
 	"fmt"
-	"github.com/brianvoe/gofakeit/v7"
-	"github.com/kubeflow/model-registry/pkg/openapi"
 	"net/url"
 	"strconv"
+
+	"github.com/brianvoe/gofakeit/v7"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
@@ -85,7 +86,7 @@ func GenerateMockModelVersionList() openapi.ModelVersionList {
 
 func GenerateMockModelArtifact() openapi.ModelArtifact {
 	artifact := openapi.ModelArtifact{
-		ArtifactType: gofakeit.Word(),
+		ArtifactType: "model-artifact",
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"example_key": {
 				MetadataStringValue: &openapi.MetadataStringValue{
