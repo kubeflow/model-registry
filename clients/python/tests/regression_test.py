@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 from model_registry import ModelRegistry
 from model_registry.types.artifacts import ModelArtifact
@@ -99,3 +100,35 @@ async def test_create_standalone_model_artifact(client: ModelRegistry):
     assert mv.id
     mv_ma = await client._api.upsert_model_version_artifact(new_ma, mv.id)
     assert mv_ma.id == new_ma.id
+
+@pytest.mark.e2e
+async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
+    """Patching Artifacts makes the model registry server panic.
+
+    reported with https://issues.redhat.com/browse/RHOAIENG-16932
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+    mv = client.get_model_version(name, version)
+    assert mv
+    assert mv.id
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+
+    payload = { "modelFormatName": "foo", "artifactType": "model-artifact" }
+    from .conftest import REGISTRY_HOST, REGISTRY_PORT
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    assert response.status_code == 200
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+    assert ma.model_format_name == "foo"

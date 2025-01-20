@@ -492,7 +492,8 @@ func (s *ModelRegistryServiceAPIService) UpdateArtifact(ctx context.Context, art
 	}
 	if artifactUpdate.DocArtifactUpdate != nil {
 		entity.DocArtifact.Id = &artifactId
-	} else {
+	}
+	if artifactUpdate.ModelArtifactUpdate != nil {
 		entity.ModelArtifact.Id = &artifactId
 	}
 	existing, err := s.coreApi.GetArtifactById(artifactId)
