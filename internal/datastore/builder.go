@@ -28,6 +28,15 @@ func NewDatastore(dsType string, dsHostname string, dsPort int) (api.ModelRegist
 		}
 
 		return svc, mlmd.Teardown, nil
+	case "inmemory":
+		inmemory := NewInMemoryService()
+
+		svc, err := inmemory.Build()
+		if err != nil {
+			return nil, nil, fmt.Errorf("%w: %w", ErrCreatingDatastore, err)
+		}
+
+		return svc, inmemory.Teardown, nil
 	default:
 		return nil, nil, fmt.Errorf("%w: %s", ErrUnsupportedDatastore, dsType)
 	}

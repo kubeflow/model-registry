@@ -1,0 +1,14 @@
+registeredModels:
+  - name: "test"
+    description: "loreum ipsum"
+    id: "1"
+  - name: "test2"
+    description: "loreum ipsum"
+    id: "2"
+modelVersions:
+  - name: "test-v1"
+    registeredModelId: "1"
+    description: "loreum ipsum v1"
+  - name: "test-v2"
+    registeredModelId: "1"
+    description: "loreum ipsum v2"

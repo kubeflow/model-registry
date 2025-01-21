@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: grpc-container
+          $patch: delete
+        - name: rest-container
+          args:
+            - --hostname=0.0.0.0
+            - --port=8080
+            - --datastore-type=inmemory
+          volumeMounts:
+            - name: model-registry-seed-data
+              mountPath: /seed
+          env:
+            - name: SEED_DATA_PATH
+              value: "/seed/seed-data.yaml"
+      volumes:
+        - name: model-registry-seed-data
+          configMap:
+            name: model-registry-seed-data
