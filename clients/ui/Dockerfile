@@ -11,6 +11,8 @@ ARG DISTROLESS_BASE_IMAGE=gcr.io/distroless/static:nonroot
 FROM ${NODE_BASE_IMAGE} AS ui-builder
 
 ARG UI_SOURCE_CODE
+ARG DEPLOYMENT_MODE
+ARG MOCK_AUTH
 
 WORKDIR /usr/src/app
 
