@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"log/slog"
 	"net/http"
 	"path"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -22,6 +23,7 @@ const (
 	RegisteredModelId            = "registered_model_id"
 	ModelVersionId               = "model_version_id"
 	ModelArtifactId              = "model_artifact_id"
+	ArtifactId                   = "artifact_id"
 	HealthCheckPath              = PathPrefix + "/healthcheck"
 	UserPath                     = PathPrefix + "/user"
 	ModelRegistryListPath        = PathPrefix + "/model_registry"
@@ -35,6 +37,9 @@ const (
 	ModelVersionArtifactListPath = ModelVersionPath + "/artifacts"
 	ModelArtifactListPath        = ModelRegistryPath + "/model_artifacts"
 	ModelArtifactPath            = ModelArtifactListPath + "/:" + ModelArtifactId
+
+	ArtifactListPath = ModelRegistryPath + "/artifacts"
+	ArtifactPath     = ArtifactListPath + "/:" + ArtifactId
 )
 
 type App struct {
@@ -105,13 +110,17 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionHandler))))
 	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetModelVersionHandler))))
 	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllArtifactsHandler))))
+	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetArtifactHandler))))
+	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateArtifactHandler))))
+	apiRouter.PATCH(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateArtifactHandler))))
 	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
 	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
 	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
-	// Perform SAR to Get List Services by Namspace
+	// Perform SAR to Get List Services by Namespace
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
 	if app.config.StandaloneMode {
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)

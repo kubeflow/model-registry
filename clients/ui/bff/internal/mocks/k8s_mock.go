@@ -3,16 +3,17 @@ package mocks
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
@@ -274,9 +275,6 @@ func createService(k8sClient client.Client, ctx context.Context, name string, na
 		return fmt.Errorf("failed to list services: %w", err)
 	}
 
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
