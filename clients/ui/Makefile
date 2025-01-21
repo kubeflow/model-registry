@@ -50,7 +50,7 @@ docker-build:
 
 .PHONY: docker-build-standalone
 docker-build-standalone:
-	MOCK_AUTH=true DEPLOYMENT_MODE=standalone $(CONTAINER_TOOL) build -t ${IMG_UI_STANDALONE} .
+	$(CONTAINER_TOOL) build --build-arg MOCK_AUTH=true --build-arg DEPLOYMENT_MODE=standalone -t ${IMG_UI_STANDALONE} .
 
 .PHONY: docker-buildx
 docker-buildx:
@@ -58,7 +58,7 @@ docker-buildx:
 
 .PHONY: docker-buildx-standalone
 docker-buildx-standalone:
-	MOCK_AUTH=true DEPLOYMENT_MODE=standalone docker buildx build --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
+	docker buildx build --build-arg MOCK_AUTH=true --build-arg DEPLOYMENT_MODE=standalone --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
 
 ############ Push ############
 
@@ -83,7 +83,7 @@ frontend-build:
 
 .PHONY: frontend-build-standalone
 frontend-build-standalone:
-	MOCK_AUTH=true DEPLOYMENT_MODE=standalone cd frontend && npm run build:prod
+	cd frontend && MOCK_AUTH=true DEPLOYMENT_MODE=standalone npm run build:prod
 
 .PHONY: bff-build
 bff-build:

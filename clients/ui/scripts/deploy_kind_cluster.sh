@@ -6,7 +6,7 @@ command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but it's n
 command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not installed. Aborting."; exit 1; }
 
 # Check if the script has rights to push an image into the registry
-if ! docker push "${IMG_UI_STANDALONE}" --dry-run >/dev/null 2>&1; then
+if ! docker push "${IMG_UI_STANDALONE}" >/dev/null 2>&1; then
   echo -e "\033[31mError: No rights to push the image to the registry ${IMG_UI_STANDALONE}, you can change the image in the env variable IMG_UI_STANDALONE\033[0m"
   exit 1
 fi
