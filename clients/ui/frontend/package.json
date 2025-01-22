@@ -121,8 +121,8 @@
     "classnames": "^2.2.6"
   },
   "optionalDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.7",
@@ -134,7 +134,7 @@
     "eslint-plugin-no-relative-import-paths": "^1.5.2",
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0"
+    "eslint-plugin-react-hooks": "^5.1.0"
   },
   "overrides": {
     "serve": {
