@@ -57,10 +57,15 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating core service: %v", err)
 	}
 
+	// TODO read yaml catalog file and instantiate ModelCatalogAPI implementations
+	ModelCatalogServiceAPIService := openapi.NewModelCatalogServiceAPIService(map[string]openapi.ModelCatalogApi{})
+	ModelCatalogServiceAPIController := openapi.NewModelCatalogServiceAPIController(ModelCatalogServiceAPIService)
+
+	// TODO make registry API optional to support standalone Catalog deployments
 	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
 	ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 
-	router := openapi.NewRouter(ModelRegistryServiceAPIController)
+	router := openapi.NewRouter(ModelRegistryServiceAPIController, ModelCatalogServiceAPIController)
 
 	glog.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
 	return nil

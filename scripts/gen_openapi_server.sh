@@ -15,9 +15,13 @@ if [[ $(uname) == "Darwin" ]]; then
     # introduce -i parameter for Mac OSX sed compatibility
     sed -i '' 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
     sed -i '' 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
+    sed -i '' 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+    sed -i '' 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 else
     sed -i 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
     sed -i 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
+    sed -i 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+    sed -i 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 fi
 
 echo "Assembling type_assert Go file"
