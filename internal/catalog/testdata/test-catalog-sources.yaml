@@ -1,0 +1,37 @@
+catalogs:
+  - customProperties:
+      prop11:
+        metadataType: MetadataBoolValue
+        bool_value: true
+      prop12:
+        metadataType: MetadataStringValue
+        string_value: stringValue1
+    description: "First Catalog"
+    externalId: "http://catalog1/external-uri"
+    name: "Catalog 1"
+    id: catalog1
+    createTimeSinceEpoch: "1737602901"
+    lastUpdateTimeSinceEpoch: "1737602901"
+    type: yaml
+    privateProperties:
+      privateProp11: 54321
+      privateProp12: privateStringValue
+      yamlCatalogPath: testdata/test-yaml-catalog.yaml
+  - customProperties:
+      prop21:
+        metadataType: MetadataBoolValue
+        bool_value: false
+      prop22:
+        metadataType: MetadataStringValue
+        string_value: stringValue2
+    description: "Second Catalog"
+    externalId: "http://catalog2/external-uri"
+    name: "Catalog 2"
+    id: catalog2
+    createTimeSinceEpoch: "1737602901"
+    lastUpdateTimeSinceEpoch: "1737602901"
+    type: yaml
+    privateProperties:
+      privateProp21: 12345
+      privateProp22: privateStringValue2
+      yamlCatalogPath: testdata/test-yaml-catalog.yaml
