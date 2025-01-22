@@ -1,14 +1,25 @@
 import * as React from 'react';
-import { Button, ButtonProps, ModalFooter } from '@patternfly/react-core';
+import {
+  ActionList,
+  ActionListItem,
+  ActionListGroup,
+  Alert,
+  Button,
+  ButtonProps,
+  Stack,
+  StackItem,
+} from '@patternfly/react-core';
 
 type DashboardModalFooterProps = {
   submitLabel: string;
   submitButtonVariant?: ButtonProps['variant'];
   onSubmit: () => void;
   onCancel: () => void;
-  isSubmitDisabled: boolean;
+  isSubmitDisabled?: boolean;
   isSubmitLoading?: boolean;
   isCancelDisabled?: boolean;
+  alertTitle?: string;
+  error?: Error;
 };
 
 const DashboardModalFooter: React.FC<DashboardModalFooterProps> = ({
@@ -19,28 +30,48 @@ const DashboardModalFooter: React.FC<DashboardModalFooterProps> = ({
   isSubmitDisabled,
   isSubmitLoading,
   isCancelDisabled,
+  error,
+  alertTitle,
 }) => (
-  <ModalFooter>
-    <Button
-      key="submit"
-      variant={submitButtonVariant}
-      isDisabled={isSubmitDisabled}
-      onClick={onSubmit}
-      isLoading={isSubmitLoading}
-      data-testid="modal-submit-button"
-    >
-      {submitLabel}
-    </Button>
-    <Button
-      key="cancel"
-      variant="link"
-      isDisabled={isCancelDisabled}
-      onClick={onCancel}
-      data-testid="modal-cancel-button"
-    >
-      Cancel
-    </Button>
-  </ModalFooter>
+  // make sure alert uses the full width
+  <Stack hasGutter style={{ flex: 'auto' }}>
+    {error && (
+      <StackItem>
+        <Alert data-testid="error-message-alert" isInline variant="danger" title={alertTitle}>
+          {error.message}
+        </Alert>
+      </StackItem>
+    )}
+    <StackItem>
+      <ActionList>
+        <ActionListGroup>
+          <ActionListItem>
+            <Button
+              key="submit"
+              variant={submitButtonVariant}
+              isDisabled={isSubmitDisabled}
+              onClick={onSubmit}
+              isLoading={isSubmitLoading}
+              data-testid="modal-submit-button"
+            >
+              {submitLabel}
+            </Button>
+          </ActionListItem>
+          <ActionListItem>
+            <Button
+              key="cancel"
+              variant="link"
+              isDisabled={isCancelDisabled}
+              onClick={onCancel}
+              data-testid="modal-cancel-button"
+            >
+              Cancel
+            </Button>
+          </ActionListItem>
+        </ActionListGroup>
+      </ActionList>
+    </StackItem>
+  </Stack>
 );
 
 export default DashboardModalFooter;

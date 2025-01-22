@@ -30,25 +30,31 @@ import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { asEnumMember } from '~/app/utils';
+import { asEnumMember } from '~/shared/utilities/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import SimpleSelect from '~/shared/components/SimpleSelect';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isMUITheme } from '~/shared/utilities/const';
+import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
-  registeredModel?: RegisteredModel;
+  registeredModel: RegisteredModel;
   isArchiveModel?: boolean;
   refresh: () => void;
 };
 
 const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
-  modelVersions: unfilteredModelVersions,
+  modelVersions,
   registeredModel: rm,
   isArchiveModel,
   refresh,
 }) => {
+  const unfilteredModelVersions = isArchiveModel
+    ? modelVersions
+    : filterLiveVersions(modelVersions);
+
+  const archiveModelVersions = filterArchiveVersions(modelVersions);
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
@@ -61,7 +67,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
     React.useState(false);
 
   const filteredModelVersions = filterModelVersions(unfilteredModelVersions, search, searchType);
-  const date = rm?.lastUpdateTimeSinceEpoch && new Date(parseInt(rm.lastUpdateTimeSinceEpoch));
+  const date = rm.lastUpdateTimeSinceEpoch && new Date(parseInt(rm.lastUpdateTimeSinceEpoch));
 
   if (unfilteredModelVersions.length === 0) {
     if (isArchiveModel) {
@@ -75,7 +81,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
               alt="missing version"
             />
           )}
-          description={`${rm?.name} has no registered versions.`}
+          description={`${rm.name} has no registered versions.`}
         />
       );
     }
@@ -89,14 +95,16 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
             alt="missing version"
           />
         )}
-        description={`${rm?.name} has no registered versions. Register a version to this model.`}
+        description={`${rm.name} has no registered versions. Register a version to this model.`}
         primaryActionText="Register new version"
-        secondaryActionText="View archived versions"
         primaryActionOnClick={() => {
-          navigate(registerVersionForModelUrl(rm?.id, preferredModelRegistry?.name));
+          navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
         }}
+        secondaryActionText={
+          archiveModelVersions.length !== 0 ? 'View archived versions' : undefined
+        }
         secondaryActionOnClick={() => {
-          navigate(modelVersionArchiveUrl(rm?.id, preferredModelRegistry?.name));
+          navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name));
         }}
       />
     );
@@ -186,9 +194,9 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
               <>
                 <ToolbarItem>
                   <Button
-                    variant="secondary"
+                    variant="primary"
                     onClick={() => {
-                      navigate(registerVersionForModelUrl(rm?.id, preferredModelRegistry?.name));
+                      navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
                     }}
                   >
                     Register new version
@@ -214,11 +222,12 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                       </MenuToggle>
                     )}
                     shouldFocusToggleOnSelect
+                    popperProps={{ appendTo: 'inline' }}
                   >
                     <DropdownList>
                       <DropdownItem
                         onClick={() =>
-                          navigate(modelVersionArchiveUrl(rm?.id, preferredModelRegistry?.name))
+                          navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
                         }
                       >
                         View archived versions

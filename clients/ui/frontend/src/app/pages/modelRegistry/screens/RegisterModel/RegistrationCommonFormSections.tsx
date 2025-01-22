@@ -9,8 +9,8 @@ import {
   HelperText,
   HelperTextItem,
   FormHelperText,
-  TextInputGroup,
-  TextInputGroupMain,
+  InputGroupItem,
+  InputGroupText,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from '~/shared/types';
@@ -21,25 +21,33 @@ import FormSection from '~/shared/components/pf-overrides/FormSection';
 import { ModelVersion } from '~/app/types';
 import { isMUITheme } from '~/shared/utilities/const';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
+import { isNameValid } from './utils';
+import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
 
-type RegistrationCommonFormSectionsProps = {
-  formData: RegistrationCommonFormData;
-  setData: UpdateObjectAtPropAndValue<RegistrationCommonFormData>;
+type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
+  formData: D;
+  setData: UpdateObjectAtPropAndValue<D>;
   isFirstVersion: boolean;
   latestVersion?: ModelVersion;
 };
 
-const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsProps> = ({
+const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   formData,
   setData,
   isFirstVersion,
   latestVersion,
-}) => {
-  // TODO: [Data connections] Check wether we should use data connections
+}: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
+  const isVersionNameValid = isNameValid(formData.versionName);
 
-  // const connectionDataMap: Record<string, keyof RegistrationCommonFormData> = {
+  // const connectionDataMap: Record<
+  //   string,
+  //   keyof Pick<
+  //     RegistrationCommonFormData,
+  //     'modelLocationEndpoint' | 'modelLocationBucket' | 'modelLocationRegion'
+  //   >
+  // > = {
   //   AWS_S3_ENDPOINT: 'modelLocationEndpoint',
   //   AWS_S3_BUCKET: 'modelLocationBucket',
   //   AWS_DEFAULT_REGION: 'modelLocationRegion',
@@ -72,6 +80,7 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
       name="version-name"
       value={versionName}
       onChange={(_e, value) => setData('versionName', value)}
+      validated={isVersionNameValid ? 'default' : 'error'}
     />
   );
 
@@ -140,16 +149,16 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
   );
 
   const pathInput = (
-    <TextInputGroup>
-      <TextInputGroupMain
-        icon="/"
+    <InputGroupItem>
+      <TextInput
+        isRequired
         type="text"
         id="location-path"
         name="location-path"
         value={modelLocationPath}
         onChange={(_e, value) => setData('modelLocationPath', value)}
       />
-    </TextInputGroup>
+    </InputGroupItem>
   );
 
   const uriInput = (
@@ -179,19 +188,22 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
           ) : (
             versionNameInput
           )}
-        </FormGroup>
-        {latestVersion && (
           <FormHelperText>
-            <HelperText>
-              <HelperTextItem>Current version is {latestVersion.name}</HelperTextItem>
-            </HelperText>
+            {latestVersion && (
+              <HelperText>
+                <HelperTextItem>Current version is {latestVersion.name}</HelperTextItem>
+              </HelperText>
+            )}
+            {!isVersionNameValid && (
+              <HelperText>
+                <HelperTextItem variant="error">
+                  Cannot exceed {MR_CHARACTER_LIMIT} characters
+                </HelperTextItem>
+              </HelperText>
+            )}
           </FormHelperText>
-        )}
-        <FormGroup
-          className="version-description"
-          label="Version description"
-          fieldId="version-description"
-        >
+        </FormGroup>
+        <FormGroup label="Version description" fieldId="version-description">
           {isMUITheme() ? (
             <FormFieldset component={versionDescriptionInput} field="Version Description" />
           ) : (
@@ -267,46 +279,50 @@ const RegistrationCommonFormSections: React.FC<RegistrationCommonFormSectionsPro
               {isMUITheme() ? <FormFieldset component={regionInput} field="Region" /> : regionInput}
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Path" isRequired fieldId="location-path">
-              {isMUITheme() ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
-            </FormGroup>
-            <FormHelperText className="path-helper-text">
+              <Split hasGutter>
+                <SplitItem>
+                  <InputGroupText isPlain>/</InputGroupText>
+                </SplitItem>
+                <SplitItem isFilled>
+                  {isMUITheme() ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
+                </SplitItem>
+              </Split>
               <HelperText>
                 <HelperTextItem>
                   Enter a path to a model or folder. This path cannot point to a root folder.
                 </HelperTextItem>
               </HelperText>
-            </FormHelperText>
-          </>
-        )}
-        <Split>
-          <SplitItem isFilled>
-            <Radio
-              isChecked={modelLocationType === ModelLocationType.URI}
-              name="location-type-uri"
-              onChange={() => {
-                setData('modelLocationType', ModelLocationType.URI);
-              }}
-              label="URI"
-              id="location-type-uri"
-            />
-          </SplitItem>
-        </Split>
-        {modelLocationType === ModelLocationType.URI && (
-          <>
-            <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
-              {isMUITheme() ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
             </FormGroup>
           </>
         )}
+        <Radio
+          isChecked={modelLocationType === ModelLocationType.URI}
+          name="location-type-uri"
+          onChange={() => {
+            setData('modelLocationType', ModelLocationType.URI);
+          }}
+          label="URI"
+          id="location-type-uri"
+          body={
+            modelLocationType === ModelLocationType.URI && (
+              <>
+                <FormGroup label="URI" isRequired fieldId="location-uri">
+                  {isMUITheme() ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
+                </FormGroup>
+              </>
+            )
+          }
+        />
       </FormSection>
-      {/* <ConnectionModal
-        isOpen={isAutofillModalOpen}
-        onClose={() => setAutofillModalOpen(false)}
-        onSubmit={(connection) => {
-          fillObjectStorageByConnection(connection);
-          setAutofillModalOpen(false);
-        }}
-      /> */}
+      {/* {isAutofillModalOpen ? (
+        <ConnectionModal
+          onClose={() => setAutofillModalOpen(false)}
+          onSubmit={(connection) => {
+            fillObjectStorageByConnection(connection);
+            setAutofillModalOpen(false);
+          }}
+        />
+      ) : null} */}
     </>
   );
 };

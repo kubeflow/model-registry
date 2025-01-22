@@ -34,8 +34,8 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
         data-testid="model-versions-details-tab"
       >
         <PageSection
-          isFilled
           hasBodyWrapper={false}
+          isFilled
           data-testid="model-versions-details-tab-content"
         >
           <ModelVersionDetailsView

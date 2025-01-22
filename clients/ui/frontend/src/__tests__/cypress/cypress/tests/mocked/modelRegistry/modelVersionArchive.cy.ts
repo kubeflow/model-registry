@@ -6,7 +6,7 @@ import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
 import type { ModelRegistry, ModelVersion } from '~/app/types';
-import { ModelState } from '~/app/types';
+import { ModelRegistryMetadataType, ModelState } from '~/app/types';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockBFFResponse } from '~/__mocks__/utils';
 import {
@@ -30,16 +30,40 @@ const initIntercepts = ({
       name: 'model version 1',
       author: 'Author 1',
       id: '1',
-      labels: [
-        'Financial data',
-        'Fraud detection',
-        'Test label',
-        'Machine learning',
-        'Next data to be overflow',
-        'Test label x',
-        'Test label y',
-        'Test label z',
-      ],
+      customProperties: {
+        'Financial data': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Fraud detection': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Machine learning': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Next data to be overflow': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label x': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label y': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label z': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+      },
       state: ModelState.ARCHIVED,
     }),
     mockModelVersion({ id: '2', name: 'model version 2', state: ModelState.ARCHIVED }),
@@ -202,7 +226,7 @@ describe('Restoring archive version', () => {
     modelVersionArchive.visit();
 
     const archiveVersionRow = modelVersionArchive.getRow('model version 2');
-    archiveVersionRow.findKebabAction('Restore version').click();
+    archiveVersionRow.findKebabAction('Restore model version').click();
 
     restoreVersionModal.findRestoreButton().click();
 
@@ -273,6 +297,13 @@ describe('Archiving version', () => {
     });
   });
 
+  it('Archived version details page does not have the Deployments tab', () => {
+    initIntercepts({});
+    modelVersionArchive.visitArchiveVersionDetail();
+    modelVersionArchive.findVersionDetailsTab().should('exist');
+    modelVersionArchive.findVersionDeploymentTab().should('not.exist');
+  });
+
   it('Archive version from versions details', () => {
     cy.interceptApi(
       'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
@@ -290,7 +321,7 @@ describe('Archiving version', () => {
     modelVersionArchive.visitModelVersionDetails();
     modelVersionArchive
       .findModelVersionsDetailsHeaderAction()
-      .findDropdownItem('Archive version')
+      .findDropdownItem('Archive model version')
       .click();
 
     archiveVersionModal.findArchiveButton().should('be.disabled');

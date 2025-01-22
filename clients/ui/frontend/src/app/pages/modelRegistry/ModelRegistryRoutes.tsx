@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { isPlatformDefault } from '~/shared/utilities/const';
 import ModelRegistry from './screens/ModelRegistry';
 import ModelRegistryCoreLoader from './ModelRegistryCoreLoader';
 import { modelRegistryUrl } from './screens/routeUtils';
@@ -44,6 +45,14 @@ const ModelRegistryRoutes: React.FC = () => (
             path={ModelVersionDetailsTab.DETAILS}
             element={<ModelVersionsDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />}
           />
+          {isPlatformDefault() && (
+            <Route
+              path={ModelVersionDetailsTab.DEPLOYMENTS}
+              element={
+                <ModelVersionsDetails tab={ModelVersionDetailsTab.DEPLOYMENTS} empty={false} />
+              }
+            />
+          )}
           <Route path="*" element={<Navigate to="." />} />
         </Route>
         <Route path="versions/archive">
@@ -56,6 +65,18 @@ const ModelRegistryRoutes: React.FC = () => (
                 <ModelVersionsArchiveDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
               }
             />
+            {isPlatformDefault() && (
+              <Route
+                path={ModelVersionDetailsTab.DEPLOYMENTS}
+                element={
+                  <ModelVersionsArchiveDetails
+                    tab={ModelVersionDetailsTab.DEPLOYMENTS}
+                    empty={false}
+                  />
+                }
+              />
+            )}
+
             <Route path="*" element={<Navigate to="." />} />
           </Route>
           <Route path="*" element={<Navigate to="." />} />
@@ -86,6 +107,18 @@ const ModelRegistryRoutes: React.FC = () => (
                 <ArchiveModelVersionDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
               }
             />
+            {isPlatformDefault() && (
+              <Route
+                path={ModelVersionDetailsTab.DEPLOYMENTS}
+                element={
+                  <ArchiveModelVersionDetails
+                    tab={ModelVersionDetailsTab.DEPLOYMENTS}
+                    empty={false}
+                  />
+                }
+              />
+            )}
+
             <Route path="*" element={<Navigate to="." />} />
           </Route>
           <Route path="*" element={<Navigate to="." />} />

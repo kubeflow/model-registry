@@ -1,20 +1,27 @@
 import * as React from 'react';
-import { DescriptionList, Flex, FlexItem, ContentVariants, Title } from '@patternfly/react-core';
+import {
+  DescriptionList,
+  Divider,
+  Flex,
+  FlexItem,
+  ContentVariants,
+  Title,
+  Bullseye,
+  Spinner,
+  Alert,
+} from '@patternfly/react-core';
 import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
 import EditableTextDescriptionListGroup from '~/shared/components/EditableTextDescriptionListGroup';
-import EditableLabelsDescriptionListGroup from '~/shared/components/EditableLabelsDescriptionListGroup';
+import { EditableLabelsDescriptionListGroup } from '~/shared/components/EditableLabelsDescriptionListGroup';
 import { ModelVersion } from '~/app/types';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import InlineTruncatedClipboardCopy from '~/shared/components/InlineTruncatedClipboardCopy';
-import DashboardHelpTooltip from '~/shared/components/DashboardHelpTooltip';
-import {
-  getLabels,
-  mergeUpdatedLabels,
-  uriToObjectStorageFields,
-} from '~/app/pages/modelRegistry/screens/utils';
+import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { uriToObjectStorageFields } from '~/app/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
+import { bumpBothTimestamps, bumpRegisteredModelTimestamp } from '~/app/utils/updateTimestamps';
 
 type ModelVersionDetailsViewProps = {
   modelVersion: ModelVersion;
@@ -27,9 +34,42 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   isArchiveVersion,
   refresh,
 }) => {
-  const [modelArtifact] = useModelArtifactsByVersionId(mv.id);
+  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
+    useModelArtifactsByVersionId(mv.id);
+
+  const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
-  const storageFields = uriToObjectStorageFields(modelArtifact.items[0]?.uri || '');
+  const storageFields = uriToObjectStorageFields(modelArtifact?.uri || '');
+
+  if (!modelArtifactsLoaded) {
+    return (
+      <Bullseye>
+        <Spinner size="xl" />
+      </Bullseye>
+    );
+  }
+  const handleVersionUpdate = async (updatePromise: Promise<unknown>): Promise<void> => {
+    await updatePromise;
+
+    if (!mv.registeredModelId) {
+      return;
+    }
+
+    await bumpRegisteredModelTimestamp(apiState.api, mv.registeredModelId);
+    refresh();
+  };
+
+  const handleArtifactUpdate = async (updatePromise: Promise<unknown>): Promise<void> => {
+    try {
+      await updatePromise;
+      await bumpBothTimestamps(apiState.api, mv.id, mv.registeredModelId);
+      refreshModelArtifacts();
+    } catch (error) {
+      throw new Error(
+        `Failed to update artifact: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  };
 
   return (
     <Flex
@@ -40,38 +80,32 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
       <FlexItem flex={{ default: 'flex_1' }}>
         <DescriptionList isFillColumns>
           <EditableTextDescriptionListGroup
-            testid="model-version-description"
+            editableVariant="TextArea"
+            baseTestId="model-version-description"
             isArchive={isArchiveVersion}
             title="Description"
             contentWhenEmpty="No description"
             value={mv.description || ''}
             saveEditedValue={(value) =>
-              apiState.api
-                .patchModelVersion(
-                  {},
-                  {
-                    description: value,
-                  },
-                  mv.id,
-                )
-                .then(refresh)
+              handleVersionUpdate(apiState.api.patchModelVersion({}, { description: value }, mv.id))
             }
           />
           <EditableLabelsDescriptionListGroup
             labels={getLabels(mv.customProperties)}
             isArchive={isArchiveVersion}
             allExistingKeys={Object.keys(mv.customProperties)}
-            saveEditedLabels={(editedLabels) =>
-              apiState.api
-                .patchModelVersion(
+            title="Labels"
+            contentWhenEmpty="No labels"
+            onLabelsChange={(editedLabels) =>
+              handleVersionUpdate(
+                apiState.api.patchModelVersion(
                   {},
-                  {
-                    customProperties: mergeUpdatedLabels(mv.customProperties, editedLabels),
-                  },
+                  { customProperties: mergeUpdatedLabels(mv.customProperties, editedLabels) },
                   mv.id,
-                )
-                .then(refresh)
+                ),
+              )
             }
+            data-testid="model-version-labels"
           />
           <ModelPropertiesDescriptionListGroup
             isArchive={isArchiveVersion}
@@ -94,80 +128,122 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             <InlineTruncatedClipboardCopy testId="model-version-id" textToCopy={mv.id} />
           </DashboardDescriptionListGroup>
         </DescriptionList>
-        <Title style={{ marginTop: '1em' }} headingLevel={ContentVariants.h3}>
+        <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
           Model location
         </Title>
-        <DescriptionList isFillColumns>
-          {storageFields && (
-            <>
-              <DashboardDescriptionListGroup
-                title="Endpoint"
-                isEmpty={modelArtifact.size === 0 || !storageFields.endpoint}
-                contentWhenEmpty="No endpoint"
-              >
-                <InlineTruncatedClipboardCopy
-                  testId="storage-endpoint"
-                  textToCopy={storageFields.endpoint}
-                />
-              </DashboardDescriptionListGroup>
-              <DashboardDescriptionListGroup
-                title="Region"
-                isEmpty={modelArtifact.size === 0 || !storageFields.region}
-                contentWhenEmpty="No region"
-              >
-                <InlineTruncatedClipboardCopy
-                  testId="storage-region"
-                  textToCopy={storageFields.region || ''}
-                />
-              </DashboardDescriptionListGroup>
-              <DashboardDescriptionListGroup
-                title="Bucket"
-                isEmpty={modelArtifact.size === 0 || !storageFields.bucket}
-                contentWhenEmpty="No bucket"
-              >
-                <InlineTruncatedClipboardCopy
-                  testId="storage-bucket"
-                  textToCopy={storageFields.bucket}
-                />
-              </DashboardDescriptionListGroup>
-              <DashboardDescriptionListGroup
-                title="Path"
-                isEmpty={modelArtifact.size === 0 || !storageFields.path}
-                contentWhenEmpty="No path"
-              >
-                <InlineTruncatedClipboardCopy
-                  testId="storage-path"
-                  textToCopy={storageFields.path}
-                />
-              </DashboardDescriptionListGroup>
-            </>
-          )}
-          {!storageFields && (
-            <>
-              <DashboardDescriptionListGroup
-                title="URI"
-                isEmpty={modelArtifact.size === 0 || !modelArtifact.items[0].uri}
-                contentWhenEmpty="No URI"
-              >
-                <InlineTruncatedClipboardCopy
-                  testId="storage-uri"
-                  textToCopy={modelArtifact.items[0]?.uri || ''}
-                />
-              </DashboardDescriptionListGroup>
-            </>
-          )}
-          <DashboardDescriptionListGroup
-            title="Source model format"
-            isEmpty={modelArtifact.size === 0 || !modelArtifact.items[0].modelFormatName}
-            contentWhenEmpty="No source model format"
-          >
-            {modelArtifact.items[0]?.modelFormatName}
-          </DashboardDescriptionListGroup>
+        {modelArtifactsLoadError ? (
+          <Alert variant="danger" isInline title={modelArtifactsLoadError.name}>
+            {modelArtifactsLoadError.message}
+          </Alert>
+        ) : (
+          <>
+            <DescriptionList>
+              {storageFields && (
+                <>
+                  <DashboardDescriptionListGroup
+                    title="Endpoint"
+                    isEmpty={modelArtifacts.size === 0 || !storageFields.endpoint}
+                    contentWhenEmpty="No endpoint"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-endpoint"
+                      textToCopy={storageFields.endpoint}
+                    />
+                  </DashboardDescriptionListGroup>
+                  <DashboardDescriptionListGroup
+                    title="Region"
+                    isEmpty={modelArtifacts.size === 0 || !storageFields.region}
+                    contentWhenEmpty="No region"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-region"
+                      textToCopy={storageFields.region || ''}
+                    />
+                  </DashboardDescriptionListGroup>
+                  <DashboardDescriptionListGroup
+                    title="Bucket"
+                    isEmpty={modelArtifacts.size === 0 || !storageFields.bucket}
+                    contentWhenEmpty="No bucket"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-bucket"
+                      textToCopy={storageFields.bucket}
+                    />
+                  </DashboardDescriptionListGroup>
+                  <DashboardDescriptionListGroup
+                    title="Path"
+                    isEmpty={modelArtifacts.size === 0 || !storageFields.path}
+                    contentWhenEmpty="No path"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-path"
+                      textToCopy={storageFields.path}
+                    />
+                  </DashboardDescriptionListGroup>
+                </>
+              )}
+              {!storageFields && (
+                <>
+                  <DashboardDescriptionListGroup
+                    title="URI"
+                    isEmpty={modelArtifacts.size === 0 || !modelArtifact?.uri}
+                    contentWhenEmpty="No URI"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-uri"
+                      textToCopy={modelArtifact?.uri || ''}
+                    />
+                  </DashboardDescriptionListGroup>
+                </>
+              )}
+            </DescriptionList>
+            <Divider style={{ marginTop: '1em' }} />
+            <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
+              Source model format
+            </Title>
+            <DescriptionList>
+              <EditableTextDescriptionListGroup
+                editableVariant="TextInput"
+                baseTestId="source-model-format"
+                isArchive={isArchiveVersion}
+                value={modelArtifact?.modelFormatName || ''}
+                saveEditedValue={(value) =>
+                  handleArtifactUpdate(
+                    apiState.api.patchModelArtifact(
+                      {},
+                      { modelFormatName: value },
+                      modelArtifact?.id || '',
+                    ),
+                  )
+                }
+                title="Model Format"
+                contentWhenEmpty="No model format specified"
+              />
+              <EditableTextDescriptionListGroup
+                editableVariant="TextInput"
+                baseTestId="source-model-version"
+                value={modelArtifact?.modelFormatVersion || ''}
+                isArchive={isArchiveVersion}
+                saveEditedValue={(newVersion) =>
+                  handleArtifactUpdate(
+                    apiState.api.patchModelArtifact(
+                      {},
+                      { modelFormatVersion: newVersion },
+                      modelArtifact?.id || '',
+                    ),
+                  )
+                }
+                title="Version"
+                contentWhenEmpty="No source model format version"
+              />
+            </DescriptionList>
+          </>
+        )}
+        <Divider style={{ marginTop: '1em' }} />
+        <DescriptionList isFillColumns style={{ marginTop: '1em' }}>
           <DashboardDescriptionListGroup
             title="Author"
-            tooltip={
-              <DashboardHelpTooltip content="The author is the user who registered the model version." />
-            }
+            popover="The author is the user who registered the model version."
           >
             {mv.author}
           </DashboardDescriptionListGroup>

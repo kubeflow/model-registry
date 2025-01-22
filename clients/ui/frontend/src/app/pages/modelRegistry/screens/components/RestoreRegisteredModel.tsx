@@ -1,19 +1,17 @@
 import * as React from 'react';
-import { Alert, Form, ModalHeader, Modal, ModalBody } from '@patternfly/react-core';
+import { Modal } from '@patternfly/react-core/deprecated';
 import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreRegisteredModelModalProps {
   onCancel: () => void;
   onSubmit: () => void;
-  isOpen: boolean;
   registeredModelName: string;
 }
 
 export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalProps> = ({
   onCancel,
   onSubmit,
-  isOpen,
   registeredModelName,
 }) => {
   const notification = useNotification();
@@ -38,40 +36,29 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
     } finally {
       setIsSubmitting(false);
     }
-  }, [notification, registeredModelName, onSubmit, onClose]);
-
-  const description = (
-    <>
-      <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
-      registered models list.
-    </>
-  );
+  }, [onSubmit, onClose, notification, registeredModelName]);
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen
+      title="Restore model?"
       variant="small"
       onClose={onClose}
+      footer={
+        <DashboardModalFooter
+          onCancel={onClose}
+          onSubmit={onConfirm}
+          submitLabel="Restore"
+          isSubmitLoading={isSubmitting}
+          error={error}
+          alertTitle="Error"
+          isSubmitDisabled={isSubmitting}
+        />
+      }
       data-testid="restore-registered-model-modal"
     >
-      <ModalHeader title="Restore model?" />
-      <ModalBody>
-        <Form>
-          {error && (
-            <Alert data-testid="error-message-alert" isInline variant="danger" title="Error">
-              {error.message}
-            </Alert>
-          )}
-        </Form>
-        {description}
-      </ModalBody>
-      <DashboardModalFooter
-        onCancel={onClose}
-        onSubmit={onConfirm}
-        submitLabel="Restore"
-        isSubmitLoading={isSubmitting}
-        isSubmitDisabled={isSubmitting}
-      />
+      <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
+      registered models list.
     </Modal>
   );
 };

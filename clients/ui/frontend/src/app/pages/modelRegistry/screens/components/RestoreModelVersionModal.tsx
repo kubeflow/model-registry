@@ -1,24 +1,22 @@
 import * as React from 'react';
-import { Form, Modal, ModalHeader, ModalBody, Alert } from '@patternfly/react-core';
+import { Modal } from '@patternfly/react-core/deprecated';
 import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreModelVersionModalProps {
   onCancel: () => void;
   onSubmit: () => void;
-  isOpen: boolean;
   modelVersionName: string;
 }
 
 export const RestoreModelVersionModal: React.FC<RestoreModelVersionModalProps> = ({
   onCancel,
   onSubmit,
-  isOpen,
   modelVersionName,
 }) => {
+  const notification = useNotification();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<Error>();
-  const notification = useNotification();
 
   const onClose = React.useCallback(() => {
     onCancel();
@@ -38,40 +36,28 @@ export const RestoreModelVersionModal: React.FC<RestoreModelVersionModalProps> =
     } finally {
       setIsSubmitting(false);
     }
-  }, [notification, modelVersionName, onSubmit, onClose]);
-
-  const description = (
-    <>
-      <b>{modelVersionName}</b> will be restored and returned to the versions list.
-    </>
-  );
+  }, [onSubmit, onClose, notification, modelVersionName]);
 
   return (
     <Modal
-      isOpen={isOpen}
-      title="Restore version?"
+      isOpen
+      title="Restore model version?"
       variant="small"
       onClose={onClose}
+      footer={
+        <DashboardModalFooter
+          onCancel={onClose}
+          onSubmit={onConfirm}
+          submitLabel="Restore"
+          isSubmitLoading={isSubmitting}
+          error={error}
+          alertTitle="Error"
+          isSubmitDisabled={isSubmitting}
+        />
+      }
       data-testid="restore-model-version-modal"
     >
-      <ModalHeader title="Restore version?" />
-      <ModalBody>
-        <Form>
-          {error && (
-            <Alert data-testid="error-message-alert" isInline variant="danger" title="Error">
-              {error.message}
-            </Alert>
-          )}
-        </Form>
-        {description}
-      </ModalBody>
-      <DashboardModalFooter
-        onCancel={onClose}
-        onSubmit={onConfirm}
-        submitLabel="Restore"
-        isSubmitLoading={isSubmitting}
-        isSubmitDisabled={isSubmitting}
-      />
+      <b>{modelVersionName}</b> will be restored and returned to the versions list.
     </Modal>
   );
 };

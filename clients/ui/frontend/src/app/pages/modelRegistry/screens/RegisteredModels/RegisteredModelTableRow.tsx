@@ -19,12 +19,14 @@ import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersion
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
   isArchiveRow?: boolean;
+  hasDeploys?: boolean;
   refresh: () => void;
 };
 
 const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
   registeredModel: rm,
   isArchiveRow,
+  hasDeploys = false,
   refresh,
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
@@ -49,15 +51,24 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
         }
       },
     },
-    isArchiveRow
-      ? {
-          title: 'Restore model',
-          onClick: () => setIsRestoreModalOpen(true),
-        }
-      : {
-          title: 'Archive model',
-          onClick: () => setIsArchiveModalOpen(true),
-        },
+    ...(isArchiveRow
+      ? [
+          {
+            title: 'Restore model',
+            onClick: () => setIsRestoreModalOpen(true),
+          },
+        ]
+      : [
+          { isSeparator: true },
+          {
+            title: 'Archive model',
+            onClick: () => setIsArchiveModalOpen(true),
+            isAriaDisabled: hasDeploys,
+            tooltipProps: hasDeploys
+              ? { content: 'Models with deployed versions cannot be archived.' }
+              : undefined,
+          },
+        ]),
   ];
 
   return (
@@ -95,38 +106,40 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
       </Td>
       <Td isActionCell>
         <ActionsColumn items={actions} />
-        <ArchiveRegisteredModelModal
-          onCancel={() => setIsArchiveModalOpen(false)}
-          onSubmit={() =>
-            apiState.api
-              .patchRegisteredModel(
-                {},
-                {
-                  state: ModelState.ARCHIVED,
-                },
-                rm.id,
-              )
-              .then(refresh)
-          }
-          isOpen={isArchiveModalOpen}
-          registeredModelName={rm.name}
-        />
-        <RestoreRegisteredModelModal
-          onCancel={() => setIsRestoreModalOpen(false)}
-          onSubmit={() =>
-            apiState.api
-              .patchRegisteredModel(
-                {},
-                {
-                  state: ModelState.LIVE,
-                },
-                rm.id,
-              )
-              .then(() => navigate(registeredModelUrl(rm.id, preferredModelRegistry?.name)))
-          }
-          isOpen={isRestoreModalOpen}
-          registeredModelName={rm.name}
-        />
+        {isArchiveModalOpen ? (
+          <ArchiveRegisteredModelModal
+            onCancel={() => setIsArchiveModalOpen(false)}
+            onSubmit={() =>
+              apiState.api
+                .patchRegisteredModel(
+                  {},
+                  {
+                    state: ModelState.ARCHIVED,
+                  },
+                  rm.id,
+                )
+                .then(refresh)
+            }
+            registeredModelName={rm.name}
+          />
+        ) : null}
+        {isRestoreModalOpen ? (
+          <RestoreRegisteredModelModal
+            onCancel={() => setIsRestoreModalOpen(false)}
+            onSubmit={() =>
+              apiState.api
+                .patchRegisteredModel(
+                  {},
+                  {
+                    state: ModelState.LIVE,
+                  },
+                  rm.id,
+                )
+                .then(() => navigate(registeredModelUrl(rm.id, preferredModelRegistry?.name)))
+            }
+            registeredModelName={rm.name}
+          />
+        ) : null}
       </Td>
     </Tr>
   );

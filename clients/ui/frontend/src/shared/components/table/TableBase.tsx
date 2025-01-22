@@ -20,6 +20,7 @@ import {
   Td,
   TbodyProps,
   InnerScrollContainer,
+  TrProps,
 } from '@patternfly/react-table';
 import { EitherNotBoth } from '~/shared/typeHelpers';
 import { GetColumnSort, SortableData } from './types';
@@ -27,6 +28,8 @@ import { CHECKBOX_FIELD_ID, EXPAND_FIELD_ID, KEBAB_FIELD_ID } from './const';
 
 type Props<DataType> = {
   loading?: boolean;
+  skeletonRowCount?: number;
+  skeletonRowProps?: TrProps;
   data: DataType[];
   columns: SortableData<DataType>[];
   subColumns?: SortableData<DataType>[];
@@ -36,6 +39,7 @@ type Props<DataType> = {
   enablePagination?: boolean | 'compact';
   truncateRenderingAt?: number;
   toolbarContent?: React.ReactElement<typeof ToolbarItem | typeof ToolbarGroup>;
+  onClearFilters?: () => void;
   bottomToolbarContent?: React.ReactElement<typeof ToolbarItem | typeof ToolbarGroup>;
   emptyTableView?: React.ReactNode;
   caption?: string;
@@ -92,6 +96,7 @@ const TableBase = <T,>({
   rowRenderer,
   enablePagination,
   toolbarContent,
+  onClearFilters,
   bottomToolbarContent,
   emptyTableView,
   caption,
@@ -109,6 +114,8 @@ const TableBase = <T,>({
   getColumnSort,
   itemCount = 0,
   loading,
+  skeletonRowCount,
+  skeletonRowProps = {},
   toggleTemplate,
   disableItemCount = false,
   hasStickyColumns,
@@ -131,6 +138,7 @@ const TableBase = <T,>({
       variant={variant}
       widgetId="table-pagination"
       perPageOptions={perPageOptions}
+      menuAppendTo="inline"
       titles={{
         paginationAriaLabel: `${variant} pagination`,
       }}
@@ -192,6 +200,7 @@ const TableBase = <T,>({
         stickyLeftOffset={col.stickyLeftOffset}
         hasRightBorder={col.hasRightBorder}
         modifier={col.modifier}
+        visibility={col.visibility}
         className={col.className}
       >
         {col.label}
@@ -207,7 +216,7 @@ const TableBase = <T,>({
       ? // compute the number of items in the upcoming page
         new Array(
           itemCount === 0
-            ? rowHeightsRef.current?.length || MIN_PAGE_SIZE
+            ? skeletonRowCount || rowHeightsRef.current?.length || MIN_PAGE_SIZE
             : Math.max(0, Math.min(perPage, itemCount - perPage * (page - 1))),
         )
           .fill(undefined)
@@ -218,7 +227,11 @@ const TableBase = <T,>({
             const getRow = () => (
               <Tr
                 key={`skeleton-${i}`}
-                style={{ height: rowHeightsRef.current?.[i] || rowHeightsRef.current?.[0] }}
+                {...skeletonRowProps}
+                style={{
+                  ...(skeletonRowProps.style || {}),
+                  height: rowHeightsRef.current?.[i] || rowHeightsRef.current?.[0],
+                }}
               >
                 {columns.map((col) => (
                   <Td
@@ -258,6 +271,7 @@ const TableBase = <T,>({
     <Table {...props} {...(hasStickyColumns && { gridBreakPoint: '' })} ref={tableRef}>
       {caption && <Caption>{caption}</Caption>}
       <Thead noWrap hasNestedHeader={hasNestedHeader}>
+        {/* Note from PF: following custom style can be removed when we can resolve misalignment issue natively */}
         <Tr>{columns.map((col, i) => renderColumnHeader(col, i))}</Tr>
         {subColumns?.length ? (
           <Tr>{subColumns.map((col, i) => renderColumnHeader(col, columns.length + i, true))}</Tr>
@@ -274,7 +288,8 @@ const TableBase = <T,>({
         <Toolbar
           inset={{ default: 'insetNone' }}
           className="pf-v6-u-w-100"
-          customLabelGroupContent={<></>}
+          customLabelGroupContent={onClearFilters ? undefined : <></>}
+          clearAllFilters={onClearFilters}
         >
           <ToolbarContent>
             {toolbarContent}
@@ -299,18 +314,12 @@ const TableBase = <T,>({
         </div>
       )}
 
-      {(bottomToolbarContent || showPagination) && (
+      {bottomToolbarContent && (
         <Toolbar inset={{ default: 'insetNone' }} className="pf-v6-u-w-100">
-          <ToolbarContent alignItems="center">
-            {bottomToolbarContent}
-            {showPagination && (
-              <ToolbarItem variant="pagination" align={{ default: 'alignEnd' }}>
-                {pagination('bottom')}
-              </ToolbarItem>
-            )}
-          </ToolbarContent>
+          <ToolbarContent alignItems="center">{bottomToolbarContent}</ToolbarContent>
         </Toolbar>
       )}
+      {showPagination && <>{pagination('bottom')}</>}
     </>
   );
 };

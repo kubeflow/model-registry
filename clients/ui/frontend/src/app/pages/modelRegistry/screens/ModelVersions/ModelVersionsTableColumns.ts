@@ -25,6 +25,9 @@ export const mvColumns: SortableData<ModelVersion>[] = [
       const second = b.author || '';
       return first.localeCompare(second);
     },
+    info: {
+      popover: 'The author is the user who registered the model version.',
+    },
   },
   {
     field: 'labels',

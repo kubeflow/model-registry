@@ -3,7 +3,7 @@ import { ClipboardCopy, DescriptionList, Flex, FlexItem, Content } from '@patter
 import { RegisteredModel } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import EditableTextDescriptionListGroup from '~/shared/components/EditableTextDescriptionListGroup';
-import EditableLabelsDescriptionListGroup from '~/shared/components/EditableLabelsDescriptionListGroup';
+import { EditableLabelsDescriptionListGroup } from '~/shared/components/EditableLabelsDescriptionListGroup';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
 import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
@@ -30,6 +30,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
       <FlexItem flex={{ default: 'flex_1' }}>
         <DescriptionList isFillColumns>
           <EditableTextDescriptionListGroup
+            editableVariant="TextArea"
             title="Description"
             isArchive={isArchiveModel}
             contentWhenEmpty="No description"
@@ -50,7 +51,9 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
             labels={getLabels(rm.customProperties)}
             isArchive={isArchiveModel}
             allExistingKeys={Object.keys(rm.customProperties)}
-            saveEditedLabels={(editedLabels) =>
+            title="Labels"
+            contentWhenEmpty="No labels"
+            onLabelsChange={(editedLabels) =>
               apiState.api
                 .patchRegisteredModel(
                   {},
@@ -86,7 +89,10 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
               {rm.id}
             </ClipboardCopy>
           </DashboardDescriptionListGroup>
-          <DashboardDescriptionListGroup title="Owner">
+          <DashboardDescriptionListGroup
+            title="Owner"
+            popover="The owner is the user who registered the model."
+          >
             <Content component="p" data-testid="registered-model-owner">
               {rm.owner || '-'}
             </Content>

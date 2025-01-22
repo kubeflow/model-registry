@@ -2,6 +2,7 @@ import * as React from 'react';
 import useFetchState, {
   FetchState,
   FetchStateCallbackPromise,
+  NotReadyError,
 } from '~/shared/utilities/useFetchState';
 import { RegisteredModel } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
@@ -15,7 +16,7 @@ const useRegisteredModelById = (registeredModel?: string): FetchState<Registered
         return Promise.reject(new Error('API not yet available'));
       }
       if (!registeredModel) {
-        return Promise.reject(new Error('No registered model id'));
+        return Promise.reject(new NotReadyError('No registered model id'));
       }
 
       return api.getRegisteredModel(opts, registeredModel);

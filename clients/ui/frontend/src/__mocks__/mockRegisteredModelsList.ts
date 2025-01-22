@@ -1,4 +1,4 @@
-import { RegisteredModelList } from '~/app/types';
+import { ModelRegistryMetadataType, RegisteredModelList } from '~/app/types';
 import { mockRegisteredModel } from './mockRegisteredModel';
 
 export const mockRegisteredModelList = ({
@@ -10,39 +10,35 @@ export const mockRegisteredModelList = ({
       name: 'Fraud detection model',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
-      labels: [
-        'Financial data',
-        'Fraud detection',
-        'Test label',
-        'Machine learning',
-        'Next data to be overflow',
-      ],
+      customProperties: {
+        'Financial data': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          // eslint-disable-next-line camelcase
+          string_value: '',
+        },
+      },
     }),
     mockRegisteredModel({
       name: 'Credit Scoring',
-      labels: [
-        'Credit Score Predictor',
-        'Creditworthiness scoring system',
-        'Default Risk Analyzer',
-        'Portfolio Management',
-        'Risk Assessment',
-      ],
+      customProperties: {
+        'Credit Score Predictor': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          // eslint-disable-next-line camelcase
+          string_value: '',
+        },
+      },
     }),
     mockRegisteredModel({
       name: 'Label modal',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
-      labels: [
-        'Testing label',
-        'Financial data',
-        'Fraud detection',
-        'Long label data to be truncated abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc',
-        'Machine learning',
-        'Next data to be overflow',
-        'Label x',
-        'Label y',
-        'Label z',
-      ],
+      customProperties: {
+        'Testing label': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          // eslint-disable-next-line camelcase
+          string_value: '',
+        },
+      },
     }),
   ],
 }: Partial<RegisteredModelList>): RegisteredModelList => ({

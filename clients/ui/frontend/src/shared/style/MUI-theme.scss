@@ -113,9 +113,7 @@
 }
 
 .mui-theme .pf-v6-c-action-list__item .pf-v6-c-button {
-  --pf-v6-c-button--BorderRadius: 50%;
-  --pf-v6-c-button--PaddingInlineStart: none;
-  --pf-v6-c-button--PaddingInlineEnd: none;
+  border-radius: var(--mui-shape-borderRadius);
 }
 
 .mui-theme .pf-v6-c-alert {

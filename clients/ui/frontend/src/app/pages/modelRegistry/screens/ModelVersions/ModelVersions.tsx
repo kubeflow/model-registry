@@ -7,7 +7,6 @@ import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { filterLiveVersions } from '~/app/pages/modelRegistry/screens/utils';
 import ModelVersionsHeaderActions from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsHeaderActions';
 import { ModelState } from '~/app/types';
 import { registeredModelArchiveDetailsUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
@@ -51,7 +50,7 @@ const ModelVersions: React.FC<ModelVersionsProps> = ({ tab, ...pageProps }) => {
         </Breadcrumb>
       }
       title={rm?.name}
-      headerAction={rm && <ModelVersionsHeaderActions rm={rm} />}
+      headerAction={rm && <ModelVersionsHeaderActions hasDeployments={false} rm={rm} />}
       description={<Truncate content={rm?.description || ''} />}
       loadError={loadError}
       loaded={loaded}
@@ -63,7 +62,7 @@ const ModelVersions: React.FC<ModelVersionsProps> = ({ tab, ...pageProps }) => {
           registeredModel={rm}
           refresh={rmRefresh}
           mvRefresh={mvRefresh}
-          modelVersions={filterLiveVersions(modelVersions.items)}
+          modelVersions={modelVersions.items}
         />
       )}
     </ApplicationsPage>

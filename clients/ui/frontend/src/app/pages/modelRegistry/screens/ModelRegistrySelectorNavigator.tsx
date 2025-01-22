@@ -11,15 +11,17 @@ const ModelRegistrySelectorNavigator: React.FC<ModelRegistrySelectorNavigatorPro
   ...modelRegistrySelectorProps
 }) => {
   const navigate = useNavigate();
-  const { modelRegistry } = useParams<{ modelRegistry: string }>();
+  const { modelRegistry: currentModelRegistry } = useParams<{ modelRegistry: string }>();
 
   return (
     <ModelRegistrySelector
       {...modelRegistrySelectorProps}
       onSelection={(modelRegistryName) => {
-        navigate(getRedirectPath(modelRegistryName));
+        if (modelRegistryName !== currentModelRegistry) {
+          navigate(getRedirectPath(modelRegistryName));
+        }
       }}
-      modelRegistry={modelRegistry ?? ''}
+      modelRegistry={currentModelRegistry ?? ''}
     />
   );
 };
