@@ -78,7 +78,7 @@ class ModelRegistryAPIClient:
             user_token: The PEM-encoded user token as a string.
         """
         return cls(
-            Configuration(host=f"{server_address}:{port}", access_token=user_token)
+            Configuration(host=f"{server_address}:{port}", access_token=user_token, verify_ssl=False)
         )
 
     @asynccontextmanager
