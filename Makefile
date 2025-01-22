@@ -110,9 +110,9 @@ openapi/validate: bin/openapi-generator-cli bin/yq
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go
+gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go internal/server/openapi/api_model_catalog_service.go
 
-internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+internal/server/openapi/api_model_%_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 	ROOT_FOLDER=${PROJECT_PATH} ./scripts/gen_openapi_server.sh
 
 # generate the openapi schema model and client
