@@ -272,8 +272,8 @@ func AssertCatalogModelVersionListRequired(obj model.CatalogModelVersionList) er
 // AssertCatalogModelVersionRequired checks if the required fields are not zero-ed
 func AssertCatalogModelVersionRequired(obj model.CatalogModelVersion) error {
 	elements := map[string]interface{}{
-		"name":              obj.Name,
-		"registeredModelId": obj.RegisteredModelId,
+		"name":     obj.Name,
+		"artifact": obj.Artifact,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -281,6 +281,9 @@ func AssertCatalogModelVersionRequired(obj model.CatalogModelVersion) error {
 		}
 	}
 
+	if err := AssertModelArtifactRequired(obj.Artifact); err != nil {
+		return err
+	}
 	return nil
 }
 

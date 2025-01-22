@@ -91,7 +91,7 @@ func (m ModelCatalogServiceAPIService) GetCatalogSource(ctx context.Context, id 
 	return Response(http.StatusOK, response), nil
 }
 
-func (m ModelCatalogServiceAPIService) GetCatalogSources(ctx context.Context, name string, pageSize string, orderBy string, sortOrder string, offset string) (ImplResponse, error) {
+func (m ModelCatalogServiceAPIService) GetCatalogSources(ctx context.Context, name string, pageSize string, orderBy openapi.OrderByField, sortOrder openapi.SortOrder, offset string) (ImplResponse, error) {
 	response := openapi.CatalogSourceList{
 		Items: make([]openapi.CatalogSource, 0),
 	}

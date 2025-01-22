@@ -1235,9 +1235,23 @@ components:
         - $ref: "#/components/schemas/RegisteredModelCreate"
     CatalogModelVersion:
       description: Represents a CatalogModelVersion belonging to a CatalogModel.
+      required:
+        - name
+        - artifact
       allOf:
-        - $ref: "#/components/schemas/ModelVersionCreate"
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ModelVersionUpdate"
+        - type: object
+          properties:
+            name:
+              description: |-
+                The client provided name of the model's version. It must be unique among all the ModelVersions of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
+            artifact:
+              description: |-
+                The catalog model artifact.
+              $ref: "#/components/schemas/ModelArtifact"
     ArtifactState:
       description: |2-
          - PENDING: A state indicating that the artifact may exist.

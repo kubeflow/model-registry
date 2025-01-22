@@ -25,31 +25,24 @@ type CatalogModelVersion struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	// The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set.
 	Name  string             `json:"name"`
 	State *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
-	Author *string `json:"author,omitempty"`
-	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelId string `json:"registeredModelId"`
-	// The unique server generated id of the resource.
-	Id *string `json:"id,omitempty"`
-	// Output only. Create time of the resource in millisecond since epoch.
-	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
-	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	Author   *string       `json:"author,omitempty"`
+	Artifact ModelArtifact `json:"artifact"`
 }
 
 // NewCatalogModelVersion instantiates a new CatalogModelVersion object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogModelVersion(name string, registeredModelId string) *CatalogModelVersion {
+func NewCatalogModelVersion(name string, artifact ModelArtifact) *CatalogModelVersion {
 	this := CatalogModelVersion{}
 	this.Name = name
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
-	this.RegisteredModelId = registeredModelId
+	this.Artifact = artifact
 	return &this
 }
 
@@ -247,124 +240,28 @@ func (o *CatalogModelVersion) SetAuthor(v string) {
 	o.Author = &v
 }
 
-// GetRegisteredModelId returns the RegisteredModelId field value
-func (o *CatalogModelVersion) GetRegisteredModelId() string {
+// GetArtifact returns the Artifact field value
+func (o *CatalogModelVersion) GetArtifact() ModelArtifact {
 	if o == nil {
-		var ret string
+		var ret ModelArtifact
 		return ret
 	}
 
-	return o.RegisteredModelId
+	return o.Artifact
 }
 
-// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
+// GetArtifactOk returns a tuple with the Artifact field value
 // and a boolean to check if the value has been set.
-func (o *CatalogModelVersion) GetRegisteredModelIdOk() (*string, bool) {
+func (o *CatalogModelVersion) GetArtifactOk() (*ModelArtifact, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.RegisteredModelId, true
+	return &o.Artifact, true
 }
 
-// SetRegisteredModelId sets field value
-func (o *CatalogModelVersion) SetRegisteredModelId(v string) {
-	o.RegisteredModelId = v
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *CatalogModelVersion) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModelVersion) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *CatalogModelVersion) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *CatalogModelVersion) SetId(v string) {
-	o.Id = &v
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *CatalogModelVersion) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModelVersion) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *CatalogModelVersion) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *CatalogModelVersion) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *CatalogModelVersion) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModelVersion) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *CatalogModelVersion) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *CatalogModelVersion) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
+// SetArtifact sets field value
+func (o *CatalogModelVersion) SetArtifact(v ModelArtifact) {
+	o.Artifact = v
 }
 
 func (o CatalogModelVersion) MarshalJSON() ([]byte, error) {
@@ -393,16 +290,7 @@ func (o CatalogModelVersion) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Author) {
 		toSerialize["author"] = o.Author
 	}
-	toSerialize["registeredModelId"] = o.RegisteredModelId
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
+	toSerialize["artifact"] = o.Artifact
 	return toSerialize, nil
 }
 
