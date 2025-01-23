@@ -12,23 +12,16 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"github.com/kubeflow/model-registry/internal/catalog"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"net/http"
 )
-
-type ModelCatalogApi interface {
-	GetCatalogModel(ctx context.Context, modelId string) (openapi.CatalogModel, error)
-	GetCatalogModelVersion(ctx context.Context, modelId string, versionId string) (openapi.CatalogModelVersion, error)
-	GetCatalogModelVersions(ctx context.Context, modelId string, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelVersionList, error)
-	GetCatalogModels(ctx context.Context, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelList, error)
-	GetCatalogSource() (openapi.CatalogSource, error)
-}
 
 // ModelCatalogServiceAPIService is a service that implements the logic for the ModelCatalogServiceAPIServicer
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	modelCatalogs map[string]ModelCatalogApi
+	modelCatalogs map[string]catalog.ModelCatalogApi
 }
 
 func (m ModelCatalogServiceAPIService) GetCatalogModel(ctx context.Context, id string, modelId string) (ImplResponse, error) {
@@ -112,7 +105,7 @@ func missingCatalogError(id string) (ImplResponse, error) {
 }
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(modelCatalogs map[string]ModelCatalogApi) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(modelCatalogs map[string]catalog.ModelCatalogApi) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		modelCatalogs: modelCatalogs,
 	}

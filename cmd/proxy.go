@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/kubeflow/model-registry/internal/catalog"
 	"net/http"
 	"time"
 
@@ -40,8 +41,11 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	}
 	if disableService != CatalogService {
 
-		// TODO read yaml catalog file and instantiate ModelCatalogAPI implementations
-		ModelCatalogServiceAPIService := openapi.NewModelCatalogServiceAPIService(map[string]openapi.ModelCatalogApi{})
+		sources, err := catalog.LoadCatalogSources(proxyCfg.CatalogsConfigPath)
+		if err != nil {
+			return fmt.Errorf("error loading catalog sources: %v", err)
+		}
+		ModelCatalogServiceAPIService := openapi.NewModelCatalogServiceAPIService(sources)
 		ModelCatalogServiceAPIController := openapi.NewModelCatalogServiceAPIController(ModelCatalogServiceAPIService)
 		routers = append(routers, ModelCatalogServiceAPIController)
 		glog.Infof("started catalog service")
@@ -95,6 +99,7 @@ func init() {
 	proxyCmd.Flags().StringVar(&proxyCfg.MLMDHostname, "mlmd-hostname", proxyCfg.MLMDHostname, "MLMD hostname")
 	proxyCmd.Flags().IntVar(&proxyCfg.MLMDPort, "mlmd-port", proxyCfg.MLMDPort, "MLMD port")
 
+	proxyCmd.Flags().StringVar(&proxyCfg.CatalogsConfigPath, "catalogs-path", proxyCfg.DisableService, "Path for Model Catalog source configuration yaml file")
 	proxyCmd.Flags().StringVar(&proxyCfg.DisableService, "disable-service", proxyCfg.DisableService, "Optional name of service/endpoint to disable, can be either \"catalog\" or \"registry\"")
 }
 
@@ -107,7 +112,9 @@ type ProxyConfig struct {
 	MLMDHostname string
 	MLMDPort     int
 
-	DisableService string
+	// Catalog sources config file path
+	CatalogsConfigPath string
+	DisableService     string
 }
 
 var proxyCfg = ProxyConfig{
