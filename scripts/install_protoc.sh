@@ -8,7 +8,7 @@ if [[ ${OSTYPE,,} =~ darwin ]]; then
 fi
 
 ARCH=$(uname -m)
-if [[ "$ARCH" == "arm"* ]]; then
+if [[ "$ARCH" == "arm"* || "$ARCH" == "aarch64" ]]; then
   ARCH="aarch_64"
 elif [[ "$ARCH" == "s390x" ]]; then
   ARCH="s390_64"
