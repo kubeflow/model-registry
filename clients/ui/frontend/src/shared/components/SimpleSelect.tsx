@@ -139,9 +139,9 @@ const SimpleSelect: React.FC<SimpleSelectProps> = ({
         popperProps={{ maxWidth: 'trigger', ...popperProps }}
       >
         {groupedOptions?.map((group, index) => (
-          <>
+          <React.Fragment key={group.key}>
             {index > 0 ? <Divider /> : null}
-            <SelectGroup key={group.key} label={group.label}>
+            <SelectGroup label={group.label}>
               <SelectList>
                 {group.options.map(
                   ({
@@ -167,7 +167,7 @@ const SimpleSelect: React.FC<SimpleSelectProps> = ({
                 )}
               </SelectList>
             </SelectGroup>
-          </>
+          </React.Fragment>
         )) ?? null}
         {options?.length ? (
           <SelectList>
