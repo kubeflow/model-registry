@@ -1,0 +1,35 @@
+models:
+  - name: ibm-granite/granite-3.1-8b-base
+    provider: IBM
+    description: A decoder-only code model designed for code generative tasks
+    readmeLink: https://huggingface.co/ibm-granite/granite-3.1-8b-base/raw/main/README.md
+    language: ["ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"]
+    license: apache-2.0
+    licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+    libraryName: transformers
+    tags:
+      - language
+      - granite-3.1
+    tasks:
+      - text-generation
+    createTimeSinceEpoch: 1733514949000
+    lastUpdateTimeSinceEpoch: 1734637721000
+  - name: ibm-granite/granite-3.1-8b-instruct
+    provider: IBM
+    description: A fine-tuned model based on Granite 8B Code Base
+    readmeLink: https://huggingface.co/ibm-granite/granite-3.1-8b-instruct/raw/main/README.md
+    language: ["ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"]
+    license: apache-2.0
+    licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+    libraryName: transformers
+    baseModel:
+      - catalog: huggingface.io
+        repository: ibm-granite
+        model: granite-3.1-8b-base
+    tags:
+      - language
+      - granite-3.1
+    tasks:
+      - text-generation
+    createTimeSinceEpoch: 1733514949000
+    lastUpdateTimeSinceEpoch: 1734637721000

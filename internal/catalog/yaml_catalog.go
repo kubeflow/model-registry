@@ -2,29 +2,36 @@ package catalog
 
 import (
 	"context"
+	"fmt"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"os"
 )
 
+type YamlBaseModel struct {
+	Catalog    string `yaml:"catalog"`
+	Repository string `yaml:"repository"`
+	Model      string `yaml:"model"`
+}
+
+type YamlModel struct {
+	Name                     string   `yaml:"name"`
+	Provider                 string   `yaml:"provider"`
+	Description              string   `yaml:"description"`
+	ReadmeLink               string   `yaml:"readmeLink"`
+	Language                 []string `yaml:"language"`
+	License                  string   `yaml:"license"`
+	LicenseLink              string   `yaml:"licenseLink"`
+	LibraryName              string   `yaml:"libraryName"`
+	Tags                     []string `yaml:"tags"`
+	Tasks                    []string `yaml:"tasks"`
+	CreateTimeSinceEpoch     int64    `yaml:"createTimeSinceEpoch"`
+	LastUpdateTimeSinceEpoch int64    `yaml:"lastUpdateTimeSinceEpoch"`
+	BaseModel                []YamlBaseModel `yaml:"baseModel,omitempty"`
+}
+
 type YamlCatalog struct {
-	Models []struct {
-		Name                     string   `yaml:"name"`
-		Provider                 string   `yaml:"provider"`
-		Description              string   `yaml:"description"`
-		ReadmeLink               string   `yaml:"readmeLink"`
-		Language                 []string `yaml:"language"`
-		License                  string   `yaml:"license"`
-		LicenseLink              string   `yaml:"licenseLink"`
-		LibraryName              string   `yaml:"libraryName"`
-		Tags                     []string `yaml:"tags"`
-		Tasks                    []string `yaml:"tasks"`
-		CreateTimeSinceEpoch     int64    `yaml:"createTimeSinceEpoch"`
-		LastUpdateTimeSinceEpoch int64    `yaml:"lastUpdateTimeSinceEpoch"`
-		BaseModel                []struct {
-			Catalog    string `yaml:"catalog"`
-			Repository string `yaml:"repository"`
-			Model      string `yaml:"model"`
-		} `yaml:"baseModel,omitempty"`
-	} `yaml:"models"`
+	Models []YamlModel `yaml:"models"`
 }
 
 type yamlCatalogImpl struct {
@@ -60,12 +67,30 @@ func (y yamlCatalogImpl) GetCatalogSource() (openapi.CatalogSource, error) {
 
 var _ ModelCatalogApi = &yamlCatalogImpl{}
 
-func NewYamlCatalog(source *CatalogSource) ModelCatalogApi {
-	// TODO read file contents from config
+const yamlCatalogPath = "yamlCatalogPath"
+
+func NewYamlCatalog(source *CatalogSource) (ModelCatalogApi, error) {
 	var contents YamlCatalog
-	return &yamlCatalogImpl{source: source, contents: &contents}
+	privateProps := source.PrivateProperties
+	if len(privateProps) == 0 {
+		return nil, fmt.Errorf("missing yaml catalog private properties")
+	}
+	yamlModelFile, exists := privateProps[yamlCatalogPath].(string)
+	if !exists || len(yamlModelFile) == 0 {
+		return nil, fmt.Errorf("missing %s string property", yamlCatalogPath)
+	}
+	bytes, err := os.ReadFile(yamlModelFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s file: %v", yamlCatalogPath, err)
+	}
+	if err = yaml.UnmarshalStrict(bytes, &contents); err != nil {
+		return nil, fmt.Errorf("failed to parse %s file: %v", yamlCatalogPath, err)
+	}
+	return &yamlCatalogImpl{source: source, contents: &contents}, nil
 }
 
 func init() {
-	RegisterCatalogType("yaml", NewYamlCatalog)
+	if err := RegisterCatalogType("yaml", NewYamlCatalog); err != nil {
+		panic(err)
+	}
 }
