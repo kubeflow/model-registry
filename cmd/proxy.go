@@ -40,11 +40,8 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid disable-service: %v", disableService)
 	}
 
-	if disableService != CatalogService {
+	if disableService != CatalogService && len(proxyCfg.CatalogsConfigPath) != 0 {
 
-		if len(proxyCfg.CatalogsConfigPath) == 0 {
-			return fmt.Errorf("missing option catalogs-path for catalog config file")
-		}
 		sources, err := catalog.LoadCatalogSources(proxyCfg.CatalogsConfigPath)
 		if err != nil {
 			return fmt.Errorf("error loading catalog sources: %v", err)
@@ -87,6 +84,10 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 		routers = append(routers, ModelRegistryServiceAPIController)
 
+	}
+
+	if len(routers) == 0 {
+		return fmt.Errorf("all services disabled")
 	}
 
 	router := openapi.NewRouter(routers...)
