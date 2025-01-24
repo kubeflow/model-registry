@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22.2"
+          go-version: "1.23.5"
 
       - name: Clean
         working-directory: clients/ui/bff
@@ -27,7 +27,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.57.2
+          version: v1.63.4
           working-directory: clients/ui/bff/
 
       - name: Build
