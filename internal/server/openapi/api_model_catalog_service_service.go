@@ -24,6 +24,26 @@ type ModelCatalogServiceAPIService struct {
 	modelCatalogs map[string]catalog.ModelCatalogApi
 }
 
+func (m ModelCatalogServiceAPIService) GetAllCatalogModels(ctx context.Context, name string, externalId string, pageSize string, orderBy openapi.OrderByField, sortOrder openapi.SortOrder, offset string) (ImplResponse, error) {
+	var lastError error
+	var allModels openapi.CatalogModelList
+	for _, modelCatalog := range m.modelCatalogs {
+		models, err := modelCatalog.GetCatalogModels(ctx, name, externalId, pageSize, orderBy, sortOrder, offset)
+		if err != nil {
+			lastError = err
+		}
+		allModels.Items = append(allModels.Items, models.Items...)
+		allModels.PageSize = models.PageSize
+		allModels.Size += models.Size
+	}
+	if lastError != nil && allModels.Size == 0 {
+		// only return an error if there are no models from any catalogs
+		// NOTE: catalog access errors are silently ignored if at least one catalog is functioning
+		return Response(http.StatusInternalServerError, lastError), lastError
+	}
+	return Response(http.StatusOK, allModels), lastError
+}
+
 func (m ModelCatalogServiceAPIService) GetCatalogModel(ctx context.Context, id string, modelId string) (ImplResponse, error) {
 	catalog, ok := m.modelCatalogs[id]
 	if !ok {
@@ -103,6 +123,8 @@ func missingCatalogError(id string) (ImplResponse, error) {
 	err := fmt.Errorf("Missing catalog %s", id)
 	return ErrorResponse(http.StatusNotFound, err), err
 }
+
+var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
 func NewModelCatalogServiceAPIService(modelCatalogs map[string]catalog.ModelCatalogApi) ModelCatalogServiceAPIServicer {

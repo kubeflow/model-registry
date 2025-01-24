@@ -100,6 +100,34 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_catalog/v1alpha3/catalog_sources/models:
+    summary: Path used to get the list of catalog models from all catalog sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
+    get:
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllCatalogModels
+      summary: List All CatalogModels from All CatalogSources
+      description: Gets a list of all `CatalogModel` entities.
   /api/model_catalog/v1alpha3/catalog_sources/{id}/models/{model_id}:
     summary: Path used to get a single CatalogModel.
     description: >-
@@ -1249,8 +1277,6 @@ components:
                 type within a Model Registry instance and cannot be changed once set.
               type: string
             artifact:
-              description: |-
-                The catalog model artifact.
               $ref: "#/components/schemas/ModelArtifact"
     ArtifactState:
       description: |2-

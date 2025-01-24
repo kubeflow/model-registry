@@ -22,6 +22,209 @@ import (
 // ModelCatalogServiceAPIService ModelCatalogServiceAPI service
 type ModelCatalogServiceAPIService service
 
+type ApiGetAllCatalogModelsRequest struct {
+	ctx        context.Context
+	ApiService *ModelCatalogServiceAPIService
+	name       *string
+	externalId *string
+	pageSize   *string
+	orderBy    *OrderByField
+	sortOrder  *SortOrder
+	offset     *string
+}
+
+// Name of entity to search.
+func (r ApiGetAllCatalogModelsRequest) Name(name string) ApiGetAllCatalogModelsRequest {
+	r.name = &name
+	return r
+}
+
+// External ID of entity to search.
+func (r ApiGetAllCatalogModelsRequest) ExternalId(externalId string) ApiGetAllCatalogModelsRequest {
+	r.externalId = &externalId
+	return r
+}
+
+// Number of entities in each page.
+func (r ApiGetAllCatalogModelsRequest) PageSize(pageSize string) ApiGetAllCatalogModelsRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+// Specifies the order by criteria for listing entities.
+func (r ApiGetAllCatalogModelsRequest) OrderBy(orderBy OrderByField) ApiGetAllCatalogModelsRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// Specifies the sort order for listing entities, defaults to ASC.
+func (r ApiGetAllCatalogModelsRequest) SortOrder(sortOrder SortOrder) ApiGetAllCatalogModelsRequest {
+	r.sortOrder = &sortOrder
+	return r
+}
+
+// Number of entities to skip before page.
+func (r ApiGetAllCatalogModelsRequest) Offset(offset string) ApiGetAllCatalogModelsRequest {
+	r.offset = &offset
+	return r
+}
+
+func (r ApiGetAllCatalogModelsRequest) Execute() (*CatalogModelList, *http.Response, error) {
+	return r.ApiService.GetAllCatalogModelsExecute(r)
+}
+
+/*
+GetAllCatalogModels List All CatalogModels from All CatalogSources
+
+Gets a list of all `CatalogModel` entities.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiGetAllCatalogModelsRequest
+*/
+func (a *ModelCatalogServiceAPIService) GetAllCatalogModels(ctx context.Context) ApiGetAllCatalogModelsRequest {
+	return ApiGetAllCatalogModelsRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CatalogModelList
+func (a *ModelCatalogServiceAPIService) GetAllCatalogModelsExecute(r ApiGetAllCatalogModelsRequest) (*CatalogModelList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CatalogModelList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelCatalogServiceAPIService.GetAllCatalogModels")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/model_catalog/v1alpha3/catalog_sources/models"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.name != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+	}
+	if r.externalId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+	}
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+	}
+	if r.orderBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+	}
+	if r.sortOrder != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+	}
+	if r.offset != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "offset", r.offset, "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiGetCatalogModelRequest struct {
 	ctx        context.Context
 	ApiService *ModelCatalogServiceAPIService

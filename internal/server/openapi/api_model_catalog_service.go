@@ -51,6 +51,11 @@ func NewModelCatalogServiceAPIController(s ModelCatalogServiceAPIServicer, opts 
 // Routes returns all the api routes for the ModelCatalogServiceAPIController
 func (c *ModelCatalogServiceAPIController) Routes() Routes {
 	return Routes{
+		"GetAllCatalogModels": Route{
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha3/catalog_sources/models",
+			c.GetAllCatalogModels,
+		},
 		"GetCatalogModel": Route{
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha3/catalog_sources/{id}/models/{model_id}",
@@ -82,6 +87,25 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 			c.GetCatalogSources,
 		},
 	}
+}
+
+// GetAllCatalogModels - List All CatalogModels from All CatalogSources
+func (c *ModelCatalogServiceAPIController) GetAllCatalogModels(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	offsetParam := query.Get("offset")
+	result, err := c.service.GetAllCatalogModels(r.Context(), nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), offsetParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
 // GetCatalogModel - Get a CatalogModel

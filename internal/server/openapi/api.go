@@ -39,6 +39,7 @@ type ModelCatalogServiceAPIServicer interface {
 	GetCatalogModels(context.Context, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	GetCatalogSource(context.Context, string) (ImplResponse, error)
 	GetCatalogSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetAllCatalogModels(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 }
 
 // ModelRegistryServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelRegistryServiceAPI
