@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: model-registry-service
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    appProtocol: http
+    name: http-api
+  - name: grpc-api
+    $patch: delete
