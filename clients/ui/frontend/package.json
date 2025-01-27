@@ -38,7 +38,7 @@
     "@babel/preset-typescript": "^7.21.5",
     "@cypress/code-coverage": "^3.13.8",
     "@mui/material": "^6.1.7",
-    "@mui/icons-material": "^6.1.10",
+    "@mui/icons-material": "^6.4.1",
     "@mui/types": "^7.2.20",
     "@testing-library/cypress": "^10.0.1",
     "@testing-library/dom": "^10.4.0",
