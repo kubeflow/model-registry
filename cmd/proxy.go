@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/golang/glog"
@@ -39,9 +38,9 @@ hostname and port where it listens.'`,
 func runProxyServer(cmd *cobra.Command, args []string) error {
 	var conn *grpc.ClientConn
 	var err error
-	var wg sync.WaitGroup
 
-	errChan := make(chan error, 1)
+	errMLMDChan := make(chan error, 1)
+	errProxyChan := make(chan error, 1)
 
 	router := proxy.NewDynamicRouter()
 
@@ -53,13 +52,13 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	// we can start the proxy server and start serving requests while we wait
 	// for the connection to be established.
 	go func() {
-		defer close(errChan)
+		defer close(errMLMDChan)
 
 		mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
 		glog.Infof("connecting to MLMD server %s..", mlmdAddr)
 		conn, err = grpc.NewClient(mlmdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			errChan <- fmt.Errorf("error dialing connection to mlmd server %s: %w", mlmdAddr, err)
+			errMLMDChan <- fmt.Errorf("error dialing connection to mlmd server %s: %w", mlmdAddr, err)
 
 			return
 		}
@@ -76,7 +75,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 			st, ok := status.FromError(err)
 			if !ok || st.Code() != codes.Unavailable {
-				errChan <- fmt.Errorf("error creating MLMD types: %w", err)
+				errMLMDChan <- fmt.Errorf("error creating MLMD types: %w", err)
 
 				return
 			}
@@ -86,7 +85,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
 		if err != nil {
-			errChan <- fmt.Errorf("error creating core service: %w", err)
+			errMLMDChan <- fmt.Errorf("error creating core service: %w", err)
 
 			return
 		}
@@ -99,18 +98,16 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		glog.Infof("connected to MLMD server")
 	}()
 
-	wg.Add(1)
-
 	// Start the proxy server in a separate goroutine so that we can handle
 	// errors from both the proxy server and the connection to the MLMD server.
 	go func() {
-		defer wg.Done()
+		defer close(errProxyChan)
 
 		glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
 		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
 		if err != nil {
-			errChan <- err
+			errProxyChan <- fmt.Errorf("error starting proxy server: %w", err)
 		}
 	}()
 
@@ -122,15 +119,25 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	err = <-errChan
-	if err != nil {
-		return fmt.Errorf("error starting proxy server: %w", err)
+	// Wait for either the MLMD server connection or the proxy server to return an error
+	// or for both to finish successfully.
+	for {
+		select {
+		case err := <-errMLMDChan:
+			if err != nil {
+				return err
+			}
+
+		case err := <-errProxyChan:
+			if err != nil {
+				return err
+			}
+		}
+
+		if errMLMDChan == nil && errProxyChan == nil {
+			return nil
+		}
 	}
-
-	// Wait for the proxy server to finish serving requests.
-	wg.Wait()
-
-	return nil
 }
 
 func init() {
