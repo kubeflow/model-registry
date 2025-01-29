@@ -53,8 +53,11 @@ class Configuration:
       string values to replace variables in templated server configuration.
       The validation of enums is performed for variables with defined enum
       values before.
-    :param ssl_ca_cert: str - the path to a file of concatenated CA certificates
+    :param ssl_ca_cert: str - The path to a file of concatenated CA certificates
       in PEM format.
+    :param verify_ssl: bool - Whether to verify the SSL certificate when making API 
+      requests to an HTTPS server.
+      Set to False to disable verification, default=True.
 
     :Example:
     """
