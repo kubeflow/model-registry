@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, AlertActionCloseButton, AlertVariant } from '@patternfly/react-core';
 import { Notification } from '~/app/types';
-import { asEnumMember } from '~/app/utils';
+import { asEnumMember } from '~/shared/utilities/utils';
 import { useNotification } from '~/app/hooks/useNotification';
 
 const TOAST_NOTIFICATION_TIMEOUT = 8 * 1000;

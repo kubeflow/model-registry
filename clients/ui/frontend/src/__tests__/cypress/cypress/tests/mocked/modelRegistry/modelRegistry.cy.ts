@@ -5,7 +5,12 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
 import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
-import type { ModelRegistry, ModelVersion, RegisteredModel } from '~/app/types';
+import {
+  ModelRegistryMetadataType,
+  type ModelRegistry,
+  type ModelVersion,
+  type RegisteredModel,
+} from '~/app/types';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
@@ -19,13 +24,11 @@ const initIntercepts = ({
   modelRegistries = [
     mockModelRegistry({
       name: 'modelregistry-sample',
-      description: 'New model registry',
-      displayName: 'Model Registry Sample',
     }),
     mockModelRegistry({
       name: 'modelregistry-sample-2',
-      description: 'New model registry 2',
-      displayName: 'Model Registry Sample 2',
+      description: '',
+      displayName: 'modelregistry-sample-2',
     }),
   ],
   registeredModels = [
@@ -33,29 +36,72 @@ const initIntercepts = ({
       name: 'Fraud detection model',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
-      labels: [
-        'Financial data',
-        'Fraud detection',
-        'Test label',
-        'Machine learning',
-        'Next data to be overflow',
-      ],
+      customProperties: {
+        'Financial data': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Fraud detection': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Machine learning': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Next data to be overflow': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+      },
     }),
     mockRegisteredModel({
       name: 'Label modal',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
-      labels: [
-        'Testing label',
-        'Financial data',
-        'Fraud detection',
-        'Long label data to be truncated abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc',
-        'Machine learning',
-        'Next data to be overflow',
-        'Label x',
-        'Label y',
-        'Label z',
-      ],
+      customProperties: {
+        'Testing label': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Financial data': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Fraud detection': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Long label data to be truncated abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc abc':
+          {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: '',
+          },
+        'Machine learning': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Next data to be overflow': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Label x': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Label y': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Label z': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+      },
     }),
   ],
   modelVersions = [
@@ -69,6 +115,14 @@ const initIntercepts = ({
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
     modelRegistries,
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions`,
+    {
+      path: { modelRegistryName: 'modelregistry-sample', apiVersion: MODEL_REGISTRY_API_VERSION },
+    },
+    mockModelVersionList({ items: modelVersions }),
   );
 
   cy.interceptApi(
@@ -95,20 +149,7 @@ const initIntercepts = ({
 describe('Model Registry core', () => {
   it('Model Registry Enabled in the cluster', () => {
     initIntercepts({
-      registeredModels: [
-        mockRegisteredModel({
-          name: 'Fraud detection model',
-          description:
-            'A machine learning model trained to detect fraudulent transactions in financial data',
-          labels: [
-            'Financial data',
-            'Fraud detection',
-            'Test label',
-            'Machine learning',
-            'Next data to be overflow',
-          ],
-        }),
-      ],
+      registeredModels: [],
     });
 
     modelRegistry.visit();
@@ -126,7 +167,6 @@ describe('Model Registry core', () => {
     modelRegistry.navigate();
     modelRegistry.findModelRegistryEmptyState().should('exist');
   });
-
   it('No registered models in the selected Model Registry', () => {
     initIntercepts({
       registeredModels: [],
@@ -136,6 +176,26 @@ describe('Model Registry core', () => {
     modelRegistry.navigate();
     modelRegistry.shouldModelRegistrySelectorExist();
     modelRegistry.shouldregisteredModelsEmpty();
+
+    modelRegistry.findViewDetailsButton().click();
+    modelRegistry.findDetailsPopover().should('exist');
+    modelRegistry.findDetailsPopover().findByText('Model registry description').should('exist');
+
+    // Model registry with no description
+    modelRegistry.findModelRegistry().findSelectOption('modelregistry-sample-2').click();
+    modelRegistry.findViewDetailsButton().click();
+    modelRegistry.findDetailsPopover().should('exist');
+    modelRegistry.findDetailsPopover().findByText('No description').should('exist');
+
+    //  Model registry help content
+    modelRegistry.findHelpContentButton().click();
+    modelRegistry.findHelpContentPopover().should('exist');
+    modelRegistry
+      .findHelpContentPopover()
+      .findByText(
+        'To request access to a new or existing model registry, contact your administrator.',
+      )
+      .should('exist');
   });
 
   describe('Registered model table', () => {

@@ -15,7 +15,7 @@ This includes models, model versions, artifacts, serving environments, inference
 ### Prerequisites
 
 * [MLMD server](https://github.com/google/ml-metadata/blob/f0fef74eae2bdf6650a79ba976b36bea0b777c2e/g3doc/get_started.md#use-mlmd-with-a-remote-grpc-server)
-* Go >= 1.21
+* Go >= 1.22
 
 Install it using:
 

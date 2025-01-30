@@ -85,3 +85,23 @@ func (m *ModelRegistryClientMock) CreateModelArtifactByModelVersion(_ integratio
 	mockData := GetModelArtifactMocks()[0]
 	return &mockData, nil
 }
+
+func (m *ModelRegistryClientMock) GetAllArtifacts(_ integrations.HTTPClientInterface, _ url.Values) (*openapi.ArtifactList, error) {
+	mockData := GenerateMockArtifactList()
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) GetArtifact(_ integrations.HTTPClientInterface, _ string) (*openapi.Artifact, error) {
+	mockData := GenerateMockArtifact()
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) CreateArtifact(_ integrations.HTTPClientInterface, _ []byte) (*openapi.Artifact, error) {
+	mockData := GenerateMockArtifact()
+	return &mockData, nil
+}
+
+func (m *ModelRegistryClientMock) UpdateArtifact(_ integrations.HTTPClientInterface, _ string, _ []byte) (*openapi.Artifact, error) {
+	mockData := GenerateMockArtifact()
+	return &mockData, nil
+}

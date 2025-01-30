@@ -26,15 +26,18 @@ kubectl create namespace kubeflow
 
 ### 3. Deploy Model Registry UI to cluster
 
-You can now deploy the UI and BFF to your newly created cluster using the kustomize configs in this directory:
-
+You can now deploy the UI and BFF to your newly created cluster using the kustomize configs in the root manifest directory:
 ```shell
-cd clients/ui
-
-kubectl apply -k manifests/overlay/standalone -n kubeflow
+cd manifests/kustomize/options/ui/overlays/standalone
+```
+```shell
+kustomize edit set namespace kubeflow
+```
+```shell
+kubectl apply -k .
 ```
 
-After a few seconds you should see 2 pods running (1 for BFF and 1 for UI):
+After a few seconds you should see 1 pod running:
 
 ```shell
 kubectl get pods -n kubeflow
@@ -95,5 +98,5 @@ To fix this, you'll need to increase the amount of memory available to the VM. T
 Alternatively, if you'd like to run the UI and BFF pods with an Istio configuration for the KF Central Dashboard, you can apply the manifests by running:
 
 ```shell
-kubectl apply -k overlays/istio -n kubeflow
+kubectl apply -k manifests/kustomize/options/ui/overlays/istio -n kubeflow
 ```

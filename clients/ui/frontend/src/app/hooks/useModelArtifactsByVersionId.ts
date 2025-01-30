@@ -2,6 +2,7 @@ import * as React from 'react';
 import useFetchState, {
   FetchState,
   FetchStateCallbackPromise,
+  NotReadyError,
 } from '~/shared/utilities/useFetchState';
 import { ModelArtifactList } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
@@ -14,7 +15,7 @@ const useModelArtifactsByVersionId = (modelVersionId?: string): FetchState<Model
         return Promise.reject(new Error('API not yet available'));
       }
       if (!modelVersionId) {
-        return Promise.reject(new Error('No model registeredModel id'));
+        return Promise.reject(new NotReadyError('No model registeredModel id'));
       }
       return api.getModelArtifactsByModelVersion(opts, modelVersionId);
     },

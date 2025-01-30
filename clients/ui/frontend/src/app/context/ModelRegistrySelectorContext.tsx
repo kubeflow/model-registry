@@ -9,6 +9,7 @@ export type ModelRegistrySelectorContextType = {
   modelRegistries: ModelRegistry[];
   preferredModelRegistry: ModelRegistry | undefined;
   updatePreferredModelRegistry: (modelRegistry: ModelRegistry | undefined) => void;
+  //refreshRulesReview: () => void; TODO: [Midstream] Reimplement this
 };
 
 type ModelRegistrySelectorContextProviderProps = {
@@ -21,6 +22,7 @@ export const ModelRegistrySelectorContext = React.createContext<ModelRegistrySel
   modelRegistries: [],
   preferredModelRegistry: undefined,
   updatePreferredModelRegistry: () => undefined,
+  //refreshRulesReview: () => undefined,
 });
 
 export const ModelRegistrySelectorContextProvider: React.FC<
@@ -34,6 +36,8 @@ export const ModelRegistrySelectorContextProvider: React.FC<
 const EnabledModelRegistrySelectorContextProvider: React.FC<
   ModelRegistrySelectorContextProviderProps
 > = ({ children }) => {
+  // TODO: [Midstream] Add area check for enablement
+
   const queryParams = useQueryParamNamespaces();
 
   const [modelRegistries, isLoaded, error] = useModelRegistries(queryParams);
@@ -49,6 +53,7 @@ const EnabledModelRegistrySelectorContextProvider: React.FC<
       modelRegistries,
       preferredModelRegistry: preferredModelRegistry ?? firstModelRegistry ?? undefined,
       updatePreferredModelRegistry: setPreferredModelRegistry,
+      // refreshRulesReview,
     }),
     [isLoaded, error, modelRegistries, preferredModelRegistry, firstModelRegistry],
   );

@@ -3,8 +3,9 @@ import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { filterArchiveModels } from '~/app/pages/modelRegistry/screens/utils';
+import { filterArchiveModels } from '~/app/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
+import useModelVersions from '~/app/hooks/useModelVersions';
 import RegisteredModelsArchiveListView from './RegisteredModelsArchiveListView';
 
 type RegisteredModelsArchiveProps = Omit<
@@ -14,7 +15,16 @@ type RegisteredModelsArchiveProps = Omit<
 
 const RegisteredModelsArchive: React.FC<RegisteredModelsArchiveProps> = ({ ...pageProps }) => {
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
-  const [registeredModels, loaded, loadError, refresh] = useRegisteredModels();
+  const [registeredModels, modelsLoaded, modelsLoadError, refreshModels] = useRegisteredModels();
+  const [modelVersions, versionsLoaded, versionsLoadError, refreshVersions] = useModelVersions();
+
+  const loaded = modelsLoaded && versionsLoaded;
+  const loadError = modelsLoadError || versionsLoadError;
+
+  const refresh = React.useCallback(() => {
+    refreshModels();
+    refreshVersions();
+  }, [refreshModels, refreshVersions]);
 
   return (
     <ApplicationsPage
@@ -31,13 +41,14 @@ const RegisteredModelsArchive: React.FC<RegisteredModelsArchiveProps> = ({ ...pa
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      title={`Archived models of ${preferredModelRegistry?.name}`}
+      title={`Archived models of ${preferredModelRegistry?.name ?? ''}`}
       loadError={loadError}
       loaded={loaded}
       provideChildrenPadding
     >
       <RegisteredModelsArchiveListView
         registeredModels={filterArchiveModels(registeredModels.items)}
+        modelVersions={modelVersions.items}
         refresh={refresh}
       />
     </ApplicationsPage>

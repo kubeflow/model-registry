@@ -2,11 +2,13 @@ package mocks
 
 import (
 	"context"
+	"log/slog"
+	"os"
+
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"log/slog"
-	"os"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -220,4 +222,28 @@ func NewMockSessionContext(parent context.Context) context.Context {
 
 func NewMockSessionContextNoParent() context.Context {
 	return NewMockSessionContext(context.TODO())
+}
+
+func GenerateMockArtifactList() openapi.ArtifactList {
+	var artifacts []openapi.Artifact
+	for i := 0; i < 2; i++ {
+		artifact := GenerateMockArtifact()
+		artifacts = append(artifacts, artifact)
+	}
+
+	return openapi.ArtifactList{
+		NextPageToken: gofakeit.UUID(),
+		PageSize:      int32(gofakeit.Number(1, 20)),
+		Size:          int32(len(artifacts)),
+		Items:         artifacts,
+	}
+}
+
+func GenerateMockArtifact() openapi.Artifact {
+	modelArtifact := GenerateMockModelArtifact()
+
+	mockData := openapi.Artifact{
+		ModelArtifact: &modelArtifact,
+	}
+	return mockData
 }

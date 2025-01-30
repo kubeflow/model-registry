@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 func setupApiTest[T any](method string, url string, body interface{}, k8sClient k8s.KubernetesClientInterface, kubeflowUserIDHeaderValue string, namespace string) (T, *http.Response, error) {

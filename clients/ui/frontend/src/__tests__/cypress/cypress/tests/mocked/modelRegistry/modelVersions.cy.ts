@@ -4,7 +4,7 @@ import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
 import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import type { ModelRegistry, ModelVersion } from '~/app/types';
+import { ModelRegistryMetadataType, type ModelRegistry, type ModelVersion } from '~/app/types';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
@@ -34,16 +34,40 @@ const initIntercepts = ({
     mockModelVersion({
       author: 'Author 1',
       id: '1',
-      labels: [
-        'Financial data',
-        'Fraud detection',
-        'Test label',
-        'Machine learning',
-        'Next data to be overflow',
-        'Test label x',
-        'Test label y',
-        'Test label z',
-      ],
+      customProperties: {
+        'Financial data': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Fraud detection': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Machine learning': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Next data to be overflow': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label x': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label y': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+        'Test label z': {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: '',
+        },
+      },
     }),
     mockModelVersion({ id: '2', name: 'model version' }),
   ],
@@ -54,6 +78,14 @@ const initIntercepts = ({
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
     modelRegistries,
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions`,
+    {
+      path: { modelRegistryName: 'modelregistry-sample', apiVersion: MODEL_REGISTRY_API_VERSION },
+    },
+    mockModelVersionList({ items: modelVersions }),
   );
 
   cy.interceptApi(

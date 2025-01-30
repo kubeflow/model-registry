@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Button, Flex, FlexItem, Label, Content, Truncate } from '@patternfly/react-core';
+import { Button, Flex, FlexItem, Label, Truncate } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
@@ -52,13 +52,9 @@ const RegisteredModelsArchiveDetails: React.FC<RegisteredModelsArchiveDetailsPro
         }
         title={
           rm && (
-            <Flex>
-              <FlexItem>
-                <Content>{rm.name}</Content>
-              </FlexItem>
-              <FlexItem>
-                <Label>Archived</Label>
-              </FlexItem>
+            <Flex alignItems={{ default: 'alignItemsCenter' }}>
+              <FlexItem>{rm.name}</FlexItem>
+              <Label>Archived</Label>
             </Flex>
           )
         }
@@ -84,7 +80,7 @@ const RegisteredModelsArchiveDetails: React.FC<RegisteredModelsArchiveDetailsPro
         )}
       </ApplicationsPage>
 
-      {rm !== null && (
+      {rm !== null && isRestoreModalOpen ? (
         <RestoreRegisteredModelModal
           onCancel={() => setIsRestoreModalOpen(false)}
           onSubmit={() =>
@@ -98,10 +94,9 @@ const RegisteredModelsArchiveDetails: React.FC<RegisteredModelsArchiveDetailsPro
               )
               .then(() => navigate(registeredModelUrl(rm.id, preferredModelRegistry?.name)))
           }
-          isOpen={isRestoreModalOpen}
           registeredModelName={rm.name}
         />
-      )}
+      ) : null}
     </>
   );
 };

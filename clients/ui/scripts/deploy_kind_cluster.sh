@@ -5,11 +5,7 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but it's not
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but it's not installed. Aborting."; exit 1; }
 command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not installed. Aborting."; exit 1; }
 
-# Check if the script has rights to push an image into the registry
-if ! docker push "${IMG_UI_STANDALONE}" --dry-run >/dev/null 2>&1; then
-  echo -e "\033[31mError: No rights to push the image to the registry ${IMG_UI_STANDALONE}, you can change the image in the env variable IMG_UI_STANDALONE\033[0m"
-  exit 1
-fi
+echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}". If this is a new image, make sure you set it to public to avoid issues.
 
 if kubectl get deployment model-registry-deployment -n kubeflow >/dev/null 2>&1; then
   echo "Model Registry deployment already exists. Skipping to step 4."
@@ -45,7 +41,7 @@ make docker-build-standalone
 make docker-push-standalone
 
 echo "Editing kustomize image..."
-pushd  ./manifests/base
+pushd  ../../manifests/kustomize/options/ui/base
 kustomize edit set image model-registry-ui-image=${IMG_UI_STANDALONE}
 
 pushd  ../overlays/standalone

@@ -53,8 +53,11 @@ class Configuration:
       string values to replace variables in templated server configuration.
       The validation of enums is performed for variables with defined enum
       values before.
-    :param ssl_ca_cert: str - the path to a file of concatenated CA certificates
+    :param ssl_ca_cert: str - The path to a file of concatenated CA certificates
       in PEM format.
+    :param verify_ssl: bool - Whether to verify the SSL certificate when making API 
+      requests to an HTTPS server.
+      Set to False to disable verification, default=True.
 
     :Example:
     """
@@ -74,6 +77,7 @@ class Configuration:
         server_operation_index=None,
         server_operation_variables=None,
         ssl_ca_cert=None,
+        verify_ssl=True,
     ) -> None:
         """Constructor."""
         self._base_path = "https://localhost:8080" if host is None else host
@@ -133,7 +137,7 @@ class Configuration:
         """Debug switch
         """
 
-        self.verify_ssl = True
+        self.verify_ssl = verify_ssl
         """SSL/TLS verification
            Set this to false to skip verifying SSL certificate when calling API
            from https server.

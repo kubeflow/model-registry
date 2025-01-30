@@ -9,12 +9,21 @@ type ModelRegistriesTableProps = {
 };
 
 const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({ modelRegistries }) => (
-  // TODO: [Model Registry RBAC] Add toolbar once we manage permissions
+  // TODO: [Midstream] Complete once we have permissions
   <Table
     data-testid="model-registries-table"
     data={modelRegistries}
     columns={modelRegistryColumns}
-    rowRenderer={(mr) => <ModelRegistriesTableRow key={mr.name} modelRegistry={mr} />}
+    rowRenderer={(mr) => (
+      <ModelRegistriesTableRow
+        key={mr.name}
+        modelRegistry={mr}
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onDeleteRegistry={() => {}}
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onEditRegistry={() => {}}
+      />
+    )}
     variant="compact"
   />
 );

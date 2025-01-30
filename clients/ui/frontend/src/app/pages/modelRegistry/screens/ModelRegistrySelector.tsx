@@ -6,23 +6,21 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  Divider,
   Flex,
   FlexItem,
   Icon,
-  MenuToggle,
   Popover,
-  Select,
-  SelectGroup,
-  SelectList,
-  SelectOption,
+  PopoverPosition,
   Tooltip,
 } from '@patternfly/react-core';
+import text from '@patternfly/react-styles/css/utilities/Text/text';
 import truncateStyles from '@patternfly/react-styles/css/components/Truncate/truncate';
 import { InfoCircleIcon, BlueprintIcon } from '@patternfly/react-icons';
 import { useBrowserStorage } from '~/shared/components/browserStorage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';
+import SimpleSelect, { SimpleSelectOption } from '~/shared/components/SimpleSelect';
+import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
 
 const MODEL_REGISTRY_FAVORITE_STORAGE_KEY = 'kubeflow.dashboard.model.registry.favorite';
 
@@ -42,7 +40,6 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   );
 
   const selection = modelRegistries.find((mr) => mr.name === modelRegistry);
-  const [isOpen, setIsOpen] = React.useState(false);
   const [favorites, setFavorites] = useBrowserStorage<string[]>(
     MODEL_REGISTRY_FAVORITE_STORAGE_KEY,
     [],
@@ -53,7 +50,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   const toggleLabel = modelRegistries.length === 0 ? 'No model registries' : selectionDisplayName;
 
   const getMRSelectDescription = (mr: ModelRegistry) => {
-    const desc = mr.description || mr.name;
+    const desc = mr.description || '';
     if (!desc) {
       return;
     }
@@ -74,69 +71,48 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
     );
   };
 
-  const options = [
-    <SelectGroup label="Select a model registry" key="all">
-      <SelectList>
-        {modelRegistries.map((mr) => (
-          <SelectOption
-            id={mr.name}
-            key={mr.name}
-            value={mr.name}
-            description={getMRSelectDescription(mr)}
-            isFavorited={favorites.includes(mr.name)}
-          >
-            {mr.displayName}
-          </SelectOption>
-        ))}
-      </SelectList>
-    </SelectGroup>,
-  ];
+  const allOptions: SimpleSelectOption[] = modelRegistries.map((mr) => ({
+    key: mr.name,
+    label: mr.name,
+    dropdownLabel: mr.displayName,
+    description: getMRSelectDescription(mr),
+    isFavorited: favorites.includes(mr.name),
+  }));
 
-  const createFavorites = (favIds: string[]) => {
-    const favorite: JSX.Element[] = [];
-
-    options.forEach((item) => {
-      if (item.type === SelectList) {
-        item.props.children.filter(
-          (child: JSX.Element) => favIds.includes(child.props.value) && favorite.push(child),
-        );
-      } else if (item.type === SelectGroup) {
-        item.props.children.props.children.filter(
-          (child: JSX.Element) => favIds.includes(child.props.value) && favorite.push(child),
-        );
-      } else if (favIds.includes(item.props.value)) {
-        favorite.push(item);
-      }
-    });
-
-    return favorite;
-  };
+  const favoriteOptions = (favIds: string[]) =>
+    allOptions.filter((option) => favIds.includes(option.key));
 
   const selector = (
-    <Select
-      toggle={(toggleRef) => (
-        <MenuToggle
-          ref={toggleRef}
-          data-testid="model-registry-selector-dropdown"
-          aria-label="Model registry toggle"
-          id="download-steps-logs-toggle"
-          onClick={() => setIsOpen(!isOpen)}
-          isExpanded={isOpen}
-          isDisabled={modelRegistries.length === 0}
-        >
-          {toggleLabel}
-        </MenuToggle>
-      )}
-      onSelect={(_e, value) => {
-        setIsOpen(false);
-        updatePreferredModelRegistry(modelRegistries.find((obj) => obj.name === value));
-        if (typeof value === 'string') {
-          onSelection(value);
-        }
+    <SimpleSelect
+      isScrollable
+      dataTestId="model-registry-selector-dropdown"
+      toggleProps={{ id: 'download-steps-logs-toggle' }}
+      toggleLabel={toggleLabel}
+      aria-label="Model registry toggle"
+      previewDescription={false}
+      onChange={(key) => {
+        updatePreferredModelRegistry(modelRegistries.find((obj) => obj.name === key));
+        onSelection(key);
       }}
-      selected={toggleLabel}
-      onOpenChange={(open) => setIsOpen(open)}
-      isOpen={isOpen}
+      maxMenuHeight="300px"
+      popperProps={{ maxWidth: '400px' }}
+      value={selection?.name}
+      groupedOptions={[
+        ...(favorites.length > 0
+          ? [
+              {
+                key: 'favorites-group',
+                label: 'Favorites',
+                options: favoriteOptions(favorites),
+              },
+            ]
+          : []),
+        {
+          key: 'all',
+          label: 'All model registries',
+          options: allOptions,
+        },
+      ]}
       onActionClick={(event: React.MouseEvent, value: string, actionId: string) => {
         event.stopPropagation();
         if (actionId === 'fav') {
@@ -148,17 +124,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
           }
         }
       }}
-    >
-      {favorites.length > 0 && (
-        <React.Fragment key="favorites-group">
-          <SelectGroup label="Favorites">
-            <SelectList>{createFavorites(favorites)}</SelectList>
-          </SelectGroup>
-          <Divider />
-        </React.Fragment>
-      )}
-      {options}
-    </Select>
+    />
   );
 
   if (primary) {
@@ -166,29 +132,52 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   }
 
   return (
-    <Flex spaceItems={{ default: 'spaceItemsXs' }} alignItems={{ default: 'alignItemsCenter' }}>
-      <Icon>
-        <BlueprintIcon />
-      </Icon>
-      <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
+    <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
+      <FlexItem>
+        <Icon>
+          <BlueprintIcon />
+        </Icon>
+      </FlexItem>
+      <FlexItem>
+        <Bullseye>Model registry</Bullseye>
+      </FlexItem>
+      <FlexItem>{selector}</FlexItem>
+      {selection && (
         <FlexItem>
-          <Bullseye>Model registry</Bullseye>
+          <Popover
+            aria-label="Model registry description popover"
+            data-testid="mr-details-popover"
+            position="right"
+            headerContent={`${selection.displayName} details`}
+            bodyContent={
+              <DescriptionList>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Description</DescriptionListTerm>
+                  <DescriptionListDescription
+                    className={!selection.description ? text.textColorDisabled : ''}
+                  >
+                    {selection.description || 'No description'}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            }
+          >
+            <Button variant="link" icon={<InfoCircleIcon />} data-testid="view-details-button">
+              View details
+            </Button>
+          </Popover>
         </FlexItem>
-        <FlexItem>{selector}</FlexItem>
-        {selection && selection.description && (
-          <FlexItem>
-            <Popover
-              aria-label="Model registry description popover"
-              headerContent={selection.displayName}
-              bodyContent={selection.description}
-            >
-              <Button variant="link" icon={<InfoCircleIcon />}>
-                View Description
-              </Button>
-            </Popover>
-          </FlexItem>
-        )}
-      </Flex>
+      )}
+      <FlexItem align={{ default: 'alignRight' }}>
+        <WhosMyAdministrator
+          buttonLabel="Need another registry?"
+          headerContent="Need another registry?"
+          leadText="To request access to a new or existing model registry, contact your administrator."
+          contentTestId="model-registry-help-content"
+          linkTestId="model-registry-help-button"
+          popoverPosition={PopoverPosition.left}
+        />
+      </FlexItem>
     </Flex>
   );
 };

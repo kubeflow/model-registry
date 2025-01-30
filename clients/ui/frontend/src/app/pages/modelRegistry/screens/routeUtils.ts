@@ -1,22 +1,27 @@
-export const modelRegistryUrl = (preferredModelRegistry?: string): string =>
+export const modelRegistryUrl = (preferredModelRegistry = ''): string =>
   `/model-registry/${preferredModelRegistry}`;
 
 export const registeredModelsUrl = (preferredModelRegistry?: string): string =>
   `${modelRegistryUrl(preferredModelRegistry)}/registeredModels`;
 
-export const registeredModelUrl = (rmId?: string, preferredModelRegistry?: string): string =>
+export const registeredModelUrl = (rmId = '', preferredModelRegistry?: string): string =>
   `${registeredModelsUrl(preferredModelRegistry)}/${rmId}`;
 
 export const registeredModelArchiveUrl = (preferredModelRegistry?: string): string =>
   `${registeredModelsUrl(preferredModelRegistry)}/archive`;
 
 export const registeredModelArchiveDetailsUrl = (
-  rmId?: string,
+  rmId = '',
   preferredModelRegistry?: string,
 ): string => `${registeredModelArchiveUrl(preferredModelRegistry)}/${rmId}`;
 
 export const modelVersionListUrl = (rmId?: string, preferredModelRegistry?: string): string =>
   `${registeredModelUrl(rmId, preferredModelRegistry)}/versions`;
+
+export const archiveModelVersionListUrl = (
+  rmId?: string,
+  preferredModelRegistry?: string,
+): string => `${registeredModelArchiveDetailsUrl(rmId, preferredModelRegistry)}/versions`;
 
 export const modelVersionUrl = (
   mvId: string,
@@ -26,6 +31,12 @@ export const modelVersionUrl = (
 
 export const modelVersionArchiveUrl = (rmId?: string, preferredModelRegistry?: string): string =>
   `${modelVersionListUrl(rmId, preferredModelRegistry)}/archive`;
+
+export const archiveModelVersionDetailsUrl = (
+  mvId: string,
+  rmId?: string,
+  preferredModelRegistry?: string,
+): string => `${archiveModelVersionListUrl(rmId, preferredModelRegistry)}/${mvId}`;
 
 export const modelVersionArchiveDetailsUrl = (
   mvId: string,
@@ -44,13 +55,8 @@ export const registerVersionForModelUrl = (
   preferredModelRegistry?: string,
 ): string => `${registeredModelUrl(rmId, preferredModelRegistry)}/registerVersion`;
 
-export const archiveModelVersionListUrl = (
-  rmId?: string,
-  preferredModelRegistry?: string,
-): string => `${registeredModelArchiveDetailsUrl(rmId, preferredModelRegistry)}/versions`;
-
-export const archiveModelVersionDetailsUrl = (
+export const modelVersionDeploymentsUrl = (
   mvId: string,
   rmId?: string,
   preferredModelRegistry?: string,
-): string => `${archiveModelVersionListUrl(rmId, preferredModelRegistry)}/${mvId}`;
+): string => `${modelVersionUrl(mvId, rmId, preferredModelRegistry)}/deployments`;

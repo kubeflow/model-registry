@@ -65,11 +65,11 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
     </Label>
   );
 
-  const labelModal = (
+  const labelModal = isLabelModalOpen ? (
     <Modal
       variant={ModalVariant.small}
       title="Labels"
-      isOpen={isLabelModalOpen}
+      isOpen
       onClose={() => setIsLabelModalOpen(false)}
       description={
         <Content component="p">
@@ -100,7 +100,7 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
         {labelsComponent(filteredLabels, '50ch')}
       </LabelGroup>
     </Modal>
-  );
+  ) : null;
 
   if (Object.keys(customProperties).length === 0) {
     return '-';

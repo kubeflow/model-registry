@@ -3,7 +3,7 @@ import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
 import { ProjectObjectType } from '~/shared/components/design/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
-import { filterLiveModels } from '~/app/pages/modelRegistry/screens/utils';
+import useModelVersions from '~/app/hooks/useModelVersions';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
 import RegisteredModelListView from './RegisteredModels/RegisteredModelListView';
 import { modelRegistryUrl } from './routeUtils';
@@ -20,7 +20,16 @@ type ModelRegistryProps = Omit<
 >;
 
 const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
-  const [registeredModels, loaded, loadError, refresh] = useRegisteredModels();
+  const [registeredModels, modelsLoaded, modelsLoadError, refreshModels] = useRegisteredModels();
+  const [modelVersions, versionsLoaded, versionsLoadError, refreshVersions] = useModelVersions();
+
+  const loaded = modelsLoaded && versionsLoaded;
+  const loadError = modelsLoadError || versionsLoadError;
+
+  const refresh = React.useCallback(() => {
+    refreshModels();
+    refreshVersions();
+  }, [refreshModels, refreshVersions]);
 
   return (
     <ApplicationsPage
@@ -40,7 +49,8 @@ const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
       removeChildrenTopPadding
     >
       <RegisteredModelListView
-        registeredModels={filterLiveModels(registeredModels.items)}
+        registeredModels={registeredModels.items}
+        modelVersions={modelVersions.items}
         refresh={refresh}
       />
     </ApplicationsPage>

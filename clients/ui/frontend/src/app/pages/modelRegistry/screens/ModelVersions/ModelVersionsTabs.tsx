@@ -41,7 +41,7 @@ const ModelVersionsTabs: React.FC<ModelVersionsTabProps> = ({
         aria-label="Model versions tab"
         data-testid="model-versions-tab"
       >
-        <PageSection hasBodyWrapper={false} isFilled data-testid="model-versions-tab-content">
+        <PageSection hasBodyWrapper isFilled data-testid="model-versions-tab-content">
           <ModelVersionListView
             isArchiveModel={isArchiveModel}
             modelVersions={modelVersions}
