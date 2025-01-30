@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-logr/logr v1.4.1
-	github.com/golang/glog v1.2.2
+	github.com/golang/glog v1.2.4
 	github.com/kserve/kserve v0.12.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.30.0
