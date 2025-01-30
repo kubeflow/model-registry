@@ -232,19 +232,16 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         title="Model location"
         description="Specify the model location by providing either the object storage details or the URI."
       >
-        <Split>
-          <SplitItem isFilled>
-            <Radio
-              isChecked={modelLocationType === ModelLocationType.ObjectStorage}
-              name="location-type-object-storage"
-              onChange={() => {
-                setData('modelLocationType', ModelLocationType.ObjectStorage);
-              }}
-              label="Object storage"
-              id="location-type-object-storage"
-            />
-          </SplitItem>
-          {/* {modelLocationType === ModelLocationType.ObjectStorage && (
+        <Radio
+          isChecked={modelLocationType === ModelLocationType.ObjectStorage}
+          name="location-type-object-storage"
+          onChange={() => {
+            setData('modelLocationType', ModelLocationType.ObjectStorage);
+          }}
+          label="Object storage"
+          id="location-type-object-storage"
+        />
+        {/* {modelLocationType === ModelLocationType.ObjectStorage && (
             <SplitItem>
               <Button
                 data-testid="object-storage-autofill-button"
@@ -257,7 +254,6 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
               </Button>
             </SplitItem>
           )} */}
-        </Split>
         {modelLocationType === ModelLocationType.ObjectStorage && (
           <>
             <FormGroup
@@ -303,16 +299,14 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
           }}
           label="URI"
           id="location-type-uri"
-          body={
-            modelLocationType === ModelLocationType.URI && (
-              <>
-                <FormGroup label="URI" isRequired fieldId="location-uri">
-                  {isMUITheme() ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
-                </FormGroup>
-              </>
-            )
-          }
         />
+        {modelLocationType === ModelLocationType.URI && (
+          <>
+            <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
+              {isMUITheme() ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
+            </FormGroup>
+          </>
+        )}
       </FormSection>
       {/* {isAutofillModalOpen ? (
         <ConnectionModal
