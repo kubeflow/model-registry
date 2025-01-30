@@ -1,0 +1,58 @@
+source: Red Hat
+models:
+  - name: rhelai1/granite-8b-code-base
+    provider: IBM
+    description: A decoder-only code model designed for code generative tasks
+    longDescription: |-
+      Granite-8B-Code-Base is a decoder-only code model designed for code
+      generative tasks (e.g., code generation, code explanation, code fixing,
+      etc.). It is trained from scratch with a two-phase training strategy. In
+      phase 1, our model is trained on 4 trillion tokens sourced from 116
+      programming languages, ensuring a comprehensive understanding of
+      programming languages and syntax. In phase 2, our model is trained on 500
+      billion tokens with a carefully designed mixture of high-quality data from
+      code and natural language domains to improve the models’ ability to reason
+      and follow instructions.
+    readmeLink: https://huggingface.co/ibm-granite/granite-3.1-8b-base/raw/main/README.md
+    language: ["ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"]
+    license: apache-2.0
+    licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+    maturity: Generally Available
+    libraryName: transformers
+    tags:
+      - language
+      - granite-3.1
+    tasks:
+      - text-generation
+    createTimeSinceEpoch: 1733514949000
+    lastUpdateTimeSinceEpoch: 1734637721000
+    artifacts:
+      - protocol: oci
+        uri: oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892
+  - name: rhelai1/granite-8b-code-instruct
+    provider: IBM
+    description: A fine-tuned model based on Granite 8B Code Base
+    longDescription: |-
+      Granite-8B-Code-Instruct is a 8B parameter model fine tuned from
+      Granite-8B-Code-Base on a combination of permissively licensed instruction
+      data to enhance instruction following capabilities including logical
+      reasoning and problem-solving skills.
+    readmeLink: https://huggingface.co/ibm-granite/granite-3.1-8b-instruct/raw/main/README.md
+    language: ["ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"]
+    license: apache-2.0
+    licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+    maturity: Generally Available
+    libraryName: transformers
+    baseModel:
+      - repository: rhelai1
+        model: granite-8b-code-base
+    tags:
+      - language
+      - granite-3.1
+    tasks:
+      - text-generation
+    createTimeSinceEpoch: 1733514949000
+    lastUpdateTimeSinceEpoch: 1734637721000
+    artifacts:
+      - protocol: oci
+        uri: oci://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.3-1732870892
