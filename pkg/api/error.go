@@ -3,6 +3,9 @@ package api
 import (
 	"errors"
 	"net/http"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -11,6 +14,13 @@ var (
 )
 
 func ErrToStatus(err error) int {
+	// If the error is a gRPC error, we can extract the status code.
+	if status, ok := status.FromError(err); ok {
+		if status.Code() == codes.Unavailable {
+			return http.StatusServiceUnavailable
+		}
+	}
+
 	switch errors.Unwrap(err) {
 	case ErrBadRequest:
 		return http.StatusBadRequest

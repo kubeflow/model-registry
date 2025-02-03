@@ -128,37 +128,37 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 
 	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.RegisteredModelTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.RegisteredModelTypeName, err)
 	}
 
 	modelVersionResp, err := client.PutContextType(context.Background(), &modelVersionReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.ModelVersionTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ModelVersionTypeName, err)
 	}
 
 	docArtifactResp, err := client.PutArtifactType(context.Background(), &docArtifactReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up artifact type %s: %v", nameConfig.DocArtifactTypeName, err)
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.DocArtifactTypeName, err)
 	}
 
 	modelArtifactResp, err := client.PutArtifactType(context.Background(), &modelArtifactReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up artifact type %s: %v", nameConfig.ModelArtifactTypeName, err)
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.ModelArtifactTypeName, err)
 	}
 
 	servingEnvironmentResp, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.ServingEnvironmentTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ServingEnvironmentTypeName, err)
 	}
 
 	inferenceServiceResp, err := client.PutContextType(context.Background(), &inferenceServiceReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up context type %s: %v", nameConfig.InferenceServiceTypeName, err)
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.InferenceServiceTypeName, err)
 	}
 
 	serveModelResp, err := client.PutExecutionType(context.Background(), &serveModelReq)
 	if err != nil {
-		return nil, fmt.Errorf("error setting up execution type %s: %v", nameConfig.ServeModelTypeName, err)
+		return nil, fmt.Errorf("error setting up execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
 	typesMap := map[string]int64{

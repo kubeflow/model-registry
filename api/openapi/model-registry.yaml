@@ -28,6 +28,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findArtifact
       summary: Get an Artifact that matches search parameters.
       description: Gets the details of a single instance of an `Artifact` that matches search parameters.
@@ -58,6 +60,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getArtifacts
       summary: List All Artifacts
       description: Gets a list of all `Artifact` entities.
@@ -80,6 +84,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createArtifact
       summary: Create an Artifact
       description: Creates a new instance of an `Artifact`.
@@ -99,6 +105,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getArtifact
       summary: Get an Artifact
       description: Gets the details of a single instance of an `Artifact`.
@@ -123,6 +131,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateArtifact
       summary: Update an Artifact
       description: Updates an existing `Artifact`.
@@ -151,6 +161,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findModelArtifact
       summary: Get a ModelArtifact that matches search parameters.
       description: Gets the details of a single instance of a `ModelArtifact` that matches search parameters.
@@ -181,6 +193,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getModelArtifacts
       summary: List All ModelArtifacts
       description: Gets a list of all `ModelArtifact` entities.
@@ -203,6 +217,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createModelArtifact
       summary: Create a ModelArtifact
       description: Creates a new instance of a `ModelArtifact`.
@@ -222,6 +238,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getModelArtifact
       summary: Get a ModelArtifact
       description: Gets the details of a single instance of a `ModelArtifact`.
@@ -246,6 +264,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateModelArtifact
       summary: Update a ModelArtifact
       description: Updates an existing `ModelArtifact`.
@@ -275,6 +295,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getModelVersions
       summary: List All ModelVersions
       description: Gets a list of all `ModelVersion` entities.
@@ -297,6 +319,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createModelVersion
       summary: Create a ModelVersion
       description: Creates a new instance of a `ModelVersion`.
@@ -316,6 +340,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getModelVersion
       summary: Get a ModelVersion
       description: Gets the details of a single instance of a `ModelVersion`.
@@ -340,6 +366,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateModelVersion
       summary: Update a ModelVersion
       description: Updates an existing `ModelVersion`.
@@ -366,6 +394,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findRegisteredModel
       summary: Get a RegisteredModel that matches search parameters.
       description: Gets the details of a single instance of a `RegisteredModel` that matches search parameters.
@@ -391,6 +421,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getRegisteredModels
       summary: List All RegisteredModels
       description: Gets a list of all `RegisteredModel` entities.
@@ -413,6 +445,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createRegisteredModel
       summary: Create a RegisteredModel
       description: Creates a new instance of a `RegisteredModel`.
@@ -432,6 +466,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getRegisteredModel
       summary: Get a RegisteredModel
       description: Gets the details of a single instance of a `RegisteredModel`.
@@ -456,6 +492,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateRegisteredModel
       summary: Update a RegisteredModel
       description: Updates an existing `RegisteredModel`.
@@ -489,6 +527,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getModelVersionArtifacts
       summary: List all artifacts associated with the `ModelVersion`
     post:
@@ -514,6 +554,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: upsertModelVersionArtifact
       summary: Upsert an Artifact in a ModelVersion
       description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
@@ -547,6 +589,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getRegisteredModelVersions
       summary: List All RegisteredModel's ModelVersions
       description: Gets a list of all `ModelVersion` entities for the `RegisteredModel`.
@@ -571,6 +615,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createRegisteredModelVersion
       summary: Create a ModelVersion in RegisteredModel
       description: Creates a new instance of a `ModelVersion`.
@@ -599,6 +645,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findInferenceService
       summary: Get an InferenceServices that matches search parameters.
       description: Gets the details of a single instance of `InferenceService` that matches search parameters.
@@ -622,6 +670,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getInferenceService
       summary: Get a InferenceService
       description: Gets the details of a single instance of a `InferenceService`.
@@ -646,6 +696,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateInferenceService
       summary: Update a InferenceService
       description: Updates an existing `InferenceService`.
@@ -679,6 +731,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getInferenceServices
       summary: List All InferenceServices
       description: Gets a list of all `InferenceService` entities.
@@ -701,6 +755,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createInferenceService
       summary: Create a InferenceService
       description: Creates a new instance of a `InferenceService`.
@@ -720,6 +776,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findServingEnvironment
       summary: Find ServingEnvironment
       description: Finds a `ServingEnvironment` entity that matches query parameters.
@@ -745,6 +803,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getServingEnvironments
       summary: List All ServingEnvironments
       description: Gets a list of all `ServingEnvironment` entities.
@@ -767,6 +827,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createServingEnvironment
       summary: Create a ServingEnvironment
       description: Creates a new instance of a `ServingEnvironment`.
@@ -786,6 +848,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getServingEnvironment
       summary: Get a ServingEnvironment
       description: Gets the details of a single instance of a `ServingEnvironment`.
@@ -810,6 +874,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: updateServingEnvironment
       summary: Update a ServingEnvironment
       description: Updates an existing `ServingEnvironment`.
@@ -843,6 +909,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getEnvironmentInferenceServices
       summary: List All ServingEnvironment's InferenceServices
       description: Gets a list of all `InferenceService` entities for the `ServingEnvironment`.
@@ -867,6 +935,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createEnvironmentInferenceService
       summary: Create a InferenceService in ServingEnvironment
       description: Creates a new instance of a `InferenceService`.
@@ -900,6 +970,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getInferenceServiceServes
       summary: List All InferenceService's ServeModel actions
       description: Gets a list of all `ServeModel` entities for the `InferenceService`.
@@ -924,6 +996,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: createInferenceServiceServe
       summary: Create a ServeModel action in a InferenceService
       description: Creates a new instance of a `ServeModel` associated with `InferenceService`.
@@ -950,6 +1024,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getInferenceServiceModel
       summary: Get InferenceService's RegisteredModel
       description: Gets the `RegisteredModel` entity for the `InferenceService`.
@@ -976,6 +1052,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: getInferenceServiceVersion
       summary: Get InferenceService's ModelVersion
       description: Gets the `ModelVersion` entity for the `InferenceService`.
@@ -1004,6 +1082,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       operationId: findModelVersion
       summary: Get a ModelVersion that matches search parameters.
       description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
@@ -1667,6 +1747,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
+    ServiceUnavailable:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Service is unavailable
     ModelArtifactListResponse:
       content:
         application/json:

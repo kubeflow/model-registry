@@ -1,18 +1,27 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/mlmdtypes"
+	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
 	"github.com/kubeflow/model-registry/pkg/core"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
+)
+
+const (
+	// mlmdUnavailableMessage is the message returned when the MLMD server is down or unavailable.
+	mlmdUnavailableMessage = "MLMD server is down or unavailable. Please check that the database is reachable and try again later."
+	// maxGRPCRetryAttempts is the maximum number of attempts to retry GRPC requests to the MLMD server.
+	maxGRPCRetryAttempts = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 // proxyCmd represents the proxy command
@@ -27,43 +36,108 @@ hostname and port where it listens.'`,
 }
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
-	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+	var conn *grpc.ClientConn
+	var err error
 
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
+	errMLMDChan := make(chan error, 1)
+	errProxyChan := make(chan error, 1)
 
-	mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
-	glog.Infof("connecting to MLMD server %s..", mlmdAddr)
-	conn, err := grpc.DialContext( // nolint:staticcheck
-		ctxTimeout,
-		mlmdAddr,
-		grpc.WithReturnConnectionError(), // nolint:staticcheck
-		grpc.WithBlock(),                 // nolint:staticcheck
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return fmt.Errorf("error dialing connection to mlmd server %s: %v", mlmdAddr, err)
+	router := proxy.NewDynamicRouter()
+
+	router.SetRouter(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, mlmdUnavailableMessage, http.StatusServiceUnavailable)
+	}))
+
+	// Start the connection to the MLMD server in a separate goroutine, so that
+	// we can start the proxy server and start serving requests while we wait
+	// for the connection to be established.
+	go func() {
+		defer close(errMLMDChan)
+
+		mlmdAddr := fmt.Sprintf("%s:%d", proxyCfg.MLMDHostname, proxyCfg.MLMDPort)
+		glog.Infof("connecting to MLMD server %s..", mlmdAddr)
+		conn, err = grpc.NewClient(mlmdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			errMLMDChan <- fmt.Errorf("error dialing connection to mlmd server %s: %w", mlmdAddr, err)
+
+			return
+		}
+
+		mlmdTypeNamesConfig := mlmdtypes.NewMLMDTypeNamesConfigFromDefaults()
+
+		// Backoff and retry GRPC requests to the MLMD server, until the server
+		// becomes available or the maximum number of attempts is reached.
+		for i := 0; i < maxGRPCRetryAttempts; i++ {
+			_, err := mlmdtypes.CreateMLMDTypes(conn, mlmdTypeNamesConfig)
+			if err == nil {
+				break
+			}
+
+			st, ok := status.FromError(err)
+			if !ok || st.Code() != codes.Unavailable {
+				errMLMDChan <- fmt.Errorf("error creating MLMD types: %w", err)
+
+				return
+			}
+
+			time.Sleep(time.Duration(i+1) * time.Second)
+		}
+
+		service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
+		if err != nil {
+			errMLMDChan <- fmt.Errorf("error creating core service: %w", err)
+
+			return
+		}
+
+		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
+		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
+
+		router.SetRouter(openapi.NewRouter(ModelRegistryServiceAPIController))
+
+		glog.Infof("connected to MLMD server")
+	}()
+
+	// Start the proxy server in a separate goroutine so that we can handle
+	// errors from both the proxy server and the connection to the MLMD server.
+	go func() {
+		defer close(errProxyChan)
+
+		glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
+		if err != nil {
+			errProxyChan <- fmt.Errorf("error starting proxy server: %w", err)
+		}
+	}()
+
+	defer func() {
+		if conn != nil {
+			glog.Info("closing connection to MLMD server")
+
+			conn.Close()
+		}
+	}()
+
+	// Wait for either the MLMD server connection or the proxy server to return an error
+	// or for both to finish successfully.
+	for {
+		select {
+		case err := <-errMLMDChan:
+			if err != nil {
+				return err
+			}
+
+		case err := <-errProxyChan:
+			if err != nil {
+				return err
+			}
+		}
+
+		if errMLMDChan == nil && errProxyChan == nil {
+			return nil
+		}
 	}
-	defer conn.Close()
-	glog.Infof("connected to MLMD server")
-
-	mlmdTypeNamesConfig := mlmdtypes.NewMLMDTypeNamesConfigFromDefaults()
-	_, err = mlmdtypes.CreateMLMDTypes(conn, mlmdTypeNamesConfig)
-	if err != nil {
-		return fmt.Errorf("error creating MLMD types: %v", err)
-	}
-	service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
-	if err != nil {
-		return fmt.Errorf("error creating core service: %v", err)
-	}
-
-	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(service)
-	ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
-
-	router := openapi.NewRouter(ModelRegistryServiceAPIController)
-
-	glog.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
-	return nil
 }
 
 func init() {
