@@ -1,10 +1,9 @@
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: example-onnx-mnist
+  name: example-onnx-mnist-missing-name
   labels:
     modelregistry.kubeflow.org/registered-model-id: "1"
-    modelregistry.kubeflow.org/name: "model-registry"
 spec:
   predictor:
     model:
