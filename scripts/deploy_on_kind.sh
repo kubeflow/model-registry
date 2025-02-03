@@ -39,7 +39,12 @@ kubectl apply -k manifests/kustomize/overlays/db
 kubectl patch deployment -n "$MR_NAMESPACE" model-registry-deployment \
 --patch '{"spec": {"template": {"spec": {"containers": [{"name": "rest-container", "image": "'$IMG'", "imagePullPolicy": "IfNotPresent"}]}}}}'
 
-kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-db --timeout=5m
+if ! kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-db --timeout=5m ; then
+    kubectl events -A
+    kubectl describe deployment/model-registry-db -n kubeflow
+    kubectl logs deployment/model-registry-db -n kubeflow
+    exit 1
+fi
 
 kubectl delete pod -n "$MR_NAMESPACE" --selector='component=model-registry-server'
 
