@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry
 
-go 1.22
+go 1.22.11
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0
