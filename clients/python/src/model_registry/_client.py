@@ -6,7 +6,7 @@ import logging
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -46,6 +46,10 @@ logging.basicConfig(
 logger = logging.getLogger("model-registry")
 
 DEFAULT_USER_TOKEN_ENVVAR = "KF_PIPELINES_SA_TOKEN_PATH"  # noqa: S105
+
+# If we want to forward reference
+if TYPE_CHECKING:
+    from botocore.client import BaseClient
 
 
 class ModelRegistry:
@@ -437,3 +441,101 @@ class ModelRegistry:
             return self.async_runner(self._api.get_model_versions(rm.id, options))
 
         return Pager[ModelVersion](rm_versions)
+
+    def save_to_s3(
+        self,
+        file: str,
+        name: str,
+        bucket_name: str,
+        *,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+    ) -> None:
+        """Saves a model to an S3 compatible storage.
+
+        Args:
+            file: Where the model/artifact is located.
+            name: Name of the model/artifact.
+            bucket_name: The bucket to use for the S3 compatible object storage.
+
+        Keyword Args:
+            endpoint_url: The endpoint URL for the S3 comaptible storage if not using AWS S3.
+            access_key_id: The S3 compatible object storage access ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+
+        Raises:
+            StoreError: If there was an issue uploading to S3.
+        """
+        s3 = self.__connect_to_s3(
+            endpoint_url=endpoint_url,
+            access_key_id=access_key_id,
+            secret_access_key=secret_access_key,
+        )
+        try:
+            s3.upload_file(file, bucket_name, name)
+        except Exception as e:
+            msg = "Failed to upload to S3"
+            raise StoreError(msg) from e
+
+    def __connect_to_s3(
+        self,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ) -> "BaseClient":  # <--- here is a question I have
+        """Internal method to connect to Boto3 Client.
+
+        Args:
+            endpoint_url: The S3 compatible object storage endpoint.
+            access_key_id: The S3 compatible object storage access key ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Raises:
+            StoreError: If Boto3 is not installed.
+            ValueError: If the appropriate values are not supplied.
+        """
+        try:
+            from boto3 import client  # type: ignore
+        except ImportError as e:
+            msg = """package `boto3` is not installed.
+            To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
+            extra (available as `model-registry[boto3]`), e.g.:
+            ```sh
+            !pip install --pre model-registry[boto3]
+            ```
+            or
+            ```sh
+            !pip install boto3
+            ```
+            """
+            raise StoreError(msg) from e
+        aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+
+        if not any((aws_s3_endpoint, endpoint_url)):
+            msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
+            or specify `endpoint_url` as the parameter.
+            """
+            raise ValueError(msg)
+
+        if not any((aws_access_key_id, aws_secret_access_key)) and not any(
+            (access_key_id, secret_access_key)
+        ):
+            msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
+            Please either set these environment variables or pass them in as parameters using
+            `aws_access_key_id` or `aws_access_secret_id`.
+            """
+            raise ValueError(msg)
+
+        return client(
+            "s3",
+            endpoint_url=endpoint_url or aws_s3_endpoint,
+            aws_access_key_id=access_key_id or aws_access_key_id,
+            aws_secret_access_key=secret_access_key,
+            region_name=region or aws_default_region,
+        )
