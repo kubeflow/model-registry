@@ -1,11 +1,11 @@
 package integrations
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"io"
 	"log/slog"
 	"net/http"
@@ -173,17 +173,9 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 }
 
 func logUpstreamReq(logger *slog.Logger, reqId string, req *http.Request) {
-	if logger.Enabled(context.TODO(), slog.LevelDebug) {
-		var body []byte
-		if req.Body != nil {
-			body, _ = CloneBody(req)
-		}
-		logger.Debug("Making upstream HTTP request", "request_id", reqId, "method", req.Method, "url", req.URL.String(), "body", body)
-	}
+	logger.Debug("Making upstream HTTP request", slog.String("request_id", reqId), slog.Any("request", helper.RequestLogValuer{Request: req}))
 }
 
 func logUpstreamResp(logger *slog.Logger, reqId string, resp *http.Response, body []byte) {
-	if logger.Enabled(context.TODO(), slog.LevelDebug) {
-		logger.Debug("Received upstream HTTP response", "request_id", reqId, "status_code", resp.StatusCode, "body", body)
-	}
+	logger.Debug("Received upstream HTTP response", slog.String("request_id", reqId), slog.Any("response", helper.ResponseLogValuer{Response: resp}))
 }

@@ -1,5 +1,7 @@
 package config
 
+import "log/slog"
+
 type EnvConfig struct {
 	Port            int
 	MockK8Client    bool
@@ -8,6 +10,6 @@ type EnvConfig struct {
 	StandaloneMode  bool
 	DevModePort     int
 	StaticAssetsDir string
-	LogLevel        string
-	AllowedOrigins  string
+	LogLevel        slog.Level
+	AllowedOrigins  []string
 }
