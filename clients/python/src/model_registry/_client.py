@@ -169,6 +169,73 @@ class ModelRegistry:
         return await self._api.upsert_model_version_artifact(
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
+    
+    def _upload_to_s3(
+        self,
+        artifact_local_path: str,
+        destination: str,
+        region_name: str | None = None,
+    ) -> str:
+        """
+        Uploads a file to an S3 bucket.
+        """
+        pass
+
+    def _upload_to_oci(
+        self,
+        artifact_local_path: str,
+        destination: str,
+    ) -> str:
+        """
+        Uploads an artifact to an OCI registry.
+        """
+        pass
+    
+    def upload_artifact_and_register_model(
+        self,
+        name: str,
+        artifact_local_path: str,
+        destination_uri: str,
+        *,
+        version: str,
+        model_format_name: str,
+        model_format_version: str,
+        storage_key: str | None = None,
+        service_account_name: str | None = None,
+        author: str | None = None,
+        owner: str | None = None,
+        description: str | None = None,
+        metadata: Mapping[str, SupportedTypes] | None = None,
+        upload_client_params: Mapping[str, str] | None = None,
+    ) -> RegisteredModel:
+        if destination_uri.startswith("s3://"):
+            self._upload_to_s3(artifact_local_path, destination_uri, upload_client_params['region_name'])
+        elif destination_uri.startswith("oci://"):
+            self._upload_to_oci(artifact_local_path, destination_uri)
+        else:
+            msg = "Invalid destination URI. Must start with 's3://' or 'oci://'"
+            raise StoreError(msg)
+        
+        # TODO: Perform the upload(s)
+
+        registered_model = self.register_model(
+            name,
+            destination_uri,
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            version=version,
+            storage_key=storage_key,
+            storage_path=artifact_local_path,
+            service_account_name=service_account_name,
+            author=author,
+            owner=owner,
+            description=description,
+            metadata=metadata,
+        )
+
+        # TODO: Do something with the model? Metdata?
+
+        return registered_model
 
     def register_model(
         self,
