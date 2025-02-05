@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
 from warnings import warn
 
+from .utils import is_oci_uri, is_s3_uri
+
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
 from .types import (
@@ -208,9 +210,9 @@ class ModelRegistry:
         metadata: Mapping[str, SupportedTypes] | None = None,
         upload_client_params: Mapping[str, str] | None = None,
     ) -> RegisteredModel:
-        if destination_uri.startswith("s3://"):
+        if is_s3_uri(destination_uri):
             self._upload_to_s3(artifact_local_path, destination_uri, upload_client_params['region_name'])
-        elif destination_uri.startswith("oci://"):
+        elif is_oci_uri(destination_uri):
             self._upload_to_oci(artifact_local_path, destination_uri)
         else:
             msg = "Invalid destination URI. Must start with 's3://' or 'oci://'"
