@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import os
+<<<<<<< HEAD
 import tempfile
 from pathlib import Path
 from typing import Callable, TypedDict
+=======
+import re
+>>>>>>> 6ebe337 (chore: add oci and s3 helper methods)
 
 from typing_extensions import overload
 
@@ -207,3 +211,45 @@ or
     # Return the OCI URI
 
     return f"oci://{oci_ref}"
+
+s3_prefix = "s3://"
+
+def is_s3_uri(uri: str):
+    """Checks whether a string is a valid S3 URI
+    
+    This helper function checks whether the string starts with the correct s3 prefix (s3://) and
+    whether the string contains both a bucket and a key.
+    
+    Args:
+        uri: The URI to check
+        
+    Returns:
+        Boolean indicating whether it is a valid S3 URI
+    """
+    if not uri.startswith(s3_prefix):
+        return False
+    # Slice the uri from prefix onward, then check if there are 2 components when splitting on "/"
+    path = uri[len(s3_prefix) :]
+    if len(path.split("/", 1)) != 2:
+        return False
+    return True
+
+oci_pattern = r'^oci://(?P<host>[^/]+)/(?P<repository>[A-Za-z0-9_\-/]+)(:(?P<tag>[A-Za-z0-9_.-]+))?$'
+
+def is_oci_uri(uri: str):
+    """Checks whether a string is a valid OCI URI
+    
+    The expected format is:
+        oci://<host>/<repository>[:<tag>]
+        
+    Examples of valid URIs:
+        oci://registry.example.com/my-namespace/my-repo:latest
+        oci://localhost:5000/my-repo
+
+    Args:
+        uri: The URI to check
+        
+    Returns:
+        Boolean indicating whether it is a valid OCI URI
+    """
+    return re.match(oci_pattern, uri) is not None
