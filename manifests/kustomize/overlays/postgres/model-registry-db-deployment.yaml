@@ -31,9 +31,9 @@ spec:
             value: /var/lib/postgresql/data/pgdata
         envFrom:
         - configMapRef:
-            name: metadata-postgres-db-parameters
+            name: metadata-registry-db-parameters
         - secretRef:
-            name: metadata-postgres-db-secrets
+            name: metadata-registry-db-secrets
         ports:
         - name: postgres
           containerPort: 5432
