@@ -19,6 +19,7 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
+from .utils import s3_uri_from
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -444,18 +445,19 @@ class ModelRegistry:
 
     def save_to_s3(
         self,
-        file: str,
+        path: str,
         name: str,
         bucket_name: str,
         *,
         endpoint_url: str | None = None,
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
-    ) -> None:
+        region: str | None = None,
+    ) -> str:
         """Saves a model to an S3 compatible storage.
 
         Args:
-            file: Where the model/artifact is located.
+            path: Location to where the model/artifact is located.
             name: Name of the model/artifact.
             bucket_name: The bucket to use for the S3 compatible object storage.
 
@@ -463,6 +465,10 @@ class ModelRegistry:
             endpoint_url: The endpoint URL for the S3 comaptible storage if not using AWS S3.
             access_key_id: The S3 compatible object storage access ID.
             secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Returns:
+            S3 URI formatted from the object
 
         Raises:
             StoreError: If there was an issue uploading to S3.
@@ -473,10 +479,13 @@ class ModelRegistry:
             secret_access_key=secret_access_key,
         )
         try:
-            s3.upload_file(file, bucket_name, name)
+            s3.upload_file(path, bucket_name, name)
         except Exception as e:
             msg = "Failed to upload to S3"
             raise StoreError(msg) from e
+        return s3_uri_from(
+            path=name, bucket=bucket_name, endpoint=endpoint_url, region=region
+        )
 
     def __connect_to_s3(
         self,
@@ -484,7 +493,7 @@ class ModelRegistry:
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
         region: str | None = None,
-    ) -> "BaseClient":  # <--- here is a question I have
+    ) -> None:
         """Internal method to connect to Boto3 Client.
 
         Args:
@@ -536,6 +545,6 @@ class ModelRegistry:
             "s3",
             endpoint_url=endpoint_url or aws_s3_endpoint,
             aws_access_key_id=access_key_id or aws_access_key_id,
-            aws_secret_access_key=secret_access_key,
+            aws_secret_access_key=secret_access_key or aws_access_key_id,
             region_name=region or aws_default_region,
         )
