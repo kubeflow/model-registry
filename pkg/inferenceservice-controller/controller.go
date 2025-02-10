@@ -295,7 +295,7 @@ func (r *InferenceServiceController) getMRService(ctx context.Context, name, nam
 func (r *InferenceServiceController) buildURLFromService(svc *corev1.Service) (string, error) {
 	var restApiPort *int32
 
-	if url, ok := svc.Annotations[r.modelRegistryURLAnnotation]; ok {
+	if url, ok := svc.Annotations[r.serviceURLAnnotation]; ok {
 		return fmt.Sprintf("https://%s", url), nil
 	}
 
