@@ -55,7 +55,7 @@ class Configuration:
       values before.
     :param ssl_ca_cert: str - The path to a file of concatenated CA certificates
       in PEM format.
-    :param verify_ssl: bool - Whether to verify the SSL certificate when making API 
+    :param verify_ssl: bool - Whether to verify the SSL certificate when making API
       requests to an HTTPS server.
       Set to False to disable verification, default=True.
 
