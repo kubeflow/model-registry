@@ -17,6 +17,10 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
+      # Assign context variable for various action contexts (tag, main, CI)
+      - name: Assigning tag context
+        if: github.head_ref == '' && startsWith(github.ref, 'refs/tags/v')
+        run: echo "BUILD_CONTEXT=tag" >> $GITHUB_ENV
       # Assign context variable for various action contexts (main, CI)
       - name: Assigning main context
         if: github.head_ref == '' && github.ref == 'refs/heads/main'
@@ -30,6 +34,10 @@ jobs:
           commit_sha=${{ github.event.after }}
           tag=main-${commit_sha:0:7}
           echo "VERSION=${tag}" >> $GITHUB_ENV
+      - name: Set tag environment
+        if: env.BUILD_CONTEXT == 'tag'
+        run: |
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Build and Push UI Image
         shell: bash
         env:
