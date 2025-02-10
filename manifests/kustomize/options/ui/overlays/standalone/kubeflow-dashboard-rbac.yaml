@@ -20,6 +20,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: model-registry-ui
+  namespace: kubeflow
 roleRef:
   kind: ClusterRole
   name: model-registry-ui-namespaces-reader
@@ -31,7 +32,7 @@ metadata:
   name: service-access-cluster-binding
 subjects:
   - kind: User
-    name: user@example.com
+    name: user1
     apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
