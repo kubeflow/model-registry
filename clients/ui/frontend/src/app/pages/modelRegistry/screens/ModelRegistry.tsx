@@ -1,7 +1,6 @@
 import React from 'react';
+import { Content, Divider, Flex, FlexItem } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
-import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
-import { ProjectObjectType } from '~/shared/components/design/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useModelVersions from '~/app/hooks/useModelVersions';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
@@ -34,10 +33,19 @@ const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
   return (
     <ApplicationsPage
       {...pageProps}
-      title={
-        <TitleWithIcon title="Model Registry" objectType={ProjectObjectType.registeredModels} />
+      title="Model Registry"
+      description={
+        <Flex>
+          <FlexItem>
+            <Content>
+              Select a model registry to view and manage your registered models. Model registries
+              provide a structured and organized way to store, share, version, deploy, and track
+              models.
+            </Content>
+          </FlexItem>
+          <Divider />
+        </Flex>
       }
-      description="Select a model registry to view and manage your registered models. Model registries provide a structured and organized way to store, share, version, deploy, and track models."
       headerContent={
         <ModelRegistrySelectorNavigator
           getRedirectPath={(modelRegistryName) => modelRegistryUrl(modelRegistryName)}
