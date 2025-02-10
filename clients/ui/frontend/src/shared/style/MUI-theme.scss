@@ -182,7 +182,8 @@
 }
 
 .mui-theme .pf-v6-c-form__group.model-description .pf-v6-c-form__group-label,
-.mui-theme .pf-v6-c-form__group.version-description .pf-v6-c-form__group-label {
+.mui-theme .pf-v6-c-form__group.version-description .pf-v6-c-form__group-label,
+.mui-theme .pf-v6-c-form__group.location-path {
   padding-block-start: 10px;
 }
 
@@ -254,6 +255,10 @@
   --pf-v6-c-form-control--PaddingBlockEnd: 16.5px;
   --pf-v6-c-form-control--PaddingInlineStart: 14px;
   --pf-v6-c-form-control--PaddingInlineEnd: 14px;
+}
+
+.mui-theme .pf-v6-c-text-input-group::before {
+  border: none;
 }
 
 .mui-theme .pf-v6-c-text-input-group {
@@ -741,6 +746,7 @@
   --pf-v6-c-label--BackgroundColor: var(--mui-palette-grey-200);
   padding: 4px;
 }
+
 .mui-theme .pf-v6-c-masthead {
   --pf-v6-c-masthead--BackgroundColor: var(--mui-palette-common-white);
   box-shadow: var(--mui-shadows-1);
@@ -786,14 +792,18 @@
 }
 
 .mui-theme .pf-v6-c-page__sidebar {
-  position: absolute; 
-  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width); /* Sidebar width */
-  height: 100vh; /* Take full height of viewport */
-  z-index: 300; /* Position sidebar above the masthead */
+  position: absolute;
+  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width);
+  /* Sidebar width */
+  height: 100vh;
+  /* Take full height of viewport */
+  z-index: 300;
+  /* Position sidebar above the masthead */
 }
 
 .mui-theme .pf-v6-c-page__main-container {
-  margin-top: var(--kf-central-app-bar-height); /* Move content area below the app bar */
+  margin-top: var(--kf-central-app-bar-height);
+  /* Move content area below the app bar */
 }
 
 /* Hide Masthead Toggle by default */
@@ -808,4 +818,3 @@
     padding-block-start: var(--mui-spacing-4px);
   }
 }
-

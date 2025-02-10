@@ -9,8 +9,8 @@ import {
   HelperText,
   HelperTextItem,
   FormHelperText,
-  InputGroupItem,
-  InputGroupText,
+  TextInputGroupMain,
+  TextInputGroup,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from '~/shared/types';
@@ -149,16 +149,16 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   );
 
   const pathInput = (
-    <InputGroupItem>
-      <TextInput
-        isRequired
+    <TextInputGroup>
+      <TextInputGroupMain
+        icon="/"
         type="text"
         id="location-path"
         name="location-path"
         value={modelLocationPath}
         onChange={(_e, value) => setData('modelLocationPath', value)}
       />
-    </InputGroupItem>
+    </TextInputGroup>
   );
 
   const uriInput = (
@@ -274,15 +274,13 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             <FormGroup className={spacing.mlLg} label="Region" fieldId="location-region">
               {isMUITheme() ? <FormFieldset component={regionInput} field="Region" /> : regionInput}
             </FormGroup>
-            <FormGroup className={spacing.mlLg} label="Path" isRequired fieldId="location-path">
-              <Split hasGutter>
-                <SplitItem>
-                  <InputGroupText isPlain>/</InputGroupText>
-                </SplitItem>
-                <SplitItem isFilled>
-                  {isMUITheme() ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
-                </SplitItem>
-              </Split>
+            <FormGroup
+              className={`location-path` + ` ${spacing.mlLg}`}
+              label="Path"
+              isRequired
+              fieldId="location-path"
+            >
+              {isMUITheme() ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
               <HelperText>
                 <HelperTextItem>
                   Enter a path to a model or folder. This path cannot point to a root folder.
