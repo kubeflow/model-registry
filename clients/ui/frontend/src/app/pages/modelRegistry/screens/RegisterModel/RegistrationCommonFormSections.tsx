@@ -4,8 +4,6 @@ import {
   TextInput,
   TextArea,
   Radio,
-  Split,
-  SplitItem,
   HelperText,
   HelperTextItem,
   FormHelperText,
