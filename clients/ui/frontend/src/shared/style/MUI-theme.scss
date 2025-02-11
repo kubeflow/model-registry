@@ -764,9 +764,8 @@
   --pf-v6-c-button--PaddingInlineEnd: none;
 }
 
-.mui-theme .pf-v6-c-page__main-container {
-  --pf-v6-c-page__main-container--BorderRadius: var(--mui-shape-borderRadius);
-  box-shadow: var(--mui-shadows-1);
+.mui-theme .pf-v6-c-page {
+  --pf-v6-c-page--BackgroundColor: var(--mui-palette-common-white);
 }
 
 .mui-theme .pf-v6-c-pagination {
@@ -801,10 +800,6 @@
   /* Position sidebar above the masthead */
 }
 
-.mui-theme .pf-v6-c-page__main-container {
-  margin-top: var(--kf-central-app-bar-height);
-  /* Move content area below the app bar */
-}
 
 /* Hide Masthead Toggle by default */
 .mui-theme .pf-v6-c-masthead__toggle {
@@ -812,9 +807,20 @@
 }
 
 /* Show Masthead Toggle on viewports below 1270px */
-@media (max-width: 1270px) {
+@media (max-width: 1200px) {
   .mui-theme .pf-v6-c-masthead__toggle {
     display: block;
     padding-block-start: var(--mui-spacing-4px);
   }
+
+  .mui-theme .pf-v6-c-page__main-container {
+    margin-left: 0;
+  }
+}
+
+.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-container,
+.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__drawer {
+  --pf-v6-c-page__main-container--MarginInlineStart: calc(-2 * var(--mui-spacing-16px));
+  --pf-v6-c-page__main-section--PaddingInlineStart: none;
+  --pf-v6-c-page__main-section--PaddingInlineEnd: none;
 }
