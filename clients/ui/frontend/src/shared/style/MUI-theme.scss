@@ -141,6 +141,10 @@
   padding: var(--pf-t--global--spacer--md);
 }
 
+.mui-theme .pf-v6-c-page__main-breadcrumb {
+  --pf-v6-c-page__main-breadcrumb--PaddingInlineStart: none;
+}
+
 .mui-theme .pf-v6-c-button {
   --pf-v6-c-button--FontWeight: var(--mui-button-font-weight);
   --pf-v6-c-button--PaddingBlockStart: var(--mui-button--PaddingBlockStart);
