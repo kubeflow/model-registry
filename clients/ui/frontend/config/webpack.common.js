@@ -2,6 +2,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const { setupWebpackDotenvFilesForEnv } = require('./dotenv');
+const { name } = require('../package.json');
+
+const { moduleFederationPlugins } = require('./moduleFederation');
 
 const RELATIVE_DIRNAME = process.env._RELATIVE_DIRNAME;
 const IS_PROJECT_ROOT_DIR = process.env._IS_PROJECT_ROOT_DIR;
@@ -19,7 +22,7 @@ const BASE_PATH = DEPLOYMENT_MODE === 'integrated' ? '/model-registry/' : PUBLIC
 
 if (OUTPUT_ONLY !== 'true') {
   console.info(
-    `\nPrepping files...\n  SRC DIR: ${SRC_DIR}\n  OUTPUT DIR: ${DIST_DIR}\n  PUBLIC PATH: ${PUBLIC_PATH}\n`,
+    `\nPrepping files...\n  SRC DIR: ${SRC_DIR}\n  OUTPUT DIR: ${DIST_DIR}\n  PUBLIC PATH: ${PUBLIC_PATH}\n  BASE_PATH: ${BASE_PATH}\n`,
   );
   if (COVERAGE === 'true') {
     console.info('\nAdding code coverage instrumentation.\n');
@@ -28,7 +31,7 @@ if (OUTPUT_ONLY !== 'true') {
 
 module.exports = (env) => ({
   entry: {
-    app: path.join(SRC_DIR, 'index.tsx'),
+    app: path.join(SRC_DIR, 'index.ts'),
   },
   module: {
     rules: [
@@ -171,9 +174,11 @@ module.exports = (env) => ({
   output: {
     filename: '[name].bundle.js',
     path: DIST_DIR,
-    publicPath: BASE_PATH,
+    publicPath: 'auto',
+    uniqueName: name,
   },
   plugins: [
+    ...moduleFederationPlugins,
     ...setupWebpackDotenvFilesForEnv({
       directory: RELATIVE_DIRNAME,
       isRoot: IS_PROJECT_ROOT_DIR,
@@ -182,7 +187,11 @@ module.exports = (env) => ({
       template: path.join(SRC_DIR, 'index.html'),
       title: PRODUCT_NAME,
       favicon: path.join(SRC_DIR, 'images', FAVICON),
-      baseUrl: BASE_PATH,
+      publicPath: BASE_PATH,
+      base: {
+        href: BASE_PATH,
+      },
+      chunks: ['app'],
     }),
     new CopyPlugin({
       patterns: [

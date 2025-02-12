@@ -15,30 +15,10 @@
 
 ```javascript
         proxy: {
-            '/api/v1': {
-                target: 'http://localhost:4000',
-            },
-            '/api': {
-                target: 'http://localhost:8082',
-            },
-            '/jupyter': {
-                target: 'http://localhost:8085',
-                pathRewrite: {'^/jupyter': ''},
-            },
-            // NOTE: this makes `/notebook` requests fail with a 504 error
-            '/notebook': {
-                target: 'http://localhost:8086',
-                pathRewrite: {
-                    '^/notebook/(.*?)/(.*?)/(.*)':
-                        '/$1/services/$2/proxy/notebook/$1/$2/$3',
-                },
-            },
-            '/pipeline': {
-                target: 'http://localhost:8087',
-                pathRewrite: {'^/pipeline': ''},
-            },
+            ...
             '/model-registry': {
                 target: 'http://localhost:9000',
+                pathRewrite: {'^/model-registry': ''},
                 changeOrigin: true,
                 ws: true,
                 secure: false,
@@ -71,3 +51,7 @@ kubectl port-forward service/model-registry-service 8085:8080 -n <targeted-names
 ```shell
 kubectl port-forward svc/profiles-kfam 8081:8081 -n kubeflow
 ```
+
+After setting up port forwarding, you can access the UI by navigating to:  
+
+http://localhost:8080
