@@ -1,17 +1,12 @@
 import React from 'react';
-import {
-  Content,
-  Divider,
-  EmptyState,
-  EmptyStateBody,
-  EmptyStateVariant,
-  Flex,
-  FlexItem,
-} from '@patternfly/react-core';
+import { Divider, EmptyState, EmptyStateBody, EmptyStateVariant } from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
 import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
+import { isMUITheme } from '~/shared/utilities/const';
+import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
+import { ProjectObjectType } from '~/shared/components/design/utils';
 import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {
@@ -23,14 +18,22 @@ const ModelRegistrySettings: React.FC = () => {
   return (
     <>
       <ApplicationsPage
-        title="Model Registry Settings"
+        title={
+          !isMUITheme() ? (
+            <TitleWithIcon
+              title="Model Registry Settings"
+              objectType={ProjectObjectType.modelRegistrySettings}
+            />
+          ) : (
+            'Model Registry Settings'
+          )
+        }
         description={
-          <Flex>
-            <FlexItem>
-              <Content>Manage model registry settings for all users in your organization.</Content>
-            </FlexItem>
+          !isMUITheme() ? (
+            'Manage model registry settings for all users in your organization.'
+          ) : (
             <Divider />
-          </Flex>
+          )
         }
         loaded={loaded}
         loadError={loadError}
