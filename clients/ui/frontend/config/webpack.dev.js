@@ -44,22 +44,16 @@ module.exports = smp.wrap(
         runtimeChunk: 'single',
         removeEmptyChunks: true,
       },
-      output: {
-        filename: '[name].bundle.js',
-        path: DIST_DIR,
-        publicPath: BASE_PATH,
-      },
       devServer: {
         host: HOST,
         port: PORT,
-        allowedHosts: 'all',
         compress: true,
         historyApiFallback: true,
         hot: true,
         open: false,
         proxy: [
           {
-            context: ['/api'],
+            context: ['/api', '/model-registry/api'],
             target: {
               host: PROXY_HOST,
               protocol: PROXY_PROTOCOL,
