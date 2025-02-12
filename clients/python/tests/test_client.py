@@ -97,7 +97,7 @@ def test_register_version_long_name(client: ModelRegistry):
     assert ma.uri == "https://acme.org/something"
     assert ma.model_format_name == "test_format_name"
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception): # noqa the focus of this test is the failure case, not to fix on the exception being raised
         client.register_model(name="test_model",
                         uri="https://acme.org/something",
                         model_format_name="test_format_name",
