@@ -150,14 +150,14 @@ const setupDotenvFilesForEnv = ({ env }) => {
   const SRC_DIR = path.resolve(RELATIVE_DIRNAME, process.env.SRC_DIR || TS_BASE_URL || 'src');
   const COMMON_DIR = path.resolve(RELATIVE_DIRNAME, process.env.COMMON_DIR || '../common');
   const DIST_DIR = path.resolve(RELATIVE_DIRNAME, process.env.DIST_DIR || TS_OUT_DIR || 'public');
-  const HOST = process.env.HOST || 'localhost';
+  const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || 'integrated';
+  const HOST = process.env.HOST || DEPLOYMENT_MODE === 'integrated' ? '0.0.0.0' : 'localhost';
   const PORT = process.env.PORT || '9000';
   const PROXY_PROTOCOL = process.env.PROXY_PROTOCOL || 'http';
   const PROXY_HOST = process.env.PROXY_HOST || 'localhost';
   const PROXY_PORT = process.env.PROXY_PORT || process.env.PORT || 4000;
   const DEV_MODE = process.env.DEV_MODE || undefined;
   const OUTPUT_ONLY = process.env._OUTPUT_ONLY === 'true';
-  const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || 'integrated';
 
   process.env._RELATIVE_DIRNAME = RELATIVE_DIRNAME;
   process.env._IS_PROJECT_ROOT_DIR = IS_ROOT;
