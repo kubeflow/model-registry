@@ -80,6 +80,32 @@ def test_register_existing_version(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+def test_register_version_long_name(client: ModelRegistry):
+    """ModelVersion.name can generally account for up to 250chars, assuming up to 10K RegisteredModels.
+    This is because ModelVersion being a MLMD.Context owned entity, its name is prefixed with `RegisteredModel.id:` in the backend
+    to preserve uniqueness for MLMD schema constraints
+    """
+    lorem = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium."
+    assert len(lorem) == 250
+
+    client.register_model(name="test_model",
+                          uri="https://acme.org/something",
+                          model_format_name="test_format_name",
+                          model_format_version="test_format_version",
+                          version=lorem)
+    ma = client.get_model_artifact(name="test_model", version=lorem)
+    assert ma.uri == "https://acme.org/something"
+    assert ma.model_format_name == "test_format_name"
+
+    with pytest.raises(Exception): # noqa the focus of this test is the failure case, not to fix on the exception being raised
+        client.register_model(name="test_model",
+                        uri="https://acme.org/something",
+                        model_format_name="test_format_name",
+                        model_format_version="test_format_version",
+                        version=lorem+"12345") # version of 255 chars is above limit because does not account for owned entity prefix, ie `1:...`
+
+
+@pytest.mark.e2e
 async def test_update_models(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
