@@ -209,9 +209,7 @@ Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
 ### Testing requirements
 
-To run the tests you will need `docker` (or equivalent) and the `compose` extension command.
-This is necessary as the test suite will manage a Model Registry server and an MLMD instance to ensure a clean state on
-each run.
+To run the e2e tests you will need [kind](https://kind.sigs.k8s.io/) to be installed. This is necessary as the e2e test suite will manage a Model Registry deployment and an MLMD deployment to ensure a clean MR target on each run.
 
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
