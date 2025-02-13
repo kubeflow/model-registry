@@ -88,7 +88,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 
 			artifact := openapi.ModelArtifact{
 				Name:         openapi.PtrString("Artifact One"),
-				ArtifactType: "ARTIFACT_TYPE_ONE",
+				ArtifactType: openapi.PtrString("ARTIFACT_TYPE_ONE"),
 			}
 			body := ModelArtifactEnvelope{Data: &artifact}
 			actual, rs, err := setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts?namespace=kubeflow", body, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
@@ -115,7 +115,7 @@ var _ = Describe("TestGetModelVersionHandler", func() {
 			// Test: POST /model_versions/1/artifacts
 			artifact := openapi.ModelArtifact{
 				Name:         openapi.PtrString("Artifact One"),
-				ArtifactType: "ARTIFACT_TYPE_ONE",
+				ArtifactType: openapi.PtrString("ARTIFACT_TYPE_ONE"),
 			}
 			body := ModelArtifactEnvelope{Data: &artifact}
 			_, rs, err = setupApiTest[ModelArtifactEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/model_versions/1/artifacts?namespace=kubeflow", body, k8sClient, wrongUserIDHeader, "kubeflow")
