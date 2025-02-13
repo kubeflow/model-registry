@@ -26,18 +26,19 @@ type ServingEnvironmentList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	//
-	Items []ServingEnvironment `json:"items,omitempty"`
+	Items []ServingEnvironment `json:"items"`
 }
 
 // NewServingEnvironmentList instantiates a new ServingEnvironmentList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewServingEnvironmentList(nextPageToken string, pageSize int32, size int32) *ServingEnvironmentList {
+func NewServingEnvironmentList(nextPageToken string, pageSize int32, size int32, items []ServingEnvironment) *ServingEnvironmentList {
 	this := ServingEnvironmentList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
+	this.Items = items
 	return &this
 }
 
@@ -121,34 +122,26 @@ func (o *ServingEnvironmentList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
+// GetItems returns the Items field value
 func (o *ServingEnvironmentList) GetItems() []ServingEnvironment {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		var ret []ServingEnvironment
 		return ret
 	}
+
 	return o.Items
 }
 
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
 func (o *ServingEnvironmentList) GetItemsOk() ([]ServingEnvironment, bool) {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Items, true
 }
 
-// HasItems returns a boolean if a field has been set.
-func (o *ServingEnvironmentList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []ServingEnvironment and assigns it to the Items field.
+// SetItems sets field value
 func (o *ServingEnvironmentList) SetItems(v []ServingEnvironment) {
 	o.Items = v
 }
@@ -166,9 +159,7 @@ func (o ServingEnvironmentList) ToMap() (map[string]interface{}, error) {
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
-	if !IsNil(o.Items) {
-		toSerialize["items"] = o.Items
-	}
+	toSerialize["items"] = o.Items
 	return toSerialize, nil
 }
 

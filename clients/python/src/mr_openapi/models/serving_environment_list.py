@@ -29,7 +29,7 @@ class ServingEnvironmentList(BaseModel):
     )
     page_size: StrictInt = Field(description="Maximum number of resources to return in the result.", alias="pageSize")
     size: StrictInt = Field(description="Number of items in result list.")
-    items: list[ServingEnvironment] | None = None
+    items: list[ServingEnvironment]
     __properties: ClassVar[list[str]] = ["nextPageToken", "pageSize", "size", "items"]
 
     model_config = ConfigDict(

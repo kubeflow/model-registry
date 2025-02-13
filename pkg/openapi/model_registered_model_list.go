@@ -26,18 +26,19 @@ type RegisteredModelList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	//
-	Items []RegisteredModel `json:"items,omitempty"`
+	Items []RegisteredModel `json:"items"`
 }
 
 // NewRegisteredModelList instantiates a new RegisteredModelList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegisteredModelList(nextPageToken string, pageSize int32, size int32) *RegisteredModelList {
+func NewRegisteredModelList(nextPageToken string, pageSize int32, size int32, items []RegisteredModel) *RegisteredModelList {
 	this := RegisteredModelList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
+	this.Items = items
 	return &this
 }
 
@@ -121,34 +122,26 @@ func (o *RegisteredModelList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
+// GetItems returns the Items field value
 func (o *RegisteredModelList) GetItems() []RegisteredModel {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		var ret []RegisteredModel
 		return ret
 	}
+
 	return o.Items
 }
 
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
 func (o *RegisteredModelList) GetItemsOk() ([]RegisteredModel, bool) {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Items, true
 }
 
-// HasItems returns a boolean if a field has been set.
-func (o *RegisteredModelList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []RegisteredModel and assigns it to the Items field.
+// SetItems sets field value
 func (o *RegisteredModelList) SetItems(v []RegisteredModel) {
 	o.Items = v
 }
@@ -166,9 +159,7 @@ func (o RegisteredModelList) ToMap() (map[string]interface{}, error) {
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
-	if !IsNil(o.Items) {
-		toSerialize["items"] = o.Items
-	}
+	toSerialize["items"] = o.Items
 	return toSerialize, nil
 }
 

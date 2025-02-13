@@ -42,6 +42,7 @@ func AssertArtifactListRequired(obj model.ArtifactList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -289,6 +290,7 @@ func AssertInferenceServiceListRequired(obj model.InferenceServiceList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -513,6 +515,7 @@ func AssertModelArtifactListRequired(obj model.ModelArtifactList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -579,6 +582,7 @@ func AssertModelVersionListRequired(obj model.ModelVersionList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -674,6 +678,7 @@ func AssertRegisteredModelListRequired(obj model.RegisteredModelList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -758,6 +763,7 @@ func AssertServeModelListRequired(obj model.ServeModelList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -823,6 +829,7 @@ func AssertServingEnvironmentListRequired(obj model.ServingEnvironmentList) erro
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

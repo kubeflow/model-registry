@@ -26,18 +26,19 @@ type ServeModelList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	// Array of `ModelArtifact` entities.
-	Items []ServeModel `json:"items,omitempty"`
+	Items []ServeModel `json:"items"`
 }
 
 // NewServeModelList instantiates a new ServeModelList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewServeModelList(nextPageToken string, pageSize int32, size int32) *ServeModelList {
+func NewServeModelList(nextPageToken string, pageSize int32, size int32, items []ServeModel) *ServeModelList {
 	this := ServeModelList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
+	this.Items = items
 	return &this
 }
 
@@ -121,34 +122,26 @@ func (o *ServeModelList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
+// GetItems returns the Items field value
 func (o *ServeModelList) GetItems() []ServeModel {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		var ret []ServeModel
 		return ret
 	}
+
 	return o.Items
 }
 
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
 func (o *ServeModelList) GetItemsOk() ([]ServeModel, bool) {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Items, true
 }
 
-// HasItems returns a boolean if a field has been set.
-func (o *ServeModelList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []ServeModel and assigns it to the Items field.
+// SetItems sets field value
 func (o *ServeModelList) SetItems(v []ServeModel) {
 	o.Items = v
 }
@@ -166,9 +159,7 @@ func (o ServeModelList) ToMap() (map[string]interface{}, error) {
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
-	if !IsNil(o.Items) {
-		toSerialize["items"] = o.Items
-	}
+	toSerialize["items"] = o.Items
 	return toSerialize, nil
 }
 
