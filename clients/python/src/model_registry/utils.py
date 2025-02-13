@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
-
+import pathlib
+from typing import List, Mapping, Union
 from typing_extensions import overload
 
 from ._utils import required_args
-from .exceptions import MissingMetadata
+from .exceptions import MissingMetadata, StoreError
+from .types import SupportedTypes
 
 
 @overload
@@ -90,3 +92,69 @@ def s3_uri_from(
     # https://alexwlchan.net/2020/s3-keys-are-not-file-paths/ nor do they resolve to valid URls
     # FIXME: is this safe?
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
+
+def save_to_oci_registry(
+        base_image: str,
+        dest_dir: Union[str, os.PathLike],
+        oci_ref: str,
+        model_files: List[os.PathLike], 
+        backend: str = 'skopeo',
+        modelcard: Union[os.PathLike, None] = None,
+):
+    """Appends a list of files to an OCI-based image.
+    
+    Args:
+        base_image: The image to append model files to. This image will be downloaded to the location at `dest_dir`
+        dest_dir: The location to save the downloaded and extracted base image to.
+        oci_ref: Destination of where to push the newly layered image to
+        model_files: List of files to add to the base_image as layers
+        backend: The CLI tool to use to perform the oci image pull/push. One of: "skopeo", "oras"
+        modelcard: Optional, path to the modelcard to additionally include as a layer
+
+    Raises:
+        ValueError: If the chosen backend is not installed on the host
+        StoreError: If the chosen backend is an invalid option
+        StoreError: If `olot` is not installed as a python package
+    Returns:
+        None.
+    """
+    try:
+        from olot.basics import oci_layers_on_top
+    except ImportError as e:
+        msg = """Package `olot` is not installed.
+To save models to OCI compatible storage, start by installing the `olot` package, either directly or as an
+extra (available as `model-registry[olot]`), e.g.:
+```sh
+!pip install --pre model-registry[olot]
+```
+or
+```sh
+!pip install olot
+```
+        """
+        raise StoreError(msg) from e
+    
+    local_image_path = pathlib.Path(dest_dir)
+
+    if backend == 'skopeo':
+        from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
+       
+        if not is_skopeo():
+            raise ValueError('skopeo is selected, but it is not present on the machine. Please validate the skopeo cli is installed and available in the PATH')
+    
+        skopeo_pull(base_image, local_image_path)
+        oci_layers_on_top(local_image_path, model_files, modelcard)
+        skopeo_push(dest_dir, oci_ref)
+        
+    elif backend == 'oras':
+        from olot.backend.oras_cp import is_oras, oras_pull, oras_push
+        if not is_oras():
+            raise ValueError('oras is selected, but it is not present on the machine. Please validate the oras cli is installed and available in the PATH')
+    
+        oras_pull(base_image, local_image_path)
+        oci_layers_on_top(local_image_path, model_files, modelcard)
+        oras_push(local_image_path, oci_ref)
+
+    else:
+        msg = f"Invalid backend chosen: '{backend}'"
+        raise StoreError(msg)
