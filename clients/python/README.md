@@ -185,16 +185,31 @@ Currently, the Model Registry backend treats model lists as a circular buffer, a
 
 ## Development
 
+### Using the Makefile
+
+The `Makefile` contains most common development tasks
+
+To install dependencies:
+
+```bash
+make
+```
+
+Then you can run tests:
+
+```bash
+make test test-e2e
+```
+
+### Using Nox
+
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
 
 Use `nox -l` to list sessions and execute them using `nox -s [session]`.
 
-Alternatively, use `make install` to setup a local Python virtual environment with `poetry`.
+### Testing requirements
 
-To run the tests you will need `docker` (or equivalent) and the `compose` extension command.
-This is necessary as the test suite will manage a Model Registry server and an MLMD instance to ensure a clean state on
-each run.
-You can use `make test` to execute `pytest`.
+To run the e2e tests you will need [kind](https://kind.sigs.k8s.io/) to be installed. This is necessary as the e2e test suite will manage a Model Registry deployment and an MLMD deployment to ensure a clean MR target on each run.
 
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
