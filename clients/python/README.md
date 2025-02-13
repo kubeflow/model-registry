@@ -200,4 +200,12 @@ You can use `make test` to execute `pytest`.
 
 Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
+### Extras
+
+Depending on your development flow, you need to install extra dependencies:
+
+```
+poetry install -E "olot"
+```
+
 <!-- github-only -->
