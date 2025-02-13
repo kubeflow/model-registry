@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import os
 import pathlib
-from typing import List, Mapping, Union
+
 from typing_extensions import overload
 
 from ._utils import required_args
 from .exceptions import MissingMetadata, StoreError
-from .types import SupportedTypes
 
 
 @overload
@@ -95,14 +94,14 @@ def s3_uri_from(
 
 def save_to_oci_registry(
         base_image: str,
-        dest_dir: Union[str, os.PathLike],
+        dest_dir: str | os.PathLike,
         oci_ref: str,
-        model_files: List[os.PathLike], 
-        backend: str = 'skopeo',
-        modelcard: Union[os.PathLike, None] = None,
+        model_files: list[os.PathLike],
+        backend: str = "skopeo",
+        modelcard: os.PathLike | None = None,
 ):
     """Appends a list of files to an OCI-based image.
-    
+
     Args:
         base_image: The image to append model files to. This image will be downloaded to the location at `dest_dir`
         dest_dir: The location to save the downloaded and extracted base image to.
@@ -133,24 +132,26 @@ or
 ```
         """
         raise StoreError(msg) from e
-    
+
     local_image_path = pathlib.Path(dest_dir)
 
-    if backend == 'skopeo':
+    if backend == "skopeo":
         from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
-       
+
         if not is_skopeo():
-            raise ValueError('skopeo is selected, but it is not present on the machine. Please validate the skopeo cli is installed and available in the PATH')
-    
+            msg = "skopeo is selected, but it is not present on the machine. Please validate the skopeo cli is installed and available in the PATH"
+            raise ValueError(msg)
+
         skopeo_pull(base_image, local_image_path)
         oci_layers_on_top(local_image_path, model_files, modelcard)
         skopeo_push(dest_dir, oci_ref)
-        
-    elif backend == 'oras':
+
+    elif backend == "oras":
         from olot.backend.oras_cp import is_oras, oras_pull, oras_push
         if not is_oras():
-            raise ValueError('oras is selected, but it is not present on the machine. Please validate the oras cli is installed and available in the PATH')
-    
+            msg = "oras is selected, but it is not present on the machine. Please validate the oras cli is installed and available in the PATH"
+            raise ValueError(msg)
+
         oras_pull(base_image, local_image_path)
         oci_layers_on_top(local_image_path, model_files, modelcard)
         oras_push(local_image_path, oci_ref)
