@@ -6,7 +6,7 @@ import logging
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar, Union, get_args
+from typing import TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -19,6 +19,8 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
+from ._async_task_runner import AsyncTaskRunner
+
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -74,17 +76,16 @@ class ModelRegistry:
             author: Name of the author.
             is_secure: Whether to use a secure connection. Defaults to True.
             user_token: The PEM-encoded user token as a string.
-            user_token_envvar: Environment variable to read the user token from if it's not passed as an arg. Defaults to KF_PIPELINES_SA_TOKEN_PATH.
+            user_token_envvar: Environment variable to read the user token from if it's not passed as an arg.
+                               Defaults to KF_PIPELINES_SA_TOKEN_PATH.
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
         """
         logger.setLevel(log_level)
-
-        import nest_asyncio
-
         logger.debug("Setting up reentrant async event loop")
-        nest_asyncio.apply()
+
+        self.runner = AsyncTaskRunner.get_instance()
 
         # TODO: get remaining args from env
         self._author = author
@@ -126,16 +127,6 @@ class ModelRegistry:
                 server_address, port, user_token
             )
         self.get_registered_models().page_size(1)._next_page()
-
-    def async_runner(self, coro: Any) -> Any:
-        import asyncio
-
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return loop.run_until_complete(coro)
 
     async def _register_model(self, name: str, **kwargs) -> RegisteredModel:
         if rm := await self._api.get_registered_model_by_params(name):
@@ -210,8 +201,8 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        rm = self.async_runner(self._register_model(name, owner=owner or self._author))
-        mv = self.async_runner(
+        rm = self.runner.run(self._register_model(name, owner=owner or self._author))
+        mv = self.runner.run(
             self._register_new_version(
                 rm,
                 version,
@@ -220,7 +211,7 @@ class ModelRegistry:
                 custom_properties=metadata or {},
             )
         )
-        self.async_runner(
+        self.runner.run(
             self._register_model_artifact(
                 mv,
                 name,
@@ -244,10 +235,10 @@ class ModelRegistry:
             msg = f"Model must be one of {get_args(ModelTypes)}"
             raise StoreError(msg)
         if isinstance(model, RegisteredModel):
-            return self.async_runner(self._api.upsert_registered_model(model))
+            return self.runner.run(self._api.upsert_registered_model(model))
         if isinstance(model, ModelVersion):
-            return self.async_runner(self._api.upsert_model_version(model, None))
-        return self.async_runner(self._api.upsert_model_artifact(model))
+            return self.runner.run(self._api.upsert_model_version(model, None))
+        return self.runner.run(self._api.upsert_model_artifact(model))
 
     def register_hf_model(
         self,
@@ -289,8 +280,8 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = """package `huggingface-hub` is not installed.
-            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-            extra (available as `model-registry[hf]`), e.g.:
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, 
+            either directly or as an extra (available as `model-registry[hf]`), e.g.:
             ```sh
             !pip install --pre model-registry[hf]
             ```
@@ -363,7 +354,7 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        return self.async_runner(self._api.get_registered_model_by_params(name))
+        return self.runner.run(self._api.get_registered_model_by_params(name))
 
     def get_model_version(self, name: str, version: str) -> ModelVersion | None:
         """Get a model version.
@@ -382,7 +373,7 @@ class ModelRegistry:
             msg = f"Model {name} does not exist"
             raise StoreError(msg)
         assert rm.id
-        return self.async_runner(self._api.get_model_version_by_params(rm.id, version))
+        return self.runner.run(self._api.get_model_version_by_params(rm.id, version))
 
     def get_model_artifact(self, name: str, version: str) -> ModelArtifact | None:
         """Get a model artifact.
@@ -401,7 +392,7 @@ class ModelRegistry:
             msg = f"Version {version} does not exist"
             raise StoreError(msg)
         assert mv.id
-        return self.async_runner(self._api.get_model_artifact_by_params(name, mv.id))
+        return self.runner.run(self._api.get_model_artifact_by_params(name, mv.id))
 
     def get_registered_models(self) -> Pager[RegisteredModel]:
         """Get a pager for registered models.
@@ -411,7 +402,7 @@ class ModelRegistry:
         """
 
         def rm_list(options: ListOptions) -> list[RegisteredModel]:
-            return self.async_runner(self._api.get_registered_models(options))
+            return self.runner.run(self._api.get_registered_models(options))
 
         return Pager[RegisteredModel](rm_list)
 
@@ -432,8 +423,9 @@ class ModelRegistry:
             raise StoreError(msg)
 
         def rm_versions(options: ListOptions) -> list[ModelVersion]:
-            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            # type checkers can't restrict the type inside a nested function:
+            # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
             assert rm.id
-            return self.async_runner(self._api.get_model_versions(rm.id, options))
+            return self.runner.run(self._api.get_model_versions(rm.id, options))
 
         return Pager[ModelVersion](rm_versions)
