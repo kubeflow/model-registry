@@ -65,11 +65,13 @@ const App: React.FC = () => {
 
   const error = configError || namespacesLoadError;
 
+  const sidebar = <PageSidebar isSidebarOpen={false} />;
+
   // We lack the critical data to startup the app
   if (error) {
     // There was an error fetching critical data
     return (
-      <Page>
+      <Page sidebar={sidebar}>
         <PageSection>
           <Stack hasGutter>
             <StackItem>
@@ -95,8 +97,6 @@ const App: React.FC = () => {
       </Page>
     );
   }
-
-  const sidebar = <PageSidebar isSidebarOpen={false} />;
 
   // Waiting on the API to finish
   const loading =

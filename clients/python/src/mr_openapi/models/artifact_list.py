@@ -29,7 +29,7 @@ class ArtifactList(BaseModel):
     )
     page_size: StrictInt = Field(description="Maximum number of resources to return in the result.", alias="pageSize")
     size: StrictInt = Field(description="Number of items in result list.")
-    items: list[Artifact] | None = Field(default=None, description="Array of `Artifact` entities.")
+    items: list[Artifact] = Field(description="Array of `Artifact` entities.")
     __properties: ClassVar[list[str]] = ["nextPageToken", "pageSize", "size", "items"]
 
     model_config = ConfigDict(

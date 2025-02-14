@@ -189,54 +189,59 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                   )}
                 </ToolbarItem>
               </ToolbarGroup>
+
+              {!isArchiveModel && (
+                <>
+                  <ToolbarGroup>
+                    <ToolbarItem>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
+                        }}
+                      >
+                        Register new version
+                      </Button>
+                    </ToolbarItem>
+                    <ToolbarItem>
+                      <Dropdown
+                        isOpen={isArchivedModelVersionKebabOpen}
+                        onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
+                        onOpenChange={(isOpen: boolean) =>
+                          setIsArchivedModelVersionKebabOpen(isOpen)
+                        }
+                        toggle={(tr: React.Ref<MenuToggleElement>) => (
+                          <MenuToggle
+                            data-testid="model-versions-table-kebab-action"
+                            ref={tr}
+                            variant="plain"
+                            onClick={() =>
+                              setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
+                            }
+                            isExpanded={isArchivedModelVersionKebabOpen}
+                            aria-label="View archived versions"
+                          >
+                            <EllipsisVIcon />
+                          </MenuToggle>
+                        )}
+                        shouldFocusToggleOnSelect
+                        popperProps={{ appendTo: 'inline' }}
+                      >
+                        <DropdownList>
+                          <DropdownItem
+                            onClick={() =>
+                              navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
+                            }
+                          >
+                            View archived versions
+                          </DropdownItem>
+                        </DropdownList>
+                      </Dropdown>
+                    </ToolbarItem>
+                  </ToolbarGroup>
+                </>
+              )}
             </ToolbarToggleGroup>
-            {!isArchiveModel && (
-              <>
-                <ToolbarItem>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
-                    }}
-                  >
-                    Register new version
-                  </Button>
-                </ToolbarItem>
-                <ToolbarItem>
-                  <Dropdown
-                    isOpen={isArchivedModelVersionKebabOpen}
-                    onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
-                    onOpenChange={(isOpen: boolean) => setIsArchivedModelVersionKebabOpen(isOpen)}
-                    toggle={(tr: React.Ref<MenuToggleElement>) => (
-                      <MenuToggle
-                        data-testid="model-versions-table-kebab-action"
-                        ref={tr}
-                        variant="plain"
-                        onClick={() =>
-                          setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
-                        }
-                        isExpanded={isArchivedModelVersionKebabOpen}
-                        aria-label="View archived versions"
-                      >
-                        <EllipsisVIcon />
-                      </MenuToggle>
-                    )}
-                    shouldFocusToggleOnSelect
-                    popperProps={{ appendTo: 'inline' }}
-                  >
-                    <DropdownList>
-                      <DropdownItem
-                        onClick={() =>
-                          navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
-                        }
-                      >
-                        View archived versions
-                      </DropdownItem>
-                    </DropdownList>
-                  </Dropdown>
-                </ToolbarItem>
-              </>
-            )}
           </ToolbarContent>
         }
       />
