@@ -1,8 +1,11 @@
 import React from 'react';
-import { Content, Divider, Flex, FlexItem } from '@patternfly/react-core';
+import { Divider } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useModelVersions from '~/app/hooks/useModelVersions';
+import { isMUITheme } from '~/shared/utilities/const';
+import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
+import { ProjectObjectType } from '~/shared/components/design/utils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
 import RegisteredModelListView from './RegisteredModels/RegisteredModelListView';
 import { modelRegistryUrl } from './routeUtils';
@@ -33,18 +36,19 @@ const ModelRegistry: React.FC<ModelRegistryProps> = ({ ...pageProps }) => {
   return (
     <ApplicationsPage
       {...pageProps}
-      title="Model Registry"
+      title={
+        !isMUITheme() ? (
+          <TitleWithIcon title="Model Registry" objectType={ProjectObjectType.registeredModels} />
+        ) : (
+          'Model Registry'
+        )
+      }
       description={
-        <Flex>
-          <FlexItem>
-            <Content>
-              Select a model registry to view and manage your registered models. Model registries
-              provide a structured and organized way to store, share, version, deploy, and track
-              models.
-            </Content>
-          </FlexItem>
+        !isMUITheme() ? (
+          'Select a model registry to view and manage your registered models. Model registries provide a structured and organized way to store, share, version, deploy, and track models.'
+        ) : (
           <Divider />
-        </Flex>
+        )
       }
       headerContent={
         <ModelRegistrySelectorNavigator
