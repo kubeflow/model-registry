@@ -26,18 +26,19 @@ type ModelVersionList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	// Array of `ModelVersion` entities.
-	Items []ModelVersion `json:"items,omitempty"`
+	Items []ModelVersion `json:"items"`
 }
 
 // NewModelVersionList instantiates a new ModelVersionList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelVersionList(nextPageToken string, pageSize int32, size int32) *ModelVersionList {
+func NewModelVersionList(nextPageToken string, pageSize int32, size int32, items []ModelVersion) *ModelVersionList {
 	this := ModelVersionList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
+	this.Items = items
 	return &this
 }
 
@@ -121,34 +122,26 @@ func (o *ModelVersionList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
+// GetItems returns the Items field value
 func (o *ModelVersionList) GetItems() []ModelVersion {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		var ret []ModelVersion
 		return ret
 	}
+
 	return o.Items
 }
 
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
 func (o *ModelVersionList) GetItemsOk() ([]ModelVersion, bool) {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Items, true
 }
 
-// HasItems returns a boolean if a field has been set.
-func (o *ModelVersionList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []ModelVersion and assigns it to the Items field.
+// SetItems sets field value
 func (o *ModelVersionList) SetItems(v []ModelVersion) {
 	o.Items = v
 }
@@ -166,9 +159,7 @@ func (o ModelVersionList) ToMap() (map[string]interface{}, error) {
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
-	if !IsNil(o.Items) {
-		toSerialize["items"] = o.Items
-	}
+	toSerialize["items"] = o.Items
 	return toSerialize, nil
 }
 

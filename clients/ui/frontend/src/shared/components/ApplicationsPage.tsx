@@ -60,7 +60,7 @@ const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
             justifyContent={{ default: 'justifyContentSpaceBetween' }}
             flexWrap={{ default: 'nowrap' }}
           >
-            <Content>
+            <Content className="pf-m-full-width">
               <Content component="h1" data-testid="app-page-title">
                 {title}
               </Content>

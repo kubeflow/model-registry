@@ -1225,6 +1225,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ModelVersion"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactList:
       description: List of ModelArtifact entities.
@@ -1236,6 +1238,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ModelArtifact"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelCreate:
       description: A registered model in model registry. A registered model has ModelVersion children.
@@ -1507,6 +1511,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Artifact"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
@@ -1612,6 +1618,8 @@ components:
               items:
                 $ref: "#/components/schemas/ServingEnvironment"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelList:
       description: List of RegisteredModels.
@@ -1624,6 +1632,8 @@ components:
               items:
                 $ref: "#/components/schemas/RegisteredModel"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServingEnvironment:
       description: A Model Serving environment for serving `RegisteredModels`.
@@ -1656,6 +1666,8 @@ components:
               items:
                 $ref: "#/components/schemas/InferenceService"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModelList:
       description: List of ServeModel entities.
@@ -1667,6 +1679,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ServeModel"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModel:
       description: An ML model serving action.

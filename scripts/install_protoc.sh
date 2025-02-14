@@ -3,7 +3,7 @@ set -euxo pipefail
 
 OSTYPE=$(uname -s)
 OS="linux"
-if [[ ${OSTYPE,,} =~ darwin ]]; then
+if [[ $OSTYPE =~ [Dd]arwin ]]; then
     OS="osx"
 fi
 

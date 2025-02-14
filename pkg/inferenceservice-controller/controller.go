@@ -29,6 +29,7 @@ type InferenceServiceController struct {
 	modelRegistryNameLabel        string
 	modelRegistryURLAnnotation    string
 	modelRegistryFinalizer        string
+	serviceURLAnnotation          string
 	defaultModelRegistryNamespace string
 }
 
@@ -44,6 +45,7 @@ func NewInferenceServiceController(
 	mrNameLabel,
 	mrURLAnnotation,
 	mrFinalizer,
+	serviceURLAnnotation,
 	defaultMRNamespace string,
 ) *InferenceServiceController {
 	httpClient := http.DefaultClient
@@ -66,6 +68,7 @@ func NewInferenceServiceController(
 		modelRegistryNameLabel:        mrNameLabel,
 		modelRegistryURLAnnotation:    mrURLAnnotation,
 		modelRegistryFinalizer:        mrFinalizer,
+		serviceURLAnnotation:          serviceURLAnnotation,
 		defaultModelRegistryNamespace: defaultMRNamespace,
 	}
 }
@@ -112,9 +115,8 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if !okMrName && !okMrUrl {
-		// Early check: it's required to have the model registry name or url set in the ISVC
-		log.Error(fmt.Errorf("missing model registry name or url, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
-		return ctrl.Result{}, nil
+		// Early check: it's optional to have the model registry name or url set in the ISVC, but if not set, it will fail if there's more than one model registry in the namespace
+		log.Info(fmt.Sprintf("missing %s or %s, will try to connect to the Model Registry service in the namespace %s", r.modelRegistryNameLabel, r.modelRegistryURLAnnotation, mrNamespace))
 	}
 
 	if mrNSFromISVC, ok := isvc.Labels[r.modelRegistryNamespaceLabel]; ok {
@@ -124,7 +126,7 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	log.Info("Creating model registry service..")
 	mrApi, err := r.initModelRegistryService(ctx, log, mrName, mrNamespace, mrUrl)
 	if err != nil {
-		log.Error(err, "Unable to initialize Model Registry Service")
+		log.Error(err, "Unable to initialize Model Registry service")
 		return ctrl.Result{}, err
 	}
 
@@ -229,11 +231,11 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 	log1 := log.WithValues("mr-namespace", namespace, "mr-name", name)
 
 	if url == "" {
-		log1.Info("Retrieving api http port from deployed model registry service")
+		log1.Info("Retrieving url from deployed model registry service")
 
 		url, err = r.getMRUrlFromService(ctx, name, namespace)
 		if err != nil {
-			log1.Error(err, "Unable to fetch the Model Registry Service")
+			log1.Error(err, "Unable to fetch the Model Registry service")
 			return nil, err
 		}
 	}
@@ -253,14 +255,49 @@ func (r *InferenceServiceController) initModelRegistryService(ctx context.Contex
 }
 
 func (r *InferenceServiceController) getMRUrlFromService(ctx context.Context, name, namespace string) (string, error) {
+	svc, err := r.getMRService(ctx, name, namespace)
+	if err != nil {
+		return "", fmt.Errorf("unable to find the Model Registry service: %w", err)
+	}
+
+	return r.buildURLFromService(svc)
+}
+
+func (r *InferenceServiceController) getMRService(ctx context.Context, name, namespace string) (*corev1.Service, error) {
+	if name == "" {
+		svcList := &corev1.ServiceList{}
+
+		if err := r.client.List(ctx, svcList, client.InNamespace(namespace), client.MatchingLabels{"component": "model-registry"}); err != nil {
+			return nil, fmt.Errorf("unable to list services in the namespace %s: %w", namespace, err)
+		}
+
+		if len(svcList.Items) == 0 {
+			return nil, fmt.Errorf("no model registry services found in the namespace %s", namespace)
+		}
+
+		if len(svcList.Items) > 1 {
+			return nil, fmt.Errorf("more than one model registry service found in the namespace %s, consider to specify the name in the label %s", namespace, r.modelRegistryNameLabel)
+		}
+
+		return &svcList.Items[0], nil
+	}
+
 	svc := &corev1.Service{}
 
 	err := r.client.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, svc)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
+	return svc, nil
+}
+
+func (r *InferenceServiceController) buildURLFromService(svc *corev1.Service) (string, error) {
 	var restApiPort *int32
+
+	if url, ok := svc.Annotations[r.serviceURLAnnotation]; ok {
+		return fmt.Sprintf("https://%s", url), nil
+	}
 
 	for _, port := range svc.Spec.Ports {
 		if port.Name == "http-api" {
@@ -270,10 +307,10 @@ func (r *InferenceServiceController) getMRUrlFromService(ctx context.Context, na
 	}
 
 	if restApiPort == nil {
-		return "", fmt.Errorf("unable to find the http port in the Model Registry Service")
+		return "", fmt.Errorf("unable to find the http port in the Model Registry service")
 	}
 
-	return fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", name, namespace, *restApiPort), nil
+	return fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", svc.Name, svc.Namespace, *restApiPort), nil
 }
 
 func (r *InferenceServiceController) createMRInferenceService(
