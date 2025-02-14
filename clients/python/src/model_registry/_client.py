@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TypeVar, Union, get_args
 from warnings import warn
 
+from ._async_task_runner import AsyncTaskRunner
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
 from .types import (
@@ -19,8 +20,6 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
-from ._async_task_runner import AsyncTaskRunner
-
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -280,7 +279,7 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = """package `huggingface-hub` is not installed.
-            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, 
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package,
             either directly or as an extra (available as `model-registry[hf]`), e.g.:
             ```sh
             !pip install --pre model-registry[hf]
