@@ -77,6 +77,7 @@ def e2e_tests(session: Session) -> None:
         "coverage[toml]",
         "pytest-cov",
         "huggingface-hub",
+        "olot",
     )
     try:
         session.run(
