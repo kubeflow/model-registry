@@ -57,6 +57,20 @@ Or you can set the `is_secure` flag to `False` to connect **without** TLS (not r
 registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False)  # insecure port set to 8080
 ```
 
+ModelRegistry client is using asynch execution of HTTP API calls getting results synchronously. To do this, the 
+client's implementation is leveraging [AsyncTaskRunnerThread](src/model_registry/_async_task_runner_thread.py), 
+based on this [gist](https://gist.github.com/blink1073/969aeba85f32c285235750626f2eadd8), that works for both
+standard [asyncio](https://docs.python.org/3/library/asyncio.html) and [uviloop](https://github.com/MagicStack/uvloop).
+If you would like to overwrite it, you can create `ModelRegistry` using the following code:
+
+```py
+registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", is_secure=False, async_task_runner=MyAsyncTaskRunner)
+```
+
+Where MyAsyncTaskRunner is an implementation, that should extend 
+[AsyncTaskRunnerBase](src/model_registry/_async_task_runner_base.py) implementing both `get_instance`
+and `run` method.
+
 ### Registering models
 
 To register your first model, you can use the `register_model` method:

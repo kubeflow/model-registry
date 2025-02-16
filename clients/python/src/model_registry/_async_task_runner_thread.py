@@ -1,5 +1,3 @@
-# from https://gist.github.com/blink1073/969aeba85f32c285235750626f2eadd8
-
 """Copyright (c) 2022 Steven Silvester.
 
 All rights reserved.
