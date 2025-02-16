@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import TypeVar, Union, get_args
 from warnings import warn
 
-from ._async_task_runner_factory import AsyncTaskRunnerFactory
+from ._async_task_runner_base import AsyncTaskRunnerBase
+from ._async_task_runner_thread import AsyncTaskRunnerThread
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
 from .types import (
@@ -64,6 +65,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
+        async_task_runner: type[AsyncTaskRunnerBase] = AsyncTaskRunnerThread
     ):
         """Constructor.
 
@@ -80,11 +82,11 @@ class ModelRegistry:
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
+            async_task_runner: implementation of async task runner. Default - AsyncTaskRunnerThread
         """
         logger.setLevel(log_level)
-        logger.debug("Setting up reentrant async event loop")
 
-        self.runner = AsyncTaskRunnerFactory.get_instance()
+        self.runner = async_task_runner.get_instance()
 
         # TODO: get remaining args from env
         self._author = author

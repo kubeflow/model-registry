@@ -9,6 +9,11 @@ class AsyncTaskRunnerBase:
 
     A user can add his own representation of this class
     """
+    @staticmethod
+    def get_instance():
+        """Get an AsyncTaskRunner (singleton)."""
+        raise ValueError(NOT_IMPLEMENTED)
+
     def run(self, coro: Coroutine) -> Any:
         """Synchronously run a coroutine on a background thread."""
         raise ValueError(NOT_IMPLEMENTED)
