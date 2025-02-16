@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TypeVar, Union, get_args
 from warnings import warn
 
-from ._async_task_runner import AsyncTaskRunner
+from ._async_task_runner_factory import AsyncTaskRunnerFactory
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
 from .types import (
@@ -84,7 +84,7 @@ class ModelRegistry:
         logger.setLevel(log_level)
         logger.debug("Setting up reentrant async event loop")
 
-        self.runner = AsyncTaskRunner.get_instance()
+        self.runner = AsyncTaskRunnerFactory.get_instance()
 
         # TODO: get remaining args from env
         self._author = author

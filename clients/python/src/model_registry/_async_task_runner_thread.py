@@ -35,10 +35,12 @@ from collections.abc import Coroutine
 from threading import Lock, Thread
 from typing import Any, Optional
 
+from ._async_task_runner_base import AsyncTaskRunnerBase
+
 SINGLETON = "This class is a singleton!"
 
 
-class AsyncTaskRunner:
+class AsyncTaskRunnerThread(AsyncTaskRunnerBase):
     """A singleton task runner that runs an asyncio event loop on a background thread."""
 
     __instance = None
@@ -46,17 +48,17 @@ class AsyncTaskRunner:
     @staticmethod
     def get_instance():
         """Get an AsyncTaskRunner (singleton)."""
-        if AsyncTaskRunner.__instance is None:
-            AsyncTaskRunner()
-        assert AsyncTaskRunner.__instance is not None
-        return AsyncTaskRunner.__instance
+        if AsyncTaskRunnerThread.__instance is None:
+            AsyncTaskRunnerThread()
+        assert AsyncTaskRunnerThread.__instance is not None
+        return AsyncTaskRunnerThread.__instance
 
     def __init__(self):
         """Initialize."""
         # make sure it is a singleton
-        if AsyncTaskRunner.__instance is not None:
+        if AsyncTaskRunnerThread.__instance is not None:
             raise Exception(SINGLETON)
-        AsyncTaskRunner.__instance = self
+        AsyncTaskRunnerThread.__instance = self
         # initialize variables
         self.__io_loop: Optional[asyncio.AbstractEventLoop] = None
         self.__runner_thread: Optional[Thread] = None
