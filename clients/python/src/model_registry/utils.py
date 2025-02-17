@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import os
-import pathlib
+from pathlib import Path
+from typing import Callable, TypedDict
 
 from typing_extensions import overload
 
@@ -92,6 +93,52 @@ def s3_uri_from(
     # FIXME: is this safe?
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
 
+
+class BackendDefinition(TypedDict):
+    """Holds the 3 core callables for a backend:
+    - is_available() -> bool
+    - pull(base_image: str, dest_dir: Path) -> None
+    - push(local_image_path: Path, oci_ref: str) -> None.
+    """
+    available: Callable[[], bool]
+    pull: Callable[[str, Path], None]
+    push: Callable[[Path, str], None]
+
+# A dict mapping backend names to their definitions
+BackendDict = dict[str, Callable[[], BackendDefinition]]
+
+
+def get_skopeo_backend() -> BackendDefinition:
+    try:
+        from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
+    except ImportError as e:
+        msg = "Could not import 'olot.backend.skopeo'. Ensure that 'olot' is installed if you want to use the 'skopeo' backend."
+        raise ImportError(msg) from e
+
+    return {
+        "is_available": is_skopeo,
+        "pull": skopeo_pull,
+        "push": skopeo_push
+    }
+
+def get_oras_backend() -> BackendDefinition:
+    try:
+        from olot.backend.oras_cp import is_oras, oras_pull, oras_push
+    except ImportError as e:
+        msg = "Could not import 'olot.backend.oras_cp'. Ensure that 'olot' is installed if you want to use the 'oras_cp' backend."
+        raise ImportError(msg) from e
+
+    return {
+        "is_available": is_oras,
+        "pull": oras_pull,
+        "push": oras_push,
+    }
+
+DEFAULT_BACKENDS = {
+    "skopeo": get_skopeo_backend,
+    "oras": get_oras_backend,
+}
+
 def save_to_oci_registry(
         base_image: str,
         dest_dir: str | os.PathLike,
@@ -99,6 +146,7 @@ def save_to_oci_registry(
         model_files: list[os.PathLike],
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
+        backend_registry: BackendDict | None = DEFAULT_BACKENDS,
 ):
     """Appends a list of files to an OCI-based image.
 
@@ -133,29 +181,19 @@ or
         """
         raise StoreError(msg) from e
 
-    local_image_path = pathlib.Path(dest_dir)
 
-    if backend == "skopeo":
-        from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
+    if backend not in backend_registry:
+        msg = f"'{backend}' is not an available backend to use. Available backends: {backend_registry.keys()}"
+        raise ValueError(msg)
 
-        if not is_skopeo():
-            msg = "skopeo is selected, but it is not present on the machine. Please validate the skopeo cli is installed and available in the PATH"
-            raise ValueError(msg)
+    # Fetching the backend definition can throw an error, but it should bubble up as it has the appropriate messaging
+    backend_def = backend_registry[backend]()
 
-        skopeo_pull(base_image, local_image_path)
-        oci_layers_on_top(local_image_path, model_files, modelcard)
-        skopeo_push(dest_dir, oci_ref)
+    if not backend_def["available"]():
+        msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
+        raise ValueError(msg)
 
-    elif backend == "oras":
-        from olot.backend.oras_cp import is_oras, oras_pull, oras_push
-        if not is_oras():
-            msg = "oras is selected, but it is not present on the machine. Please validate the oras cli is installed and available in the PATH"
-            raise ValueError(msg)
-
-        oras_pull(base_image, local_image_path)
-        oci_layers_on_top(local_image_path, model_files, modelcard)
-        oras_push(local_image_path, oci_ref)
-
-    else:
-        msg = f"Invalid backend chosen: '{backend}'"
-        raise StoreError(msg)
+    local_image_path = Path(dest_dir)
+    backend_def["pull"](base_image, local_image_path)
+    oci_layers_on_top(local_image_path, model_files, modelcard)
+    backend_def["push"](local_image_path, oci_ref)
