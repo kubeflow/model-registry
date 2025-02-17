@@ -29,7 +29,7 @@ class ServeModelList(BaseModel):
     )
     page_size: StrictInt = Field(description="Maximum number of resources to return in the result.", alias="pageSize")
     size: StrictInt = Field(description="Number of items in result list.")
-    items: list[ServeModel] | None = Field(default=None, description="Array of `ModelArtifact` entities.")
+    items: list[ServeModel] = Field(description="Array of `ModelArtifact` entities.")
     __properties: ClassVar[list[str]] = ["nextPageToken", "pageSize", "size", "items"]
 
     model_config = ConfigDict(

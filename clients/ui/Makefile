@@ -76,6 +76,10 @@ docker-push-standalone:
 kind-deployment:
 	./scripts/deploy_kind_cluster.sh
 
+.PHONY: kubeflow-deployment
+kubeflow-deployment:
+	./scripts/deploy_kubeflow_cluster.sh
+
 ############ Build ############	
 .PHONY: frontend-build
 frontend-build:

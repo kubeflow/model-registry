@@ -126,7 +126,7 @@ const TableBase = <T,>({
 
   const pagination = (variant: 'top' | 'bottom') => (
     <Pagination
-      isCompact={enablePagination === 'compact'}
+      isCompact
       {...(!disableItemCount && { itemCount })}
       perPage={perPage}
       page={page}

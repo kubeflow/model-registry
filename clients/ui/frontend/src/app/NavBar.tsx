@@ -60,7 +60,7 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
         <Toolbar>
           <ToolbarContent>
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
-              <ToolbarItem>
+              <ToolbarItem className="kubeflow-u-namespace-select">
                 <SimpleSelect
                   initialOptions={options}
                   onSelect={(_ev, selection) => {
