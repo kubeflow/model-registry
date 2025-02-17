@@ -25,7 +25,7 @@ deploy-test-minio:
 	
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr deploy-test-minio
-	env $(cat ../../scripts/manifests/minio/.env | xargs) poetry run pytest --e2e -s -rA
+	bash -c 'set -a && source ../../scripts/manifests/minio/.env && set +a && poetry run pytest --e2e -s -rA'
 	rm -fr ../../scripts/manifests/minio/.env
 
 .PHONY: test
