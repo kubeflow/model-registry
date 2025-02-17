@@ -2,8 +2,8 @@
 
 __version__ = "0.2.14"
 
-from ._client import ModelRegistry
 from ._async_task_runner_base import AsyncTaskRunnerBase
+from ._client import ModelRegistry
 
 __all__ = [
     "ModelRegistry",
