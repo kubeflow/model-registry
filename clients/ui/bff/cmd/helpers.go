@@ -42,7 +42,6 @@ func newOriginParser(allowList *[]string, defaultVal string) func(s string) erro
 		}
 
 		if value == "" {
-			allowList = nil
 			return nil
 		}
 

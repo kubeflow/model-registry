@@ -16,9 +16,9 @@ func GetContextLoggerFromReq(r *http.Request) *slog.Logger {
 }
 
 func GetContextLogger(ctx context.Context) *slog.Logger {
-	logger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+	logger, ok := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	if logger == nil {
+	if !ok {
 		logger = slog.New(slog.Default().Handler())
 		logger.Warn("Unable to get context logger for tracing, falling back to default")
 	}
