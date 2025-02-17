@@ -88,21 +88,25 @@ def test_register_version_long_name(client: ModelRegistry):
     lorem = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium."
     assert len(lorem) == 250
 
-    client.register_model(name="test_model",
-                          uri="https://acme.org/something",
-                          model_format_name="test_format_name",
-                          model_format_version="test_format_version",
-                          version=lorem)
+    client.register_model(
+        name="test_model",
+        uri="https://acme.org/something",
+        model_format_name="test_format_name",
+        model_format_version="test_format_version",
+        version=lorem,
+    )
     ma = client.get_model_artifact(name="test_model", version=lorem)
     assert ma.uri == "https://acme.org/something"
     assert ma.model_format_name == "test_format_name"
 
-    with pytest.raises(Exception): # noqa the focus of this test is the failure case, not to fix on the exception being raised
-        client.register_model(name="test_model",
-                        uri="https://acme.org/something",
-                        model_format_name="test_format_name",
-                        model_format_version="test_format_version",
-                        version=lorem+"12345") # version of 255 chars is above limit because does not account for owned entity prefix, ie `1:...`
+    with pytest.raises(Exception):  # noqa the focus of this test is the failure case, not to fix on the exception being raised
+        client.register_model(
+            name="test_model",
+            uri="https://acme.org/something",
+            model_format_name="test_format_name",
+            model_format_version="test_format_version",
+            version=lorem + "12345",
+        )  # version of 255 chars is above limit because does not account for owned entity prefix, ie `1:...`
 
 
 @pytest.mark.e2e
@@ -680,7 +684,8 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert bucket is not None
 
     model_name = get_model_file.split("/")[-1]
-    uris = client.save_to_s3(path=get_model_file, bucket_name=bucket)
+    prefix = "models"
+    uris = client.save_to_s3(path=get_model_file, s3_prefix=prefix, bucket_name=bucket)
 
     s3 = boto3.client(
         "s3",
@@ -693,7 +698,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     # Manually check that the object is indeed here
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
-    model_name_pfx = f"{model_name}"
+    model_name_pfx = os.path.join(prefix, model_name)
     s3_link = utils.s3_uri_from(
         bucket=bucket, path=model_name_pfx, endpoint=s3_endpoint, region=default_region
     )
@@ -701,6 +706,18 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert len(uris) == 1
     assert uris == [s3_link]
     assert model_name_pfx in objects_by_name
+
+    # Test without s3_prefix param
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=get_model_file, bucket_name=bucket)
+    assert "must be set since a file" in str(e.value).lower()
+
+    # Test file not exists
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(
+            path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket
+        )
+    assert "please ensure path is correct" in str(e.value).lower()
 
 
 @pytest.mark.e2e
@@ -730,7 +747,8 @@ def test_recursive_store_in_s3(
     assert default_region is not None
     assert bucket is not None
 
-    uris = client.save_to_s3(path=model_dir, bucket_name=bucket)
+    prefix = "models2"
+    uris = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
     assert len(uris) == 3
 
     s3 = boto3.client(
@@ -744,7 +762,7 @@ def test_recursive_store_in_s3(
     # Manually check that the object is indeed here
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
-    formatted_paths = [os.path.basename(path) for path in files]
+    formatted_paths = [os.path.join(prefix, os.path.basename(path)) for path in files]
     s3_links = [
         utils.s3_uri_from(
             bucket=bucket, path=_path, endpoint=s3_endpoint, region=default_region
@@ -756,6 +774,16 @@ def test_recursive_store_in_s3(
     assert uris == s3_links
     for path in formatted_paths:
         assert path in objects_by_name
+
+    # Test without s3_prefix param
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=f"{model_dir}", bucket_name=bucket)
+    assert "is a nested folder" in str(e.value).lower()
+
+    # Test incorrect folder
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
+    assert "please ensure path is correct" in str(e.value).lower()
 
 
 @pytest.mark.e2e
@@ -785,7 +813,8 @@ def test_nested_recursive_store_in_s3(
     assert default_region is not None
     assert bucket is not None
 
-    uris = client.save_to_s3(path=model_dir, bucket_name=bucket)
+    prefix = "models3"
+    uris = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
     assert len(uris) == 3
 
     s3 = boto3.client(
@@ -799,11 +828,12 @@ def test_nested_recursive_store_in_s3(
     # Manually check that the object is indeed here
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
-    print(objects_by_name)
 
     # this is creating a list of all the file names + their immediate parent folder only
     formatted_paths = [
-        os.path.join(os.path.basename(os.path.dirname(path)), os.path.basename(path))
+        os.path.join(
+            prefix, os.path.basename(os.path.dirname(path)), os.path.basename(path)
+        )
         for path in files
     ]
     s3_links = [
@@ -817,3 +847,8 @@ def test_nested_recursive_store_in_s3(
     assert uris == s3_links
     for path in formatted_paths:
         assert path in objects_by_name
+
+    # Test incorrect folder
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
+    assert "please ensure path is correct" in str(e.value).lower()

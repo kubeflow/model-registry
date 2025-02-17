@@ -448,6 +448,7 @@ class ModelRegistry:
         path: str,
         bucket_name: str,
         *,
+        s3_prefix: str | None = None,
         endpoint_url: str | None = None,
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
@@ -461,6 +462,8 @@ class ModelRegistry:
             bucket_name: The bucket to use for the S3 compatible object storage.
 
         Keyword Args:
+            s3_prefix: The path to prefix with under root of bucket. If unset, will default to `path` if \
+                `path` is not a nested folder.
             endpoint_url: The endpoint URL for the S3 comaptible storage if not using AWS S3.
             access_key_id: The S3 compatible object storage access ID.
             secret_access_key: The S3 compatible object storage secret access key.
@@ -485,6 +488,7 @@ class ModelRegistry:
         try:
             return self.__upload_to_s3(
                 path=path,
+                path_prefix=s3_prefix,
                 bucket=bucket_name,
                 s3=s3,
                 endpoint_url=endpoint_url,
@@ -498,6 +502,7 @@ class ModelRegistry:
         path: str,
         bucket: str,
         s3: BaseClient,
+        path_prefix: str,
         *,
         endpoint_url: str | None = None,
         region: str | None = None,
@@ -506,6 +511,7 @@ class ModelRegistry:
 
         Args:
             path: The path to where the models or artifacts are.
+            path_prefix: The folder prefix to store under the root of the bucket.
             bucket: The name of the S3 bucket.
             s3: The S3 Client object.
 
@@ -518,19 +524,37 @@ class ModelRegistry:
         Raises:
             StoreError if `path` does not exist.
         """
+        is_file = os.path.isfile(path)
+
+        path_split = path.split("/")
+
+        if len(path_split) == 1 and not path_prefix and is_file:
+            msg = f"`s3_prefix` must be set since a file was specified: '{path}'."
+            raise StoreError(msg)
+
+        if len(path_split) > 1 and not path_prefix:
+            if is_file and not path_prefix:
+                msg = f"`s3_prefix` must be set since a file was specified: '{path}'."
+                raise StoreError(msg)
+            msg = f"`s3_prefix` must be set since the path '{path}' is a nested folder."
+            raise StoreError(msg)
+        path_prefix = path_prefix if path_prefix else path
+
         if not os.path.exists(path):
             msg = f"Path '{path}' does not exist. Please ensure path is correct."
             raise StoreError(msg)
 
-        if os.path.isfile(path):
+        if is_file:
             filename = os.path.basename(path)
             if not filename:
                 msg = "An error occured determining if the supplied path was file."
                 raise StoreError(msg)
 
-            s3.upload_file(path, bucket, filename)
+            s3_key = os.path.join(path_prefix, filename)
+            s3.upload_file(path, bucket, s3_key)
+
             uri = s3_uri_from(
-                path=filename, bucket=bucket, endpoint=endpoint_url, region=region
+                path=s3_key, bucket=bucket, endpoint=endpoint_url, region=region
             )
             return [uri]
 
@@ -539,9 +563,10 @@ class ModelRegistry:
             for filename in files:
                 file_path = os.path.join(root, filename)
                 relative_path = os.path.relpath(file_path, path)
-                s3.upload_file(file_path, bucket, relative_path)
+                s3_key = os.path.join(path_prefix, relative_path)
+                s3.upload_file(file_path, bucket, s3_key)
                 uri = s3_uri_from(
-                    path=relative_path,
+                    path=s3_key,
                     bucket=bucket,
                     endpoint=endpoint_url,
                     region=region,
