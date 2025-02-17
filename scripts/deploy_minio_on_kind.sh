@@ -2,8 +2,11 @@
 
 set -e
 
-source ./${DIR}/utils.sh
+DIR="$(dirname "$0")"
 MINIO_NAMESPACE="minio"
+
+source ./${DIR}/utils.sh
+
 # modularity to allow re-use this script against a remote k8s cluster
 if [[ -n "$LOCAL" ]]; then
     CLUSTER_NAME="${CLUSTER_NAME:-kind}"
@@ -31,9 +34,9 @@ else
     kubectl create namespace "$MINIO_NAMESPACE"
 fi
 
-kubectl apply -f manifests/minio/deployment.yaml -n $MINIO_NAMESPACE
+kubectl apply -f $DIR/manifests/minio/deployment.yaml -n $MINIO_NAMESPACE
 kubectl wait --for=condition=available deployment/minio -n $MINIO_NAMESPACE --timeout=2m
-kubectl apply -f manifests/minio/create_bucket.yaml -n $MINIO_NAMESPACE
+kubectl apply -f $DIR/manifests/minio/create_bucket.yaml -n $MINIO_NAMESPACE
 kubectl wait --for=condition=complete job/minio-init -n $MINIO_NAMESPACE --timeout=2m
 
 KF_MR_TEST_ACCESS_KEY_ID=$(kubectl get secret minio-secret -n minio -o jsonpath="{.data.ACCESS_KEY_ID}" | base64 --decode)
@@ -45,7 +48,7 @@ if [[ -z "$KF_MR_TEST_ACCESS_KEY_ID" || -z "$KF_MR_TEST_SECRET_ACCESS_KEY" ]]; t
     exit 1
 fi
 
-cat <<EOF > manifests/minio/.env
+cat <<EOF > $DIR/manifests/minio/.env
 KF_MR_TEST_S3_ENDPOINT=http://localhost:9000
 KF_MR_TEST_BUCKET_NAME=default
 KF_MR_TEST_ACCESS_KEY_ID=$KF_MR_TEST_ACCESS_KEY_ID

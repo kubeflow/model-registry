@@ -446,7 +446,6 @@ class ModelRegistry:
     def save_to_s3(
         self,
         path: str,
-        name: str,
         bucket_name: str,
         *,
         endpoint_url: str | None = None,
@@ -457,8 +456,8 @@ class ModelRegistry:
         """Saves a model to an S3 compatible storage.
 
         Args:
-            path: Location to where the model/artifact is located.
-            name: Name of the model/artifact.
+            path: Location to where the model(s) or artifact(s) are located. \
+                Can recursively upload nested files in folders.
             bucket_name: The bucket to use for the S3 compatible object storage.
 
         Keyword Args:
@@ -473,19 +472,130 @@ class ModelRegistry:
         Raises:
             StoreError: If there was an issue uploading to S3.
         """
+        # Get mixed credentials
+        endpoint_url, access_key_id, secret_access_key, region = self.__s3_creds(
+            endpoint_url, access_key_id, secret_access_key, region
+        )
+
         s3 = self.__connect_to_s3(
             endpoint_url=endpoint_url,
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
         )
         try:
-            s3.upload_file(path, bucket_name, name)
+            return self.__upload_to_s3(
+                path=path,
+                bucket=bucket_name,
+                s3=s3,
+                endpoint_url=endpoint_url,
+                region=region,
+            )
         except Exception as e:
-            msg = "Failed to upload to S3"
-            raise StoreError(msg) from e
-        return s3_uri_from(
-            path=name, bucket=bucket_name, endpoint=endpoint_url, region=region
+            raise e
+
+    def __upload_to_s3(
+        self,
+        path: str,
+        bucket: str,
+        s3: BaseClient,
+        *,
+        endpoint_url: str | None = None,
+        region: str | None = None,
+    ):
+        """Internal method for recursively uploading all files to S3.
+
+        Args:
+            path: The path to where the models or artifacts are.
+            bucket: The name of the S3 bucket.
+            s3: The S3 Client object.
+
+        Keyword Args:
+            endpoint_url: The endpoint url for the S3 bucket.
+            region: The region name for the S3 bucket.
+
+        Returns: Int of how files were uploaded.
+
+        Raises:
+            StoreError if `path` does not exist.
+        """
+        if not os.path.exists(path):
+            msg = f"Path '{path}' does not exist. Please ensure path is correct."
+            raise StoreError(msg)
+
+        if os.path.isfile(path):
+            filename = os.path.basename(path)
+            if not filename:
+                msg = "An error occured determining if the supplied path was file."
+                raise StoreError(msg)
+
+            s3.upload_file(path, bucket, filename)
+            uri = s3_uri_from(
+                path=filename, bucket=bucket, endpoint=endpoint_url, region=region
+            )
+            return [uri]
+
+        s3_uris = []
+        for root, _, files in os.walk(path):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                relative_path = os.path.relpath(file_path, path)
+                s3.upload_file(file_path, bucket, relative_path)
+                uri = s3_uri_from(
+                    path=filename, bucket=bucket, endpoint=endpoint_url, region=region
+                )
+                s3_uris.append(uri)
+        return s3_uris
+
+    def __s3_creds(
+        self,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ):
+        """Internal method to return mix and matched S3 credentials based on presence.
+
+        Args:
+            endpoint_url: The S3 compatible object storage endpoint.
+            access_key_id: The S3 compatible object storage access key ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Raises:
+            ValueError if the required values are None.
+
+        Returns:
+            tuple(endpoint, access_key_id, secret_access_key, region)
+        """
+        aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+
+        # Set values to parameter values or environment values
+        endpoint_url = endpoint_url if endpoint_url else aws_s3_endpoint
+        access_key_id = access_key_id if access_key_id else aws_access_key_id
+        secret_access_key = (
+            secret_access_key if secret_access_key else aws_secret_access_key
         )
+        region = region if region else aws_default_region
+
+        if not any((aws_s3_endpoint, endpoint_url)):
+            msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
+            or specify `endpoint_url` as the parameter.
+            """
+            raise ValueError(msg)
+
+        if not any((aws_access_key_id, aws_secret_access_key)) and not any(
+            (access_key_id, secret_access_key)
+        ):
+            msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
+            Please either set these environment variables or pass them in as parameters using
+            `aws_access_key_id` or `aws_access_secret_id`.
+            """
+            raise ValueError(msg)
+
+        return endpoint_url, access_key_id, secret_access_key, region
 
     def __connect_to_s3(
         self,
@@ -521,30 +631,11 @@ class ModelRegistry:
             ```
             """
             raise StoreError(msg) from e
-        aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
-        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        aws_default_region = os.getenv("AWS_DEFAULT_REGION")
-
-        if not any((aws_s3_endpoint, endpoint_url)):
-            msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
-            or specify `endpoint_url` as the parameter.
-            """
-            raise ValueError(msg)
-
-        if not any((aws_access_key_id, aws_secret_access_key)) and not any(
-            (access_key_id, secret_access_key)
-        ):
-            msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
-            Please either set these environment variables or pass them in as parameters using
-            `aws_access_key_id` or `aws_access_secret_id`.
-            """
-            raise ValueError(msg)
 
         return client(
             "s3",
-            endpoint_url=endpoint_url or aws_s3_endpoint,
-            aws_access_key_id=access_key_id or aws_access_key_id,
-            aws_secret_access_key=secret_access_key or aws_access_key_id,
-            region_name=region or aws_default_region,
+            endpoint_url=endpoint_url,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+            region_name=region,
         )
