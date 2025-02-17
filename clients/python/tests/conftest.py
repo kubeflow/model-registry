@@ -114,7 +114,7 @@ def setup_env_user_token():
     os.remove(token_file.name)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def get_model_file():
     with tempfile.NamedTemporaryFile(delete=False, suffix=".onnx") as model_file:
         pass
@@ -124,7 +124,7 @@ def get_model_file():
     os.remove(model_file.name)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def get_temp_dir_with_models():
     temp_dir = tempfile.mkdtemp()
     file_paths = []
@@ -140,6 +140,28 @@ def get_temp_dir_with_models():
     for file in file_paths:
         if os.path.exists(file):
             os.remove(file)
+    os.rmdir(temp_dir)
+
+
+@pytest.fixture
+def get_temp_dir_with_nested_models():
+    temp_dir = tempfile.mkdtemp()
+    nested_dir = tempfile.mkdtemp(dir=temp_dir)
+
+    file_paths = []
+    for _ in range(3):
+        tmp_file = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            delete=False, dir=nested_dir, suffix=".onnx"
+        )
+        file_paths.append(tmp_file.name)
+        tmp_file.close()
+
+    yield temp_dir, file_paths
+
+    for file in file_paths:
+        if os.path.exists(file):
+            os.remove(file)
+    os.rmdir(nested_dir)
     os.rmdir(temp_dir)
 
 

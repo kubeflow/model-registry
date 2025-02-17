@@ -541,7 +541,10 @@ class ModelRegistry:
                 relative_path = os.path.relpath(file_path, path)
                 s3.upload_file(file_path, bucket, relative_path)
                 uri = s3_uri_from(
-                    path=filename, bucket=bucket, endpoint=endpoint_url, region=region
+                    path=relative_path,
+                    bucket=bucket,
+                    endpoint=endpoint_url,
+                    region=region,
                 )
                 s3_uris.append(uri)
         return s3_uris

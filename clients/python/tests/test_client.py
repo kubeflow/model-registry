@@ -756,3 +756,64 @@ def test_recursive_store_in_s3(
     assert uris == s3_links
     for path in formatted_paths:
         assert path in objects_by_name
+
+
+@pytest.mark.e2e
+def test_nested_recursive_store_in_s3(
+    get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry
+):
+    pytest.importorskip("boto3")
+
+    # So we have an import locally, since we are directly using it
+    import boto3
+
+    model_dir, files = get_temp_dir_with_nested_models
+    assert model_dir is not None
+    assert type(files) is list
+    assert len(files) == 3
+
+    s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    access_id = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    default_region = os.getenv("AWS_DEFAULT_REGION")
+    bucket = os.getenv("AWS_S3_BUCKET")
+
+    # Make sure MonkeyPatch env vars are set
+    assert s3_endpoint is not None
+    assert access_id is not None
+    assert secret_key is not None
+    assert default_region is not None
+    assert bucket is not None
+
+    uris = client.save_to_s3(path=model_dir, bucket_name=bucket)
+    assert len(uris) == 3
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=s3_endpoint,
+        aws_access_key_id=access_id,
+        aws_secret_access_key=secret_key,
+        region_name=default_region,
+    )
+
+    # Manually check that the object is indeed here
+    objects = s3.list_objects_v2(Bucket="default")["Contents"]
+    objects_by_name = [obj["Key"] for obj in objects]
+    print(objects_by_name)
+
+    # this is creating a list of all the file names + their immediate parent folder only
+    formatted_paths = [
+        os.path.join(os.path.basename(os.path.dirname(path)), os.path.basename(path))
+        for path in files
+    ]
+    s3_links = [
+        utils.s3_uri_from(
+            bucket=bucket, path=_path, endpoint=s3_endpoint, region=default_region
+        )
+        for _path in formatted_paths
+    ]
+
+    assert len(uris) == 3
+    assert uris == s3_links
+    for path in formatted_paths:
+        assert path in objects_by_name
