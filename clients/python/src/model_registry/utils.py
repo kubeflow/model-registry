@@ -96,7 +96,7 @@ def s3_uri_from(
 
 
 class BackendDefinition(TypedDict):
-    """Holds the 3 core callables for a backend:
+    """Holds the 3 core callables for a backend.
 
     - is_available() -> bool
     - pull(base_image: str, dest_dir: Path) -> None
@@ -146,7 +146,7 @@ def save_to_oci_registry(
         base_image: str,
         oci_ref: str,
         model_files: list[os.PathLike],
-        dest_dir: str | os.PathLike = tempfile.mkdtemp(),
+        dest_dir: str | os.PathLike = None,
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
         backend_registry: BackendDict | None = DEFAULT_BACKENDS,
@@ -196,6 +196,8 @@ or
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
 
+    if dest_dir is None:
+        dest_dir = tempfile.mkdtemp()
     local_image_path = Path(dest_dir)
     backend_def["pull"](base_image, local_image_path)
     oci_layers_on_top(local_image_path, model_files, modelcard)

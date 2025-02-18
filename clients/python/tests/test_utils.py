@@ -160,14 +160,14 @@ def test_save_to_oci_registry_with_custom_backend_unavailable():
     }
 
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment.") as e:
         save_to_oci_registry("", "", [], "", backend, backend_registry=backend_registry)
 
-    assert f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment." in str(e.value)
+    assert f"Backend '{backend}' is selected, but not available on the system." in str(e.value)
 
 def test_save_to_oci_registry_backend_not_found():
     backend = "non-existent"
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=f"'{backend}' is not an available backend to use.") as e:
         save_to_oci_registry("", "", [], "", backend)
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
