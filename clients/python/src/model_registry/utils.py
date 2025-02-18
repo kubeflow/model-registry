@@ -148,7 +148,7 @@ def save_to_oci_registry(
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
         backend_registry: BackendDict | None = DEFAULT_BACKENDS,
-):
+) -> None:
     """Appends a list of files to an OCI-based image.
 
     Args:
@@ -190,7 +190,7 @@ or
     # Fetching the backend definition can throw an error, but it should bubble up as it has the appropriate messaging
     backend_def = backend_registry[backend]()
 
-    if not backend_def["available"]():
+    if not backend_def["is_available"]():
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
 
