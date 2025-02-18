@@ -100,15 +100,13 @@ class BackendDefinition(TypedDict):
     - pull(base_image: str, dest_dir: Path) -> None
     - push(local_image_path: Path, oci_ref: str) -> None.
     """
+
     available: Callable[[], bool]
     pull: Callable[[str, Path], None]
     push: Callable[[Path, str], None]
 
-# A dict mapping backend names to their definitions
-BackendDict = dict[str, Callable[[], BackendDefinition]]
 
-
-def get_skopeo_backend() -> BackendDefinition:
+def _get_skopeo_backend() -> BackendDefinition:
     try:
         from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
     except ImportError as e:
@@ -121,7 +119,7 @@ def get_skopeo_backend() -> BackendDefinition:
         "push": skopeo_push
     }
 
-def get_oras_backend() -> BackendDefinition:
+def _get_oras_backend() -> BackendDefinition:
     try:
         from olot.backend.oras_cp import is_oras, oras_pull, oras_push
     except ImportError as e:
@@ -134,9 +132,12 @@ def get_oras_backend() -> BackendDefinition:
         "push": oras_push,
     }
 
-DEFAULT_BACKENDS = {
-    "skopeo": get_skopeo_backend,
-    "oras": get_oras_backend,
+# A dict mapping backend names to their definitions
+BackendDict = dict[str, Callable[[], BackendDefinition]]
+
+DEFAULT_BACKENDS: BackendDict = {
+    "skopeo": _get_skopeo_backend,
+    "oras": _get_oras_backend,
 }
 
 def save_to_oci_registry(
@@ -157,10 +158,10 @@ def save_to_oci_registry(
         model_files: List of files to add to the base_image as layers
         backend: The CLI tool to use to perform the oci image pull/push. One of: "skopeo", "oras"
         modelcard: Optional, path to the modelcard to additionally include as a layer
-
+        backend_registry: Optional, a dict of backends available to be used to perform the OCI image download/upload
     Raises:
         ValueError: If the chosen backend is not installed on the host
-        StoreError: If the chosen backend is an invalid option
+        ValueError: If the chosen backend is an invalid option
         StoreError: If `olot` is not installed as a python package
     Returns:
         None.
