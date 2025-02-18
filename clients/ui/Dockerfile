@@ -41,11 +41,11 @@ COPY ${BFF_SOURCE_CODE}/go.mod ${BFF_SOURCE_CODE}/go.sum ./
 RUN go mod download
 
 # Copy the go source files
-COPY ${BFF_SOURCE_CODE}/cmd/main.go cmd/main.go
+COPY ${BFF_SOURCE_CODE}/cmd/ cmd/
 COPY ${BFF_SOURCE_CODE}/internal/ internal/
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd
 
 # Final stage
 # Use distroless as minimal base image to package the application binary
