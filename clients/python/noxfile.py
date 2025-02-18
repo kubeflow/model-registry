@@ -58,6 +58,7 @@ def tests(session: Session) -> None:
         "requests",
         "pytest",
         "pytest-asyncio",
+        "olot",
     )
     session.run(
         "pytest",

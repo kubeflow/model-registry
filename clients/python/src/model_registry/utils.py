@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 from typing import Callable, TypedDict
 
@@ -96,6 +97,7 @@ def s3_uri_from(
 
 class BackendDefinition(TypedDict):
     """Holds the 3 core callables for a backend:
+
     - is_available() -> bool
     - pull(base_image: str, dest_dir: Path) -> None
     - push(local_image_path: Path, oci_ref: str) -> None.
@@ -142,9 +144,9 @@ DEFAULT_BACKENDS: BackendDict = {
 
 def save_to_oci_registry(
         base_image: str,
-        dest_dir: str | os.PathLike,
         oci_ref: str,
         model_files: list[os.PathLike],
+        dest_dir: str | os.PathLike = tempfile.mkdtemp(),
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
         backend_registry: BackendDict | None = DEFAULT_BACKENDS,

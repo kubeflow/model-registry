@@ -90,13 +90,31 @@ def test_save_to_oci_registry_with_skopeo():
     model_files = [readme_file_path]
     backend = "skopeo"
 
-    save_to_oci_registry(base_image, dest_dir, oci_ref, model_files, backend)
+    save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend)
+
+
+# These are trimmed down versions of whats found in the example specs found here: https://github.com/opencontainers/image-spec/blob/main/image-layout.md#oci-layout-file
+index_json_contents = """{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "manifests": [],
+  "annotations": {
+    "com.example.index.revision": "r124356"
+  }
+}"""
+oci_layout_contents = """{"imageLayoutVersion": "1.0.0"}"""
 
 def test_save_to_oci_registry_with_custom_backend():
     is_available_mock = Mock()
     is_available_mock.return_value = True
     pull_mock = Mock()
     push_mock = Mock()
+    def pull_mock_imple(base_image, dest_dir):
+        pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
+        pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
+
+    pull_mock.side_effect = pull_mock_imple
+
 
     backend = "something_custom"
     backend_registry = {
@@ -120,7 +138,7 @@ def test_save_to_oci_registry_with_custom_backend():
 
     model_files = [readme_file_path]
 
-    save_to_oci_registry(base_image, dest_dir, oci_ref, model_files, backend, None, backend_registry)
+    save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, backend_registry)
     # Ensure our mocked backend was called
     is_available_mock.assert_called_once()
     pull_mock.assert_called_once()
@@ -143,13 +161,13 @@ def test_save_to_oci_registry_with_custom_backend_unavailable():
 
 
     with pytest.raises(ValueError) as e:
-        save_to_oci_registry("", "", "", "", backend, backend_registry=backend_registry)
+        save_to_oci_registry("", "", [], "", backend, backend_registry=backend_registry)
 
     assert f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment." in str(e.value)
 
 def test_save_to_oci_registry_backend_not_found():
     backend = "non-existent"
     with pytest.raises(ValueError) as e:
-        save_to_oci_registry("", "", "", [], backend)
+        save_to_oci_registry("", "", [], "", backend)
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
