@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/api"
@@ -14,7 +13,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -27,15 +25,18 @@ func main() {
 	flag.IntVar(&cfg.DevModePort, "dev-mode-port", getEnvAsInt("DEV_MODE_PORT", 8080), "Use port when in development mode")
 	flag.BoolVar(&cfg.StandaloneMode, "standalone-mode", false, "Use standalone mode for enabling endpoints in standalone mode")
 	flag.StringVar(&cfg.StaticAssetsDir, "static-assets-dir", "./static", "Configure frontend static assets root directory")
-	flag.StringVar(&cfg.LogLevel, "log-level", getEnvAsString("LOG_LEVEL", "info"), "Sets server log level, possible values: debug, info, warn, error, fatal")
-	flag.StringVar(&cfg.AllowedOrigins, "allowed-origins", getEnvAsString("ALLOWED_ORIGINS", ""), "Sets allowed origins for CORS purposes, accepts a comma separated list of origins or * to allow all, default none")
+	flag.TextVar(&cfg.LogLevel, "log-level", parseLevel(getEnvAsString("LOG_LEVEL", "INFO")), "Sets server log level, possible values: error, warn, info, debug")
+	flag.Func("allowed-origins", "Sets allowed origins for CORS purposes, accepts a comma separated list of origins or * to allow all, default none", newOriginParser(&cfg.AllowedOrigins, getEnvAsString("ALLOWED_ORIGINS", "")))
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: getLogLevelFromString(cfg.LogLevel),
+		Level: cfg.LogLevel,
 	}))
 
-	app, err := api.NewApp(cfg, logger)
+	// Only use for logging errors about logging configuration.
+	slog.SetDefault(logger)
+
+	app, err := api.NewApp(cfg, slog.New(logger.Handler()))
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -82,38 +83,4 @@ func main() {
 
 	logger.Info("server stopped")
 	os.Exit(0)
-
-}
-
-func getEnvAsInt(name string, defaultVal int) int {
-	if value, exists := os.LookupEnv(name); exists {
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return intValue
-		}
-	}
-	return defaultVal
-}
-
-func getEnvAsString(name string, defaultVal string) string {
-	if value, exists := os.LookupEnv(name); exists {
-		return value
-	}
-	return defaultVal
-}
-
-func getLogLevelFromString(level string) slog.Level {
-	switch strings.ToLower(level) {
-	case "debug":
-		return slog.LevelDebug
-	case "info":
-		return slog.LevelInfo
-	case "warn":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	case "fatal":
-		return slog.LevelError
-
-	}
-	return slog.LevelInfo
 }

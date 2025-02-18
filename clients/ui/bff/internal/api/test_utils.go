@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -27,6 +28,7 @@ func setupApiTest[T any](method string, url string, body interface{}, k8sClient 
 	testApp := App{
 		repositories:     repositories.NewRepositories(mockMRClient),
 		kubernetesClient: k8sClient,
+		logger:           slog.Default(),
 	}
 
 	var req *http.Request
