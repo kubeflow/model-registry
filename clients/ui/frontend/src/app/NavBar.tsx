@@ -1,10 +1,13 @@
 import React from 'react';
 import {
+  Brand,
   Dropdown,
   DropdownItem,
   DropdownList,
   Masthead,
+  MastheadBrand,
   MastheadContent,
+  MastheadLogo,
   MastheadMain,
   MastheadToggle,
   MenuToggle,
@@ -18,6 +21,8 @@ import {
 import { SimpleSelect } from '@patternfly/react-templates';
 import { BarsIcon } from '@patternfly/react-icons';
 import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
+import { isMUITheme } from '~/shared/utilities/const';
+import logoDarkTheme from '~/images/logo-dark-theme.svg';
 
 interface NavBarProps {
   username?: string;
@@ -55,6 +60,15 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
             <BarsIcon />
           </PageToggleButton>
         </MastheadToggle>
+        {!isMUITheme() ? (
+          <MastheadBrand>
+            <MastheadLogo component="a">
+              <Brand src={logoDarkTheme} alt="Kubeflow" heights={{ default: '36px' }} />
+            </MastheadLogo>
+          </MastheadBrand>
+        ) : (
+          ''
+        )}
       </MastheadMain>
       <MastheadContent>
         <Toolbar>
