@@ -19,6 +19,9 @@ func ErrToStatus(err error) int {
 		if status.Code() == codes.Unavailable {
 			return http.StatusServiceUnavailable
 		}
+		if status.Code() == codes.AlreadyExists {
+			return http.StatusBadRequest
+		}
 	}
 
 	switch errors.Unwrap(err) {
