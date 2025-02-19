@@ -497,7 +497,7 @@ class ModelRegistry:
         except Exception as e:
             raise e
 
-    def __upload_to_s3(
+    def __upload_to_s3(  # noqa: C901
         self,
         path: str,
         bucket: str,
@@ -506,20 +506,20 @@ class ModelRegistry:
         *,
         endpoint_url: str | None = None,
         region: str | None = None,
-    ):
+    ) -> list[str]:
         """Internal method for recursively uploading all files to S3.
 
         Args:
             path: The path to where the models or artifacts are.
-            path_prefix: The folder prefix to store under the root of the bucket.
             bucket: The name of the S3 bucket.
             s3: The S3 Client object.
+            path_prefix: The folder prefix to store under the root of the bucket.
 
         Keyword Args:
             endpoint_url: The endpoint url for the S3 bucket.
             region: The region name for the S3 bucket.
 
-        Returns: Int of how files were uploaded.
+        Returns: List of S3 URIs of the uploaded files.
 
         Raises:
             StoreError if `path` does not exist.

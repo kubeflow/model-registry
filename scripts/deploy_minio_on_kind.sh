@@ -34,10 +34,23 @@ else
     kubectl create namespace "$MINIO_NAMESPACE"
 fi
 
+
 kubectl apply -f $DIR/manifests/minio/deployment.yaml -n $MINIO_NAMESPACE
-kubectl wait --for=condition=available deployment/minio -n $MINIO_NAMESPACE --timeout=2m
+if ! kubectl wait --for=condition=available deployment/minio -n $MINIO_NAMESPACE --timeout=3m ; then 
+     echo "Minio deployment took more than 3 minutes."
+     kubectl events -A 
+     kubectl describe deployment/minio -n $MINIO_NAMESPACE 
+     kubectl logs deployment/minio -n $MINIO_NAMESPACE
+     exit 1
+fi
+
 kubectl apply -f $DIR/manifests/minio/create_bucket.yaml -n $MINIO_NAMESPACE
-kubectl wait --for=condition=complete job/minio-init -n $MINIO_NAMESPACE --timeout=2m
+if ! kubectl wait --for=condition=complete job/minio-init -n $MINIO_NAMESPACE --timeout=3m ; then 
+     echo "Job to create Minio initialization took more than 3 minutes." 
+     kubectl events -A
+     kubectl logs job/minio-init -n $MINIO_NAMESPACE
+     exit 1
+fi
 
 KF_MR_TEST_ACCESS_KEY_ID=$(kubectl get secret minio-secret -n minio -o jsonpath="{.data.ACCESS_KEY_ID}" | base64 --decode)
 KF_MR_TEST_SECRET_ACCESS_KEY=$(kubectl get secret minio-secret -n minio -o jsonpath="{.data.SECRET_KEY}" | base64 --decode)
