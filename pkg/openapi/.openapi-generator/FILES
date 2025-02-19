@@ -1,3 +1,4 @@
+api_model_catalog_service.go
 api_model_registry_service.go
 client.go
 configuration.go
@@ -14,8 +15,15 @@ model_base_execution_create.go
 model_base_execution_update.go
 model_base_resource.go
 model_base_resource_create.go
+model_base_resource_dates.go
 model_base_resource_list.go
 model_base_resource_update.go
+model_catalog_model.go
+model_catalog_model_all_of_base_model.go
+model_catalog_model_artifact.go
+model_catalog_model_list.go
+model_catalog_source.go
+model_catalog_source_list.go
 model_doc_artifact.go
 model_doc_artifact_create.go
 model_doc_artifact_update.go

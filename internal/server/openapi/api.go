@@ -16,6 +16,16 @@ import (
 	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
+// ModelCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelCatalogServiceAPI
+// The ModelCatalogServiceAPIRouter implementation should parse necessary information from the http request,
+// pass the data to a ModelCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
+type ModelCatalogServiceAPIRouter interface {
+	ApiModelCatalogV1alpha3SourcesSourceIdModelsModelIdReadmeGet(http.ResponseWriter, *http.Request)
+	GetAllCatalogModels(http.ResponseWriter, *http.Request)
+	GetCatalogModel(http.ResponseWriter, *http.Request)
+	GetCatalogSources(http.ResponseWriter, *http.Request)
+}
+
 // ModelRegistryServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelRegistryServiceAPI
 // The ModelRegistryServiceAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ModelRegistryServiceAPIServicer to perform the required actions, then write the service results to the http response.
@@ -60,6 +70,17 @@ type ModelRegistryServiceAPIRouter interface {
 	UpdateRegisteredModel(http.ResponseWriter, *http.Request)
 	UpdateServingEnvironment(http.ResponseWriter, *http.Request)
 	UpsertModelVersionArtifact(http.ResponseWriter, *http.Request)
+}
+
+// ModelCatalogServiceAPIServicer defines the api actions for the ModelCatalogServiceAPI service
+// This interface intended to stay up to date with the openapi yaml used to generate it,
+// while the service implementation can be ignored with the .openapi-generator-ignore file
+// and updated with the logic required for the API.
+type ModelCatalogServiceAPIServicer interface {
+	ApiModelCatalogV1alpha3SourcesSourceIdModelsModelIdReadmeGet(context.Context, string, string) (ImplResponse, error)
+	GetAllCatalogModels(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetCatalogModel(context.Context, string, string) (ImplResponse, error)
+	GetCatalogSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 }
 
 // ModelRegistryServiceAPIServicer defines the api actions for the ModelRegistryServiceAPI service

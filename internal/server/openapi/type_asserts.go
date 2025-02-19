@@ -158,6 +158,16 @@ func AssertBaseResourceCreateRequired(obj model.BaseResourceCreate) error {
 	return nil
 }
 
+// AssertBaseResourceDatesConstraints checks if the values respects the defined constraints
+func AssertBaseResourceDatesConstraints(obj model.BaseResourceDates) error {
+	return nil
+}
+
+// AssertBaseResourceDatesRequired checks if the required fields are not zero-ed
+func AssertBaseResourceDatesRequired(obj model.BaseResourceDates) error {
+	return nil
+}
+
 // AssertBaseResourceListConstraints checks if the values respects the defined constraints
 func AssertBaseResourceListConstraints(obj model.BaseResourceList) error {
 	return nil
@@ -191,6 +201,128 @@ func AssertBaseResourceUpdateConstraints(obj model.BaseResourceUpdate) error {
 
 // AssertBaseResourceUpdateRequired checks if the required fields are not zero-ed
 func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
+	return nil
+}
+
+// AssertCatalogModelAllOfBaseModelConstraints checks if the values respects the defined constraints
+func AssertCatalogModelAllOfBaseModelConstraints(obj model.CatalogModelAllOfBaseModel) error {
+	return nil
+}
+
+// AssertCatalogModelAllOfBaseModelRequired checks if the required fields are not zero-ed
+func AssertCatalogModelAllOfBaseModelRequired(obj model.CatalogModelAllOfBaseModel) error {
+	return nil
+}
+
+// AssertCatalogModelArtifactConstraints checks if the values respects the defined constraints
+func AssertCatalogModelArtifactConstraints(obj model.CatalogModelArtifact) error {
+	return nil
+}
+
+// AssertCatalogModelArtifactRequired checks if the required fields are not zero-ed
+func AssertCatalogModelArtifactRequired(obj model.CatalogModelArtifact) error {
+	return nil
+}
+
+// AssertCatalogModelConstraints checks if the values respects the defined constraints
+func AssertCatalogModelConstraints(obj model.CatalogModel) error {
+	return nil
+}
+
+// AssertCatalogModelListConstraints checks if the values respects the defined constraints
+func AssertCatalogModelListConstraints(obj model.CatalogModelList) error {
+	return nil
+}
+
+// AssertCatalogModelListRequired checks if the required fields are not zero-ed
+func AssertCatalogModelListRequired(obj model.CatalogModelList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertCatalogModelRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertCatalogModelRequired checks if the required fields are not zero-ed
+func AssertCatalogModelRequired(obj model.CatalogModel) error {
+	elements := map[string]interface{}{
+		"repository": obj.Repository,
+		"name":       obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.BaseModel {
+		if err := AssertCatalogModelAllOfBaseModelRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Artifacts {
+		if err := AssertCatalogModelArtifactRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertCatalogSourceConstraints checks if the values respects the defined constraints
+func AssertCatalogSourceConstraints(obj model.CatalogSource) error {
+	return nil
+}
+
+// AssertCatalogSourceListConstraints checks if the values respects the defined constraints
+func AssertCatalogSourceListConstraints(obj model.CatalogSourceList) error {
+	return nil
+}
+
+// AssertCatalogSourceListRequired checks if the required fields are not zero-ed
+func AssertCatalogSourceListRequired(obj model.CatalogSourceList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertCatalogSourceRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertCatalogSourceRequired checks if the required fields are not zero-ed
+func AssertCatalogSourceRequired(obj model.CatalogSource) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 
