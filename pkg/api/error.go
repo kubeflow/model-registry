@@ -20,7 +20,7 @@ func ErrToStatus(err error) int {
 			return http.StatusServiceUnavailable
 		}
 		if status.Code() == codes.AlreadyExists {
-			return http.StatusBadRequest
+			return http.StatusConflict
 		}
 	}
 
