@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
+	"runtime/debug"
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
@@ -11,10 +16,6 @@ import (
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/rs/cors"
-	"log/slog"
-	"net/http"
-	"runtime/debug"
-	"strings"
 )
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
@@ -34,7 +35,7 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//skip use headers check if we are not on /api/v1
-		if !strings.HasPrefix(r.URL.Path, PathPrefix) {
+		if !strings.HasPrefix(r.URL.Path, ApiPathPrefix) && !strings.HasPrefix(r.URL.Path, PathPrefix+ApiPathPrefix) {
 			next.ServeHTTP(w, r)
 			return
 		}

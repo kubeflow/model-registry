@@ -15,12 +15,15 @@ const RELATIVE_DIRNAME = process.env._RELATIVE_DIRNAME;
 const IS_PROJECT_ROOT_DIR = process.env._IS_PROJECT_ROOT_DIR;
 const SRC_DIR = process.env._SRC_DIR;
 const COMMON_DIR = process.env._COMMON_DIR;
+const PUBLIC_PATH = process.env._PUBLIC_PATH;
 const DIST_DIR = process.env._DIST_DIR;
 const HOST = process.env._HOST;
 const PORT = process.env._PORT;
 const PROXY_PROTOCOL = process.env._PROXY_PROTOCOL;
 const PROXY_HOST = process.env._PROXY_HOST;
 const PROXY_PORT = process.env._PROXY_PORT;
+const DEPLOYMENT_MODE = process.env._DEPLOYMENT_MODE;
+const BASE_PATH = DEPLOYMENT_MODE === 'integrated' ? '/model-registry/' : PUBLIC_PATH;
 
 module.exports = smp.wrap(
   merge(
@@ -50,7 +53,7 @@ module.exports = smp.wrap(
         open: false,
         proxy: [
           {
-            context: ["/api"],
+            context: ['/api', '/model-registry/api'],
             target: {
               host: PROXY_HOST,
               protocol: PROXY_PROTOCOL,
@@ -67,6 +70,7 @@ module.exports = smp.wrap(
         },
         static: {
           directory: DIST_DIR,
+          publicPath: BASE_PATH,
         },
         onListening: (devServer) => {
           if (devServer) {

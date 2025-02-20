@@ -5,7 +5,7 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but it's not
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but it's not installed. Aborting."; exit 1; }
 command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not installed. Aborting."; exit 1; }
 
-echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}". If this is a new image, make sure you set it to public to avoid issues.
+echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}". If this is a new image, make sure you set it to public to avoid issues."
 
 if kubectl get deployment model-registry-deployment -n kubeflow >/dev/null 2>&1; then
   echo "Model Registry deployment already exists. Skipping to step 4."

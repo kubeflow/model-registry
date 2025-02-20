@@ -3,7 +3,7 @@
 # Deploying the Model Registry UI in a local cluster
 
 For this guide, we will be using kind for locally deploying our cluster. See
-the [Model registry server set up] guide for prerequisites on setting up kind 
+the [Model registry server set up] guide for prerequisites on setting up kind
 and deploying the model registry server.
 
 ## Setup
@@ -24,16 +24,33 @@ Create a namespace for model registry to run in, by default this is kubeflow, ru
 kubectl create namespace kubeflow
 ```
 
-### 3. Deploy Model Registry UI to cluster
+### 3. Build a standalone image for the UI
+
+Right now, the default image is targeted for the KF Central Dashboard. To build a standalone image for the UI, run:
+
+```shell
+make docker-build-standalone
+make docker-push-standalone
+```
+
+**Note: You will need to set up `IMG_UI_STANDALONE` in your .env.local file to push the image to your own registry.**
+
+### 4. Deploy Model Registry UI to cluster
 
 You can now deploy the UI and BFF to your newly created cluster using the kustomize configs in the root manifest directory:
+
+First you need to set up your new image
+
+```shell
+cd manifests/kustomize/options/ui/base
+kustomize edit set image model-registry-ui-image=${IMG_UI_STANDALONE}
+```
+
+Now you can set the namespace to kubeflow and apply the manifests:
+
 ```shell
 cd manifests/kustomize/options/ui/overlays/standalone
-```
-```shell
 kustomize edit set namespace kubeflow
-```
-```shell
 kubectl apply -k .
 ```
 
@@ -48,7 +65,7 @@ NAME                                  READY   STATUS    RESTARTS   AGE
 model-registry-ui-58755c4754-zdrnr    1/1     Running   0          11s
 ```
 
-### 4. Access the Model Registry UI running in the cluster
+### 5. Access the Model Registry UI running in the cluster
 
 Now that the pods are up and running you can access the UI.
 

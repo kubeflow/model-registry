@@ -42,6 +42,19 @@ dev-frontend:
 dev-start: 
 	make -j 2 dev-bff dev-frontend
 
+########### Dev Integrated ############
+.PHONY: dev-start-kubeflow
+dev-start-kubeflow: 
+	make -j 2 dev-bff-kubeflow dev-frontend-kubeflow
+
+.PHONY: dev-frontend-kubeflow
+dev-frontend-kubeflow:
+	DEPLOYMENT_MODE=integrated && cd frontend && npm run start:dev
+
+.PHONY: dev-bff-kubeflow
+dev-bff-kubeflow:
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=false MOCK_MR_CLIENT=false DEV_MODE=true STANDALONE_MODE=false DEV_MODE_PORT=8085
+
 ############ Build ############
 
 .PHONY: docker-build
