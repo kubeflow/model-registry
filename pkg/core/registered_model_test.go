@@ -59,7 +59,7 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
-func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModel() {
+func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModelFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
