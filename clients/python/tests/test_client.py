@@ -661,7 +661,7 @@ def test_hf_import_default_env(client: ModelRegistry):
         os.environ.pop(k)
 
 
-@pytest.mark.dd
+@pytest.mark.e2e
 def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistry):
     pytest.importorskip("boto3")
 
@@ -720,7 +720,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.dd
+@pytest.mark.e2e
 def test_recursive_store_in_s3(
     get_temp_dir_with_models, patch_s3_env, client: ModelRegistry
 ):
@@ -782,7 +782,7 @@ def test_recursive_store_in_s3(
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.dd
+@pytest.mark.e2e
 def test_nested_recursive_store_in_s3(
     get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry
 ):
