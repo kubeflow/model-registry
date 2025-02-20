@@ -206,6 +206,8 @@ jobs:
         env:
           IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
+      - name: Deploy OCI Registry using manifests
+        run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
         working-directory: clients/python
         run: |
