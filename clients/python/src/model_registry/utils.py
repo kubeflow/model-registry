@@ -150,13 +150,13 @@ def save_to_oci_registry(
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
         backend_registry: BackendDict | None = DEFAULT_BACKENDS,
-) -> None:
+) -> str:
     """Appends a list of files to an OCI-based image.
 
     Args:
         base_image: The image to append model files to. This image will be downloaded to the location at `dest_dir`
         dest_dir: The location to save the downloaded and extracted base image to.
-        oci_ref: Destination of where to push the newly layered image to
+        oci_ref: Destination of where to push the newly layered image to. eg, "quay.io/my-org/my-registry:1.0.0"
         model_files: List of files to add to the base_image as layers
         backend: The CLI tool to use to perform the oci image pull/push. One of: "skopeo", "oras"
         modelcard: Optional, path to the modelcard to additionally include as a layer
@@ -202,3 +202,7 @@ or
     backend_def["pull"](base_image, local_image_path)
     oci_layers_on_top(local_image_path, model_files, modelcard)
     backend_def["push"](local_image_path, oci_ref)
+
+    # Return the OCI URI
+
+    return f"oci://{oci_ref}"

@@ -138,11 +138,12 @@ def test_save_to_oci_registry_with_custom_backend():
 
     model_files = [readme_file_path]
 
-    save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, backend_registry)
+    uri = save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, backend_registry)
     # Ensure our mocked backend was called
     is_available_mock.assert_called_once()
     pull_mock.assert_called_once()
     push_mock.assert_called_once()
+    assert uri == f"oci://{oci_ref}"
 
 def test_save_to_oci_registry_with_custom_backend_unavailable():
     is_available_mock = Mock()
