@@ -470,7 +470,7 @@ class ModelRegistry:
             region: The region name for the S3 object storage.
 
         Returns:
-            S3 URI formatted from the object
+            The S3 URI to the uploaded files.
 
         Raises:
             StoreError: If there was an issue uploading to S3.
@@ -506,7 +506,7 @@ class ModelRegistry:
         *,
         endpoint_url: str | None = None,
         region: str | None = None,
-    ) -> list[str]:
+    ) -> str:
         """Internal method for recursively uploading all files to S3.
 
         Args:
@@ -519,7 +519,7 @@ class ModelRegistry:
             endpoint_url: The endpoint url for the S3 bucket.
             region: The region name for the S3 bucket.
 
-        Returns: List of S3 URIs of the uploaded files.
+        Returns:  The S3 URI path of the uploaded files.
 
         Raises:
             StoreError if `path` does not exist.
@@ -544,6 +544,16 @@ class ModelRegistry:
             msg = f"Path '{path}' does not exist. Please ensure path is correct."
             raise StoreError(msg)
 
+        if path_prefix.endswith("/"):
+            path_prefix = path_prefix[:-1]
+
+        uri = s3_uri_from(
+            path=path_prefix,
+            bucket=bucket,
+            endpoint=endpoint_url,
+            region=region,
+        )
+
         if is_file:
             filename = os.path.basename(path)
             if not filename:
@@ -553,26 +563,16 @@ class ModelRegistry:
             s3_key = os.path.join(path_prefix, filename)
             s3.upload_file(path, bucket, s3_key)
 
-            uri = s3_uri_from(
-                path=s3_key, bucket=bucket, endpoint=endpoint_url, region=region
-            )
-            return [uri]
+            return uri
 
-        s3_uris = []
         for root, _, files in os.walk(path):
             for filename in files:
                 file_path = os.path.join(root, filename)
                 relative_path = os.path.relpath(file_path, path)
                 s3_key = os.path.join(path_prefix, relative_path)
                 s3.upload_file(file_path, bucket, s3_key)
-                uri = s3_uri_from(
-                    path=s3_key,
-                    bucket=bucket,
-                    endpoint=endpoint_url,
-                    region=region,
-                )
-                s3_uris.append(uri)
-        return s3_uris
+
+        return uri
 
     def __s3_creds(
         self,

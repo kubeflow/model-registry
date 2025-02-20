@@ -661,7 +661,7 @@ def test_hf_import_default_env(client: ModelRegistry):
         os.environ.pop(k)
 
 
-@pytest.mark.e2e
+@pytest.mark.dd
 def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistry):
     pytest.importorskip("boto3")
 
@@ -685,7 +685,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
 
     model_name = get_model_file.split("/")[-1]
     prefix = "models"
-    uris = client.save_to_s3(path=get_model_file, s3_prefix=prefix, bucket_name=bucket)
+    uri = client.save_to_s3(path=get_model_file, s3_prefix=prefix, bucket_name=bucket)
 
     s3 = boto3.client(
         "s3",
@@ -700,11 +700,11 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     objects_by_name = [obj["Key"] for obj in objects]
     model_name_pfx = os.path.join(prefix, model_name)
     s3_link = utils.s3_uri_from(
-        bucket=bucket, path=model_name_pfx, endpoint=s3_endpoint, region=default_region
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
     )
 
-    assert len(uris) == 1
-    assert uris == [s3_link]
+    assert type(uri) is str
+    assert uri == s3_link
     assert model_name_pfx in objects_by_name
 
     # Test without s3_prefix param
@@ -720,7 +720,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.e2e
+@pytest.mark.dd
 def test_recursive_store_in_s3(
     get_temp_dir_with_models, patch_s3_env, client: ModelRegistry
 ):
@@ -748,8 +748,7 @@ def test_recursive_store_in_s3(
     assert bucket is not None
 
     prefix = "models2"
-    uris = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
-    assert len(uris) == 3
+    uri = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
 
     s3 = boto3.client(
         "s3",
@@ -763,15 +762,12 @@ def test_recursive_store_in_s3(
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
     formatted_paths = [os.path.join(prefix, os.path.basename(path)) for path in files]
-    s3_links = [
-        utils.s3_uri_from(
-            bucket=bucket, path=_path, endpoint=s3_endpoint, region=default_region
-        )
-        for _path in formatted_paths
-    ]
+    s3_uri = utils.s3_uri_from(
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+    )
 
-    assert len(uris) == 3
-    assert uris == s3_links
+    assert type(uri) is str
+    assert uri == s3_uri
     for path in formatted_paths:
         assert path in objects_by_name
 
@@ -786,7 +782,7 @@ def test_recursive_store_in_s3(
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.e2e
+@pytest.mark.dd
 def test_nested_recursive_store_in_s3(
     get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry
 ):
@@ -814,8 +810,7 @@ def test_nested_recursive_store_in_s3(
     assert bucket is not None
 
     prefix = "models3"
-    uris = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
-    assert len(uris) == 3
+    uri = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
 
     s3 = boto3.client(
         "s3",
@@ -828,7 +823,9 @@ def test_nested_recursive_store_in_s3(
     # Manually check that the object is indeed here
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
-
+    s3_uri = utils.s3_uri_from(
+            bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+        )
     # this is creating a list of all the file names + their immediate parent folder only
     formatted_paths = [
         os.path.join(
@@ -836,15 +833,9 @@ def test_nested_recursive_store_in_s3(
         )
         for path in files
     ]
-    s3_links = [
-        utils.s3_uri_from(
-            bucket=bucket, path=_path, endpoint=s3_endpoint, region=default_region
-        )
-        for _path in formatted_paths
-    ]
 
-    assert len(uris) == 3
-    assert uris == s3_links
+    assert type(uri) is str
+    assert uri == s3_uri
     for path in formatted_paths:
         assert path in objects_by_name
 
