@@ -58,6 +58,7 @@ def tests(session: Session) -> None:
         "requests",
         "pytest",
         "pytest-asyncio",
+        "olot",
     )
     session.run(
         "pytest",
@@ -77,6 +78,7 @@ def e2e_tests(session: Session) -> None:
         "coverage[toml]",
         "pytest-cov",
         "huggingface-hub",
+        "olot",
     )
     try:
         session.run(

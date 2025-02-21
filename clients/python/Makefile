@@ -18,8 +18,12 @@ deploy-latest-mr:
 	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build && LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 &
 
+.PHONY: deploy-local-registry
+deploy-local-registry:
+	cd ../../ && ./scripts/deploy_local_kind_registry.sh
+
 .PHONY: test-e2e
-test-e2e: deploy-latest-mr
+test-e2e: deploy-latest-mr deploy-local-registry
 	poetry run pytest --e2e -s -rA
 
 .PHONY: test

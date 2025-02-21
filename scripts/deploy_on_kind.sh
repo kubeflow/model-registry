@@ -10,7 +10,7 @@ source ./${DIR}/utils.sh
 
 # modularity to allow re-use this script against a remote k8s cluster
 if [[ -n "$LOCAL" ]]; then
-    CLUSTER_NAME="${CLUSTER_NAME:-kind}"
+    CLUSTER_NAME="${CLUSTER_NAME:-mr-e2e}"
 
     echo 'Creating local Kind cluster and loading image'
 

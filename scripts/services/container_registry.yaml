@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distribution-registry-test-deployment
+  labels:
+    app: distribution-registry-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: distribution-registry-test
+  template:
+    metadata:
+      labels:
+        app: distribution-registry-test
+    spec:
+      containers:
+        - name: distribution-registry-test
+          image: docker.io/library/registry:2
+          args:
+            - /etc/docker/registry/config.yml
+          env:
+            - name: REGISTRY_HTTP_ADDR
+              value: 0.0.0.0:5001
+          ports:
+            - containerPort: 5001
+          volumeMounts:
+            - mountPath: /var/lib/registry
+              name: distribution-registry-storage
+      volumes:
+        - name: distribution-registry-storage
+          persistentVolumeClaim:
+            claimName: distribution-registry-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: distribution-registry-test-service
+  labels:
+    app: distribution-registry-test
+spec:
+  selector:
+    app: distribution-registry-test
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: distribution-registry-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
