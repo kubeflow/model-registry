@@ -8,6 +8,7 @@ import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
 import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
 import { isMUITheme } from '~/shared/utilities/const';
+import KubeflowDocs from '~/shared/components/KubeflowDocs';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';
@@ -64,12 +65,16 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
       emptyStatePage: (
         <EmptyModelRegistryState
           testid="empty-model-registries-state"
-          title="Request access to model registries"
-          description="To request a new model registry, or to request permission to access an existing model registry, contact your administrator."
+          title={isMUITheme() ? 'Deploy a model registry' : 'Request access to model registries'}
+          description={
+            isMUITheme()
+              ? 'To deploy a new model registry, follow the instructions in the docs below.'
+              : 'To request a new model registry, or to request permission to access an existing model registry, contact your administrator.'
+          }
           headerIcon={() => (
             <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
           )}
-          customAction={<WhosMyAdministrator />}
+          customAction={isMUITheme() ? <KubeflowDocs /> : <WhosMyAdministrator />}
         />
       ),
       headerContent: null,
