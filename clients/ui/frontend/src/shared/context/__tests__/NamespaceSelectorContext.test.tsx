@@ -6,7 +6,7 @@ import * as constUtils from '~/shared/utilities/const';
 import {
   NamespaceSelectorContext,
   NamespaceSelectorContextProvider,
-} from '../NamespaceSelectorContext';
+} from '~/shared/context/NamespaceSelectorContext';
 
 // Mock the hooks and utilities
 jest.mock('~/shared/hooks/useNamespaces');

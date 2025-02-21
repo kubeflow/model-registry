@@ -93,6 +93,7 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
                       <MenuToggle
                         aria-label="User menu"
                         id="user-menu-toggle"
+                        data-testid="user-menu-toggle-button"
                         ref={toggleRef}
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                         isExpanded={userMenuOpen}
