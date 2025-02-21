@@ -31,7 +31,8 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
-  const { namespacesLoaded, namespacesLoadError } = React.useContext(NamespaceSelectorContext);
+  const { namespacesLoaded, namespacesLoadError, initializationError } =
+    React.useContext(NamespaceSelectorContext);
 
   const username = userSettings?.userId;
 
@@ -63,7 +64,7 @@ const App: React.FC = () => {
     [configSettings, userSettings],
   );
 
-  const error = configError || namespacesLoadError;
+  const error = configError || namespacesLoadError || initializationError;
 
   const sidebar = <PageSidebar isSidebarOpen={false} />;
 
@@ -79,6 +80,7 @@ const App: React.FC = () => {
                 <p>
                   {configError?.message ||
                     namespacesLoadError?.message ||
+                    initializationError?.message ||
                     'Unknown error occurred during startup'}
                 </p>
                 <p>Logging out and logging back in may solve the issue</p>

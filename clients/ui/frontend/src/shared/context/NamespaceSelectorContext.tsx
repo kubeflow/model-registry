@@ -9,6 +9,7 @@ export type NamespaceSelectorContextType = {
   namespaces: Namespace[];
   preferredNamespace: Namespace | undefined;
   updatePreferredNamespace: (namespace: Namespace | undefined) => void;
+  initializationError?: Error;
 };
 
 type NamespaceSelectorContextProviderProps = {
@@ -21,6 +22,7 @@ export const NamespaceSelectorContext = React.createContext<NamespaceSelectorCon
   namespaces: [],
   preferredNamespace: undefined,
   updatePreferredNamespace: () => undefined,
+  initializationError: undefined,
 });
 
 export const NamespaceSelectorContextProvider: React.FC<NamespaceSelectorContextProviderProps> = ({
@@ -45,6 +47,7 @@ const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContext
   const [namespaces, isLoaded, error] = useNamespaces();
   const [preferredNamespace, setPreferredNamespace] =
     React.useState<NamespaceSelectorContextType['preferredNamespace']>(undefined);
+  const [initializationError, setInitializationError] = React.useState<Error>();
 
   const firstNamespace = namespaces.length > 0 ? namespaces[0] : null;
 
@@ -62,6 +65,9 @@ const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContext
       } catch (err) {
         /* eslint-disable no-console */
         console.error('Failed to initialize central dashboard client', err);
+        if (err instanceof Error) {
+          setInitializationError(err);
+        }
       }
     }
   }, []);
@@ -73,8 +79,9 @@ const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContext
       namespaces,
       preferredNamespace: preferredNamespace ?? firstNamespace ?? undefined,
       updatePreferredNamespace: setPreferredNamespace,
+      initializationError,
     }),
-    [isLoaded, error, namespaces, preferredNamespace, firstNamespace],
+    [isLoaded, error, namespaces, preferredNamespace, firstNamespace, initializationError],
   );
 
   return (
