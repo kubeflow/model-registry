@@ -57,6 +57,32 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 	suite.Equal(2, len(getAllResp.Contexts), "there should be two contexts saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateModelVersionFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	state := openapi.MODELVERSIONSTATE_LIVE
+	modelVersion := &openapi.ModelVersion{
+		Name:        modelVersionName,
+		ExternalId:  &versionExternalId,
+		Description: &modelVersionDescription,
+		State:       &state,
+		Author:      &author,
+	}
+
+	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
+
+	// attempt to create dupliate model version
+	_, err = service.UpsertModelVersion(modelVersion, &registeredModelId)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate model version")
+	suite.Equal(409, statusResp, "duplicate model versions not allowed")
+}
+
 func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()

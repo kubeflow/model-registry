@@ -76,6 +76,49 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 	suite.Equal(*createdEntityId, *byCtx.Executions[0].Id)
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateServeModelFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModelId := suite.registerModel(service, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+
+	modelVersion := &openapi.ModelVersion{
+		Name:        modelVersionName,
+		ExternalId:  &versionExternalId,
+		Description: &modelVersionDescription,
+		Author:      &author,
+	}
+	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %s", registeredModelId)
+	createdVersionId := *createdVersion.Id
+	//createdVersionIdAsInt, _ := converter.StringToInt64(&createdVersionId)
+	// end of data preparation
+
+	eut := &openapi.ServeModel{
+		LastKnownState: (*openapi.ExecutionState)(&executionState),
+		ExternalId:     &entityExternalId2,
+		Description:    &entityDescription,
+		Name:           &entityName,
+		ModelVersionId: createdVersionId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"custom_string_prop": {
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
+			},
+		},
+	}
+
+	createdEntity, err := service.UpsertServeModel(eut, &inferenceServiceId)
+	suite.Nilf(err, "error creating new ServeModel for %d", inferenceServiceId)
+	suite.NotNil(createdEntity.Id, "created id should not be nil")
+
+	// attempt to create dupliate serve model
+	_, err = service.UpsertServeModel(eut, &inferenceServiceId)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate serve model")
+	suite.Equal(409, statusResp, "duplicate serve models not allowed")
+}
+
 func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
