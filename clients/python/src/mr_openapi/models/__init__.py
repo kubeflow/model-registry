@@ -27,8 +27,15 @@ from mr_openapi.models.base_execution_create import BaseExecutionCreate
 from mr_openapi.models.base_execution_update import BaseExecutionUpdate
 from mr_openapi.models.base_resource import BaseResource
 from mr_openapi.models.base_resource_create import BaseResourceCreate
+from mr_openapi.models.base_resource_dates import BaseResourceDates
 from mr_openapi.models.base_resource_list import BaseResourceList
 from mr_openapi.models.base_resource_update import BaseResourceUpdate
+from mr_openapi.models.catalog_model import CatalogModel
+from mr_openapi.models.catalog_model_all_of_base_model import CatalogModelAllOfBaseModel
+from mr_openapi.models.catalog_model_artifact import CatalogModelArtifact
+from mr_openapi.models.catalog_model_list import CatalogModelList
+from mr_openapi.models.catalog_source import CatalogSource
+from mr_openapi.models.catalog_source_list import CatalogSourceList
 from mr_openapi.models.doc_artifact import DocArtifact
 from mr_openapi.models.doc_artifact_create import DocArtifactCreate
 from mr_openapi.models.doc_artifact_update import DocArtifactUpdate
