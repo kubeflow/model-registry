@@ -165,6 +165,11 @@ jobs:
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
           pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
           nox --version
+      - name: Install Storage Clients
+        # Oras should be available in the GH Action CI by default
+        # See: https://oras.land/docs/installation/#runner-machine-of-azure-devops-and-github-actions
+        run: |
+          sudo apt-get -y install skopeo
       - name: Nox test
         working-directory: clients/python
         run: |
@@ -201,6 +206,8 @@ jobs:
         env:
           IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
+      - name: Deploy OCI Registry using manifests
+        run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
         working-directory: clients/python
         run: |
