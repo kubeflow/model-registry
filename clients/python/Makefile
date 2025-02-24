@@ -24,7 +24,7 @@ deploy-test-minio:
 	kubectl port-forward -n minio svc/minio 9000:9000 &
 	
 .PHONY: test-e2e
-test-e2e: deploy-latest-mr deploy-test-minio
+test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
 	poetry run pytest --e2e -s -rA
 	rm -fr ../../scripts/manifests/minio/.env
