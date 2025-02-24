@@ -5,7 +5,7 @@ class AppChrome {
   }
 
   private wait() {
-    cy.get('#dashboard-page-main');
+    cy.findByTestId('app-page-title').should('exist');
     cy.testA11y();
   }
 
