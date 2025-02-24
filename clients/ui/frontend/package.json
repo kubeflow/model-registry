@@ -40,7 +40,7 @@
     "@mui/material": "^6.1.7",
     "@mui/icons-material": "^6.4.1",
     "@mui/types": "^7.2.20",
-    "@testing-library/cypress": "^10.0.1",
+    "@testing-library/cypress": "^10.0.3",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@testing-library/react": "^16.1.0",
