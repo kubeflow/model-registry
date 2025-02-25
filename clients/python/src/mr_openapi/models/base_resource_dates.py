@@ -18,27 +18,10 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
-from mr_openapi.models.metadata_value import MetadataValue
 
+class BaseResourceDates(BaseModel):
+    """BaseResourceDates."""  # noqa: E501
 
-class BaseResource(BaseModel):
-    """BaseResource."""  # noqa: E501
-
-    custom_properties: dict[str, MetadataValue] | None = Field(
-        default=None,
-        description="User provided custom properties which are not defined by its type.",
-        alias="customProperties",
-    )
-    description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
-    external_id: StrictStr | None = Field(
-        default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
-        alias="externalId",
-    )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
-    )
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
         description="Output only. Create time of the resource in millisecond since epoch.",
@@ -49,16 +32,7 @@ class BaseResource(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
-    __properties: ClassVar[list[str]] = [
-        "customProperties",
-        "description",
-        "externalId",
-        "name",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
-        "id",
-    ]
+    __properties: ClassVar[list[str]] = ["createTimeSinceEpoch", "lastUpdateTimeSinceEpoch"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -77,7 +51,7 @@ class BaseResource(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of BaseResource from a JSON string."""
+        """Create an instance of BaseResourceDates from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -97,23 +71,15 @@ class BaseResource(BaseModel):
             "last_update_time_since_epoch",
         }
 
-        _dict = self.model_dump(
+        return self.model_dump(
             by_alias=True,
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
-        _field_dict = {}
-        if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
-            _dict["customProperties"] = _field_dict
-        return _dict
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of BaseResource from a dict."""
+        """Create an instance of BaseResourceDates from a dict."""
         if obj is None:
             return None
 
@@ -122,16 +88,7 @@ class BaseResource(BaseModel):
 
         return cls.model_validate(
             {
-                "customProperties": (
-                    {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
-                    if obj.get("customProperties") is not None
-                    else None
-                ),
-                "description": obj.get("description"),
-                "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
-                "id": obj.get("id"),
             }
         )
