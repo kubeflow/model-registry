@@ -143,10 +143,6 @@
   padding: var(--pf-t--global--spacer--md);
 }
 
-.mui-theme .pf-v6-c-page__main-breadcrumb {
-  --pf-v6-c-page__main-breadcrumb--PaddingInlineStart: none;
-}
-
 .mui-theme .pf-v6-c-button {
   --pf-v6-c-button--FontWeight: var(--mui-button-font-weight);
   --pf-v6-c-button--PaddingBlockStart: var(--mui-button--PaddingBlockStart);
@@ -851,9 +847,16 @@
   }
 }
 
-.mui-theme .pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-container,
-.mui-theme .pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__drawer {
+.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-container,
+.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__drawer,
+.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-breadcrumb {
   --pf-v6-c-page__main-container--MarginInlineStart: calc(-2 * var(--mui-spacing-16px));
   --pf-v6-c-page__main-section--PaddingInlineStart: none;
   --pf-v6-c-page__main-section--PaddingInlineEnd: none;
+  --pf-v6-c-page__main-breadcrumb--PaddingInlineStart: none;
+}
+
+.pf-v6-c-page__sidebar.pf-m-collapsed+.pf-v6-c-page__main-container {
+  --pf-v6-c-page__main-container--MarginInlineStart: calc(-1 * var(--mui-spacing-8px));
+  --pf-v6-c-page__main-container--MarginInlineEnd: calc(-1 * var(--mui-spacing-8px));
 }
