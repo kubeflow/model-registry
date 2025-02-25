@@ -153,7 +153,12 @@ Cypress.Commands.add(
       });
     }
     return cy.intercept(
-      { method, pathname, query: options?.query, ...(options?.times && { times: options.times }) },
+      {
+        method,
+        pathname: `/model-registry/${pathname}`,
+        query: options?.query,
+        ...(options?.times && { times: options.times }),
+      },
       mockBFFResponse(response),
     );
   },
