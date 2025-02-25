@@ -21,6 +21,8 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 import { ModelRegistry } from '~/app/types';
 import SimpleSelect, { SimpleSelectOption } from '~/shared/components/SimpleSelect';
 import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
+import { isMUITheme } from '~/shared/utilities/const';
+import KubeflowDocs from '~/shared/components/KubeflowDocs';
 
 const MODEL_REGISTRY_FAVORITE_STORAGE_KEY = 'kubeflow.dashboard.model.registry.favorite';
 
@@ -169,14 +171,21 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
         </FlexItem>
       )}
       <FlexItem align={{ default: 'alignRight' }}>
-        <WhosMyAdministrator
-          buttonLabel="Need another registry?"
-          headerContent="Need another registry?"
-          leadText="To request access to a new or existing model registry, contact your administrator."
-          contentTestId="model-registry-help-content"
-          linkTestId="model-registry-help-button"
-          popoverPosition={PopoverPosition.left}
-        />
+        {isMUITheme() ? (
+          <KubeflowDocs
+            buttonLabel="Need another registry?"
+            linkTestId="model-registry-help-button"
+          />
+        ) : (
+          <WhosMyAdministrator
+            buttonLabel="Need another registry?"
+            headerContent="Need another registry?"
+            leadText="To request access to a new or existing model registry, contact your administrator."
+            contentTestId="model-registry-help-content"
+            linkTestId="model-registry-help-button"
+            popoverPosition={PopoverPosition.left}
+          />
+        )}
       </FlexItem>
     </Flex>
   );
