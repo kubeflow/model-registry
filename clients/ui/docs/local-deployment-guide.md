@@ -33,7 +33,7 @@ kubectl cluster-info
 
 If everything is working correctly you should see output similar to:
 
-```
+``` shell
 Kubernetes control plane is running at https://127.0.0.1:58635
 CoreDNS is running at https://127.0.0.1:58635/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
@@ -105,6 +105,7 @@ curl http://localhost:8080/api/model_registry/v1alpha3/registered_models
 ```
 
 You should receive a 200 response if everything is working correctly, the body should look like:
+
 ```json
 {"items":[],"nextPageToken":"","pageSize":0,"size":0}
 ```
