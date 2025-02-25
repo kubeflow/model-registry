@@ -86,7 +86,7 @@ func GenerateMockModelVersionList() openapi.ModelVersionList {
 
 func GenerateMockModelArtifact() openapi.ModelArtifact {
 	artifact := openapi.ModelArtifact{
-		ArtifactType: "model-artifact",
+		ArtifactType: stringToPointer("model-artifact"),
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"example_key": {
 				MetadataStringValue: &openapi.MetadataStringValue{
