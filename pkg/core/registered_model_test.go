@@ -59,6 +59,36 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModelFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
+	// register a new model
+	registeredModel := &openapi.RegisteredModel{
+		Name:        modelName,
+		ExternalId:  &modelExternalId,
+		Description: &modelDescription,
+		Owner:       &modelOwner,
+		State:       &state,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	// create the first model
+	_, err := service.UpsertRegisteredModel(registeredModel)
+	suite.Nilf(err, "error creating registered model: %v", err)
+
+	// attempt to create dupliate model
+	_, err = service.UpsertRegisteredModel(registeredModel)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a model with duplicate names")
+	suite.Equal(409, statusResp, "duplicate model names not allowed")
+}
+
 func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()

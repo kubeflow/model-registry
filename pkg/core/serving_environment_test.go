@@ -54,6 +54,34 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateServingEnvironmentFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	// register a new ServingEnvironment
+	eut := &openapi.ServingEnvironment{
+		Name:        &entityName,
+		ExternalId:  &entityExternalId,
+		Description: &entityDescription,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	// create first serving environment
+	createdEntity, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating uut: %v", err)
+	suite.NotNilf(createdEntity.Id, "created uut should not have nil Id")
+
+	// attempt to create dupliate serving environment
+	_, err = service.UpsertServingEnvironment(eut)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate serving environment")
+	suite.Equal(409, statusResp, "duplicate serving environments not allowed")
+}
+
 func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
