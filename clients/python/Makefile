@@ -22,7 +22,11 @@ deploy-latest-mr:
 deploy-test-minio:
 	cd ../../ && ./scripts/deploy_minio_on_kind.sh
 	kubectl port-forward -n minio svc/minio 9000:9000 &
-	
+
+.PHONY: deploy-local-registry
+deploy-local-registry:
+	cd ../../ && ./scripts/deploy_local_kind_registry.sh
+
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
