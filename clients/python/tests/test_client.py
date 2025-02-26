@@ -685,7 +685,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
 
     model_name = get_model_file.split("/")[-1]
     prefix = "models"
-    uri = client.save_to_s3(path=get_model_file, s3_prefix=prefix, bucket_name=bucket)
+    uri = client.save_to_s3(path=get_model_file, bucket_name=bucket, s3_prefix=prefix)
 
     s3 = boto3.client(
         "s3",
@@ -748,7 +748,7 @@ def test_recursive_store_in_s3(
     assert bucket is not None
 
     prefix = "models2"
-    uri = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
+    uri = client.save_to_s3(path=model_dir, bucket_name=bucket, s3_prefix=prefix)
 
     s3 = boto3.client(
         "s3",

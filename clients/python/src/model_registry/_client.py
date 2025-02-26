@@ -447,8 +447,8 @@ class ModelRegistry:
         self,
         path: str,
         bucket_name: str,
+        s3_prefix: str,
         *,
-        s3_prefix: str | None = None,
         endpoint_url: str | None = None,
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
@@ -460,10 +460,9 @@ class ModelRegistry:
             path: Location to where the model(s) or artifact(s) are located. \
                 Can recursively upload nested files in folders.
             bucket_name: The bucket to use for the S3 compatible object storage.
+            s3_prefix: The path to prefix under root of bucket.
 
         Keyword Args:
-            s3_prefix: The path to prefix with under root of bucket. If unset, will default to `path` if \
-                `path` is not a nested folder.
             endpoint_url: The endpoint URL for the S3 comaptible storage if not using AWS S3.
             access_key_id: The S3 compatible object storage access ID.
             secret_access_key: The S3 compatible object storage secret access key.
@@ -523,22 +522,13 @@ class ModelRegistry:
 
         Raises:
             StoreError if `path` does not exist.
+            StoreError if `path_prefix` is not set.
         """
         is_file = os.path.isfile(path)
 
-        path_split = path.split("/")
-
-        if len(path_split) == 1 and not path_prefix and is_file:
-            msg = f"`s3_prefix` must be set since a file was specified: '{path}'."
+        if not path_prefix:
+            msg = "`path_prefix` must be set."
             raise StoreError(msg)
-
-        if len(path_split) > 1 and not path_prefix:
-            if is_file and not path_prefix:
-                msg = f"`s3_prefix` must be set since a file was specified: '{path}'."
-                raise StoreError(msg)
-            msg = f"`s3_prefix` must be set since the path '{path}' is a nested folder."
-            raise StoreError(msg)
-        path_prefix = path_prefix if path_prefix else path
 
         if not os.path.exists(path):
             msg = f"Path '{path}' does not exist. Please ensure path is correct."
