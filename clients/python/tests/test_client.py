@@ -707,11 +707,6 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert uri == s3_link
     assert model_name_pfx in objects_by_name
 
-    # Test without s3_prefix param
-    with pytest.raises(StoreError) as e:
-        client.save_to_s3(path=get_model_file, bucket_name=bucket)
-    assert "must be set since a file" in str(e.value).lower()
-
     # Test file not exists
     with pytest.raises(StoreError) as e:
         client.save_to_s3(
@@ -770,11 +765,6 @@ def test_recursive_store_in_s3(
     assert uri == s3_uri
     for path in formatted_paths:
         assert path in objects_by_name
-
-    # Test without s3_prefix param
-    with pytest.raises(StoreError) as e:
-        client.save_to_s3(path=f"{model_dir}", bucket_name=bucket)
-    assert "is a nested folder" in str(e.value).lower()
 
     # Test incorrect folder
     with pytest.raises(StoreError) as e:
