@@ -206,12 +206,17 @@ jobs:
         env:
           IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
+      - name: Deploy Minio using manifests
+        run: |
+          ./scripts/deploy_minio_on_kind.sh
+          cat ./scripts/manifests/minio/.env >> $GITHUB_ENV
       - name: Deploy OCI Registry using manifests
         run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
+          kubectl port-forward -n minio svc/minio 9000:9000 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
 
