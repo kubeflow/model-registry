@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import os
-<<<<<<< HEAD
+import re
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, TypedDict
-=======
-import re
->>>>>>> 6ebe337 (chore: add oci and s3 helper methods)
 
 from typing_extensions import overload
 
@@ -139,6 +137,25 @@ def _get_oras_backend() -> BackendDefinition:
         "push": oras_push,
     }
 
+@dataclass
+class OCIParams:
+    """Parameters for the OCI client to perform the upload.
+
+    Allows for some customization of how to perform the upload step when uploading via OCI
+
+    """
+    base_image: str
+    oci_ref: str
+    dest_dir: str | os.PathLike = None
+    backend: str = "skopeo"
+    modelcard: os.PathLike | None = None
+    custom_oci_backend: BackendDefinition = None
+
+@dataclass
+class S3Params:
+    # TODO: Implement s3 params dataclass
+    pass
+
 # A dict mapping backend names to their definitions
 BackendDict = dict[str, Callable[[], BackendDefinition]]
 
@@ -154,7 +171,7 @@ def save_to_oci_registry(
         dest_dir: str | os.PathLike = None,
         backend: str = "skopeo",
         modelcard: os.PathLike | None = None,
-        backend_registry: BackendDict | None = DEFAULT_BACKENDS,
+        custom_oci_backend: BackendDefinition | None = None,
 ) -> str:
     """Appends a list of files to an OCI-based image.
 
@@ -165,7 +182,6 @@ def save_to_oci_registry(
         model_files: List of files to add to the base_image as layers
         backend: The CLI tool to use to perform the oci image pull/push. One of: "skopeo", "oras"
         modelcard: Optional, path to the modelcard to additionally include as a layer
-        backend_registry: Optional, a dict of backends available to be used to perform the OCI image download/upload
     Raises:
         ValueError: If the chosen backend is not installed on the host
         ValueError: If the chosen backend is an invalid option
@@ -190,12 +206,16 @@ or
         raise StoreError(msg) from e
 
 
-    if backend not in backend_registry:
-        msg = f"'{backend}' is not an available backend to use. Available backends: {backend_registry.keys()}"
+    # If a custom backend is provided, use it, else fetch the backend out of the registry
+    if custom_oci_backend:
+        backend_def = custom_oci_backend
+    elif backend in DEFAULT_BACKENDS:
+        # Fetching the backend definition can throw an error, but it should bubble up as it has the appropriate messaging
+        backend_def = DEFAULT_BACKENDS[backend]()
+    else:
+        msg = f"'{backend}' is not an available backend to use. Available backends: {DEFAULT_BACKENDS.keys()}"
         raise ValueError(msg)
 
-    # Fetching the backend definition can throw an error, but it should bubble up as it has the appropriate messaging
-    backend_def = backend_registry[backend]()
 
     if not backend_def["is_available"]():
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
@@ -215,14 +235,14 @@ or
 s3_prefix = "s3://"
 
 def is_s3_uri(uri: str):
-    """Checks whether a string is a valid S3 URI
-    
+    """Checks whether a string is a valid S3 URI.
+
     This helper function checks whether the string starts with the correct s3 prefix (s3://) and
     whether the string contains both a bucket and a key.
-    
+
     Args:
         uri: The URI to check
-        
+
     Returns:
         Boolean indicating whether it is a valid S3 URI
     """
@@ -230,25 +250,23 @@ def is_s3_uri(uri: str):
         return False
     # Slice the uri from prefix onward, then check if there are 2 components when splitting on "/"
     path = uri[len(s3_prefix) :]
-    if len(path.split("/", 1)) != 2:
-        return False
-    return True
+    return len(path.split("/", 1)) == 2
 
-oci_pattern = r'^oci://(?P<host>[^/]+)/(?P<repository>[A-Za-z0-9_\-/]+)(:(?P<tag>[A-Za-z0-9_.-]+))?$'
+oci_pattern = r"^oci://(?P<host>[^/]+)/(?P<repository>[A-Za-z0-9_\-/]+)(:(?P<tag>[A-Za-z0-9_.-]+))?$"
 
 def is_oci_uri(uri: str):
-    """Checks whether a string is a valid OCI URI
-    
+    """Checks whether a string is a valid OCI URI.
+
     The expected format is:
         oci://<host>/<repository>[:<tag>]
-        
+
     Examples of valid URIs:
         oci://registry.example.com/my-namespace/my-repo:latest
         oci://localhost:5000/my-repo
 
     Args:
         uri: The URI to check
-        
+
     Returns:
         Boolean indicating whether it is a valid OCI URI
     """

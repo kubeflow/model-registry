@@ -1,4 +1,5 @@
 import os
+import pathlib
 from itertools import islice
 
 import pytest
@@ -833,3 +834,39 @@ def test_nested_recursive_store_in_s3(
     with pytest.raises(StoreError) as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
+@pytest.mark.e2e
+def test_upload_artifact_and_register_model_with_default_oci(client: ModelRegistry) -> None:
+    # olot is required to run this test
+    pytest.importorskip("olot")
+    name = "oci-test/defaults"
+    version = "0.0.1"
+    author = "Tester McTesterson"
+    oci_ref = "localhost:5001/foo/bar:latest"
+    local_path = pathlib.Path("tests/data")
+
+    upload_params = utils.OCIParams(
+        "quay.io/mmortari/hello-world-wait:latest",
+        oci_ref,
+    )
+
+    print(upload_params)
+
+    # Create a sample file named README.md to be added to the registry
+    pathlib.Path(local_path).mkdir(parents=True, exist_ok=True)
+    readme_file_path = os.path.join(local_path, "README.md")
+    with open(readme_file_path, "w") as f:
+        f.write("")
+
+
+    assert client.upload_artifact_and_register_model(
+        name,
+        model_files=[pathlib.Path(readme_file_path)],
+        author=author,
+        version=version,
+        model_format_name="test format",
+        model_format_version="test version",
+        upload_params=upload_params,
+    )
+
+    assert (ma := client.get_model_artifact(name, version))
+    assert ma.uri == f"oci://{oci_ref}"

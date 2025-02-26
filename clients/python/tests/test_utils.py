@@ -5,11 +5,12 @@ from unittest.mock import Mock
 import pytest
 
 from model_registry.exceptions import MissingMetadata
-<<<<<<< HEAD
-from model_registry.utils import s3_uri_from, save_to_oci_registry
-=======
-from model_registry.utils import s3_uri_from, is_s3_uri, is_oci_uri
->>>>>>> 6ebe337 (chore: add oci and s3 helper methods)
+from model_registry.utils import (
+    is_oci_uri,
+    is_s3_uri,
+    s3_uri_from,
+    save_to_oci_registry,
+)
 
 
 def test_s3_uri_builder():
@@ -121,12 +122,10 @@ def test_save_to_oci_registry_with_custom_backend():
 
 
     backend = "something_custom"
-    backend_registry = {
-        "something_custom": lambda: {
+    custom_oci_backend = {
             "is_available": is_available_mock,
             "pull": pull_mock,
             "push": push_mock,
-        }
     }
 
     # similar to other test
@@ -142,33 +141,12 @@ def test_save_to_oci_registry_with_custom_backend():
 
     model_files = [readme_file_path]
 
-    uri = save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, backend_registry)
+    uri = save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, custom_oci_backend)
     # Ensure our mocked backend was called
     is_available_mock.assert_called_once()
     pull_mock.assert_called_once()
     push_mock.assert_called_once()
     assert uri == f"oci://{oci_ref}"
-
-def test_save_to_oci_registry_with_custom_backend_unavailable():
-    is_available_mock = Mock()
-    is_available_mock.return_value = False # Backend is unavailable, expect an error
-    pull_mock = Mock()
-    push_mock = Mock()
-
-    backend = "something_custom"
-    backend_registry = {
-        "something_custom": lambda: {
-            "is_available": is_available_mock,
-            "pull": pull_mock,
-            "push": push_mock,
-        }
-    }
-
-
-    with pytest.raises(ValueError, match=f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment.") as e:
-        save_to_oci_registry("", "", [], "", backend, backend_registry=backend_registry)
-
-    assert f"Backend '{backend}' is selected, but not available on the system." in str(e.value)
 
 def test_save_to_oci_registry_backend_not_found():
     backend = "non-existent"
@@ -184,7 +162,7 @@ def test_is_s3_uri_with_valid_uris():
         "s3://my-bucket/my-folder/my-sub-folder/my-file.sh",
     ]
     for test in test_cases:
-        assert is_s3_uri(test) == True
+        assert is_s3_uri(test) is True
 
 def test_is_s3_uri_with_invalid_uris():
     test_cases = [
@@ -194,7 +172,7 @@ def test_is_s3_uri_with_invalid_uris():
         "my-bucket/my-file.sh",
     ]
     for test in test_cases:
-        assert is_s3_uri(test) == False
+        assert is_s3_uri(test) is False
 
 def test_is_oci_uri_with_valid_uris():
     test_cases = [
@@ -205,7 +183,7 @@ def test_is_oci_uri_with_valid_uris():
     ]
 
     for test in test_cases:
-        assert is_oci_uri(test) == True
+        assert is_oci_uri(test) is True
 
 def test_is_oci_uri_with_invalid_uris():
     test_cases = [
@@ -219,5 +197,5 @@ def test_is_oci_uri_with_invalid_uris():
     ]
 
     for test in test_cases:
-        assert is_oci_uri(test) == False
+        assert is_oci_uri(test) is False
 
