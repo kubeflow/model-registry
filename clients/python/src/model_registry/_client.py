@@ -5,11 +5,10 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Mapping
+from dataclasses import asdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
 from warnings import warn
-
-from .utils import is_oci_uri, is_s3_uri
 
 from .core import ModelRegistryAPIClient
 from .exceptions import StoreError
@@ -21,7 +20,7 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
-from .utils import s3_uri_from
+from .utils import OCIParams, S3Params, save_to_oci_registry, s3_uri_from
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -171,63 +170,54 @@ class ModelRegistry:
         return await self._api.upsert_model_version_artifact(
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
-    
+
     def _upload_to_s3(
         self,
         artifact_local_path: str,
         destination: str,
         region_name: str | None = None,
     ) -> str:
-        """
-        Uploads a file to an S3 bucket.
-        """
-        pass
+        """Uploads a file to an S3 bucket."""
+        msg = "S3 Upload is not supported"
+        raise StoreError(msg)
 
-    def _upload_to_oci(
-        self,
-        artifact_local_path: str,
-        destination: str,
-    ) -> str:
-        """
-        Uploads an artifact to an OCI registry.
-        """
-        pass
-    
     def upload_artifact_and_register_model(
         self,
         name: str,
-        artifact_local_path: str,
-        destination_uri: str,
+        model_files: list[os.PathLike],
         *,
+        # Artifact/Model Params
         version: str,
         model_format_name: str,
         model_format_version: str,
+        storage_path: str | None = None,
         storage_key: str | None = None,
         service_account_name: str | None = None,
         author: str | None = None,
         owner: str | None = None,
         description: str | None = None,
         metadata: Mapping[str, SupportedTypes] | None = None,
-        upload_client_params: Mapping[str, str] | None = None,
+        # Upload/client Params
+        upload_params: OCIParams | S3Params,
     ) -> RegisteredModel:
-        if is_s3_uri(destination_uri):
-            self._upload_to_s3(artifact_local_path, destination_uri, upload_client_params['region_name'])
-        elif is_oci_uri(destination_uri):
-            self._upload_to_oci(artifact_local_path, destination_uri)
+        if isinstance(upload_params, S3Params):
+            # TODO: Dont use a mock function here
+            destination_uri = self._upload_to_s3(model_files, destination_uri)
+        elif isinstance(upload_params, OCIParams):
+            print(asdict(upload_params))
+            destination_uri = save_to_oci_registry(**asdict(upload_params), model_files=model_files)
         else:
-            msg = "Invalid destination URI. Must start with 's3://' or 'oci://'"
-            raise StoreError(msg)
-        
-        # TODO: Perform the upload(s)
+            msg = 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
+            raise ValueError(msg)
 
-        registered_model = self.register_model(
+        return self.register_model(
             name,
             destination_uri,
             model_format_name=model_format_name,
             model_format_version=model_format_version,
             version=version,
             storage_key=storage_key,
-            storage_path=artifact_local_path,
+            storage_path=storage_path,
             service_account_name=service_account_name,
             author=author,
             owner=owner,
@@ -235,9 +225,6 @@ class ModelRegistry:
             metadata=metadata,
         )
 
-        # TODO: Do something with the model? Metdata?
-
-        return registered_model
 
     def register_model(
         self,
