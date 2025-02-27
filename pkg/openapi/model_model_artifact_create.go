@@ -41,6 +41,16 @@ type ModelArtifactCreate struct {
 	ModelFormatVersion *string `json:"modelFormatVersion,omitempty"`
 	// Name of the service account with storage secret.
 	ServiceAccountName *string `json:"serviceAccountName,omitempty"`
+	// A string identifier describing the source kind. It differentiates various sources of model artifacts. This identifier should be agreed upon by producers and consumers of source model metadata. It is not an enumeration to keep the source of model metadata open ended.  E.g. Kubeflow pipelines could use `pipelines` to identify models it produces.
+	ModelSourceKind *string `json:"modelSourceKind,omitempty"`
+	// A subgroup within the source kind. It is a specific sub-component or instance within the source kind. E.g. `pipelinerun` for a Kubeflow pipeline run.
+	ModelSourceClass *string `json:"modelSourceClass,omitempty"`
+	// Unique identifier for a source group for models from source class.  It maps to a physical group of source models.  E.g. a Kubernetes namespace where the pipeline run was executed.
+	ModelSourceGroup *string `json:"modelSourceGroup,omitempty"`
+	// A unique identifier for a source model within kind, class, and group. It should be a url friendly string if source supports using URLs to locate source models. E.g. a pipeline run ID.
+	ModelSourceId *string `json:"modelSourceId,omitempty"`
+	// A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
+	ModelSourceName *string `json:"modelSourceName,omitempty"`
 }
 
 // NewModelArtifactCreate instantiates a new ModelArtifactCreate object
@@ -452,6 +462,166 @@ func (o *ModelArtifactCreate) SetServiceAccountName(v string) {
 	o.ServiceAccountName = &v
 }
 
+// GetModelSourceKind returns the ModelSourceKind field value if set, zero value otherwise.
+func (o *ModelArtifactCreate) GetModelSourceKind() string {
+	if o == nil || IsNil(o.ModelSourceKind) {
+		var ret string
+		return ret
+	}
+	return *o.ModelSourceKind
+}
+
+// GetModelSourceKindOk returns a tuple with the ModelSourceKind field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetModelSourceKindOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelSourceKind) {
+		return nil, false
+	}
+	return o.ModelSourceKind, true
+}
+
+// HasModelSourceKind returns a boolean if a field has been set.
+func (o *ModelArtifactCreate) HasModelSourceKind() bool {
+	if o != nil && !IsNil(o.ModelSourceKind) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelSourceKind gets a reference to the given string and assigns it to the ModelSourceKind field.
+func (o *ModelArtifactCreate) SetModelSourceKind(v string) {
+	o.ModelSourceKind = &v
+}
+
+// GetModelSourceClass returns the ModelSourceClass field value if set, zero value otherwise.
+func (o *ModelArtifactCreate) GetModelSourceClass() string {
+	if o == nil || IsNil(o.ModelSourceClass) {
+		var ret string
+		return ret
+	}
+	return *o.ModelSourceClass
+}
+
+// GetModelSourceClassOk returns a tuple with the ModelSourceClass field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetModelSourceClassOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelSourceClass) {
+		return nil, false
+	}
+	return o.ModelSourceClass, true
+}
+
+// HasModelSourceClass returns a boolean if a field has been set.
+func (o *ModelArtifactCreate) HasModelSourceClass() bool {
+	if o != nil && !IsNil(o.ModelSourceClass) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelSourceClass gets a reference to the given string and assigns it to the ModelSourceClass field.
+func (o *ModelArtifactCreate) SetModelSourceClass(v string) {
+	o.ModelSourceClass = &v
+}
+
+// GetModelSourceGroup returns the ModelSourceGroup field value if set, zero value otherwise.
+func (o *ModelArtifactCreate) GetModelSourceGroup() string {
+	if o == nil || IsNil(o.ModelSourceGroup) {
+		var ret string
+		return ret
+	}
+	return *o.ModelSourceGroup
+}
+
+// GetModelSourceGroupOk returns a tuple with the ModelSourceGroup field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetModelSourceGroupOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelSourceGroup) {
+		return nil, false
+	}
+	return o.ModelSourceGroup, true
+}
+
+// HasModelSourceGroup returns a boolean if a field has been set.
+func (o *ModelArtifactCreate) HasModelSourceGroup() bool {
+	if o != nil && !IsNil(o.ModelSourceGroup) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelSourceGroup gets a reference to the given string and assigns it to the ModelSourceGroup field.
+func (o *ModelArtifactCreate) SetModelSourceGroup(v string) {
+	o.ModelSourceGroup = &v
+}
+
+// GetModelSourceId returns the ModelSourceId field value if set, zero value otherwise.
+func (o *ModelArtifactCreate) GetModelSourceId() string {
+	if o == nil || IsNil(o.ModelSourceId) {
+		var ret string
+		return ret
+	}
+	return *o.ModelSourceId
+}
+
+// GetModelSourceIdOk returns a tuple with the ModelSourceId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetModelSourceIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelSourceId) {
+		return nil, false
+	}
+	return o.ModelSourceId, true
+}
+
+// HasModelSourceId returns a boolean if a field has been set.
+func (o *ModelArtifactCreate) HasModelSourceId() bool {
+	if o != nil && !IsNil(o.ModelSourceId) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelSourceId gets a reference to the given string and assigns it to the ModelSourceId field.
+func (o *ModelArtifactCreate) SetModelSourceId(v string) {
+	o.ModelSourceId = &v
+}
+
+// GetModelSourceName returns the ModelSourceName field value if set, zero value otherwise.
+func (o *ModelArtifactCreate) GetModelSourceName() string {
+	if o == nil || IsNil(o.ModelSourceName) {
+		var ret string
+		return ret
+	}
+	return *o.ModelSourceName
+}
+
+// GetModelSourceNameOk returns a tuple with the ModelSourceName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactCreate) GetModelSourceNameOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelSourceName) {
+		return nil, false
+	}
+	return o.ModelSourceName, true
+}
+
+// HasModelSourceName returns a boolean if a field has been set.
+func (o *ModelArtifactCreate) HasModelSourceName() bool {
+	if o != nil && !IsNil(o.ModelSourceName) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelSourceName gets a reference to the given string and assigns it to the ModelSourceName field.
+func (o *ModelArtifactCreate) SetModelSourceName(v string) {
+	o.ModelSourceName = &v
+}
+
 func (o ModelArtifactCreate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -497,6 +667,21 @@ func (o ModelArtifactCreate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ServiceAccountName) {
 		toSerialize["serviceAccountName"] = o.ServiceAccountName
+	}
+	if !IsNil(o.ModelSourceKind) {
+		toSerialize["modelSourceKind"] = o.ModelSourceKind
+	}
+	if !IsNil(o.ModelSourceClass) {
+		toSerialize["modelSourceClass"] = o.ModelSourceClass
+	}
+	if !IsNil(o.ModelSourceGroup) {
+		toSerialize["modelSourceGroup"] = o.ModelSourceGroup
+	}
+	if !IsNil(o.ModelSourceId) {
+		toSerialize["modelSourceId"] = o.ModelSourceId
+	}
+	if !IsNil(o.ModelSourceName) {
+		toSerialize["modelSourceName"] = o.ModelSourceName
 	}
 	return toSerialize, nil
 }

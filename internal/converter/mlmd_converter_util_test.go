@@ -270,15 +270,25 @@ func TestMapModelArtifactProperties(t *testing.T) {
 		StorageKey:         of("storage-key"),
 		StoragePath:        of("storage-path"),
 		ServiceAccountName: of("service-account-name"),
+		ModelSourceKind:    of("pipelines"),
+		ModelSourceClass:   of("pipelinerun"),
+		ModelSourceGroup:   of("my-ns"),
+		ModelSourceId:      of("run-id1"),
+		ModelSourceName:    of("my-ns/run-id1"),
 	})
 	assertion.Nil(err)
-	assertion.Equal(6, len(props))
+	assertion.Equal(11, len(props))
 	assertion.Equal("my model art description", props["description"].GetStringValue())
 	assertion.Equal("sklearn", props["model_format_name"].GetStringValue())
 	assertion.Equal("1.0", props["model_format_version"].GetStringValue())
 	assertion.Equal("storage-key", props["storage_key"].GetStringValue())
 	assertion.Equal("storage-path", props["storage_path"].GetStringValue())
 	assertion.Equal("service-account-name", props["service_account_name"].GetStringValue())
+	assertion.Equal("pipelines", props["model_source_kind"].GetStringValue())
+	assertion.Equal("pipelinerun", props["model_source_class"].GetStringValue())
+	assertion.Equal("my-ns", props["model_source_group"].GetStringValue())
+	assertion.Equal("run-id1", props["model_source_id"].GetStringValue())
+	assertion.Equal("my-ns/run-id1", props["model_source_name"].GetStringValue())
 
 	props, err = MapModelArtifactProperties(&openapi.ModelArtifact{
 		Name: of("v1"),
@@ -518,6 +528,76 @@ func TestMapModelArtifactServiceAccountName(t *testing.T) {
 	})
 
 	assertion.Equal("my-account", *extracted)
+}
+
+func TestMapModelArtifactModelSourceKind(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapModelArtifactModelSourceKind(map[string]*proto.Value{
+		"model_source_kind": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-source-kind",
+			},
+		},
+	})
+
+	assertion.Equal("my-source-kind", *extracted)
+}
+
+func TestMapModelArtifactModelSourceClass(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapModelArtifactModelSourceClass(map[string]*proto.Value{
+		"model_source_class": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-source-class",
+			},
+		},
+	})
+
+	assertion.Equal("my-source-class", *extracted)
+}
+
+func TestMapModelArtifactModelSourceGroup(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapModelArtifactModelSourceGroup(map[string]*proto.Value{
+		"model_source_group": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-source-group",
+			},
+		},
+	})
+
+	assertion.Equal("my-source-group", *extracted)
+}
+
+func TestMapModelArtifactModelSourceId(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapModelArtifactModelSourceId(map[string]*proto.Value{
+		"model_source_id": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-source-id",
+			},
+		},
+	})
+
+	assertion.Equal("my-source-id", *extracted)
+}
+
+func TestMapModelArtifactModelSourceName(t *testing.T) {
+	assertion := setup(t)
+
+	extracted := MapModelArtifactModelSourceName(map[string]*proto.Value{
+		"model_source_name": {
+			Value: &proto.Value_StringValue{
+				StringValue: "my-source-name",
+			},
+		},
+	})
+
+	assertion.Equal("my-source-name", *extracted)
 }
 
 func TestMapPropertyModelVersionId(t *testing.T) {

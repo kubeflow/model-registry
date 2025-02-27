@@ -247,6 +247,26 @@ func MapModelArtifactServiceAccountName(properties map[string]*proto.Value) *str
 	return MapStringProperty(properties, "service_account_name")
 }
 
+func MapModelArtifactModelSourceKind(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "model_source_kind")
+}
+
+func MapModelArtifactModelSourceClass(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "model_source_class")
+}
+
+func MapModelArtifactModelSourceGroup(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "model_source_group")
+}
+
+func MapModelArtifactModelSourceId(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "model_source_id")
+}
+
+func MapModelArtifactModelSourceName(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "model_source_name")
+}
+
 func MapPropertyModelVersionId(properties map[string]*proto.Value) *string {
 	return MapIntProperty(properties, "model_version_id")
 }
