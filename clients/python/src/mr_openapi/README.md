@@ -54,16 +54,14 @@ configuration = mr_openapi.Configuration(
 # Enter a context with an instance of the API client
 async with mr_openapi.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = mr_openapi.ModelRegistryServiceApi(api_client)
-    artifact_create = mr_openapi.ArtifactCreate() # ArtifactCreate | A new `Artifact` to be created.
+    api_instance = mr_openapi.ModelCatalogServiceApi(api_client)
+    source_id = 'source_id_example' # str | A unique identifier for a `CatalogSource`.
+    model_id = 'model_id_example' # str | A unique identifier for a `CatalogModel`.
 
     try:
-        # Create an Artifact
-        api_response = await api_instance.create_artifact(artifact_create)
-        print("The response of ModelRegistryServiceApi->create_artifact:\n")
-        pprint(api_response)
+        await api_instance.api_model_catalog_v1alpha3_sources_source_id_models_model_id_readme_get(source_id, model_id)
     except ApiException as e:
-        print("Exception when calling ModelRegistryServiceApi->create_artifact: %s\n" % e)
+        print("Exception when calling ModelCatalogServiceApi->api_model_catalog_v1alpha3_sources_source_id_models_model_id_readme_get: %s\n" % e)
 
 ```
 
@@ -73,6 +71,10 @@ All URIs are relative to *https://localhost:8080*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*ModelCatalogServiceApi* | [**api_model_catalog_v1alpha3_sources_source_id_models_model_id_readme_get**](mr_openapi/docs/ModelCatalogServiceApi.md#api_model_catalog_v1alpha3_sources_source_id_models_model_id_readme_get) | **GET** /api/model_catalog/v1alpha3/sources/{source_id}/models/{model_id}/readme | 
+*ModelCatalogServiceApi* | [**get_all_catalog_models**](mr_openapi/docs/ModelCatalogServiceApi.md#get_all_catalog_models) | **GET** /api/model_catalog/v1alpha3/models | 
+*ModelCatalogServiceApi* | [**get_catalog_model**](mr_openapi/docs/ModelCatalogServiceApi.md#get_catalog_model) | **GET** /api/model_catalog/v1alpha3/sources/{source_id}/models/{model_id} | 
+*ModelCatalogServiceApi* | [**get_catalog_sources**](mr_openapi/docs/ModelCatalogServiceApi.md#get_catalog_sources) | **GET** /api/model_catalog/v1alpha3/sources | List All CatalogSources
 *ModelRegistryServiceApi* | [**create_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#create_artifact) | **POST** /api/model_registry/v1alpha3/artifacts | Create an Artifact
 *ModelRegistryServiceApi* | [**create_environment_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#create_environment_inference_service) | **POST** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services | Create a InferenceService in ServingEnvironment
 *ModelRegistryServiceApi* | [**create_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#create_inference_service) | **POST** /api/model_registry/v1alpha3/inference_services | Create a InferenceService
@@ -130,8 +132,15 @@ Class | Method | HTTP request | Description
  - [BaseExecutionUpdate](mr_openapi/docs/BaseExecutionUpdate.md)
  - [BaseResource](mr_openapi/docs/BaseResource.md)
  - [BaseResourceCreate](mr_openapi/docs/BaseResourceCreate.md)
+ - [BaseResourceDates](mr_openapi/docs/BaseResourceDates.md)
  - [BaseResourceList](mr_openapi/docs/BaseResourceList.md)
  - [BaseResourceUpdate](mr_openapi/docs/BaseResourceUpdate.md)
+ - [CatalogModel](mr_openapi/docs/CatalogModel.md)
+ - [CatalogModelAllOfBaseModel](mr_openapi/docs/CatalogModelAllOfBaseModel.md)
+ - [CatalogModelArtifact](mr_openapi/docs/CatalogModelArtifact.md)
+ - [CatalogModelList](mr_openapi/docs/CatalogModelList.md)
+ - [CatalogSource](mr_openapi/docs/CatalogSource.md)
+ - [CatalogSourceList](mr_openapi/docs/CatalogSourceList.md)
  - [DocArtifact](mr_openapi/docs/DocArtifact.md)
  - [DocArtifactCreate](mr_openapi/docs/DocArtifactCreate.md)
  - [DocArtifactUpdate](mr_openapi/docs/DocArtifactUpdate.md)

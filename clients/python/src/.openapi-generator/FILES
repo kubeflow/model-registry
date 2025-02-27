@@ -1,5 +1,6 @@
 mr_openapi/__init__.py
 mr_openapi/api/__init__.py
+mr_openapi/api/model_catalog_service_api.py
 mr_openapi/api/model_registry_service_api.py
 mr_openapi/api_client.py
 mr_openapi/api_response.py
@@ -19,8 +20,15 @@ mr_openapi/models/base_execution_create.py
 mr_openapi/models/base_execution_update.py
 mr_openapi/models/base_resource.py
 mr_openapi/models/base_resource_create.py
+mr_openapi/models/base_resource_dates.py
 mr_openapi/models/base_resource_list.py
 mr_openapi/models/base_resource_update.py
+mr_openapi/models/catalog_model.py
+mr_openapi/models/catalog_model_all_of_base_model.py
+mr_openapi/models/catalog_model_artifact.py
+mr_openapi/models/catalog_model_list.py
+mr_openapi/models/catalog_source.py
+mr_openapi/models/catalog_source_list.py
 mr_openapi/models/doc_artifact.py
 mr_openapi/models/doc_artifact_create.py
 mr_openapi/models/doc_artifact_update.py

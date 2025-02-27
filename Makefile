@@ -119,11 +119,16 @@ clean/csi:
 	rm -Rf ./mr-storage-initializer
 
 .PHONY: clean-pkg-openapi
-	while IFS= read -r file; do rm -f "pkg/openapi/$file"; done < pkg/openapi/.openapi-generator/FILES
+clean-pkg-openapi:
+	while IFS= read -r file; do rm -f "pkg/openapi/$$file"; done < pkg/openapi/.openapi-generator/FILES
+
+.PHONY: clean-internal-server-openapi
+clean-internal-server-openapi:
+	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
 
 .PHONY: clean 
-clean: clean-pkg-openapi clean/csi
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go internal/server/openapi/api_model_registry_service.go
+clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
 
 .PHONY: clean/odh
 clean/odh:
@@ -143,6 +148,9 @@ bin/protoc-gen-go-grpc:
 
 bin/envtest:
 	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20240320141353-395cfc7486e6
+
+bin/goimports:
+	GOBIN=$(PROJECT_BIN) ${GO} install golang.org/x/tools/cmd/goimports@v0.30.0
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
@@ -175,7 +183,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
+deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest bin/goimports
 
 .PHONY: vendor
 vendor:
