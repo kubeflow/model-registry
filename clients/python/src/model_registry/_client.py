@@ -271,6 +271,11 @@ class ModelRegistry:
         storage_key: str | None = None,
         storage_path: str | None = None,
         service_account_name: str | None = None,
+        model_source_kind: str | None = None,
+        model_source_class: str | None = None,
+        model_source_group: str | None = None,
+        model_source_id: str | None = None,
+        model_source_name: str | None = None,
         author: str | None = None,
         owner: str | None = None,
         description: str | None = None,
@@ -300,6 +305,11 @@ class ModelRegistry:
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
+            model_source_kind: A string identifier describing the source kind.
+            model_source_class: A subgroup within the source kind.
+            model_source_group: This identifies a source group for models from source class.
+            model_source_id: A unique identifier for a source model within kind, class, and group.
+            model_source_name: A human-readable name for the source model.
             metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
 
         Returns:
@@ -325,6 +335,11 @@ class ModelRegistry:
                 storage_key=storage_key,
                 storage_path=storage_path,
                 service_account_name=service_account_name,
+                model_source_kind=model_source_kind,
+                model_source_class=model_source_class,
+                model_source_group=model_source_group,
+                model_source_id=model_source_id,
+                model_source_name=model_source_name,
             )
         )
 

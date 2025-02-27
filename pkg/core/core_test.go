@@ -388,7 +388,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	})
 	suite.NotNilf(modelArtifactResp.ArtifactType, "model artifact type %s should exists", *modelArtifactTypeName)
 	suite.Equal(*modelArtifactTypeName, *modelArtifactResp.ArtifactType.Name)
-	suite.Equal(6, len(modelArtifactResp.ArtifactType.Properties))
+	suite.Equal(11, len(modelArtifactResp.ArtifactType.Properties))
 
 	servingEnvResp, _ = suite.mlmdClient.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: servingEnvironmentTypeName,
