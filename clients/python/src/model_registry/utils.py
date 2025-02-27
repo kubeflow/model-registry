@@ -79,19 +79,20 @@ def s3_uri_from(
         bucket = default_bucket
     elif (not default_bucket or default_bucket != bucket) and not endpoint:
         msg = (
-            "bucket_endpoint and bucket_region must be provided for non-default bucket"
+            "endpoint must be provided for non-default bucket"
         )
         raise MissingMetadata(msg)
 
     endpoint = endpoint or os.getenv("AWS_S3_ENDPOINT")
     region = region or os.getenv("AWS_DEFAULT_REGION")
-
-    if not (endpoint and region):
-        msg = "Missing environment variables: bucket_endpoint and bucket_region are required"
+    if not endpoint:
+        msg = "Missing environment variable: `bucket` is required"
         raise MissingMetadata(msg)
 
     # https://alexwlchan.net/2020/s3-keys-are-not-file-paths/ nor do they resolve to valid URls
     # FIXME: is this safe?
+    if not region:
+         return f"s3://{bucket}/{path}?endpoint={endpoint}"
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
 
 

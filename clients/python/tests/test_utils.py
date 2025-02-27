@@ -47,7 +47,7 @@ def test_s3_uri_builder_with_only_default_bucket_env():
         s3_uri_from(
             "test-path",
         )
-    assert "missing environment variables" in str(e.value).lower()
+    assert "missing environment variable" in str(e.value).lower()
 
 
 def test_s3_uri_builder_with_other_default_variables():
