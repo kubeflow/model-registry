@@ -301,6 +301,31 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
 	suite.Equal(ctx.Properties["author"].GetStringValue(), *getByName.Author, "saved author property should match the provided one")
 }
 
+func (suite *CoreTestSuite) TestGetModelVersionByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	modelVersion := &openapi.ModelVersion{
+		Name:       modelVersionName,
+		ExternalId: &versionExternalId,
+		Author:     &author,
+	}
+
+	// must register a model version first, otherwise the http error will be a 404
+	_, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetModelVersionByParams(&invalidName, &registeredModelId, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive model version")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive model version")
+}
+
 func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
