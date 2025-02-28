@@ -18,10 +18,13 @@ RUN yum module -y enable nodejs:18
 # install npm and java for openapi-generator-cli
 RUN yum install -y nodejs npm java-11 python3
 
-# Copy the go source
-COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
+# Download tools
+COPY Makefile .
+COPY scripts/install_protoc.sh scripts/
+RUN make deps
 
 # Copy rest of the source
+COPY ["main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
@@ -29,9 +32,6 @@ COPY scripts/ scripts/
 COPY pkg/ pkg/
 COPY patches/ patches/
 COPY templates/ templates/
-
-# Download tools
-RUN make deps
 
 # Build
 USER root
