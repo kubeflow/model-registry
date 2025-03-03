@@ -815,8 +815,8 @@ def test_nested_recursive_store_in_s3(
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
     s3_uri = utils.s3_uri_from(
-            bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
-        )
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+    )
     # this is creating a list of all the file names + their immediate parent folder only
     formatted_paths = [
         os.path.join(
@@ -834,8 +834,12 @@ def test_nested_recursive_store_in_s3(
     with pytest.raises(StoreError) as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
+
+
 @pytest.mark.e2e
-def test_upload_artifact_and_register_model_with_default_oci(client: ModelRegistry) -> None:
+def test_upload_artifact_and_register_model_with_default_oci(
+    client: ModelRegistry,
+) -> None:
     # olot is required to run this test
     pytest.importorskip("olot")
     name = "oci-test/defaults"
@@ -849,18 +853,15 @@ def test_upload_artifact_and_register_model_with_default_oci(client: ModelRegist
         oci_ref,
     )
 
-    print(upload_params)
-
     # Create a sample file named README.md to be added to the registry
     pathlib.Path(local_path).mkdir(parents=True, exist_ok=True)
     readme_file_path = os.path.join(local_path, "README.md")
     with open(readme_file_path, "w") as f:
         f.write("")
 
-
     assert client.upload_artifact_and_register_model(
         name,
-        model_files=[pathlib.Path(readme_file_path)],
+        model_files_path=readme_file_path,
         author=author,
         version=version,
         model_format_name="test format",

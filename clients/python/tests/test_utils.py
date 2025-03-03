@@ -6,7 +6,6 @@ import pytest
 
 from model_registry.exceptions import MissingMetadata
 from model_registry.utils import (
-    is_oci_uri,
     is_s3_uri,
     s3_uri_from,
     save_to_oci_registry,
@@ -79,6 +78,7 @@ def test_s3_uri_builder_with_complete_env():
     os.environ["AWS_DEFAULT_REGION"] = "test-region"
     assert s3_uri_from("test-path") == s3_uri_from("test-path", "test-bucket")
 
+
 @pytest.mark.e2e(type="oci")
 def test_save_to_oci_registry_with_skopeo():
     # TODO: We need a good source registry which is oci-compliant and very small in size
@@ -92,10 +92,9 @@ def test_save_to_oci_registry_with_skopeo():
     with open(readme_file_path, "w") as f:
         f.write("")
 
-    model_files = [readme_file_path]
     backend = "skopeo"
 
-    save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend)
+    save_to_oci_registry(base_image, oci_ref, readme_file_path, dest_dir, backend)
 
 
 # These are trimmed down versions of whats found in the example specs found here: https://github.com/opencontainers/image-spec/blob/main/image-layout.md#oci-layout-file
@@ -109,23 +108,24 @@ index_json_contents = """{
 }"""
 oci_layout_contents = """{"imageLayoutVersion": "1.0.0"}"""
 
+
 def test_save_to_oci_registry_with_custom_backend():
     is_available_mock = Mock()
     is_available_mock.return_value = True
     pull_mock = Mock()
     push_mock = Mock()
+
     def pull_mock_imple(base_image, dest_dir):
         pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
         pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
 
     pull_mock.side_effect = pull_mock_imple
 
-
     backend = "something_custom"
     custom_oci_backend = {
-            "is_available": is_available_mock,
-            "pull": pull_mock,
-            "push": push_mock,
+        "is_available": is_available_mock,
+        "pull": pull_mock,
+        "push": push_mock,
     }
 
     # similar to other test
@@ -139,21 +139,31 @@ def test_save_to_oci_registry_with_custom_backend():
     with open(readme_file_path, "w") as f:
         f.write("")
 
-    model_files = [readme_file_path]
-
-    uri = save_to_oci_registry(base_image, oci_ref, model_files, dest_dir, backend, None, custom_oci_backend)
+    uri = save_to_oci_registry(
+        base_image,
+        oci_ref,
+        readme_file_path,
+        dest_dir,
+        backend,
+        None,
+        custom_oci_backend,
+    )
     # Ensure our mocked backend was called
     is_available_mock.assert_called_once()
     pull_mock.assert_called_once()
     push_mock.assert_called_once()
     assert uri == f"oci://{oci_ref}"
 
+
 def test_save_to_oci_registry_backend_not_found():
     backend = "non-existent"
-    with pytest.raises(ValueError, match=f"'{backend}' is not an available backend to use.") as e:
+    with pytest.raises(
+        ValueError, match=f"'{backend}' is not an available backend to use."
+    ) as e:
         save_to_oci_registry("", "", [], "", backend)
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
+
 
 def test_is_s3_uri_with_valid_uris():
     test_cases = [
@@ -164,6 +174,7 @@ def test_is_s3_uri_with_valid_uris():
     for test in test_cases:
         assert is_s3_uri(test) is True
 
+
 def test_is_s3_uri_with_invalid_uris():
     test_cases = [
         "",
@@ -173,29 +184,3 @@ def test_is_s3_uri_with_invalid_uris():
     ]
     for test in test_cases:
         assert is_s3_uri(test) is False
-
-def test_is_oci_uri_with_valid_uris():
-    test_cases = [
-        "oci://registry.example.com/my-namespace/my-repo:latest",
-        "oci://localhost:5000/my-repo",
-        "oci://registry.example.com/my-repo",
-        "oci://registry.example.com/my-repo:1.0.0",
-    ]
-
-    for test in test_cases:
-        assert is_oci_uri(test) is True
-
-def test_is_oci_uri_with_invalid_uris():
-    test_cases = [
-        "",
-        "oci://",
-        "oci://registry.example.com"
-        "oci://localhost:5000"
-        "oci://registry.example.com/"
-        "oci://registry.example.com/my-repo/"
-        "oci://registry.example.com/my-repo/something-wrong"
-    ]
-
-    for test in test_cases:
-        assert is_oci_uri(test) is False
-
