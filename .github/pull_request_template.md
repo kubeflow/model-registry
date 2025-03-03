@@ -18,6 +18,7 @@
 - [ ] Testing instructions have been added in the PR body (for PRs involving changes that are not immediately obvious).
 - [ ] The developer has manually tested the changes and verified that the changes work.
 - [ ] Code changes follow the [kubeflow contribution guidelines](https://www.kubeflow.org/docs/about/contributing/).
+- [ ] **For first time contributors**: Please reach out to the [Reviewers](../OWNERS) to ensure all tests are being run, ensuring the label `ok-to-test` has been added to the PR.
 
 If you have UI changes
 
