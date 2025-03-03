@@ -223,6 +223,27 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
 	suite.Equalf(*createdEntity.Id, *byName.Id, "the returned entity id should match the retrieved by name")
 }
 
+func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsInvalid() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	eut := &openapi.ServingEnvironment{
+		Name:       &entityName,
+		ExternalId: &entityExternalId,
+	}
+
+	// must register a serving environment first, otherwise the http error will be a 404
+	_, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetServingEnvironmentByParams(&invalidName, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive serving environemnt")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive serving environemnt")
+}
+
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsExternalId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()

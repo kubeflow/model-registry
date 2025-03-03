@@ -244,6 +244,28 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
 	suite.Equalf(*createdModel.Id, *byName.Id, "the returned model id should match the retrieved by name")
 }
 
+func (suite *CoreTestSuite) TestGetRegisteredModelByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModel := &openapi.RegisteredModel{
+		Name:       modelName,
+		ExternalId: &modelExternalId,
+	}
+
+	// must register a model first, otherwise the http error will be a 404
+	_, err := service.UpsertRegisteredModel(registeredModel)
+	suite.Nilf(err, "error creating registered model: %v", err)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetRegisteredModelByParams(&invalidName, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive registered model")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive registered model")
+}
+
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsExternalId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()

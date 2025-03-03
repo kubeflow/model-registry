@@ -494,6 +494,21 @@ func (suite *CoreTestSuite) TestGetArtifactByParams() {
 	suite.Equal(*da, *daByExtId, "artifacts returned during creation and on get by ext id should be equal")
 }
 
+func (suite *CoreTestSuite) TestGetArtifactByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	invalidName := "\xFF"
+
+	_, err := service.GetArtifactByParams(&invalidName, &modelVersionId, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive artifact")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive artifact")
+}
+
 func (suite *CoreTestSuite) TestGetArtifacts() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
