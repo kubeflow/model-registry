@@ -59,6 +59,31 @@ class ModelArtifactCreate(BaseModel):
     service_account_name: StrictStr | None = Field(
         default=None, description="Name of the service account with storage secret.", alias="serviceAccountName"
     )
+    model_source_kind: StrictStr | None = Field(
+        default=None,
+        description="A string identifier describing the source kind. It differentiates various sources of model artifacts. This identifier should be agreed upon by producers and consumers of source model metadata. It is not an enumeration to keep the source of model metadata open ended.  E.g. Kubeflow pipelines could use `pipelines` to identify models it produces.",
+        alias="modelSourceKind",
+    )
+    model_source_class: StrictStr | None = Field(
+        default=None,
+        description="A subgroup within the source kind. It is a specific sub-component or instance within the source kind. E.g. `pipelinerun` for a Kubeflow pipeline run.",
+        alias="modelSourceClass",
+    )
+    model_source_group: StrictStr | None = Field(
+        default=None,
+        description="Unique identifier for a source group for models from source class.  It maps to a physical group of source models.  E.g. a Kubernetes namespace where the pipeline run was executed.",
+        alias="modelSourceGroup",
+    )
+    model_source_id: StrictStr | None = Field(
+        default=None,
+        description="A unique identifier for a source model within kind, class, and group. It should be a url friendly string if source supports using URLs to locate source models. E.g. a pipeline run ID.",
+        alias="modelSourceId",
+    )
+    model_source_name: StrictStr | None = Field(
+        default=None,
+        description="A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.",
+        alias="modelSourceName",
+    )
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -72,6 +97,11 @@ class ModelArtifactCreate(BaseModel):
         "storagePath",
         "modelFormatVersion",
         "serviceAccountName",
+        "modelSourceKind",
+        "modelSourceClass",
+        "modelSourceGroup",
+        "modelSourceId",
+        "modelSourceName",
     ]
 
     model_config = ConfigDict(
@@ -147,5 +177,10 @@ class ModelArtifactCreate(BaseModel):
                 "storagePath": obj.get("storagePath"),
                 "modelFormatVersion": obj.get("modelFormatVersion"),
                 "serviceAccountName": obj.get("serviceAccountName"),
+                "modelSourceKind": obj.get("modelSourceKind"),
+                "modelSourceClass": obj.get("modelSourceClass"),
+                "modelSourceGroup": obj.get("modelSourceGroup"),
+                "modelSourceId": obj.get("modelSourceId"),
+                "modelSourceName": obj.get("modelSourceName"),
             }
         )

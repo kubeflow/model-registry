@@ -135,6 +135,11 @@ class ModelArtifact(Artifact):
         storage_key: Storage secret name.
         storage_path: Storage path of the model.
         service_account_name: Name of the service account with storage secret.
+        model_source_kind: A string identifier describing the source kind.
+        model_source_class: A subgroup within the source kind.
+        model_source_group: This identifies a source group for models from source class.
+        model_source_id: A unique identifier for a source model within kind, class, and group.
+        model_source_name: A human-readable name for the source model.
     """
 
     # TODO: this could be an enum of valid formats
@@ -143,6 +148,11 @@ class ModelArtifact(Artifact):
     storage_key: str | None = None
     storage_path: str | None = None
     service_account_name: str | None = None
+    model_source_kind: str | None = None
+    model_source_class: str | None = None
+    model_source_group: str | None = None
+    model_source_id: str | None = None
+    model_source_name: str | None = None
 
     _model_version_id: str | None = None
 
@@ -194,6 +204,11 @@ class ModelArtifact(Artifact):
             storage_key=source.storage_key,
             storage_path=source.storage_path,
             service_account_name=source.service_account_name,
+            model_source_kind=source.model_source_kind,
+            model_source_class=source.model_source_class,
+            model_source_group=source.model_source_group,
+            model_source_id=source.model_source_id,
+            model_source_name=source.model_source_name,
             state=source.state,
             custom_properties=cls._unmap_custom_properties(source.custom_properties)
             if source.custom_properties

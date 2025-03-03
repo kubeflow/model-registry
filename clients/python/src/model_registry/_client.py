@@ -57,17 +57,17 @@ class ModelRegistry:
     """Model registry client."""
 
     def __init__(
-        self,
-        server_address: str,
-        port: int = 443,
-        *,
-        author: str,
-        is_secure: bool = True,
-        user_token: str | None = None,
-        user_token_envvar: str = DEFAULT_USER_TOKEN_ENVVAR,
-        custom_ca: str | None = None,
-        custom_ca_envvar: str | None = None,
-        log_level: int = logging.WARNING,
+            self,
+            server_address: str,
+            port: int = 443,
+            *,
+            author: str,
+            is_secure: bool = True,
+            user_token: str | None = None,
+            user_token_envvar: str = DEFAULT_USER_TOKEN_ENVVAR,
+            custom_ca: str | None = None,
+            custom_ca_envvar: str | None = None,
+            log_level: int = logging.WARNING,
     ):
         """Constructor.
 
@@ -108,9 +108,9 @@ class ModelRegistry:
 
         if is_secure:
             if (
-                not custom_ca
-                and custom_ca_envvar
-                and (cert := os.getenv(custom_ca_envvar))
+                    not custom_ca
+                    and custom_ca_envvar
+                    and (cert := os.getenv(custom_ca_envvar))
             ):
                 logger.info(
                     "Using custom CA envvar %s",
@@ -151,7 +151,7 @@ class ModelRegistry:
         )
 
     async def _register_new_version(
-        self, rm: RegisteredModel, version: str, author: str, /, **kwargs
+            self, rm: RegisteredModel, version: str, author: str, /, **kwargs
     ) -> ModelVersion:
         assert rm.id is not None, "Registered model must have an ID"
         if await self._api.get_model_version_by_params(rm.id, version):
@@ -163,7 +163,7 @@ class ModelRegistry:
         )
 
     async def _register_model_artifact(
-        self, mv: ModelVersion, name: str, uri: str, /, **kwargs
+            self, mv: ModelVersion, name: str, uri: str, /, **kwargs
     ) -> ModelArtifact:
         assert mv.id is not None, "Model version must have an ID"
         return await self._api.upsert_model_version_artifact(
@@ -171,20 +171,25 @@ class ModelRegistry:
         )
 
     def register_model(
-        self,
-        name: str,
-        uri: str,
-        *,
-        model_format_name: str,
-        model_format_version: str,
-        version: str,
-        storage_key: str | None = None,
-        storage_path: str | None = None,
-        service_account_name: str | None = None,
-        author: str | None = None,
-        owner: str | None = None,
-        description: str | None = None,
-        metadata: Mapping[str, SupportedTypes] | None = None,
+            self,
+            name: str,
+            uri: str,
+            *,
+            model_format_name: str,
+            model_format_version: str,
+            version: str,
+            storage_key: str | None = None,
+            storage_path: str | None = None,
+            service_account_name: str | None = None,
+            model_source_kind: str | None = None,
+            model_source_class: str | None = None,
+            model_source_group: str | None = None,
+            model_source_id: str | None = None,
+            model_source_name: str | None = None,
+            author: str | None = None,
+            owner: str | None = None,
+            description: str | None = None,
+            metadata: Mapping[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
@@ -210,6 +215,11 @@ class ModelRegistry:
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
+            model_source_kind: A string identifier describing the source kind.
+            model_source_class: A subgroup within the source kind.
+            model_source_group: This identifies a source group for models from source class.
+            model_source_id: A unique identifier for a source model within kind, class, and group.
+            model_source_name: A human-readable name for the source model.
             metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
 
         Returns:
@@ -235,6 +245,11 @@ class ModelRegistry:
                 storage_key=storage_key,
                 storage_path=storage_path,
                 service_account_name=service_account_name,
+                model_source_kind=model_source_kind,
+                model_source_class=model_source_class,
+                model_source_group=model_source_group,
+                model_source_id=model_source_id,
+                model_source_name=model_source_name,
             )
         )
 
@@ -255,18 +270,18 @@ class ModelRegistry:
         return self.async_runner(self._api.upsert_model_artifact(model))
 
     def register_hf_model(
-        self,
-        repo: str,
-        path: str,
-        *,
-        version: str,
-        model_format_name: str,
-        model_format_version: str,
-        author: str | None = None,
-        owner: str | None = None,
-        model_name: str | None = None,
-        description: str | None = None,
-        git_ref: str = "main",
+            self,
+            repo: str,
+            path: str,
+            *,
+            version: str,
+            model_format_name: str,
+            model_format_version: str,
+            author: str | None = None,
+            owner: str | None = None,
+            model_name: str | None = None,
+            description: str | None = None,
+            git_ref: str = "main",
     ) -> RegisteredModel:
         """Register a Hugging Face model.
 

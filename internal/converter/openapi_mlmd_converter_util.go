@@ -309,6 +309,42 @@ func MapModelArtifactProperties(source *openapi.ModelArtifact) (map[string]*prot
 				},
 			}
 		}
+		if source.ModelSourceKind != nil {
+			props["model_source_kind"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.ModelSourceKind,
+				},
+			}
+		}
+		if source.ModelSourceClass != nil {
+			props["model_source_class"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.ModelSourceClass,
+				},
+			}
+		}
+		if source.ModelSourceGroup != nil {
+			props["model_source_group"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.ModelSourceGroup,
+				},
+			}
+		}
+		if source.ModelSourceId != nil {
+			props["model_source_id"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.ModelSourceId,
+				},
+			}
+		}
+		if source.ModelSourceName != nil {
+			props["model_source_name"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.ModelSourceName,
+				},
+			}
+		}
+
 	}
 	return props, nil
 }
