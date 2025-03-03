@@ -38,7 +38,7 @@ var _ = Describe("TestModelRegistryHandler", func() {
 			rr := httptest.NewRecorder()
 
 			By("creating the http request for the handler")
-			testApp.ModelRegistryHandler(rr, req, nil)
+			testApp.GetAllModelRegistriesHandler(rr, req, nil)
 			rs := rr.Result()
 			defer rs.Body.Close()
 			body, err := io.ReadAll(rs.Body)
@@ -52,8 +52,8 @@ var _ = Describe("TestModelRegistryHandler", func() {
 
 			By("should match the expected model registries")
 			var expected = []models.ModelRegistryModel{
-				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One"},
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry", Namespace: "kubeflow"},
+				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One", Namespace: "kubeflow"},
 			}
 			Expect(actual.Data).To(ConsistOf(expected))
 		})

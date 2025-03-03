@@ -119,14 +119,17 @@ func (app *App) Routes() http.Handler {
 	apiRouter.PATCH(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateArtifactHandler))))
 	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
 	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
-	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
 	// Perform SAR to Get List Services by Namespace
-	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
+	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.GetAllModelRegistriesHandler)))
 	if app.config.StandaloneMode {
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
+		//Those endpoints are not implement yet. This is a STUB API to unblock frontend development
+		apiRouter.POST(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.CreateModelRegistryHandler)))
+		apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelRegistryHandler))))
+		apiRouter.DELETE(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.DeleteModelRegistryHandler))))
 	}
 
 	// App Router

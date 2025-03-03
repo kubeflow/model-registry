@@ -19,8 +19,8 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("should match the expected model registries")
 			expectedRegistries := []models.ModelRegistryModel{
-				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One"},
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry", Namespace: "kubeflow"},
+				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One", Namespace: "kubeflow"},
 			}
 			Expect(registries).To(ConsistOf(expectedRegistries))
 		})
@@ -34,7 +34,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("should match the expected model registries")
 			expectedRegistries := []models.ModelRegistryModel{
-				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
+				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora", Namespace: "dora-namespace"},
 			}
 			Expect(registries).To(ConsistOf(expectedRegistries))
 		})
