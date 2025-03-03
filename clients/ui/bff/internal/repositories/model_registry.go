@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
@@ -27,6 +28,7 @@ func (m *ModelRegistryRepository) GetAllModelRegistries(sessionCtx context.Conte
 			Name:        item.Name,
 			Description: item.Description,
 			DisplayName: item.DisplayName,
+			Namespace:   namespace,
 		}
 		registries = append(registries, registry)
 	}
