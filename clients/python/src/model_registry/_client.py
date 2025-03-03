@@ -20,7 +20,13 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
-from .utils import OCIParams, S3Params, save_to_oci_registry, s3_uri_from
+from .utils import (
+    OCIParams,
+    S3Params,
+    get_files_from_path,
+    s3_uri_from,
+    save_to_oci_registry,
+)
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -171,20 +177,10 @@ class ModelRegistry:
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
 
-    def _upload_to_s3(
-        self,
-        artifact_local_path: str,
-        destination: str,
-        region_name: str | None = None,
-    ) -> str:
-        """Uploads a file to an S3 bucket."""
-        msg = "S3 Upload is not supported"
-        raise StoreError(msg)
-
     def upload_artifact_and_register_model(
         self,
         name: str,
-        model_files: list[os.PathLike],
+        model_files_path: str,
         *,
         # Artifact/Model Params
         version: str,
@@ -200,12 +196,37 @@ class ModelRegistry:
         # Upload/client Params
         upload_params: OCIParams | S3Params,
     ) -> RegisteredModel:
+        """Convenience method to perform 2 operations; uploading an artifact to a storage location, and registers the model in model registry.
+
+        Args:
+            name: Name of the model.
+            model_files_path: The path where the model files are located. If a directory, uploads the entire directory.
+
+        Keyword Args:
+            version: Version of the model. Has to be unique.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            description: Description of the model.
+            author: Author of the model. Defaults to the client author.
+            owner: Owner of the model. Defaults to the client author.
+            storage_key: Storage key.
+            storage_path: Storage path.
+            service_account_name: Service account name.
+            metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
+            upload_params: Parameters to configure which storage client to use as well as that client's configuration when uploading the model.
+
+        Raises:
+            ValueError: When the provided `upload_params` is missing or invalid
+
+        Returns:
+            Registered model.
+        """
         if isinstance(upload_params, S3Params):
-            # TODO: Dont use a mock function here
-            destination_uri = self._upload_to_s3(model_files, destination_uri)
+            destination_uri = self.save_to_s3(**asdict(upload_params))
         elif isinstance(upload_params, OCIParams):
-            print(asdict(upload_params))
-            destination_uri = save_to_oci_registry(**asdict(upload_params), model_files=model_files)
+            destination_uri = save_to_oci_registry(
+                **asdict(upload_params), model_files_path=model_files_path
+            )
         else:
             msg = 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
             raise ValueError(msg)
@@ -224,7 +245,6 @@ class ModelRegistry:
             description=description,
             metadata=metadata,
         )
-
 
     def register_model(
         self,
@@ -580,14 +600,8 @@ class ModelRegistry:
             StoreError if `path` does not exist.
             StoreError if `path_prefix` is not set.
         """
-        is_file = os.path.isfile(path)
-
         if not path_prefix:
             msg = "`path_prefix` must be set."
-            raise StoreError(msg)
-
-        if not os.path.exists(path):
-            msg = f"Path '{path}' does not exist. Please ensure path is correct."
             raise StoreError(msg)
 
         if path_prefix.endswith("/"):
@@ -600,23 +614,10 @@ class ModelRegistry:
             region=region,
         )
 
-        if is_file:
-            filename = os.path.basename(path)
-            if not filename:
-                msg = "An error occured determining if the supplied path was file."
-                raise StoreError(msg)
-
-            s3_key = os.path.join(path_prefix, filename)
-            s3.upload_file(path, bucket, s3_key)
-
-            return uri
-
-        for root, _, files in os.walk(path):
-            for filename in files:
-                file_path = os.path.join(root, filename)
-                relative_path = os.path.relpath(file_path, path)
-                s3_key = os.path.join(path_prefix, relative_path)
-                s3.upload_file(file_path, bucket, s3_key)
+        files = get_files_from_path(path)
+        for absolute_path_filename, relative_path_filename in files:
+            s3_key = os.path.join(path_prefix, relative_path_filename)
+            s3.upload_file(absolute_path_filename, bucket, s3_key)
 
         return uri
 
