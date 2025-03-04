@@ -99,6 +99,7 @@ class ModelRegistry:
             self._user_async_runner = async_runner
         else:
             import nest_asyncio
+
             logger.debug("Setting up reentrant async event loop")
             nest_asyncio.apply()
 

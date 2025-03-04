@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
+import uvloop
 
 from model_registry import ModelRegistry
 
@@ -93,9 +94,30 @@ def event_loop():
 
 
 @pytest.fixture
+def uv_event_loop():
+    policy = uvloop.EventLoopPolicy()
+    asyncio.set_event_loop_policy(policy)
+    loop = uvloop.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
 @cleanup
 def client() -> ModelRegistry:
     return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
+
+
+@pytest.fixture
+@cleanup
+def client_attrs() -> dict[str, any]:
+    return {
+        "host": REGISTRY_HOST,
+        "port": REGISTRY_PORT,
+        "author": "author",
+        "ssl": False,
+    }
 
 
 @pytest.fixture(scope="module")

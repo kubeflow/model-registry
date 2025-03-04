@@ -49,6 +49,8 @@ coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<7.0"
 ruff = ">=0.5.2,<0.10.0"
 mypy = "^1.7.0"
+ray = "^2.43.0"
+uvloop = "^0.21.0"
 pytest-asyncio = ">=0.23.7,<0.26.0"
 requests = "^2.32.2"
 black = ">=24.4.2,<26.0.0"

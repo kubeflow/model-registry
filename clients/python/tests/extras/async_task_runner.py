@@ -1,4 +1,6 @@
 # from https://gist.github.com/blink1073/969aeba85f32c285235750626f2eadd8
+# Slightly reformatted for linting purposes March 3, 2025, no logic changed.
+# License below. Not shipped for use within the library code, only used for test examples.
 
 """
 Copyright (c) 2022 Steven Silvester
@@ -31,34 +33,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import asyncio
-from typing import Coroutine, Optional, Any
-from threading import Thread, Lock
 import atexit
+from collections.abc import Coroutine
+from threading import Lock, Thread
+from typing import Any, Optional
 
 
 class AsyncTaskRunner:
-    """
-    A singleton task runner that runs an asyncio event loop on a background thread.
-    """
+    """A singleton task runner that runs an asyncio event loop on a background thread."""
+
     __instance = None
 
     @staticmethod
     def get_instance():
-        """
-        Get an AsyncTaskRunner (singleton)
-        """
+        """Get an AsyncTaskRunner (singleton)."""
         if AsyncTaskRunner.__instance is None:
             AsyncTaskRunner()
         assert AsyncTaskRunner.__instance is not None
         return AsyncTaskRunner.__instance
 
     def __init__(self):
-        """
-        Initialize
-        """
+        """Initialize."""
         # make sure it is a singleton
         if AsyncTaskRunner.__instance is not None:
-            raise Exception("This class is a singleton!")
+            msg = "This class is a singleton!"
+            raise Exception(msg)
         else:
             AsyncTaskRunner.__instance = self
         # initialize variables
@@ -69,16 +68,12 @@ class AsyncTaskRunner:
         atexit.register(self._close)
 
     def _close(self):
-        """
-        Clean up. Stop the loop if running
-        """
+        """Clean up. Stop the loop if running."""
         if self.__io_loop:
             self.__io_loop.stop()
 
     def _runner(self) -> None:
-        """
-        Function to run in a thread
-        """
+        """Function to run in a thread."""
         loop = self.__io_loop
         assert loop is not None
         try:
@@ -87,9 +82,7 @@ class AsyncTaskRunner:
             loop.close()
 
     def run(self, coro: Coroutine) -> Any:
-        """
-        Synchronously run a coroutine on a background thread.
-        """
+        """Synchronously run a coroutine on a background thread."""
         with self.__lock:
             if self.__io_loop is None:
                 # If the asyncio loop does not exist
