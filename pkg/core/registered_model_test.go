@@ -59,6 +59,36 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModelFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
+	// register a new model
+	registeredModel := &openapi.RegisteredModel{
+		Name:        modelName,
+		ExternalId:  &modelExternalId,
+		Description: &modelDescription,
+		Owner:       &modelOwner,
+		State:       &state,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	// create the first model
+	_, err := service.UpsertRegisteredModel(registeredModel)
+	suite.Nilf(err, "error creating registered model: %v", err)
+
+	// attempt to create dupliate model
+	_, err = service.UpsertRegisteredModel(registeredModel)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a model with duplicate names")
+	suite.Equal(409, statusResp, "duplicate model names not allowed")
+}
+
 func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
@@ -212,6 +242,28 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
 	suite.Nilf(err, "error getting registered model by name: %v", err)
 
 	suite.Equalf(*createdModel.Id, *byName.Id, "the returned model id should match the retrieved by name")
+}
+
+func (suite *CoreTestSuite) TestGetRegisteredModelByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModel := &openapi.RegisteredModel{
+		Name:       modelName,
+		ExternalId: &modelExternalId,
+	}
+
+	// must register a model first, otherwise the http error will be a 404
+	_, err := service.UpsertRegisteredModel(registeredModel)
+	suite.Nilf(err, "error creating registered model: %v", err)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetRegisteredModelByParams(&invalidName, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive registered model")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive registered model")
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsExternalId() {

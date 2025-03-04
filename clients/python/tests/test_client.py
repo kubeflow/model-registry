@@ -88,21 +88,25 @@ def test_register_version_long_name(client: ModelRegistry):
     lorem = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium."
     assert len(lorem) == 250
 
-    client.register_model(name="test_model",
-                          uri="https://acme.org/something",
-                          model_format_name="test_format_name",
-                          model_format_version="test_format_version",
-                          version=lorem)
+    client.register_model(
+        name="test_model",
+        uri="https://acme.org/something",
+        model_format_name="test_format_name",
+        model_format_version="test_format_version",
+        version=lorem,
+    )
     ma = client.get_model_artifact(name="test_model", version=lorem)
     assert ma.uri == "https://acme.org/something"
     assert ma.model_format_name == "test_format_name"
 
-    with pytest.raises(Exception): # noqa the focus of this test is the failure case, not to fix on the exception being raised
-        client.register_model(name="test_model",
-                        uri="https://acme.org/something",
-                        model_format_name="test_format_name",
-                        model_format_version="test_format_version",
-                        version=lorem+"12345") # version of 255 chars is above limit because does not account for owned entity prefix, ie `1:...`
+    with pytest.raises(Exception):  # noqa the focus of this test is the failure case, not to fix on the exception being raised
+        client.register_model(
+            name="test_model",
+            uri="https://acme.org/something",
+            model_format_name="test_format_name",
+            model_format_version="test_format_version",
+            version=lorem + "12345",
+        )  # version of 255 chars is above limit because does not account for owned entity prefix, ie `1:...`
 
 
 @pytest.mark.e2e
@@ -212,9 +216,15 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     assert ma
     assert ma.id
 
-    payload = { "modelFormatName": "foo" }
+    payload = {"modelFormatName": "foo"}
     from .conftest import REGISTRY_HOST, REGISTRY_PORT
-    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+
+    response = requests.patch(
+        url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}",
+        json=payload,
+        timeout=10,
+        headers={"Content-Type": "application/json"},
+    )
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
     assert ma
@@ -649,3 +659,177 @@ def test_hf_import_default_env(client: ModelRegistry):
 
     for k in env_values:
         os.environ.pop(k)
+
+
+@pytest.mark.e2e
+def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistry):
+    pytest.importorskip("boto3")
+
+    # So we have an import locally, since we are directly using it
+    import boto3
+
+    assert get_model_file is not None
+
+    s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    access_id = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    default_region = os.getenv("AWS_DEFAULT_REGION")
+    bucket = os.getenv("AWS_S3_BUCKET")
+
+    # Make sure MonkeyPatch env vars are set
+    assert s3_endpoint is not None
+    assert access_id is not None
+    assert secret_key is not None
+    assert default_region is not None
+    assert bucket is not None
+
+    model_name = get_model_file.split("/")[-1]
+    prefix = "models"
+    uri = client.save_to_s3(path=get_model_file, bucket_name=bucket, s3_prefix=prefix)
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=s3_endpoint,
+        aws_access_key_id=access_id,
+        aws_secret_access_key=secret_key,
+        region_name=default_region,
+    )
+
+    # Manually check that the object is indeed here
+    objects = s3.list_objects_v2(Bucket="default")["Contents"]
+    objects_by_name = [obj["Key"] for obj in objects]
+    model_name_pfx = os.path.join(prefix, model_name)
+    s3_link = utils.s3_uri_from(
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+    )
+
+    assert type(uri) is str
+    assert uri == s3_link
+    assert model_name_pfx in objects_by_name
+
+    # Test file not exists
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(
+            path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket
+        )
+    assert "please ensure path is correct" in str(e.value).lower()
+
+
+@pytest.mark.e2e
+def test_recursive_store_in_s3(
+    get_temp_dir_with_models, patch_s3_env, client: ModelRegistry
+):
+    pytest.importorskip("boto3")
+
+    # So we have an import locally, since we are directly using it
+    import boto3
+
+    model_dir, files = get_temp_dir_with_models
+    assert model_dir is not None
+    assert type(files) is list
+    assert len(files) == 3
+
+    s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    access_id = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    default_region = os.getenv("AWS_DEFAULT_REGION")
+    bucket = os.getenv("AWS_S3_BUCKET")
+
+    # Make sure MonkeyPatch env vars are set
+    assert s3_endpoint is not None
+    assert access_id is not None
+    assert secret_key is not None
+    assert default_region is not None
+    assert bucket is not None
+
+    prefix = "models2"
+    uri = client.save_to_s3(path=model_dir, bucket_name=bucket, s3_prefix=prefix)
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=s3_endpoint,
+        aws_access_key_id=access_id,
+        aws_secret_access_key=secret_key,
+        region_name=default_region,
+    )
+
+    # Manually check that the object is indeed here
+    objects = s3.list_objects_v2(Bucket="default")["Contents"]
+    objects_by_name = [obj["Key"] for obj in objects]
+    formatted_paths = [os.path.join(prefix, os.path.basename(path)) for path in files]
+    s3_uri = utils.s3_uri_from(
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+    )
+
+    assert type(uri) is str
+    assert uri == s3_uri
+    for path in formatted_paths:
+        assert path in objects_by_name
+
+    # Test incorrect folder
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
+    assert "please ensure path is correct" in str(e.value).lower()
+
+
+@pytest.mark.e2e
+def test_nested_recursive_store_in_s3(
+    get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry
+):
+    pytest.importorskip("boto3")
+
+    # So we have an import locally, since we are directly using it
+    import boto3
+
+    model_dir, files = get_temp_dir_with_nested_models
+    assert model_dir is not None
+    assert type(files) is list
+    assert len(files) == 3
+
+    s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    access_id = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    default_region = os.getenv("AWS_DEFAULT_REGION")
+    bucket = os.getenv("AWS_S3_BUCKET")
+
+    # Make sure MonkeyPatch env vars are set
+    assert s3_endpoint is not None
+    assert access_id is not None
+    assert secret_key is not None
+    assert default_region is not None
+    assert bucket is not None
+
+    prefix = "models3"
+    uri = client.save_to_s3(path=model_dir, s3_prefix=prefix, bucket_name=bucket)
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=s3_endpoint,
+        aws_access_key_id=access_id,
+        aws_secret_access_key=secret_key,
+        region_name=default_region,
+    )
+
+    # Manually check that the object is indeed here
+    objects = s3.list_objects_v2(Bucket="default")["Contents"]
+    objects_by_name = [obj["Key"] for obj in objects]
+    s3_uri = utils.s3_uri_from(
+            bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+        )
+    # this is creating a list of all the file names + their immediate parent folder only
+    formatted_paths = [
+        os.path.join(
+            prefix, os.path.basename(os.path.dirname(path)), os.path.basename(path)
+        )
+        for path in files
+    ]
+
+    assert type(uri) is str
+    assert uri == s3_uri
+    for path in formatted_paths:
+        assert path in objects_by_name
+
+    # Test incorrect folder
+    with pytest.raises(StoreError) as e:
+        client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
+    assert "please ensure path is correct" in str(e.value).lower()

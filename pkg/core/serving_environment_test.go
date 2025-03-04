@@ -54,6 +54,34 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateServingEnvironmentFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	// register a new ServingEnvironment
+	eut := &openapi.ServingEnvironment{
+		Name:        &entityName,
+		ExternalId:  &entityExternalId,
+		Description: &entityDescription,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	// create first serving environment
+	createdEntity, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating uut: %v", err)
+	suite.NotNilf(createdEntity.Id, "created uut should not have nil Id")
+
+	// attempt to create dupliate serving environment
+	_, err = service.UpsertServingEnvironment(eut)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate serving environment")
+	suite.Equal(409, statusResp, "duplicate serving environments not allowed")
+}
+
 func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
@@ -193,6 +221,27 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
 	suite.Nilf(err, "error getting ServingEnvironment by name: %v", err)
 
 	suite.Equalf(*createdEntity.Id, *byName.Id, "the returned entity id should match the retrieved by name")
+}
+
+func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsInvalid() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	eut := &openapi.ServingEnvironment{
+		Name:       &entityName,
+		ExternalId: &entityExternalId,
+	}
+
+	// must register a serving environment first, otherwise the http error will be a 404
+	_, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetServingEnvironmentByParams(&invalidName, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive serving environemnt")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive serving environemnt")
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsExternalId() {

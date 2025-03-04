@@ -44,7 +44,7 @@ var _ = Describe("TestArtifactsHandler", func() {
 				By("should contain valid artifacts")
 				for _, item := range actual.Data.Items {
 					Expect(*item.ModelArtifact.Name).NotTo(BeEmpty())
-					Expect(item.ModelArtifact.ArtifactType).NotTo(BeEmpty())
+					Expect(*item.ModelArtifact.ArtifactType).NotTo(BeEmpty())
 				}
 			})
 		})

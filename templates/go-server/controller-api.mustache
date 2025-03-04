@@ -3,12 +3,12 @@ package {{packageName}}
 
 import (
 	"encoding/json"
-    {{#isBodyParam}}
-        {{^required}}
+	{{#isBodyParam}}
+		{{^required}}
 	"errors"
 	"io"
-        {{/required}}
-    {{/isBodyParam}}
+		{{/required}}
+	{{/isBodyParam}}
 	"net/http"
 	"strings"
 
@@ -20,13 +20,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	{{/chi}}
 
-    model "github.com/kubeflow/model-registry/pkg/openapi"
+	model "github.com/kubeflow/model-registry/pkg/openapi"
 {{/routers}}
 )
 
 // {{classname}}Controller binds http requests to an api service and writes the service results to the http response
 type {{classname}}Controller struct {
-	service {{classname}}Servicer
+	service      {{classname}}Servicer
 	errorHandler ErrorHandler
 }
 

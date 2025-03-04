@@ -118,7 +118,7 @@ func GetModelVersionListMock() openapi.ModelVersionList {
 
 func GetModelArtifactMocks() []openapi.ModelArtifact {
 	artifact1 := openapi.ModelArtifact{
-		ArtifactType:             "TYPE_ONE",
+		ArtifactType:             stringToPointer("TYPE_ONE"),
 		CustomProperties:         newCustomProperties(),
 		Description:              stringToPointer("This artifact can do more than you would expect"),
 		ExternalId:               stringToPointer("1000001"),
@@ -136,7 +136,7 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 	}
 
 	artifact2 := openapi.ModelArtifact{
-		ArtifactType:             "TYPE_TWO",
+		ArtifactType:             stringToPointer("TYPE_TWO"),
 		CustomProperties:         newCustomProperties(),
 		Description:              stringToPointer("This artifact can do more than you would expect, but less than you would hope"),
 		ExternalId:               stringToPointer("1000002"),

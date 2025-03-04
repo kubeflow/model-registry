@@ -627,6 +627,7 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -692,6 +693,7 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -757,6 +759,7 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -880,6 +883,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -950,6 +954,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1020,6 +1025,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1387,6 +1393,7 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1450,6 +1457,7 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1513,6 +1521,7 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1631,6 +1640,7 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1696,6 +1706,7 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -1761,6 +1772,7 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -2139,6 +2151,7 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -2204,6 +2217,7 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -2269,6 +2283,7 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -10717,6 +10732,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -10788,6 +10804,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }
@@ -10859,6 +10876,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
             "503": "Error",
         }

@@ -19,16 +19,17 @@ import (
 const (
 	Version = "1.0.0"
 
-	PathPrefix                   = "/api/v1"
+	PathPrefix                   = "/model-registry"
+	ApiPathPrefix                = "/api/v1"
 	ModelRegistryId              = "model_registry_id"
 	RegisteredModelId            = "registered_model_id"
 	ModelVersionId               = "model_version_id"
 	ModelArtifactId              = "model_artifact_id"
 	ArtifactId                   = "artifact_id"
-	HealthCheckPath              = PathPrefix + "/healthcheck"
-	UserPath                     = PathPrefix + "/user"
-	ModelRegistryListPath        = PathPrefix + "/model_registry"
-	NamespaceListPath            = PathPrefix + "/namespaces"
+	HealthCheckPath              = ApiPathPrefix + "/healthcheck"
+	UserPath                     = ApiPathPrefix + "/user"
+	ModelRegistryListPath        = ApiPathPrefix + "/model_registry"
+	NamespaceListPath            = ApiPathPrefix + "/namespaces"
 	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
 	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
 	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
@@ -132,7 +133,8 @@ func (app *App) Routes() http.Handler {
 	appMux := http.NewServeMux()
 
 	// handler for api calls
-	appMux.Handle("/api/v1/", apiRouter)
+	appMux.Handle(ApiPathPrefix+"/", apiRouter)
+	appMux.Handle(PathPrefix+ApiPathPrefix+"/", http.StripPrefix(PathPrefix, apiRouter))
 
 	// file server for the frontend file and SPA routes
 	staticDir := http.Dir(app.config.StaticAssetsDir)

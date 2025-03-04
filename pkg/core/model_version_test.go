@@ -57,6 +57,32 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 	suite.Equal(2, len(getAllResp.Contexts), "there should be two contexts saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateModelVersionFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	state := openapi.MODELVERSIONSTATE_LIVE
+	modelVersion := &openapi.ModelVersion{
+		Name:        modelVersionName,
+		ExternalId:  &versionExternalId,
+		Description: &modelVersionDescription,
+		State:       &state,
+		Author:      &author,
+	}
+
+	createdVersion, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+	suite.Equal((*createdVersion).RegisteredModelId, registeredModelId, "RegisteredModelId should match the actual owner-entity")
+
+	// attempt to create dupliate model version
+	_, err = service.UpsertModelVersion(modelVersion, &registeredModelId)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate model version")
+	suite.Equal(409, statusResp, "duplicate model versions not allowed")
+}
+
 func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
@@ -273,6 +299,31 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
 	suite.Equal(fmt.Sprintf("%s:%s", registeredModelId, getByName.Name), *ctx.Name, "saved model name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByName.ExternalId, "saved external id should match the provided one")
 	suite.Equal(ctx.Properties["author"].GetStringValue(), *getByName.Author, "saved author property should match the provided one")
+}
+
+func (suite *CoreTestSuite) TestGetModelVersionByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	modelVersion := &openapi.ModelVersion{
+		Name:       modelVersionName,
+		ExternalId: &versionExternalId,
+		Author:     &author,
+	}
+
+	// must register a model version first, otherwise the http error will be a 404
+	_, err := service.UpsertModelVersion(modelVersion, &registeredModelId)
+	suite.Nilf(err, "error creating new model version for %d", registeredModelId)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetModelVersionByParams(&invalidName, &registeredModelId, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive model version")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive model version")
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {

@@ -46,6 +46,35 @@ func (suite *CoreTestSuite) TestCreateModelVersionArtifact() {
 	suite.Equal(customString, (*docArtifact.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateModelVersionArtifactFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	artifact := &openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{
+			Name:        &artifactName,
+			State:       (*openapi.ArtifactState)(&artifactState),
+			Uri:         &artifactUri,
+			Description: &artifactDescription,
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}
+
+	_, err := service.UpsertModelVersionArtifact(artifact, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	// attempt to create dupliate version artifact
+	_, err = service.UpsertModelVersionArtifact(artifact, modelVersionId)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate version artifact")
+	suite.Equal(409, statusResp, "duplicate version artifacts not allowed")
+}
+
 func (suite *CoreTestSuite) TestCreateModelVersionArtifactFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
@@ -463,6 +492,21 @@ func (suite *CoreTestSuite) TestGetArtifactByParams() {
 	suite.Equal(customString, (*daByExtId.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
 
 	suite.Equal(*da, *daByExtId, "artifacts returned during creation and on get by ext id should be equal")
+}
+
+func (suite *CoreTestSuite) TestGetArtifactByParamsInvalid() {
+	// trigger a 400 bad request to test unallowed query params
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	invalidName := "\xFF"
+
+	_, err := service.GetArtifactByParams(&invalidName, &modelVersionId, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive artifact")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive artifact")
 }
 
 func (suite *CoreTestSuite) TestGetArtifacts() {

@@ -119,11 +119,16 @@ clean/csi:
 	rm -Rf ./mr-storage-initializer
 
 .PHONY: clean-pkg-openapi
-	while IFS= read -r file; do rm -f "pkg/openapi/$file"; done < pkg/openapi/.openapi-generator/FILES
+clean-pkg-openapi:
+	while IFS= read -r file; do rm -f "pkg/openapi/$$file"; done < pkg/openapi/.openapi-generator/FILES
+
+.PHONY: clean-internal-server-openapi
+clean-internal-server-openapi:
+	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
 
 .PHONY: clean 
-clean: clean-pkg-openapi clean/csi
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go internal/server/openapi/api_model_registry_service.go
+clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
 
 .PHONY: clean/odh
 clean/odh:
