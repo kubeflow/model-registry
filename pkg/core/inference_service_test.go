@@ -66,6 +66,41 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 	suite.Equal(3, len(getAllResp.Contexts), "there should be 3 contexts (RegisteredModel, ServingEnvironment, InferenceService) saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateDuplicateInferenceServiceFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	registeredModelId := suite.registerModel(service, nil, nil)
+	runtime := "model-server"
+	desiredState := openapi.INFERENCESERVICESTATE_DEPLOYED
+
+	eut := &openapi.InferenceService{
+		Name:                 &entityName,
+		ExternalId:           &entityExternalId2,
+		Description:          &entityDescription,
+		ServingEnvironmentId: parentResourceId,
+		RegisteredModelId:    registeredModelId,
+		Runtime:              &runtime,
+		DesiredState:         &desiredState,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"custom_string_prop": {
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
+			},
+		},
+	}
+
+	_, err := service.UpsertInferenceService(eut)
+	suite.Nilf(err, "error creating new eut for %s: %v", parentResourceId, err)
+
+	// attempt to create dupliate inference service
+	_, err = service.UpsertInferenceService(eut)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate inference service")
+	suite.Equal(409, statusResp, "duplicate inference services not allowed")
+
+}
+
 func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
@@ -462,6 +497,38 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
 	suite.Equal(fmt.Sprintf("%s:%s", parentResourceId, *getByName.Name), *ctx.Name, "saved name should match the provided one")
 	suite.Equal(*ctx.ExternalId, *getByName.ExternalId, "saved external id should match the provided one")
 	suite.Equal(ctx.CustomProperties["custom_string_prop"].GetStringValue(), (*getByName.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, "saved custom_string_prop custom property should match the provided one")
+}
+
+func (suite *CoreTestSuite) TestGetInferenceServiceByParamInvalid() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	registeredModelId := suite.registerModel(service, nil, nil)
+
+	eut := &openapi.InferenceService{
+		Name:                 &entityName,
+		ExternalId:           &entityExternalId2,
+		Description:          &entityDescription,
+		ServingEnvironmentId: parentResourceId,
+		RegisteredModelId:    registeredModelId,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"custom_string_prop": {
+				MetadataStringValue: converter.NewMetadataStringValue(customString),
+			},
+		},
+	}
+
+	// must register an inference service first, otherwise the http error will be a 404
+	_, err := service.UpsertInferenceService(eut)
+	suite.Nilf(err, "error creating new eut for %s", parentResourceId)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetInferenceServiceByParams(&invalidName, &parentResourceId, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive inference service")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive inference service")
 }
 
 func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {

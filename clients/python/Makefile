@@ -19,9 +19,20 @@ deploy-latest-mr:
 	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build && LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 &
 
+.PHONY: deploy-test-minio
+deploy-test-minio:
+	cd ../../ && ./scripts/deploy_minio_on_kind.sh
+	kubectl port-forward -n minio svc/minio 9000:9000 &
+
+.PHONY: deploy-local-registry
+deploy-local-registry:
+	cd ../../ && ./scripts/deploy_local_kind_registry.sh
+
 .PHONY: test-e2e
-test-e2e: deploy-latest-mr
+test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
+	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
 	poetry run pytest --e2e -s -rA
+	rm -fr ../../scripts/manifests/minio/.env
 
 .PHONY: test
 test:

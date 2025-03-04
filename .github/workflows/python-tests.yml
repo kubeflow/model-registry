@@ -166,6 +166,11 @@ jobs:
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
           pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
           nox --version
+      - name: Install Storage Clients
+        # Oras should be available in the GH Action CI by default
+        # See: https://oras.land/docs/installation/#runner-machine-of-azure-devops-and-github-actions
+        run: |
+          sudo apt-get -y install skopeo
       - name: Nox test
         working-directory: clients/python
         run: |
@@ -202,10 +207,17 @@ jobs:
         env:
           IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
+      - name: Deploy Minio using manifests
+        run: |
+          ./scripts/deploy_minio_on_kind.sh
+          cat ./scripts/manifests/minio/.env >> $GITHUB_ENV
+      - name: Deploy OCI Registry using manifests
+        run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
         working-directory: clients/python
         run: |
           kubectl port-forward -n ${{ env.MR_NAMESPACE }} service/model-registry-service 8080:8080 &
+          kubectl port-forward -n minio svc/minio 9000:9000 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
       - name: Upload coverage report # we upload coverage stats for py once, regardless if previous step failed

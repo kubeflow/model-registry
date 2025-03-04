@@ -51,3 +51,6 @@ mr-storage-initializer
 
 # KServe manifests
 istio-*
+
+# VSCode files
+.vscode/
