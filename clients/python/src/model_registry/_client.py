@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -56,7 +57,7 @@ if TYPE_CHECKING:
 class ModelRegistry:
     """Model registry client."""
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
         server_address: str,
         port: int = 443,
@@ -68,6 +69,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
+        async_runner: Callable = None,
     ):
         """Constructor.
 
@@ -79,18 +81,26 @@ class ModelRegistry:
             author: Name of the author.
             is_secure: Whether to use a secure connection. Defaults to True.
             user_token: The PEM-encoded user token as a string.
-            user_token_envvar: Environment variable to read the user token from if it's not passed as an arg.
-                               Defaults to KF_PIPELINES_SA_TOKEN_PATH.
+            user_token_envvar: Environment variable to read the user token from if it's not passed as an arg. Defaults to KF_PIPELINES_SA_TOKEN_PATH.
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
+            async_runner: A modular async scheduler (Callable - either a method or function) that takes in a coroutine for scheduling.
         """
         logger.setLevel(log_level)
-        logger.debug("Setting up reentrant async event loop")
-
 
         # TODO: get remaining args from env
         self._author = author
+        # Set the user's defined async runner
+        if async_runner:
+            if not (inspect.ismethod(async_runner) or inspect.isfunction(async_runner)):
+                msg = "`async_runner` must be a bound method of a function that takes in a coroutine to run."
+                raise ValueError(msg)
+            self._user_async_runner = async_runner
+        else:
+            import nest_asyncio
+            logger.debug("Setting up reentrant async event loop")
+            nest_asyncio.apply()
 
         if not user_token and user_token_envvar:
             logger.info("Reading user token from %s", user_token_envvar)
@@ -129,6 +139,19 @@ class ModelRegistry:
                 server_address, port, user_token
             )
         self.get_registered_models().page_size(1)._next_page()
+
+    def async_runner(self, coro: Any) -> Any:
+        if hasattr(self, "_user_async_runner"):
+            return self._user_async_runner(coro)
+
+        import asyncio
+
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
 
     async def _register_model(self, name: str, **kwargs) -> RegisteredModel:
         if rm := await self._api.get_registered_model_by_params(name):
@@ -203,8 +226,8 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        rm = self.runner.run(self._register_model(name, owner=owner or self._author))
-        mv = self.runner.run(
+        rm = self.async_runner(self._register_model(name, owner=owner or self._author))
+        mv = self.async_runner(
             self._register_new_version(
                 rm,
                 version,
@@ -213,7 +236,7 @@ class ModelRegistry:
                 custom_properties=metadata or {},
             )
         )
-        self.runner.run(
+        self.async_runner(
             self._register_model_artifact(
                 mv,
                 name,
@@ -237,10 +260,10 @@ class ModelRegistry:
             msg = f"Model must be one of {get_args(ModelTypes)}"
             raise StoreError(msg)
         if isinstance(model, RegisteredModel):
-            return self.runner.run(self._api.upsert_registered_model(model))
+            return self.async_runner(self._api.upsert_registered_model(model))
         if isinstance(model, ModelVersion):
-            return self.runner.run(self._api.upsert_model_version(model, None))
-        return self.runner.run(self._api.upsert_model_artifact(model))
+            return self.async_runner(self._api.upsert_model_version(model, None))
+        return self.async_runner(self._api.upsert_model_artifact(model))
 
     def register_hf_model(
         self,
@@ -356,7 +379,7 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
-        return self.runner.run(self._api.get_registered_model_by_params(name))
+        return self.async_runner(self._api.get_registered_model_by_params(name))
 
     def get_model_version(self, name: str, version: str) -> ModelVersion | None:
         """Get a model version.
@@ -375,7 +398,7 @@ class ModelRegistry:
             msg = f"Model {name} does not exist"
             raise StoreError(msg)
         assert rm.id
-        return self.runner.run(self._api.get_model_version_by_params(rm.id, version))
+        return self.async_runner(self._api.get_model_version_by_params(rm.id, version))
 
     def get_model_artifact(self, name: str, version: str) -> ModelArtifact | None:
         """Get a model artifact.
@@ -394,7 +417,7 @@ class ModelRegistry:
             msg = f"Version {version} does not exist"
             raise StoreError(msg)
         assert mv.id
-        return self.runner.run(self._api.get_model_artifact_by_params(name, mv.id))
+        return self.async_runner(self._api.get_model_artifact_by_params(name, mv.id))
 
     def get_registered_models(self) -> Pager[RegisteredModel]:
         """Get a pager for registered models.
@@ -404,7 +427,7 @@ class ModelRegistry:
         """
 
         def rm_list(options: ListOptions) -> list[RegisteredModel]:
-            return self.runner.run(self._api.get_registered_models(options))
+            return self.async_runner(self._api.get_registered_models(options))
 
         return Pager[RegisteredModel](rm_list)
 
@@ -428,7 +451,7 @@ class ModelRegistry:
             # type checkers can't restrict the type inside a nested function:
             # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
             assert rm.id
-            return self.runner.run(self._api.get_model_versions(rm.id, options))
+            return self.async_runner(self._api.get_model_versions(rm.id, options))
 
         return Pager[ModelVersion](rm_versions)
 
