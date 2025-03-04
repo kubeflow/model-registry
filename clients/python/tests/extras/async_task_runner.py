@@ -58,8 +58,7 @@ class AsyncTaskRunner:
         if AsyncTaskRunner.__instance is not None:
             msg = "This class is a singleton!"
             raise Exception(msg)
-        else:
-            AsyncTaskRunner.__instance = self
+        AsyncTaskRunner.__instance = self
         # initialize variables
         self.__io_loop: Optional[asyncio.AbstractEventLoop] = None
         self.__runner_thread: Optional[Thread] = None
