@@ -171,9 +171,12 @@ def patch_s3_env(monkeypatch: pytest.MonkeyPatch):
     access_key_id = os.getenv("KF_MR_TEST_ACCESS_KEY_ID")
     secret_access_key = os.getenv("KF_MR_TEST_SECRET_ACCESS_KEY")
     bucket = os.getenv("KF_MR_TEST_BUCKET_NAME") or "default"
+    region = "east"
 
     monkeypatch.setenv("AWS_S3_ENDPOINT", s3_endpoint)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", access_key_id)
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", secret_access_key)
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "east")
+    monkeypatch.setenv("AWS_DEFAULT_REGION", region)
     monkeypatch.setenv("AWS_S3_BUCKET", bucket)
+
+    return (bucket, s3_endpoint, access_key_id, secret_access_key, region)
