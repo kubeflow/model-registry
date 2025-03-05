@@ -38,6 +38,24 @@ k8s_resource(
     labels="requirements",
 )
 
+k8s_resource(
+    new_name="ui-reqs",
+    objects=[
+       "model-registry-ui:serviceaccount",
+       "model-registry-create-sars:clusterrole",
+       "model-registry-retrieve-clusterrolebindings:clusterrole",
+       "model-registry-ui-namespaces-reader:clusterrole",
+       "model-registry-ui-services-reader:clusterrole",
+       "model-registry-create-sars-binding:clusterrolebinding",
+       "model-registry-retrieve-clusterrolebindings-binding:clusterrolebinding",
+       "model-registry-ui-namespaces-reader-binding:clusterrolebinding",
+       "model-registry-ui-services-reader-binding:clusterrolebinding",
+       "service-access-cluster-binding:clusterrolebinding",
+    ],
+    labels="requirements",
+    resource_deps=["kubeflow-namespace", "ui-rbac-reqs"],
+)
+
 local_resource(
     "frontend-static-reqs",
     "npm install",
@@ -59,7 +77,7 @@ local_resource(
         "../../../clients/ui/frontend/package.json",
         "../../../clients/ui/frontend/package-lock.json",
     ],
-    resource_deps=["frontend-static-reqs"],
+    resource_deps=["frontend-static-reqs", "kubeflow-namespace"],
     env={
         "DIST_DIR": "../../../devenv/ui-static",
         "DEPLOYMENT_MODE": "standalone",
@@ -72,7 +90,7 @@ local_resource(
 
 local_resource(
     "bff-bin",
-    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ../../../devenv/bin/bff cmd/main.go",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ../../../devenv/bin/bff ./cmd",
     dir="../../../clients/ui/bff",
     deps=[
         "../../../clients/ui/bff/cmd",

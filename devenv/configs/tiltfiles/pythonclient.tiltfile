@@ -29,7 +29,7 @@ local_resource(
     deps=[
         "../../wheels",
     ],
-    resource_deps=["python-wheel-build"],
+    resource_deps=["python-wheel-build", "mr-notebook"],
     labels="python-client",
     trigger_mode=TRIGGER_MODE_AUTO
 )
