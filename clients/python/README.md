@@ -200,6 +200,8 @@ atr = AsyncTaskRunner()
 registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", async_runner=atr.run)
 ```
 
+See also the [test case](tests/test_client.py#L854) in `test_custom_async_runner_with_ray`.
+
 Please keep in mind, the `AsyncTaskRunner` used here for testing does not ship within the library so you will need to copy it into your code directly or import from elsewhere.
 
 ## Development
