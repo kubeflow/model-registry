@@ -1,5 +1,4 @@
 import os
-import pathlib
 from itertools import islice
 
 import pytest
