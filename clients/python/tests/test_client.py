@@ -839,30 +839,25 @@ def test_nested_recursive_store_in_s3(
 @pytest.mark.e2e
 def test_upload_artifact_and_register_model_with_default_oci(
     client: ModelRegistry,
+    get_temp_dir_with_models,
 ) -> None:
     # olot is required to run this test
     pytest.importorskip("olot")
     name = "oci-test/defaults"
     version = "0.0.1"
-    author = "Tester McTesterson"
     oci_ref = "localhost:5001/foo/bar:latest"
-    local_path = pathlib.Path("tests/data")
+
+    model_dir, _ = get_temp_dir_with_models
 
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
     )
 
-    # Create a sample file named README.md to be added to the registry
-    pathlib.Path(local_path).mkdir(parents=True, exist_ok=True)
-    readme_file_path = os.path.join(local_path, "README.md")
-    with open(readme_file_path, "w") as f:
-        f.write("")
-
     assert client.upload_artifact_and_register_model(
         name,
-        model_files_path=readme_file_path,
-        author=author,
+        model_files_path=model_dir,
+        author="Tester McTesterson",
         version=version,
         model_format_name="test format",
         model_format_version="test version",
@@ -871,3 +866,45 @@ def test_upload_artifact_and_register_model_with_default_oci(
 
     assert (ma := client.get_model_artifact(name, version))
     assert ma.uri == f"oci://{oci_ref}"
+
+
+@pytest.mark.e2e
+def test_upload_artifact_and_register_model_with_default_s3(
+    client: ModelRegistry,
+    patch_s3_env,
+    get_temp_dir_with_models,
+) -> None:
+    # olot is required to run this test
+    pytest.importorskip("olot")
+    name = "oci-test/defaults"
+    version = "0.0.1"
+
+    s3_prefix = f"my-model-{version}"
+    model_dir, _ = get_temp_dir_with_models
+
+    bucket, s3_endpoint, access_key_id, secret_access_key, region = patch_s3_env
+
+    upload_params = utils.S3Params(
+        bucket,
+        s3_prefix,
+        s3_endpoint,
+        access_key_id,
+        secret_access_key,
+        region,
+    )
+
+    assert client.upload_artifact_and_register_model(
+        name,
+        model_files_path=model_dir,
+        author="Tester McTesterson",
+        version=version,
+        model_format_name="test format",
+        model_format_version="test version",
+        upload_params=upload_params,
+    )
+
+    assert (ma := client.get_model_artifact(name, version))
+    assert (
+        ma.uri
+        == f"s3://{bucket}/{s3_prefix}?endpoint={s3_endpoint}&defaultRegion={region}"
+    )

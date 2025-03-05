@@ -154,7 +154,6 @@ class S3Params:
     Allows for some amount of customization when performing an upload, such as providing a custom endpoint url, access keys, etc.
     """
 
-    path: str
     bucket_name: str
     s3_prefix: str
     endpoint_url: str | None = None

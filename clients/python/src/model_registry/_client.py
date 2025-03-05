@@ -222,7 +222,9 @@ class ModelRegistry:
             Registered model.
         """
         if isinstance(upload_params, S3Params):
-            destination_uri = self.save_to_s3(**asdict(upload_params))
+            destination_uri = self.save_to_s3(
+                **asdict(upload_params), path=model_files_path
+            )
         elif isinstance(upload_params, OCIParams):
             destination_uri = save_to_oci_registry(
                 **asdict(upload_params), model_files_path=model_files_path
