@@ -907,3 +907,22 @@ def test_upload_artifact_and_register_model_with_default_s3(
         ma.uri
         == f"s3://{bucket}/{s3_prefix}?endpoint={s3_endpoint}&defaultRegion={region}"
     )
+
+
+def test_upload_artifact_and_register_model_missing_upload_params(client):
+    with pytest.raises(
+        ValueError, match='Param "upload_params" is required to perform an upload'
+    ) as e:
+        client.upload_artifact_and_register_model(
+            "a name",
+            model_files_path="/doesnt/matter",
+            author="Tester McTesterson",
+            version="v0.0.1",
+            model_format_name="test format",
+            model_format_version="test version",
+            upload_params=None,
+        )
+    assert (
+        'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
+        in str(e.value)
+    )
