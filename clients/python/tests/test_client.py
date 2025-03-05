@@ -909,6 +909,7 @@ def test_upload_artifact_and_register_model_with_default_s3(
     )
 
 
+@pytest.mark.e2e
 def test_upload_artifact_and_register_model_missing_upload_params(client):
     with pytest.raises(
         ValueError, match='Param "upload_params" is required to perform an upload'
