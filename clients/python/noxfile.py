@@ -77,8 +77,6 @@ def e2e_tests(session: Session) -> None:
         "requests",
         "pytest",
         "pytest-asyncio",
-        "uvloop",
-        "ray",
         "coverage[toml]",
         "pytest-cov",
         "huggingface-hub",
