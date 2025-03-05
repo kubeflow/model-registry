@@ -709,7 +709,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert model_name_pfx in objects_by_name
 
     # Test file not exists
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(
             path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket
         )
@@ -768,7 +768,7 @@ def test_recursive_store_in_s3(
         assert path in objects_by_name
 
     # Test incorrect folder
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
 
@@ -831,7 +831,7 @@ def test_nested_recursive_store_in_s3(
         assert path in objects_by_name
 
     # Test incorrect folder
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
 
