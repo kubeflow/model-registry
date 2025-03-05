@@ -7,7 +7,6 @@ import pytest
 from model_registry.exceptions import MissingMetadata
 from model_registry.utils import (
     get_files_from_path,
-    is_s3_uri,
     s3_uri_from,
     save_to_oci_registry,
 )
@@ -164,27 +163,6 @@ def test_save_to_oci_registry_backend_not_found():
         save_to_oci_registry("", "", [], "", backend)
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
-
-
-def test_is_s3_uri_with_valid_uris():
-    test_cases = [
-        "s3://my-bucket/my-file.txt",
-        "s3://my-bucket/my-folder/my-file.conf",
-        "s3://my-bucket/my-folder/my-sub-folder/my-file.sh",
-    ]
-    for test in test_cases:
-        assert is_s3_uri(test) is True
-
-
-def test_is_s3_uri_with_invalid_uris():
-    test_cases = [
-        "",
-        "s3://",
-        "s3://my-file.txt",
-        "my-bucket/my-file.sh",
-    ]
-    for test in test_cases:
-        assert is_s3_uri(test) is False
 
 
 def test_get_files_from_path_no_path():

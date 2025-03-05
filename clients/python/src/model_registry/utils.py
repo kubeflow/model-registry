@@ -157,9 +157,9 @@ class S3Params:
     bucket_name: str
     s3_prefix: str
     endpoint_url: str | None = None
-    access_key_id: str | None = (None,)
-    secret_access_key: str | None = (None,)
-    region: str | None = (None,)
+    access_key_id: str | None = None
+    secret_access_key: str | None = None
+    region: str | None = None
 
 
 # A dict mapping backend names to their definitions
@@ -239,28 +239,6 @@ or
     # Return the OCI URI
 
     return f"oci://{oci_ref}"
-
-
-s3_prefix = "s3://"
-
-
-def is_s3_uri(uri: str):
-    """Checks whether a string is a valid S3 URI.
-
-    This helper function checks whether the string starts with the correct s3 prefix (s3://) and
-    whether the string contains both a bucket and a key.
-
-    Args:
-        uri: The URI to check
-
-    Returns:
-        Boolean indicating whether it is a valid S3 URI
-    """
-    if not uri.startswith(s3_prefix):
-        return False
-    # Slice the uri from prefix onward, then check if there are 2 components when splitting on "/"
-    path = uri[len(s3_prefix) :]
-    return len(path.split("/", 1)) == 2
 
 
 def get_files_from_path(path: str) -> list[tuple[str, str]]:
