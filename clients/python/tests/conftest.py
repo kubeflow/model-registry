@@ -95,12 +95,14 @@ def event_loop():
 
 @pytest.fixture
 def uv_event_loop():
+    old_policy = asyncio.get_event_loop_policy()
     policy = uvloop.EventLoopPolicy()
     asyncio.set_event_loop_policy(policy)
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
     yield loop
     loop.close()
+    asyncio.set_event_loop_policy(old_policy)
 
 
 @pytest.fixture
