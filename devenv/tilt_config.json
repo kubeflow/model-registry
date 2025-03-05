@@ -1,0 +1,7 @@
+{
+    "services": [
+        "jupyterhub",
+        "pythonclient",
+        "frontend"
+    ]
+}

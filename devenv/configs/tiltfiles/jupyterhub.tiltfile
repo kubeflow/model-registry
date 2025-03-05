@@ -1,0 +1,58 @@
+load("ext://helm_resource", "helm_repo", "helm_resource")
+
+# Set default trigger mode to manual
+trigger_mode(TRIGGER_MODE_MANUAL)
+
+helm_repo(
+  name="jupyterhub",
+  url="https://hub.jupyter.org/helm-chart/",
+  resource_name="jupyterhub-repo",
+  labels="jupyterhub"
+)
+
+helm_resource(
+  name="jupyterhub",
+  chart="jupyterhub/jupyterhub",
+  release_name="jupyterhub",
+  namespace="kubeflow",
+  flags=["--values", "../helm-values/jupyterhub.yaml", "--version=4.1.0"],
+  resource_deps=["kubeflow-namespace", "jupyterhub-repo"],
+  deps=["../helm-values/jupyterhub.yaml"],
+  labels="jupyterhub"
+)
+
+k8s_resource(
+    "jupyterhub",
+    extra_pod_selectors={
+        "app": "jupyterhub",
+        "component": "proxy"
+    },
+    discovery_strategy="selectors-only",
+    port_forwards="8086:8000",
+    trigger_mode=TRIGGER_MODE_AUTO,
+)
+
+local_resource(
+  "hub-ready",
+  resource_deps=["jupyterhub"],
+  serve_cmd="sleep infinity",
+  readiness_probe=probe(exec=exec_action(command=["curl", "-H", "Authorization: token dummydummy", "-f", "http://localhost:8086/hub/api/users"]), initial_delay_secs=5, timeout_secs=60),
+  labels="jupyterhub"
+)
+
+local_resource(
+    "mr-notebook-create",
+    resource_deps=["hub-ready"],
+    cmd="curl --silent -X 'POST' -H 'Authorization: token dummydummy' 'localhost:8086/hub/api/users/mr/server'",
+    labels="notebooks"
+)
+
+local_resource(
+    "mr-notebook",
+    resource_deps=["mr-notebook-create"],
+    serve_cmd="sleep infinity",
+    labels="notebooks",
+    readiness_probe=probe(exec=exec_action(command=["/bin/bash", "-c", "kubectl get pod -n kubeflow -l app=jupyterhub,component=singleuser-server,hub.jupyter.org/username=mr -o jsonpath={.items[0].status.phase} | grep -q '^Running$' && exit 0 || exit 1"]), initial_delay_secs=5, timeout_secs=60),
+    links=[link("http://localhost:8086/user/mr/lab", "Open JupyterLab")]
+)
+
