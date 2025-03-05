@@ -94,7 +94,7 @@ class ModelRegistry:
         # Set the user's defined async runner
         if async_runner:
             if not (inspect.ismethod(async_runner) or inspect.isfunction(async_runner)):
-                msg = "`async_runner` must be a bound method of a function that takes in a coroutine to run."
+                msg = "`async_runner` must be a bound method or a function that takes in a coroutine to run."
                 raise ValueError(msg)
             self._user_async_runner = async_runner
         else:
