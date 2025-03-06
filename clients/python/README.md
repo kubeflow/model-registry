@@ -188,13 +188,12 @@ In order to utilize this method you must instantiate an `upload_params` object w
 
 #### S3 based external storage
 
+Common S3 env vars will be automatically read, such ass the access_key_id, etc. It can also be provided explicitly in the `S3Params` object if desired.
+
 ```python
 s3_upload_params = S3Params(
     bucket="my-bucket",
-    s3_prefix="hello_world_model",
-    access_key_id="my-key-id",
-    access_key_secret="super-secret",
-    region="us-east-1"
+    s3_prefix="models/my_fraud_model",
 )
 
 registered_model = client.upload_artifact_and_register_model(
