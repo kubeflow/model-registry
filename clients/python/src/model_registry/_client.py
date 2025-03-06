@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Coroutine, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
 from warnings import warn
@@ -69,7 +69,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
-        async_runner: Callable = None,
+        async_runner: Callable[[Coroutine[Any, Any, Any]], Any] = None,
     ):
         """Constructor.
 
@@ -85,7 +85,7 @@ class ModelRegistry:
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
-            async_runner: A modular async scheduler (Callable - either a method or function) that takes in a coroutine for scheduling.
+            async_runner: A modular async scheduler Callable (either a method or function) that takes in a coroutine for scheduling.
         """
         logger.setLevel(log_level)
 
