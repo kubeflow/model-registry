@@ -25,6 +25,7 @@ const ModelRegistrySettings: React.FC = () => {
 
   const loaded = mrloaded; //&& roleBindings.loaded;
 
+  // TODO: implement when refreshModelRegistries() and refreshRulesReview() are added
   // const refreshAll = React.useCallback(
   //   () => Promise.all([refreshModelRegistries(), refreshRulesReview()]),
   //   [refreshModelRegistries, refreshRulesReview],
@@ -74,6 +75,8 @@ const ModelRegistrySettings: React.FC = () => {
           onCreateModelRegistryClick={() => {
             setCreateModalOpen(true);
           }}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          refresh={() => {}}
         />
       </ApplicationsPage>
       {createModalOpen ? (
