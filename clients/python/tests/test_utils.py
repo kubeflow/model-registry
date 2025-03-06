@@ -1,6 +1,4 @@
 import os
-import pathlib
-from unittest.mock import Mock
 
 import pytest
 
@@ -80,78 +78,38 @@ def test_s3_uri_builder_with_complete_env():
 
 
 @pytest.mark.e2e(type="oci")
-def test_save_to_oci_registry_with_skopeo():
-    # TODO: We need a good source registry which is oci-compliant and very small in size
-    base_image = "quay.io/mmortari/hello-world-wait:latest"
-    dest_dir = "tests/data"
+def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir):
+    base_image = "busybox:latest"
+    dest_dir, _ = get_temp_dir_with_models
     oci_ref = "localhost:5001/foo/bar:latest"
-
-    # Create a sample file named README.md to be added to the registry
-    pathlib.Path(dest_dir).mkdir(parents=True, exist_ok=True)
-    readme_file_path = os.path.join(dest_dir, "README.md")
-    with open(readme_file_path, "w") as f:
-        f.write("")
 
     backend = "skopeo"
 
-    save_to_oci_registry(base_image, oci_ref, readme_file_path, dest_dir, backend)
+    save_to_oci_registry(base_image, oci_ref, dest_dir, get_temp_dir, backend)
 
 
-# These are trimmed down versions of whats found in the example specs found here: https://github.com/opencontainers/image-spec/blob/main/image-layout.md#oci-layout-file
-index_json_contents = """{
-  "schemaVersion": 2,
-  "mediaType": "application/vnd.oci.image.index.v1+json",
-  "manifests": [],
-  "annotations": {
-    "com.example.index.revision": "r124356"
-  }
-}"""
-oci_layout_contents = """{"imageLayoutVersion": "1.0.0"}"""
-
-
-def test_save_to_oci_registry_with_custom_backend():
-    is_available_mock = Mock()
-    is_available_mock.return_value = True
-    pull_mock = Mock()
-    push_mock = Mock()
-
-    def pull_mock_imple(base_image, dest_dir):
-        pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
-        pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
-
-    pull_mock.side_effect = pull_mock_imple
-
+def test_save_to_oci_registry_with_custom_backend(
+    get_temp_dir_with_models, get_temp_dir, get_mock_custom_oci_backend
+):
     backend = "something_custom"
-    custom_oci_backend = {
-        "is_available": is_available_mock,
-        "pull": pull_mock,
-        "push": push_mock,
-    }
-
     # similar to other test
-    base_image = "quay.io/mmortari/hello-world-wait:latest"
-    dest_dir = "tests/data"
+    base_image = "busybox:latest"
+    dest_dir, _ = get_temp_dir_with_models
     oci_ref = "localhost:5001/foo/bar:latest"
 
-    # Create a sample file named README.md to be added to the registry
-    pathlib.Path(dest_dir).mkdir(parents=True, exist_ok=True)
-    readme_file_path = os.path.join(dest_dir, "README.md")
-    with open(readme_file_path, "w") as f:
-        f.write("")
-
     uri = save_to_oci_registry(
-        base_image,
-        oci_ref,
-        readme_file_path,
-        dest_dir,
-        backend,
-        None,
-        custom_oci_backend,
+        base_image=base_image,
+        oci_ref=oci_ref,
+        model_files_path=dest_dir,
+        dest_dir=get_temp_dir,
+        backend=backend,
+        modelcard=None,
+        custom_oci_backend=get_mock_custom_oci_backend,
     )
     # Ensure our mocked backend was called
-    is_available_mock.assert_called_once()
-    pull_mock.assert_called_once()
-    push_mock.assert_called_once()
+    get_mock_custom_oci_backend["is_available"].assert_called_once()
+    get_mock_custom_oci_backend["pull"].assert_called_once()
+    get_mock_custom_oci_backend["push"].assert_called_once()
     assert uri == f"oci://{oci_ref}"
 
 
