@@ -182,6 +182,8 @@ class ModelRegistry:
         name: str,
         model_files_path: str,
         *,
+        # Upload/client Params
+        upload_params: OCIParams | S3Params,
         # Artifact/Model Params
         version: str,
         model_format_name: str,
@@ -193,8 +195,6 @@ class ModelRegistry:
         owner: str | None = None,
         description: str | None = None,
         metadata: Mapping[str, SupportedTypes] | None = None,
-        # Upload/client Params
-        upload_params: OCIParams | S3Params,
     ) -> RegisteredModel:
         """Convenience method to perform 2 operations; uploading an artifact to a storage location, and registers the model in model registry.
 
@@ -203,6 +203,7 @@ class ModelRegistry:
             model_files_path: The path where the model files are located. If a directory, uploads the entire directory.
 
         Keyword Args:
+            upload_params: Parameters to configure which storage client to use as well as that client's configuration when uploading the model.
             version: Version of the model. Has to be unique.
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
@@ -213,13 +214,12 @@ class ModelRegistry:
             storage_path: Storage path.
             service_account_name: Service account name.
             metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
-            upload_params: Parameters to configure which storage client to use as well as that client's configuration when uploading the model.
 
         Raises:
             ValueError: When the provided `upload_params` is missing or invalid
 
         Returns:
-            Registered model.
+            Registered model. See: :meth:`~ModelRegistry.register_model`
         """
         if isinstance(upload_params, S3Params):
             destination_uri = self.save_to_s3(
