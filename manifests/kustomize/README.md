@@ -81,7 +81,25 @@ Or you can add it in one line with:
 
 ```bash
 kubectl get configmap centraldashboard-config -n kubeflow -o json | jq '.data.links |= (fromjson | .menuLinks += [{"icon": "assignment", "link": "/model-registry/", "text": "Model Registry", "type": "item"}] | tojson)' | kubectl apply -f - -n kubeflow
-````
+```
+
+#### Installing Model Registry on a Kubeflow Profile
+
+Kubeflow Central Dashboard uses [Profiles](/docs/components/central-dash/profiles/) to handle user namespaces and permissions. By default, the manifests deploy the Model Registry in the `kubeflow` namespace, to install a compatible version of Model Registry for Kubeflow, you should deploy a separate instance of Model Registry in the profile's namespace. For that just run:
+
+```shell
+cd options/istio
+kustomize edit set namespace <your-profile>
+kubectl apply -k .
+```
+
+Then head into the **db overlay** and run the following commands:
+
+```shell
+cd overlays/db
+kustomize edit set namespace <your-profile>
+kubectl apply -k .
+```
 
 ## Usage
 
