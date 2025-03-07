@@ -1,11 +1,14 @@
 import asyncio
 import inspect
 import os
+import pathlib
+import shutil
 import subprocess
 import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
@@ -144,6 +147,15 @@ def get_temp_dir_with_models():
 
 
 @pytest.fixture
+def get_temp_dir():
+    temp_dir = tempfile.mkdtemp()
+
+    yield temp_dir
+
+    shutil.rmtree(temp_dir)
+
+
+@pytest.fixture
 def get_temp_dir_with_nested_models():
     temp_dir = tempfile.mkdtemp()
     nested_dir = tempfile.mkdtemp(dir=temp_dir)
@@ -171,9 +183,43 @@ def patch_s3_env(monkeypatch: pytest.MonkeyPatch):
     access_key_id = os.getenv("KF_MR_TEST_ACCESS_KEY_ID")
     secret_access_key = os.getenv("KF_MR_TEST_SECRET_ACCESS_KEY")
     bucket = os.getenv("KF_MR_TEST_BUCKET_NAME") or "default"
+    region = "east"
 
     monkeypatch.setenv("AWS_S3_ENDPOINT", s3_endpoint)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", access_key_id)
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", secret_access_key)
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "east")
+    monkeypatch.setenv("AWS_DEFAULT_REGION", region)
     monkeypatch.setenv("AWS_S3_BUCKET", bucket)
+
+    return (bucket, s3_endpoint, access_key_id, secret_access_key, region)
+
+
+# These are trimmed down versions of whats found in the example specs found here: https://github.com/opencontainers/image-spec/blob/main/image-layout.md#oci-layout-file
+index_json_contents = """{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "manifests": [],
+  "annotations": {
+    "com.example.index.revision": "r124356"
+  }
+}"""
+oci_layout_contents = """{"imageLayoutVersion": "1.0.0"}"""
+
+
+@pytest.fixture
+def get_mock_custom_oci_backend():
+    is_available_mock = Mock()
+    is_available_mock.return_value = True
+    pull_mock = Mock()
+    push_mock = Mock()
+
+    def pull_mock_imple(base_image, dest_dir):
+        pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
+        pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
+
+    pull_mock.side_effect = pull_mock_imple
+    return {
+        "is_available": is_available_mock,
+        "pull": pull_mock,
+        "push": push_mock,
+    }

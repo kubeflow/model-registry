@@ -178,6 +178,91 @@ By default, all queries will be `ascending`, but this method is also available f
 > Advanced usage note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
 
+### Uploading local models to external storage and registering them
+
+To both upload and register a model, use the convenience method `upload_artifact_and_register_model`.
+
+This method supports both s3-based storage (via [boto3](https://github.com/boto/boto3)) as well as OCI-based image registries (via [olot](https://github.com/containers/olot), using either of the CLI tools [skopeo](https://github.com/containers/skopeo) or [oras](https://github.com/oras-project/oras))
+
+In order to utilize this method you must instantiate an `upload_params` object which contains the necessary locations and credentials needed to perform the upload to that storage provider.
+
+#### S3 based external storage
+
+Common S3 env vars will be automatically read, such ass the access_key_id, etc. It can also be provided explicitly in the `S3Params` object if desired.
+
+```python
+s3_upload_params = S3Params(
+    bucket="my-bucket",
+    s3_prefix="models/my_fraud_model",
+)
+
+registered_model = client.upload_artifact_and_register_model(
+    name="hello_world_model",
+    model_fiels_path="/home/user-01/models/model_training_01"
+    # If the model consists of a single file, such as a .onnx file, you can specify that as well
+    # model_fiels_path="/home/user-01/models/model_training_01.onnx"
+    author="Mr. Trainer",
+    version="0.0.1",
+    upload_params=s3_upload_params
+)
+```
+
+#### OCI-registry based storage
+
+```python
+oci_upload_params = OCIParams(
+    base_image="busybox",
+    oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1"
+)
+
+registered_model = client.upload_artifact_and_register_model(
+    name="hello_world_model",
+    model_fiels_path="/home/user-01/models/model_training_01"
+    # If the model consists of a single file, such as a .onnx file, you can specify that as well
+    # model_fiels_path="/home/user-01/models/model_training_01.onnx"
+    author="Mr. Trainer",
+    version="0.0.1",
+    upload_params=oci_upload_params
+)
+```
+
+Additionally, OCI-based storage supports multiple CLI clients to perform the upload. However, one of these clients must be available in the hosts PATH. **Ensure your host has either [skopeo](https://github.com/containers/skopeo) or [oras](https://github.com/oras-project/oras) installed and available.** 
+
+By default, `skopeo` is used to perform the OCI image download/upload.
+
+If you prefer to use `oras` instead, you can specify it like so:
+
+```python
+oci_upload_params = OCIParams(
+    base_image="busybox",
+    oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1",
+    backend="oras"
+)
+```
+
+Additionally, if neither of these CLI clients are sufficient for you, you can provide a `custom_oci_backend` in the `OCIParams` and specify the appropriate methods
+
+```python
+def is_available():
+    pass
+def pull():
+    pass
+def push():
+    pass
+
+custom_oci_backend = {
+    "is_available": is_available,
+    "pull": pull,
+    "push": push,
+}
+
+oci_upload_params = OCIParams(
+    base_image="busybox",
+    oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1",
+    custom_oci_backend=custom_oci_backend,
+)
+```
+
 #### Implementation notes
 
 The pager will manage pages for you in order to prevent infinite looping.
