@@ -2,7 +2,7 @@
   // Alert
   --mui-alert--BoxShadow: none;
   --mui-alert-warning-text: #663c00;
-  --mui-alert-warning-font-weight: 400;
+  --mui-alert-warning-FontWeight: 400;
   --mui-alert--PaddingBlockStart: 6px;
   --mui-alert--PaddingBlockEnd: 6px;
   --mui-alert--PaddingInlineStart: 16px;
@@ -14,7 +14,7 @@
   --mui-alert__icon--FontSize: 22px;
 
   // Button
-  --mui-button-font-weight: 500;
+  --mui-button-FontWeight: 500;
   --mui-button--hover--BorderWidth: 1px;
   --mui-button--PaddingBlockStart: 6px;
   --mui-button--PaddingBlockEnd: 6px;
@@ -22,6 +22,9 @@
   --mui-button--PaddingInlineEnd: 16px;
   --mui-button--LineHeight: 1.75;
   --mui-link-underlineColor: rgba(33, 150, 243, 0.4);
+
+  // Helper text
+  --mui-helper-text__item--FontWeight: 400;
 
   // Menu item
   --mui-menu__item--PaddingBlockStart: 6px;
@@ -121,7 +124,7 @@
     --pf-t--global--text--color--status--warning--default
   );
   --pf-v6-c-alert__icon--MarginInlineEnd: var(--mui-alert__icon--MarginInlineEnd);
-  --pf-v6-c-alert__title--FontWeight: var(--mui-alert-warning-font-weight);
+  --pf-v6-c-alert__title--FontWeight: var(--mui-alert-warning-FontWeight);
   --pf-v6-c-alert__icon--MarginBlockStart: var(--mui-alert__icon--MarginBlockStart);
   --pf-v6-c-alert__icon--FontSize: var(--mui-alert__icon--FontSize);
   --pf-v6-c-alert--BoxShadow: var(--mui-alert--BoxShadow);
@@ -144,7 +147,7 @@
 }
 
 .mui-theme .pf-v6-c-button {
-  --pf-v6-c-button--FontWeight: var(--mui-button-font-weight);
+  --pf-v6-c-button--FontWeight: var(--mui-button-FontWeight);
   --pf-v6-c-button--PaddingBlockStart: var(--mui-button--PaddingBlockStart);
   --pf-v6-c-button--PaddingBlockEnd: var(--mui-button--PaddingBlockEnd);
   --pf-v6-c-button--PaddingInlineStart: var(--mui-button--PaddingInlineStart);
@@ -179,6 +182,10 @@
   align-content: center;
 }
 
+.mui-theme .pf-v6-c-form {
+  --pf-v6-c-form--GridGap: none;
+}
+
 .mui-theme .pf-v6-c-form__group {
   position: relative;
 }
@@ -193,8 +200,16 @@
   color: var(--mui-palette-text-disabled);
 }
 
+.mui-theme .pf-v6-c-form__group.form-group-error .pf-v6-c-form__label {
+  color: var(--mui-palette-error-main);
+}
+
 .mui-theme .pf-v6-c-form__helper-text.path-helper-text {
   margin-inline-start: var(--pf-t--global--spacer--lg);
+}
+
+.mui-theme .pf-v6-c-helper-text .pf-v6-c-helper-text__item-icon {
+  display: none;
 }
 
 .mui-theme .pf-v6-c-form__section-title {
@@ -227,6 +242,8 @@
 .mui-theme .pf-v6-c-form-control {
   --pf-v6-c-form-control--m-disabled--BackgroundColor: var(--mui-palette-common-white);
   --pf-v6-c-form-control--m-disabled--Color: var(--mui-palette-text-disabled);
+  --pf-v6-c-form-control--m-error--after--BorderColor: var(--mui-palette-error-main);
+  --pf-v6-c-form-control--m-error--hover--after--BorderColor: var(--mui-palette-error-main);
 }
 
 .mui-theme .pf-v6-c-form-control {
@@ -311,8 +328,24 @@
   border-color: black;
 }
 
-.form-fieldset-wrapper:hover span.pf-v6-c-form-control.pf-m-disabled ~ .form-fieldset {
+.form-fieldset-wrapper:focus-within span.pf-v6-c-form-control.pf-m-disabled ~ .form-fieldset {
   border-color: rgba(0, 0, 0, 0.23);
+}
+
+.form-fieldset-wrapper span.pf-v6-c-form-control.pf-m-error ~ .form-fieldset {
+  border-color: var(--mui-palette-error-main);
+}
+
+.form-fieldset-wrapper .pf-v6-c-input-group span.pf-v6-c-form-control .pf-m-error ~ .form-fieldset {
+  border-color: var(--mui-palette-error-main);
+}
+
+.form-fieldset-wrapper .pf-v6-c-input-group__item button {
+  // Aligns EyeIcon in password input
+  --pf-v6-c-button--PaddingBlockStart: var(--mui-spacing-16px);
+  --pf-v6-c-button--PaddingBlockEnd: var(--mui-spacing-16px);
+  --pf-v6-c-button--BorderColor: var(--mui-palette-common-white);
+  --pf-v6-c-button--BorderRadius: 50%;
 }
 
 .form-fieldset-wrapper:focus-within .form-fieldset {
@@ -410,10 +443,34 @@
 
 .pf-v6-c-form__group:focus-within .pf-v6-c-form-control {
   --pf-v6-c-form-control--after--BorderWidth: 2px;
-  --pf-v6-c-form-control--after--BorderColor: var(--mui-palette-primary-main);
 }
 
-.pf-v6-c-form__group:focus-within .pf-v6-c-form__label {
+.pf-v6-c-form-control.pf-m-error {
+  --pf-v6-c-form-control--after--BorderColor: var(--mui-palette-error-main);
+}
+
+.mui-theme .pf-v6-c-form-control__utilities {
+  display: none;
+}
+
+.pf-v6-c-helper-text__item.pf-m-error {
+  --pf-v6-c-helper-text__item-text--Color: var(--mui-palette-error-main);
+  --pf-v6-c-helper-text__item-text--FontWeight: var(--mui-helper-text__item--FontWeight);
+  margin-left: 14px;
+  margin-top: 3px;
+}
+
+.pf-v6-c-form__group.pf-m-error .pf-v6-c-form__label {
+  // Using CSS property here since --pf-v6-c-form__label--Color does not exist.
+
+  color: var(--mui-palette-error-main);
+}
+
+.mui-theme .pf-v6-c-form__group.pf-m-error fieldset.form-fieldset {
+  border-color: var(--mui-palette-error-main);
+}
+
+.pf-v6-c-form__group:not(.pf-m-error):focus-within .pf-v6-c-form__label {
   // Using CSS property here since --pf-v6-c-form__label--Color does not exist.
 
   /* Change color of the label when the input is focused */
@@ -462,13 +519,13 @@
 
   border-radius: var(--mui-shape-borderRadius);
   text-transform: var(--mui-text-transform);
-  font-weight: var(--mui-button-font-weight);
+  font-weight: var(--mui-button-FontWeight);
   letter-spacing: 0.02857em;
 }
 
 .mui-theme .pf-v6-c-menu-toggle__button {
   text-transform: var(--mui-text-transform);
-  font-weight: var(--mui-button-font-weight);
+  font-weight: var(--mui-button-FontWeight);
   letter-spacing: 0.02857em;
   align-self: stretch;
 }
@@ -639,7 +696,7 @@
   --pf-v6-c-table--cell--first-last-child--PaddingInline: var(
     --mui-table--cell--first-last-child--PaddingInline
   );
-  --pf-v6-c-table__thead--cell--FontWeight: var(--mui-button-font-weight);
+  --pf-v6-c-table__thead--cell--FontWeight: var(--mui-button-FontWeight);
   --pf-v6-c-table__thead--cell--FontSize: var(--mui-table__thead--cell--FontSize);
   --pf-v6-c-table__tr--BorderBlockEndColor: var(--mui-palette-grey-300);
   --pf-v6-c-table__sort-indicator--MarginInlineStart: var(
@@ -716,7 +773,7 @@
 
 .mui-theme .pf-v6-c-tabs__link {
   text-transform: var(--mui-text-transform);
-  font-weight: var(--mui-button-font-weight);
+  font-weight: var(--mui-button-FontWeight);
   line-height: var(--mui-button-line-height);
   letter-spacing: 0.02857em;
 }
@@ -829,7 +886,6 @@
   /* Position sidebar above the masthead */
 }
 
-
 /* Hide Masthead Toggle by default */
 .mui-theme .pf-v6-c-masthead__toggle {
   display: none;
@@ -847,9 +903,9 @@
   }
 }
 
-.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-container,
-.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__drawer,
-.pf-v6-c-page__sidebar:not(.pf-m-collapsed)+.pf-v6-c-page__main-breadcrumb {
+.mui-theme .pf-v6-c-page__sidebar:not(.pf-m-collapsed) + .pf-v6-c-page__main-container,
+.mui-theme .pf-v6-c-page__sidebar:not(.pf-m-collapsed) + .pf-v6-c-page__drawer,
+.mui-theme .pf-v6-c-page__sidebar:not(.pf-m-collapsed) + .pf-v6-c-page__main-breadcrumb {
   --pf-v6-c-page__main-container--MarginInlineStart: calc(-2 * var(--mui-spacing-16px));
   --pf-v6-c-page__main-section--PaddingInlineStart: none;
   --pf-v6-c-page__main-section--PaddingInlineEnd: none;
