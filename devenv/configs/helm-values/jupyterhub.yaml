@@ -25,3 +25,7 @@ hub:
         - mr
     admin_users:
       - mr
+singleuser:
+  networkPolicy:
+    egressAllowRules:
+      privateIPs: true
