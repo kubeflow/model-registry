@@ -268,6 +268,27 @@ oci_upload_params = OCIParams(
 The pager will manage pages for you in order to prevent infinite looping.
 Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
+
+### Running ModelRegistry on Ray or Uvloop
+When running `ModelRegistry` on a platform that sets a custom event loop that cannot be nested, an error will occur.
+
+To solve this, you can specify a custom `async_runner` when initializing the client, one that is compatible with your environment.
+
+`async_runner` is a function or a method that takes in a coroutine.
+
+
+Example of an async runner compatible with Ray or Uvloop can be found [here](tests/extras/async_task_runner.py) in `tests/extras`.
+
+Example usage:
+```py
+atr = AsyncTaskRunner()
+registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", async_runner=atr.run)
+```
+
+See also the [test case](tests/test_client.py#L854) in `test_custom_async_runner_with_ray`.
+
+Please keep in mind, the `AsyncTaskRunner` used here for testing does not ship within the library so you will need to copy it into your code directly or import from elsewhere.
+
 ## Development
 
 ### Using the Makefile

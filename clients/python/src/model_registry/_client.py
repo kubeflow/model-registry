@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Coroutine, Mapping
 from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -63,7 +64,7 @@ if TYPE_CHECKING:
 class ModelRegistry:
     """Model registry client."""
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
         server_address: str,
         port: int = 443,
@@ -75,6 +76,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
+        async_runner: Callable[[Coroutine[Any, Any, Any]], Any] = None,
     ):
         """Constructor.
 
@@ -90,16 +92,23 @@ class ModelRegistry:
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
+            async_runner: A modular async scheduler Callable (either a method or function) that takes in a coroutine for scheduling.
         """
         logger.setLevel(log_level)
 
-        import nest_asyncio
-
-        logger.debug("Setting up reentrant async event loop")
-        nest_asyncio.apply()
-
         # TODO: get remaining args from env
         self._author = author
+        # Set the user's defined async runner
+        if async_runner:
+            if not (inspect.ismethod(async_runner) or inspect.isfunction(async_runner)):
+                msg = "`async_runner` must be a bound method or a function that takes in a coroutine to run."
+                raise ValueError(msg)
+            self._user_async_runner = async_runner
+        else:
+            import nest_asyncio
+
+            logger.debug("Setting up reentrant async event loop")
+            nest_asyncio.apply()
 
         if not user_token and user_token_envvar:
             logger.info("Reading user token from %s", user_token_envvar)
@@ -140,6 +149,9 @@ class ModelRegistry:
         self.get_registered_models().page_size(1)._next_page()
 
     def async_runner(self, coro: Any) -> Any:
+        if hasattr(self, "_user_async_runner"):
+            return self._user_async_runner(coro)
+
         import asyncio
 
         try:
@@ -372,8 +384,8 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = """package `huggingface-hub` is not installed.
-            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-            extra (available as `model-registry[hf]`), e.g.:
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package,
+            either directly or as an extra (available as `model-registry[hf]`), e.g.:
             ```sh
             !pip install --pre model-registry[hf]
             ```
@@ -515,7 +527,8 @@ class ModelRegistry:
             raise StoreError(msg)
 
         def rm_versions(options: ListOptions) -> list[ModelVersion]:
-            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            # type checkers can't restrict the type inside a nested function:
+            # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
             assert rm.id
             return self.async_runner(self._api.get_model_versions(rm.id, options))
 
