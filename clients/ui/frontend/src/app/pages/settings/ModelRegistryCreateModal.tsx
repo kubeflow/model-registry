@@ -10,10 +10,12 @@ import {
 import { Modal } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router';
 import ModelRegistryCreateModalFooter from '~/app/pages/settings/ModelRegistryCreateModalFooter';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/shared/components/pf-overrides/FormSection';
 
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
+import { isMUITheme } from '~/shared/utilities/const';
 
 type CreateModalProps = {
   onClose: () => void;
@@ -81,6 +83,179 @@ const CreateModal: React.FC<CreateModalProps> = ({
     onClose();
   };
 
+  const hostInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="mr-host"
+      name="mr-host"
+      value={host}
+      onBlur={() => setIsHostTouched(true)}
+      onChange={(_e, value) => setHost(value)}
+      validated={isHostTouched && !hasContent(host) ? 'error' : 'default'}
+    />
+  );
+
+  const hostHelperText = isHostTouched && !hasContent(host) && (
+    <HelperText>
+      <HelperTextItem variant="error" data-testid="mr-host-error">
+        Host cannot be empty
+      </HelperTextItem>
+    </HelperText>
+  );
+
+  const hostFormGroup = (
+    <>
+      <FormGroup
+        className={hostHelperText ? 'pf-m-error' : ''}
+        label="Host"
+        isRequired
+        fieldId="mr-host"
+      >
+        <FormFieldset component={hostInput} field="Host" />
+      </FormGroup>
+      {hostHelperText}
+    </>
+  );
+
+  const portInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="mr-port"
+      name="mr-port"
+      value={port}
+      onBlur={() => setIsPortTouched(true)}
+      onChange={(_e, value) => setPort(value)}
+      validated={isPortTouched && !hasContent(port) ? 'error' : 'default'}
+    />
+  );
+
+  const portHelperText = isPortTouched && !hasContent(port) && (
+    <HelperText>
+      <HelperTextItem variant="error" data-testid="mr-port-error">
+        Port cannot be empty
+      </HelperTextItem>
+    </HelperText>
+  );
+
+  const portFormGroup = (
+    <>
+      <FormGroup
+        className={portHelperText ? 'pf-m-error' : ''}
+        label="Port"
+        isRequired
+        fieldId="mr-port"
+      >
+        <FormFieldset component={portInput} field="Port" />
+      </FormGroup>
+      {portHelperText}
+    </>
+  );
+
+  const userNameInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="mr-username"
+      name="mr-username"
+      value={username}
+      onBlur={() => setIsUsernameTouched(true)}
+      onChange={(_e, value) => setUsername(value)}
+      validated={isUsernameTouched && !hasContent(username) ? 'error' : 'default'}
+    />
+  );
+
+  const usernameHelperText = isUsernameTouched && !hasContent(username) && (
+    <HelperText>
+      <HelperTextItem variant="error" data-testid="mr-username-error">
+        Username cannot be empty
+      </HelperTextItem>
+    </HelperText>
+  );
+
+  const usernameFormGroup = (
+    <>
+      <FormGroup
+        className={usernameHelperText ? 'pf-m-error' : ''}
+        label="Username"
+        isRequired
+        fieldId="mr-username"
+      >
+        <FormFieldset component={userNameInput} field="Host" />
+      </FormGroup>
+      {usernameHelperText}
+    </>
+  );
+
+  const passwordInput = (
+    <ModelRegistryDatabasePassword
+      password={password || ''}
+      setPassword={setPassword}
+      isPasswordTouched={isPasswordTouched}
+      setIsPasswordTouched={setIsPasswordTouched}
+      showPassword={showPassword}
+      //   editRegistry={mr}
+    />
+  );
+
+  const passwordHelperText = isPasswordTouched && !hasContent(password) && (
+    <HelperText>
+      <HelperTextItem variant="error" data-testid="mr-password-error">
+        Password cannot be empty
+      </HelperTextItem>
+    </HelperText>
+  );
+
+  const passwordFormGroup = (
+    <>
+      <FormGroup
+        className={passwordHelperText ? 'pf-m-error' : ''}
+        label="Password"
+        isRequired
+        fieldId="mr-password"
+      >
+        <FormFieldset component={passwordInput} field="Password" />
+      </FormGroup>
+      {passwordHelperText}
+    </>
+  );
+
+  const databaseInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="mr-database"
+      name="mr-database"
+      value={database}
+      onBlur={() => setIsDatabaseTouched(true)}
+      onChange={(_e, value) => setDatabase(value)}
+      validated={isDatabaseTouched && !hasContent(database) ? 'error' : 'default'}
+    />
+  );
+
+  const databaseHelperText = isDatabaseTouched && !hasContent(database) && (
+    <HelperText>
+      <HelperTextItem variant="error" data-testid="mr-database-error">
+        Database cannot be empty
+      </HelperTextItem>
+    </HelperText>
+  );
+
+  const databaseFormGroup = (
+    <>
+      <FormGroup
+        className={databaseHelperText ? 'pf-m-error' : ''}
+        label="Database"
+        isRequired
+        fieldId="mr-database"
+      >
+        <FormFieldset component={databaseInput} field="Database" />
+      </FormGroup>
+      {databaseHelperText}
+    </>
+  );
+
   return (
     <Modal
       isOpen
@@ -117,92 +292,56 @@ const CreateModal: React.FC<CreateModalProps> = ({
           title="Connect to external MySQL database"
           description="This external database is where model data is stored."
         >
-          <FormGroup label="Host" isRequired fieldId="mr-host">
-            <TextInput
-              isRequired
-              type="text"
-              id="mr-host"
-              name="mr-host"
-              value={host}
-              onBlur={() => setIsHostTouched(true)}
-              onChange={(_e, value) => setHost(value)}
-              validated={isHostTouched && !hasContent(host) ? 'error' : 'default'}
-            />
-            {isHostTouched && !hasContent(host) && (
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="mr-host-error">
-                  Host cannot be empty
-                </HelperTextItem>
-              </HelperText>
-            )}
-          </FormGroup>
-          <FormGroup label="Port" isRequired fieldId="mr-port">
-            <TextInput
-              isRequired
-              type="text"
-              id="mr-port"
-              name="mr-port"
-              value={port}
-              onBlur={() => setIsPortTouched(true)}
-              onChange={(_e, value) => setPort(value)}
-              validated={isPortTouched && !hasContent(port) ? 'error' : 'default'}
-            />
-            {isPortTouched && !hasContent(port) && (
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="mr-port-error">
-                  Port cannot be empty
-                </HelperTextItem>
-              </HelperText>
-            )}
-          </FormGroup>
-          <FormGroup label="Username" isRequired fieldId="mr-username">
-            <TextInput
-              isRequired
-              type="text"
-              id="mr-username"
-              name="mr-username"
-              value={username}
-              onBlur={() => setIsUsernameTouched(true)}
-              onChange={(_e, value) => setUsername(value)}
-              validated={isUsernameTouched && !hasContent(username) ? 'error' : 'default'}
-            />
-            {isUsernameTouched && !hasContent(username) && (
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="mr-username-error">
-                  Username cannot be empty
-                </HelperTextItem>
-              </HelperText>
-            )}
-          </FormGroup>
-          <FormGroup label="Password" isRequired fieldId="mr-password">
-            <ModelRegistryDatabasePassword
-              password={password || ''}
-              setPassword={setPassword}
-              isPasswordTouched={isPasswordTouched}
-              setIsPasswordTouched={setIsPasswordTouched}
-              showPassword={showPassword}
-              //   editRegistry={mr}
-            />
-          </FormGroup>
-          <FormGroup label="Database" isRequired fieldId="mr-database">
-            <TextInput
-              isRequired
-              type="text"
-              id="mr-database"
-              name="mr-database"
-              value={database}
-              onBlur={() => setIsDatabaseTouched(true)}
-              onChange={(_e, value) => setDatabase(value)}
-              validated={isDatabaseTouched && !hasContent(database) ? 'error' : 'default'}
-            />
-            {isDatabaseTouched && !hasContent(database) && (
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="mr-database-error">
-                  Database cannot be empty
-                </HelperTextItem>
-              </HelperText>
-            )}
-          </FormGroup>
+          {isMUITheme() ? (
+            hostFormGroup
+          ) : (
+            <>
+              <FormGroup label="Host" isRequired fieldId="mr-host">
+                {hostInput}
+                {hostHelperText}
+              </FormGroup>
+            </>
+          )}
+          {isMUITheme() ? (
+            portFormGroup
+          ) : (
+            <>
+              <FormGroup label="Port" isRequired fieldId="mr-port">
+                {portInput}
+                {portHelperText}
+              </FormGroup>
+            </>
+          )}
+          {isMUITheme() ? (
+            usernameFormGroup
+          ) : (
+            <>
+              <FormGroup label="Username" isRequired fieldId="mr-username">
+                {userNameInput}
+                {usernameHelperText}
+              </FormGroup>
+            </>
+          )}
+          {isMUITheme() ? (
+            passwordFormGroup
+          ) : (
+            <>
+              <FormGroup label="Password" isRequired fieldId="mr-password">
+                {passwordInput}
+                {passwordHelperText}
+              </FormGroup>
+            </>
+          )}
+          {isMUITheme() ? (
+            databaseFormGroup
+          ) : (
+            <>
+              <FormGroup label="Database" isRequired fieldId="mr-database">
+                {databaseInput}
+                {databaseFormGroup}
+              </FormGroup>
+            </>
+          )}
           {/* {secureDbEnabled && (
             <>
               <FormGroup>
