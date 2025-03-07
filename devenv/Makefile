@@ -37,3 +37,6 @@ $(TILT): $(LOCALBIN)
 
 tilt-up: poetry tilt
 	$(LOCALBIN)/tilt up
+
+tilt-down: tilt
+	$(LOCALBIN)/tilt down
