@@ -3,10 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"log/slog"
 	"net/http"
 	"path"
+
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
@@ -19,26 +20,29 @@ import (
 const (
 	Version = "1.0.0"
 
-	PathPrefix                   = "/model-registry"
-	ApiPathPrefix                = "/api/v1"
-	ModelRegistryId              = "model_registry_id"
-	RegisteredModelId            = "registered_model_id"
-	ModelVersionId               = "model_version_id"
-	ModelArtifactId              = "model_artifact_id"
-	ArtifactId                   = "artifact_id"
-	HealthCheckPath              = ApiPathPrefix + "/healthcheck"
-	UserPath                     = ApiPathPrefix + "/user"
-	ModelRegistryListPath        = ApiPathPrefix + "/model_registry"
-	NamespaceListPath            = ApiPathPrefix + "/namespaces"
-	ModelRegistryPath            = ModelRegistryListPath + "/:" + ModelRegistryId
-	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
-	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
-	RegisteredModelVersionsPath  = RegisteredModelPath + "/versions"
-	ModelVersionListPath         = ModelRegistryPath + "/model_versions"
-	ModelVersionPath             = ModelVersionListPath + "/:" + ModelVersionId
-	ModelVersionArtifactListPath = ModelVersionPath + "/artifacts"
-	ModelArtifactListPath        = ModelRegistryPath + "/model_artifacts"
-	ModelArtifactPath            = ModelArtifactListPath + "/:" + ModelArtifactId
+	PathPrefix                    = "/model-registry"
+	ApiPathPrefix                 = "/api/v1"
+	ModelRegistryId               = "model_registry_id"
+	RegisteredModelId             = "registered_model_id"
+	ModelVersionId                = "model_version_id"
+	ModelArtifactId               = "model_artifact_id"
+	ArtifactId                    = "artifact_id"
+	HealthCheckPath               = ApiPathPrefix + "/healthcheck"
+	UserPath                      = ApiPathPrefix + "/user"
+	ModelRegistryListPath         = ApiPathPrefix + "/model_registry"
+	ModelRegistryPath             = ModelRegistryListPath + "/:" + ModelRegistryId
+	NamespaceListPath             = ApiPathPrefix + "/namespaces"
+	SettingsPath                  = ApiPathPrefix + "/settings"
+	ModelRegistrySettingsListPath = SettingsPath + "/model_registry"
+	ModelRegistrySettingsPath     = ModelRegistrySettingsListPath + "/:" + ModelRegistryId
+	RegisteredModelListPath       = ModelRegistryPath + "/registered_models"
+	RegisteredModelPath           = RegisteredModelListPath + "/:" + RegisteredModelId
+	RegisteredModelVersionsPath   = RegisteredModelPath + "/versions"
+	ModelVersionListPath          = ModelRegistryPath + "/model_versions"
+	ModelVersionPath              = ModelVersionListPath + "/:" + ModelVersionId
+	ModelVersionArtifactListPath  = ModelVersionPath + "/artifacts"
+	ModelArtifactListPath         = ModelRegistryPath + "/model_artifacts"
+	ModelArtifactPath             = ModelArtifactListPath + "/:" + ModelArtifactId
 
 	ArtifactListPath = ModelRegistryPath + "/artifacts"
 	ArtifactPath     = ArtifactListPath + "/:" + ArtifactId
@@ -119,14 +123,18 @@ func (app *App) Routes() http.Handler {
 	apiRouter.PATCH(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateArtifactHandler))))
 	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
 	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
-	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
-	// Perform SAR to Get List Services by Namespace
-	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.ModelRegistryHandler)))
+	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.GetAllModelRegistriesHandler)))
 	if app.config.StandaloneMode {
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
+		//Those endpoints are not implement yet. This is a STUB API to unblock frontend development
+		apiRouter.GET(ModelRegistrySettingsListPath, app.AttachNamespace(app.GetAllModelRegistriesSettingsHandler))
+		apiRouter.POST(ModelRegistrySettingsListPath, app.AttachNamespace(app.CreateModelRegistrySettingsHandler))
+		apiRouter.GET(ModelRegistrySettingsPath, app.AttachNamespace(app.GetModelRegistrySettingsHandler))
+		apiRouter.PATCH(ModelRegistrySettingsPath, app.AttachNamespace(app.UpdateModelRegistrySettingsHandler))
+		apiRouter.DELETE(ModelRegistrySettingsPath, app.AttachNamespace(app.DeleteModelRegistrySettingsHandler))
 	}
 
 	// App Router
