@@ -63,7 +63,7 @@
     "cypress-mochawesome-reporter": "^3.8.2",
     "cypress-multi-reporters": "^2.0.4",
     "dotenv": "^8.2.0",
-    "dotenv-expand": "^5.1.0",
+    "dotenv-expand": "^12.0.1",
     "dotenv-webpack": "^6.0.0",
     "expect": "^29.7.0",
     "file-loader": "^6.1.1",
