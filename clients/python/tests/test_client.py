@@ -8,6 +8,8 @@ from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
 
+from .extras.async_task_runner import AsyncTaskRunner
+
 
 def test_secure_client():
     os.environ["CERT"] = ""
@@ -708,7 +710,7 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     assert model_name_pfx in objects_by_name
 
     # Test file not exists
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(
             path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket
         )
@@ -767,7 +769,7 @@ def test_recursive_store_in_s3(
         assert path in objects_by_name
 
     # Test incorrect folder
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
 
@@ -814,8 +816,8 @@ def test_nested_recursive_store_in_s3(
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
     s3_uri = utils.s3_uri_from(
-            bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
-        )
+        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
+    )
     # this is creating a list of all the file names + their immediate parent folder only
     formatted_paths = [
         os.path.join(
@@ -830,6 +832,139 @@ def test_nested_recursive_store_in_s3(
         assert path in objects_by_name
 
     # Test incorrect folder
-    with pytest.raises(StoreError) as e:
+    with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
         client.save_to_s3(path=f"{model_dir}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
+
+
+@pytest.mark.usefixtures("uv_event_loop")
+@pytest.mark.e2e
+async def test_custom_async_runner_with_ray(
+    client_attrs: dict[str, any], client: ModelRegistry
+):
+    import asyncio
+
+    import ray
+    import uvloop
+
+    # Check to make sure the uvloop event loop is running
+    loop = asyncio.get_event_loop()
+    assert isinstance(loop, uvloop.Loop)
+
+    @ray.remote
+    def test_with_ray():
+        atr = AsyncTaskRunner()
+        # we have to construct a client from scratch due to serialization issues from Ray
+        client = ModelRegistry(
+            server_address=client_attrs["host"],
+            port=client_attrs["port"],
+            author=client_attrs["author"],
+            is_secure=client_attrs["ssl"],
+            async_runner=atr.run,
+        )
+        client.register_model(
+            name="test_model",
+            uri="https://acme.org/something",
+            version="v1",
+            model_format_version="random",
+            model_format_name="onnx",
+        )
+        ma = client.get_model_artifact(name="test_model", version="v1")
+        assert ma.uri == "https://acme.org/something"
+        assert ma.model_format_name == "onnx"
+
+    ray.get(test_with_ray.remote())
+
+
+@pytest.mark.e2e
+def test_upload_artifact_and_register_model_with_default_oci(
+    client: ModelRegistry,
+    get_temp_dir_with_models,
+) -> None:
+    # olot is required to run this test
+    pytest.importorskip("olot")
+    name = "oci-test/defaults"
+    version = "0.0.1"
+    oci_ref = "localhost:5001/foo/bar:latest"
+
+    model_dir, _ = get_temp_dir_with_models
+
+    upload_params = utils.OCIParams(
+        "quay.io/mmortari/hello-world-wait:latest",
+        oci_ref,
+    )
+
+    assert client.upload_artifact_and_register_model(
+        name,
+        model_files_path=model_dir,
+        author="Tester McTesterson",
+        version=version,
+        model_format_name="test format",
+        model_format_version="test version",
+        upload_params=upload_params,
+    )
+
+    assert (ma := client.get_model_artifact(name, version))
+    assert ma.uri == f"oci://{oci_ref}"
+
+
+@pytest.mark.e2e
+def test_upload_artifact_and_register_model_with_default_s3(
+    client: ModelRegistry,
+    patch_s3_env,
+    get_temp_dir_with_models,
+) -> None:
+    # olot is required to run this test
+    pytest.importorskip("olot")
+    name = "oci-test/defaults"
+    version = "0.0.1"
+
+    s3_prefix = f"my-model-{version}"
+    model_dir, _ = get_temp_dir_with_models
+
+    bucket, s3_endpoint, access_key_id, secret_access_key, region = patch_s3_env
+
+    upload_params = utils.S3Params(
+        bucket,
+        s3_prefix,
+        s3_endpoint,
+        access_key_id,
+        secret_access_key,
+        region,
+    )
+
+    assert client.upload_artifact_and_register_model(
+        name,
+        model_files_path=model_dir,
+        author="Tester McTesterson",
+        version=version,
+        model_format_name="test format",
+        model_format_version="test version",
+        upload_params=upload_params,
+    )
+
+    assert (ma := client.get_model_artifact(name, version))
+    assert (
+        ma.uri
+        == f"s3://{bucket}/{s3_prefix}?endpoint={s3_endpoint}&defaultRegion={region}"
+    )
+
+
+@pytest.mark.e2e
+def test_upload_artifact_and_register_model_missing_upload_params(client):
+    with pytest.raises(
+        ValueError, match='Param "upload_params" is required to perform an upload'
+    ) as e:
+        client.upload_artifact_and_register_model(
+            "a name",
+            model_files_path="/doesnt/matter",
+            author="Tester McTesterson",
+            version="v0.0.1",
+            model_format_name="test format",
+            model_format_version="test version",
+            upload_params=None,
+        )
+    assert (
+        'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
+        in str(e.value)
+    )

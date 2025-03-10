@@ -28,7 +28,7 @@ nest-asyncio = "^1.6.0"
 eval-type-backport = "^0.2.0"
 
 huggingface-hub = { version = ">=0.20.1,<0.30.0", optional = true }
-olot = { version = "^0.1.2", optional = true }
+olot = { version = "^0.1.4", optional = true }
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
@@ -50,6 +50,8 @@ coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<7.0"
 ruff = ">=0.5.2,<0.10.0"
 mypy = "^1.7.0"
+ray = "^2.43.0"
+uvloop = "^0.21.0"
 pytest-asyncio = ">=0.23.7,<0.26.0"
 requests = "^2.32.2"
 black = ">=24.4.2,<26.0.0"

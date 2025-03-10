@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Coroutine, Mapping
+from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -19,7 +21,13 @@ from .types import (
     RegisteredModel,
     SupportedTypes,
 )
-from .utils import s3_uri_from
+from .utils import (
+    OCIParams,
+    S3Params,
+    get_files_from_path,
+    s3_uri_from,
+    save_to_oci_registry,
+)
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -56,7 +64,7 @@ if TYPE_CHECKING:
 class ModelRegistry:
     """Model registry client."""
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
         server_address: str,
         port: int = 443,
@@ -68,6 +76,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
+        async_runner: Callable[[Coroutine[Any, Any, Any]], Any] = None,
     ):
         """Constructor.
 
@@ -83,16 +92,23 @@ class ModelRegistry:
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
+            async_runner: A modular async scheduler Callable (either a method or function) that takes in a coroutine for scheduling.
         """
         logger.setLevel(log_level)
 
-        import nest_asyncio
-
-        logger.debug("Setting up reentrant async event loop")
-        nest_asyncio.apply()
-
         # TODO: get remaining args from env
         self._author = author
+        # Set the user's defined async runner
+        if async_runner:
+            if not (inspect.ismethod(async_runner) or inspect.isfunction(async_runner)):
+                msg = "`async_runner` must be a bound method or a function that takes in a coroutine to run."
+                raise ValueError(msg)
+            self._user_async_runner = async_runner
+        else:
+            import nest_asyncio
+
+            logger.debug("Setting up reentrant async event loop")
+            nest_asyncio.apply()
 
         if not user_token and user_token_envvar:
             logger.info("Reading user token from %s", user_token_envvar)
@@ -133,6 +149,9 @@ class ModelRegistry:
         self.get_registered_models().page_size(1)._next_page()
 
     def async_runner(self, coro: Any) -> Any:
+        if hasattr(self, "_user_async_runner"):
+            return self._user_async_runner(coro)
+
         import asyncio
 
         try:
@@ -168,6 +187,77 @@ class ModelRegistry:
         assert mv.id is not None, "Model version must have an ID"
         return await self._api.upsert_model_version_artifact(
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
+        )
+
+    def upload_artifact_and_register_model(
+        self,
+        name: str,
+        model_files_path: str,
+        *,
+        # Upload/client Params
+        upload_params: OCIParams | S3Params,
+        # Artifact/Model Params
+        version: str,
+        model_format_name: str,
+        model_format_version: str,
+        storage_path: str | None = None,
+        storage_key: str | None = None,
+        service_account_name: str | None = None,
+        author: str | None = None,
+        owner: str | None = None,
+        description: str | None = None,
+        metadata: Mapping[str, SupportedTypes] | None = None,
+    ) -> RegisteredModel:
+        """Convenience method to perform 2 operations; uploading an artifact to a storage location, and registers the model in model registry.
+
+        Args:
+            name: Name of the model.
+            model_files_path: The path where the model files are located. If a directory, uploads the entire directory.
+
+        Keyword Args:
+            upload_params: Parameters to configure which storage client to use as well as that client's configuration when uploading the model.
+            version: Version of the model. Has to be unique.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            description: Description of the model.
+            author: Author of the model. Defaults to the client author.
+            owner: Owner of the model. Defaults to the client author.
+            storage_key: Storage key.
+            storage_path: Storage path.
+            service_account_name: Service account name.
+            metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
+
+        Raises:
+            ValueError: When the provided `upload_params` is missing or invalid
+
+        Returns:
+            Registered model. See: :meth:`~ModelRegistry.register_model`
+        """
+        if isinstance(upload_params, S3Params):
+            destination_uri = self.save_to_s3(
+                **asdict(upload_params), path=model_files_path
+            )
+        elif isinstance(upload_params, OCIParams):
+            destination_uri = save_to_oci_registry(
+                **asdict(upload_params), model_files_path=model_files_path
+            )
+        else:
+            msg = 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
+            raise ValueError(msg)
+
+        return self.register_model(
+            name,
+            destination_uri,
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            version=version,
+            storage_key=storage_key,
+            storage_path=storage_path,
+            service_account_name=service_account_name,
+            author=author,
+            owner=owner,
+            description=description,
+            metadata=metadata,
         )
 
     def register_model(
@@ -294,8 +384,8 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = """package `huggingface-hub` is not installed.
-            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-            extra (available as `model-registry[hf]`), e.g.:
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package,
+            either directly or as an extra (available as `model-registry[hf]`), e.g.:
             ```sh
             !pip install --pre model-registry[hf]
             ```
@@ -437,7 +527,8 @@ class ModelRegistry:
             raise StoreError(msg)
 
         def rm_versions(options: ListOptions) -> list[ModelVersion]:
-            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            # type checkers can't restrict the type inside a nested function:
+            # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
             assert rm.id
             return self.async_runner(self._api.get_model_versions(rm.id, options))
 
@@ -524,14 +615,8 @@ class ModelRegistry:
             StoreError if `path` does not exist.
             StoreError if `path_prefix` is not set.
         """
-        is_file = os.path.isfile(path)
-
         if not path_prefix:
             msg = "`path_prefix` must be set."
-            raise StoreError(msg)
-
-        if not os.path.exists(path):
-            msg = f"Path '{path}' does not exist. Please ensure path is correct."
             raise StoreError(msg)
 
         if path_prefix.endswith("/"):
@@ -544,23 +629,10 @@ class ModelRegistry:
             region=region,
         )
 
-        if is_file:
-            filename = os.path.basename(path)
-            if not filename:
-                msg = "An error occured determining if the supplied path was file."
-                raise StoreError(msg)
-
-            s3_key = os.path.join(path_prefix, filename)
-            s3.upload_file(path, bucket, s3_key)
-
-            return uri
-
-        for root, _, files in os.walk(path):
-            for filename in files:
-                file_path = os.path.join(root, filename)
-                relative_path = os.path.relpath(file_path, path)
-                s3_key = os.path.join(path_prefix, relative_path)
-                s3.upload_file(file_path, bucket, s3_key)
+        files = get_files_from_path(path)
+        for absolute_path_filename, relative_path_filename in files:
+            s3_key = os.path.join(path_prefix, relative_path_filename)
+            s3.upload_file(absolute_path_filename, bucket, s3_key)
 
         return uri
 
