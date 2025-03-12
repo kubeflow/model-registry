@@ -4,7 +4,7 @@ import useFetchState, {
   FetchStateCallbackPromise,
 } from '~/shared/utilities/useFetchState';
 import { ModelRegistry } from '~/app/types';
-import { getListModelRegistries } from '~/shared/api/k8s';
+import { getListModelRegistries } from '~/app/api/k8s';
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 
 const useModelRegistries = (queryParams: Record<string, unknown>): FetchState<ModelRegistry[]> => {

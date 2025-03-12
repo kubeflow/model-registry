@@ -62,6 +62,7 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
       id="model-name"
       onClearSelection={() => setRegisteredModelId('')}
       selectOptions={options}
+      isScrollable
       placeholder="Select a registered model"
       noOptionsFoundMessage={(filter) => `No results found for "${filter}"`}
       onSelect={(_event, selection) => {

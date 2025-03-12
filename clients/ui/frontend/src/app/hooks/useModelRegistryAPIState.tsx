@@ -2,15 +2,12 @@ import React from 'react';
 import { APIState } from '~/shared/api/types';
 import { ModelRegistryAPIs } from '~/app/types';
 import {
-  createModelArtifact,
   createModelArtifactForModelVersion,
-  createModelVersion,
   createModelVersionForRegisteredModel,
   createRegisteredModel,
   getListModelArtifacts,
   getListModelVersions,
   getListRegisteredModels,
-  getModelArtifact,
   getModelArtifactsByModelVersion,
   getModelVersion,
   getModelVersionsByRegisteredModel,
@@ -18,7 +15,7 @@ import {
   patchModelArtifact,
   patchModelVersion,
   patchRegisteredModel,
-} from '~/shared/api/service';
+} from '~/app/api/service';
 import useAPIState from '~/shared/api/useAPIState';
 
 export type ModelRegistryAPIState = APIState<ModelRegistryAPIs>;
@@ -30,16 +27,13 @@ const useModelRegistryAPIState = (
   const createAPI = React.useCallback(
     (path: string) => ({
       createRegisteredModel: createRegisteredModel(path, queryParameters),
-      createModelVersion: createModelVersion(path, queryParameters),
       createModelVersionForRegisteredModel: createModelVersionForRegisteredModel(
         path,
         queryParameters,
       ),
-      createModelArtifact: createModelArtifact(path, queryParameters),
       createModelArtifactForModelVersion: createModelArtifactForModelVersion(path, queryParameters),
       getRegisteredModel: getRegisteredModel(path, queryParameters),
       getModelVersion: getModelVersion(path, queryParameters),
-      getModelArtifact: getModelArtifact(path, queryParameters),
       listModelArtifacts: getListModelArtifacts(path, queryParameters),
       listModelVersions: getListModelVersions(path, queryParameters),
       listRegisteredModels: getListRegisteredModels(path, queryParameters),
