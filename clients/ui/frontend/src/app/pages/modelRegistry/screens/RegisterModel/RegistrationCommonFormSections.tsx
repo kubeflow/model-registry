@@ -28,6 +28,7 @@ type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> =
   setData: UpdateObjectAtPropAndValue<D>;
   isFirstVersion: boolean;
   latestVersion?: ModelVersion;
+  isCatalogModel?: boolean;
 };
 
 const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
@@ -35,6 +36,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   setData,
   isFirstVersion,
   latestVersion,
+  isCatalogModel,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
   const isVersionNameValid = isNameValid(formData.versionName);
@@ -233,6 +235,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         <Radio
           isChecked={modelLocationType === ModelLocationType.ObjectStorage}
           name="location-type-object-storage"
+          isDisabled={isCatalogModel}
           onChange={() => {
             setData('modelLocationType', ModelLocationType.ObjectStorage);
           }}

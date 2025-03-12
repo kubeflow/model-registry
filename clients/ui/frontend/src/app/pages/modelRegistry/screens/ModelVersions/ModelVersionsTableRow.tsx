@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
 import { Content, ContentVariants, Truncate, FlexItem } from '@patternfly/react-core';
 import { Link, useNavigate } from 'react-router-dom';
-import { ModelState, ModelVersion } from '~/app/types';
+import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import {
@@ -17,6 +17,7 @@ import { RestoreModelVersionModal } from '~/app/pages/modelRegistry/screens/comp
 
 type ModelVersionsTableRowProps = {
   modelVersion: ModelVersion;
+  registeredModel: RegisteredModel;
   isArchiveRow?: boolean;
   isArchiveModel?: boolean;
   hasDeployment?: boolean;
@@ -25,6 +26,7 @@ type ModelVersionsTableRowProps = {
 
 const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
   modelVersion: mv,
+  registeredModel,
   isArchiveRow,
   isArchiveModel,
   hasDeployment = false,
@@ -32,9 +34,23 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
+  const { apiState } = React.useContext(ModelRegistryContext);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = React.useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
-  const { apiState } = React.useContext(ModelRegistryContext);
+  // TODO: [Model Serving & ILab] Uncomment when model serving is available
+  // const [isDeployModalOpen, setIsDeployModalOpen] = React.useState(false);
+  // const [tuningModelVersionId, setTuningModelVersionId] = React.useState<string | null>(null);
+  // const isFineTuningEnabled = useIsAreaAvailable(SupportedArea.FINE_TUNING).status;
+
+  // const { tuningData, loaded, loadError } = useModelVersionTuningData(
+  //   tuningModelVersionId,
+  //   tuningModelVersionId === mv.id ? mv : null,
+  //   registeredModel,
+  // );
+
+  if (!preferredModelRegistry) {
+    return null;
+  }
 
   const actions: IAction[] = isArchiveRow
     ? [
@@ -44,6 +60,20 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
         },
       ]
     : [
+        // TODO: [Model Serving] Uncomment when model serving is available
+        // {
+        //   title: 'Deploy',
+        //   onClick: () => setIsDeployModalOpen(true),
+        // },
+        // ...(isFineTuningEnabled
+        //   ? [
+        //       {
+        //         title: 'LAB tune',
+        //         onClick: () => setTuningModelVersionId(mv.id),
+        //       },
+        //     ]
+        //   : []),
+        { isSeparator: true },
         {
           title: 'Archive model version',
           onClick: () => setIsArchiveModalOpen(true),
@@ -65,15 +95,15 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
                   ? archiveModelVersionDetailsUrl(
                       mv.id,
                       mv.registeredModelId,
-                      preferredModelRegistry?.name,
+                      preferredModelRegistry.name,
                     )
                   : isArchiveRow
                     ? modelVersionArchiveDetailsUrl(
                         mv.id,
                         mv.registeredModelId,
-                        preferredModelRegistry?.name,
+                        preferredModelRegistry.name,
                       )
-                    : modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry?.name)
+                    : modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry.name)
               }
             >
               <Truncate content={mv.name} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { RegisteredModel, ModelVersion, ModelArtifact } from '~/app/types';
-import { filterLiveVersions, getLastCreatedItem, uriToObjectStorageFields } from '~/app/utils';
+import { filterLiveVersions, getLastCreatedItem, uriToStorageFields } from '~/app/utils';
 import { UpdateObjectAtPropAndValue } from '~/shared/types';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
@@ -49,14 +49,13 @@ export const usePrefillRegisterVersionFields = ({
         setData('sourceModelFormat', latestArtifact.modelFormatName || '');
         setData('sourceModelFormatVersion', latestArtifact.modelFormatVersion || '');
 
-        const decodedUri =
-          (latestArtifact.uri && uriToObjectStorageFields(latestArtifact.uri)) || null;
+        const decodedUri = (latestArtifact.uri && uriToStorageFields(latestArtifact.uri)) || null;
 
         setData('modelLocationType', ModelLocationType.ObjectStorage);
-        if (decodedUri) {
-          setData('modelLocationEndpoint', decodedUri.endpoint);
-          setData('modelLocationBucket', decodedUri.bucket);
-          setData('modelLocationRegion', decodedUri.region || '');
+        if (decodedUri?.s3Fields) {
+          setData('modelLocationEndpoint', decodedUri.s3Fields.endpoint);
+          setData('modelLocationBucket', decodedUri.s3Fields.bucket);
+          setData('modelLocationRegion', decodedUri.s3Fields.region || '');
           // Don't prefill the path since a new version will have a new path.
         } else {
           // We don't want an old model's location staying here if we changed models but have no location to prefill.

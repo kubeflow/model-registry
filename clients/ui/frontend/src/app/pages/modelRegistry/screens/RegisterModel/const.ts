@@ -5,7 +5,7 @@ export enum SubmitLabel {
   REGISTER_VERSION = 'Register new version',
 }
 
-export enum ErrorName {
+export enum RegistrationErrorType {
   REGISTERED_MODEL = 'registeredModel',
   MODEL_VERSION = 'modelVersion',
   MODEL_ARTIFACT = 'modelArtifact',

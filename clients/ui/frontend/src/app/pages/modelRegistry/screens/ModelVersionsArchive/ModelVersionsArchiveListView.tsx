@@ -9,7 +9,7 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
-import { ModelVersion } from '~/app/types';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import { SearchType } from '~/shared/components/DashboardSearchField';
 import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/shared/utilities/utils';
@@ -21,11 +21,13 @@ import ModelVersionsArchiveTable from './ModelVersionsArchiveTable';
 
 type ModelVersionsArchiveListViewProps = {
   modelVersions: ModelVersion[];
+  registeredModel: RegisteredModel;
   refresh: () => void;
 };
 
 const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> = ({
   modelVersions: unfilteredmodelVersions,
+  registeredModel,
   refresh,
 }) => {
   const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
@@ -49,6 +51,7 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
   return (
     <ModelVersionsArchiveTable
       refresh={refresh}
+      registeredModel={registeredModel}
       clearFilters={() => setSearch('')}
       modelVersions={filteredModelVersions}
       toolbarContent={

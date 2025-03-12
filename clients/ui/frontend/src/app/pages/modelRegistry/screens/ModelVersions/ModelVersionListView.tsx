@@ -129,6 +129,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
       <ModelVersionsTable
         refresh={refresh}
         isArchiveModel={isArchiveModel}
+        registeredModel={rm}
         clearFilters={() => setSearch('')}
         modelVersions={sortModelVersionsByCreateTime(filteredModelVersions)}
         toolbarContent={
