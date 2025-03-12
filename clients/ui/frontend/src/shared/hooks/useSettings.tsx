@@ -3,7 +3,7 @@ import { USERNAME, POLL_INTERVAL, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilit
 import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 import { ConfigSettings, UserSettings } from '~/shared/types';
 import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
-import { getNamespaces, getUser } from '~/shared/api/k8s';
+import { getNamespaces, getUser } from '~/app/api/k8s';
 
 export const useSettings = (): {
   configSettings: ConfigSettings | null;

@@ -10,6 +10,8 @@ import { ModelState } from '~/app/types';
 import { modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import ModelVersionDetailsTabs from '~/app/pages/modelRegistry/screens/ModelVersionDetails/ModelVersionDetailsTabs';
 import { ModelVersionDetailsTab } from '~/app/pages/modelRegistry/screens/ModelVersionDetails/const';
+import { FetchStateObject } from '~/shared/types';
+import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
 import ArchiveModelVersionDetailsBreadcrumb from './ArchiveModelVersionDetailsBreadcrumb';
 
 type ArchiveModelVersionDetailsProps = {
@@ -28,6 +30,19 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
   const navigate = useNavigate();
+
+  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
+  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
 
   useEffect(() => {
     if (rm?.state === ModelState.LIVE && mv?.id) {
@@ -74,6 +89,8 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
           isArchiveVersion
           tab={tab}
           modelVersion={mv}
+          inferenceServices={inferenceServices}
+          servingRuntimes={servingRuntimes}
           refresh={refreshModelVersion}
         />
       )}

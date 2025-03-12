@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { isPlatformDefault } from '~/shared/utilities/const';
+import { isStandalone } from '~/shared/utilities/const';
 import ModelRegistry from './screens/ModelRegistry';
 import ModelRegistryCoreLoader from './ModelRegistryCoreLoader';
 import { modelRegistryUrl } from './screens/routeUtils';
@@ -45,7 +45,7 @@ const ModelRegistryRoutes: React.FC = () => (
             path={ModelVersionDetailsTab.DETAILS}
             element={<ModelVersionsDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />}
           />
-          {isPlatformDefault() && (
+          {isStandalone() && (
             <Route
               path={ModelVersionDetailsTab.DEPLOYMENTS}
               element={
@@ -65,7 +65,7 @@ const ModelRegistryRoutes: React.FC = () => (
                 <ModelVersionsArchiveDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
               }
             />
-            {isPlatformDefault() && (
+            {isStandalone() && (
               <Route
                 path={ModelVersionDetailsTab.DEPLOYMENTS}
                 element={
@@ -107,7 +107,7 @@ const ModelRegistryRoutes: React.FC = () => (
                 <ArchiveModelVersionDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
               }
             />
-            {isPlatformDefault() && (
+            {isStandalone() && (
               <Route
                 path={ModelVersionDetailsTab.DEPLOYMENTS}
                 element={

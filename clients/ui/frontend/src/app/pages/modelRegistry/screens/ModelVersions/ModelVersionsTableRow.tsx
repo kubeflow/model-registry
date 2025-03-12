@@ -32,9 +32,16 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
+  const { apiState } = React.useContext(ModelRegistryContext);
+
   const [isArchiveModalOpen, setIsArchiveModalOpen] = React.useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
-  const { apiState } = React.useContext(ModelRegistryContext);
+  // TODO: [Model Serving] Uncomment when model serving is available
+  // const [isDeployModalOpen, setIsDeployModalOpen] = React.useState(false);
+
+  if (!preferredModelRegistry) {
+    return null;
+  }
 
   const actions: IAction[] = isArchiveRow
     ? [
@@ -44,6 +51,12 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
         },
       ]
     : [
+        // TODO: [Model Serving] Uncomment when model serving is available
+        // {
+        //   title: 'Deploy',
+        //   onClick: () => setIsDeployModalOpen(true),
+        // },
+        { isSeparator: true },
         {
           title: 'Archive model version',
           onClick: () => setIsArchiveModalOpen(true),
@@ -65,15 +78,15 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
                   ? archiveModelVersionDetailsUrl(
                       mv.id,
                       mv.registeredModelId,
-                      preferredModelRegistry?.name,
+                      preferredModelRegistry.name,
                     )
                   : isArchiveRow
                     ? modelVersionArchiveDetailsUrl(
                         mv.id,
                         mv.registeredModelId,
-                        preferredModelRegistry?.name,
+                        preferredModelRegistry.name,
                       )
-                    : modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry?.name)
+                    : modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry.name)
               }
             >
               <Truncate content={mv.name} />
@@ -113,6 +126,22 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
               modelVersionName={mv.name}
             />
           ) : null}
+          {/* TODO: [Model Serving] Uncomment when model serving is available */}
+          {/* {isDeployModalOpen ? (
+            <DeployRegisteredModelModal
+              onSubmit={() => {
+                navigate(
+                  modelVersionDeploymentsUrl(
+                    mv.id,
+                    mv.registeredModelId,
+                    preferredModelRegistry.metadata.name,
+                  ),
+                );
+              }}
+              onCancel={() => setIsDeployModalOpen(false)}
+              modelVersion={mv}
+            />
+          ) : null} */}
           {isRestoreModalOpen ? (
             <RestoreModelVersionModal
               onCancel={() => setIsRestoreModalOpen(false)}
@@ -127,7 +156,7 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
                   )
                   .then(() =>
                     navigate(
-                      modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry?.name),
+                      modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry.name),
                     ),
                   )
               }
