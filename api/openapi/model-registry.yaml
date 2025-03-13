@@ -1683,8 +1683,15 @@ components:
         - $ref: "#/components/schemas/ServingEnvironmentCreate"
     ServingEnvironmentUpdate:
       description: A Model Serving environment for serving `RegisteredModels`.
+      required:
+        - name
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object  
+          properties:
+            name:
+              description: The name of the ServingEnvironment.
+              type: string  
     ServingEnvironmentCreate:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:

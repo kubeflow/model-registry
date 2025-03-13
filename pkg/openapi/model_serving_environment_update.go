@@ -25,14 +25,17 @@ type ServingEnvironmentUpdate struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
+	// The name of the ServingEnvironment.
+	Name string `json:"name"`
 }
 
 // NewServingEnvironmentUpdate instantiates a new ServingEnvironmentUpdate object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewServingEnvironmentUpdate() *ServingEnvironmentUpdate {
+func NewServingEnvironmentUpdate(name string) *ServingEnvironmentUpdate {
 	this := ServingEnvironmentUpdate{}
+	this.Name = name
 	return &this
 }
 
@@ -140,6 +143,30 @@ func (o *ServingEnvironmentUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
+// GetName returns the Name field value
+func (o *ServingEnvironmentUpdate) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ServingEnvironmentUpdate) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ServingEnvironmentUpdate) SetName(v string) {
+	o.Name = v
+}
+
 func (o ServingEnvironmentUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -159,6 +186,7 @@ func (o ServingEnvironmentUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
+	toSerialize["name"] = o.Name
 	return toSerialize, nil
 }
 
