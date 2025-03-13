@@ -1,0 +1,25 @@
+name: Test UI container image build and deployment
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "clients/ui/**"
+      - "!LICENSE*"
+      - "!DOCKERFILE*"
+      - "!**.gitignore"
+      - "!**.md"
+      - "!**.txt"
+env:
+  IMG_ORG: kubeflow
+  IMG_REPO: model-registry-ui
+  PUSH_IMAGE: false
+  BRANCH: ${{ github.base_ref }}
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      # checkout branch
+      - uses: actions/checkout@v4
+      - name: Build UI Image
+        shell: bash
+        run: ./scripts/build_deploy.sh
