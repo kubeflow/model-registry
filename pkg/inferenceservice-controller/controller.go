@@ -353,7 +353,7 @@ func (r *InferenceServiceController) getOrCreateServingEnvironment(ctx context.C
 		log.Info("ServingEnvironment not found, creating it..")
 
 		servingEnvironment, _, err = mr.ModelRegistryServiceAPI.CreateServingEnvironment(ctx).ServingEnvironmentCreate(openapi.ServingEnvironmentCreate{
-			Name: &namespace,
+			Name: namespace,
 		}).Execute()
 		if err != nil {
 			return nil, fmt.Errorf("unable to create ServingEnvironment: %w", err)

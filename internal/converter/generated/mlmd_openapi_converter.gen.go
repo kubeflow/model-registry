@@ -206,7 +206,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *proto.Con
 			xstring := *(*source).ExternalId
 			openapiServingEnvironment.ExternalId = &xstring
 		}
-		openapiServingEnvironment.Name = converter.MapNameFromOwned((*source).Name)
+		openapiServingEnvironment.Name = converter.MapName((*source).Name)
 		openapiServingEnvironment.Id = converter.Int64ToString((*source).Id)
 		openapiServingEnvironment.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiServingEnvironment.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)

@@ -48,7 +48,7 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
 	ConvertDocArtifact(source *proto.Artifact) (*openapi.DocArtifact, error)
 
-	// goverter:map Name | MapNameFromOwned
+	// goverter:map Name | MapName
 	// goverter:map Properties Description | MapDescription
 	ConvertServingEnvironment(source *proto.Context) (*openapi.ServingEnvironment, error)
 

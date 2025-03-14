@@ -615,10 +615,7 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentCreate(source *openapi.S
 			xstring2 := *(*source).ExternalId
 			openapiServingEnvironment.ExternalId = &xstring2
 		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiServingEnvironment.Name = &xstring3
-		}
+		openapiServingEnvironment.Name = (*source).Name
 		pOpenapiServingEnvironment = &openapiServingEnvironment
 	}
 	return pOpenapiServingEnvironment, nil
@@ -757,11 +754,10 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForServingEnvironment(source c
 	openapiServingEnvironment := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.Name
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiServingEnvironment.Name = &xstring
+		openapiServingEnvironment.Name = *pString
 	}
 	return openapiServingEnvironment, nil
 }
