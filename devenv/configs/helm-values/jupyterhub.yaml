@@ -1,0 +1,31 @@
+hub:
+  services:
+    myservice:
+      api_token: "dummydummy"
+  loadRoles:
+    myadmin:
+      scopes:
+        - "servers"
+        - "admin:users"
+        - "admin:servers"
+      users:
+        - "mr"
+      services:
+        - "myservice"
+      groups:
+        - "admin-group"
+  config:
+    JupyterHub:
+      admin_access: true
+      authenticator_class: dummy
+      DummyAuthenticator:
+        password: "1234"
+    Authenticator:
+      allowed_users:
+        - mr
+    admin_users:
+      - mr
+singleuser:
+  networkPolicy:
+    egressAllowRules:
+      privateIPs: true
