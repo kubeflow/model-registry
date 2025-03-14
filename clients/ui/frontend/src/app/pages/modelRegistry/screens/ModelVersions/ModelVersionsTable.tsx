@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Table } from '~/shared/components/table';
-import { ModelVersion } from '~/app/types';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
 import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import ModelVersionsTableRow from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
@@ -10,6 +10,7 @@ type ModelVersionsTableProps = {
   modelVersions: ModelVersion[];
   isArchiveModel?: boolean;
   refresh: () => void;
+  registeredModel: RegisteredModel;
 } & Partial<Pick<React.ComponentProps<typeof Table>, 'toolbarContent'>>;
 
 const ModelVersionsTable: React.FC<ModelVersionsTableProps> = ({
@@ -18,6 +19,7 @@ const ModelVersionsTable: React.FC<ModelVersionsTableProps> = ({
   toolbarContent,
   isArchiveModel,
   refresh,
+  registeredModel,
 }) => (
   <Table
     data-testid="model-versions-table"
@@ -33,6 +35,7 @@ const ModelVersionsTable: React.FC<ModelVersionsTableProps> = ({
         hasDeployment={false}
         key={mv.name}
         modelVersion={mv}
+        registeredModel={registeredModel}
         isArchiveModel={isArchiveModel}
         refresh={refresh}
       />

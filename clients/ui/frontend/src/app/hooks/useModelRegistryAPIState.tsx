@@ -18,7 +18,7 @@ import {
   patchModelArtifact,
   patchModelVersion,
   patchRegisteredModel,
-} from '~/shared/api/service';
+} from '~/app/api/service';
 import useAPIState from '~/shared/api/useAPIState';
 
 export type ModelRegistryAPIState = APIState<ModelRegistryAPIs>;

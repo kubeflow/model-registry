@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Table } from '~/shared/components/table';
-import { ModelVersion } from '~/app/types';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import ModelVersionsTableRow from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
 import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
@@ -8,12 +8,14 @@ import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/Model
 type ModelVersionsArchiveTableProps = {
   clearFilters: () => void;
   modelVersions: ModelVersion[];
+  registeredModel: RegisteredModel;
   refresh: () => void;
 } & Partial<Pick<React.ComponentProps<typeof Table>, 'toolbarContent'>>;
 
 const ModelVersionsArchiveTable: React.FC<ModelVersionsArchiveTableProps> = ({
   clearFilters,
   modelVersions,
+  registeredModel,
   toolbarContent,
   refresh,
 }) => (
@@ -27,7 +29,13 @@ const ModelVersionsArchiveTable: React.FC<ModelVersionsArchiveTableProps> = ({
     emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
     defaultSortColumn={1}
     rowRenderer={(mv) => (
-      <ModelVersionsTableRow key={mv.name} modelVersion={mv} isArchiveRow refresh={refresh} />
+      <ModelVersionsTableRow
+        key={mv.name}
+        modelVersion={mv}
+        registeredModel={registeredModel}
+        isArchiveRow
+        refresh={refresh}
+      />
     )}
   />
 );

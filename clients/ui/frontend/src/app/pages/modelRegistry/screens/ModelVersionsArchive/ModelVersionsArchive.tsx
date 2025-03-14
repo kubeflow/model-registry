@@ -49,10 +49,13 @@ const ModelVersionsArchive: React.FC<ModelVersionsArchiveProps> = ({ ...pageProp
       loaded={mvLoaded}
       provideChildrenPadding
     >
-      <ModelVersionsArchiveListView
-        modelVersions={filterArchiveVersions(modelVersions.items)}
-        refresh={refresh}
-      />
+      {rm && (
+        <ModelVersionsArchiveListView
+          modelVersions={filterArchiveVersions(modelVersions.items)}
+          registeredModel={rm}
+          refresh={refresh}
+        />
+      )}
     </ApplicationsPage>
   );
 };
