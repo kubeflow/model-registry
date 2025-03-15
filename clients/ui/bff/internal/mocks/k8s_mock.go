@@ -192,6 +192,8 @@ func (m *KubernetesClientMock) GetServiceDetails(sessionCtx context.Context, nam
 		return nil, fmt.Errorf("failed to get service details: %w", err)
 	}
 
+	//in the mock we are changing the cluster ip to localhost
+	//to be able to connect with local model registry
 	for i := range originalServices {
 		originalServices[i].ClusterIP = "127.0.0.1"
 		originalServices[i].HTTPPort = 8080
@@ -205,7 +207,8 @@ func (m *KubernetesClientMock) GetServiceDetailsByName(sessionCtx context.Contex
 	if err != nil {
 		return k8s.ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}
-	//changing from cluster service ip to localhost
+	//in the mock we are changing the cluster ip to localhost
+	//to be able to connect with local model registry
 	originalService.ClusterIP = "127.0.0.1"
 	originalService.HTTPPort = 8080
 

@@ -19,8 +19,8 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("should match the expected model registries")
 			expectedRegistries := []models.ModelRegistryModel{
-				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One"},
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry", ServerAddress: "http://127.0.0.1:8080/api/model_registry/v1alpha3"},
+				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One", ServerAddress: "http://127.0.0.1:8080/api/model_registry/v1alpha3"},
 			}
 			Expect(registries).To(ConsistOf(expectedRegistries))
 		})
@@ -34,7 +34,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("should match the expected model registries")
 			expectedRegistries := []models.ModelRegistryModel{
-				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora"},
+				{Name: "model-registry-dora", Description: "Model Registry Dora description", DisplayName: "Model Registry Dora", ServerAddress: "http://127.0.0.1:8080/api/model_registry/v1alpha3"},
 			}
 			Expect(registries).To(ConsistOf(expectedRegistries))
 		})

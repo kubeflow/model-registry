@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
@@ -22,14 +23,38 @@ func (m *ModelRegistryRepository) GetAllModelRegistries(sessionCtx context.Conte
 	}
 
 	var registries = []models.ModelRegistryModel{}
-	for _, item := range resources {
+	for _, s := range resources {
+		serverAddress := m.ResolveServerAddress(s.ClusterIP, s.HTTPPort)
 		registry := models.ModelRegistryModel{
-			Name:        item.Name,
-			Description: item.Description,
-			DisplayName: item.DisplayName,
+			Name:          s.Name,
+			Description:   s.Description,
+			DisplayName:   s.DisplayName,
+			ServerAddress: serverAddress,
 		}
 		registries = append(registries, registry)
 	}
 
 	return registries, nil
+}
+
+func (m *ModelRegistryRepository) GetModelRegistry(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (models.ModelRegistryModel, error) {
+
+	s, err := client.GetServiceDetailsByName(sessionCtx, namespace, modelRegistryID)
+	if err != nil {
+		return models.ModelRegistryModel{}, fmt.Errorf("error fetching model registry: %w", err)
+	}
+
+	modelRegistry := models.ModelRegistryModel{
+		Name:          s.Name,
+		Description:   s.Description,
+		DisplayName:   s.DisplayName,
+		ServerAddress: m.ResolveServerAddress(s.ClusterIP, s.HTTPPort),
+	}
+
+	return modelRegistry, nil
+}
+
+func (m *ModelRegistryRepository) ResolveServerAddress(clusterIP string, httpPort int32) string {
+	url := fmt.Sprintf("http://%s:%d/api/model_registry/v1alpha3", clusterIP, httpPort)
+	return url
 }

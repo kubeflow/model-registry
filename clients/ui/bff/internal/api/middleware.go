@@ -11,7 +11,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
@@ -113,10 +112,17 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 		}
 
-		modelRegistryBaseURL, err := resolveModelRegistryURL(r.Context(), namespace, modelRegistryID, app.kubernetesClient, app.config)
+		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistry(r.Context(), app.kubernetesClient, namespace, modelRegistryID)
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
+		}
+		modelRegistryBaseURL := modelRegistry.ServerAddress
+
+		// If we are in dev mode, we need to resolve the server address to the local host
+		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
+		if app.config.DevMode {
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort))
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for
@@ -139,22 +145,6 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, client)
 		next(w, r.WithContext(ctx), ps)
 	}
-}
-
-func resolveModelRegistryURL(sessionCtx context.Context, namespace string, serviceName string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
-
-	serviceDetails, err := client.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
-	if err != nil {
-		return "", err
-	}
-
-	if config.DevMode {
-		serviceDetails.ClusterIP = "localhost"
-		serviceDetails.HTTPPort = int32(config.DevModePort)
-	}
-
-	url := fmt.Sprintf("http://%s:%d/api/model_registry/v1alpha3", serviceDetails.ClusterIP, serviceDetails.HTTPPort)
-	return url, nil
 }
 
 func (app *App) AttachNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
