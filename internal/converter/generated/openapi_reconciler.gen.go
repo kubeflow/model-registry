@@ -216,6 +216,46 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 		xstring8 := *pString8
 		openapiModelArtifact.ServiceAccountName = &xstring8
 	}
+	var pString9 *string
+	if source.Update != nil {
+		pString9 = source.Update.ModelSourceKind
+	}
+	if pString9 != nil {
+		xstring9 := *pString9
+		openapiModelArtifact.ModelSourceKind = &xstring9
+	}
+	var pString10 *string
+	if source.Update != nil {
+		pString10 = source.Update.ModelSourceClass
+	}
+	if pString10 != nil {
+		xstring10 := *pString10
+		openapiModelArtifact.ModelSourceClass = &xstring10
+	}
+	var pString11 *string
+	if source.Update != nil {
+		pString11 = source.Update.ModelSourceGroup
+	}
+	if pString11 != nil {
+		xstring11 := *pString11
+		openapiModelArtifact.ModelSourceGroup = &xstring11
+	}
+	var pString12 *string
+	if source.Update != nil {
+		pString12 = source.Update.ModelSourceId
+	}
+	if pString12 != nil {
+		xstring12 := *pString12
+		openapiModelArtifact.ModelSourceId = &xstring12
+	}
+	var pString13 *string
+	if source.Update != nil {
+		pString13 = source.Update.ModelSourceName
+	}
+	if pString13 != nil {
+		xstring13 := *pString13
+		openapiModelArtifact.ModelSourceName = &xstring13
+	}
 	return openapiModelArtifact, nil
 }
 func (c *OpenAPIReconcilerImpl) UpdateExistingModelVersion(source converter.OpenapiUpdateWrapper[openapi.ModelVersion]) (openapi.ModelVersion, error) {

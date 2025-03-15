@@ -346,13 +346,18 @@ A ML model from S3 bucket using a ServiceAccount:
 
 ```python
 model = registry.register_model(
-    "mnist-s3",  
-    "s3://kserve-examples/mnist",  
+    "mnist-s3",
+    "s3://kserve-examples/mnist",
     version="v1",
     description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1",
     service_account_name="sa",
+    model_source_kind="pipelines",
+    model_source_class="pipelinerun",
+    model_source_group="my-ns",
+    model_source_id="run-id1",
+    model_source_name="my-ns/run-id1",
 )
 ```
 

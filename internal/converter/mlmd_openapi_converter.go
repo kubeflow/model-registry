@@ -35,6 +35,11 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties StorageKey | MapModelArtifactStorageKey
 	// goverter:map Properties StoragePath | MapModelArtifactStoragePath
 	// goverter:map Properties ServiceAccountName | MapModelArtifactServiceAccountName
+	// goverter:map Properties ModelSourceKind | MapModelArtifactModelSourceKind
+	// goverter:map Properties ModelSourceClass | MapModelArtifactModelSourceClass
+	// goverter:map Properties ModelSourceGroup | MapModelArtifactModelSourceGroup
+	// goverter:map Properties ModelSourceId | MapModelArtifactModelSourceId
+	// goverter:map Properties ModelSourceName | MapModelArtifactModelSourceName
 	ConvertModelArtifact(source *proto.Artifact) (*openapi.ModelArtifact, error)
 
 	// goverter:map Name | MapNameFromOwned

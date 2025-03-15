@@ -7,13 +7,29 @@ import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
 import { isMUITheme } from '~/shared/utilities/const';
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
 import { ProjectObjectType } from '~/shared/components/design/utils';
+// import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import ModelRegistriesTable from './ModelRegistriesTable';
+import CreateModal from './ModelRegistryCreateModal';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
-  const [modelRegistries, mrloaded, loadError] = useModelRegistries(queryParams);
+  const [
+    modelRegistries,
+    mrloaded,
+    loadError,
+    // refreshModelRegistries
+  ] = useModelRegistries(queryParams);
+  const [createModalOpen, setCreateModalOpen] = React.useState(false);
   // TODO: [Midstream] Implement this when adding logic for rules review
+  // const { refreshRulesReview } = React.useContext(ModelRegistrySelectorContext);
+
   const loaded = mrloaded; //&& roleBindings.loaded;
+
+  // TODO: implement when refreshModelRegistries() and refreshRulesReview() are added
+  // const refreshAll = React.useCallback(
+  //   () => Promise.all([refreshModelRegistries(), refreshRulesReview()]),
+  //   [refreshModelRegistries, refreshRulesReview],
+  // );
 
   return (
     <>
@@ -54,8 +70,21 @@ const ModelRegistrySettings: React.FC = () => {
         }
         provideChildrenPadding
       >
-        <ModelRegistriesTable modelRegistries={modelRegistries} />
+        <ModelRegistriesTable
+          modelRegistries={modelRegistries}
+          onCreateModelRegistryClick={() => {
+            setCreateModalOpen(true);
+          }}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          refresh={() => {}}
+        />
       </ApplicationsPage>
+      {createModalOpen ? (
+        <CreateModal
+          onClose={() => setCreateModalOpen(false)}
+          // refresh={refreshAll}
+        />
+      ) : null}
     </>
   );
 };

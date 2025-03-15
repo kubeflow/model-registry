@@ -91,7 +91,7 @@ type OpenAPIConverter interface {
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath ModelSourceKind ModelSourceClass ModelSourceGroup ModelSourceId ModelSourceName
 	OverrideNotEditableForModelArtifact(source OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error)
 
 	// Ignore all fields that ARE editable

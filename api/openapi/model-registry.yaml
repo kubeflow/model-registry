@@ -1550,6 +1550,35 @@ components:
             serviceAccountName:
               description: Name of the service account with storage secret.
               type: string
+            modelSourceKind:
+              type: string
+              description: |-
+                A string identifier describing the source kind. It differentiates various sources of model artifacts.
+                This identifier should be agreed upon by producers and consumers of source model metadata.
+                It is not an enumeration to keep the source of model metadata open ended. 
+                E.g. Kubeflow pipelines could use `pipelines` to identify models it produces.
+            modelSourceClass:
+              type: string
+              description: |-
+                A subgroup within the source kind. It is a specific sub-component or instance within the source kind.
+                E.g. `pipelinerun` for a Kubeflow pipeline run.
+            modelSourceGroup:
+              type: string
+              description: |-
+                Unique identifier for a source group for models from source class. 
+                It maps to a physical group of source models. 
+                E.g. a Kubernetes namespace where the pipeline run was executed.
+            modelSourceId:
+              type: string
+              description: |-
+                A unique identifier for a source model within kind, class, and group.
+                It should be a url friendly string if source supports using URLs to locate source models.
+                E.g. a pipeline run ID.
+            modelSourceName:
+              type: string
+              description: |-
+                A human-readable name for the source model. 
+                E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
     ModelArtifactCreate:
       description: An ML model artifact.
       properties:
