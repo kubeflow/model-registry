@@ -121,7 +121,7 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
 	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
 	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateArtifactHandler))))
+	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelArtifactHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
