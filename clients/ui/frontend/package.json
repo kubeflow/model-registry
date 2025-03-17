@@ -92,7 +92,7 @@
     "ts-loader": "^9.5.1",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "tslib": "^2.7.0",
-    "typescript": "^5.7.2",
+    "typescript": "^5.8.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.97.1",
     "webpack-bundle-analyzer": "^4.10.2",
