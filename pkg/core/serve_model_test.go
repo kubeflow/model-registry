@@ -17,7 +17,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
 		Name:        modelVersionName,
@@ -81,7 +81,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateServeModelFailure() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
 		Name:        modelVersionName,
@@ -124,7 +124,7 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 	// end of data preparation
 
 	_, err := service.UpsertServeModel(nil, nil)
@@ -158,7 +158,7 @@ func (suite *CoreTestSuite) TestUpdateServeModel() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
 		Name:        modelVersionName,
@@ -220,7 +220,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
 		Name:        modelVersionName,
@@ -267,7 +267,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion := &openapi.ModelVersion{
 		Name:        modelVersionName,
@@ -314,7 +314,7 @@ func (suite *CoreTestSuite) TestGetServeModels() {
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
-	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, nil, nil, nil, nil)
+	inferenceServiceId := suite.registerInferenceService(service, registeredModelId, "", nil, nil, nil)
 
 	modelVersion1Name := "v1"
 	modelVersion1 := &openapi.ModelVersion{Name: modelVersion1Name, Description: &modelVersionDescription}

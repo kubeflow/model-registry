@@ -35,10 +35,7 @@ class ServingEnvironmentCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
-    )
+    name: StrictStr = Field(description="The name of the ServingEnvironment.")
     __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "name"]
 
     model_config = ConfigDict(

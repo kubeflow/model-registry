@@ -1687,9 +1687,16 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
     ServingEnvironmentCreate:
       description: A Model Serving environment for serving `RegisteredModels`.
+      required:
+      - name
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ServingEnvironmentUpdate"
+        - type: object  
+          properties:
+            name:
+              description: The name of the ServingEnvironment.
+              type: string  
     InferenceService:
       description: >-
         An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
