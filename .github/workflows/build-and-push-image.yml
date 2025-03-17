@@ -17,6 +17,8 @@ env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
   PUSH_IMAGE: true
+  DOCKER_USER: ${{ github.actor }}
+  DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build-image:
     runs-on: ubuntu-latest
