@@ -19,8 +19,8 @@ MLMD_VERSION ?= 1.14.0
 DOCKER ?= docker
 # default Dockerfile
 DOCKERFILE ?= Dockerfile
-# container registry, default to empty (dockerhub) if not explicitly set
-IMG_REGISTRY ?= 
+# container registry, default to github container registry
+IMG_REGISTRY ?= ghcr.io
 # container image organization
 IMG_ORG ?= kubeflow
 # container image version
