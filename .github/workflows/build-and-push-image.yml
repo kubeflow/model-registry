@@ -16,8 +16,6 @@ on:
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry
-  DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKER_PWD: ${{ secrets.DOCKERHUB_TOKEN }}
   PUSH_IMAGE: true
 jobs:
   build-image:
