@@ -7,8 +7,8 @@ const ResourceNameDefinitionTooltip: React.FC = () => (
     content={
       <Stack hasGutter>
         <StackItem>
-          The resource name is used to identify your resource in OpenShift, and is generated based
-          on the name you enter.
+          The resource name is used to identify your resource, and is generated based on the name
+          you enter.
         </StackItem>
         <StackItem>The resource name cannot be edited after creation.</StackItem>
       </Stack>
