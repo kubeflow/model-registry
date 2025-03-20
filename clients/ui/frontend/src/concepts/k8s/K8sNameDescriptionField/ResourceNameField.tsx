@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { FormGroup, HelperText, TextInput } from '@patternfly/react-core';
-import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
+import { FormGroup, HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { isMUITheme } from '~/shared/utilities/const';
 
 type ResourceNameFieldProps = {
   allowEdit: boolean;
@@ -16,12 +17,6 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
   //   k8sName,
   //   onDataChange,
 }) => {
-  const formGroupProps: React.ComponentProps<typeof FormGroup> = {
-    label: 'Resource name',
-    labelHelp: <ResourceNameDefinitionTooltip />,
-    fieldId: `${dataTestId}-resourceName`,
-  };
-
   // TODO: Implement this once we have the endpoint.
 
   //   if (k8sName.state.immutable) {
@@ -47,6 +42,7 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
       id={`${dataTestId}-resourceName`}
       data-testid={`${dataTestId}-resourceName`}
       name={`${dataTestId}-resourceName`}
+      type="text"
       isRequired
       //   value={
       //     usePrefix && k8sName.state.safePrefix
@@ -62,22 +58,47 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
       //   validated={validated}
     />
   );
-  return (
-    <FormGroup {...formGroupProps} isRequired>
-      {/* {usePrefix ? (
-        <InputGroup>
-          <InputGroupText>{k8sName.state.safePrefix}</InputGroupText>
-          <InputGroupItem isFill>{textInput}</InputGroupItem>
-        </InputGroup>
-      ) : ( */}
-      {textInput}
-      {/* )} */}
+
+  const resourceNameFormGroup = (
+    <>
+      <FormGroup
+        label="Resource name"
+        className="resource-name"
+        isRequired
+        fieldId={`${dataTestId}-resource-name`}
+      >
+        <FormFieldset component={textInput} field="Host" />
+      </FormGroup>
       <HelperText>
+        <HelperTextItem>
+          The resource name is used to identify your resource, and is generated based on the name
+          you enter. The resource name cannot be edited after creation.
+        </HelperTextItem>
         {/* <HelperTextItemMaxLength k8sName={k8sName} />
-        <HelperTextItemValidCharacters k8sName={k8sName} /> */}
+         <HelperTextItemValidCharacters k8sName={k8sName} /> */}
       </HelperText>
-    </FormGroup>
+    </>
   );
+
+  // TODO: Implement this once we have the endpoint.
+  // return (
+  //   <FormGroup {...formGroupProps} isRequired>
+  //     {usePrefix ? (
+  //       <InputGroup>
+  //         <InputGroupText>{k8sName.state.safePrefix}</InputGroupText>
+  //         <InputGroupItem isFill>{textInput}</InputGroupItem>
+  //       </InputGroup>
+  //     ) : (
+  //       { textInput }
+  //     )}
+  //     <HelperText>
+  //       <HelperTextItemMaxLength k8sName={k8sName} />
+  //       <HelperTextItemValidCharacters k8sName={k8sName} />
+  //     </HelperText>
+  //   </FormGroup>
+  // );
+
+  return isMUITheme() ? resourceNameFormGroup : textInput;
 };
 
 export default ResourceNameField;
