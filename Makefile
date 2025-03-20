@@ -26,7 +26,7 @@ IMG_ORG ?= kubeflow
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry
+IMG_REPO ?= model-registry/server
 # container image build path
 BUILD_PATH ?= .
 # container image

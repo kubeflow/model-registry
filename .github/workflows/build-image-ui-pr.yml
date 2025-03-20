@@ -11,7 +11,7 @@ on:
       - "!**.txt"
 env:
   IMG_ORG: kubeflow
-  IMG_REPO: model-registry-ui
+  IMG_REPO: model-registry/ui
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
