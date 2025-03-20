@@ -2,49 +2,32 @@
 
 This folder contains [Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/installation/) Kustomize manifests
 
-## Installation
+## Overview
 
-To install Kubeflow Model Registry, follow [Kubeflow Model Registry deployment documentation](https://www.kubeflow.org/docs/components/model-registry/installation/).
+This is the full installation guide, for a quick install in an existing Kubeflow installation, follow [these instructions](https://www.kubeflow.org/docs/components/model-registry/installation/).
+**Ensure you are running all these commands from the directory containing this README.md file (e.g.: you could check with `pwd`).**
 
-> **⚠️ Warning:** To install Model Registry in a way that's compatible with the Model Registry UI, please follow the instructions in the [Installing Model Registry on a Kubeflow Profile](#installing-model-registry-on-a-kubeflow-profile) section below.
+## Kubeflow Central Dashboard Installation
 
-The following instructions will summarize how to deploy Model Registry as separate component in the context of a default Kubeflow >=1.9 installation.
-Ensure you are running these commands from the directory containing this README.md file (e.g.: you could check with `pwd`).
+These instructions assume that you've installed Kubeflow from the [manifests](https://github.com/kubeflow/manifests/), if you're using a distribution consult its documentation instead.
 
-```bash
-kubectl apply -k overlays/db
+Kubeflow Central Dashboard uses [Profiles](https://www.kubeflow.org/docs/components/central-dash/profiles/) to handle user namespaces and permissions. By default, the manifests deploy the Model Registry instance in the `kubeflow` namespace, to install a compatible version of Model Registry for Kubeflow, you should deploy a separate instance of Model Registry in the profile's namespace. For that just run:
+
+```sh
+PROFILE_NAME=<your-profile>
+for DIR in options/istio overlays/db ; do (cd $DIR; kustomize edit set namespace $PROFILE_NAME; kubectl apply -k .); done
 ```
 
-As the default Kubeflow installation provides an Istio mesh, apply the necessary manifests:
-
-```bash
-kubectl apply -k options/istio
-```
+> **⚠️ Warning:** If you're not sure of the profile name, you can find it in the name space drop-down on the Kubeflow Dashboard.
 
 Check everything is up and running:
 
 ```bash
-kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=2m
-kubectl logs -n kubeflow deployment/model-registry-deployment
+kubectl wait --for=condition=available-n ${PROFILE_NAME} deployment/model-registry-deployment --timeout=2m
+kubectl logs -n ${PROFILE_NAME} deployment/model-registry-deployment
 ```
 
-Optionally, you can also port-forward the REST API container port of Model Registry to interact with it from your terminal:
-
-```bash
-kubectl port-forward svc/model-registry-service -n kubeflow 8081:8080
-```
-
-And then, from another terminal:
-
-```bash
-curl -sX 'GET' \
-  'http://localhost:8081/api/model_registry/v1alpha3/registered_models?pageSize=100&orderBy=ID&sortOrder=DESC' \
-  -H 'accept: application/json' | jq
-```
-
-### UI Installation
-
-To install the Model Registry UI as a Kubeflow component, you need first to deploy the Model Registry UI:
+Now, to install the Model Registry UI as a Kubeflow component, you need first to deploy the Model Registry UI:
 
 ```bash
 kubectl apply -k options/ui/overlays/istio -n kubeflow
@@ -77,19 +60,62 @@ data:
             ...
 ```
 
-#### Installing Model Registry on a Kubeflow Profile (namespace)
+Now you should be able to see the Model Registry UI in the Kubeflow Central Dashboard, and access to the Model Registry deployment in the profile namespace.
 
-Kubeflow Central Dashboard uses [Profiles](https://www.kubeflow.org/docs/components/central-dash/profiles/) to handle user namespaces and permissions. By default, the manifests deploy the Model Registry instance in the `kubeflow` namespace, to install a compatible version of Model Registry for Kubeflow, you should deploy a separate instance of Model Registry in the profile's namespace. For that just run:
+### Uninstall
 
-```sh
+To uninstall the Kubeflow Model Registry run:
+
+```bash
+# Uninstall Model Registry Instance
 PROFILE_NAME=<your-profile>
-for DIR in options/istio overlays/db ; do (cd $DIR; kustomize edit set namespace $PROFILE_NAME; kubectl apply -k .); done
+for DIR in options/istio overlays/db ; do (cd $DIR; kustomize edit set namespace $PROFILE_NAME; kubectl delete -k .); done
 
-## Usage
+# Uninstall Model Registry UI
+kubectl delete -k options/ui/overlays/istio -n kubeflow
+```
+
+
+## Model Registry as a separate component Installation
+
+The following instructions will summarize how to deploy Model Registry as separate component in the context of a default Kubeflow >=1.9 installation.
+
+```bash
+kubectl apply -k overlays/db
+```
+
+As the default Kubeflow installation provides an Istio mesh, apply the necessary manifests:
+
+```bash
+kubectl apply -k options/istio
+```
+
+Check everything is up and running:
+
+```bash
+kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=2m
+kubectl logs -n kubeflow deployment/model-registry-deployment
+```
+
+Optionally, you can also port-forward the REST API container port of Model Registry to interact with it from your terminal:
+
+```bash
+kubectl port-forward svc/model-registry-service -n kubeflow 8081:8080
+```
+
+And then, from another terminal:
+
+```bash
+curl -sX 'GET' \
+  'http://localhost:8081/api/model_registry/v1alpha3/registered_models?pageSize=100&orderBy=ID&sortOrder=DESC' \
+  -H 'accept: application/json' | jq
+```
+
+### Usage
 
 For a basic usage of the Kubeflow Model Registry, follow the [Kubeflow Model Registry getting started documentation](https://www.kubeflow.org/docs/components/model-registry/getting-started/)
 
-## Uninstall
+### Uninstall
 
 To uninstall the Kubeflow Model Registry run:
 
