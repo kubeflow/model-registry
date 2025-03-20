@@ -38,52 +38,47 @@ export type ModelRegistryKind = K8sResourceCommon & {
         };
       };
     };
-  } & EitherNotBoth<
-    {
-      mysql?: {
-        database: string;
-        host: string;
-        passwordSecret?: {
-          key: string;
-          name: string;
-        };
-        port?: number;
-        skipDBCreation?: boolean;
-        username?: string;
-      } & EitherNotBoth<
-        {
-          sslRootCertificateConfigMap?: {
-            name: string;
-            key: string;
-          } | null;
-        },
-        {
-          sslRootCertificateSecret?: {
-            name: string;
-            key: string;
-          } | null;
-        }
-      >;
-    },
-    {
-      postgres?: {
-        database: string;
-        host?: string;
-        passwordSecret?: {
-          key: string;
-          name: string;
-        };
-        port: number;
-        skipDBCreation?: boolean;
-        sslMode?: string;
-        username?: string;
-      };
-    }
-  >;
+  };
+  databaseConfig: DatabaseConfig;
   status?: {
     conditions?: K8sCondition[];
   };
 };
+
+export enum DatabaseType {
+  MySQL = 'MySQL',
+  Postgres = 'Postgres',
+}
+
+export type PasswordSecret = {
+  key: string;
+  name: string;
+};
+
+export type DatabaseConfig = {
+  databaseType: DatabaseType;
+  database: string;
+  host: string;
+  passwordSecret?: PasswordSecret;
+  port: number;
+  skipDBCreation: boolean;
+  username: string;
+  sslRootCertificateConfigMap?: string;
+  sslRootCertificateSecret?: string;
+} & EitherNotBoth<
+  {
+    sslRootCertificateConfigMap?: {
+      name: string;
+      key: string;
+    } | null;
+  },
+  {
+    sslRootCertificateSecret?: {
+      name: string;
+      key: string;
+    } | null;
+  }
+>;
 
 export enum DeploymentMode {
   ModelMesh = 'ModelMesh',
@@ -92,7 +87,7 @@ export enum DeploymentMode {
 }
 
 export type InferenceServiceAnnotations = Partial<{
-  'security.opendatahub.io/enable-auth': string;
+  'security.kubeflow.io/enable-auth': string;
 }>;
 
 export type InferenceServiceLabels = Partial<{
@@ -251,7 +246,7 @@ export type ServiceKind = K8sResourceCommon & {
     name: string;
     namespace: string;
     labels?: Partial<{
-      'opendatahub.io/user': string;
+      'kubeflow.io/user': string;
       component: string;
     }>;
   };
