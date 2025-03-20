@@ -6,6 +6,6 @@ resources:
 - model-registry-service.yaml
 - model-registry-sa.yaml
 images:
-- name: kubeflow/model-registry
-  newName: kubeflow/model-registry
+- name: ghcr.io/kubeflow/model-registry
+  newName: ghcr.io/kubeflow/model-registry
   newTag: v0.2.15

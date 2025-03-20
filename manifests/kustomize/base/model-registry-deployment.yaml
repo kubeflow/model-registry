@@ -30,7 +30,7 @@ spec:
           command:
             - /model-registry
             - proxy
-          image: kubeflow/model-registry:latest
+          image: ghcr.io/kubeflow/model-registry:latest
           # empty placeholder environment for patching
           env: []
           ports:
