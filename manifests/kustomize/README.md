@@ -81,19 +81,9 @@ data:
 
 Kubeflow Central Dashboard uses [Profiles](https://www.kubeflow.org/docs/components/central-dash/profiles/) to handle user namespaces and permissions. By default, the manifests deploy the Model Registry instance in the `kubeflow` namespace, to install a compatible version of Model Registry for Kubeflow, you should deploy a separate instance of Model Registry in the profile's namespace. For that just run:
 
-```shell
-cd options/istio
-kustomize edit set namespace <your-profile>
-kubectl apply -k .
-```
-
-Now head back to the `/manifest/kutomize` folder and run:
-
-```shell
-cd overlays/db
-kustomize edit set namespace <your-profile>
-kubectl apply -k .
-```
+```sh
+PROFILE_NAME=<your-profile>
+for DIR in options/istio overlays/db ; do (cd $DIR; kustomize edit set namespace $PROFILE_NAME; kubectl apply -k .); done
 
 ## Usage
 
