@@ -1,0 +1,35 @@
+local_resource(
+    "python-bin-reqs",
+    "../../bin/poetry install -C ../../../clients/python",
+    deps=[
+        "../../../clients/python/pyproject.toml",
+    ],
+    labels="requirements",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "python-wheel-build",
+    "../../devenv/bin/poetry build -o ../../devenv/wheels",
+    dir="../../../clients/python",
+    deps=[
+        "../../../clients/python/src",
+        "../../../clients/python/pyproject.toml",
+        "../../../clients/python/poetry.lock",
+    ],
+    resource_deps=["python-bin-reqs"],
+    labels="python-client",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "copy-wheel-into-notebook",
+    "kubectl cp wheels kubeflow/jupyter-mr:/home/jovyan/ -c notebook",
+    dir="../../",
+    deps=[
+        "../../wheels",
+    ],
+    resource_deps=["python-wheel-build", "mr-notebook"],
+    labels="python-client",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
