@@ -10,7 +10,7 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  /api/v1/healthcheck:
+  /healthcheck:
     summary: Path targeted for healthcheck purposes.
     description: >-
       The REST endpoint/path used to allow a healthcheck update.
