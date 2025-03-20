@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"os/signal"
@@ -18,7 +19,11 @@ import (
 
 func main() {
 	var cfg config.EnvConfig
+	var certFile, keyFile string
+
 	flag.IntVar(&cfg.Port, "port", getEnvAsInt("PORT", 8080), "API server port")
+	flag.StringVar(&certFile, "cert-file", "", "Path to TLS certificate file")
+	flag.StringVar(&keyFile, "key-file", "", "Path to TLS key file")
 	flag.BoolVar(&cfg.MockK8Client, "mock-k8s-client", false, "Use mock Kubernetes client")
 	flag.BoolVar(&cfg.MockMRClient, "mock-mr-client", false, "Use mock Model Registry client")
 	flag.BoolVar(&cfg.DevMode, "dev-mode", false, "Use development mode for access to local K8s cluster")
@@ -53,8 +58,19 @@ func main() {
 
 	// Start the server in a goroutine
 	go func() {
-		logger.Info("starting server", "addr", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Info("starting server", "addr", srv.Addr, "TLS enabled", (certFile != "" && keyFile != ""))
+		var err error
+		if certFile != "" && keyFile != "" {
+			// Configure TLS if both cert and key files are provided
+			tlsConfig := &tls.Config{
+				MinVersion: tls.VersionTLS13,
+			}
+			srv.TLSConfig = tlsConfig
+			err = srv.ListenAndServeTLS(certFile, keyFile)
+		} else {
+			err = srv.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			logger.Error("HTTP server ListenAndServe", "error", err)
 		}
 	}()
