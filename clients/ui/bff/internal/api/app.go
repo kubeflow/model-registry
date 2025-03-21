@@ -27,7 +27,7 @@ const (
 	ModelVersionId                = "model_version_id"
 	ModelArtifactId               = "model_artifact_id"
 	ArtifactId                    = "artifact_id"
-	HealthCheckPath               = ApiPathPrefix + "/healthcheck"
+	HealthCheckPath               = "/healthcheck"
 	UserPath                      = ApiPathPrefix + "/user"
 	ModelRegistryListPath         = ApiPathPrefix + "/model_registry"
 	ModelRegistryPath             = ModelRegistryListPath + "/:" + ModelRegistryId
@@ -106,7 +106,6 @@ func (app *App) Routes() http.Handler {
 
 	// HTTP client routes (requests that we forward to Model Registry API)
 	// on those, we perform SAR on Specific Service on a given namespace
-	apiRouter.GET(HealthCheckPath, app.HealthcheckHandler)
 	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
 	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
 	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
@@ -162,5 +161,16 @@ func (app *App) Routes() http.Handler {
 		http.ServeFile(w, r, path.Join(app.config.StaticAssetsDir, "index.html"))
 	})
 
-	return app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectUserHeaders(appMux))))
+	// Create a mux for the healthcheck endpoint
+	healthcheckMux := http.NewServeMux()
+	healthcheckRouter := httprouter.New()
+	healthcheckRouter.GET(HealthCheckPath, app.HealthcheckHandler)
+	healthcheckMux.Handle(HealthCheckPath, app.RecoverPanic(app.EnableTelemetry(healthcheckRouter)))
+
+	// Combines the healthcheck endpoint with the rest of the routes
+	combinedMux := http.NewServeMux()
+	combinedMux.Handle(HealthCheckPath, healthcheckMux)
+	combinedMux.Handle("/", app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectUserHeaders(appMux)))))
+
+	return combinedMux
 }
