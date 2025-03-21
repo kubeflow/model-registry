@@ -14,7 +14,7 @@ on:
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_REPO: model-registry
+  IMG_REPO: model-registry/server
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:

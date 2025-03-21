@@ -10,7 +10,7 @@ on:
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_UI_REPO: model-registry-ui
+  IMG_UI_REPO: model-registry/ui
   PUSH_IMAGE: true
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}

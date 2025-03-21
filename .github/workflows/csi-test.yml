@@ -23,8 +23,8 @@ on:
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  MODEL_REGISTRY_IMG: model-registry
-  MODEL_REGISTRY_CSI_IMG: model-registry-storage-initializer
+  MODEL_REGISTRY_IMG: model-registry/server
+  MODEL_REGISTRY_CSI_IMG: model-registry/storage-initializer
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
