@@ -106,7 +106,6 @@ export type InferenceServiceKind = K8sResourceCommon & {
     annotations?: InferenceServiceAnnotations &
       Partial<{
         'serving.kserve.io/deploymentMode': DeploymentMode;
-        'serving.knative.openshift.io/enablePassthrough': 'true';
         'sidecar.istio.io/inject': 'true';
         'sidecar.istio.io/rewriteAppHTTPProbers': 'true';
       }>;

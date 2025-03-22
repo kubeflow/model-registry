@@ -17,11 +17,7 @@ import { ModelVersion } from '~/app/types';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import InlineTruncatedClipboardCopy from '~/shared/components/InlineTruncatedClipboardCopy';
-import {
-  getLabels,
-  getProperties,
-  mergeUpdatedLabels,
-} from '~/app/pages/modelRegistry/screens/utils';
+import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import { bumpBothTimestamps, bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
@@ -45,8 +41,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
   const storageFields = uriToStorageFields(modelArtifact?.uri || '');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const filteredProperties = getProperties(mv.customProperties);
   const [registeredModel, registeredModelLoaded, registeredModelLoadError, refreshRegisteredModel] =
     useRegisteredModelById(mv.registeredModelId);
 
@@ -145,46 +139,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
           >
             <InlineTruncatedClipboardCopy testId="model-version-id" textToCopy={mv.id} />
           </DashboardDescriptionListGroup>
-          {/* {isPipelineRunExist(mv.customProperties, pipelineRunSpecificKeys) && (
-            <DashboardDescriptionListGroup title="Registered from">
-              <Flex
-                spaceItems={{ default: 'spaceItemsXs' }}
-                alignItems={{ default: 'alignItemsCenter' }}
-                data-testid="registered-from"
-              >
-                <FlexItem data-testid="pipeline-run-link">
-                  Run{' '}
-                  {
-                    <Link
-                      style={{ fontWeight: 'var(--pf-t--global--font--weight--body--bold)' }}
-                      to={globalPipelineRunDetailsRoute(
-                        filteredProperties[pipelineRunSpecificKeys[0]].string_value,
-                        filteredProperties[pipelineRunSpecificKeys[1]].string_value,
-                      )}
-                    >
-                      {filteredProperties[pipelineRunSpecificKeys[2]].string_value}
-                    </Link>
-                  }{' '}
-                  in
-                </FlexItem>
-                <FlexItem style={{ display: 'flex' }}>
-                  <img
-                    style={{ height: 24 }}
-                    src={typedObjectImage(ProjectObjectType.project)}
-                    alt=""
-                  />
-                </FlexItem>
-                <FlexItem
-                  style={{
-                    display: 'flex',
-                    fontWeight: 'var(--pf-t--global--font--weight--body--bold)',
-                  }}
-                >
-                  {filteredProperties[pipelineRunSpecificKeys[0]].string_value}
-                </FlexItem>
-              </Flex>
-            </DashboardDescriptionListGroup>
-          )} */}
         </DescriptionList>
 
         <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
@@ -241,21 +195,20 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                   </DashboardDescriptionListGroup>
                 </>
               )}
-              {storageFields?.uri ||
-                (storageFields?.ociUri && (
-                  <>
-                    <DashboardDescriptionListGroup
-                      title="URI"
-                      isEmpty={!modelArtifact?.uri}
-                      contentWhenEmpty="No URI"
-                    >
-                      <InlineTruncatedClipboardCopy
-                        testId="storage-uri"
-                        textToCopy={modelArtifact?.uri || ''}
-                      />
-                    </DashboardDescriptionListGroup>
-                  </>
-                ))}
+              {(storageFields?.uri || storageFields?.ociUri) && (
+                <>
+                  <DashboardDescriptionListGroup
+                    title="URI"
+                    isEmpty={!modelArtifact?.uri}
+                    contentWhenEmpty="No URI"
+                  >
+                    <InlineTruncatedClipboardCopy
+                      testId="storage-uri"
+                      textToCopy={modelArtifact?.uri || ''}
+                    />
+                  </DashboardDescriptionListGroup>
+                </>
+              )}
             </DescriptionList>
             <Divider style={{ marginTop: '1em' }} />
             <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>

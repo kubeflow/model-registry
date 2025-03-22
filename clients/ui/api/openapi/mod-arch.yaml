@@ -95,7 +95,7 @@ paths:
   /api/v1/settings/model_registry:
     summary: Path used to manage Model Registry resources.
     description: >-
-      The REST endpoint/path used to list and create ModelRegistry resources.
+      The REST endpoint/path used to list and create Model Registry resources.
     get:
       tags:
         - K8SOperation
@@ -110,10 +110,10 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getModelRegistrySettings
       summary: List All Model Registry Settings
-      description: Gets a list of all ModelRegistry settings.
+      description: Gets a list of all Model Registry settings.
     post:
       requestBody:
-        description: A new ModelRegistry settings to be created.
+        description: A new Model Registry settings to be created.
         content:
           application/json:
             schema:
@@ -140,14 +140,14 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: createModelRegistrySettings
       summary: Create Model Registry Settings
-      description: Creates a new instance of ModelRegistry settings.
+      description: Creates a new instance of Model Registry settings.
   /api/v1/settings/model_registry/{modelregistryId}:
     summary: Path used to manage Model Registry resources.
     description: >-
-      The REST endpoint/path used to list, create, update and delete ModelRegistry resources.
+      The REST endpoint/path used to list, create, update and delete Model Registry resources.
     patch:
       requestBody:
-        description: Updated ModelRegistry settings information.
+        description: Updated Model Registry settings information.
         content:
           application/json:
             schema:
@@ -177,7 +177,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: updateModelRegistrySettings
       summary: Update Model Registry Settings
-      description: Updates an existing ModelRegistry settings.
+      description: Updates an existing Model Registry settings.
     delete:
       tags:
         - K8SOperation
@@ -197,7 +197,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: deleteModelRegistrySettings
       summary: Delete Model Registry Settings
-      description: Deletes an existing ModelRegistry settings.
+      description: Deletes an existing Model Registry settings.
   /api/v1/model_registry/{modelRegistryName}/model_versions/{modelversionId}:
     summary: Path used to manage a single ModelVersion.
     description: >-
@@ -564,17 +564,17 @@ components:
           example: My Model Registry
         description:
           type: string
-          example: This is the main model reigstry for the cluster and contains..
+          example: This is the main model registry for the cluster and contains..
         serverAddress:
           type: string
-          example: http:example.com
+          example: http://example.com
     ModelRegistryKind:
-      description: Kubernetes Custom Resource for ModelRegistry
+      description: Kubernetes Custom Resource for Model Registry
       type: object
       properties:
         apiVersion:
           type: string
-          example: modelregistry.opendatahub.io/v1alpha1
+          example: modelregistry.kubeflow.io/v1alpha1
         kind:
           type: string
           example: ModelRegistry
