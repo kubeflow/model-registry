@@ -14,7 +14,6 @@ import (
 
 type ArtifactListEnvelope Envelope[*openapi.ArtifactList, None]
 type ArtifactEnvelope Envelope[*openapi.Artifact, None]
-type ArtifactUpdateEnvelope Envelope[*openapi.ArtifactUpdate, None]
 
 func (app *App) CreateArtifactHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(integrations.HTTPClientInterface)
@@ -115,53 +114,6 @@ func (app *App) GetAllArtifactsHandler(w http.ResponseWriter, r *http.Request, p
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, artifactsRes, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-
-func (app *App) UpdateArtifactHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(integrations.HTTPClientInterface)
-	if !ok {
-		app.serverErrorResponse(w, r, errors.New("REST client not found"))
-		return
-	}
-
-	var envelope ArtifactUpdateEnvelope
-	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
-		return
-	}
-
-	data := *envelope.Data
-
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error marshaling model to JSON: %w", err))
-		return
-	}
-
-	patchedArtifact, err := app.repositories.ModelRegistryClient.UpdateArtifact(client, ps.ByName(ArtifactId), jsonData)
-	if err != nil {
-		var httpErr *integrations.HTTPError
-		if errors.As(err, &httpErr) {
-			app.errorResponse(w, r, httpErr)
-		} else {
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	if patchedArtifact == nil || (patchedArtifact.DocArtifact == nil && patchedArtifact.ModelArtifact == nil) {
-		app.serverErrorResponse(w, r, fmt.Errorf("created artifact is nil or does not contain valid data"))
-		return
-	}
-
-	responseBody := ArtifactEnvelope{
-		Data: patchedArtifact,
-	}
-
-	err = app.WriteJSON(w, http.StatusOK, responseBody, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

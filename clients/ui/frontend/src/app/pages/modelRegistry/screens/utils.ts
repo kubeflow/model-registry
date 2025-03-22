@@ -1,5 +1,6 @@
 import { SearchType } from '~/shared/components/DashboardSearchField';
 import {
+  ModelRegistry,
   ModelRegistryCustomProperties,
   ModelRegistryMetadataType,
   ModelRegistryStringCustomProperties,
@@ -137,7 +138,6 @@ export const filterRegisteredModels = (
     if (!search) {
       return true;
     }
-
     const modelVersions = unfilteredModelVersions.filter((mv) => mv.registeredModelId === rm.id);
 
     switch (searchType) {
@@ -168,5 +168,36 @@ export const filterRegisteredModels = (
   });
 };
 
-// export const getServerAddress = (resource: ServiceKind): string =>
-//   resource.metadata.annotations?.['routing.opendatahub.io/external-address-rest'] || '';
+export const getServerAddress = (resource: ModelRegistry): string => resource.serverAddress || '';
+
+export const isValidHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
+    // Domain validation
+    const domainPattern = /^(?!-)[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+    return isHttp && domainPattern.test(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
+export const filterCustomProperties = (
+  customProperties: ModelRegistryCustomProperties,
+  keys: string[],
+): ModelRegistryCustomProperties => {
+  const filteredCustomProperties: ModelRegistryCustomProperties = {};
+  Object.keys(customProperties).forEach((key) => {
+    if (!keys.includes(key)) {
+      filteredCustomProperties[key] = customProperties[key];
+    }
+  });
+  return filteredCustomProperties;
+};
+
+export const isPipelineRunExist = (
+  customProperties: ModelRegistryCustomProperties,
+  keys: string[],
+): boolean => keys.every((key) => key in customProperties);
+export const isRedHatRegistryUri = (uri: string): boolean => uri.startsWith('oci://example.io/'); // TODO: Change this to a proper check

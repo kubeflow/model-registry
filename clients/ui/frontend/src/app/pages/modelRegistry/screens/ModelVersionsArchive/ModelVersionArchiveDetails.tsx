@@ -14,6 +14,8 @@ import {
 import ModelVersionDetailsTabs from '~/app/pages/modelRegistry/screens/ModelVersionDetails/ModelVersionDetailsTabs';
 import { RestoreModelVersionModal } from '~/app/pages/modelRegistry/screens/components/RestoreModelVersionModal';
 import { ModelVersionDetailsTab } from '~/app/pages/modelRegistry/screens/ModelVersionDetails/const';
+import { FetchStateObject } from '~/shared/types';
+import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
 import ModelVersionArchiveDetailsBreadcrumb from './ModelVersionArchiveDetailsBreadcrumb';
 
 type ModelVersionsArchiveDetailsProps = {
@@ -36,6 +38,19 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
+
+  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
+  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
 
   useEffect(() => {
     if (rm?.state === ModelState.ARCHIVED && mv?.id) {
@@ -81,6 +96,8 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
             isArchiveVersion
             tab={tab}
             modelVersion={mv}
+            inferenceServices={inferenceServices}
+            servingRuntimes={servingRuntimes}
             refresh={refreshModelVersion}
           />
         )}

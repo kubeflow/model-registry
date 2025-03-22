@@ -1,3 +1,4 @@
+import { ModelRegistryCustomProperties } from '~/app/types';
 import useGenericObjectState, {
   GenericObjectState,
 } from '~/shared/utilities/useGenericObjectState';
@@ -18,6 +19,8 @@ export type RegistrationCommonFormData = {
   modelLocationRegion: string;
   modelLocationPath: string;
   modelLocationURI: string;
+  versionCustomProperties?: ModelRegistryCustomProperties;
+  modelCustomProperties?: ModelRegistryCustomProperties;
 };
 
 export type RegisterModelFormData = RegistrationCommonFormData & {
@@ -27,6 +30,10 @@ export type RegisterModelFormData = RegistrationCommonFormData & {
 
 export type RegisterVersionFormData = RegistrationCommonFormData & {
   registeredModelId: string;
+};
+
+export type RegisterCatalogModelFormData = RegisterModelFormData & {
+  modelRegistry: string;
 };
 
 const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
@@ -40,6 +47,8 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   modelLocationRegion: '',
   modelLocationPath: '',
   modelLocationURI: '',
+  modelCustomProperties: {},
+  versionCustomProperties: {},
 };
 
 const registerModelFormDataDefaults: RegisterModelFormData = {
@@ -53,6 +62,11 @@ const registerVersionFormDataDefaults: RegisterVersionFormData = {
   registeredModelId: '',
 };
 
+const registerModelFormDataDefaultsForModelCatalog: RegisterCatalogModelFormData = {
+  ...registerModelFormDataDefaults,
+  modelRegistry: '',
+};
+
 export const useRegisterModelData = (): GenericObjectState<RegisterModelFormData> =>
   useGenericObjectState<RegisterModelFormData>(registerModelFormDataDefaults);
 
@@ -63,3 +77,6 @@ export const useRegisterVersionData = (
     ...registerVersionFormDataDefaults,
     registeredModelId: registeredModelId || '',
   });
+
+export const useRegisterCatalogModelData = (): GenericObjectState<RegisterCatalogModelFormData> =>
+  useGenericObjectState<RegisterCatalogModelFormData>(registerModelFormDataDefaultsForModelCatalog);

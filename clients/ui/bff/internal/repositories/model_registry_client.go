@@ -8,6 +8,7 @@ type ModelRegistryClientInterface interface {
 	RegisteredModelInterface
 	ModelVersionInterface
 	ArtifactInterface
+	ModelArtifactInterface
 }
 
 type ModelRegistryClient struct {
@@ -15,6 +16,7 @@ type ModelRegistryClient struct {
 	RegisteredModel
 	ModelVersion
 	Artifact
+	ModelArtifact
 }
 
 func NewModelRegistryClient(logger *slog.Logger) (ModelRegistryClientInterface, error) {

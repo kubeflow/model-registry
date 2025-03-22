@@ -43,7 +43,7 @@ First you need to set up your new image
 
 ```shell
 cd manifests/kustomize/options/ui/base
-kustomize edit set image model-registry-ui-image=${IMG_UI_STANDALONE}
+kustomize edit set image model-registry-ui=${IMG_UI_STANDALONE}
 ```
 
 Now you can set the namespace to kubeflow and apply the manifests:

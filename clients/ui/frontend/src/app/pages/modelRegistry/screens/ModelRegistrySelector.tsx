@@ -30,12 +30,14 @@ type ModelRegistrySelectorProps = {
   modelRegistry: string;
   onSelection: (modelRegistry: string) => void;
   primary?: boolean;
+  isFullWidth?: boolean;
 };
 
 const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   modelRegistry,
   onSelection,
   primary,
+  isFullWidth,
 }) => {
   const { modelRegistries, updatePreferredModelRegistry } = React.useContext(
     ModelRegistrySelectorContext,
@@ -87,6 +89,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   const selector = (
     <SimpleSelect
       isScrollable
+      placeholder="Select a model registry"
       dataTestId="model-registry-selector-dropdown"
       toggleProps={{ id: 'download-steps-logs-toggle' }}
       toggleLabel={toggleLabel}
@@ -96,6 +99,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
         updatePreferredModelRegistry(modelRegistries.find((obj) => obj.name === key));
         onSelection(key);
       }}
+      isFullWidth={isFullWidth}
       maxMenuHeight="300px"
       popperProps={{ maxWidth: '400px' }}
       value={selection?.name}
