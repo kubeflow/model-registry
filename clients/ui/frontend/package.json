@@ -89,7 +89,7 @@
     "swc-loader": "^0.2.6",
     "terser-webpack-plugin": "^5.3.11",
     "ts-jest": "^29.2.6",
-    "ts-loader": "^9.5.1",
+    "ts-loader": "^9.5.2",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "tslib": "^2.7.0",
     "typescript": "^5.8.2",
