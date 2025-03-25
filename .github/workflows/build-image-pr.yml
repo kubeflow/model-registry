@@ -50,8 +50,6 @@ jobs:
       - name: Deploy Operator With Test Image
         env:
           IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
-        run: ./scripts/deploy_on_kind.sh
-      - name: Deployment logs
         run: |
           echo "Deploying operator from model-registry-operator branch ${BRANCH}"
           kubectl apply -k "https://github.com/opendatahub-io/model-registry-operator.git/config/default?ref=${BRANCH}"
