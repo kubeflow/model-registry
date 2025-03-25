@@ -14,12 +14,11 @@ on:
       - '.github/dependabot.yml'
       - 'docs/**'
 env:
-  IMG_REGISTRY: ghcr.io
-  IMG_ORG: kubeflow
+  IMG_ORG: opendatahub
   IMG_REPO: model-registry/storage-initializer
   PUSH_IMAGE: true
-  DOCKER_USER: ${{ github.actor }}
-  DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+  DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
+  DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
 jobs:
   build-csi-image:
     runs-on: ubuntu-latest

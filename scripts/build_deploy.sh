@@ -3,7 +3,7 @@
 set -e
 
 # see Makefile for the IMG_ variables semantic
-IMG_REGISTRY="${IMG_REGISTRY:-ghcr.io}"
+IMG_REGISTRY=""
 IMG_ORG="${IMG_ORG:-kubeflow}"
 IMG_REPO="${IMG_REPO:-model-registry/server}"
 DOCKER_USER="${DOCKER_USER}"

@@ -29,7 +29,7 @@ spec:
           command:
             - /model-registry
             - proxy
-          image: ghcr.io/kubeflow/model-registry/server:latest
+          image: quay.io/opendatahub/model-registry:latest
           # empty placeholder environment for patching
           env: []
           ports:
