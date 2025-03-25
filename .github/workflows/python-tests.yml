@@ -200,12 +200,12 @@ jobs:
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Load Local Registry Test Image
         env:
-          IMG: "quay.io/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing-py-${{ matrix.python }} ${IMG}
       - name: Deploy Model Registry using manifests
         env:
-          IMG: "quay.io/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
       - name: Deploy Minio using manifests
         run: |
