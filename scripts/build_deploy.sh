@@ -3,9 +3,9 @@
 set -e
 
 # see Makefile for the IMG_ variables semantic
-IMG_REGISTRY="quay.io"
-IMG_ORG="${IMG_ORG:-opendatahub}"
-IMG_REPO="${IMG_REPO:-model-registry}"
+IMG_REGISTRY="${IMG_REGISTRY:-ghcr.io}"
+IMG_ORG="${IMG_ORG:-kubeflow}"
+IMG_REPO="${IMG_REPO:-model-registry/server}"
 DOCKER_USER="${DOCKER_USER}"
 DOCKER_PWD="${DOCKER_PWD}"
 

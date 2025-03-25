@@ -335,7 +335,7 @@ func (c *OpenAPIToMLMDConverterImpl) ConvertServingEnvironment(source *converter
 		protoContext.Id = pInt64
 		var pString2 *string
 		if (*source).Model != nil {
-			pString2 = (*source).Model.Name
+			pString2 = &(*source).Model.Name
 		}
 		if pString2 != nil {
 			xstring := *pString2

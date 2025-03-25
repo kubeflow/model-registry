@@ -17,7 +17,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 	runtime := "model-server"
 	desiredState := openapi.INFERENCESERVICESTATE_DEPLOYED
@@ -70,7 +70,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateInferenceServiceFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 	runtime := "model-server"
 	desiredState := openapi.INFERENCESERVICESTATE_DEPLOYED
@@ -125,7 +125,7 @@ func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 	suite.NotNil(err)
 	suite.Equal("no serving environment found for id 9999: not found", err.Error())
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	eut.ServingEnvironmentId = parentResourceId
 
 	_, err = service.UpsertInferenceService(eut)
@@ -137,7 +137,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceService() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -231,7 +231,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -271,7 +271,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	state := openapi.INFERENCESERVICESTATE_UNDEPLOYED
@@ -317,7 +317,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -346,7 +346,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion1Name := "v1"
@@ -396,7 +396,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	modelVersion1Name := "v1"
@@ -449,7 +449,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 
 	_, err := service.GetInferenceServiceByParams(apiutils.Of("not-present"), &parentResourceId, nil)
 	suite.NotNil(err)
@@ -460,7 +460,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -503,7 +503,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamInvalid() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -535,7 +535,7 @@ func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -578,7 +578,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut := &openapi.InferenceService{
@@ -608,7 +608,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
-	parentResourceId := suite.registerServingEnvironment(service, nil, nil)
+	parentResourceId := suite.registerServingEnvironment(service, "", nil)
 	registeredModelId := suite.registerModel(service, nil, nil)
 
 	eut1 := &openapi.InferenceService{
@@ -650,7 +650,7 @@ func (suite *CoreTestSuite) TestGetInferenceServices() {
 
 	anotherParentResourceName := "AnotherModel"
 	anotherParentResourceExtId := "org.another"
-	anotherParentResourceId := suite.registerServingEnvironment(service, &anotherParentResourceName, &anotherParentResourceExtId)
+	anotherParentResourceId := suite.registerServingEnvironment(service, anotherParentResourceName, &anotherParentResourceExtId)
 
 	anotherName := "v1.0"
 	anotherExtId := "org.another@v1.0"

@@ -815,6 +815,15 @@ func AssertServingEnvironmentCreateConstraints(obj model.ServingEnvironmentCreat
 
 // AssertServingEnvironmentCreateRequired checks if the required fields are not zero-ed
 func AssertServingEnvironmentCreateRequired(obj model.ServingEnvironmentCreate) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 
@@ -847,6 +856,15 @@ func AssertServingEnvironmentListRequired(obj model.ServingEnvironmentList) erro
 
 // AssertServingEnvironmentRequired checks if the required fields are not zero-ed
 func AssertServingEnvironmentRequired(obj model.ServingEnvironment) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 

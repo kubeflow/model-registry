@@ -26,7 +26,7 @@ IMG_ORG ?= opendatahub
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry
+IMG_REPO ?= model-registry/server
 # container image build path
 BUILD_PATH ?= .
 # container image
@@ -37,13 +37,13 @@ else
 endif
 
 # Change Dockerfile path depending on IMG_REPO
-ifeq ($(IMG_REPO),model-registry-ui)
+ifeq ($(IMG_REPO),model-registry/ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
 	BUILD_PATH := $(UI_PATH)
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry-storage-initializer)
+ifeq ($(IMG_REPO),model-registry/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 

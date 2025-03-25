@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"io"
-	"net/http"
-	"net/http/httptest"
 )
 
 var _ = Describe("TestModelRegistryHandler", func() {
@@ -38,7 +39,7 @@ var _ = Describe("TestModelRegistryHandler", func() {
 			rr := httptest.NewRecorder()
 
 			By("creating the http request for the handler")
-			testApp.ModelRegistryHandler(rr, req, nil)
+			testApp.GetAllModelRegistriesHandler(rr, req, nil)
 			rs := rr.Result()
 			defer rs.Body.Close()
 			body, err := io.ReadAll(rs.Body)
@@ -52,8 +53,8 @@ var _ = Describe("TestModelRegistryHandler", func() {
 
 			By("should match the expected model registries")
 			var expected = []models.ModelRegistryModel{
-				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry"},
-				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One"},
+				{Name: "model-registry", Description: "Model Registry Description", DisplayName: "Model Registry", ServerAddress: "http://127.0.0.1:8080/api/model_registry/v1alpha3"},
+				{Name: "model-registry-one", Description: "Model Registry One description", DisplayName: "Model Registry One", ServerAddress: "http://127.0.0.1:8080/api/model_registry/v1alpha3"},
 			}
 			Expect(actual.Data).To(ConsistOf(expected))
 		})
