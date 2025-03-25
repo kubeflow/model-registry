@@ -26,7 +26,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   hasModelNameError,
   isModelNameDuplicate,
 }: RegisterModelDetailsFormSectionProp<D>): React.ReactNode => {
-  const textInput = (
+  const modelNameInput = (
     <TextInput
       isRequired
       type="text"
@@ -38,13 +38,23 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
     />
   );
 
+  const modelDescriptionInput = (
+    <TextArea
+      type="text"
+      id="model-description"
+      name="model-description"
+      value={formData.modelDescription}
+      onChange={(_e, value) => setData('modelDescription', value)}
+    />
+  );
+
   return (
     <FormSection
       title="Model details"
       description="Provide general details that apply to all versions of this model."
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
-        {isMUITheme() ? <FormFieldset component={textInput} /> : textInput}
+        {isMUITheme() ? <FormFieldset component={modelNameInput} /> : modelNameInput}
         {hasModelNameError && (
           <FormHelperText>
             <HelperText>
@@ -58,13 +68,11 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
         )}
       </FormGroup>
       <FormGroup label="Model description" fieldId="model-description">
-        <TextArea
-          type="text"
-          id="model-description"
-          name="model-description"
-          value={formData.modelDescription}
-          onChange={(_e, value) => setData('modelDescription', value)}
-        />
+        {isMUITheme() ? (
+          <FormFieldset component={modelDescriptionInput} field="Model Description" />
+        ) : (
+          modelDescriptionInput
+        )}
       </FormGroup>
     </FormSection>
   );
