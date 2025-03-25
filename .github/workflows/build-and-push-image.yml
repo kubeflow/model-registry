@@ -15,7 +15,7 @@ on:
       - 'docs/**'
 env:
   IMG_ORG: opendatahub
-  IMG_REPO: model-registry/server
+  IMG_REPO: model-registry
   PUSH_IMAGE: true
   DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
   DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
@@ -50,7 +50,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
         env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
           BUILD_IMAGE: false # image is already built in "Build and Push Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
@@ -60,7 +60,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
         env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
           BUILD_IMAGE: false # image is already built in "Build and Push Image" step
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main

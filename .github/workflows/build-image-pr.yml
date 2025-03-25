@@ -13,7 +13,7 @@ on:
       - "clients/python/**"
 env:
   IMG_ORG: opendatahub
-  IMG_REPO: model-registry/server
+  IMG_REPO: model-registry
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -44,12 +44,12 @@ jobs:
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Load Local Registry Test Image
         env:
-          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: |
           kind load docker-image -n chart-testing ${IMG}
       - name: Deploy Operator With Test Image
         env:
-          IMG: "${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
+          IMG: "quay.io/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
         run: ./scripts/deploy_on_kind.sh
       - name: Deployment logs
         run: |

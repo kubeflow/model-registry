@@ -5,7 +5,7 @@ set -e
 # see Makefile for the IMG_ variables semantic
 IMG_REGISTRY=""
 IMG_ORG="${IMG_ORG:-kubeflow}"
-IMG_REPO="${IMG_REPO:-model-registry/server}"
+IMG_REPO="${IMG_REPO:-model-registry}"
 DOCKER_USER="${DOCKER_USER}"
 DOCKER_PWD="${DOCKER_PWD}"
 

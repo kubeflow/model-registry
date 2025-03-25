@@ -15,7 +15,7 @@ on:
       - 'docs/**'
 env:
   IMG_ORG: opendatahub
-  IMG_REPO: model-registry/storage-initializer
+  IMG_REPO: model-registry-storage-initializer
   PUSH_IMAGE: true
   DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
   DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
@@ -60,14 +60,14 @@ jobs:
         if: env.PUSH_IMAGE == 'true'
         shell: bash
         env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
         run: IMG=${{ env.IMG }} IMG_VERSION=${{ env.VERSION }} make image/push
       # Tag latest and main
       - name: Tag Latest
         if: env.BUILD_CONTEXT == 'main' && env.PUSH_IMAGE == 'true'
         shell: bash
         env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
           IMG=${{ env.IMG }} IMG_VERSION=latest make image/push
@@ -75,7 +75,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'main' && env.PUSH_IMAGE == 'true'
         shell: bash
         env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
+          IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
         run: |
           docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
           IMG=${{ env.IMG }} IMG_VERSION=main make image/push

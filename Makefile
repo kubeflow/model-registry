@@ -26,7 +26,7 @@ IMG_ORG ?= opendatahub
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry/server
+IMG_REPO ?= model-registry
 # container image build path
 BUILD_PATH ?= .
 # container image

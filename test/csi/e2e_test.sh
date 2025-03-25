@@ -15,16 +15,16 @@ KUBECTL=${KUBECTL:-"kubectl"}
 # You can provide a local version of the model registry storage initializer
 # In that case, assure that is visible to the local k8s env, e.g., using 
 # `kind load docker-image $MRCSI_IMG`
-MRCSI_IMG=${MRCSI_IMG:-"ghcr.io/kubeflow/model-registry/storage-initializer:main"}
+MRCSI_IMG=${MRCSI_IMG:-"kubeflow/model-registry-storage-initializer:main"}
 
 KSERVE_VERSION=${KSERVE_VERSION:-"0.12"}
 MODELREGISTRY_VERSION=${MODELREGISTRY_VERSION:-"v0.2.10"}
 MODELREGISTRY_CSI=${MODELREGISTRY_CSI:-"v0.2.10"}
 
 # You can provide a local model registry container image
-MR_IMG=${MR_IMG:-"ghcr.io/kubeflow/model-registry/server:$MODELREGISTRY_VERSION"}
+MR_IMG=${MR_IMG:-"kubeflow/model-registry:$MODELREGISTRY_VERSION"}
 # You can provide a local model registry storage initializer container image
-MR_CSI_IMG=${MR_CSI_IMG:-"ghcr.io/kubeflow/model-registry/storage-initializer:$MODELREGISTRY_CSI"}
+MR_CSI_IMG=${MR_CSI_IMG:-"kubeflow/model-registry-storage-initializer:$MODELREGISTRY_CSI"}
 
 # Check if KUBECTL is a valid command
 if [ ! command -v "$KUBECTL" > /dev/null 2>&1 ]; then
