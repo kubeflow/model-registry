@@ -20,6 +20,7 @@ export type ModelRegistry = {
   name: string;
   displayName: string;
   description: string;
+  serverAddress?: string;
 };
 
 export type ModelRegistryBody<T> = {
@@ -147,6 +148,8 @@ export type CreateModelVersionForRegisteredModel = (
   opts: APIOptions,
   registeredModelId: string,
   data: CreateModelVersionData,
+  registeredModel: RegisteredModel,
+  isFirstVersion?: boolean,
 ) => Promise<ModelVersion>;
 
 export type CreateModelArtifactForModelVersion = (

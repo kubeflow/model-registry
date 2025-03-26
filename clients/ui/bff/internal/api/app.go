@@ -43,9 +43,8 @@ const (
 	ModelVersionArtifactListPath  = ModelVersionPath + "/artifacts"
 	ModelArtifactListPath         = ModelRegistryPath + "/model_artifacts"
 	ModelArtifactPath             = ModelArtifactListPath + "/:" + ModelArtifactId
-
-	ArtifactListPath = ModelRegistryPath + "/artifacts"
-	ArtifactPath     = ArtifactListPath + "/:" + ArtifactId
+	ArtifactListPath              = ModelRegistryPath + "/artifacts"
+	ArtifactPath                  = ArtifactListPath + "/:" + ArtifactId
 )
 
 type App struct {
@@ -119,9 +118,10 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllArtifactsHandler))))
 	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetArtifactHandler))))
 	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateArtifactHandler))))
-	apiRouter.PATCH(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateArtifactHandler))))
 	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
 	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
+	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelArtifactHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
