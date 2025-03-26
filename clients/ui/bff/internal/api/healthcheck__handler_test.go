@@ -1,22 +1,20 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHealthCheckHandler(t *testing.T) {
-
 	mockMRClient, _ := mocks.NewModelRegistryClient(nil)
 
 	app := App{config: config.EnvConfig{
@@ -27,14 +25,11 @@ func TestHealthCheckHandler(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, HealthCheckPath, nil)
-	ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
-	req = req.WithContext(ctx)
 	assert.NoError(t, err)
 
 	app.HealthcheckHandler(rr, req, nil)
 
 	rs := rr.Result()
-
 	defer rs.Body.Close()
 
 	body, err := io.ReadAll(rs.Body)
@@ -51,7 +46,6 @@ func TestHealthCheckHandler(t *testing.T) {
 		SystemInfo: models.SystemInfo{
 			Version: Version,
 		},
-		UserID: mocks.KubeflowUserIDHeaderValue,
 	}
 
 	assert.Equal(t, expected, healthCheckRes)
