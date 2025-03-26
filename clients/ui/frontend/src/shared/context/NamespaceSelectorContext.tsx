@@ -44,7 +44,11 @@ declare global {
 const EnabledNamespaceSelectorContextProvider: React.FC<NamespaceSelectorContextProviderProps> = ({
   children,
 }) => {
-  const [namespaces, isLoaded, error] = useNamespaces();
+  const [unsortedNamespaces, isLoaded, error] = useNamespaces();
+  const namespaces = React.useMemo(
+    () => unsortedNamespaces.toSorted((a, b) => a.name.localeCompare(b.name)),
+    [unsortedNamespaces],
+  );
   const [preferredNamespace, setPreferredNamespace] =
     React.useState<NamespaceSelectorContextType['preferredNamespace']>(undefined);
   const [initializationError, setInitializationError] = React.useState<Error>();
