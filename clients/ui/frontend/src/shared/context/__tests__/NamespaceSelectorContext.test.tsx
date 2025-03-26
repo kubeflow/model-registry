@@ -12,7 +12,7 @@ import {
 jest.mock('~/shared/hooks/useNamespaces');
 jest.mock('~/shared/utilities/const');
 
-const mockNamespaces = [{ name: 'namespace-1' }, { name: 'namespace-2' }, { name: 'namespace-3' }];
+const mockNamespaces = [{ name: 'namespace-2' }, { name: 'namespace-3' }, { name: 'namespace-1' }];
 
 describe('NamespaceSelectorContext', () => {
   const TestConsumer = () => {
