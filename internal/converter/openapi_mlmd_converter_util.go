@@ -94,7 +94,7 @@ func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[s
 					StructValue: asStruct,
 				}
 			default:
-				return nil, fmt.Errorf("%w: type mapping not found for %s:%v", api.ErrBadRequest, key, v)
+				return nil, fmt.Errorf("%w: metadataType not found for %s: %v", api.ErrBadRequest, key, v)
 			}
 
 			props[key] = &value

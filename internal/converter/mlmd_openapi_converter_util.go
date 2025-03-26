@@ -77,7 +77,7 @@ func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi
 			b64 := base64.StdEncoding.EncodeToString(asJSON)
 			customValue.MetadataStructValue = NewMetadataStructValue(b64)
 		default:
-			return nil, fmt.Errorf("%w: type mapping not found for %s:%v", api.ErrBadRequest, key, v)
+			return nil, fmt.Errorf("%w: type mapping not found for %s: %v", api.ErrBadRequest, key, v)
 		}
 
 		data[key] = customValue
