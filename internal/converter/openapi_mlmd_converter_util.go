@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -93,7 +94,7 @@ func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[s
 					StructValue: asStruct,
 				}
 			default:
-				return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
+				return nil, fmt.Errorf("%w: type mapping not found for %s:%v", api.ErrBadRequest, key, v)
 			}
 
 			props[key] = &value
