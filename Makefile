@@ -19,7 +19,7 @@ MLMD_VERSION ?= 1.14.0
 DOCKER ?= docker
 # default Dockerfile
 DOCKERFILE ?= Dockerfile
-# container registry, default to empty (dockerhub) if not explicitly set
+# container registry, default to quay.io if not explicitly set
 IMG_REGISTRY ?= quay.io
 # container image organization
 IMG_ORG ?= opendatahub

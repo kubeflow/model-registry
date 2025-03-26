@@ -21,6 +21,7 @@ on:
       - "go.mod"
 
 env:
+  IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub
   MODEL_REGISTRY_IMG: model-registry
   MODEL_REGISTRY_CSI_IMG: model-registry-storage-initializer
@@ -75,7 +76,7 @@ jobs:
       - name: Run tests
         shell: bash
         env:
-          MR_IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
-          MR_CSI_IMG: "quay.io/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_CSI_IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
           CLUSTER: chart-testing
         run: ./test/csi/e2e_test.sh
