@@ -26,12 +26,13 @@ func ErrToStatus(err error) int {
 		}
 	}
 
-	switch errors.Unwrap(err) {
-	case ErrBadRequest:
+	if errors.Is(err, ErrBadRequest) {
 		return http.StatusBadRequest
-	case ErrNotFound:
-		return http.StatusNotFound
-	default:
-		return http.StatusInternalServerError
 	}
+	if errors.Is(err, ErrNotFound) {
+		return http.StatusNotFound
+	}
+
+	// Default error to return
+	return http.StatusInternalServerError
 }

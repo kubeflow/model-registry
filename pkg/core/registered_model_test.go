@@ -464,3 +464,24 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsWithPageSize() {
 	suite.Equal(*secondModel.Id, *truncatedList.Items[0].Id)
 	suite.Equal(*thirdModel.Id, *truncatedList.Items[1].Id)
 }
+
+func (suite *CoreTestSuite) TestCreateRegisteredModelWithCustomPropFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	// register a new model with incomplete customProperty fields
+	registeredModel := &openapi.RegisteredModel{
+		Name: modelName,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp1": {},
+		},
+	}
+
+	// test
+	_, err := service.UpsertRegisteredModel(registeredModel)
+
+	// checks
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "error creating registered model: %v", err)
+	suite.Equal(400, statusResp, "customProperties must include metadataType")
+}
