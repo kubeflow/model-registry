@@ -1,0 +1,30 @@
+- source:
+    kind: ConfigMap
+    name: model-registry-controller-parameters
+    fieldPath: data.IMAGES_MODELREGISTRY_OPERATOR
+  targets:
+    - select:
+        kind: Deployment
+        name: controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].image
+- source:
+    kind: ConfigMap
+    name: model-registry-controller-parameters
+    fieldPath: data.IMAGES_GRPC_SERVICE
+  targets:
+    - select:
+        kind: Deployment
+        name: controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=GRPC_IMAGE].value
+- source:
+    kind: ConfigMap
+    name: model-registry-controller-parameters
+    fieldPath: data.IMAGES_REST_SERVICE
+  targets:
+    - select:
+        kind: Deployment
+        name: controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=REST_IMAGE].value
