@@ -143,6 +143,260 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_registry/v1alpha3/inference_service:
+    summary: Path used to manage an instance of inferenceservice.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/InferenceServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: findInferenceService
+      summary: Get an InferenceServices that matches search parameters.
+      description: Gets the details of a single instance of `InferenceService` that matches search parameters.
+    parameters:
+      - $ref: "#/components/parameters/name"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
+  /api/model_registry/v1alpha3/inference_services:
+    summary: Path used to manage the list of inferenceservices.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/InferenceServiceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getInferenceServices
+      summary: List All InferenceServices
+      description: Gets a list of all `InferenceService` entities.
+    post:
+      requestBody:
+        description: A new `InferenceService` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InferenceServiceCreate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/InferenceServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: createInferenceService
+      summary: Create a InferenceService
+      description: Creates a new instance of a `InferenceService`.
+  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}":
+    summary: Path used to manage a single InferenceService.
+    description: >-
+      The REST endpoint/path used to get and update single instances of an `InferenceService`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/InferenceServiceResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getInferenceService
+      summary: Get a InferenceService
+      description: Gets the details of a single instance of a `InferenceService`.
+    patch:
+      requestBody:
+        description: Updated `InferenceService` information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InferenceServiceUpdate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/InferenceServiceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: updateInferenceService
+      summary: Update a InferenceService
+      description: Updates an existing `InferenceService`.
+    parameters:
+      - name: inferenceserviceId
+        description: A unique identifier for a `InferenceService`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/model":
+    summary: Path used to manage a `RegisteredModel` associated with an `InferenceService`.
+    description: >-
+      The REST endpoint/path used to list the `RegisteredModel` entity for an `InferenceService`.  This path contains a `GET` operation to perform the get task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/RegisteredModelResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getInferenceServiceModel
+      summary: Get InferenceService's RegisteredModel
+      description: Gets the `RegisteredModel` entity for the `InferenceService`.
+    parameters:
+      - name: inferenceserviceId
+        description: A unique identifier for a `InferenceService`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves":
+    summary: Path used to manage the list of `ServeModels` for a `InferenceService`.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `ServeModel` entities for a `InferenceService`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ServeModelListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getInferenceServiceServes
+      summary: List All InferenceService's ServeModel actions
+      description: Gets a list of all `ServeModel` entities for the `InferenceService`.
+    post:
+      requestBody:
+        description: A new `ServeModel` to be associated with the `InferenceService`.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServeModelCreate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "201":
+          $ref: "#/components/responses/ServeModelResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: createInferenceServiceServe
+      summary: Create a ServeModel action in a InferenceService
+      description: Creates a new instance of a `ServeModel` associated with `InferenceService`.
+    parameters:
+      - name: inferenceserviceId
+        description: A unique identifier for a `InferenceService`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/version":
+    summary: Path used to get the current `ModelVersion` associated with an `InferenceService`.
+    description: >-
+      The REST endpoint/path used to get the current `ModelVersion` entity for a `InferenceService`. This path contains a `GET` operation to perform the get task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelVersionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getInferenceServiceVersion
+      summary: Get InferenceService's ModelVersion
+      description: Gets the `ModelVersion` entity for the `InferenceService`.
+    parameters:
+      - name: inferenceserviceId
+        description: A unique identifier for a `InferenceService`.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_registry/v1alpha3/model_artifact:
     summary: Path used to search for a modelartifact.
     description: >-
@@ -276,6 +530,33 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_registry/v1alpha3/model_version:
+    summary: Path used to search for a modelversion.
+    description: >-
+      The REST endpoint/path used to search for a `ModelVersion` entity.  This path contains a `GET` operation to perform the find task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: findModelVersion
+      summary: Get a ModelVersion that matches search parameters.
+      description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
+    parameters:
+      - $ref: "#/components/parameters/name"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
   /api/model_registry/v1alpha3/model_versions:
     summary: Path used to manage the list of modelversions.
     description: >-
@@ -373,6 +654,70 @@ paths:
       operationId: updateModelVersion
       summary: Update a ModelVersion
       description: Updates an existing `ModelVersion`.
+    parameters:
+      - name: modelversionId
+        description: A unique identifier for a `ModelVersion`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
+    summary: Path used to manage the list of artifacts for a modelversion.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Artifact` entities for a `ModelVersion`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getModelVersionArtifacts
+      summary: List all artifacts associated with the `ModelVersion`
+    post:
+      requestBody:
+        description: A new or existing `Artifact` to be associated with the `ModelVersion`.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Artifact"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "201":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: upsertModelVersionArtifact
+      summary: Upsert an Artifact in a ModelVersion
+      description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
     parameters:
       - name: modelversionId
         description: A unique identifier for a `ModelVersion`.
@@ -508,70 +853,6 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
-    summary: Path used to manage the list of artifacts for a modelversion.
-    description: >-
-      The REST endpoint/path used to list and create zero or more `Artifact` entities for a `ModelVersion`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-    get:
-      tags:
-        - ModelRegistryService
-      parameters:
-        - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalId"
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/ArtifactListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getModelVersionArtifacts
-      summary: List all artifacts associated with the `ModelVersion`
-    post:
-      requestBody:
-        description: A new or existing `Artifact` to be associated with the `ModelVersion`.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Artifact"
-        required: true
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/ArtifactResponse"
-        "201":
-          $ref: "#/components/responses/ArtifactResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: upsertModelVersionArtifact
-      summary: Upsert an Artifact in a ModelVersion
-      description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
-    parameters:
-      - name: modelversionId
-        description: A unique identifier for a `ModelVersion`.
-        schema:
-          type: string
-        in: path
-        required: true
   "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions":
     summary: Path used to manage the list of modelversions for a registeredmodel.
     description: >-
@@ -633,141 +914,6 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_registry/v1alpha3/inference_service:
-    summary: Path used to manage an instance of inferenceservice.
-    description: >-
-      The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/InferenceServiceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: findInferenceService
-      summary: Get an InferenceServices that matches search parameters.
-      description: Gets the details of a single instance of `InferenceService` that matches search parameters.
-    parameters:
-      - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalId"
-      - $ref: "#/components/parameters/parentResourceId"
-  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}":
-    summary: Path used to manage a single InferenceService.
-    description: >-
-      The REST endpoint/path used to get and update single instances of an `InferenceService`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/InferenceServiceResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getInferenceService
-      summary: Get a InferenceService
-      description: Gets the details of a single instance of a `InferenceService`.
-    patch:
-      requestBody:
-        description: Updated `InferenceService` information.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InferenceServiceUpdate"
-        required: true
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/InferenceServiceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: updateInferenceService
-      summary: Update a InferenceService
-      description: Updates an existing `InferenceService`.
-    parameters:
-      - name: inferenceserviceId
-        description: A unique identifier for a `InferenceService`.
-        schema:
-          type: string
-        in: path
-        required: true
-  /api/model_registry/v1alpha3/inference_services:
-    summary: Path used to manage the list of inferenceservices.
-    description: >-
-      The REST endpoint/path used to list and create zero or more `InferenceService` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-    get:
-      tags:
-        - ModelRegistryService
-      parameters:
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/InferenceServiceListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getInferenceServices
-      summary: List All InferenceServices
-      description: Gets a list of all `InferenceService` entities.
-    post:
-      requestBody:
-        description: A new `InferenceService` to be created.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InferenceServiceCreate"
-        required: true
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/InferenceServiceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: createInferenceService
-      summary: Create a InferenceService
-      description: Creates a new instance of a `InferenceService`.
   /api/model_registry/v1alpha3/serving_environment:
     summary: Path used to find a servingenvironment.
     description: >-
@@ -957,154 +1103,41 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves":
-    summary: Path used to manage the list of `ServeModels` for a `InferenceService`.
-    description: >-
-      The REST endpoint/path used to list and create zero or more `ServeModel` entities for a `InferenceService`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-    get:
-      tags:
-        - ModelRegistryService
-      parameters:
-        - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/externalId"
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/ServeModelListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getInferenceServiceServes
-      summary: List All InferenceService's ServeModel actions
-      description: Gets a list of all `ServeModel` entities for the `InferenceService`.
-    post:
-      requestBody:
-        description: A new `ServeModel` to be associated with the `InferenceService`.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ServeModelCreate"
-        required: true
-      tags:
-        - ModelRegistryService
-      responses:
-        "201":
-          $ref: "#/components/responses/ServeModelResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: createInferenceServiceServe
-      summary: Create a ServeModel action in a InferenceService
-      description: Creates a new instance of a `ServeModel` associated with `InferenceService`.
-    parameters:
-      - name: inferenceserviceId
-        description: A unique identifier for a `InferenceService`.
-        schema:
-          type: string
-        in: path
-        required: true
-  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/model":
-    summary: Path used to manage a `RegisteredModel` associated with an `InferenceService`.
-    description: >-
-      The REST endpoint/path used to list the `RegisteredModel` entity for an `InferenceService`.  This path contains a `GET` operation to perform the get task.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/RegisteredModelResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getInferenceServiceModel
-      summary: Get InferenceService's RegisteredModel
-      description: Gets the `RegisteredModel` entity for the `InferenceService`.
-    parameters:
-      - name: inferenceserviceId
-        description: A unique identifier for a `InferenceService`.
-        schema:
-          type: string
-        in: path
-        required: true
-  "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/version":
-    summary: Path used to get the current `ModelVersion` associated with an `InferenceService`.
-    description: >-
-      The REST endpoint/path used to get the current `ModelVersion` entity for a `InferenceService`. This path contains a `GET` operation to perform the get task.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/ModelVersionResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: getInferenceServiceVersion
-      summary: Get InferenceService's ModelVersion
-      description: Gets the `ModelVersion` entity for the `InferenceService`.
-    parameters:
-      - name: inferenceserviceId
-        description: A unique identifier for a `InferenceService`.
-        schema:
-          type: string
-        in: path
-        required: true
-  /api/model_registry/v1alpha3/model_version:
-    summary: Path used to search for a modelversion.
-    description: >-
-      The REST endpoint/path used to search for a `ModelVersion` entity.  This path contains a `GET` operation to perform the find task.
-    get:
-      tags:
-        - ModelRegistryService
-      responses:
-        "200":
-          $ref: "#/components/responses/ModelVersionResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-      operationId: findModelVersion
-      summary: Get a ModelVersion that matches search parameters.
-      description: Gets the details of a single instance of a `ModelVersion` that matches search parameters.
-    parameters:
-      - $ref: "#/components/parameters/name"
-      - $ref: "#/components/parameters/externalId"
-      - $ref: "#/components/parameters/parentResourceId"
 components:
   schemas:
+    Artifact:
+      oneOf:
+        - $ref: "#/components/schemas/ModelArtifact"
+        - $ref: "#/components/schemas/DocArtifact"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/ModelArtifact"
+          doc-artifact: "#/components/schemas/DocArtifact"
+      description: A metadata Artifact Entity.
+    ArtifactCreate:
+      description: An Artifact to be created.
+      oneOf:
+        - $ref: "#/components/schemas/ModelArtifactCreate"
+        - $ref: "#/components/schemas/DocArtifactCreate"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/ModelArtifactCreate"
+          doc-artifact: "#/components/schemas/DocArtifactCreate"
+    ArtifactList:
+      description: A list of Artifact entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `Artifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/Artifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     ArtifactState:
       description: |2-
          - PENDING: A state indicating that the artifact may exist.
@@ -1133,184 +1166,20 @@ components:
         - ABANDONED
         - REFERENCE
       type: string
-    RegisteredModelState:
-      description: |-
-        - LIVE: A state indicating that the `RegisteredModel` exists
-        - ARCHIVED: A state indicating that the `RegisteredModel` has been archived.
-      default: LIVE
-      enum:
-        - LIVE
-        - ARCHIVED
-      type: string
-    ModelVersionState:
-      description: |-
-        - LIVE: A state indicating that the `ModelVersion` exists
-        - ARCHIVED: A state indicating that the `ModelVersion` has been archived.
-      default: LIVE
-      enum:
-        - LIVE
-        - ARCHIVED
-      type: string
-    InferenceServiceState:
-      description: |-
-        - DEPLOYED: A state indicating that the `InferenceService` should be deployed.
-        - UNDEPLOYED: A state indicating that the `InferenceService` should be un-deployed.
-        The state indicates the desired state of inference service.
-        See the associated `ServeModel` for the actual status of service deployment action.
-      default: DEPLOYED
-      enum:
-        - DEPLOYED
-        - UNDEPLOYED
-      type: string
-    ExecutionState:
-      description: |-
-        The state of the Execution. The state transitions are
-          NEW -> RUNNING -> COMPLETE | CACHED | FAILED | CANCELED
-        CACHED means the execution is skipped due to cached results.
-        CANCELED means the execution is skipped due to precondition not met. It is
-        different from CACHED in that a CANCELED execution will not have any event
-        associated with it. It is different from FAILED in that there is no
-        unexpected error happened and it is regarded as a normal state.
-
-        See also: ml-metadata Execution.State
-      default: UNKNOWN
-      enum:
-        - UNKNOWN
-        - NEW
-        - RUNNING
-        - COMPLETE
-        - FAILED
-        - CACHED
-        - CANCELED
-      type: string
-    ModelArtifact:
-      description: An ML model artifact.
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
-        - $ref: "#/components/schemas/ModelArtifactCreate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "model-artifact"
-    DocArtifact:
-      description: A document.
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
-        - $ref: "#/components/schemas/DocArtifactCreate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
-    DocArtifactCreate:
-      description: A document artifact to be created.
+    ArtifactUpdate:
+      description: An Artifact to be updated.
+      oneOf:
+        - $ref: "#/components/schemas/ModelArtifactUpdate"
+        - $ref: "#/components/schemas/DocArtifactUpdate"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/ModelArtifactUpdate"
+          doc-artifact: "#/components/schemas/DocArtifactUpdate"
+    BaseArtifact:
       allOf:
         - $ref: "#/components/schemas/BaseArtifactCreate"
-        - $ref: "#/components/schemas/DocArtifactUpdate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
-    DocArtifactUpdate:
-      description: A document artifact to be updated.
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
-    RegisteredModel:
-      description: A registered model in model registry. A registered model has ModelVersion children.
-      allOf:
         - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/RegisteredModelCreate"
-    ModelVersionList:
-      description: List of ModelVersion entities.
-      allOf:
-        - type: object
-          properties:
-            items:
-              description: Array of `ModelVersion` entities.
-              type: array
-              items:
-                $ref: "#/components/schemas/ModelVersion"
-          required:
-            - items
-        - $ref: "#/components/schemas/BaseResourceList"
-    ModelArtifactList:
-      description: List of ModelArtifact entities.
-      allOf:
-        - type: object
-          properties:
-            items:
-              description: Array of `ModelArtifact` entities.
-              type: array
-              items:
-                $ref: "#/components/schemas/ModelArtifact"
-          required:
-            - items
-        - $ref: "#/components/schemas/BaseResourceList"
-    RegisteredModelCreate:
-      description: A registered model in model registry. A registered model has ModelVersion children.
-      required:
-        - name
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
-        - $ref: "#/components/schemas/RegisteredModelUpdate"
-        - type: object
-          properties:
-            name:
-              description: |-
-                The client provided name of the model. It must be unique among all the RegisteredModels of the same
-                type within a Model Registry instance and cannot be changed once set.
-              type: string
-    RegisteredModelUpdate:
-      description: A registered model in model registry. A registered model has ModelVersion children.
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            owner:
-              type: string
-            state:
-              $ref: "#/components/schemas/RegisteredModelState"
-    ModelVersion:
-      description: Represents a ModelVersion belonging to a RegisteredModel.
-      allOf:
-        - $ref: "#/components/schemas/ModelVersionCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    ModelVersionCreate:
-      description: Represents a ModelVersion belonging to a RegisteredModel.
-      required:
-        - name
-        - registeredModelId
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
-        - $ref: "#/components/schemas/ModelVersionUpdate"
-        - type: object
-          properties:
-            registeredModelId:
-              description: ID of the `RegisteredModel` to which this version belongs.
-              type: string
-            name:
-              description: |-
-                The client provided name of the model's version. It must be unique among all the ModelVersions of the same
-                type within a Model Registry instance and cannot be changed once set.
-              type: string
-    ModelVersionUpdate:
-      description: Represents a ModelVersion belonging to a RegisteredModel.
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            state:
-              $ref: "#/components/schemas/ModelVersionState"
-            author:
-              description: Name of the author.
-              type: string
     BaseArtifactCreate:
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
@@ -1342,113 +1211,6 @@ components:
             lastKnownState:
               $ref: "#/components/schemas/ExecutionState"
         - $ref: "#/components/schemas/BaseResourceUpdate"
-    MetadataValue:
-      oneOf:
-        - $ref: "#/components/schemas/MetadataIntValue"
-        - $ref: "#/components/schemas/MetadataDoubleValue"
-        - $ref: "#/components/schemas/MetadataStringValue"
-        - $ref: "#/components/schemas/MetadataStructValue"
-        - $ref: "#/components/schemas/MetadataProtoValue"
-        - $ref: "#/components/schemas/MetadataBoolValue"
-      discriminator:
-        propertyName: metadataType
-        mapping:
-          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
-          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
-          MetadataIntValue: "#/components/schemas/MetadataIntValue"
-          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
-          MetadataStringValue: "#/components/schemas/MetadataStringValue"
-          MetadataStructValue: "#/components/schemas/MetadataStructValue"
-      description: A value in properties.
-      example:
-        string_value: my_value
-        metadataType: MetadataStringValue
-    MetadataIntValue:
-      description: An integer (int64) property value.
-      type: object
-      required:
-        - metadataType
-        - int_value
-      properties:
-        int_value:
-          format: int64
-          type: string
-        metadataType:
-          type: string
-          example: MetadataIntValue
-          default: MetadataIntValue
-    MetadataDoubleValue:
-      description: A double property value.
-      type: object
-      required:
-        - metadataType
-        - double_value
-      properties:
-        double_value:
-          format: double
-          type: number
-        metadataType:
-          type: string
-          example: MetadataDoubleValue
-          default: MetadataDoubleValue
-    MetadataStringValue:
-      description: A string property value.
-      type: object
-      required:
-        - metadataType
-        - string_value
-      properties:
-        string_value:
-          type: string
-        metadataType:
-          type: string
-          example: MetadataStringValue
-          default: MetadataStringValue
-    MetadataStructValue:
-      description: A struct property value.
-      type: object
-      required:
-        - metadataType
-        - struct_value
-      properties:
-        struct_value:
-          description: Base64 encoded bytes for struct value
-          type: string
-        metadataType:
-          type: string
-          example: MetadataStructValue
-          default: MetadataStructValue
-    MetadataProtoValue:
-      description: A proto property value.
-      type: object
-      required:
-        - metadataType
-        - type
-        - proto_value
-      properties:
-        type:
-          description: url describing proto value
-          type: string
-        proto_value:
-          description: Base64 encoded bytes for proto value
-          type: string
-        metadataType:
-          type: string
-          example: MetadataProtoValue
-          default: MetadataProtoValue
-    MetadataBoolValue:
-      description: A bool property value.
-      type: object
-      required:
-        - metadataType
-        - bool_value
-      properties:
-        bool_value:
-          type: boolean
-        metadataType:
-          type: string
-          example: MetadataBoolValue
-          default: MetadataBoolValue
     BaseResource:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
@@ -1481,23 +1243,6 @@ components:
                 it must be unique among all the artifacts of the same artifact type within
                 a database instance and cannot be changed once set.
               type: string
-    BaseResourceUpdate:
-      type: object
-      properties:
-        customProperties:
-          description: User provided custom properties which are not defined by its type.
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/MetadataValue"
-        description:
-          description: |-
-            An optional description about the resource.
-          type: string
-        externalId:
-          description: |-
-            The external id that come from the clients’ system. This field is optional.
-            If set, it must be unique among all resources within a database instance.
-          type: string
     BaseResourceList:
       required:
         - nextPageToken
@@ -1516,16 +1261,286 @@ components:
           format: int32
           description: Number of items in result list.
           type: integer
-    ArtifactList:
-      description: A list of Artifact entities.
+    BaseResourceUpdate:
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+    DocArtifact:
+      description: A document.
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifact"
+        - $ref: "#/components/schemas/DocArtifactCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
+    DocArtifactCreate:
+      description: A document artifact to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/DocArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
+    DocArtifactUpdate:
+      description: A document artifact to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "doc-artifact"
+    Error:
+      description: Error code and message.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          description: Error code
+          type: string
+        message:
+          description: Error message
+          type: string
+    ExecutionState:
+      description: |-
+        The state of the Execution. The state transitions are
+          NEW -> RUNNING -> COMPLETE | CACHED | FAILED | CANCELED
+        CACHED means the execution is skipped due to cached results.
+        CANCELED means the execution is skipped due to precondition not met. It is
+        different from CACHED in that a CANCELED execution will not have any event
+        associated with it. It is different from FAILED in that there is no
+        unexpected error happened and it is regarded as a normal state.
+
+        See also: ml-metadata Execution.State
+      default: UNKNOWN
+      enum:
+        - UNKNOWN
+        - NEW
+        - RUNNING
+        - COMPLETE
+        - FAILED
+        - CACHED
+        - CANCELED
+      type: string
+    InferenceService:
+      description: >-
+        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/InferenceServiceCreate"
+    InferenceServiceCreate:
+      description: >-
+        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
+      required:
+        - registeredModelId
+        - servingEnvironmentId
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/InferenceServiceUpdate"
+        - type: object
+          properties:
+            registeredModelId:
+              description: ID of the `RegisteredModel` to serve.
+              type: string
+            servingEnvironmentId:
+              description: ID of the parent `ServingEnvironment` for this `InferenceService` entity.
+              type: string
+    InferenceServiceList:
+      description: List of InferenceServices.
       allOf:
         - type: object
           properties:
             items:
-              description: Array of `Artifact` entities.
+              description: ""
               type: array
               items:
-                $ref: "#/components/schemas/Artifact"
+                $ref: "#/components/schemas/InferenceService"
+              readOnly: false
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    InferenceServiceState:
+      description: |-
+        - DEPLOYED: A state indicating that the `InferenceService` should be deployed.
+        - UNDEPLOYED: A state indicating that the `InferenceService` should be un-deployed.
+        The state indicates the desired state of inference service.
+        See the associated `ServeModel` for the actual status of service deployment action.
+      default: DEPLOYED
+      enum:
+        - DEPLOYED
+        - UNDEPLOYED
+      type: string
+    InferenceServiceUpdate:
+      description: >-
+        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            modelVersionId:
+              description: >-
+                ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
+              type: string
+            runtime:
+              description: Model runtime.
+              type: string
+            desiredState:
+              $ref: "#/components/schemas/InferenceServiceState"
+    MetadataBoolValue:
+      description: A bool property value.
+      type: object
+      required:
+        - metadataType
+        - bool_value
+      properties:
+        bool_value:
+          type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
+          default: MetadataBoolValue
+    MetadataDoubleValue:
+      description: A double property value.
+      type: object
+      required:
+        - metadataType
+        - double_value
+      properties:
+        double_value:
+          format: double
+          type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
+          default: MetadataDoubleValue
+    MetadataIntValue:
+      description: An integer (int64) property value.
+      type: object
+      required:
+        - metadataType
+        - int_value
+      properties:
+        int_value:
+          format: int64
+          type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
+          default: MetadataIntValue
+    MetadataProtoValue:
+      description: A proto property value.
+      type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
+      properties:
+        type:
+          description: url describing proto value
+          type: string
+        proto_value:
+          description: Base64 encoded bytes for proto value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
+          default: MetadataProtoValue
+    MetadataStringValue:
+      description: A string property value.
+      type: object
+      required:
+        - metadataType
+        - string_value
+      properties:
+        string_value:
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
+          default: MetadataStringValue
+    MetadataStructValue:
+      description: A struct property value.
+      type: object
+      required:
+        - metadataType
+        - struct_value
+      properties:
+        struct_value:
+          description: Base64 encoded bytes for struct value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
+          default: MetadataStructValue
+    MetadataValue:
+      oneOf:
+        - $ref: "#/components/schemas/MetadataIntValue"
+        - $ref: "#/components/schemas/MetadataDoubleValue"
+        - $ref: "#/components/schemas/MetadataStringValue"
+        - $ref: "#/components/schemas/MetadataStructValue"
+        - $ref: "#/components/schemas/MetadataProtoValue"
+        - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
+      description: A value in properties.
+      example:
+        string_value: my_value
+        metadataType: MetadataStringValue
+    ModelArtifact:
+      description: An ML model artifact.
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifact"
+        - $ref: "#/components/schemas/ModelArtifactCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "model-artifact"
+    ModelArtifactCreate:
+      description: An ML model artifact.
+      properties:
+        artifactType:
+          type: string
+          default: "model-artifact"
+      allOf:
+        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/ModelArtifactUpdate"
+    ModelArtifactList:
+      description: List of ModelArtifact entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `ModelArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelArtifact"
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
@@ -1555,11 +1570,7 @@ components:
               type: string
             modelSourceKind:
               type: string
-              description: |-
-                A string identifier describing the source kind. It differentiates various sources of model artifacts.
-                This identifier should be agreed upon by producers and consumers of source model metadata.
-                It is not an enumeration to keep the source of model metadata open ended. 
-                E.g. Kubeflow pipelines could use `pipelines` to identify models it produces.
+              description: "A string identifier describing the source kind. It differentiates various sources of model artifacts.\nThis identifier should be agreed upon by producers and consumers of source model metadata.\nIt is not an enumeration to keep the source of model metadata open ended. \nE.g. Kubeflow pipelines could use `pipelines` to identify models it produces."
             modelSourceClass:
               type: string
               description: |-
@@ -1567,10 +1578,7 @@ components:
                 E.g. `pipelinerun` for a Kubeflow pipeline run.
             modelSourceGroup:
               type: string
-              description: |-
-                Unique identifier for a source group for models from source class. 
-                It maps to a physical group of source models. 
-                E.g. a Kubernetes namespace where the pipeline run was executed.
+              description: "Unique identifier for a source group for models from source class. \nIt maps to a physical group of source models. \nE.g. a Kubernetes namespace where the pipeline run was executed."
             modelSourceId:
               type: string
               description: |-
@@ -1579,37 +1587,63 @@ components:
                 E.g. a pipeline run ID.
             modelSourceName:
               type: string
-              description: |-
-                A human-readable name for the source model. 
-                E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
-    ModelArtifactCreate:
-      description: An ML model artifact.
-      properties:
-        artifactType:
-          type: string
-          default: "model-artifact"
+              description: "A human-readable name for the source model. \nE.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`."
+    ModelVersion:
+      description: Represents a ModelVersion belonging to a RegisteredModel.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
-        - $ref: "#/components/schemas/ModelArtifactUpdate"
-    Error:
-      description: Error code and message.
+        - $ref: "#/components/schemas/ModelVersionCreate"
+        - $ref: "#/components/schemas/BaseResource"
+    ModelVersionCreate:
+      description: Represents a ModelVersion belonging to a RegisteredModel.
       required:
-        - code
-        - message
-      type: object
-      properties:
-        code:
-          description: Error code
-          type: string
-        message:
-          description: Error message
-          type: string
-    SortOrder:
-      description: Supported sort direction for ordering result entities.
+        - name
+        - registeredModelId
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ModelVersionUpdate"
+        - type: object
+          properties:
+            registeredModelId:
+              description: ID of the `RegisteredModel` to which this version belongs.
+              type: string
+            name:
+              description: |-
+                The client provided name of the model's version. It must be unique among all the ModelVersions of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
+    ModelVersionList:
+      description: List of ModelVersion entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `ModelVersion` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelVersion"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    ModelVersionState:
+      description: |-
+        - LIVE: A state indicating that the `ModelVersion` exists
+        - ARCHIVED: A state indicating that the `ModelVersion` has been archived.
+      default: LIVE
       enum:
-        - ASC
-        - DESC
+        - LIVE
+        - ARCHIVED
       type: string
+    ModelVersionUpdate:
+      description: Represents a ModelVersion belonging to a RegisteredModel.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            state:
+              $ref: "#/components/schemas/ModelVersionState"
+            author:
+              description: Name of the author.
+              type: string
     OrderByField:
       description: Supported fields for ordering result entities.
       enum:
@@ -1617,54 +1651,25 @@ components:
         - LAST_UPDATE_TIME
         - ID
       type: string
-    Artifact:
-      oneOf:
-        - $ref: "#/components/schemas/ModelArtifact"
-        - $ref: "#/components/schemas/DocArtifact"
-      discriminator:
-        propertyName: artifactType
-        mapping:
-          model-artifact: "#/components/schemas/ModelArtifact"
-          doc-artifact: "#/components/schemas/DocArtifact"
-      description: A metadata Artifact Entity.
-    BaseArtifact:
+    RegisteredModel:
+      description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
         - $ref: "#/components/schemas/BaseResource"
-    ArtifactCreate:
-      description: An Artifact to be created.
-      oneOf:
-        - $ref: "#/components/schemas/ModelArtifactCreate"
-        - $ref: "#/components/schemas/DocArtifactCreate"
-      discriminator:
-        propertyName: artifactType
-        mapping:
-          model-artifact: "#/components/schemas/ModelArtifactCreate"
-          doc-artifact: "#/components/schemas/DocArtifactCreate"
-    ArtifactUpdate:
-      description: An Artifact to be updated.
-      oneOf:
-        - $ref: "#/components/schemas/ModelArtifactUpdate"
-        - $ref: "#/components/schemas/DocArtifactUpdate"
-      discriminator:
-        propertyName: artifactType
-        mapping:
-          model-artifact: "#/components/schemas/ModelArtifactUpdate"
-          doc-artifact: "#/components/schemas/DocArtifactUpdate"
-    ServingEnvironmentList:
-      description: List of ServingEnvironments.
+        - $ref: "#/components/schemas/RegisteredModelCreate"
+    RegisteredModelCreate:
+      description: A registered model in model registry. A registered model has ModelVersion children.
+      required:
+        - name
       allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/RegisteredModelUpdate"
         - type: object
           properties:
-            items:
-              description: ""
-              type: array
-              items:
-                $ref: "#/components/schemas/ServingEnvironment"
-              readOnly: false
-          required:
-            - items
-        - $ref: "#/components/schemas/BaseResourceList"
+            name:
+              description: |-
+                The client provided name of the model. It must be unique among all the RegisteredModels of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
     RegisteredModelList:
       description: List of RegisteredModels.
       allOf:
@@ -1679,47 +1684,42 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
-    ServingEnvironment:
-      description: A Model Serving environment for serving `RegisteredModels`.
-      allOf:
-        - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/ServingEnvironmentCreate"
-    ServingEnvironmentUpdate:
-      description: A Model Serving environment for serving `RegisteredModels`.
+    RegisteredModelState:
+      description: |-
+        - LIVE: A state indicating that the `RegisteredModel` exists
+        - ARCHIVED: A state indicating that the `RegisteredModel` has been archived.
+      default: LIVE
+      enum:
+        - LIVE
+        - ARCHIVED
+      type: string
+    RegisteredModelUpdate:
+      description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
-    ServingEnvironmentCreate:
-      description: A Model Serving environment for serving `RegisteredModels`.
-      required:
-      - name
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
-        - $ref: "#/components/schemas/ServingEnvironmentUpdate"
-        - type: object  
-          properties:
-            name:
-              description: The name of the ServingEnvironment.
-              type: string  
-    InferenceService:
-      description: >-
-        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
-      allOf:
-        - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/InferenceServiceCreate"
-    InferenceServiceList:
-      description: List of InferenceServices.
-      allOf:
         - type: object
           properties:
-            items:
-              description: ""
-              type: array
-              items:
-                $ref: "#/components/schemas/InferenceService"
-              readOnly: false
-          required:
-            - items
-        - $ref: "#/components/schemas/BaseResourceList"
+            owner:
+              type: string
+            state:
+              $ref: "#/components/schemas/RegisteredModelState"
+    ServeModel:
+      description: An ML model serving action.
+      allOf:
+        - $ref: "#/components/schemas/BaseExecution"
+        - $ref: "#/components/schemas/ServeModelCreate"
+    ServeModelCreate:
+      description: An ML model serving action.
+      required:
+        - modelVersionId
+      allOf:
+        - $ref: "#/components/schemas/BaseExecutionCreate"
+        - $ref: "#/components/schemas/ServeModelUpdate"
+        - type: object
+          properties:
+            modelVersionId:
+              description: ID of the `ModelVersion` that was served in `InferenceService`.
+              type: string
     ServeModelList:
       description: List of ServeModel entities.
       allOf:
@@ -1733,60 +1733,51 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
-    ServeModel:
-      description: An ML model serving action.
-      allOf:
-        - $ref: "#/components/schemas/BaseExecution"
-        - $ref: "#/components/schemas/ServeModelCreate"
     ServeModelUpdate:
       description: An ML model serving action.
       allOf:
         - $ref: "#/components/schemas/BaseExecutionUpdate"
-    ServeModelCreate:
-      description: An ML model serving action.
-      required:
-        - modelVersionId
+    ServingEnvironment:
+      description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
-        - $ref: "#/components/schemas/ServeModelUpdate"
-        - type: object
-          properties:
-            modelVersionId:
-              description: ID of the `ModelVersion` that was served in `InferenceService`.
-              type: string
-    InferenceServiceUpdate:
-      description: >-
-        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            modelVersionId:
-              description: >-
-                ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
-              type: string
-            runtime:
-              description: Model runtime.
-              type: string
-            desiredState:
-              $ref: "#/components/schemas/InferenceServiceState"
-    InferenceServiceCreate:
-      description: >-
-        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ServingEnvironmentCreate"
+    ServingEnvironmentCreate:
+      description: A Model Serving environment for serving `RegisteredModels`.
       required:
-        - registeredModelId
-        - servingEnvironmentId
+        - name
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
-        - $ref: "#/components/schemas/InferenceServiceUpdate"
+        - $ref: "#/components/schemas/ServingEnvironmentUpdate"
         - type: object
           properties:
-            registeredModelId:
-              description: ID of the `RegisteredModel` to serve.
+            name:
+              description: The name of the ServingEnvironment.
               type: string
-            servingEnvironmentId:
-              description: ID of the parent `ServingEnvironment` for this `InferenceService` entity.
-              type: string
+    ServingEnvironmentList:
+      description: List of ServingEnvironments.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: ""
+              type: array
+              items:
+                $ref: "#/components/schemas/ServingEnvironment"
+              readOnly: false
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    ServingEnvironmentUpdate:
+      description: A Model Serving environment for serving `RegisteredModels`.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+    SortOrder:
+      description: Supported sort direction for ordering result entities.
+      enum:
+        - ASC
+        - DESC
+      type: string
   responses:
     NotFound:
       content:
