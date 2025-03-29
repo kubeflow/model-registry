@@ -3,14 +3,17 @@ package api
 import (
 	"context"
 	"fmt"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	"k8s.io/client-go/kubernetes"
 	"log/slog"
 	"net/http"
 	"path"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 
 	"github.com/julienschmidt/httprouter"
@@ -48,22 +51,67 @@ const (
 )
 
 type App struct {
-	config           config.EnvConfig
-	logger           *slog.Logger
-	kubernetesClient integrations.KubernetesClientInterface
-	repositories     *repositories.Repositories
+	config                  config.EnvConfig
+	logger                  *slog.Logger
+	kubernetesClientFactory k8s.KubernetesClientFactory
+	repositories            *repositories.Repositories
+	//used only on mocked k8s client
+	testEnv *envtest.Environment
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	logger.Debug("Initializing app with config", slog.Any("config", cfg))
-	var k8sClient integrations.KubernetesClientInterface
+	var k8sFactory k8s.KubernetesClientFactory
 	var err error
+	// used only on mocked k8s client
+	var testEnv *envtest.Environment
+
 	if cfg.MockK8Client {
-		//mock all k8s calls
+		//mock all k8s calls with 'env test'
+		var err error
+		var clientset kubernetes.Interface
 		ctx, cancel := context.WithCancel(context.Background())
-		k8sClient, err = mocks.NewKubernetesClient(logger, ctx, cancel)
+		testEnv, clientset, err = k8mocks.SetupEnvTest(k8mocks.TestEnvInput{
+			Logger: logger,
+			Ctx:    ctx,
+			Cancel: cancel,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to setup envtest: %w", err)
+		}
+		switch cfg.AuthMethod {
+		case config.AuthMethodInternal:
+			k8sFactory, err = k8mocks.NewStaticClientFactory(clientset, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create static client factory: %w", err)
+			}
+
+		case config.AuthMethodUser:
+			k8sFactory, err = k8mocks.NewTokenClientFactory(clientset, testEnv.Config, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create static client factory: %w", err)
+			}
+
+		default:
+			return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
+		}
+
 	} else {
-		k8sClient, err = integrations.NewKubernetesClient(logger)
+		switch cfg.AuthMethod {
+
+		case config.AuthMethodInternal:
+			k8sFactory, err = k8s.NewStaticClientFactory(logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create static client factory: %w", err)
+			}
+
+		case config.AuthMethodUser:
+			k8sFactory = k8s.NewTokenClientFactory(logger)
+
+		default:
+			return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
+		}
+
 	}
 
 	if err != nil {
@@ -84,16 +132,23 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	}
 
 	app := &App{
-		config:           cfg,
-		logger:           logger,
-		kubernetesClient: k8sClient,
-		repositories:     repositories.NewRepositories(mrClient),
+		config:                  cfg,
+		logger:                  logger,
+		kubernetesClientFactory: k8sFactory,
+		repositories:            repositories.NewRepositories(mrClient),
+		testEnv:                 testEnv,
 	}
 	return app, nil
 }
 
-func (app *App) Shutdown(ctx context.Context, logger *slog.Logger) error {
-	return app.kubernetesClient.Shutdown(ctx, logger)
+func (app *App) Shutdown() error {
+	app.logger.Info("shutting down app...")
+	if app.testEnv == nil {
+		return nil
+	}
+	//shutdown the envtest control plane when we are in the mock mode.
+	app.logger.Info("shutting env test...")
+	return app.testEnv.Stop()
 }
 
 func (app *App) Routes() http.Handler {
@@ -104,28 +159,30 @@ func (app *App) Routes() http.Handler {
 	apiRouter.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// HTTP client routes (requests that we forward to Model Registry API)
-	// on those, we perform SAR on Specific Service on a given namespace
-	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
-	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
-	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
-	apiRouter.PATCH(RegisteredModelPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
-	apiRouter.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
-	apiRouter.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
-	apiRouter.POST(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelVersionHandler))))
-	apiRouter.GET(ModelVersionListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelVersionHandler))))
-	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetModelVersionHandler))))
-	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllArtifactsHandler))))
-	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetArtifactHandler))))
-	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateArtifactHandler))))
-	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
-	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
-	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.PerformSARonSpecificService(app.AttachRESTClient(app.UpdateModelArtifactHandler))))
+	// on those, we perform SAR or SSAR on Specific Service on a given namespace
+	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
+	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
+	apiRouter.PATCH(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
+	apiRouter.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
+	apiRouter.POST(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelVersionHandler))))
+	apiRouter.GET(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelVersionHandler))))
+	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetModelVersionHandler))))
+	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllArtifactsHandler))))
+	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetArtifactHandler))))
+	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateArtifactHandler))))
+	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
+	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
+	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelArtifactHandler))))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
-	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.PerformSARonGetListServicesByNamespace(app.GetAllModelRegistriesHandler)))
+	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))
+
+	// Standalone "only" routes
 	if app.config.StandaloneMode {
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
 		//Those endpoints are not implement yet. This is a STUB API to unblock frontend development
@@ -170,7 +227,7 @@ func (app *App) Routes() http.Handler {
 	// Combines the healthcheck endpoint with the rest of the routes
 	combinedMux := http.NewServeMux()
 	combinedMux.Handle(HealthCheckPath, healthcheckMux)
-	combinedMux.Handle("/", app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectUserHeaders(appMux)))))
+	combinedMux.Handle("/", app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectRequestIdentity(appMux)))))
 
 	return combinedMux
 }

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"io"
 	"log/slog"
 	"net/http"
@@ -12,12 +15,11 @@ import (
 	"path/filepath"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
-func setupApiTest[T any](method string, url string, body interface{}, k8sClient k8s.KubernetesClientInterface, kubeflowUserIDHeaderValue string, namespace string) (T, *http.Response, error) {
+func setupApiTest[T any](method string, url string, body interface{}, k8Factory kubernetes.KubernetesClientFactory, requestIdentity kubernetes.RequestIdentity, namespace string) (T, *http.Response, error) {
 	mockMRClient, err := mocks.NewModelRegistryClient(nil)
 	if err != nil {
 		return *new(T), nil, err
@@ -25,10 +27,18 @@ func setupApiTest[T any](method string, url string, body interface{}, k8sClient 
 
 	mockClient := new(mocks.MockHTTPClient)
 
+	cfg := config.EnvConfig{
+		AuthMethod: config.AuthMethodInternal,
+	}
+	//if token is set, use token auth
+	if requestIdentity.Token != "" {
+		cfg.AuthMethod = config.AuthMethodUser
+	}
 	testApp := App{
-		repositories:     repositories.NewRepositories(mockMRClient),
-		kubernetesClient: k8sClient,
-		logger:           slog.Default(),
+		repositories:            repositories.NewRepositories(mockMRClient),
+		kubernetesClientFactory: k8Factory,
+		logger:                  slog.Default(),
+		config:                  cfg,
 	}
 
 	var req *http.Request
@@ -49,12 +59,15 @@ func setupApiTest[T any](method string, url string, body interface{}, k8sClient 
 		}
 	}
 
-	// Set the kubeflow-userid header
-	req.Header.Set(constants.KubeflowUserIDHeader, kubeflowUserIDHeaderValue)
+	// Set the kubeflow-userid header (middleware work)
+	if requestIdentity.UserID != "" {
+		req.Header.Set(constants.KubeflowUserIDHeader, requestIdentity.UserID)
+	}
 
 	ctx := mocks.NewMockSessionContext(req.Context())
+
 	ctx = context.WithValue(ctx, constants.ModelRegistryHttpClientKey, mockClient)
-	ctx = context.WithValue(ctx, constants.KubeflowUserIdKey, kubeflowUserIDHeaderValue)
+	ctx = context.WithValue(ctx, constants.RequestIdentityKey, requestIdentity)
 	ctx = context.WithValue(ctx, constants.NamespaceHeaderParameterKey, namespace)
 	mrHttpClient := k8s.HTTPClient{
 		ModelRegistryID: "model-registry",
