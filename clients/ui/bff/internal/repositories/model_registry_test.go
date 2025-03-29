@@ -14,7 +14,10 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "kubeflow")
+			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
+			Expect(err).NotTo(HaveOccurred())
+
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), serviceAccountMockedK8client, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model registries")
@@ -29,7 +32,10 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "dora-namespace")
+			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
+			Expect(err).NotTo(HaveOccurred())
+
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), serviceAccountMockedK8client, "dora-namespace")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model registries")
@@ -43,7 +49,10 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 
 			By("fetching all model registries in the repository")
 			modelRegistryRepository := NewModelRegistryRepository()
-			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), k8sClient, "no-namespace")
+			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
+			Expect(err).NotTo(HaveOccurred())
+
+			registries, err := modelRegistryRepository.GetAllModelRegistries(mocks.NewMockSessionContextNoParent(), serviceAccountMockedK8client, "no-namespace")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should be empty")
