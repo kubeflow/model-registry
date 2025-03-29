@@ -1,8 +1,9 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
@@ -12,9 +13,9 @@ func NewNamespaceRepository() *NamespaceRepository {
 	return &NamespaceRepository{}
 }
 
-func (r *NamespaceRepository) GetNamespaces(client k8s.KubernetesClientInterface, user string, groups []string) ([]models.NamespaceModel, error) {
+func (r *NamespaceRepository) GetNamespaces(client k8s.KubernetesClientInterface, ctx context.Context, identity *k8s.RequestIdentity) ([]models.NamespaceModel, error) {
 
-	namespaces, err := client.GetNamespaces(user, groups)
+	namespaces, err := client.GetNamespaces(ctx, identity)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching namespaces: %w", err)
 	}

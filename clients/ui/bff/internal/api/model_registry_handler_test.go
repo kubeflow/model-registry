@@ -22,9 +22,9 @@ var _ = Describe("TestModelRegistryHandler", func() {
 
 			By("creating the test app")
 			testApp := App{
-				kubernetesClient: k8sClient,
-				repositories:     repositories.NewRepositories(mockMRClient),
-				logger:           logger,
+				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
+				repositories:            repositories.NewRepositories(mockMRClient),
+				logger:                  logger,
 			}
 
 			By("creating the http test infrastructure")

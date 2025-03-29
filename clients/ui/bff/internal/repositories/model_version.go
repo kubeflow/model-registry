@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"net/url"
 )
 
@@ -13,19 +13,19 @@ const modelVersionPath = "/model_versions"
 const artifactsByModelVersionPath = "/artifacts"
 
 type ModelVersionInterface interface {
-	GetAllModelVersions(client integrations.HTTPClientInterface) (*openapi.ModelVersionList, error)
-	GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error)
-	CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
-	UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
-	GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error)
-	CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
+	GetAllModelVersions(client mrserver.HTTPClientInterface) (*openapi.ModelVersionList, error)
+	GetModelVersion(client mrserver.HTTPClientInterface, id string) (*openapi.ModelVersion, error)
+	CreateModelVersion(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error)
+	UpdateModelVersion(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
+	GetModelArtifactsByModelVersion(client mrserver.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error)
+	CreateModelArtifactByModelVersion(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
 }
 
 type ModelVersion struct {
 	ModelVersionInterface
 }
 
-func (v ModelVersion) GetAllModelVersions(client integrations.HTTPClientInterface) (*openapi.ModelVersionList, error) {
+func (v ModelVersion) GetAllModelVersions(client mrserver.HTTPClientInterface) (*openapi.ModelVersionList, error) {
 	response, err := client.GET(modelVersionPath)
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (v ModelVersion) GetAllModelVersions(client integrations.HTTPClientInterfac
 	return &models, nil
 }
 
-func (v ModelVersion) GetModelVersion(client integrations.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
+func (v ModelVersion) GetModelVersion(client mrserver.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
 	path, err := url.JoinPath(modelVersionPath, id)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (v ModelVersion) GetModelVersion(client integrations.HTTPClientInterface, i
 	return &model, nil
 }
 
-func (v ModelVersion) CreateModelVersion(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error) {
+func (v ModelVersion) CreateModelVersion(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.ModelVersion, error) {
 	responseData, err := client.POST(modelVersionPath, bytes.NewBuffer(jsonData))
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (v ModelVersion) CreateModelVersion(client integrations.HTTPClientInterface
 	return &model, nil
 }
 
-func (v ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+func (v ModelVersion) UpdateModelVersion(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
 	path, err := url.JoinPath(modelVersionPath, id)
 
 	if err != nil {
@@ -95,7 +95,7 @@ func (v ModelVersion) UpdateModelVersion(client integrations.HTTPClientInterface
 	return &model, nil
 }
 
-func (v ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error) {
+func (v ModelVersion) GetModelArtifactsByModelVersion(client mrserver.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelArtifactList, error) {
 	path, err := url.JoinPath(modelVersionPath, id, artifactsByModelVersionPath)
 
 	if err != nil {
@@ -115,7 +115,7 @@ func (v ModelVersion) GetModelArtifactsByModelVersion(client integrations.HTTPCl
 	return &model, nil
 }
 
-func (v ModelVersion) CreateModelArtifactByModelVersion(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
+func (v ModelVersion) CreateModelArtifactByModelVersion(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
 	path, err := url.JoinPath(modelVersionPath, id, artifactsByModelVersionPath)
 	if err != nil {
 		return nil, err

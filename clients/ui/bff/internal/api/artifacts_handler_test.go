@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"net/http"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -19,7 +20,11 @@ var _ = Describe("TestArtifactsHandler", func() {
 				expected := ArtifactEnvelope{Data: &data}
 
 				_ = gofakeit.Seed(123)
-				actual, rs, err := setupApiTest[ArtifactEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts/1?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+				requestIdentity := kubernetes.RequestIdentity{
+					UserID: "user@example.com",
+				}
+
+				actual, rs, err := setupApiTest[ArtifactEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts/1?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 				Expect(err).NotTo(HaveOccurred())
 
 				By("should match the expected artifact")
@@ -32,8 +37,11 @@ var _ = Describe("TestArtifactsHandler", func() {
 			It("should list all artifacts", func() {
 				By("fetching all artifacts")
 				_ = gofakeit.Seed(123)
+				requestIdentity := kubernetes.RequestIdentity{
+					UserID: "user@example.com",
+				}
 
-				actual, rs, err := setupApiTest[ArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+				actual, rs, err := setupApiTest[ArtifactListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/artifacts?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 				Expect(err).NotTo(HaveOccurred())
 
 				By("should return success status and valid data")
