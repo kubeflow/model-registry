@@ -79,7 +79,7 @@ func (kc *TokenKubernetesClient) CanListServicesInNamespace(ctx context.Context,
 		}
 
 		if !resp.Status.Allowed {
-			kc.Logger.Warn("self-SAR denied", "namespace", namespace, "verb", verb)
+			kc.Logger.Error("self-SAR denied", "namespace", namespace, "verb", verb)
 			return false, nil
 		}
 	}
@@ -109,7 +109,7 @@ func (kc *TokenKubernetesClient) CanAccessServiceInNamespace(ctx context.Context
 		return false, err
 	}
 	if !resp.Status.Allowed {
-		kc.Logger.Warn("self-SAR denied", "service", serviceName, "namespace", namespace)
+		kc.Logger.Error("self-SAR denied", "service", serviceName, "namespace", namespace)
 		return false, nil
 	}
 
@@ -124,8 +124,8 @@ func (kc *TokenKubernetesClient) GetNamespaces(ctx context.Context, _ *RequestId
 
 	nsList, err := kc.Client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		kc.Logger.Warn("user is not allowed to list namespaces or failed to list namespaces")
-		return []corev1.Namespace{}, nil
+		kc.Logger.Error("user is not allowed to list namespaces or failed to list namespaces")
+		return []corev1.Namespace{}, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
 	return nsList.Items, nil

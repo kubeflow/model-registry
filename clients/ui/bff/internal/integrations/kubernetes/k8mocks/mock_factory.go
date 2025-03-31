@@ -3,16 +3,40 @@ package k8mocks
 import (
 	"context"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log/slog"
+	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sync"
 )
 
 type MockedKubernetesClientFactory interface {
 	k8s.KubernetesClientFactory
+}
+
+func NewMockedKubernetesClientFactory(clientset kubernetes.Interface, testEnv *envtest.Environment, cfg config.EnvConfig, logger *slog.Logger) (k8s.KubernetesClientFactory, error) {
+	switch cfg.AuthMethod {
+	case config.AuthMethodInternal:
+		k8sFactory, err := NewStaticClientFactory(clientset, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create static client factory: %w", err)
+		}
+		return k8sFactory, nil
+
+	case config.AuthMethodUser:
+		k8sFactory, err := NewTokenClientFactory(clientset, testEnv.Config, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create static client factory: %w", err)
+		}
+		return k8sFactory, nil
+
+	default:
+		return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
+	}
 }
 
 // ─── MOCKED STATIC FACTORY (envtest + "INTERNAL ACCOUNT") ──────────────────────────────────────────
@@ -22,12 +46,18 @@ type MockedStaticClientFactory struct {
 	clientset                    kubernetes.Interface
 	initErr                      error
 	initLock                     sync.Mutex
+	realk8sFactory               k8s.KubernetesClientFactory
 }
 
 func NewStaticClientFactory(clientset kubernetes.Interface, logger *slog.Logger) (k8s.KubernetesClientFactory, error) {
+	realFactory, err := k8s.NewStaticClientFactory(logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create static client factory: %w", err)
+	}
 	return &MockedStaticClientFactory{
-		logger:    logger,
-		clientset: clientset,
+		logger:         logger,
+		clientset:      clientset,
+		realk8sFactory: realFactory,
 	}, nil
 }
 
@@ -50,6 +80,13 @@ func (f *MockedStaticClientFactory) GetClient(_ context.Context) (k8s.Kubernetes
 	return f.serviceAccountMockedK8client, nil
 }
 
+func (f *MockedStaticClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*k8s.RequestIdentity, error) {
+	return f.realk8sFactory.ExtractRequestIdentity(httpHeader)
+}
+func (f *MockedStaticClientFactory) ValidateRequestIdentity(identity *k8s.RequestIdentity) error {
+	return f.realk8sFactory.ValidateRequestIdentity(identity)
+}
+
 // ─── MOCKED TOKEN FACTORY (envtest + "USER TOKEN") ──────────────────────────────
 //
 // MockedTokenClientFactory simulates token-based client creation in tests.
@@ -62,18 +99,30 @@ type MockedTokenClientFactory struct {
 	clientset  kubernetes.Interface
 	restConfig *rest.Config
 
-	clients  map[string]k8s.KubernetesClientInterface
-	initLock sync.Mutex
+	clients        map[string]k8s.KubernetesClientInterface
+	initLock       sync.Mutex
+	realK8sFactory k8s.KubernetesClientFactory
 }
 
 // NewTokenClientFactory initializes a factory using a known envtest clientset + config.
 func NewTokenClientFactory(clientset kubernetes.Interface, restConfig *rest.Config, logger *slog.Logger) (k8s.KubernetesClientFactory, error) {
+	realFactory := k8s.NewTokenClientFactory(logger)
+
 	return &MockedTokenClientFactory{
-		logger:     logger,
-		clientset:  clientset,
-		restConfig: restConfig,
-		clients:    make(map[string]k8s.KubernetesClientInterface),
+		logger:         logger,
+		clientset:      clientset,
+		restConfig:     restConfig,
+		realK8sFactory: realFactory,
+		clients:        make(map[string]k8s.KubernetesClientInterface),
 	}, nil
+}
+
+func (f *MockedTokenClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*k8s.RequestIdentity, error) {
+	return f.realK8sFactory.ExtractRequestIdentity(httpHeader)
+}
+
+func (f *MockedTokenClientFactory) ValidateRequestIdentity(identity *k8s.RequestIdentity) error {
+	return f.realK8sFactory.ValidateRequestIdentity(identity)
 }
 
 // GetClient returns a Kubernetes client for the identity in context,

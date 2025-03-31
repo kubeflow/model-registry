@@ -148,7 +148,7 @@ var _ = Describe("KubernetesClient SSAR Test", func() {
 
 			ns, err := tokenK8client.GetNamespaces(ctx, identity)
 			Expect(ns).To(BeEmpty())
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })
