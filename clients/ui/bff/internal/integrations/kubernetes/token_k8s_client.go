@@ -32,12 +32,7 @@ func newTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClie
 		return nil, fmt.Errorf("failed to create anonymous config: %w", err)
 	}
 	cfg.BearerToken = token
-	// Reuse CA settings from base config to validate the API server's TLS certificate.
-	// This ensures secure communication and prevents x509 trust errors with self-signed or cluster-issued certs.
-	cfg.TLSClientConfig = rest.TLSClientConfig{
-		CAFile: baseConfig.TLSClientConfig.CAFile,
-		CAData: baseConfig.TLSClientConfig.CAData,
-	}
+
 	// Explicitly clear all other auth mechanisms
 	cfg.BearerTokenFile = ""
 	cfg.Username = ""
