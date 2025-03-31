@@ -20,7 +20,7 @@ import (
 func main() {
 	var cfg config.EnvConfig
 	var certFile, keyFile string
-	fmt.Println("Starting Model Registry UI BFF...")
+	fmt.Println("Starting Model Registry UI BFF!")
 	flag.IntVar(&cfg.Port, "port", getEnvAsInt("PORT", 8080), "API server port")
 	flag.StringVar(&certFile, "cert-file", "", "Path to TLS certificate file")
 	flag.StringVar(&keyFile, "key-file", "", "Path to TLS key file")

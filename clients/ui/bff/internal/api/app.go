@@ -68,7 +68,6 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 
 	if cfg.MockK8Client {
 		//mock all k8s calls with 'env test'
-		var err error
 		var clientset kubernetes.Interface
 		ctx, cancel := context.WithCancel(context.Background())
 		testEnv, clientset, err = k8mocks.SetupEnvTest(k8mocks.TestEnvInput{
@@ -79,39 +78,12 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to setup envtest: %w", err)
 		}
-		switch cfg.AuthMethod {
-		case config.AuthMethodInternal:
-			k8sFactory, err = k8mocks.NewStaticClientFactory(clientset, logger)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create static client factory: %w", err)
-			}
-
-		case config.AuthMethodUser:
-			k8sFactory, err = k8mocks.NewTokenClientFactory(clientset, testEnv.Config, logger)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create static client factory: %w", err)
-			}
-
-		default:
-			return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
-		}
+		//create mocked kubernetes client factory
+		k8sFactory, err = k8mocks.NewMockedKubernetesClientFactory(clientset, testEnv, cfg, logger)
 
 	} else {
-		switch cfg.AuthMethod {
-
-		case config.AuthMethodInternal:
-			k8sFactory, err = k8s.NewStaticClientFactory(logger)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create static client factory: %w", err)
-			}
-
-		case config.AuthMethodUser:
-			k8sFactory = k8s.NewTokenClientFactory(logger)
-
-		default:
-			return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
-		}
-
+		//create kubernetes client factory
+		k8sFactory, err = k8s.NewKubernetesClientFactory(cfg, logger)
 	}
 
 	if err != nil {

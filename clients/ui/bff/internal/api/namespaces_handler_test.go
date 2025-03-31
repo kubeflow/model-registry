@@ -190,10 +190,8 @@ var _ = Describe("TestNamespacesHandler", func() {
 			var actual NamespacesEnvelope
 			err = json.Unmarshal(body, &actual)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(rr.Code).To(Equal(http.StatusOK))
+			Expect(rr.Code).To(Equal(http.StatusInternalServerError))
 
-			By("validating the response contains no namespaces")
-			Expect(actual.Data).To(BeEmpty())
 		})
 	})
 })

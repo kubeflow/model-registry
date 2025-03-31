@@ -2,10 +2,33 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"log/slog"
+	"net/http"
+	"strings"
 )
+
+func NewKubernetesClientFactory(cfg config.EnvConfig, logger *slog.Logger) (KubernetesClientFactory, error) {
+	switch cfg.AuthMethod {
+
+	case config.AuthMethodInternal:
+		k8sFactory, err := NewStaticClientFactory(logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create static client factory: %w", err)
+		}
+		return k8sFactory, nil
+
+	case config.AuthMethodUser:
+		k8sFactory := NewTokenClientFactory(logger)
+		return k8sFactory, nil
+
+	default:
+		return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
+	}
+}
 
 // ─── STATIC FACTORY (INTERNAL) ──────────────────────────────────────────
 // uses the credentials of the running backend to create a single instance of the client
@@ -13,6 +36,8 @@ import (
 // If running locally (e.g. for development), it uses the current user's kubeconfig context.
 type KubernetesClientFactory interface {
 	GetClient(ctx context.Context) (KubernetesClientInterface, error)
+	ExtractRequestIdentity(httpHeader http.Header) (*RequestIdentity, error)
+	ValidateRequestIdentity(identity *RequestIdentity) error
 }
 
 type StaticClientFactory struct {
@@ -35,6 +60,41 @@ func (f *StaticClientFactory) GetClient(_ context.Context) (KubernetesClientInte
 	return f.Client, nil
 }
 
+func (f *StaticClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*RequestIdentity, error) {
+
+	userID := httpHeader.Get(constants.KubeflowUserIDHeader)
+	//`kubeflow-userid`: Contains the user's email address.
+	if userID == "" {
+		return nil, fmt.Errorf("missing required header on AuthMethodInternal: kubeflow-userid")
+	}
+
+	userGroupsHeader := httpHeader.Get(constants.KubeflowUserGroupsIdHeader)
+	// Note: The functionality for `kubeflow-groups` is not fully operational at Kubeflow platform at this time
+	// but it's supported on Model Registry BFF
+	//`kubeflow-groups`: Holds a comma-separated list of user groups.
+	groups := []string{}
+	if userGroupsHeader != "" {
+		for _, g := range strings.Split(userGroupsHeader, ",") {
+			groups = append(groups, strings.TrimSpace(g))
+		}
+	}
+	identity := &RequestIdentity{
+		UserID: userID,
+		Groups: groups,
+	}
+	return identity, nil
+}
+
+func (f *StaticClientFactory) ValidateRequestIdentity(identity *RequestIdentity) error {
+	if identity == nil {
+		return errors.New("missing identity")
+	}
+	if identity.UserID == "" {
+		return errors.New("user ID (kubeflow-userid) required for internal authentication")
+	}
+	return nil
+}
+
 //
 // ─── TOKEN FACTORY (USER TOKEN) ────────────────────────────────────────────────
 // uses a user-provided Bearer token for client creation.
@@ -47,6 +107,30 @@ type TokenClientFactory struct {
 
 func NewTokenClientFactory(logger *slog.Logger) KubernetesClientFactory {
 	return &TokenClientFactory{logger: logger}
+}
+
+func (f *TokenClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*RequestIdentity, error) {
+	token := httpHeader.Get(constants.XForwardedAccessTokenHeader)
+	if token == "" {
+		return nil, fmt.Errorf("missing required header on AuthMethodUser: access token")
+	}
+	identity := &RequestIdentity{
+		Token: token,
+	}
+	return identity, nil
+}
+
+func (f *TokenClientFactory) ValidateRequestIdentity(identity *RequestIdentity) error {
+
+	if identity == nil {
+		return errors.New("missing identity")
+	}
+
+	if identity.Token == "" {
+		return errors.New("token is required for token-based authentication")
+	}
+
+	return nil
 }
 
 func (f *TokenClientFactory) GetClient(ctx context.Context) (KubernetesClientInterface, error) {

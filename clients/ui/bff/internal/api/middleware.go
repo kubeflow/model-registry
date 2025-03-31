@@ -2,9 +2,7 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"log/slog"
@@ -41,43 +39,9 @@ func (app *App) InjectRequestIdentity(next http.Handler) http.Handler {
 			return
 		}
 
-		var identity *kubernetes.RequestIdentity
-
-		switch app.config.AuthMethod {
-
-		case config.AuthMethodInternal:
-			userID := r.Header.Get(constants.KubeflowUserIDHeader)
-			//`kubeflow-userid`: Contains the user's email address.
-			if userID == "" {
-				app.badRequestResponse(w, r, errors.New("missing required header on AuthMethodInternal: kubeflow-userid"))
-				return
-			}
-
-			userGroupsHeader := r.Header.Get(constants.KubeflowUserGroupsIdHeader)
-			// Note: The functionality for `kubeflow-groups` is not fully operational at Kubeflow platform at this time
-			// but it's supported on Model Registry BFF
-			//`kubeflow-groups`: Holds a comma-separated list of user groups.
-			groups := []string{}
-			if userGroupsHeader != "" {
-				for _, g := range strings.Split(userGroupsHeader, ",") {
-					groups = append(groups, strings.TrimSpace(g))
-				}
-			}
-			identity = &kubernetes.RequestIdentity{
-				UserID: userID,
-				Groups: groups,
-			}
-		case config.AuthMethodUser:
-			token := r.Header.Get(constants.XForwardedAccessTokenHeader)
-			if token == "" {
-				app.badRequestResponse(w, r, errors.New("missing required header on AuthMethodUser: access token"))
-				return
-			}
-			identity = &kubernetes.RequestIdentity{
-				Token: token,
-			}
-		default:
-			app.badRequestResponse(w, r, fmt.Errorf("invalid auth method: %s", app.config.AuthMethod))
+		identity, error := app.kubernetesClientFactory.ExtractRequestIdentity(r.Header)
+		if error != nil {
+			app.badRequestResponse(w, r, error)
 			return
 		}
 
@@ -197,7 +161,7 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 			return
 		}
 
-		if err := validateRequestIdentity(identity, app.config.AuthMethod); err != nil {
+		if err := app.kubernetesClientFactory.ValidateRequestIdentity(identity); err != nil {
 			app.badRequestResponse(w, r, err)
 			return
 		}
@@ -238,7 +202,7 @@ func (app *App) RequireAccessToService(next func(http.ResponseWriter, *http.Requ
 			return
 		}
 
-		if err := validateRequestIdentity(identity, app.config.AuthMethod); err != nil {
+		if err := app.kubernetesClientFactory.ValidateRequestIdentity(identity); err != nil {
 			app.badRequestResponse(w, r, err)
 			return
 		}
@@ -274,26 +238,4 @@ func (app *App) RequireAccessToService(next func(http.ResponseWriter, *http.Requ
 
 		next(w, r, ps)
 	}
-}
-
-// ValidateRequestIdentity ensures the identity contains required values based on auth method.
-func validateRequestIdentity(identity *kubernetes.RequestIdentity, authMethod string) error {
-	if identity == nil {
-		return errors.New("missing identity")
-	}
-
-	switch authMethod {
-	case config.AuthMethodInternal:
-		if identity.UserID == "" {
-			return errors.New("user ID (kubeflow-userid) required for internal authentication")
-		}
-	case config.AuthMethodUser:
-		if identity.Token == "" {
-			return errors.New("token is required for token-based authentication")
-		}
-	default:
-		return fmt.Errorf("unsupported authentication method: %s", authMethod)
-	}
-
-	return nil
 }
