@@ -15,7 +15,7 @@ import FormSection from '~/shared/components/pf-overrides/FormSection';
 
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 
 type CreateModalProps = {
   onClose: () => void;
@@ -28,6 +28,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
   // refresh,
   // modelRegistry,
 }) => {
+  const { isMUITheme } = useThemeContext();
   const [error, setError] = React.useState<Error>();
 
   const [host, setHost] = React.useState('');
@@ -292,7 +293,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
           title="Connect to external MySQL database"
           description="This external database is where model data is stored."
         >
-          {isMUITheme() ? (
+          {isMUITheme ? (
             hostFormGroup
           ) : (
             <>
@@ -302,7 +303,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
               </FormGroup>
             </>
           )}
-          {isMUITheme() ? (
+          {isMUITheme ? (
             portFormGroup
           ) : (
             <>
@@ -312,7 +313,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
               </FormGroup>
             </>
           )}
-          {isMUITheme() ? (
+          {isMUITheme ? (
             usernameFormGroup
           ) : (
             <>
@@ -322,7 +323,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
               </FormGroup>
             </>
           )}
-          {isMUITheme() ? (
+          {isMUITheme ? (
             passwordFormGroup
           ) : (
             <>
@@ -332,7 +333,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
               </FormGroup>
             </>
           )}
-          {isMUITheme() ? (
+          {isMUITheme ? (
             databaseFormGroup
           ) : (
             <>
