@@ -19,10 +19,10 @@ import {
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import { asEnumMember } from '~/shared/utilities/utils';
 import { filterArchiveModels, filterLiveModels } from '~/app/utils';
+import { useThemeContext } from '~/app/ThemeContext';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
 
@@ -44,6 +44,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
   const unfilteredRegisteredModels = filterLiveModels(registeredModels);
   const archiveRegisteredModels = filterArchiveModels(registeredModels);
   const searchTypes = React.useMemo(() => [SearchType.KEYWORD, SearchType.OWNER], []);
+  const { isMUITheme } = useThemeContext();
 
   if (unfilteredRegisteredModels.length === 0) {
     return (
@@ -108,7 +109,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
         />
       </ToolbarFilter>
       <ToolbarItem>
-        {isMUITheme() ? (
+        {isMUITheme ? (
           <FormFieldset
             className="toolbar-fieldset-wrapper"
             component={

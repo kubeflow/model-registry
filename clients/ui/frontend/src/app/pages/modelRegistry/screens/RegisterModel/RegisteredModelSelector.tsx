@@ -2,8 +2,8 @@ import React from 'react';
 import { FormGroup, TextInput } from '@patternfly/react-core';
 import { RegisteredModel } from '~/app/types';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
 import TypeaheadSelect, { TypeaheadSelectOption } from '~/shared/components/TypeaheadSelect';
+import { useThemeContext } from '~/app/ThemeContext';
 
 type RegisteredModelSelectorProps = {
   registeredModels: RegisteredModel[];
@@ -18,6 +18,7 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
   setRegisteredModelId,
   isDisabled,
 }) => {
+  const { isMUITheme } = useThemeContext();
   const options: TypeaheadSelectOption[] = React.useMemo(
     () =>
       registeredModels.map(({ name, id }) => ({
@@ -48,7 +49,7 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
     */
     return (
       <FormGroup label="Model name" className="form-group-disabled" isRequired fieldId="model-name">
-        {isMUITheme() ? (
+        {isMUITheme ? (
           <FormFieldset component={modelNameInput} field="Model Name" />
         ) : (
           modelNameInput
