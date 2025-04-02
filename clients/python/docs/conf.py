@@ -1,7 +1,7 @@
 """Sphinx configuration."""
 
 project = "model-registry"
-author = "Isabella Basso do Amaral"
+author = "Model Registry Community"
 copyright = f"2025, {author}"
 html_theme = "furo"
 extensions = [
