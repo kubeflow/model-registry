@@ -46,18 +46,17 @@ type MockedStaticClientFactory struct {
 	clientset                    kubernetes.Interface
 	initErr                      error
 	initLock                     sync.Mutex
-	realk8sFactory               k8s.KubernetesClientFactory
+	realFactoryWithoutClient     k8s.StaticClientFactory
 }
 
 func NewStaticClientFactory(clientset kubernetes.Interface, logger *slog.Logger) (k8s.KubernetesClientFactory, error) {
-	realFactory, err := k8s.NewStaticClientFactory(logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create static client factory: %w", err)
+	realFactoryWithoutClient := k8s.StaticClientFactory{
+		Logger: logger,
 	}
 	return &MockedStaticClientFactory{
-		logger:         logger,
-		clientset:      clientset,
-		realk8sFactory: realFactory,
+		logger:                   logger,
+		clientset:                clientset,
+		realFactoryWithoutClient: realFactoryWithoutClient,
 	}, nil
 }
 
@@ -81,10 +80,10 @@ func (f *MockedStaticClientFactory) GetClient(_ context.Context) (k8s.Kubernetes
 }
 
 func (f *MockedStaticClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*k8s.RequestIdentity, error) {
-	return f.realk8sFactory.ExtractRequestIdentity(httpHeader)
+	return f.realFactoryWithoutClient.ExtractRequestIdentity(httpHeader)
 }
 func (f *MockedStaticClientFactory) ValidateRequestIdentity(identity *k8s.RequestIdentity) error {
-	return f.realk8sFactory.ValidateRequestIdentity(identity)
+	return f.realFactoryWithoutClient.ValidateRequestIdentity(identity)
 }
 
 // ─── MOCKED TOKEN FACTORY (envtest + "USER TOKEN") ──────────────────────────────
