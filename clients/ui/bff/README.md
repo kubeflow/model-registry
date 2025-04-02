@@ -79,7 +79,7 @@ You will need to inject your requests with a `kubeflow-userid` header and namesp
 
 When running the service with the mocked Kubernetes client (MOCK_K8S_CLIENT=true), the user `user@example.com` is preconfigured with the necessary RBAC permissions to perform these actions.
 ```
-# GET /v1/healthcheck  
+# GET /healthcheck  
 curl -i "localhost:4000/healthcheck"
 ``` 
 ```
