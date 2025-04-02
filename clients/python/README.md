@@ -218,7 +218,7 @@ registered_model = client.upload_artifact_and_register_model(
 ```
 
 #### OCI-registry based storage
-First, you must ensure you are logged in the to appropriate registry using
+First, you must ensure you are logged in the to appropriate OCI registry using
 `skopeo login`, `podman login`, or using another way of authenticating or subsequent lines below will fail.
 ```python
 oci_upload_params = OCIParams(
