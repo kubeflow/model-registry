@@ -2,7 +2,7 @@
 
 project = "model-registry"
 author = "Isabella Basso do Amaral"
-copyright = f"2023, {author}"
+copyright = f"2025, {author}"
 html_theme = "furo"
 extensions = [
     "sphinx.ext.autodoc",  # support for automatic documentation
