@@ -1,8 +1,8 @@
 """Sphinx configuration."""
 
 project = "model-registry"
-author = "Isabella Basso do Amaral"
-copyright = f"2023, {author}"
+author = "Model Registry Community"
+copyright = f"2025, {author}"
 html_theme = "furo"
 extensions = [
     "sphinx.ext.autodoc",  # support for automatic documentation
