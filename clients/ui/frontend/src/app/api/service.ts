@@ -19,6 +19,7 @@ import {
 import { APIOptions } from '~/shared/api/types';
 import { handleRestFailures } from '~/shared/api/errorUtils';
 import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
+import { ModelRegistryKind } from "~/shared/k8sTypes";
 
 export const createRegisteredModel =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>

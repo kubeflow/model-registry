@@ -168,3 +168,9 @@ export type Volume = {
     optional?: boolean;
   };
 };
+
+export enum RoleBindingPermissionsRoleType {
+  EDIT = 'edit',
+  ADMIN = 'admin',
+  DEFAULT = 'default',
+}

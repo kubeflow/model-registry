@@ -44,47 +44,47 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           ]}
         />
       </Td>
-      {isPlatformDefault() && (
-        <Td modifier="fitContent">
-          {filteredRoleBindings.length === 0 ? (
-            <Tooltip content="You can manage permissions when the model registry becomes available.">
-              <Button isAriaDisabled variant="link">
-                Manage permissions
-              </Button>
-            </Tooltip>
-          ) : (
-            <Button
-              variant="link"
-              onClick={() => navigate(`/model-registry-settings/permissions/${mr.name}`)}
-            >
+      {/* {isPlatformDefault() && ( */}
+      <Td modifier="fitContent">
+        {/* {filteredRoleBindings.length === 0 ? (
+          <Tooltip content="You can manage permissions when the model registry becomes available.">
+            <Button isAriaDisabled variant="link">
               Manage permissions
             </Button>
-          )}
-        </Td>
-      )}
-      {isPlatformDefault() && (
-        <Td isActionCell>
-          <ActionsColumn
-            disabled={!isPlatformDefault()}
-            items={[
-              {
-                title: 'Edit model registry',
-                disabled: !isPlatformDefault(),
-                onClick: () => {
-                  onEditRegistry(mr);
-                },
+          </Tooltip>
+        ) : ( */}
+        <Button
+          variant="link"
+          onClick={() => navigate(`/model-registry-settings/permissions/${mr.name}`)}
+        >
+          Manage permissions
+        </Button>
+        {/* )} */}
+      </Td>
+      {/* )} */}
+      {/* {isPlatformDefault() && ( */}
+      <Td isActionCell>
+        <ActionsColumn
+          disabled={!isPlatformDefault()}
+          items={[
+            {
+              title: 'Edit model registry',
+              disabled: !isPlatformDefault(),
+              onClick: () => {
+                onEditRegistry(mr);
               },
-              {
-                title: 'Delete model registry',
-                disabled: !isPlatformDefault(),
-                onClick: () => {
-                  onDeleteRegistry(mr);
-                },
+            },
+            {
+              title: 'Delete model registry',
+              disabled: !isPlatformDefault(),
+              onClick: () => {
+                onDeleteRegistry(mr);
               },
-            ]}
-          />
-        </Td>
-      )}
+            },
+          ]}
+        />
+      </Td>
+      {/* )} */}
     </Tr>
   );
 };
