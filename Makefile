@@ -210,7 +210,12 @@ build/prepare: gen vet lint
 # WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
 .PHONY: build/compile
 build/compile:
-	${GO} build -buildvcs=falseIMG_VERSION=latest IMG_REPO=model-registry/controller
+	${GO} build -buildvcs=false
+
+# WARNING: DO NOT EDIT THIS TARGET DIRECTLY!!!
+# Use build/prepare to add build prerequisites
+# Use build/compile to add/edit go source compilation
+# WARNING: Editing this target directly WILL affect the Dockerfile image build!!!
 .PHONY: build
 build: build/prepare build/compile
 
