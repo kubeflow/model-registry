@@ -42,6 +42,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
 	infrctrl "github.com/kubeflow/model-registry/pkg/inferenceservice-controller"
 	// +kubebuilder:scaffold:imports
 )
@@ -122,6 +123,9 @@ func main() {
 		// generate self-signed certificates for the metrics server. While convenient for development and testing,
 		// this setup is not recommended for production.
 	}
+
+	utilruntime.Must(kservev1beta1.AddToScheme(scheme))
+	// +kubebuilder:scaffold:scheme
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
