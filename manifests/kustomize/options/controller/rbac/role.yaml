@@ -5,6 +5,14 @@ metadata:
   name: model-registry-manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - serving.kserve.io
   resources:
   - inferenceservices
