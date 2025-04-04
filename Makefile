@@ -5,6 +5,7 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
 UI_PATH := $(PROJECT_PATH)/clients/ui
 CSI_PATH := $(PROJECT_PATH)/cmd/csi
+CONTROLLER_PATH := $(PROJECT_PATH)/cmd/controller
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29
@@ -45,6 +46,11 @@ endif
 # The BUILD_PATH is still the root
 ifeq ($(IMG_REPO),model-registry/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
+endif
+
+# The BUILD_PATH is still the root
+ifeq ($(IMG_REPO),model-registry/controller)
+    DOCKERFILE := $(CONTROLLER_PATH)/Dockerfile.controller
 endif
 
 model-registry: build
@@ -204,12 +210,7 @@ build/prepare: gen vet lint
 # WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
 .PHONY: build/compile
 build/compile:
-	${GO} build -buildvcs=false
-
-# WARNING: DO NOT EDIT THIS TARGET DIRECTLY!!!
-# Use build/prepare to add build prerequisites
-# Use build/compile to add/edit go source compilation
-# WARNING: Editing this target directly WILL affect the Dockerfile image build!!!
+	${GO} build -buildvcs=falseIMG_VERSION=latest IMG_REPO=model-registry/controller
 .PHONY: build
 build: build/prepare build/compile
 
@@ -350,7 +351,7 @@ controller/run: controller/manifests controller/generate controller/fmt controll
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: controller/docker-build
 controller/docker-build: ## Build docker image with the manager.
-	$(DOCKER) build -t ${IMG} ./cmd/controller/Dockerfile.controller
+	$(DOCKER) build -t ${IMG} -f ./cmd/controller/Dockerfile.controller .
 
 .PHONY: controller/docker-push
 controller/docker-push: ## Push docker image with the manager.
@@ -395,7 +396,7 @@ controller/uninstall: controller/manifests bin/kustomize ## Uninstall CRDs from 
 
 .PHONY: controller/deploy
 controller/deploy: controller/manifests bin/kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/model-registry/controller=${IMG}:${IMG_VERSION}
 	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) apply -f -
 
 .PHONY: controller/undeploy
