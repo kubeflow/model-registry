@@ -55,7 +55,7 @@ k8s_resource(
     workload="controller-controller-manager",
     new_name="controller",
     labels="controller",
-    resource_deps=["kubeflow-namespace", "controller-params", "controller-rbac", "kserve-crd"],
+    resource_deps=["kubeflow-namespace", "controller-params", "controller-rbac"],
     trigger_mode=TRIGGER_MODE_AUTO
 )
 
