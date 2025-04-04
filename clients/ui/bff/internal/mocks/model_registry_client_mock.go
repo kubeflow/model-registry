@@ -101,7 +101,7 @@ func (m *ModelRegistryClientMock) CreateArtifact(_ integrations.HTTPClientInterf
 	return &mockData, nil
 }
 
-func (m *ModelRegistryClientMock) UpdateArtifact(_ integrations.HTTPClientInterface, _ string, _ []byte) (*openapi.Artifact, error) {
-	mockData := GenerateMockArtifact()
+func (m *ModelRegistryClientMock) UpdateModelArtifact(_ integrations.HTTPClientInterface, _ string, _ []byte) (*openapi.ModelArtifact, error) {
+	mockData := GenerateMockModelArtifact()
 	return &mockData, nil
 }

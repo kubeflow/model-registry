@@ -31,7 +31,8 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
-  const { namespacesLoaded, namespacesLoadError } = React.useContext(NamespaceSelectorContext);
+  const { namespacesLoaded, namespacesLoadError, initializationError } =
+    React.useContext(NamespaceSelectorContext);
 
   const username = userSettings?.userId;
 
@@ -63,13 +64,15 @@ const App: React.FC = () => {
     [configSettings, userSettings],
   );
 
-  const error = configError || namespacesLoadError;
+  const error = configError || namespacesLoadError || initializationError;
+
+  const sidebar = <PageSidebar isSidebarOpen={false} />;
 
   // We lack the critical data to startup the app
   if (error) {
     // There was an error fetching critical data
     return (
-      <Page>
+      <Page sidebar={sidebar}>
         <PageSection>
           <Stack hasGutter>
             <StackItem>
@@ -77,6 +80,7 @@ const App: React.FC = () => {
                 <p>
                   {configError?.message ||
                     namespacesLoadError?.message ||
+                    initializationError?.message ||
                     'Unknown error occurred during startup'}
                 </p>
                 <p>Logging out and logging back in may solve the issue</p>
@@ -95,8 +99,6 @@ const App: React.FC = () => {
       </Page>
     );
   }
-
-  const sidebar = <PageSidebar isSidebarOpen={false} />;
 
   // Waiting on the API to finish
   const loading =

@@ -7,5 +7,4 @@ type SystemInfo struct {
 type HealthCheckModel struct {
 	Status     string     `json:"status"`
 	SystemInfo SystemInfo `json:"system_info"`
-	UserID     string     `json:"userId"`
 }

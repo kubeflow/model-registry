@@ -16,7 +16,6 @@ type ArtifactInterface interface {
 	GetAllArtifacts(client integrations.HTTPClientInterface, pageValues url.Values) (*openapi.ArtifactList, error)
 	GetArtifact(client integrations.HTTPClientInterface, id string) (*openapi.Artifact, error)
 	CreateArtifact(client integrations.HTTPClientInterface, jsonData []byte) (*openapi.Artifact, error)
-	UpdateArtifact(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.Artifact, error)
 }
 
 type Artifact struct {
@@ -61,25 +60,6 @@ func (a Artifact) CreateArtifact(client integrations.HTTPClientInterface, jsonDa
 
 	if err != nil {
 		return nil, fmt.Errorf("error creating artifact: %w", err)
-	}
-
-	var artifact openapi.Artifact
-	if err := json.Unmarshal(responseData, &artifact); err != nil {
-		return nil, fmt.Errorf("error decoding response data: %w", err)
-	}
-
-	return &artifact, nil
-}
-
-func (a Artifact) UpdateArtifact(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.Artifact, error) {
-	path, err := url.JoinPath(artifactPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	responseData, err := client.PATCH(path, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("error patching registered model: %w", err)
 	}
 
 	var artifact openapi.Artifact

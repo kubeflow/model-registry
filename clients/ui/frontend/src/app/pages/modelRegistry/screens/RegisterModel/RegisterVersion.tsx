@@ -37,8 +37,10 @@ const RegisterVersion: React.FC = () => {
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
   const isSubmitDisabled = isSubmitting || isRegisterVersionSubmitDisabled(formData);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
-  const [errorName, setErrorName] = React.useState<string | undefined>(undefined);
-  const [versionName, setVersionName] = React.useState<string>('');
+  const [submittedVersionName, setSubmittedVersionName] = React.useState<string>('');
+  const [registrationErrorType, setRegistrationErrorType] = React.useState<string | undefined>(
+    undefined,
+  );
 
   const { registeredModelId } = formData;
 
@@ -69,8 +71,8 @@ const RegisterVersion: React.FC = () => {
       navigate(registeredModelUrl(registeredModel.id, mrName));
     } else if (Object.keys(errors).length > 0) {
       const resourceName = Object.keys(errors)[0];
-      setVersionName(formData.versionName);
-      setErrorName(resourceName);
+      setSubmittedVersionName(formData.versionName);
+      setRegistrationErrorType(resourceName);
       setSubmitError(errors[resourceName]);
       setIsSubmitting(false);
     }
@@ -147,13 +149,13 @@ const RegisterVersion: React.FC = () => {
       </PageSection>
       <RegistrationFormFooter
         submitLabel={SubmitLabel.REGISTER_VERSION}
-        errorName={errorName}
+        registrationErrorType={registrationErrorType}
         submitError={submitError}
         isSubmitDisabled={isSubmitDisabled}
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         onCancel={onCancel}
-        versionName={versionName}
+        versionName={submittedVersionName}
       />
     </ApplicationsPage>
   );

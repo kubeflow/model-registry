@@ -21,9 +21,10 @@ on:
       - "go.mod"
 
 env:
+  IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  MODEL_REGISTRY_IMG: model-registry
-  MODEL_REGISTRY_CSI_IMG: model-registry-storage-initializer
+  MODEL_REGISTRY_IMG: model-registry/server
+  MODEL_REGISTRY_CSI_IMG: model-registry/storage-initializer
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -75,7 +76,7 @@ jobs:
       - name: Run tests
         shell: bash
         env:
-          MR_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
-          MR_CSI_IMG: "${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_IMG }}:${{ steps.tags.outputs.tag }}"
+          MR_CSI_IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.MODEL_REGISTRY_CSI_IMG }}:${{ steps.tags.outputs.tag }}"
           CLUSTER: chart-testing
         run: ./test/csi/e2e_test.sh

@@ -1,0 +1,89 @@
+load("ext://restart_process", "docker_build_with_restart")
+
+load_dynamic("./configs/tiltfiles/setup.tiltfile")
+
+config.define_string_list("services")
+
+parsed_config = config.parse()
+
+for service in parsed_config.get("services", []):
+  load_dynamic("./configs/tiltfiles/%s.tiltfile" % (service))
+
+manifests = kustomize("../manifests/kustomize/overlays/db")
+
+objects = decode_yaml_stream(manifests)
+
+for o in objects:
+    if o["kind"] == "Deployment" and o.get("metadata").get("name") in ["model-registry-deployment"]:
+        o["spec"]["template"]["spec"]["securityContext"] = {"runAsNonRoot": False, "readOnlyRootFilesystem": False}
+        o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
+
+overridden_manifests = encode_yaml_stream(objects)
+
+k8s_yaml(overridden_manifests, allow_duplicates=True)
+
+k8s_resource(
+    new_name="db-reqs",
+    objects=[
+       "metadata-mysql:persistentvolumeclaim",
+       "model-registry-db-parameters:configmap",
+       "model-registry-db-secrets:secret"
+    ],
+    labels="requirements",
+    resource_deps=["kubeflow-namespace"],
+)
+
+k8s_resource(
+    workload="model-registry-db",
+    new_name="db",
+    labels="backend",
+    resource_deps=["kubeflow-namespace"],
+)
+
+k8s_resource(
+    new_name="proxy-reqs",
+    objects=[
+       "model-registry-server:serviceaccount",
+       "model-registry-configmap:configmap"
+    ],
+    labels="requirements",
+    resource_deps=["kubeflow-namespace", "db"],
+)
+
+k8s_resource(
+    workload="model-registry-deployment",
+    new_name="proxy",
+    labels="backend",
+    resource_deps=["db", "kubeflow-namespace"],
+    port_forwards="8080",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "bin",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o devenv/bin/model-registry main.go",
+    dir="../",
+    deps=[
+        "../cmd",
+        "../internal",
+        "../pkg",
+        "../go.mod",
+        "../go.sum",
+        "../main.go"
+    ],
+    labels="backend",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+docker_build_with_restart(
+    "ghcr.io/kubeflow/model-registry/server:latest",
+    context="../",
+    dockerfile="../tilt.dockerfile",
+    entrypoint=["/model-registry", "proxy"],
+    only=[
+      "devenv/bin/model-registry",
+    ],
+    live_update=[
+        sync("bin/model-registry", "/model-registry"),
+    ],
+)

@@ -172,11 +172,11 @@ func (suite *CoreTestSuite) registerModel(service api.ModelRegistryApi, override
 }
 
 // utility function that register a new simple ServingEnvironment and return its ID
-func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistryApi, overrideName *string, overrideExternalId *string) string {
+func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistryApi, overrideName string, overrideExternalId *string) string {
 	eutName := "Simple ServingEnvironment"
 	eutExtID := "Simple ServingEnvironment ExtID"
 	eut := &openapi.ServingEnvironment{
-		Name:        &eutName,
+		Name:        eutName,
 		ExternalId:  &eutExtID,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
@@ -186,7 +186,7 @@ func (suite *CoreTestSuite) registerServingEnvironment(service api.ModelRegistry
 		},
 	}
 
-	if overrideName != nil {
+	if overrideName != "" {
 		eut.Name = overrideName
 	}
 
@@ -233,7 +233,7 @@ func (suite *CoreTestSuite) registerModelVersion(
 }
 
 // utility function that register a new simple ServingEnvironment and return its ID
-func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryApi, registerdModelId string, overrideParentResourceName *string, overrideParentResourceExternalId *string, overrideName *string, overrideExternalId *string) string {
+func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryApi, registerdModelId string, overrideParentResourceName string, overrideParentResourceExternalId *string, overrideName *string, overrideExternalId *string) string {
 	servingEnvironmentId := suite.registerServingEnvironment(service, overrideParentResourceName, overrideParentResourceExternalId)
 
 	eutName := "simpleInferenceService"
@@ -388,7 +388,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	})
 	suite.NotNilf(modelArtifactResp.ArtifactType, "model artifact type %s should exists", *modelArtifactTypeName)
 	suite.Equal(*modelArtifactTypeName, *modelArtifactResp.ArtifactType.Name)
-	suite.Equal(6, len(modelArtifactResp.ArtifactType.Properties))
+	suite.Equal(11, len(modelArtifactResp.ArtifactType.Properties))
 
 	servingEnvResp, _ = suite.mlmdClient.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: servingEnvironmentTypeName,

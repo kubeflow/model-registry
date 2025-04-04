@@ -35,6 +35,11 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties StorageKey | MapModelArtifactStorageKey
 	// goverter:map Properties StoragePath | MapModelArtifactStoragePath
 	// goverter:map Properties ServiceAccountName | MapModelArtifactServiceAccountName
+	// goverter:map Properties ModelSourceKind | MapModelArtifactModelSourceKind
+	// goverter:map Properties ModelSourceClass | MapModelArtifactModelSourceClass
+	// goverter:map Properties ModelSourceGroup | MapModelArtifactModelSourceGroup
+	// goverter:map Properties ModelSourceId | MapModelArtifactModelSourceId
+	// goverter:map Properties ModelSourceName | MapModelArtifactModelSourceName
 	ConvertModelArtifact(source *proto.Artifact) (*openapi.ModelArtifact, error)
 
 	// goverter:map Name | MapNameFromOwned
@@ -43,7 +48,7 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
 	ConvertDocArtifact(source *proto.Artifact) (*openapi.DocArtifact, error)
 
-	// goverter:map Name | MapNameFromOwned
+	// goverter:map Name | MapName
 	// goverter:map Properties Description | MapDescription
 	ConvertServingEnvironment(source *proto.Context) (*openapi.ServingEnvironment, error)
 

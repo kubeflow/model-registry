@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Coroutine, Mapping
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -18,6 +20,13 @@ from .types import (
     Pager,
     RegisteredModel,
     SupportedTypes,
+)
+from .utils import (
+    OCIParams,
+    S3Params,
+    get_files_from_path,
+    s3_uri_from,
+    save_to_oci_registry,
 )
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
@@ -47,11 +56,15 @@ logger = logging.getLogger("model-registry")
 
 DEFAULT_USER_TOKEN_ENVVAR = "KF_PIPELINES_SA_TOKEN_PATH"  # noqa: S105
 
+# If we want to forward reference
+if TYPE_CHECKING:
+    from botocore.client import BaseClient
+
 
 class ModelRegistry:
     """Model registry client."""
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
         server_address: str,
         port: int = 443,
@@ -63,6 +76,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
+        async_runner: Callable[[Coroutine[Any, Any, Any]], Any] = None,
     ):
         """Constructor.
 
@@ -78,16 +92,23 @@ class ModelRegistry:
             custom_ca: Path to the PEM-encoded root certificates as a string.
             custom_ca_envvar: Environment variable to read the custom CA from if it's not passed as an arg.
             log_level: Log level. Defaults to logging.WARNING.
+            async_runner: A modular async scheduler Callable (either a method or function) that takes in a coroutine for scheduling.
         """
         logger.setLevel(log_level)
 
-        import nest_asyncio
-
-        logger.debug("Setting up reentrant async event loop")
-        nest_asyncio.apply()
-
         # TODO: get remaining args from env
         self._author = author
+        # Set the user's defined async runner
+        if async_runner:
+            if not (inspect.ismethod(async_runner) or inspect.isfunction(async_runner)):
+                msg = "`async_runner` must be a bound method or a function that takes in a coroutine to run."
+                raise ValueError(msg)
+            self._user_async_runner = async_runner
+        else:
+            import nest_asyncio
+
+            logger.debug("Setting up reentrant async event loop")
+            nest_asyncio.apply()
 
         if not user_token and user_token_envvar:
             logger.info("Reading user token from %s", user_token_envvar)
@@ -128,6 +149,9 @@ class ModelRegistry:
         self.get_registered_models().page_size(1)._next_page()
 
     def async_runner(self, coro: Any) -> Any:
+        if hasattr(self, "_user_async_runner"):
+            return self._user_async_runner(coro)
+
         import asyncio
 
         try:
@@ -165,6 +189,77 @@ class ModelRegistry:
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
 
+    def upload_artifact_and_register_model(
+        self,
+        name: str,
+        model_files_path: str,
+        *,
+        # Upload/client Params
+        upload_params: OCIParams | S3Params,
+        # Artifact/Model Params
+        version: str,
+        model_format_name: str,
+        model_format_version: str,
+        storage_path: str | None = None,
+        storage_key: str | None = None,
+        service_account_name: str | None = None,
+        author: str | None = None,
+        owner: str | None = None,
+        description: str | None = None,
+        metadata: Mapping[str, SupportedTypes] | None = None,
+    ) -> RegisteredModel:
+        """Convenience method to perform 2 operations; uploading an artifact to a storage location, and registers the model in model registry.
+
+        Args:
+            name: Name of the model.
+            model_files_path: The path where the model files are located. If a directory, uploads the entire directory.
+
+        Keyword Args:
+            upload_params: Parameters to configure which storage client to use as well as that client's configuration when uploading the model.
+            version: Version of the model. Has to be unique.
+            model_format_name: Name of the model format.
+            model_format_version: Version of the model format.
+            description: Description of the model.
+            author: Author of the model. Defaults to the client author.
+            owner: Owner of the model. Defaults to the client author.
+            storage_key: Storage key.
+            storage_path: Storage path.
+            service_account_name: Service account name.
+            metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
+
+        Raises:
+            ValueError: When the provided `upload_params` is missing or invalid
+
+        Returns:
+            Registered model. See: :meth:`~ModelRegistry.register_model`
+        """
+        if isinstance(upload_params, S3Params):
+            destination_uri = self.save_to_s3(
+                **asdict(upload_params), path=model_files_path
+            )
+        elif isinstance(upload_params, OCIParams):
+            destination_uri = save_to_oci_registry(
+                **asdict(upload_params), model_files_path=model_files_path
+            )
+        else:
+            msg = 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
+            raise ValueError(msg)
+
+        return self.register_model(
+            name,
+            destination_uri,
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            version=version,
+            storage_key=storage_key,
+            storage_path=storage_path,
+            service_account_name=service_account_name,
+            author=author,
+            owner=owner,
+            description=description,
+            metadata=metadata,
+        )
+
     def register_model(
         self,
         name: str,
@@ -176,6 +271,11 @@ class ModelRegistry:
         storage_key: str | None = None,
         storage_path: str | None = None,
         service_account_name: str | None = None,
+        model_source_kind: str | None = None,
+        model_source_class: str | None = None,
+        model_source_group: str | None = None,
+        model_source_id: str | None = None,
+        model_source_name: str | None = None,
         author: str | None = None,
         owner: str | None = None,
         description: str | None = None,
@@ -205,6 +305,11 @@ class ModelRegistry:
             storage_key: Storage key.
             storage_path: Storage path.
             service_account_name: Service account name.
+            model_source_kind: A string identifier describing the source kind.
+            model_source_class: A subgroup within the source kind.
+            model_source_group: This identifies a source group for models from source class.
+            model_source_id: A unique identifier for a source model within kind, class, and group.
+            model_source_name: A human-readable name for the source model.
             metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
 
         Returns:
@@ -230,6 +335,11 @@ class ModelRegistry:
                 storage_key=storage_key,
                 storage_path=storage_path,
                 service_account_name=service_account_name,
+                model_source_kind=model_source_kind,
+                model_source_class=model_source_class,
+                model_source_group=model_source_group,
+                model_source_id=model_source_id,
+                model_source_name=model_source_name,
             )
         )
 
@@ -289,8 +399,8 @@ class ModelRegistry:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
             msg = """package `huggingface-hub` is not installed.
-            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package, either directly or as an
-            extra (available as `model-registry[hf]`), e.g.:
+            To import models from Hugging Face Hub, start by installing the `huggingface-hub` package,
+            either directly or as an extra (available as `model-registry[hf]`), e.g.:
             ```sh
             !pip install --pre model-registry[hf]
             ```
@@ -432,8 +542,205 @@ class ModelRegistry:
             raise StoreError(msg)
 
         def rm_versions(options: ListOptions) -> list[ModelVersion]:
-            # type checkers can't restrict the type inside a nested function: https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
+            # type checkers can't restrict the type inside a nested function:
+            # https://mypy.readthedocs.io/en/stable/common_issues.html#narrowing-and-inner-functions
             assert rm.id
             return self.async_runner(self._api.get_model_versions(rm.id, options))
 
         return Pager[ModelVersion](rm_versions)
+
+    def save_to_s3(
+        self,
+        path: str,
+        bucket_name: str,
+        s3_prefix: str,
+        *,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ) -> str:
+        """Saves a model to an S3 compatible storage.
+
+        Args:
+            path: Location to where the model(s) or artifact(s) are located. \
+                Can recursively upload nested files in folders.
+            bucket_name: The bucket to use for the S3 compatible object storage.
+            s3_prefix: The path to prefix under root of bucket.
+
+        Keyword Args:
+            endpoint_url: The endpoint URL for the S3 comaptible storage if not using AWS S3.
+            access_key_id: The S3 compatible object storage access ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Returns:
+            The S3 URI to the uploaded files.
+
+        Raises:
+            StoreError: If there was an issue uploading to S3.
+        """
+        # Get mixed credentials
+        endpoint_url, access_key_id, secret_access_key, region = self.__s3_creds(
+            endpoint_url, access_key_id, secret_access_key, region
+        )
+
+        s3 = self.__connect_to_s3(
+            endpoint_url=endpoint_url,
+            access_key_id=access_key_id,
+            secret_access_key=secret_access_key,
+        )
+        try:
+            return self.__upload_to_s3(
+                path=path,
+                path_prefix=s3_prefix,
+                bucket=bucket_name,
+                s3=s3,
+                endpoint_url=endpoint_url,
+                region=region,
+            )
+        except Exception as e:
+            raise e
+
+    def __upload_to_s3(  # noqa: C901
+        self,
+        path: str,
+        bucket: str,
+        s3: BaseClient,
+        path_prefix: str,
+        *,
+        endpoint_url: str | None = None,
+        region: str | None = None,
+    ) -> str:
+        """Internal method for recursively uploading all files to S3.
+
+        Args:
+            path: The path to where the models or artifacts are.
+            bucket: The name of the S3 bucket.
+            s3: The S3 Client object.
+            path_prefix: The folder prefix to store under the root of the bucket.
+
+        Keyword Args:
+            endpoint_url: The endpoint url for the S3 bucket.
+            region: The region name for the S3 bucket.
+
+        Returns:  The S3 URI path of the uploaded files.
+
+        Raises:
+            StoreError if `path` does not exist.
+            StoreError if `path_prefix` is not set.
+        """
+        if not path_prefix:
+            msg = "`path_prefix` must be set."
+            raise StoreError(msg)
+
+        if path_prefix.endswith("/"):
+            path_prefix = path_prefix[:-1]
+
+        uri = s3_uri_from(
+            path=path_prefix,
+            bucket=bucket,
+            endpoint=endpoint_url,
+            region=region,
+        )
+
+        files = get_files_from_path(path)
+        for absolute_path_filename, relative_path_filename in files:
+            s3_key = os.path.join(path_prefix, relative_path_filename)
+            s3.upload_file(absolute_path_filename, bucket, s3_key)
+
+        return uri
+
+    def __s3_creds(
+        self,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ):
+        """Internal method to return mix and matched S3 credentials based on presence.
+
+        Args:
+            endpoint_url: The S3 compatible object storage endpoint.
+            access_key_id: The S3 compatible object storage access key ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Raises:
+            ValueError if the required values are None.
+
+        Returns:
+            tuple(endpoint, access_key_id, secret_access_key, region)
+        """
+        aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+
+        # Set values to parameter values or environment values
+        endpoint_url = endpoint_url if endpoint_url else aws_s3_endpoint
+        access_key_id = access_key_id if access_key_id else aws_access_key_id
+        secret_access_key = (
+            secret_access_key if secret_access_key else aws_secret_access_key
+        )
+        region = region if region else aws_default_region
+
+        if not any((aws_s3_endpoint, endpoint_url)):
+            msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
+            or specify `endpoint_url` as the parameter.
+            """
+            raise ValueError(msg)
+
+        if not any((aws_access_key_id, aws_secret_access_key)) and not any(
+            (access_key_id, secret_access_key)
+        ):
+            msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
+            Please either set these environment variables or pass them in as parameters using
+            `aws_access_key_id` or `aws_access_secret_id`.
+            """
+            raise ValueError(msg)
+
+        return endpoint_url, access_key_id, secret_access_key, region
+
+    def __connect_to_s3(
+        self,
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ) -> None:
+        """Internal method to connect to Boto3 Client.
+
+        Args:
+            endpoint_url: The S3 compatible object storage endpoint.
+            access_key_id: The S3 compatible object storage access key ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Raises:
+            StoreError: If Boto3 is not installed.
+            ValueError: If the appropriate values are not supplied.
+        """
+        try:
+            from boto3 import client  # type: ignore
+        except ImportError as e:
+            msg = """package `boto3` is not installed.
+            To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
+            extra (available as `model-registry[boto3]`), e.g.:
+            ```sh
+            !pip install --pre model-registry[boto3]
+            ```
+            or
+            ```sh
+            !pip install boto3
+            ```
+            """
+            raise StoreError(msg) from e
+
+        return client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+            region_name=region,
+        )

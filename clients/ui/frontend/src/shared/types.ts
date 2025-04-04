@@ -1,3 +1,5 @@
+import { EitherNotBoth } from './typeHelpers';
+
 export type UserSettings = {
   userId: string;
   clusterAdmin?: boolean;
@@ -109,4 +111,60 @@ export type FetchStateObject<T, E = Error> = {
   loaded: boolean;
   error?: E;
   refresh: () => void;
+};
+
+export type NodeSelector = Record<string, string>;
+
+export enum ContainerResourceAttributes {
+  CPU = 'cpu',
+  MEMORY = 'memory',
+}
+
+export type ContainerResources = {
+  requests?: {
+    [key: string]: number | string | undefined;
+    cpu?: string | number;
+    memory?: string;
+  };
+  limits?: {
+    [key: string]: number | string | undefined;
+    cpu?: string | number;
+    memory?: string;
+  };
+};
+
+export type EnvironmentVariable = EitherNotBoth<
+  { value: string | number },
+  { valueFrom: Record<string, unknown> }
+> & {
+  name: string;
+};
+
+export type PodAffinity = {
+  nodeAffinity?: { [key: string]: unknown };
+};
+
+export type VolumeMount = { mountPath: string; name: string };
+
+export enum TolerationOperator {
+  EXISTS = 'Exists',
+  EQUAL = 'Equal',
+}
+
+export enum TolerationEffect {
+  NO_SCHEDULE = 'NoSchedule',
+  PREFER_NO_SCHEDULE = 'PreferNoSchedule',
+  NO_EXECUTE = 'NoExecute',
+}
+
+export type Volume = {
+  name: string;
+  emptyDir?: Record<string, unknown>;
+  persistentVolumeClaim?: {
+    claimName: string;
+  };
+  secret?: {
+    secretName: string;
+    optional?: boolean;
+  };
 };

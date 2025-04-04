@@ -10,7 +10,7 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  /api/v1/healthcheck:
+  /healthcheck:
     summary: Path targeted for healthcheck purposes.
     description: >-
       The REST endpoint/path used to allow a healthcheck update.
@@ -25,6 +25,35 @@ paths:
       operationId: healthcheck
       summary: HealthCheck
       description: HealthCheck endpoint.
+  /api/v1/namespaces:
+    summary: Path used to get available namespaces.
+    description: >-
+      The REST endpoint/path used to list available namespaces.
+    get:
+      tags:
+        - K8SOperation
+      responses:
+        "200":
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    description: Metadata about the response
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: default-namespace
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getNamespaces
+      summary: Get Available Namespaces
+      description: Returns available namespaces in the cluster.
   /api/v1/user:
     summary: Path used to Retrieve a user based on the header.
     description: >-
@@ -63,6 +92,112 @@ paths:
       operationId: getModelRegistries
       summary: List All Model Registries
       description: Gets a list of all `Model Registry` entities.
+  /api/v1/settings/model_registry:
+    summary: Path used to manage Model Registry resources.
+    description: >-
+      The REST endpoint/path used to list and create Model Registry resources.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelRegistryKindListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModelRegistrySettings
+      summary: List All Model Registry Settings
+      description: Gets a list of all Model Registry settings.
+    post:
+      requestBody:
+        description: A new Model Registry settings to be created.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/ModelRegistryKind"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "201":
+          $ref: "#/components/responses/ModelRegistryKindResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createModelRegistrySettings
+      summary: Create Model Registry Settings
+      description: Creates a new instance of Model Registry settings.
+  /api/v1/settings/model_registry/{modelregistryId}:
+    summary: Path used to manage Model Registry resources.
+    description: >-
+      The REST endpoint/path used to list, create, update and delete Model Registry resources.
+    patch:
+      requestBody:
+        description: Updated Model Registry settings information.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/ModelRegistryKind"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: '#/components/parameters/registeredmodelId'
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelRegistryKindResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: updateModelRegistrySettings
+      summary: Update Model Registry Settings
+      description: Updates an existing Model Registry settings.
+    delete:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: '#/components/parameters/registeredmodelId'
+      responses:
+        "204":
+          description: Successfully deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: deleteModelRegistrySettings
+      summary: Delete Model Registry Settings
+      description: Deletes an existing Model Registry settings.
   /api/v1/model_registry/{modelRegistryName}/model_versions/{modelversionId}:
     summary: Path used to manage a single ModelVersion.
     description: >-
@@ -234,12 +369,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
-      - name: registeredmodelId
-        description: A unique identifier for a `RegisteredModel`.
-        schema:
-          type: string
-        in: path
-        required: true
+      - $ref: '#/components/parameters/registeredmodelId'
   /api/v1/model_registry/{modelRegistryName}/model_versions/{modelversionId}/artifacts:
     summary: Path used to manage the list of artifacts for a modelversion.
     description: >-
@@ -369,12 +499,44 @@ paths:
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
-      - name: registeredmodelId
-        description: A unique identifier for a `RegisteredModel`.
-        schema:
-          type: string
-        in: path
+      - $ref: '#/components/parameters/registeredmodelId'
+  /api/v1/model_registry/{modelRegistryName}/model_artifact/{modelartifactId}:
+    summary: Path used to patch Model Artifacts
+    description: >-
+      The REST endpoint/path used patch single instances of an `ModelArtifact`. This path contains`PATCH` operation used to perform the patch tasks.
+    patch:
+      requestBody:
+        description: Updated `ModelArtifact` information.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the response
+                data:
+                  $ref: "#/components/schemas/Artifact"
         required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: patchModelArtifact
+      summary: Patch a Model Artifact
+      description: Patch an existing `Model Artifact`.
+    parameters:
+      - $ref: "#/components/parameters/modelRegistryName"
+      - $ref: "#/components/parameters/kubeflowUserId"
 components:
   schemas:
     Config:
@@ -402,7 +564,123 @@ components:
           example: My Model Registry
         description:
           type: string
-          example: This is the main model reigstry for the cluster and contains..
+          example: This is the main model registry for the cluster and contains..
+        serverAddress:
+          type: string
+          example: http://example.com
+    ModelRegistryKind:
+      description: Kubernetes Custom Resource for Model Registry
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          example: modelregistry.kubeflow.io/v1alpha1
+        kind:
+          type: string
+          example: ModelRegistry
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+              example: modelregistry-sample
+            namespace:
+              type: string
+              example: odh-model-registries
+            creationTimestamp:
+              type: string
+              example: 2024-03-14T08:01:42Z
+        spec:
+          type: object
+          properties:
+            grpc:
+              type: object
+            rest:
+              type: object
+            istio:
+              type: object
+              properties:
+                gateway:
+                  type: object
+                  properties:
+                    grpc:
+                      type: object
+                      properties:
+                        tls:
+                          type: object
+                    rest:
+                      type: object
+                      properties:
+                        tls:
+                          type: object
+            mysql:
+              type: object
+              properties:
+                database:
+                  type: string
+                  example: model-registry
+                host:
+                  type: string
+                  example: model-registry-db
+                passwordSecret:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                      example: database-password
+                    name:
+                      type: string
+                      example: model-registry-db
+                port:
+                  type: integer
+                  example: 5432
+                skipDBCreation:
+                  type: boolean
+                  example: false
+                username:
+                  type: string
+                  example: mlmduser
+                sslRootCertificateConfigMap:
+                  type: string
+                  example: ssl-config-map
+                sslRootCertificateSecret:
+                  type: string
+                  example: ssl-secret
+        status:
+          type: object
+          properties:
+            conditions:
+              type: array
+              items:
+                type: object
+                properties:
+                  lastTransitionTime:
+                    type: string
+                    example: 2024-03-22T09:30:02Z
+                  message:
+                    type: string
+                    example: Deployment for custom resource modelregistry-sample was successfully created
+                  reason:
+                    type: string
+                    example: CreatedDeployment
+                  status:
+                    type: string
+                    example: "True"
+                  type:
+                    type: string
+                    example: "Progressing"
+    ModelRegistryKindList:
+      description: List of ModelRegistryKind entities.
+      type: object
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `ModelRegistryKind` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelRegistryKind"
+        - $ref: "#/components/schemas/BaseResourceList"
     ArtifactState:
       description: |2-
          - PENDING: A state indicating that the artifact may exist.
@@ -1210,7 +1488,45 @@ components:
               data:
                 $ref: "#/components/schemas/ServeModel"
       description: A response containing a `ServeModel` entity.
+    ModelRegistryKindListResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelRegistryKindList"
+      description: A response containing a `ModelRegistryKindList` entity.
+    ModelRegistryKindResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelRegistryKind"
+      description: A response containing a `ModelRegistryKind` entity.
   parameters:
+    registeredmodelId:
+      name: registeredmodelId
+      description: A unique identifier for a `RegisteredModel`.
+      schema:
+        type: string
+      in: path
+      required: true
+    modelRegsitryId:
+      name: modelRegsitryId
+      description: A unique identifier for a `Model Registry`.
+      schema:
+        type: string
+      in: path
+      required: true
     kubeflowUserId:
       in: header
       name: kubeflow-userid

@@ -104,7 +104,7 @@ func TestMapFromModelArtifactsEmpty(t *testing.T) {
 func TestMapFromServingEnvironment(t *testing.T) {
 	assertion, m := setup(t)
 
-	ctx, err := m.MapFromServingEnvironment(&openapi.ServingEnvironment{Name: of("Env")})
+	ctx, err := m.MapFromServingEnvironment(&openapi.ServingEnvironment{Name: *of("Env")})
 	assertion.Nil(err)
 	assertion.Equal("Env", ctx.GetName())
 	assertion.Equal(servingEnvironmentTypeId, ctx.GetTypeId())

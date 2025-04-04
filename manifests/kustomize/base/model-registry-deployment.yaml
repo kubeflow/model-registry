@@ -11,11 +11,14 @@ spec:
       component: model-registry-server
   template:
     metadata:
-      annotations:
-        sidecar.istio.io/inject: "true"
       labels:
+        sidecar.istio.io/inject: "true"
         component: model-registry-server
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
       containers:
         - name: rest-container
           args:
@@ -26,7 +29,7 @@ spec:
           command:
             - /model-registry
             - proxy
-          image: kubeflow/model-registry:latest
+          image: ghcr.io/kubeflow/model-registry/server:latest
           # empty placeholder environment for patching
           env: []
           ports:
@@ -44,6 +47,11 @@ spec:
             tcpSocket:
               port: http-api
             timeoutSeconds: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
         - name: grpc-container
           # ! Sync to the same MLMD version:
           # * backend/metadata_writer/requirements.in and requirements.txt
@@ -102,4 +110,11 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 5
             timeoutSeconds: 2
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       serviceAccountName: model-registry-server

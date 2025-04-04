@@ -9,7 +9,7 @@ import {
   PageSidebar,
   PageSidebarBody,
 } from '@patternfly/react-core';
-import { LOGO_LIGHT } from '~/shared/utilities/const';
+import { isMUITheme, LOGO_LIGHT } from '~/shared/utilities/const';
 import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from './AppRoutes';
 
 const NavHref: React.FC<{ item: NavDataHref }> = ({ item }) => (
@@ -48,13 +48,17 @@ const NavSidebar: React.FC = () => {
       <PageSidebarBody>
         <Nav id="nav-primary-simple">
           <NavList id="nav-list-simple">
-            <NavItem>
-              <Brand
-                className="kubeflow_brand"
-                src={`${window.location.origin}/images/${LOGO_LIGHT}`}
-                alt="Kubeflow Logo"
-              />
-            </NavItem>
+            {isMUITheme() ? (
+              <NavItem>
+                <Brand
+                  className="kubeflow_brand"
+                  src={`${window.location.origin}/images/${LOGO_LIGHT}`}
+                  alt="Kubeflow Logo"
+                />
+              </NavItem>
+            ) : (
+              ''
+            )}
             {navData.map((item) =>
               isNavDataGroup(item) ? (
                 <NavGroup key={item.label} item={item} />

@@ -85,6 +85,11 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 				"storage_key":          proto.PropertyType_STRING,
 				"storage_path":         proto.PropertyType_STRING,
 				"service_account_name": proto.PropertyType_STRING,
+				"model_source_kind":    proto.PropertyType_STRING,
+				"model_source_class":   proto.PropertyType_STRING,
+				"model_source_group":   proto.PropertyType_STRING,
+				"model_source_id":      proto.PropertyType_STRING,
+				"model_source_name":    proto.PropertyType_STRING,
 			},
 		},
 	}

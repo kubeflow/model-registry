@@ -1,11 +1,11 @@
 package integrations
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"io"
 	"log/slog"
 	"net/http"
@@ -77,6 +77,25 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
+
+	if response.StatusCode != http.StatusOK {
+		var errorResponse ErrorResponse
+		if err := json.Unmarshal(body, &errorResponse); err != nil {
+			return nil, fmt.Errorf("error unmarshalling error response: %w", err)
+		}
+		httpError := &HTTPError{
+			StatusCode:    response.StatusCode,
+			ErrorResponse: errorResponse,
+		}
+		//Sometimes the code comes empty from model registry API
+		//also not all error codes are correctly implemented
+		//see https://github.com/kubeflow/model-registry/issues/95
+		if httpError.ErrorResponse.Code == "" {
+			httpError.ErrorResponse.Code = strconv.Itoa(response.StatusCode)
+		}
+		return nil, httpError
+	}
+
 	return body, nil
 }
 
@@ -84,7 +103,6 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	requestId := uuid.NewString()
 
 	fullURL := c.baseURL + url
-	fmt.Println(fullURL)
 	req, err := http.NewRequest("POST", fullURL, body)
 	if err != nil {
 		return nil, err
@@ -173,17 +191,9 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 }
 
 func logUpstreamReq(logger *slog.Logger, reqId string, req *http.Request) {
-	if logger.Enabled(context.TODO(), slog.LevelDebug) {
-		var body []byte
-		if req.Body != nil {
-			body, _ = CloneBody(req)
-		}
-		logger.Debug("Making upstream HTTP request", "request_id", reqId, "method", req.Method, "url", req.URL.String(), "body", body)
-	}
+	logger.Debug("Making upstream HTTP request", slog.String("request_id", reqId), slog.Any("request", helper.RequestLogValuer{Request: req}))
 }
 
 func logUpstreamResp(logger *slog.Logger, reqId string, resp *http.Response, body []byte) {
-	if logger.Enabled(context.TODO(), slog.LevelDebug) {
-		logger.Debug("Received upstream HTTP response", "request_id", reqId, "status_code", resp.StatusCode, "body", body)
-	}
+	logger.Debug("Received upstream HTTP response", slog.String("request_id", reqId), slog.Any("response", helper.ResponseLogValuer{Response: resp}))
 }

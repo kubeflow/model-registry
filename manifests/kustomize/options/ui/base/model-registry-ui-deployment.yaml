@@ -15,13 +15,19 @@ spec:
         app: model-registry-ui
     spec: 
       serviceAccountName: model-registry-ui
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
       containers:
       - name: model-registry-ui
-        image: model-registry-ui-image
+        image: model-registry-ui
         imagePullPolicy: Always
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /healthcheck
             port: 8080
+            scheme: HTTP
           initialDelaySeconds: 30
           timeoutSeconds: 15
           periodSeconds: 30
@@ -29,12 +35,9 @@ spec:
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/v1/healthcheck
+            path: /healthcheck
             port: 8080
             scheme: HTTP
-            httpHeaders:
-            - name: kubeflow-userid
-              value: user@example.com
           initialDelaySeconds: 15
           timeoutSeconds: 15
           periodSeconds: 30
@@ -51,3 +54,8 @@ spec:
           - containerPort: 8080
         args:
           - "--port=8080"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL

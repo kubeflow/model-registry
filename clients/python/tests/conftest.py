@@ -1,15 +1,19 @@
 import asyncio
 import inspect
 import os
+import pathlib
+import shutil
 import subprocess
 import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
 import requests
+import uvloop
 
 from model_registry import ModelRegistry
 
@@ -93,9 +97,32 @@ def event_loop():
 
 
 @pytest.fixture
+def uv_event_loop():
+    old_policy = asyncio.get_event_loop_policy()
+    policy = uvloop.EventLoopPolicy()
+    asyncio.set_event_loop_policy(policy)
+    loop = uvloop.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
+    asyncio.set_event_loop_policy(old_policy)
+
+
+@pytest.fixture
 @cleanup
 def client() -> ModelRegistry:
     return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
+
+
+@pytest.fixture
+@cleanup
+def client_attrs() -> dict[str, any]:
+    return {
+        "host": REGISTRY_HOST,
+        "port": REGISTRY_PORT,
+        "author": "author",
+        "ssl": False,
+    }
 
 
 @pytest.fixture(scope="module")
@@ -112,3 +139,111 @@ def setup_env_user_token():
     else:
         os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = old_token_path
     os.remove(token_file.name)
+
+
+@pytest.fixture
+def get_model_file():
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".onnx") as model_file:
+        pass
+
+    yield model_file.name
+
+    os.remove(model_file.name)
+
+
+@pytest.fixture
+def get_temp_dir_with_models():
+    temp_dir = tempfile.mkdtemp()
+    file_paths = []
+    for _ in range(3):
+        tmp_file = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            delete=False, dir=temp_dir, suffix=".onnx"
+        )
+        file_paths.append(tmp_file.name)
+        tmp_file.close()
+
+    yield temp_dir, file_paths
+
+    for file in file_paths:
+        if os.path.exists(file):
+            os.remove(file)
+    os.rmdir(temp_dir)
+
+
+@pytest.fixture
+def get_temp_dir():
+    temp_dir = tempfile.mkdtemp()
+
+    yield temp_dir
+
+    shutil.rmtree(temp_dir)
+
+
+@pytest.fixture
+def get_temp_dir_with_nested_models():
+    temp_dir = tempfile.mkdtemp()
+    nested_dir = tempfile.mkdtemp(dir=temp_dir)
+
+    file_paths = []
+    for _ in range(3):
+        tmp_file = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            delete=False, dir=nested_dir, suffix=".onnx"
+        )
+        file_paths.append(tmp_file.name)
+        tmp_file.close()
+
+    yield temp_dir, file_paths
+
+    for file in file_paths:
+        if os.path.exists(file):
+            os.remove(file)
+    os.rmdir(nested_dir)
+    os.rmdir(temp_dir)
+
+
+@pytest.fixture
+def patch_s3_env(monkeypatch: pytest.MonkeyPatch):
+    s3_endpoint = os.getenv("KF_MR_TEST_S3_ENDPOINT")
+    access_key_id = os.getenv("KF_MR_TEST_ACCESS_KEY_ID")
+    secret_access_key = os.getenv("KF_MR_TEST_SECRET_ACCESS_KEY")
+    bucket = os.getenv("KF_MR_TEST_BUCKET_NAME") or "default"
+    region = "east"
+
+    monkeypatch.setenv("AWS_S3_ENDPOINT", s3_endpoint)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", access_key_id)
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", secret_access_key)
+    monkeypatch.setenv("AWS_DEFAULT_REGION", region)
+    monkeypatch.setenv("AWS_S3_BUCKET", bucket)
+
+    return (bucket, s3_endpoint, access_key_id, secret_access_key, region)
+
+
+# These are trimmed down versions of whats found in the example specs found here: https://github.com/opencontainers/image-spec/blob/main/image-layout.md#oci-layout-file
+index_json_contents = """{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "manifests": [],
+  "annotations": {
+    "com.example.index.revision": "r124356"
+  }
+}"""
+oci_layout_contents = """{"imageLayoutVersion": "1.0.0"}"""
+
+
+@pytest.fixture
+def get_mock_custom_oci_backend():
+    is_available_mock = Mock()
+    is_available_mock.return_value = True
+    pull_mock = Mock()
+    push_mock = Mock()
+
+    def pull_mock_imple(base_image, dest_dir):
+        pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
+        pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
+
+    pull_mock.side_effect = pull_mock_imple
+    return {
+        "is_available": is_available_mock,
+        "pull": pull_mock,
+        "push": push_mock,
+    }

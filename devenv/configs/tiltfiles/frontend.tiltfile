@@ -1,0 +1,118 @@
+load('ext://namespace', 'namespace_inject')
+load("ext://restart_process", "docker_build_with_restart")
+
+manifests = kustomize("../../../manifests/kustomize/options/ui/overlays/standalone")
+
+objects = decode_yaml_stream(manifests)
+
+for o in objects:
+    if o["kind"] == "Deployment" and o.get("metadata").get("name") in ["model-registry-ui"]:
+        o["spec"]["template"]["spec"]["securityContext"] = {"runAsNonRoot": False, "readOnlyRootFilesystem": False}
+        o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
+
+overridden_manifests = encode_yaml_stream(objects)
+
+k8s_yaml(namespace_inject(overridden_manifests, "kubeflow"), allow_duplicates=True)
+
+k8s_resource(
+    workload="model-registry-ui",
+    new_name="ui",
+    labels="frontend",
+    resource_deps=["proxy", "kubeflow-namespace"],
+    port_forwards=[port_forward(
+        local_port=8081,
+        container_port=8080,
+    )],
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+rbac_manifests = kustomize("../kustomize/ui-rbac")
+
+k8s_yaml(rbac_manifests, allow_duplicates=True)
+
+k8s_resource(
+    new_name="ui-rbac-reqs",
+    objects=[
+        "devenv-cluster-admin:clusterrolebinding",
+    ],
+    labels="requirements",
+)
+
+k8s_resource(
+    new_name="ui-reqs",
+    objects=[
+       "model-registry-ui:serviceaccount",
+       "model-registry-create-sars:clusterrole",
+       "model-registry-retrieve-clusterrolebindings:clusterrole",
+       "model-registry-ui-namespaces-reader:clusterrole",
+       "model-registry-ui-services-reader:clusterrole",
+       "model-registry-create-sars-binding:clusterrolebinding",
+       "model-registry-retrieve-clusterrolebindings-binding:clusterrolebinding",
+       "model-registry-ui-namespaces-reader-binding:clusterrolebinding",
+       "model-registry-ui-services-reader-binding:clusterrolebinding",
+       "service-access-cluster-binding:clusterrolebinding",
+    ],
+    labels="requirements",
+    resource_deps=["kubeflow-namespace", "ui-rbac-reqs"],
+)
+
+local_resource(
+    "frontend-static-reqs",
+    "npm install",
+    dir="../../../clients/ui/frontend",
+    deps=[
+        "../../../clients/ui/frontend/package.json",
+    ],
+    labels="requirements",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "frontend-build",
+    "npm run build:prod",
+    dir="../../../clients/ui/frontend",
+    deps=[
+        "../../../clients/ui/frontend/src",
+        "../../../clients/ui/frontend/config",
+        "../../../clients/ui/frontend/package.json",
+        "../../../clients/ui/frontend/package-lock.json",
+    ],
+    resource_deps=["frontend-static-reqs", "kubeflow-namespace"],
+    env={
+        "DIST_DIR": "../../../devenv/ui-static",
+        "DEPLOYMENT_MODE": "standalone",
+        "MOCK_AUTH": "true",
+        "USERNAME": "test",
+    },
+    labels="frontend",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "bff-bin",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ../../../devenv/bin/bff ./cmd",
+    dir="../../../clients/ui/bff",
+    deps=[
+        "../../../clients/ui/bff/cmd",
+        "../../../clients/ui/bff/internal",
+        "../../../clients/ui/bff/go.mod",
+        "../../../clients/ui/bff/go.sum",
+    ],
+    labels="frontend",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+docker_build_with_restart(
+    "ghcr.io/kubeflow/model-registry/ui:latest",
+    context="../../../",
+    dockerfile="../../../tilt-ui.dockerfile",
+    entrypoint=["/bff"],
+    only=[
+      "devenv/bin/bff",
+      "devenv/ui-static",
+    ],
+    live_update=[
+        sync("../../bin/bff", "/bff"),
+        sync("../../ui-static", "/static"),
+    ],
+)

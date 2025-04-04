@@ -19,14 +19,14 @@ MLMD_VERSION ?= 1.14.0
 DOCKER ?= docker
 # default Dockerfile
 DOCKERFILE ?= Dockerfile
-# container registry, default to empty (dockerhub) if not explicitly set
-IMG_REGISTRY ?= 
+# container registry, default to github container registry
+IMG_REGISTRY ?= ghcr.io
 # container image organization
 IMG_ORG ?= kubeflow
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry
+IMG_REPO ?= model-registry/server
 # container image build path
 BUILD_PATH ?= .
 # container image
@@ -37,13 +37,13 @@ else
 endif
 
 # Change Dockerfile path depending on IMG_REPO
-ifeq ($(IMG_REPO),model-registry-ui)
+ifeq ($(IMG_REPO),model-registry/ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
 	BUILD_PATH := $(UI_PATH)
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry-storage-initializer)
+ifeq ($(IMG_REPO),model-registry/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 
@@ -119,11 +119,16 @@ clean/csi:
 	rm -Rf ./mr-storage-initializer
 
 .PHONY: clean-pkg-openapi
-	while IFS= read -r file; do rm -f "pkg/openapi/$file"; done < pkg/openapi/.openapi-generator/FILES
+clean-pkg-openapi:
+	while IFS= read -r file; do rm -f "pkg/openapi/$$file"; done < pkg/openapi/.openapi-generator/FILES
+
+.PHONY: clean-internal-server-openapi
+clean-internal-server-openapi:
+	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
 
 .PHONY: clean 
-clean: clean-pkg-openapi clean/csi
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go internal/server/openapi/api_model_registry_service.go
+clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
+	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
 
 .PHONY: clean/odh
 clean/odh:

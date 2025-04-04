@@ -5,9 +5,11 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but it's not
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but it's not installed. Aborting."; exit 1; }
 command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not installed. Aborting."; exit 1; }
 
-echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}". If this is a new image, make sure you set it to public to avoid issues.
+echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}. If this is a new image, make sure you set it to public to avoid issues."
 
-if kubectl get deployment model-registry-deployment -n kubeflow >/dev/null 2>&1; then
+# Set Kubernetes context to kind
+echo "Setting Kubernetes context to kind..."
+if kubectl config use-context kind-kind  >/dev/null 2>&1; then
   echo "Model Registry deployment already exists. Skipping to step 4."
 else
     # Step 1: Create a kind cluster
@@ -42,7 +44,7 @@ make docker-push-standalone
 
 echo "Editing kustomize image..."
 pushd  ../../manifests/kustomize/options/ui/base
-kustomize edit set image model-registry-ui-image=${IMG_UI_STANDALONE}
+kustomize edit set image model-registry-ui=${IMG_UI_STANDALONE}
 
 pushd  ../overlays/standalone
 # Step 4: Deploy model registry UI

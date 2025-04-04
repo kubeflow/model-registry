@@ -319,6 +319,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
         "500":
@@ -447,6 +449,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -556,6 +560,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -757,6 +763,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -829,6 +837,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -998,6 +1008,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -1229,6 +1241,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ModelVersion"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactList:
       description: List of ModelArtifact entities.
@@ -1240,6 +1254,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ModelArtifact"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelCreate:
       description: A registered model in model registry. A registered model has ModelVersion children.
@@ -1348,6 +1364,9 @@ components:
           MetadataStringValue: "#/components/schemas/MetadataStringValue"
           MetadataStructValue: "#/components/schemas/MetadataStructValue"
       description: A value in properties.
+      example:
+        string_value: my_value
+        metadataType: MetadataStringValue
     MetadataIntValue:
       description: An integer (int64) property value.
       type: object
@@ -1511,6 +1530,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Artifact"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
@@ -1536,6 +1557,35 @@ components:
             serviceAccountName:
               description: Name of the service account with storage secret.
               type: string
+            modelSourceKind:
+              type: string
+              description: |-
+                A string identifier describing the source kind. It differentiates various sources of model artifacts.
+                This identifier should be agreed upon by producers and consumers of source model metadata.
+                It is not an enumeration to keep the source of model metadata open ended. 
+                E.g. Kubeflow pipelines could use `pipelines` to identify models it produces.
+            modelSourceClass:
+              type: string
+              description: |-
+                A subgroup within the source kind. It is a specific sub-component or instance within the source kind.
+                E.g. `pipelinerun` for a Kubeflow pipeline run.
+            modelSourceGroup:
+              type: string
+              description: |-
+                Unique identifier for a source group for models from source class. 
+                It maps to a physical group of source models. 
+                E.g. a Kubernetes namespace where the pipeline run was executed.
+            modelSourceId:
+              type: string
+              description: |-
+                A unique identifier for a source model within kind, class, and group.
+                It should be a url friendly string if source supports using URLs to locate source models.
+                E.g. a pipeline run ID.
+            modelSourceName:
+              type: string
+              description: |-
+                A human-readable name for the source model. 
+                E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
     ModelArtifactCreate:
       description: An ML model artifact.
       properties:
@@ -1616,6 +1666,8 @@ components:
               items:
                 $ref: "#/components/schemas/ServingEnvironment"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     RegisteredModelList:
       description: List of RegisteredModels.
@@ -1628,6 +1680,8 @@ components:
               items:
                 $ref: "#/components/schemas/RegisteredModel"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServingEnvironment:
       description: A Model Serving environment for serving `RegisteredModels`.
@@ -1640,9 +1694,16 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
     ServingEnvironmentCreate:
       description: A Model Serving environment for serving `RegisteredModels`.
+      required:
+      - name
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ServingEnvironmentUpdate"
+        - type: object  
+          properties:
+            name:
+              description: The name of the ServingEnvironment.
+              type: string  
     InferenceService:
       description: >-
         An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
@@ -1660,6 +1721,8 @@ components:
               items:
                 $ref: "#/components/schemas/InferenceService"
               readOnly: false
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModelList:
       description: List of ServeModel entities.
@@ -1671,6 +1734,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ServeModel"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     ServeModel:
       description: An ML model serving action.
@@ -1745,6 +1810,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unauthorized
+    Conflict:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Conflict with current state of target resource
     UnprocessableEntity:
       content:
         application/json:

@@ -29,7 +29,7 @@ class ModelVersionList(BaseModel):
     )
     page_size: StrictInt = Field(description="Maximum number of resources to return in the result.", alias="pageSize")
     size: StrictInt = Field(description="Number of items in result list.")
-    items: list[ModelVersion] | None = Field(default=None, description="Array of `ModelVersion` entities.")
+    items: list[ModelVersion] = Field(description="Array of `ModelVersion` entities.")
     __properties: ClassVar[list[str]] = ["nextPageToken", "pageSize", "size", "items"]
 
     model_config = ConfigDict(

@@ -18,7 +18,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:        &entityName,
+		Name:        entityName,
 		ExternalId:  &entityExternalId,
 		Description: &entityDescription,
 		CustomProperties: &map[string]openapi.MetadataValue{
@@ -54,13 +54,55 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 	suite.Equal(1, len(getAllResp.Contexts), "there should be just one context saved in mlmd")
 }
 
+func (suite *CoreTestSuite) TestCreateServingEnvironmentEmptyFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	// use a ServingEnvironment with no params
+	eut := &openapi.ServingEnvironment{}
+
+	// test
+	_, err := service.UpsertServingEnvironment(eut)
+
+	// catch error for required name missing
+	suite.NotNilf(err, "name required to create new serving environment", err)
+}
+
+func (suite *CoreTestSuite) TestCreateDuplicateServingEnvironmentFailure() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	// register a new ServingEnvironment
+	eut := &openapi.ServingEnvironment{
+		Name:        entityName,
+		ExternalId:  &entityExternalId,
+		Description: &entityDescription,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	// create first serving environment
+	createdEntity, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating uut: %v", err)
+	suite.NotNilf(createdEntity.Id, "created uut should not have nil Id")
+
+	// attempt to create dupliate serving environment
+	_, err = service.UpsertServingEnvironment(eut)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "cannot register a duplicate serving environment")
+	suite.Equal(409, statusResp, "duplicate serving environments not allowed")
+}
+
 func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"myCustomProp": {
@@ -78,7 +120,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	createdEntityId, _ := converter.StringToInt64(createdEntity.Id)
 
 	// checks created entity matches original one except for Id
-	suite.Equal(*eut.Name, *createdEntity.Name, "returned entity should match the original one")
+	suite.Equal(eut.Name, createdEntity.Name, "returned entity should match the original one")
 	suite.Equal(*eut.ExternalId, *createdEntity.ExternalId, "returned entity external id should match the original one")
 	suite.Equal(*eut.CustomProperties, *createdEntity.CustomProperties, "returned entity custom props should match the original one")
 
@@ -115,7 +157,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 	// update the entity under test, keeping nil name
 	newExternalId = "newNewExternalId"
 	createdEntity.ExternalId = &newExternalId
-	createdEntity.Name = nil
+	createdEntity.Name = ""
 	createdEntity, err = service.UpsertServingEnvironment(createdEntity)
 	suite.Nilf(err, "error creating entity: %v", err)
 
@@ -143,7 +185,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 
 	// register a new entity
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"myCustomProp": {
@@ -162,7 +204,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 	suite.Nilf(err, "error getting eut by id %s: %v", *createdEntity.Id, err)
 
 	// checks created entity matches original one except for Id
-	suite.Equal(*eut.Name, *getEntityById.Name, "saved name should match the original one")
+	suite.Equal(eut.Name, getEntityById.Name, "saved name should match the original one")
 	suite.Equal(*eut.ExternalId, *getEntityById.ExternalId, "saved external id should match the original one")
 	suite.Equal(*eut.CustomProperties, *getEntityById.CustomProperties, "saved custom props should match the original one")
 }
@@ -182,7 +224,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -195,13 +237,34 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
 	suite.Equalf(*createdEntity.Id, *byName.Id, "the returned entity id should match the retrieved by name")
 }
 
+func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsInvalid() {
+	// create mode registry service
+	service := suite.setupModelRegistryService()
+
+	eut := &openapi.ServingEnvironment{
+		Name:       entityName,
+		ExternalId: &entityExternalId,
+	}
+
+	// must register a serving environment first, otherwise the http error will be a 404
+	_, err := service.UpsertServingEnvironment(eut)
+	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
+
+	invalidName := "\xFF"
+
+	_, err = service.GetServingEnvironmentByParams(&invalidName, nil)
+	statusResp := api.ErrToStatus(err)
+	suite.NotNilf(err, "invalid parameter used to retreive serving environemnt")
+	suite.Equal(400, statusResp, "invalid parameter used to retreive serving environemnt")
+}
+
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsExternalId() {
 	// create mode registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -220,7 +283,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByEmptyParams() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -240,7 +303,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -249,14 +312,14 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
 
 	newName := "Pricingentity2"
 	newExternalId := "myExternalId2"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	_, err = service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
 
 	newName = "Pricingentity3"
 	newExternalId = "myExternalId3"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	_, err = service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
@@ -292,7 +355,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedByLastUpdate() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -301,14 +364,14 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedByLastUpdate() {
 
 	newName := "Pricingentity2"
 	newExternalId := "myExternalId2"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	secondEntity, err := service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
 
 	newName = "Pricingentity3"
 	newExternalId = "myExternalId3"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	thirdEntity, err := service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
@@ -352,7 +415,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsWithPageSize() {
 
 	// register a new ServingEnvironment
 	eut := &openapi.ServingEnvironment{
-		Name:       &entityName,
+		Name:       entityName,
 		ExternalId: &entityExternalId,
 	}
 
@@ -361,14 +424,14 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsWithPageSize() {
 
 	newName := "Pricingentity2"
 	newExternalId := "myExternalId2"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	secondEntity, err := service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)
 
 	newName = "Pricingentity3"
 	newExternalId = "myExternalId3"
-	eut.Name = &newName
+	eut.Name = newName
 	eut.ExternalId = &newExternalId
 	thirdEntity, err := service.UpsertServingEnvironment(eut)
 	suite.Nilf(err, "error creating ServingEnvironment: %v", err)

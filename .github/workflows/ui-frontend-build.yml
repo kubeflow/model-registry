@@ -3,12 +3,20 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - "clients/ui/**"
+      - "!LICENSE*"
+      - "!DOCKERFILE*"
+      - "!**.gitignore"
+      - "!**.md"
+  
   pull_request:
-    paths-ignore:
-      - "LICENSE*"
-      - "DOCKERFILE*"
-      - "**.gitignore"
-      - "**.md"
+    paths:
+      - "clients/ui/**"
+      - "!LICENSE*"
+      - "!DOCKERFILE*"
+      - "!**.gitignore"
+      - "!**.md"
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -47,4 +55,3 @@ jobs:
               git diff
               exit 1
           fi
-

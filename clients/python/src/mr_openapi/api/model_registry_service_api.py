@@ -112,6 +112,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -174,6 +175,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -236,6 +238,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -360,6 +363,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -431,6 +435,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -502,6 +507,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -621,7 +627,9 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -685,7 +693,9 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -749,7 +759,9 @@ class ModelRegistryServiceApi:
             "200": "InferenceService",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -871,7 +883,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -940,7 +954,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1009,7 +1025,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -1130,6 +1148,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1194,6 +1213,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1258,6 +1278,7 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -1372,7 +1393,9 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1434,7 +1457,9 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1496,7 +1521,9 @@ class ModelRegistryServiceApi:
             "201": "ModelVersion",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -1613,7 +1640,9 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1677,7 +1706,9 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1741,7 +1772,9 @@ class ModelRegistryServiceApi:
             "201": "RegisteredModel",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -1862,6 +1895,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1929,6 +1963,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -1996,6 +2031,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -2115,7 +2151,9 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2179,7 +2217,9 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2243,7 +2283,9 @@ class ModelRegistryServiceApi:
             "201": "ServingEnvironment",
             "400": "Error",
             "401": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -2370,6 +2412,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2443,6 +2486,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2516,6 +2560,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -2646,6 +2691,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2719,6 +2765,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2792,6 +2839,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -2922,6 +2970,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -2995,6 +3044,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3068,6 +3118,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -3198,6 +3249,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3271,6 +3323,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3344,6 +3397,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -3467,6 +3521,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3533,6 +3588,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3599,6 +3655,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -3717,6 +3774,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3783,6 +3841,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -3849,6 +3908,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -3959,6 +4019,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4017,6 +4078,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4075,6 +4137,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -4201,6 +4264,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4282,6 +4346,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4363,6 +4428,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -4519,6 +4585,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4613,6 +4680,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4707,6 +4775,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -4844,6 +4913,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4906,6 +4976,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -4968,6 +5039,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -5075,6 +5147,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5137,6 +5210,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5199,6 +5273,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -5336,6 +5411,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5428,6 +5504,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5520,6 +5597,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -5657,6 +5735,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5719,6 +5798,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5781,6 +5861,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -5907,6 +5988,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -5988,6 +6070,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6069,6 +6152,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -6193,6 +6277,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6255,6 +6340,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6317,6 +6403,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -6443,6 +6530,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6524,6 +6612,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6605,6 +6694,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -6729,6 +6819,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6791,6 +6882,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -6853,6 +6945,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -6988,6 +7081,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7078,6 +7172,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7168,6 +7263,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -7322,6 +7418,7 @@ class ModelRegistryServiceApi:
             "200": "ModelVersionList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7401,6 +7498,7 @@ class ModelRegistryServiceApi:
             "200": "ModelVersionList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7480,6 +7578,7 @@ class ModelRegistryServiceApi:
             "200": "ModelVersionList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -7604,6 +7703,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7666,6 +7766,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7728,6 +7829,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -7865,6 +7967,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -7957,6 +8060,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8049,6 +8153,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -8203,6 +8308,7 @@ class ModelRegistryServiceApi:
             "200": "RegisteredModelList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8282,6 +8388,7 @@ class ModelRegistryServiceApi:
             "200": "RegisteredModelList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8361,6 +8468,7 @@ class ModelRegistryServiceApi:
             "200": "RegisteredModelList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -8487,6 +8595,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8551,6 +8660,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8615,6 +8725,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -8739,6 +8850,7 @@ class ModelRegistryServiceApi:
             "200": "ServingEnvironmentList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8818,6 +8930,7 @@ class ModelRegistryServiceApi:
             "200": "ServingEnvironmentList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -8897,6 +9010,7 @@ class ModelRegistryServiceApi:
             "200": "ServingEnvironmentList",
             "401": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -9026,6 +9140,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9093,6 +9208,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9160,6 +9276,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -9285,6 +9402,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9354,6 +9472,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9423,6 +9542,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -9548,6 +9668,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9617,6 +9738,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9686,6 +9808,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -9809,6 +9932,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9876,6 +10000,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -9943,6 +10068,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -10068,6 +10194,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10137,6 +10264,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10206,6 +10334,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -10333,6 +10462,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10404,6 +10534,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10475,6 +10606,7 @@ class ModelRegistryServiceApi:
             "401": "Error",
             "404": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response
@@ -10600,7 +10732,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10670,7 +10804,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         await response_data.read()
@@ -10740,7 +10876,9 @@ class ModelRegistryServiceApi:
             "400": "Error",
             "401": "Error",
             "404": "Error",
+            "409": "Error",
             "500": "Error",
+            "503": "Error",
         }
         response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
         return response_data.response

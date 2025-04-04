@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
-	"github.com/rs/cors"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
+	"github.com/rs/cors"
 )
 
 func (app *App) RecoverPanic(next http.Handler) http.Handler {
@@ -22,7 +23,7 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
 				app.serverErrorResponse(w, r, fmt.Errorf("%s", err))
-				app.logger.Error("Recover from panic: " + string(debug.Stack()))
+				app.logger.Error("Recovered from panic", slog.String("stack_trace", string(debug.Stack())))
 			}
 		}()
 
@@ -32,9 +33,8 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 
 func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		//skip use headers check if we are not on /api/v1
-		if !strings.HasPrefix(r.URL.Path, PathPrefix) {
+		if !strings.HasPrefix(r.URL.Path, ApiPathPrefix) && !strings.HasPrefix(r.URL.Path, PathPrefix+ApiPathPrefix) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -68,18 +68,17 @@ func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
 }
 
 func (app *App) EnableCORS(next http.Handler) http.Handler {
-	allowedOrigins, ok := ParseOriginList(app.config.AllowedOrigins)
-
-	if !ok {
+	if len(app.config.AllowedOrigins) == 0 {
+		// CORS is disabled, this middleware becomes a noop.
 		return next
 	}
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:     allowedOrigins,
+		AllowedOrigins:     app.config.AllowedOrigins,
 		AllowCredentials:   true,
 		AllowedMethods:     []string{"GET", "PUT", "POST", "PATCH", "DELETE"},
 		AllowedHeaders:     []string{constants.KubeflowUserIDHeader, constants.KubeflowUserGroupsIdHeader},
-		Debug:              strings.ToLower(app.config.LogLevel) == "debug",
+		Debug:              app.config.LogLevel == slog.LevelDebug,
 		OptionsPassthrough: false,
 	})
 
@@ -97,16 +96,8 @@ func (app *App) EnableTelemetry(next http.Handler) http.Handler {
 			traceLogger := app.logger.With(slog.String("trace_id", traceId))
 			ctx = context.WithValue(ctx, constants.TraceLoggerKey, traceLogger)
 
-			if traceLogger.Enabled(ctx, slog.LevelDebug) {
-				cloneBody, err := integrations.CloneBody(r)
-				if err != nil {
-					traceLogger.Debug("Error reading request body for debug logging", "error", err)
-				}
-				////TODO (Alex) Log headers, BUT we must ensure we don't log confidential data like tokens etc.
-				traceLogger.Debug("Incoming HTTP request", "method", r.Method, "url", r.URL.String(), "body", cloneBody)
-			}
+			traceLogger.Debug("Incoming HTTP request", slog.Any("request", helper.RequestLogValuer{Request: r}))
 		}
-
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -121,10 +112,17 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 		}
 
-		modelRegistryBaseURL, err := resolveModelRegistryURL(r.Context(), namespace, modelRegistryID, app.kubernetesClient, app.config)
+		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistry(r.Context(), app.kubernetesClient, namespace, modelRegistryID)
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
+		}
+		modelRegistryBaseURL := modelRegistry.ServerAddress
+
+		// If we are in dev mode, we need to resolve the server address to the local host
+		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
+		if app.config.DevMode {
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort))
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for
@@ -147,22 +145,6 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, client)
 		next(w, r.WithContext(ctx), ps)
 	}
-}
-
-func resolveModelRegistryURL(sessionCtx context.Context, namespace string, serviceName string, client integrations.KubernetesClientInterface, config config.EnvConfig) (string, error) {
-
-	serviceDetails, err := client.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
-	if err != nil {
-		return "", err
-	}
-
-	if config.DevMode {
-		serviceDetails.ClusterIP = "localhost"
-		serviceDetails.HTTPPort = int32(config.DevModePort)
-	}
-
-	url := fmt.Sprintf("http://%s:%d/api/model_registry/v1alpha3", serviceDetails.ClusterIP, serviceDetails.HTTPPort)
-	return url, nil
 }
 
 func (app *App) AttachNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {

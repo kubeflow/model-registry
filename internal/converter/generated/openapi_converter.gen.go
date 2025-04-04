@@ -270,6 +270,26 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelA
 			xstring9 := *(*source).ServiceAccountName
 			openapiModelArtifact.ServiceAccountName = &xstring9
 		}
+		if (*source).ModelSourceKind != nil {
+			xstring10 := *(*source).ModelSourceKind
+			openapiModelArtifact.ModelSourceKind = &xstring10
+		}
+		if (*source).ModelSourceClass != nil {
+			xstring11 := *(*source).ModelSourceClass
+			openapiModelArtifact.ModelSourceClass = &xstring11
+		}
+		if (*source).ModelSourceGroup != nil {
+			xstring12 := *(*source).ModelSourceGroup
+			openapiModelArtifact.ModelSourceGroup = &xstring12
+		}
+		if (*source).ModelSourceId != nil {
+			xstring13 := *(*source).ModelSourceId
+			openapiModelArtifact.ModelSourceId = &xstring13
+		}
+		if (*source).ModelSourceName != nil {
+			xstring14 := *(*source).ModelSourceName
+			openapiModelArtifact.ModelSourceName = &xstring14
+		}
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
 	return pOpenapiModelArtifact, nil
@@ -326,6 +346,26 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactUpdate(source *openapi.ModelA
 		if (*source).ServiceAccountName != nil {
 			xstring8 := *(*source).ServiceAccountName
 			openapiModelArtifact.ServiceAccountName = &xstring8
+		}
+		if (*source).ModelSourceKind != nil {
+			xstring9 := *(*source).ModelSourceKind
+			openapiModelArtifact.ModelSourceKind = &xstring9
+		}
+		if (*source).ModelSourceClass != nil {
+			xstring10 := *(*source).ModelSourceClass
+			openapiModelArtifact.ModelSourceClass = &xstring10
+		}
+		if (*source).ModelSourceGroup != nil {
+			xstring11 := *(*source).ModelSourceGroup
+			openapiModelArtifact.ModelSourceGroup = &xstring11
+		}
+		if (*source).ModelSourceId != nil {
+			xstring12 := *(*source).ModelSourceId
+			openapiModelArtifact.ModelSourceId = &xstring12
+		}
+		if (*source).ModelSourceName != nil {
+			xstring13 := *(*source).ModelSourceName
+			openapiModelArtifact.ModelSourceName = &xstring13
 		}
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
@@ -575,10 +615,7 @@ func (c *OpenAPIConverterImpl) ConvertServingEnvironmentCreate(source *openapi.S
 			xstring2 := *(*source).ExternalId
 			openapiServingEnvironment.ExternalId = &xstring2
 		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiServingEnvironment.Name = &xstring3
-		}
+		openapiServingEnvironment.Name = (*source).Name
 		pOpenapiServingEnvironment = &openapiServingEnvironment
 	}
 	return pOpenapiServingEnvironment, nil
@@ -717,11 +754,10 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForServingEnvironment(source c
 	openapiServingEnvironment := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.Name
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiServingEnvironment.Name = &xstring
+		openapiServingEnvironment.Name = *pString
 	}
 	return openapiServingEnvironment, nil
 }

@@ -104,6 +104,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		openapiModelArtifact.StoragePath = converter.MapModelArtifactStoragePath((*source).Properties)
 		openapiModelArtifact.ModelFormatVersion = converter.MapModelArtifactFormatVersion((*source).Properties)
 		openapiModelArtifact.ServiceAccountName = converter.MapModelArtifactServiceAccountName((*source).Properties)
+		openapiModelArtifact.ModelSourceKind = converter.MapModelArtifactModelSourceKind((*source).Properties)
+		openapiModelArtifact.ModelSourceClass = converter.MapModelArtifactModelSourceClass((*source).Properties)
+		openapiModelArtifact.ModelSourceGroup = converter.MapModelArtifactModelSourceGroup((*source).Properties)
+		openapiModelArtifact.ModelSourceId = converter.MapModelArtifactModelSourceId((*source).Properties)
+		openapiModelArtifact.ModelSourceName = converter.MapModelArtifactModelSourceName((*source).Properties)
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
 	return pOpenapiModelArtifact, nil
@@ -201,7 +206,7 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *proto.Con
 			xstring := *(*source).ExternalId
 			openapiServingEnvironment.ExternalId = &xstring
 		}
-		openapiServingEnvironment.Name = converter.MapNameFromOwned((*source).Name)
+		openapiServingEnvironment.Name = converter.MapName((*source).Name)
 		openapiServingEnvironment.Id = converter.Int64ToString((*source).Id)
 		openapiServingEnvironment.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiServingEnvironment.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
