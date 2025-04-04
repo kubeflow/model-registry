@@ -16,7 +16,7 @@ import { asEnumMember } from '~/shared/utilities/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 import ModelVersionsArchiveTable from './ModelVersionsArchiveTable';
 
 type ModelVersionsArchiveListViewProps = {
@@ -32,6 +32,8 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
   const [search, setSearch] = React.useState('');
 
   const searchTypes = [SearchType.KEYWORD, SearchType.AUTHOR];
+
+  const { isMUITheme } = useThemeContext();
 
   const filteredModelVersions = filterModelVersions(unfilteredmodelVersions, search, searchType);
 
@@ -77,7 +79,7 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
                 />
               </ToolbarFilter>
               <ToolbarItem>
-                {isMUITheme() ? (
+                {isMUITheme ? (
                   <FormFieldset
                     className="toolbar-fieldset-wrapper"
                     component={
