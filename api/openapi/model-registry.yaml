@@ -99,6 +99,8 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -319,6 +321,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -1812,90 +1816,210 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Conflict with current state of target resource
+    UnprocessableEntity:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unprocessable Entity error
     InternalServerError:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
-    ServiceUnavailable:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-      description: Service is unavailable
     ModelArtifactListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ModelArtifactList"
       description: A response containing a list of ModelArtifact entities.
+      links:
+        GetModelArtifactById:
+          $ref: '#/components/links/GetModelArtifactById'
+        PatchModelArtifactById:
+          $ref: '#/components/links/PatchModelArtifactById'
+        SearchModelArtifactByExternalId:
+          $ref: '#/components/links/SearchModelArtifactByExternalId'
+        SearchModelArtifactByName:
+          $ref: '#/components/links/SearchModelArtifactByName'
+        SearchModelArtifactByParentResourceId:
+          $ref: '#/components/links/SearchModelArtifactByParentResourceId'
     ModelArtifactResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ModelArtifact"
       description: A response containing a `ModelArtifact` entity.
+      links:
+        GetModelArtifactById:
+          $ref: '#/components/links/GetModelArtifactById'
+        PatchModelArtifactById:
+          $ref: '#/components/links/PatchModelArtifactById'
+        SearchModelArtifactByExternalId:
+          $ref: '#/components/links/SearchModelArtifactByExternalId'
+        SearchModelArtifactByName:
+          $ref: '#/components/links/SearchModelArtifactByName'
+        SearchModelArtifactByParentResourceId:
+          $ref: '#/components/links/SearchModelArtifactByParentResourceId'
     ModelVersionListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ModelVersionList"
       description: A response containing a list of `ModelVersion` entities.
+      links:
+        GetModelVersionById:
+          $ref: '#/components/links/GetModelVersionById'
+        PatchModelVersionById:
+          $ref: '#/components/links/PatchModelVersionById'
+        SearchModelVersionByExternalId:
+          $ref: '#/components/links/SearchModelVersionByExternalId'
+        SearchModelVersionByName:
+          $ref: '#/components/links/SearchModelVersionByName'
     ModelVersionResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ModelVersion"
       description: A response containing a `ModelVersion` entity.
+      links:
+        GetModelVersionById:
+          $ref: '#/components/links/GetModelVersionById'
+        PatchModelVersionById:
+          $ref: '#/components/links/PatchModelVersionById'
+        SearchModelVersionByExternalId:
+          $ref: '#/components/links/SearchModelVersionByExternalId'
+        SearchModelVersionByName:
+          $ref: '#/components/links/SearchModelVersionByName'
     RegisteredModelListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/RegisteredModelList"
       description: A response containing a list of `RegisteredModel` entities.
+      links:
+        GetRegisteredModelById:
+          $ref: '#/components/links/GetRegisteredModelById'
+        PatchRegisteredModelById:
+          $ref: '#/components/links/PatchRegisteredModelById'
+        SearchRegisteredModelByExternalId:
+          $ref: '#/components/links/SearchRegisteredModelByExternalId'
+        SearchRegisteredModelByName:
+          $ref: '#/components/links/SearchRegisteredModelByName'
     RegisteredModelResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/RegisteredModel"
       description: A response containing a `RegisteredModel` entity.
+      links:
+        GetRegisteredModelById:
+          $ref: '#/components/links/GetRegisteredModelById'
+        PatchRegisteredModelById:
+          $ref: '#/components/links/PatchRegisteredModelById'
+        SearchRegisteredModelByExternalId:
+          $ref: '#/components/links/SearchRegisteredModelByExternalId'
+        SearchRegisteredModelByName:
+          $ref: '#/components/links/SearchRegisteredModelByName'
     ArtifactResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Artifact"
       description: A response containing an `Artifact` entity.
+      links:
+        GetArtifactById:
+          $ref: '#/components/links/GetArtifactById'
+        PatchArtifactById:
+          $ref: '#/components/links/PatchArtifactById'
+        SearchArtifactByExternalId:
+          $ref: '#/components/links/SearchArtifactByExternalId'
+        SearchArtifactByName:
+          $ref: '#/components/links/SearchArtifactByName'
+        SearchArtifactByParentResourceId:
+          $ref: '#/components/links/SearchArtifactByParentResourceId'
     ArtifactListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ArtifactList"
       description: A response containing a list of `Artifact` entities.
+      links:
+        GetArtifactById:
+          $ref: '#/components/links/GetArtifactById'
+        PatchArtifactById:
+          $ref: '#/components/links/PatchArtifactById'
+        SearchArtifactByExternalId:
+          $ref: '#/components/links/SearchArtifactByExternalId'
+        SearchArtifactByName:
+          $ref: '#/components/links/SearchArtifactByName'
+        SearchArtifactByParentResourceId:
+          $ref: '#/components/links/SearchArtifactByParentResourceId'
     ServingEnvironmentListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ServingEnvironmentList"
       description: A response containing a list of `ServingEnvironment` entities.
+      links:
+        GetServingEnvironmentById:
+          $ref: '#/components/links/GetServingEnvironmentById'
+        PatchServingEnvironmentById:
+          $ref: '#/components/links/PatchServingEnvironmentById'
+        SearchServingEnvironmentByExternalId:
+          $ref: '#/components/links/SearchServingEnvironmentByExternalId'
+        SearchServingEnvironmentByName:
+          $ref: '#/components/links/SearchServingEnvironmentByName'
     ServingEnvironmentResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ServingEnvironment"
       description: A response containing a `ServingEnvironment` entity.
+      links:
+        GetServingEnvironmentById:
+          $ref: '#/components/links/GetServingEnvironmentById'
+        PatchServingEnvironmentById:
+          $ref: '#/components/links/PatchServingEnvironmentById'
+        SearchServingEnvironmentByExternalId:
+          $ref: '#/components/links/SearchServingEnvironmentByExternalId'
+        SearchServingEnvironmentByName:
+          $ref: '#/components/links/SearchServingEnvironmentByName'
     InferenceServiceListResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/InferenceServiceList"
       description: A response containing a list of `InferenceService` entities.
+      links:
+        GetISById:
+          $ref: '#/components/links/GetISById'
+        PatchISById:
+          $ref: '#/components/links/PatchISById'
+        SearchISByExternalId:
+          $ref: '#/components/links/SearchISByExternalId'
+        SearchISByName:
+          $ref: '#/components/links/SearchISByName'
+        SearchISByParentResourceId:
+          $ref: '#/components/links/SearchISByParentResourceId'
     InferenceServiceResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/InferenceService"
       description: A response containing a `InferenceService` entity.
+      links:
+        GetISById:
+          $ref: '#/components/links/GetISById'
+        PatchISById:
+          $ref: '#/components/links/PatchISById'
+        SearchISByExternalId:
+          $ref: '#/components/links/SearchISByExternalId'
+        SearchISByName:
+          $ref: '#/components/links/SearchISByName'
+        SearchISByParentResourceId:
+          $ref: '#/components/links/SearchISByParentResourceId'
     ServeModelListResponse:
       content:
         application/json:
@@ -1908,6 +2032,12 @@ components:
           schema:
             $ref: "#/components/schemas/ServeModel"
       description: A response containing a `ServeModel` entity.
+    ServiceUnavailable:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Service is unavailable
   parameters:
     id:
       name: id
@@ -1993,6 +2123,206 @@ components:
       bearerFormat: JWT
       type: http
       description: Bearer JWT scheme
+  links:
+    # Artifact
+    GetArtifactById:
+      operationId: getArtifact
+      parameters:
+        id: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `GET /api/model_registry/v1alpha3/artifacts/{id}`.
+
+    PatchArtifactById:
+      operationId: updateArtifact
+      parameters:
+        id: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `PATCH /api/model_registry/v1alpha3/artifacts/{id}`.
+
+    SearchArtifactByExternalId:
+      operationId: findArtifact
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/artifact`.
+
+    SearchArtifactByName:
+      operationId: findArtifact
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/artifact`.
+
+    # Unsure about this one
+    SearchArtifactByParentResourceId:
+      operationId: findArtifact
+      parameters:
+        parentResourceId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `parentResourceId` parameter in `GET /api/model_registry/v1alpha3/artifact`, assuming that the 'Artifact' entity is a parent to another 'Artifact' entity.
+
+    # InferenceService
+    GetISById:
+      operationId: getInferenceService
+      parameters:
+        inferenceserviceId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `GET /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}`.
+
+    PatchISById:
+      operationId: updateInferenceService
+      parameters:
+        inferenceserviceId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `PATCH /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}`.
+
+    SearchISByExternalId:
+      operationId: findInferenceService
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/inference_service`.
+
+    SearchISByName:
+      operationId: findInferenceService
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/inference_service`.
+
+    # Unsure about this one
+    SearchISByParentResourceId:
+      operationId: findInferenceService
+      parameters:
+        parentResourceId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `parentResourceId` parameter in GET /api/model_registry/v1alpha3/inference_service`, assuming that the 'InferenceService' entity is a parent to another 'InferenceService' entity.
+
+    # ModelArtifact
+    GetModelArtifactById:
+      operationId: getModelArtifact
+      parameters:
+        modelartifactId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `GET "/api/model_registry/v1alpha3/model_artifacts/{modelartifactId}`.
+
+    PatchModelArtifactById:
+      operationId: updateModelArtifact
+      parameters:
+        modelartifactId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `id` parameter in `PATCH "/api/model_registry/v1alpha3/model_artifacts/{modelartifactId}`.
+
+    SearchModelArtifactByExternalId:
+      operationId: findModelArtifact
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/model_artifact`.
+
+    SearchModelArtifactByName:
+      operationId: findModelArtifact
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/model_artifact`.
+
+    # Unsure about this one
+    SearchModelArtifactByParentResourceId:
+      operationId: findModelArtifact
+      parameters:
+        parentResourceId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `parentResourceId` parameter in `GET /api/model_registry/v1alpha3/model_artifact`, assuming that the 'ModelArtifact' entity is a parent to another 'ModelArtifact' entity.
+
+    # RegisteredModel
+    GetRegisteredModelById:
+      operationId: getRegisteredModel
+      parameters:
+        registeredmodelId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `registeredmodelId` parameter in `GET /api/model_registry/v1alpha3/registered_models/{registeredmodelId}`.
+
+    PatchRegisteredModelById:
+      operationId: updateRegisteredModel
+      parameters:
+        registeredmodelId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `registeredmodelId` parameter in `PATCH /api/model_registry/v1alpha3/registered_models/{registeredmodelId}`.
+
+    SearchRegisteredModelByExternalId:
+      operationId: findRegisteredModel
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/registered_model`.
+
+    SearchRegisteredModelByName:
+      operationId: findRegisteredModel
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/registered_model`.
+
+    # ModelVersion
+    GetModelVersionById:
+      operationId: getModelVersion
+      parameters:
+        modelversionId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `modelversionId` parameter in `GET /api/model_registry/v1alpha3/model_versions/{modelversionId}`.
+
+    PatchModelVersionById:
+      operationId: updateModelVersion
+      parameters:
+        modelversionId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `modelversionId` parameter in `PATCH /api/model_registry/v1alpha3/model_versions/{modelversionId}`.
+
+    SearchModelVersionByExternalId:
+      operationId: findModelVersion
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/model_version`.
+
+    SearchModelVersionByName:
+      operationId: findModelVersion
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/model_version`.
+
+    # ServingEnvironment
+    GetServingEnvironmentById:
+      operationId: getServingEnvironment
+      parameters:
+        servingenvironmentId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `servingenvironmentId` parameter in `GET /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}`.
+
+    PatchServingEnvironmentById:
+      operationId: updateServingEnvironment
+      parameters:
+        servingenvironmentId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `servingenvironmentId` parameter in `PATCH /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}`.
+
+    SearchServingEnvironmentByExternalId:
+      operationId: findServingEnvironment
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/serving_environment`.
+
+    SearchServingEnvironmentByName:
+      operationId: findServingEnvironment
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/serving_environment`.
+
+      #What about ServeModel?
 security:
   - Bearer: []
 tags:
