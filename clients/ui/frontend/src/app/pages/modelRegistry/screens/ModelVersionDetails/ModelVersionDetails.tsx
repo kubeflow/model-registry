@@ -13,6 +13,8 @@ import {
   modelVersionUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
+import { FetchStateObject } from '~/shared/types';
 import { ModelVersionDetailsTab } from './const';
 import ModelVersionSelector from './ModelVersionSelector';
 import ModelVersionDetailsTabs from './ModelVersionDetailsTabs';
@@ -33,6 +35,19 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
+
+  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
+  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
+    data: [],
+    loaded: false,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    refresh: () => {},
+  };
 
   const refresh = React.useCallback(() => {
     refreshModelVersion();
@@ -90,7 +105,11 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
               />
             </FlexItem>
             <FlexItem>
-              <ModelVersionsDetailsHeaderActions mv={mv} hasDeployment={false} />
+              <ModelVersionsDetailsHeaderActions
+                mv={mv}
+                hasDeployment={inferenceServices.data.length > 0}
+                refresh={refresh}
+              />
             </FlexItem>
           </Flex>
         )
@@ -100,7 +119,15 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       loaded={mvLoaded}
       provideChildrenPadding
     >
-      {mv !== null && <ModelVersionDetailsTabs tab={tab} modelVersion={mv} refresh={refresh} />}
+      {mv !== null && (
+        <ModelVersionDetailsTabs
+          tab={tab}
+          modelVersion={mv}
+          inferenceServices={inferenceServices}
+          servingRuntimes={servingRuntimes}
+          refresh={refresh}
+        />
+      )}
     </ApplicationsPage>
   );
 };

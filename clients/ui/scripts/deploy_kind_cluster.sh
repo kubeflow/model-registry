@@ -7,7 +7,9 @@ command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but it's not ins
 
 echo "WARNING: You must have proper push / pull access to ${IMG_UI_STANDALONE}. If this is a new image, make sure you set it to public to avoid issues."
 
-if kubectl get deployment model-registry-deployment -n kubeflow >/dev/null 2>&1; then
+# Set Kubernetes context to kind
+echo "Setting Kubernetes context to kind..."
+if kubectl config use-context kind-kind  >/dev/null 2>&1; then
   echo "Model Registry deployment already exists. Skipping to step 4."
 else
     # Step 1: Create a kind cluster

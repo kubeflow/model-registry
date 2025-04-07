@@ -3,32 +3,30 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Form,
-  FormGroup,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
   PageSection,
   Stack,
   StackItem,
-  TextArea,
-  TextInput,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import FormSection from '~/shared/components/pf-overrides/FormSection';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { isMUITheme } from '~/shared/utilities/const';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/AppContext';
+import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { useRegisterModelData } from './useRegisterModelData';
-import { isNameValid, isRegisterModelSubmitDisabled, registerModel } from './utils';
+import {
+  isModelNameExisting,
+  isNameValid,
+  isRegisterModelSubmitDisabled,
+  registerModel,
+} from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import RegistrationFormFooter from './RegistrationFormFooter';
-import { MR_CHARACTER_LIMIT, SubmitLabel } from './const';
+import { SubmitLabel } from './const';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
+import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 
 const RegisterModel: React.FC = () => {
   const { modelRegistry: mrName } = useParams();
@@ -39,12 +37,20 @@ const RegisterModel: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
   const [formData, setData] = useRegisterModelData();
+  const [submittedRegisteredModelName, setSubmittedRegisteredModelName] =
+    React.useState<string>('');
+  const [submittedVersionName, setSubmittedVersionName] = React.useState<string>('');
+  const [registrationErrorType, setRegistrationErrorType] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [registeredModels, registeredModelsLoaded, registeredModelsLoadError] =
+    useRegisteredModels();
+
   const isModelNameValid = isNameValid(formData.modelName);
-  const isSubmitDisabled = isSubmitting || isRegisterModelSubmitDisabled(formData);
-  const { modelName, modelDescription } = formData;
-  const [registeredModelName, setRegisteredModelName] = React.useState<string>('');
-  const [versionName, setVersionName] = React.useState<string>('');
-  const [errorName, setErrorName] = React.useState<string | undefined>(undefined);
+  const isModelNameDuplicate = isModelNameExisting(formData.modelName, registeredModels);
+  const hasModelNameError = !isModelNameValid || isModelNameDuplicate;
+  const isSubmitDisabled =
+    isSubmitting || isRegisterModelSubmitDisabled(formData, registeredModels);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -58,35 +64,16 @@ const RegisterModel: React.FC = () => {
       navigate(registeredModelUrl(registeredModel.id, mrName));
     } else if (Object.keys(errors).length > 0) {
       setIsSubmitting(false);
-      setRegisteredModelName(formData.modelName);
-      setVersionName(formData.versionName);
+      setSubmittedRegisteredModelName(formData.modelName);
+      setSubmittedVersionName(formData.versionName);
       const resourceName = Object.keys(errors)[0];
-      setErrorName(resourceName);
+      setRegistrationErrorType(resourceName);
       setSubmitError(errors[resourceName]);
     }
   };
-  const onCancel = () => navigate(modelRegistryUrl(mrName));
-
-  const modelNameInput = (
-    <TextInput
-      isRequired
-      type="text"
-      id="model-name"
-      name="model-name"
-      value={modelName}
-      onChange={(_e, value) => setData('modelName', value)}
-    />
-  );
-
-  const modelDescriptionInput = (
-    <TextArea
-      type="text"
-      id="model-description"
-      name="model-description"
-      value={modelDescription}
-      onChange={(_e, value) => setData('modelDescription', value)}
-    />
-  );
+  const onCancel = () => {
+    navigate(modelRegistryUrl(mrName));
+  };
 
   return (
     <ApplicationsPage
@@ -100,7 +87,8 @@ const RegisterModel: React.FC = () => {
           <BreadcrumbItem>Register model</BreadcrumbItem>
         </Breadcrumb>
       }
-      loaded
+      loaded={registeredModelsLoaded}
+      loadError={registeredModelsLoadError}
       empty={false}
     >
       <PageSection hasBodyWrapper={false} isFilled>
@@ -110,38 +98,12 @@ const RegisterModel: React.FC = () => {
               <PrefilledModelRegistryField mrName={mrName} />
             </StackItem>
             <StackItem>
-              <FormSection
-                title="Model details"
-                description="Provide general details that apply to all versions of this model."
-              >
-                <FormGroup label="Model name" isRequired fieldId="model-name">
-                  {isMUITheme() ? (
-                    <FormFieldset component={modelNameInput} field="Model Name" />
-                  ) : (
-                    modelNameInput
-                  )}
-                  {!isModelNameValid && (
-                    <FormHelperText>
-                      <HelperText>
-                        <HelperTextItem variant="error">
-                          Cannot exceed {MR_CHARACTER_LIMIT} characters
-                        </HelperTextItem>
-                      </HelperText>
-                    </FormHelperText>
-                  )}
-                </FormGroup>
-                <FormGroup
-                  className="model-description"
-                  label="Model description"
-                  fieldId="model-description"
-                >
-                  {isMUITheme() ? (
-                    <FormFieldset component={modelDescriptionInput} field="Model Description" />
-                  ) : (
-                    modelDescriptionInput
-                  )}
-                </FormGroup>
-              </FormSection>
+              <RegisterModelDetailsFormSection
+                formData={formData}
+                setData={setData}
+                hasModelNameError={hasModelNameError}
+                isModelNameDuplicate={isModelNameDuplicate}
+              />
               <RegistrationCommonFormSections
                 formData={formData}
                 setData={setData}
@@ -158,9 +120,9 @@ const RegisterModel: React.FC = () => {
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         onCancel={onCancel}
-        errorName={errorName}
-        versionName={versionName}
-        modelName={registeredModelName}
+        registrationErrorType={registrationErrorType}
+        versionName={submittedVersionName}
+        modelName={submittedRegisteredModelName}
       />
     </ApplicationsPage>
   );

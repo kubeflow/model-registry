@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
@@ -76,7 +77,7 @@ func MapMLMDCustomProperties(source map[string]*proto.Value) (map[string]openapi
 			b64 := base64.StdEncoding.EncodeToString(asJSON)
 			customValue.MetadataStructValue = NewMetadataStructValue(b64)
 		default:
-			return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
+			return nil, fmt.Errorf("%w: metadataType not found for %s: %v", api.ErrBadRequest, key, v)
 		}
 
 		data[key] = customValue

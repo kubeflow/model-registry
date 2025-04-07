@@ -18,6 +18,7 @@ import {
 } from '~/shared/api/apiUtils';
 import { APIOptions } from '~/shared/api/types';
 import { handleRestFailures } from '~/shared/api/errorUtils';
+import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
 
 export const createRegisteredModel =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -37,24 +38,14 @@ export const createRegisteredModel =
       throw new Error('Invalid response format');
     });
 
-export const createModelVersion =
-  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: CreateModelVersionData): Promise<ModelVersion> =>
-    handleRestFailures(
-      restCREATE(hostPath, `/model_versions`, assembleModelRegistryBody(data), queryParams, opts),
-    ).then((response) => {
-      if (isModelRegistryResponse<ModelVersion>(response)) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    });
-
 export const createModelVersionForRegisteredModel =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (
     opts: APIOptions,
     registeredModelId: string,
     data: CreateModelVersionData,
+    registeredModel: RegisteredModel,
+    isFirstVersion?: boolean,
   ): Promise<ModelVersion> =>
     handleRestFailures(
       restCREATE(
@@ -66,19 +57,15 @@ export const createModelVersionForRegisteredModel =
       ),
     ).then((response) => {
       if (isModelRegistryResponse<ModelVersion>(response)) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    });
+        const newVersion = response.data;
 
-export const createModelArtifact =
-  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: CreateModelArtifactData): Promise<ModelArtifact> =>
-    handleRestFailures(
-      restCREATE(hostPath, `/model_artifacts`, assembleModelRegistryBody(data), queryParams, opts),
-    ).then((response) => {
-      if (isModelRegistryResponse<ModelArtifact>(response)) {
-        return response.data;
+        if (!isFirstVersion) {
+          return bumpRegisteredModelTimestamp(
+            { patchRegisteredModel: patchRegisteredModel(hostPath, queryParams) },
+            registeredModel,
+          ).then(() => newVersion);
+        }
+        return newVersion;
       }
       throw new Error('Invalid response format');
     });
@@ -119,23 +106,11 @@ export const getRegisteredModel =
 
 export const getModelVersion =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, modelversionId: string): Promise<ModelVersion> =>
+  (opts: APIOptions, modelVersionId: string): Promise<ModelVersion> =>
     handleRestFailures(
-      restGET(hostPath, `/model_versions/${modelversionId}`, queryParams, opts),
+      restGET(hostPath, `/model_versions/${modelVersionId}`, queryParams, opts),
     ).then((response) => {
       if (isModelRegistryResponse<ModelVersion>(response)) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    });
-
-export const getModelArtifact =
-  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, modelArtifactId: string): Promise<ModelArtifact> =>
-    handleRestFailures(
-      restGET(hostPath, `/model_artifacts/${modelArtifactId}`, queryParams, opts),
-    ).then((response) => {
-      if (isModelRegistryResponse<ModelArtifact>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -223,11 +198,11 @@ export const patchRegisteredModel =
 
 export const patchModelVersion =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: Partial<ModelVersion>, modelversionId: string): Promise<ModelVersion> =>
+  (opts: APIOptions, data: Partial<ModelVersion>, modelVersionId: string): Promise<ModelVersion> =>
     handleRestFailures(
       restPATCH(
         hostPath,
-        `/model_versions/${modelversionId}`,
+        `/model_versions/${modelVersionId}`,
         assembleModelRegistryBody(data),
         queryParams,
         opts,

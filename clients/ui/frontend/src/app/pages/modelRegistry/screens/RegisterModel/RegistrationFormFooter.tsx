@@ -17,7 +17,7 @@ type RegistrationFormFooterProps = {
   isSubmitting: boolean;
   onSubmit: () => void;
   onCancel: () => void;
-  errorName?: string;
+  registrationErrorType?: string;
   versionName?: string;
   modelName?: string;
 };
@@ -29,7 +29,7 @@ const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
   isSubmitting,
   onSubmit,
   onCancel,
-  errorName,
+  registrationErrorType,
   versionName,
   modelName,
 }) => (
@@ -39,7 +39,7 @@ const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
         <RegisterModelErrors
           submitLabel={submitLabel}
           submitError={submitError}
-          errorName={errorName}
+          registrationErrorType={registrationErrorType}
           versionName={versionName}
           modelName={modelName}
         />

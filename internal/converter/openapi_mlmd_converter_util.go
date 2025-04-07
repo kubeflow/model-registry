@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/ml_metadata/proto"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -65,7 +66,7 @@ func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[s
 			case v.MetadataIntValue != nil:
 				intValue, err := StringToInt64(&v.MetadataIntValue.IntValue)
 				if err != nil {
-					return nil, fmt.Errorf("unable to decode as int64 %w for key %s", err, key)
+					return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, key)
 				}
 				value.Value = &proto.Value_IntValue{IntValue: *intValue}
 			// double value
@@ -78,22 +79,22 @@ func MapOpenAPICustomProperties(source *map[string]openapi.MetadataValue) (map[s
 			case v.MetadataStructValue != nil:
 				data, err := base64.StdEncoding.DecodeString(v.MetadataStructValue.StructValue)
 				if err != nil {
-					return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
 				}
 				var asMap map[string]interface{}
 				err = json.Unmarshal(data, &asMap)
 				if err != nil {
-					return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
 				}
 				asStruct, err := structpb.NewStruct(asMap)
 				if err != nil {
-					return nil, fmt.Errorf("unable to decode %w for key %s", err, key)
+					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
 				}
 				value.Value = &proto.Value_StructValue{
 					StructValue: asStruct,
 				}
 			default:
-				return nil, fmt.Errorf("type mapping not found for %s:%v", key, v)
+				return nil, fmt.Errorf("%w: metadataType not found for %s: %v", api.ErrBadRequest, key, v)
 			}
 
 			props[key] = &value
