@@ -1,4 +1,4 @@
-[contributing guidelines]: CONTRIBUTING.md
+[contributing guidelines]: ../CONTRIBUTING.md
 [Dev setup & Requirements]: docs/dev-setup.md
 [Model Registry UI documentation]: docs/README.md
 [issue]: https://github.com/kubeflow/model-registry/issues/new/choose

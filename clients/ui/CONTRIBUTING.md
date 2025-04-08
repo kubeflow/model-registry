@@ -1,0 +1,40 @@
+[frontend requirements]: ./frontend/docs/dev-setup.md#requirements
+[BFF requirements]: ./bff/README.md#pre-requisites
+[frontend dev setup]: ./frontend/docs/dev-setup.md#development
+[BFF dev setup]: ./bff/README.md#development
+
+# Contributing
+
+Individual bug fixes are welcome, it is recommended that you create a bug [issue] at the same time to describe the fix you're applying. If you are unsure how best to solve it, start with the issue and note your desire to contribute.
+We do have some [contributing guidelines] you can follow.
+
+## Requirements
+
+To review the requirements, please refer to:
+
+* [Frontend requirements]
+* [BFF requirements]
+
+## Set Up
+
+### Development
+
+To run the a mocked dev environment you can either:
+
+* Use the makefile command to install dependencies `make dev-install-dependencies` and then start the dev environment `make dev-start`.
+
+* Or follow the [frontend dev setup] and [BFF dev setup].
+
+### Kubernetes Deployment
+
+For a in-depth guide on how to deploy the Model Registry UI, please refer to the [local kubernetes deployment](./bff/docs/local-development-guide.md) documentation.
+
+To quickly enable the Model Registry UI in your Kind cluster, you can use the following command:
+
+```shell
+make kind-deployment
+```
+
+## Debugging and Testing
+
+See [frontend testing guidelines](docs/testing.md) for testing the frontend.
