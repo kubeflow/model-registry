@@ -1,0 +1,64 @@
+name: Build and Push UI Standalone Image
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths:
+      - 'clients/ui/**'
+      - '!LICENSE*'
+      - '!DOCKERFILE*'
+      - '!**.gitignore'
+      - '!**.md'
+      - '!**.txt'
+env:
+  IMG_REGISTRY: ghcr.io
+  IMG_ORG: kubeflow
+  IMG_UI_REPO: model-registry/ui-standalone
+  DOCKER_USER: ${{ github.actor }}
+  DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.IMG_REGISTRY }}
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ env.DOCKER_PWD }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}"
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./ui
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          MOCK_AUTH=true
+          DEPLOYMENT_MODE=standalone
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
