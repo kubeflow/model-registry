@@ -1,5 +1,6 @@
 name: Build and Push UI Standalone Image
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'
@@ -14,7 +15,7 @@ on:
       - '!**.txt'
 env:
   IMG_REGISTRY: ghcr.io
-  IMG_ORG: kubeflow
+  IMG_ORG: lucferbux
   IMG_UI_REPO: model-registry/ui-standalone
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
