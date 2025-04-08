@@ -37,17 +37,13 @@ else
     kubectl get pods -n kubeflow
 fi
 
-# Step 4: Build Model Registry and push in standalone mode
-echo "Building Model Registry UI..."
-make docker-build-standalone
-make docker-push-standalone
-
+# Step 4: Deploy model registry UI
 echo "Editing kustomize image..."
 pushd  ../../manifests/kustomize/options/ui/base
 kustomize edit set image model-registry-ui=${IMG_UI_STANDALONE}
 
 pushd  ../overlays/standalone
-# Step 4: Deploy model registry UI
+
 echo "Deploying Model Registry UI..."
 kustomize edit set namespace kubeflow
 kubectl apply -n kubeflow -k .
