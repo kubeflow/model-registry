@@ -7,6 +7,7 @@ import requests
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
+from tests.test_utils import get_skopeo_backend_for_local_e2e_testing
 
 from .extras.async_task_runner import AsyncTaskRunner
 
@@ -892,6 +893,7 @@ def test_upload_artifact_and_register_model_with_default_oci(
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
+        custom_oci_backend=get_skopeo_backend_for_local_e2e_testing()
     )
 
     assert client.upload_artifact_and_register_model(
