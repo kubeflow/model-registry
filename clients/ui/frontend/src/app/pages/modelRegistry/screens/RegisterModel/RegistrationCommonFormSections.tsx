@@ -17,7 +17,7 @@ import { UpdateObjectAtPropAndValue } from '~/shared/types';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/shared/components/pf-overrides/FormSection';
 import { ModelVersion } from '~/app/types';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
@@ -40,6 +40,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
   const isVersionNameValid = isNameValid(formData.versionName);
+
+  const { isMUITheme } = useThemeContext();
 
   // const connectionDataMap: Record<
   //   string,
@@ -183,7 +185,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         }
       >
         <FormGroup label="Version name" isRequired fieldId="version-name">
-          {isMUITheme() ? (
+          {isMUITheme ? (
             <FormFieldset component={versionNameInput} field="Version Name" />
           ) : (
             versionNameInput
@@ -204,21 +206,21 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
           </FormHelperText>
         </FormGroup>
         <FormGroup label="Version description" fieldId="version-description">
-          {isMUITheme() ? (
+          {isMUITheme ? (
             <FormFieldset component={versionDescriptionInput} field="Version Description" />
           ) : (
             versionDescriptionInput
           )}
         </FormGroup>
         <FormGroup label="Source model format" fieldId="source-model-format">
-          {isMUITheme() ? (
+          {isMUITheme ? (
             <FormFieldset component={sourceModelFormatInput} field="Source Model Format" />
           ) : (
             sourceModelFormatInput
           )}
         </FormGroup>
         <FormGroup label="Source model format version" fieldId="source-model-format-version">
-          {isMUITheme() ? (
+          {isMUITheme ? (
             <FormFieldset
               component={sourceModelFormatVersionInput}
               field="Source Model Format Version"
@@ -263,17 +265,17 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
               isRequired
               fieldId="location-endpoint"
             >
-              {isMUITheme() ? (
+              {isMUITheme ? (
                 <FormFieldset component={endpointInput} field="Endpoint" />
               ) : (
                 endpointInput
               )}
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Bucket" isRequired fieldId="location-bucket">
-              {isMUITheme() ? <FormFieldset component={bucketInput} field="Bucket" /> : bucketInput}
+              {isMUITheme ? <FormFieldset component={bucketInput} field="Bucket" /> : bucketInput}
             </FormGroup>
             <FormGroup className={spacing.mlLg} label="Region" fieldId="location-region">
-              {isMUITheme() ? <FormFieldset component={regionInput} field="Region" /> : regionInput}
+              {isMUITheme ? <FormFieldset component={regionInput} field="Region" /> : regionInput}
             </FormGroup>
             <FormGroup
               className={`location-path` + ` ${spacing.mlLg}`}
@@ -281,7 +283,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
               isRequired
               fieldId="location-path"
             >
-              {isMUITheme() ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
+              {isMUITheme ? <FormFieldset component={pathInput} field="Path" /> : pathInput}
               <HelperText>
                 <HelperTextItem>
                   Enter a path to a model or folder. This path cannot point to a root folder.
@@ -302,7 +304,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         {modelLocationType === ModelLocationType.URI && (
           <>
             <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
-              {isMUITheme() ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
+              {isMUITheme ? <FormFieldset component={uriInput} field="URI" /> : uriInput}
             </FormGroup>
           </>
         )}

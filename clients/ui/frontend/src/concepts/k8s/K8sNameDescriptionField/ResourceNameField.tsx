@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormGroup, HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 
 type ResourceNameFieldProps = {
   allowEdit: boolean;
@@ -23,6 +23,7 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
   //     return <FormGroup {...formGroupProps}>{k8sName.value}</FormGroup>;
   //   }
 
+  const { isMUITheme } = useThemeContext();
   if (!allowEdit) {
     return null;
   }
@@ -98,7 +99,7 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
   //   </FormGroup>
   // );
 
-  return isMUITheme() ? resourceNameFormGroup : textInput;
+  return isMUITheme ? resourceNameFormGroup : textInput;
 };
 
 export default ResourceNameField;
