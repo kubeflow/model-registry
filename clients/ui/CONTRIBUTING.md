@@ -5,7 +5,7 @@
 
 # Contributing
 
-Individual bug fixes are welcome, it is recommended that you create a bug [issue] at the same time to describe the fix you're applying. If you are unsure how best to solve it, start with the issue and note your desire to contribute.
+Individual bug fixes are welcome. Please open an [issue] to track the fix you are planning to implement. If you are unsure how best to solve it, start by opening the issue and note your desire to contribute.
 We do have some [contributing guidelines] you can follow.
 
 ## Requirements
