@@ -40,14 +40,14 @@ The following environment variables are used to configure the deployment and dev
 ### `IMG_UI`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF).
-* **Default Value**: `model-registry-ui:latest`
-* **Example**: `IMG_UI=model-registry-bff:latest`
+* **Default Value**: `ghcr.io/kubeflow/model-registry/ui:latest`
+* **Example**: `IMG_UI=ghcr.io/kubeflow/model-registry/ui:latest`
 
 ### `IMG_UI_STANDALONE`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF) in **standalone mode**, used for local kind deployment.
-* **Default Value**: `model-registry-ui-standalone:latest`
-* **Example**: `IMG_UI_STANDALONE=model-registry-bff:latest`
+* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-standalone:latest`
+* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-standalone:latest`
 
 ### `PLATFORM`
 
