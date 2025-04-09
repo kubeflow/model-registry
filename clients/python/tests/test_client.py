@@ -916,9 +916,7 @@ def test_upload_artifact_and_register_model_with_default_s3(
     patch_s3_env,
     get_temp_dir_with_models,
 ) -> None:
-    # olot is required to run this test
-    pytest.importorskip("olot")
-    name = "oci-test/defaults"
+    name = "s3-test"
     version = "0.0.1"
 
     s3_prefix = f"my-model-{version}"
