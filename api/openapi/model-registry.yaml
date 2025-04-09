@@ -100,6 +100,36 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_catalog/v1alpha3/sources/{source_id}/models/{id}/artifacts:
+    summary: List CatalogModelArtifacts.
+    description: >-
+      The REST endpoint/path used to list `CatalogModelArtifacts`.
+    get:
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findCatalogModelArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: id
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_catalog/v1alpha3/sources/{source_id}/models/{id}/readme:
     summary: Path used to get the documentation for a CatalogModel.
     get:
@@ -1426,17 +1456,13 @@ components:
           properties:
             id:
               type: string
-              description: ID of the model from the catalog source.
+              description: Unique ID of the model in the catalog source.
               example: ibm-granite/granite-3.1-8b-base
-            tasks:
-              type: array
-              description: List of tasks the model is designed for.
-              items:
-                type: string
-              example:
-                - text-generation
-        - $ref: "#/components/schemas/BaseModel"
+            repository:
+              type: string
+              description: Name of the repository in the source.
         - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/Model"
     CatalogModelArtifact:
       description: A single artifact for a catalog model version.
       allOf:
@@ -1450,6 +1476,19 @@ components:
               type: string
               description: ID of the model version this artifact belongs to.
               example: ibm-granite/granite-3.1-8b-base
+    CatalogModelArtifactList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModelArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModelArtifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogModelList:
       description: List of CatalogModel entities.
       allOf:
@@ -1463,33 +1502,6 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
-    CatalogModelVersion:
-      description: A single version of a model in the catalog
-      allOf:
-        - type: object
-          required:
-            - modelId
-            - id
-          properties:
-            modelId:
-              type: string
-              description: Code name of the model this version belongs to.
-              example: ibm-granite/granite-8b-base
-            id:
-              type: string
-              description: Name of the model version. Must be unique within a source.
-              example: ibm-granite/granite-3.1-8b-base
-            language:
-              type: array
-              description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
-              items:
-                type: string
-              example:
-                - en
-                - es
-                - cz
-        - $ref: "#/components/schemas/BaseModelVersion"
-        - $ref: "#/components/schemas/BaseResourceDates"
     CatalogSource:
       description: A catalog source. A catalog source has CatalogModel children.
       required:
@@ -2103,6 +2115,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Bad Request parameters
+    CatalogModelArtifactListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelArtifactList"
+      description: A response containing a list of CatalogSource entities.
     CatalogModelListResponse:
       content:
         application/json:
