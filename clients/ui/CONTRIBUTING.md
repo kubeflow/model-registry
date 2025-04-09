@@ -6,7 +6,7 @@
 # Contributing
 
 Individual bug fixes are welcome. Please open an [issue] to track the fix you are planning to implement. If you are unsure how best to solve it, start by opening the issue and note your desire to contribute.
-We do have some [contributing guidelines] you can follow.
+We have [contributing guidelines] available for you to follow.
 
 ## Requirements
 
