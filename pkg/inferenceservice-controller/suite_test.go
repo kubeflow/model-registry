@@ -2,6 +2,7 @@ package inferenceservicecontroller_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,11 +11,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
 	inferenceservicecontroller "github.com/kubeflow/model-registry/pkg/inferenceservice-controller"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
 	authv1 "k8s.io/api/rbac/v1"
@@ -177,6 +180,9 @@ var _ = AfterSuite(func() {
 func ModelRegistryDefaultMockServer() *httptest.Server {
 	handler := http.NewServeMux()
 
+	servingEnvironments := new(sync.Map)
+	inferenceServices := new(sync.Map)
+
 	handler.HandleFunc("/api/model_registry/v1alpha3/serving_environments", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -187,14 +193,35 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 		}
 
 		if r.Method == http.MethodPost {
+			id := "1"
+
+			senv := &openapi.ServingEnvironment{}
+
+			senvJson, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			if err := json.Unmarshal(senvJson, &senv); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			senv.Id = &id
+
+			servingEnvironments.Store(id, senv)
+
 			w.WriteHeader(http.StatusCreated)
 
-			res := `{
-				"id": "1",
-				"name": "default"
-			}`
+			res, err := json.Marshal(senv)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
 
-			_, err := w.Write([]byte(res))
+				return
+			}
+
+			_, err = w.Write([]byte(res))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
@@ -208,13 +235,66 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 	handler.HandleFunc("/api/model_registry/v1alpha3/inference_services/1", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		res := `{
-			"id": "1"
-		}`
+		if r.Method == http.MethodGet {
+			isvc, ok := inferenceServices.Load("1")
+			if !ok {
+				w.WriteHeader(http.StatusNotFound)
 
-		_, err := w.Write([]byte(res))
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			res, err := json.Marshal(isvc)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			_, err = w.Write([]byte(res))
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			return
+		}
+
+		if r.Method == http.MethodPatch {
+			id := "1"
+
+			isvc := &openapi.InferenceService{}
+
+			isvcvJson, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			if err := json.Unmarshal(isvcvJson, &isvc); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			isvc.Id = &id
+
+			inferenceServices.Store(id, isvc)
+
+			w.WriteHeader(http.StatusCreated)
+
+			res, err := json.Marshal(isvc)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			_, err = w.Write([]byte(res))
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			return
 		}
 	})
 
@@ -228,13 +308,35 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 		}
 
 		if r.Method == http.MethodPost {
+			id := "1"
+
+			isvc := &openapi.InferenceService{}
+
+			isvcvJson, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			if err := json.Unmarshal(isvcvJson, &isvc); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
+			isvc.Id = &id
+
+			inferenceServices.Store(id, isvc)
+
 			w.WriteHeader(http.StatusCreated)
 
-			res := `{
-				"id": "1"
-			}`
+			res, err := json.Marshal(isvc)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
 
-			_, err := w.Write([]byte(res))
+				return
+			}
+
+			_, err = w.Write([]byte(res))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
