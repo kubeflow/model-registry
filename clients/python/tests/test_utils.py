@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from model_registry import utils
 from model_registry.exceptions import MissingMetadata
 from model_registry.utils import (
     get_files_from_path,
@@ -79,13 +80,19 @@ def test_s3_uri_builder_with_complete_env():
 
 @pytest.mark.e2e(type="oci")
 def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir):
-    base_image = "busybox:latest"
+    base_image = "quay.io/mmortari/hello-world-wait:latest"
     dest_dir, _ = get_temp_dir_with_models
     oci_ref = "localhost:5001/foo/bar:latest"
 
-    backend = "skopeo"
+    save_to_oci_registry(base_image, oci_ref, dest_dir, get_temp_dir, custom_oci_backend=get_skopeo_backend_for_local_e2e_testing())
 
-    save_to_oci_registry(base_image, oci_ref, dest_dir, get_temp_dir, backend)
+
+def get_skopeo_backend_for_local_e2e_testing():
+    # we implement a custom_backend because we want to OCI Push to a non-TLS OCI Registry in this (local) e2e-test
+    custom_backend = utils._get_skopeo_backend()
+    original_fn = custom_backend["push"]
+    custom_backend["push"] = lambda src, oci_ref : original_fn(src, oci_ref, ["--dest-tls-verify=false"])
+    return custom_backend
 
 
 def test_save_to_oci_registry_with_custom_backend(
