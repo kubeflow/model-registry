@@ -15,7 +15,7 @@ clean:
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
-	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build && LOCAL=1 ./scripts/deploy_on_kind.sh
+	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build ARGS=--load && LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 &
 
 .PHONY: deploy-test-minio

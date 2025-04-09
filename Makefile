@@ -274,7 +274,7 @@ endif
 # build docker image
 .PHONY: image/build
 image/build:
-	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION)
+	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) $(ARGS)
 
 # build docker image using buildx
 # PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
