@@ -1,4 +1,5 @@
 name: Build and Push UI Standalone Image
+# this workflow builds an image to support local testing
 on:
   push:
     branches:
