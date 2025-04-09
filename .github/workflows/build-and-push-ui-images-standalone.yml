@@ -15,7 +15,7 @@ on:
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_UI_REPO: model-registry/ui-standalone
+  IMG_UI_REPO: model-registry/ui-standalone # this image is intended for local development, not production
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
 jobs:
