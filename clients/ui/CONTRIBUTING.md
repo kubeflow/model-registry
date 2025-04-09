@@ -3,7 +3,7 @@
 [frontend dev setup]: ./frontend/docs/dev-setup.md#development
 [BFF dev setup]: ./bff/README.md#development
 [issue]: https://github.com/kubeflow/model-registry/issues/new/choose
-
+[contributing guidelines]: https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md
 # Contributing
 
 Individual bug fixes are welcome. Please open an [issue] to track the fix you are planning to implement. If you are unsure how best to solve it, start by opening the issue and note your desire to contribute.
