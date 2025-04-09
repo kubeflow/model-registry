@@ -24,7 +24,7 @@ To run the mocked development environment you can either:
 
 * Use the makefile command to install dependencies `make dev-install-dependencies`, and then start the dev environment with `make dev-start`.
 
-* Or follow the [frontend dev setup] and [BFF dev setup].
+* Or follow the steps in the [frontend dev setup] and [BFF dev setup] guides.
 
 ### Kubernetes Deployment
 
