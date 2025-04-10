@@ -243,7 +243,7 @@ var _ = Describe("InferenceService Controller", func() {
 	})
 
 	When("An InferenceService have a status.url defined", func() {
-		FIt("Should get reconciled in the model registry InferenceService resource", func() {
+		It("Should get reconciled in the model registry InferenceService resource", func() {
 			const InferenceServiceMissingNamePath = "./testdata/inferenceservices/inference-service-missing-name.yaml"
 			const ModelRegistrySVCPath = "./testdata/deploy/model-registry-svc.yaml"
 			const namespace = "url-reconcile"
