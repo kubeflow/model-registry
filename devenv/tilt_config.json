@@ -2,6 +2,7 @@
     "services": [
         "jupyterhub",
         "pythonclient",
-        "frontend"
+        "frontend",
+        "controller"
     ]
 }
