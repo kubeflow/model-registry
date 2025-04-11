@@ -17,7 +17,7 @@ import (
 
 const (
 	// maxGRPCRetryAttempts is the maximum number of attempts to retry GRPC requests to the MLMD server.
-	maxGRPCRetryAttempts = 1 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
+	maxGRPCRetryAttempts = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 var (
