@@ -696,7 +696,7 @@ class ModelRegistry:
         ):
             msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
             Please either set these environment variables or pass them in as parameters using
-            `aws_access_key_id` or `aws_access_secret_id`.
+            `access_key_id` or `secret_access_key`.
             """
             raise ValueError(msg)
 
