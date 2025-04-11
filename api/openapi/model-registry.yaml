@@ -10,6 +10,153 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
+  /api/model_catalog/v1alpha3/models:
+    summary: Path used to list and search catalog models accross all sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
+    get:
+      tags:
+        - ModelCatalogService
+      parameters:
+        - name: source
+          description: |-
+            Filter models by source. If not provided, models from all sources
+            are returned. If multiple sources are provided, models from any of
+            the sources are returned.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllCatalogModels
+  /api/model_catalog/v1alpha3/sources:
+    summary: Path used to get the list of catalog sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogSource` entities.
+    get:
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSources
+      summary: List All CatalogSources
+      description: Gets a list of all `CatalogSource` entities.
+  /api/model_catalog/v1alpha3/sources/{source_id}/models/{id}:
+    summary: Get a single CatalogModel.
+    description: >-
+      The REST endpoint/path used to get a `CatalogModel`.
+    get:
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogModel
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: id
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha3/sources/{source_id}/models/{id}/artifacts:
+    summary: List CatalogModelArtifacts.
+    description: >-
+      The REST endpoint/path used to list `CatalogModelArtifacts`.
+    get:
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findCatalogModelArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: id
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha3/sources/{source_id}/models/{id}/readme:
+    summary: Path used to get the documentation for a CatalogModel.
+    get:
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelReadmeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: id
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_registry/v1alpha3/artifact:
     summary: Path used to search for an artifact.
     description: >-
@@ -1215,27 +1362,30 @@ components:
             lastKnownState:
               $ref: "#/components/schemas/ExecutionState"
         - $ref: "#/components/schemas/BaseResourceUpdate"
+    BaseModelArtifact:
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceDates"
+        - type: object
+          properties:
+            modelFormatName:
+              description: Name of the model format.
+              type: string
+            modelFormatVersion:
+              description: Version of the model format.
+              type: string
+            uri:
+              type: string
+              description: Artifact URI.
+              format: uri
     BaseResource:
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - type: object
           properties:
             id:
-              format: int64
               description: The unique server generated id of the resource.
               type: string
-            createTimeSinceEpoch:
-              format: int64
-              description: Output only. Create time of the resource in millisecond since epoch.
-              type: string
-              readOnly: true
-            lastUpdateTimeSinceEpoch:
-              format: int64
-              description: |-
-                Output only. Last update time of the resource since epoch in millisecond
-                since epoch.
-              type: string
-              readOnly: true
+        - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceCreate:
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
@@ -1247,6 +1397,21 @@ components:
                 it must be unique among all the artifacts of the same artifact type within
                 a database instance and cannot be changed once set.
               type: string
+    BaseResourceDates:
+      type: object
+      properties:
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: |-
+            Output only. Last update time of the resource since epoch in millisecond
+            since epoch.
+          type: string
+          readOnly: true
     BaseResourceList:
       required:
         - nextPageToken
@@ -1282,6 +1447,81 @@ components:
             The external id that come from the clients’ system. This field is optional.
             If set, it must be unique among all resources within a database instance.
           type: string
+    CatalogModel:
+      description: A model in the model catalog.
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              description: Unique ID of the model in the catalog source.
+              example: ibm-granite/granite-3.1-8b-base
+            repository:
+              type: string
+              description: Name of the repository in the source.
+        - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/Model"
+    CatalogModelArtifact:
+      description: A single artifact for a catalog model version.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/BaseModelArtifact"
+        - type: object
+          required:
+            - versionId
+          properties:
+            versionId:
+              type: string
+              description: ID of the model version this artifact belongs to.
+              example: ibm-granite/granite-3.1-8b-base
+    CatalogModelArtifactList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModelArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModelArtifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogModelList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSource:
+      description: A catalog source. A catalog source has CatalogModel children.
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          description: The name of the catalog source.
+          type: string
+    CatalogSourceList:
+      description: List of CatalogSource entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogSource` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogSource"
+        - $ref: "#/components/schemas/BaseResourceList"
     DocArtifact:
       description: A document.
       allOf:
@@ -1516,6 +1756,60 @@ components:
       example:
         string_value: my_value
         metadataType: MetadataStringValue
+    Model:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Short description of the model version.
+        longDescription:
+          type: string
+          description: Longer description of the model version.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
     ModelArtifact:
       description: An ML model artifact.
       allOf:
@@ -1552,22 +1846,17 @@ components:
       description: An ML model artifact to be updated.
       allOf:
         - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - $ref: "#/components/schemas/BaseModelArtifact"
         - type: object
           properties:
             artifactType:
               type: string
               default: "model-artifact"
-            modelFormatName:
-              description: Name of the model format.
-              type: string
             storageKey:
               description: Storage secret name.
               type: string
             storagePath:
               description: Path for model in storage provided by `storageKey`.
-              type: string
-            modelFormatVersion:
-              description: Version of the model format.
               type: string
             serviceAccountName:
               description: Name of the service account with storage secret.
@@ -1641,6 +1930,7 @@ components:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+        - $ref: "#/components/schemas/Model"
         - type: object
           properties:
             state:
@@ -1660,6 +1950,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/RegisteredModelCreate"
+        - $ref: "#/components/schemas/Model"
     RegisteredModelCreate:
       description: A registered model in model registry. A registered model has ModelVersion children.
       required:
@@ -1701,6 +1992,7 @@ components:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+        - $ref: "#/components/schemas/Model"
         - type: object
           properties:
             owner:
@@ -1823,6 +2115,40 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Bad Request parameters
+    CatalogModelArtifactListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelArtifactList"
+      description: A response containing a list of CatalogSource entities.
+    CatalogModelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelList"
+      description: A response containing a list of CatalogModel entities.
+    CatalogModelReadmeResponse:
+      content:
+        text/markdown: {}
+      description: Documentation for a model in the catalog in Markdown format.
+    CatalogModelResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModel"
+      description: A response containing a `CatalogModel` entity.
+    CatalogSourceListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourceList"
+      description: A response containing a list of CatalogSource entities.
+    CatalogSourceResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSource"
+      description: A response containing a `CatalogSource` entity.
     Conflict:
       content:
         application/json:
@@ -2081,6 +2407,14 @@ components:
       name: nextPageToken
       description: Token to use to retrieve next page of results.
       schema:
+        type: string
+      in: query
+      required: false
+    offset:
+      name: offset
+      description: Number of entities to skip before page.
+      schema:
+        format: int64
         type: string
       in: query
       required: false
