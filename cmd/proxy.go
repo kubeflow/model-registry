@@ -3,20 +3,33 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/golang/glog"
 
 	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/spf13/cobra"
 )
 
+type ProxyConfig struct {
+	DatastoreHostname string
+	DatastorePort     int
+	DatastoreType     string
+}
+
 const (
-	// mlmdUnavailableMessage is the message returned when the MLMD server is down or unavailable.
-	mlmdUnavailableMessage = "MLMD server is down or unavailable. Please check that the database is reachable and try again later."
-	// maxGRPCRetryAttempts is the maximum number of attempts to retry GRPC requests to the MLMD server.
-	maxGRPCRetryAttempts = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
+	// datastoreUnavailableMessage is the message returned when the datastore service is down or unavailable.
+	datastoreUnavailableMessage = "Datastore service is down or unavailable. Please check that the database is reachable and try again later."
 )
+
+var proxyCfg = ProxyConfig{
+	DatastoreHostname: "localhost",
+	DatastorePort:     9090,
+	DatastoreType:     "mlmd",
+}
 
 // proxyCmd represents the proxy command
 var proxyCmd = &cobra.Command{
@@ -30,26 +43,76 @@ hostname and port where it listens.`,
 }
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
-	glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+	var (
+		dsTeardownF datastore.TeardownFunc
+		wg          sync.WaitGroup
+	)
 
-	ds, dsTeardownF, err := datastore.NewDatastore(proxyCfg.DatastoreType, proxyCfg.DatastoreHostname, proxyCfg.DatastorePort)
-	if err != nil {
-		return fmt.Errorf("error creating datastore: %w", err)
-	}
+	router := proxy.NewDynamicRouter()
 
-	defer func() {
-		if err := dsTeardownF(); err != nil {
-			glog.Errorf("error during cleanup: %w", err)
+	router.SetRouter(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
+	}))
+
+	errChan := make(chan error, 1)
+
+	wg.Add(2)
+
+	go func() {
+		defer close(errChan)
+		wg.Wait()
+	}()
+
+	// Start the connection to the Datastore server in a separate goroutine, so that
+	// we can start the proxy server and start serving requests while we wait
+	// for the connection to be established.
+	go func() {
+		var (
+			ds  api.ModelRegistryApi
+			err error
+		)
+
+		defer wg.Done()
+
+		ds, dsTeardownF, err = datastore.NewDatastore(proxyCfg.DatastoreType, proxyCfg.DatastoreHostname, proxyCfg.DatastorePort)
+		if err != nil {
+			errChan <- fmt.Errorf("error creating datastore: %w", err)
+			return
+		}
+
+		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(ds)
+		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
+
+		router.SetRouter(openapi.NewRouter(ModelRegistryServiceAPIController))
+
+		glog.Infof("connected to Datastore server")
+	}()
+
+	// Start the proxy server in a separate goroutine so that we can handle
+	// errors from both the proxy server and the connection to the Datastore server.
+	go func() {
+		defer wg.Done()
+
+		glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
+		if err != nil {
+			errChan <- fmt.Errorf("error starting proxy server: %w", err)
 		}
 	}()
 
-	ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(ds)
-	ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
+	defer func() {
+		if dsTeardownF != nil {
+			glog.Info("closing connection to datastore service")
 
-	router := openapi.NewRouter(ModelRegistryServiceAPIController)
+			//nolint:errcheck
+			dsTeardownF()
+		}
+	}()
 
-	glog.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router))
-	return nil
+	// Wait for either the Datastore server connection or the proxy server to return an error
+	// or for both to finish successfully.
+	return <-errChan
 }
 
 func init() {
@@ -71,16 +134,4 @@ func init() {
 	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreHostname, "datastore-hostname", proxyCfg.DatastoreHostname, "Datastore hostname")
 	proxyCmd.Flags().IntVar(&proxyCfg.DatastorePort, "datastore-port", proxyCfg.DatastorePort, "Datastore port")
 	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreType, "datastore-type", proxyCfg.DatastoreType, "Datastore type")
-}
-
-type ProxyConfig struct {
-	DatastoreHostname string
-	DatastorePort     int
-	DatastoreType     string
-}
-
-var proxyCfg = ProxyConfig{
-	DatastoreHostname: "localhost",
-	DatastorePort:     9090,
-	DatastoreType:     "mlmd",
 }

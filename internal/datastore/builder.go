@@ -12,12 +12,14 @@ var (
 	ErrUnsupportedDatastore = errors.New("unsupported datastore type")
 )
 
+type TeardownFunc func() error
+
 type Builder interface {
 	Build() (api.ModelRegistryApi, error)
 	Teardown() error
 }
 
-func NewDatastore(dsType string, dsHostname string, dsPort int) (api.ModelRegistryApi, func() error, error) {
+func NewDatastore(dsType string, dsHostname string, dsPort int) (api.ModelRegistryApi, TeardownFunc, error) {
 	switch dsType {
 	case "mlmd":
 		mlmd := NewMLMDService(dsHostname, dsPort)
