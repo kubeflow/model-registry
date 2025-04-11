@@ -208,7 +208,7 @@ s3_upload_params = S3Params(
 
 registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
-    model_fiels_path="/home/user-01/models/model_training_01"
+    model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
     # model_fiels_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
@@ -228,7 +228,7 @@ oci_upload_params = OCIParams(
 
 registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
-    model_fiels_path="/home/user-01/models/model_training_01"
+    model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
     # model_fiels_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
