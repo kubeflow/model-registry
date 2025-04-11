@@ -28,7 +28,7 @@ const MOCK_AUTH = process.env.MOCK_AUTH === 'true';
 const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || DeploymentMode.Integrated;
 const POLL_INTERVAL = process.env.POLL_INTERVAL ? parseInt(process.env.POLL_INTERVAL) : 30000;
 const AUTH_HEADER = process.env.AUTH_HEADER || 'kubeflow-userid';
-const USERNAME = process.env.USERNAME || 'user@example.com';
+const KUBEFLOW_USERNAME = process.env.KUBEFLOW_USERNAME || 'user@example.com';
 const IMAGE_DIR = process.env.IMAGE_DIR || 'images';
 const LOGO_LIGHT = process.env.LOGO || 'logo-light-theme.svg';
 const URL_PREFIX = '/model-registry';
@@ -37,7 +37,7 @@ export {
   POLL_INTERVAL,
   DEV_MODE,
   AUTH_HEADER,
-  USERNAME,
+  KUBEFLOW_USERNAME,
   IMAGE_DIR,
   LOGO_LIGHT,
   MOCK_AUTH,
