@@ -281,6 +281,7 @@ func DownloadFile(url string, path string) error {
 		return err
 	}
 
+	//nolint:errcheck
 	defer resp.Body.Close()
 
 	file, err := os.Create(path)
@@ -288,6 +289,7 @@ func DownloadFile(url string, path string) error {
 		return err
 	}
 
+	//nolint:errcheck
 	defer file.Close()
 
 	_, err = io.Copy(file, resp.Body)
