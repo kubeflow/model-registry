@@ -158,7 +158,7 @@ bin/envtest:
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.61.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v2.0.2
 
 GOVERTER ?= ${PROJECT_BIN}/goverter
 bin/goverter:
@@ -232,12 +232,12 @@ gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
 
 .PHONY: lint
-lint:
+lint: bin/golangci-lint
 	${GOLANGCI_LINT} run main.go  --timeout 3m
 	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...  --timeout 3m
 
 .PHONY: lint/csi
-lint/csi:
+lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run ${CSI_PATH}/main.go
 	${GOLANGCI_LINT} run internal/csi/...
 

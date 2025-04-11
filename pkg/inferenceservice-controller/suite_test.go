@@ -281,14 +281,22 @@ func DownloadFile(url string, path string) error {
 		return err
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			ctrl.Log.WithName("controllers").WithName("ModelRegistry-InferenceService-Controller").Error(err, "error while closing response body")
+		}
+	}()
 
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			ctrl.Log.WithName("controllers").WithName("ModelRegistry-InferenceService-Controller").Error(err, "error while closing file body")
+		}
+	}()
 
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
