@@ -119,9 +119,8 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		if conn != nil {
 			glog.Info("closing connection to MLMD server")
 
-			if err := conn.Close(); err != nil {
-				errChan <- fmt.Errorf("error while closing connection to MLMD server")
-			}
+			//nolint:errcheck
+			conn.Close()
 		}
 	}()
 
