@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,10 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 			By("fetching all model registries")
 			data := mocks.GetRegisteredModelMocks()[0]
 			expected := RegisteredModelEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should match the expected model registry")
 			//TODO assert the full structure, I couldn't get unmarshalling to work for the full customProperties values
@@ -28,7 +32,11 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 			By("fetching all registered models")
 			data := mocks.GetRegisteredModelListMock()
 			expected := RegisteredModelListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[RegisteredModelListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			actual, rs, err := setupApiTest[RegisteredModelListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should match the expected model registry")
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
@@ -42,8 +50,11 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 			By("post to registered models")
 			data := mocks.GetRegisteredModelMocks()[0]
 			expected := RegisteredModelEnvelope{Data: &data}
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
 			body := RegisteredModelEnvelope{Data: openapi.NewRegisteredModel("Model One")}
-			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", body, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", body, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should do a successful post")
@@ -60,7 +71,10 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 				Description: openapi.PtrString("This is a new description"),
 			}
 			body := RegisteredModelUpdateEnvelope{Data: &reqData}
-			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", body, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+			actual, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", body, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should do a successful patch")
@@ -73,7 +87,11 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 			data := mocks.GetModelVersionListMock()
 			expected := ModelVersionListEnvelope{Data: &data}
 
-			actual, rs, err := setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", nil, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			actual, rs, err := setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should get all items")
@@ -88,9 +106,12 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 			By("doing a post to registered model versions")
 			data := mocks.GetModelVersionMocks()[0]
 			expected := ModelVersionEnvelope{Data: &data}
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
 
 			body := ModelVersionEnvelope{Data: openapi.NewModelVersion("Version Fifty", "")}
-			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", body, k8sClient, mocks.KubeflowUserIDHeaderValue, "kubeflow")
+			actual, rs, err := setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", body, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should successfully create it")
@@ -102,23 +123,24 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 
 		It("should return 403 when not using the correct KubeflowUserIDHeaderValue", func() {
 			By("making a request with an incorrect username")
-			wrongUserIDHeader := "bella@dora.com" // Incorrect username header value
-
 			// Test: GET /registered_models/1
-			_, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", nil, k8sClient, wrongUserIDHeader, "kubeflow")
+			wrongRequestIdentity := kubernetes.RequestIdentity{
+				UserID: "bella@dora.com", // Incorrect username header value
+			}
+			_, rs, err := setupApiTest[RegisteredModelEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for GET registered model by ID")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
 
 			// Test: GET /registered_models
-			_, rs, err = setupApiTest[RegisteredModelListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", nil, k8sClient, wrongUserIDHeader, "kubeflow")
+			_, rs, err = setupApiTest[RegisteredModelListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for GET all registered models")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
 
 			// Test: POST /registered_models
 			body := RegisteredModelEnvelope{Data: openapi.NewRegisteredModel("Model One")}
-			_, rs, err = setupApiTest[RegisteredModelEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", body, k8sClient, wrongUserIDHeader, "kubeflow")
+			_, rs, err = setupApiTest[RegisteredModelEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow", body, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for POST create registered model")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
@@ -128,20 +150,20 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 				Description: openapi.PtrString("This is a new description"),
 			}
 			body2 := RegisteredModelUpdateEnvelope{Data: &reqData}
-			_, rs, err = setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", body2, k8sClient, wrongUserIDHeader, "kubeflow")
+			_, rs, err = setupApiTest[RegisteredModelEnvelope](http.MethodPatch, "/api/v1/model_registry/model-registry/registered_models/1?namespace=kubeflow", body2, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for PATCH update registered model")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
 
 			// Test: GET /registered_models/1/versions
-			_, rs, err = setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", nil, k8sClient, wrongUserIDHeader, "kubeflow")
+			_, rs, err = setupApiTest[ModelVersionListEnvelope](http.MethodGet, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for GET model versions of registered model")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))
 
 			// Test: POST /registered_models/1/versions
 			body3 := ModelVersionEnvelope{Data: openapi.NewModelVersion("Version Fifty", "")}
-			_, rs, err = setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", body3, k8sClient, wrongUserIDHeader, "kubeflow")
+			_, rs, err = setupApiTest[ModelVersionEnvelope](http.MethodPost, "/api/v1/model_registry/model-registry/registered_models/1/versions?namespace=kubeflow", body3, kubernetesMockedStaticClientFactory, wrongRequestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			By("should return a 403 Forbidden response for POST create model version for registered model")
 			Expect(rs.StatusCode).To(Equal(http.StatusForbidden))

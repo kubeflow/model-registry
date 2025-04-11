@@ -4,23 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"net/url"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 )
 
 const modelArtifactPath = "/model_artifacts"
 
 type ModelArtifactInterface interface {
-	UpdateModelArtifact(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
+	UpdateModelArtifact(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error)
 }
 
 type ModelArtifact struct {
 	ModelArtifactInterface
 }
 
-func (a ModelArtifact) UpdateModelArtifact(client integrations.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
+func (a ModelArtifact) UpdateModelArtifact(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelArtifact, error) {
 	path, err := url.JoinPath(modelArtifactPath, id)
 	if err != nil {
 		return nil, err

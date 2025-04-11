@@ -4,6 +4,7 @@ MOCK_MR_CLIENT ?= false
 DEV_MODE ?= false
 DEV_MODE_PORT ?= 8080
 STANDALONE_MODE ?= true
+AUTH_METHOD ?= internal
 #frontend static assets root directory
 STATIC_ASSETS_DIR ?= ./static
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -50,7 +51,7 @@ build: fmt vet test ## Builds the project to produce a binary executable.
 .PHONY: run
 run: fmt vet envtest ## Runs the project.
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
-	go run ./cmd --port=$(PORT) --static-assets-dir=$(STATIC_ASSETS_DIR) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)  --standalone-mode=$(STANDALONE_MODE) --log-level=$(LOG_LEVEL) --allowed-origins=$(ALLOWED_ORIGINS)
+	go run ./cmd --port=$(PORT) --auth-method=${AUTH_METHOD} --static-assets-dir=$(STATIC_ASSETS_DIR) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)  --standalone-mode=$(STANDALONE_MODE) --log-level=$(LOG_LEVEL) --allowed-origins=$(ALLOWED_ORIGINS)
 
 ##@ Dependencies
 

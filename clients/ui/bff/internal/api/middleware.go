@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
@@ -13,7 +14,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/rs/cors"
 )
 
@@ -31,38 +31,21 @@ func (app *App) RecoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) InjectUserHeaders(next http.Handler) http.Handler {
+func (app *App) InjectRequestIdentity(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//skip use headers check if we are not on /api/v1
+		//skip use headers check if we are not on /api/v1 (i.e. we are on /healthcheck and / (static fe files) )
 		if !strings.HasPrefix(r.URL.Path, ApiPathPrefix) && !strings.HasPrefix(r.URL.Path, PathPrefix+ApiPathPrefix) {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		userIdHeader := r.Header.Get(constants.KubeflowUserIDHeader)
-		userGroupsHeader := r.Header.Get(constants.KubeflowUserGroupsIdHeader)
-		//`kubeflow-userid`: Contains the user's email address.
-		if userIdHeader == "" {
-			app.badRequestResponse(w, r, errors.New("missing required header: kubeflow-userid"))
+		identity, error := app.kubernetesClientFactory.ExtractRequestIdentity(r.Header)
+		if error != nil {
+			app.badRequestResponse(w, r, error)
 			return
 		}
 
-		// Note: The functionality for `kubeflow-groups` is not fully operational at Kubeflow platform at this time
-		// but it's supported on Model Registry BFF
-		//`kubeflow-groups`: Holds a comma-separated list of user groups.
-		var userGroups []string
-		if userGroupsHeader != "" {
-			userGroups = strings.Split(userGroupsHeader, ",")
-			// Trim spaces from each group name
-			for i, group := range userGroups {
-				userGroups[i] = strings.TrimSpace(group)
-			}
-		}
-
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, constants.KubeflowUserIdKey, userIdHeader)
-		ctx = context.WithValue(ctx, constants.KubeflowUserGroupsKey, userGroups)
-
+		ctx := context.WithValue(r.Context(), constants.RequestIdentityKey, identity)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -112,7 +95,13 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 		}
 
-		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistry(r.Context(), app.kubernetesClient, namespace, modelRegistryID)
+		client, err := app.kubernetesClientFactory.GetClient(r.Context())
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+			return
+		}
+
+		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistry(r.Context(), client, namespace, modelRegistryID)
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
@@ -137,12 +126,12 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			}
 		}
 
-		client, err := integrations.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL)
+		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return
 		}
-		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, client)
+		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, restHttpClient)
 		next(w, r.WithContext(ctx), ps)
 	}
 }
@@ -162,27 +151,34 @@ func (app *App) AttachNamespace(next func(http.ResponseWriter, *http.Request, ht
 	}
 }
 
-func (app *App) PerformSARonGetListServicesByNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
+func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		user, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
-		if !ok || user == "" {
-			app.badRequestResponse(w, r, fmt.Errorf("missing user in context"))
+
+		ctx := r.Context()
+		identity, ok := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+		if !ok || identity == nil {
+			app.badRequestResponse(w, r, fmt.Errorf("missing RequestIdentity in context"))
 			return
 		}
+
+		if err := app.kubernetesClientFactory.ValidateRequestIdentity(identity); err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
 		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 			return
 		}
 
-		var userGroups []string
-		if groups, ok := r.Context().Value(constants.KubeflowUserGroupsKey).([]string); ok {
-			userGroups = groups
-		} else {
-			userGroups = []string{}
+		client, err := app.kubernetesClientFactory.GetClient(ctx)
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+			return
 		}
 
-		allowed, err := app.kubernetesClient.PerformSARonGetListServicesByNamespace(user, userGroups, namespace)
+		allowed, err := client.CanListServicesInNamespace(ctx, identity, namespace)
 		if err != nil {
 			app.forbiddenResponse(w, r, fmt.Sprintf("failed to perform SAR: %v", err))
 			return
@@ -196,12 +192,18 @@ func (app *App) PerformSARonGetListServicesByNamespace(next func(http.ResponseWr
 	}
 }
 
-func (app *App) PerformSARonSpecificService(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
+func (app *App) RequireAccessToService(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-		user, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
-		if !ok || user == "" {
-			app.badRequestResponse(w, r, fmt.Errorf("missing user in context"))
+		ctx := r.Context()
+		identity, ok := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+		if !ok || identity == nil {
+			app.badRequestResponse(w, r, fmt.Errorf("missing RequestIdentity in context"))
+			return
+		}
+
+		if err := app.kubernetesClientFactory.ValidateRequestIdentity(identity); err != nil {
+			app.badRequestResponse(w, r, err)
 			return
 		}
 
@@ -211,20 +213,20 @@ func (app *App) PerformSARonSpecificService(next func(http.ResponseWriter, *http
 			return
 		}
 
-		modelRegistryID := ps.ByName(ModelRegistryId)
-		if !ok || modelRegistryID == "" {
+		serviceName := ps.ByName(ModelRegistryId)
+		if !ok || serviceName == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 			return
 		}
 
-		var userGroups []string
-		if groups, ok := r.Context().Value(constants.KubeflowUserGroupsKey).([]string); ok {
-			userGroups = groups
-		} else {
-			userGroups = []string{}
+		client, err := app.kubernetesClientFactory.GetClient(ctx)
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+			return
 		}
 
-		allowed, err := app.kubernetesClient.PerformSARonSpecificService(user, userGroups, namespace, modelRegistryID)
+		allowed, err := client.CanAccessServiceInNamespace(r.Context(), identity, namespace, serviceName)
+
 		if err != nil {
 			app.forbiddenResponse(w, r, "failed to perform SAR: %v")
 			return

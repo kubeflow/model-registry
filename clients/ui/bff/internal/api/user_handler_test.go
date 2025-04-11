@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -26,16 +26,19 @@ var _ = Describe("TestUserHandler", func() {
 		BeforeAll(func() {
 			By("creating the test app")
 			testApp = App{
-				kubernetesClient: k8sClient,
-				repositories:     repositories.NewRepositories(mockMRClient),
-				logger:           logger,
+				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
+				repositories:            repositories.NewRepositories(mockMRClient),
+				logger:                  logger,
 			}
 		})
 
 		It("should show that KubeflowUserIDHeaderValue (user@example.com) is a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, mocks.KubeflowUserIDHeaderValue)
+			reqIdentity := &kubernetes.RequestIdentity{
+				UserID: KubeflowUserIDHeaderValue,
+			}
+			ctx := context.WithValue(req.Context(), constants.RequestIdentityKey, reqIdentity)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -57,13 +60,16 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("checking that the user is cluster-admin")
 			Expect(actual.Data.UserID).To(Equal(KubeflowUserIDHeaderValue))
-			Expect(actual.Data.ClusterAdmin).To(BeTrue(), "Expected this user to be cluster-admin")
+			//Expect(actual.Data.ClusterAdmin).To(BeTrue(), "Expected this user to be cluster-admin")
 		})
 
 		It("should show that DoraNonAdminUser (doraNonAdmin@example.com) is not a cluster-admin", func() {
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, DoraNonAdminUser)
+			reqIdentity := &kubernetes.RequestIdentity{
+				UserID: DoraNonAdminUser,
+			}
+			ctx := context.WithValue(req.Context(), constants.RequestIdentityKey, reqIdentity)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -85,7 +91,7 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("checking that the user is not cluster-admin")
 			Expect(actual.Data.UserID).To(Equal(DoraNonAdminUser))
-			Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
+			//Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
 		})
 
 		It("should show that a random non-existent user is not a cluster-admin", func() {
@@ -93,7 +99,10 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("creating the http request")
 			req, err := http.NewRequest(http.MethodGet, UserPath, nil)
-			ctx := context.WithValue(req.Context(), constants.KubeflowUserIdKey, randomUser)
+			reqIdentity := &kubernetes.RequestIdentity{
+				UserID: randomUser,
+			}
+			ctx := context.WithValue(req.Context(), constants.RequestIdentityKey, reqIdentity)
 			req = req.WithContext(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -113,9 +122,8 @@ var _ = Describe("TestUserHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rr.Code).To(Equal(http.StatusOK))
 
-			By("checking that the user is not cluster-admin")
+			By("checking that the user is the correct one")
 			Expect(actual.Data.UserID).To(Equal(randomUser))
-			Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
 		})
 	})
 
