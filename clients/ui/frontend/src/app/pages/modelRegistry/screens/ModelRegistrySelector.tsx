@@ -107,12 +107,12 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
       groupedOptions={[
         ...(favorites.length > 0
           ? [
-              {
-                key: 'favorites-group',
-                label: 'Favorites',
-                options: favoriteOptions(favorites),
-              },
-            ]
+            {
+              key: 'favorites-group',
+              label: 'Favorites',
+              options: favoriteOptions(favorites),
+            },
+          ]
           : []),
         {
           key: 'all',
@@ -139,7 +139,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   }
 
   return (
-    <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
+    <Flex spaceItems={{ default: 'spaceItemsLg' }} alignItems={{ default: 'alignItemsCenter' }}>
       <FlexItem>
         <Icon>
           <BlueprintIcon />
