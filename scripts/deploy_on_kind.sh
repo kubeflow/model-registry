@@ -4,7 +4,7 @@ set -e
 
 DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
-IMG="${IMG:-kubeflow/model-registry:latest}"
+IMG="${IMG:-ghcr.io/kubeflow/model-registry/server:latest}"
 
 source ./${DIR}/utils.sh
 
