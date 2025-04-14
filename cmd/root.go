@@ -4,10 +4,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/spf13/pflag"
 	"os"
 	"strings"
+
+	"github.com/golang/glog"
+	"github.com/spf13/pflag"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -94,7 +95,7 @@ func initConfig(cmd *cobra.Command) error {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		ok := errors.As(err, &configFileNotFoundError)
 		// ignore if it's a file not found error for default config file
-		if !(cfgFile == "" && ok) {
+		if cfgFile != "" || !ok {
 			return fmt.Errorf("reading config %s: %v", viper.ConfigFileUsed(), err)
 		}
 	}
