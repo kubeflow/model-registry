@@ -333,4 +333,8 @@ To run the e2e tests you will need [kind](https://kind.sigs.k8s.io/) to be insta
 Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
 
+### Troubleshooting
+
+- On running `make test test-e2e` if you see a similar problem `unknown flag: --load`, install [buildx](https://formulae.brew.sh/formula/docker-buildx)
+
 <!-- github-only -->
