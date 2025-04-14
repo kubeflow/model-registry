@@ -202,7 +202,7 @@ Common S3 env vars will be automatically read, such ass the access_key_id, etc. 
 
 ```python
 s3_upload_params = S3Params(
-    bucket="my-bucket",
+    bucket_name="my-bucket",
     s3_prefix="models/my_fraud_model",
 )
 
