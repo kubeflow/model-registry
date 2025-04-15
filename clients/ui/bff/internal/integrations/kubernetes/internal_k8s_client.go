@@ -151,3 +151,34 @@ func (kc *InternalKubernetesClient) GetNamespaces(ctx context.Context, identity 
 
 	return allowed, nil
 }
+
+func (kc *InternalKubernetesClient) IsClusterAdmin(identity *RequestIdentity) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	crbList, err := kc.Client.RbacV1().ClusterRoleBindings().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		kc.Logger.Error("failed to list ClusterRoleBindings", "error", err)
+		return false, fmt.Errorf("failed to list ClusterRoleBindings: %w", err)
+	}
+
+	for _, crb := range crbList.Items {
+		if crb.RoleRef.Kind != "ClusterRole" || crb.RoleRef.Name != "cluster-admin" {
+			continue
+		}
+		for _, subject := range crb.Subjects {
+			if subject.Kind == "User" && subject.Name == identity.UserID {
+				kc.Logger.Info("user is cluster-admin", "user", identity.UserID, "crb", crb.Name)
+				return true, nil
+			}
+		}
+	}
+
+	kc.Logger.Info("user is not cluster-admin", "user", identity.UserID)
+	return false, nil
+}
+
+func (kc *InternalKubernetesClient) GetUser(identity *RequestIdentity) (string, error) {
+	// On internal client, we can use the identity from request directly
+	return identity.UserID, nil
+}

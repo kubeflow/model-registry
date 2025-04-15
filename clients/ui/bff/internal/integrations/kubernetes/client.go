@@ -21,5 +21,7 @@ type KubernetesClientInterface interface {
 	CanAccessServiceInNamespace(ctx context.Context, identity *RequestIdentity, namespace, serviceName string) (bool, error)
 
 	// Meta
+	IsClusterAdmin(identity *RequestIdentity) (bool, error)
 	BearerToken() (string, error)
+	GetUser(identity *RequestIdentity) (string, error)
 }

@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
@@ -10,17 +12,21 @@ func NewUserRepository() *UserRepository {
 	return &UserRepository{}
 }
 
-func (r *UserRepository) GetUser(user string) (*models.User, error) {
+func (r *UserRepository) GetUser(client k8s.KubernetesClientInterface, identity *k8s.RequestIdentity) (*models.User, error) {
 
-	var formattedUser = user
-
-	if formattedUser == "" {
-		//if we are using token based auth, we still need to implement how to
-		//safely get the user from the token
-		formattedUser = "unknown"
+	isAdmin, err := client.IsClusterAdmin(identity)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user info: %w", err)
 	}
+
+	user, err := client.GetUser(identity)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user info: %w", err)
+	}
+
 	var res = models.User{
-		UserID: formattedUser,
+		UserID:       user,
+		ClusterAdmin: isAdmin,
 	}
 
 	return &res, nil

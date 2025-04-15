@@ -20,7 +20,13 @@ func (app *App) UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter
 		return
 	}
 
-	user, err := app.repositories.User.GetUser(identity.UserID)
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	user, err := app.repositories.User.GetUser(client, identity)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

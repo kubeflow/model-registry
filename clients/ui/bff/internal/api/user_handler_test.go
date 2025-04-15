@@ -60,7 +60,7 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("checking that the user is cluster-admin")
 			Expect(actual.Data.UserID).To(Equal(KubeflowUserIDHeaderValue))
-			//Expect(actual.Data.ClusterAdmin).To(BeTrue(), "Expected this user to be cluster-admin")
+			Expect(actual.Data.ClusterAdmin).To(BeTrue(), "Expected this user to be cluster-admin")
 		})
 
 		It("should show that DoraNonAdminUser (doraNonAdmin@example.com) is not a cluster-admin", func() {
@@ -91,7 +91,7 @@ var _ = Describe("TestUserHandler", func() {
 
 			By("checking that the user is not cluster-admin")
 			Expect(actual.Data.UserID).To(Equal(DoraNonAdminUser))
-			//Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
+			Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
 		})
 
 		It("should show that a random non-existent user is not a cluster-admin", func() {
@@ -122,8 +122,9 @@ var _ = Describe("TestUserHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rr.Code).To(Equal(http.StatusOK))
 
-			By("checking that the user is the correct one")
+			By("checking that the user is not cluster-admin")
 			Expect(actual.Data.UserID).To(Equal(randomUser))
+			Expect(actual.Data.ClusterAdmin).To(BeFalse(), "Expected this user to not be cluster-admin")
 		})
 	})
 
