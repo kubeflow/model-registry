@@ -113,17 +113,11 @@ paths:
       description: Gets a list of all Model Registry settings.
     post:
       requestBody:
-        description: A new Model Registry settings to be created.
+        description: A new Model Registry settings to be created, potentially including credentials.
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                metadata:
-                  type: object
-                  description: Metadata about the response
-                data:
-                  $ref: "#/components/schemas/ModelRegistryKind"
+              $ref: "#/components/schemas/ModelRegistrySettingsPayload" # New schema for create payload
         required: true
       tags:
         - K8SOperation
@@ -141,29 +135,44 @@ paths:
       operationId: createModelRegistrySettings
       summary: Create Model Registry Settings
       description: Creates a new instance of Model Registry settings.
-  /api/v1/settings/model_registry/{modelregistryId}:
+  /api/v1/settings/model_registry/{modelRegistryId}:
     summary: Path used to manage Model Registry resources.
     description: >-
-      The REST endpoint/path used to list, create, update and delete Model Registry resources.
+      The REST endpoint/path used to get, update and delete a single Model Registry resource.
+    # Add GET operation
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: '#/components/parameters/modelRegistryId' # Use the correct parameter name
+      responses:
+        "200":
+          # Define a response that might include credentials
+          $ref: "#/components/responses/ModelRegistryKindResponse" 
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModelRegistrySetting # Renamed for clarity
+      summary: Get Model Registry Settings
+      description: Gets the details of a single Model Registry settings, potentially including related credentials.
     patch:
       requestBody:
         description: Updated Model Registry settings information.
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                metadata:
-                  type: object
-                  description: Metadata about the response
-                data:
-                  $ref: "#/components/schemas/ModelRegistryKind"
+              # Use the new payload schema to allow optional credentials
+              $ref: "#/components/schemas/ModelRegistrySettingsPayload" # New schema for update payload
         required: true
       tags:
         - K8SOperation
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: '#/components/parameters/registeredmodelId'
+        - $ref: "#/components/parameters/modelRegistryId"
       responses:
         "200":
           $ref: "#/components/responses/ModelRegistryKindResponse"
@@ -183,7 +192,7 @@ paths:
         - K8SOperation
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: '#/components/parameters/registeredmodelId'
+        - $ref: '#/components/parameters/modelRegistryId'
       responses:
         "204":
           description: Successfully deleted
@@ -198,6 +207,99 @@ paths:
       operationId: deleteModelRegistrySettings
       summary: Delete Model Registry Settings
       description: Deletes an existing Model Registry settings.
+  # New path for certificates
+  /api/v1/settings/certificates:
+    summary: Path used to list available certificates (Secrets and ConfigMaps).
+    description: >-
+      The REST endpoint/path used to list Secrets and ConfigMaps that can be used for TLS/SSL configuration in Model Registries.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/CertificateListResponse" # New response type needed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCertificates
+      summary: List Available Certificates
+      description: Gets lists of Secrets and ConfigMaps suitable for certificate usage.
+
+  # New path for role bindings
+  /api/v1/settings/role_bindings:
+    summary: Path used to manage Role Bindings for Model Registries.
+    description: >-
+      The REST endpoint/path used to list and create Role Bindings associated with Model Registries.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/RoleBindingListResponse" # New response type needed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getRoleBindings
+      summary: List Model Registry Role Bindings
+      description: Gets a list of Role Bindings associated with Model Registries.
+    post:
+      requestBody:
+        description: A new Role Binding to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleBinding" # New schema needed
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "201":
+          $ref: "#/components/responses/RoleBindingResponse" # New response type needed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/ConflictResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createRoleBinding
+      summary: Create Model Registry Role Binding
+      description: Creates a new Role Binding associated with Model Registries.
+
+  # New path for specific role binding
+  /api/v1/settings/role_bindings/{roleBindingName}:
+    summary: Path used to manage a single Role Binding for Model Registries.
+    description: >-
+      The REST endpoint/path used to delete a specific Role Binding associated with Model Registries.
+    delete:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: '#/components/parameters/roleBindingName' # New parameter needed
+      responses:
+        "204":
+          description: Successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: deleteRoleBinding
+      summary: Delete Model Registry Role Binding
+      description: Deletes an existing Role Binding associated with Model Registries.
+    parameters: # Add parameters at the path level
+      - $ref: '#/components/parameters/roleBindingName' # Ensure this path parameter is defined
   /api/v1/model_registry/{modelRegistryName}/model_versions/{modelversionId}:
     summary: Path used to manage a single ModelVersion.
     description: >-
@@ -208,6 +310,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/modelversionId"
       responses:
         "200":
           $ref: "#/components/responses/ModelVersionResponse"
@@ -253,12 +356,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
-      - name: modelversionId
-        description: A unique identifier for a `ModelVersion`.
-        schema:
-          type: string
-        in: path
-        required: true
+      - $ref: "#/components/parameters/modelversionId"
   /api/v1/model_registry/{modelRegistryName}/registered_models:
     summary: Path used to manage the list of registeredmodels.
     description: >-
@@ -386,6 +484,7 @@ paths:
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
         - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/modelversionId"
       responses:
         "200":
           $ref: "#/components/responses/ArtifactListResponse"
@@ -433,12 +532,7 @@ paths:
       summary: Create an Artifact in a ModelVersion
       description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
     parameters:
-      - name: modelversionId
-        description: A unique identifier for a `ModelVersion`.
-        schema:
-          type: string
-        in: path
-        required: true
+      - $ref: "#/components/parameters/modelversionId"
   "/api/v1/model_registry/{modelRegistryName}/registered_models/{registeredmodelId}/versions":
     summary: Path used to manage the list of modelversions for a registeredmodel.
     description: >-
@@ -500,7 +594,7 @@ paths:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
       - $ref: '#/components/parameters/registeredmodelId'
-  /api/v1/model_registry/{modelRegistryName}/model_artifact/{modelartifactId}:
+  /api/v1/model_registry/{modelRegistryName}/model_artifact/{modelArtifactId}:
     summary: Path used to patch Model Artifacts
     description: >-
       The REST endpoint/path used patch single instances of an `ModelArtifact`. This path contains`PATCH` operation used to perform the patch tasks.
@@ -537,6 +631,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
+      - $ref: "#/components/parameters/modelArtifactId"
 components:
   schemas:
     Config:
@@ -1269,6 +1364,111 @@ components:
             servingEnvironmentId:
               description: ID of the parent `ServingEnvironment` for this `InferenceService` entity.
               type: string
+    # New schema for Certificate list item
+    CertificateItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the Secret or ConfigMap.
+        keys:
+          type: array
+          items:
+            type: string
+          description: List of keys within the Secret/ConfigMap containing certificate data.
+
+    # New schema for Certificate list response data
+    CertificateListData:
+      type: object
+      properties:
+        secrets:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateItem"
+        configMaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateItem"
+
+    # New schema for RoleBinding (simplified, based on k8s V1RoleBinding)
+    RoleBinding:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          example: rbac.authorization.k8s.io/v1
+        kind:
+          type: string
+          example: RoleBinding
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+            # namespace might be omitted or added by backend
+            labels:
+              type: object
+              additionalProperties:
+                type: string
+        subjects:
+          type: array
+          items:
+            type: object # Define subject structure
+            properties:
+              kind:
+                type: string
+                example: User
+              name:
+                type: string
+              apiGroup:
+                type: string
+                example: rbac.authorization.k8s.io
+        roleRef:
+          type: object # Define roleRef structure
+          properties:
+            kind:
+              type: string
+              example: ClusterRole
+            name:
+              type: string
+            apiGroup:
+              type: string
+              example: rbac.authorization.k8s.io
+
+    # New schema for RoleBinding list
+    RoleBindingList:
+      description: List of RoleBinding entities.
+      type: object
+      properties:
+        items:
+          description: Array of `RoleBinding` entities.
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleBinding"
+        # Consider adding pagination fields if needed
+
+    # New schema for Model Registry Settings Payload (POST/PATCH)
+    ModelRegistrySettingsPayload:
+      description: Payload for creating or updating Model Registry settings, potentially including credentials and certificates.
+      type: object
+      required:
+        - modelRegistry # The core ModelRegistryKind is required
+      properties:
+        modelRegistry:
+          $ref: "#/components/schemas/ModelRegistryKind"
+        databasePassword:
+          type: string
+          description: Optional new password for the database connection. If provided, it will update the associated secret.
+          nullable: true # Indicates it's optional
+          example: "new-secure-password"
+        newDatabaseCACertificate:
+          type: string
+          description: Optional new CA certificate content for the database connection (PEM format). If provided, it will update the associated ConfigMap or Secret.
+          nullable: true # Indicates it's optional
+          example: |
+            -----BEGIN CERTIFICATE-----
+            MIID...
+            -----END CERTIFICATE-----
   responses:
     NotFound:
       content:
@@ -1306,6 +1506,12 @@ components:
               data:
                 $ref: "#/components/schemas/Config"
       description: A response containing a list of ModelArtifact entities.
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Conflict - Role Binding with the same name already exists
     ModelRegistryRespone:
       content:
         application/json:
@@ -1512,6 +1718,48 @@ components:
               data:
                 $ref: "#/components/schemas/ModelRegistryKind"
       description: A response containing a `ModelRegistryKind` entity.
+
+    # New response for Certificate List
+    CertificateListResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/CertificateListData"
+      description: A response containing a list of available certificates (Secrets and ConfigMaps).
+
+    # New response for RoleBinding List
+    RoleBindingListResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/RoleBindingList"
+      description: A response containing a list of `RoleBinding` entities.
+
+    # New response for a single RoleBinding
+    RoleBindingResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/RoleBinding"
+      description: A response containing a single `RoleBinding` entity.
   parameters:
     registeredmodelId:
       name: registeredmodelId
@@ -1520,8 +1768,8 @@ components:
         type: string
       in: path
       required: true
-    modelRegsitryId:
-      name: modelRegsitryId
+    modelRegistryId:
+      name: modelRegistryId
       description: A unique identifier for a `Model Registry`.
       schema:
         type: string
@@ -1530,6 +1778,20 @@ components:
     kubeflowUserId:
       in: header
       name: kubeflow-userid
+      schema:
+        type: string
+      required: true
+    modelArtifactId:
+      name: modelArtifactId
+      in: path
+      description: A unique identifier for a `ModelVersion`.
+      schema:
+        type: string
+      required: true
+    modelversionId:
+      name: modelversionId
+      in: path
+      description: A unique identifier for a `ModelVersion`.
       schema:
         type: string
       required: true
@@ -1618,6 +1880,13 @@ components:
         $ref: "#/components/schemas/SortOrder"
       in: query
       required: false
+    roleBindingName:
+      name: roleBindingName
+      description: The name of the Role Binding resource.
+      schema:
+        type: string
+      in: path
+      required: true
   securitySchemes:
     Bearer:
       scheme: bearer
