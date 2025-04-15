@@ -5,3 +5,4 @@
 /.nox/
 /.python-version
 __pycache__/
+venv/
