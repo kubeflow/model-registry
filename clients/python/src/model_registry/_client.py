@@ -233,6 +233,10 @@ class ModelRegistry:
         Returns:
             Registered model. See: :meth:`~ModelRegistry.register_model`
         """
+        # Check if model does not already exist in Registry
+        if self.get_model_version(name=name, version=version):
+            raise StoreError(f"Model `{name}:{version}` already exists in Model Registry.")
+
         if isinstance(upload_params, S3Params):
             destination_uri = self.save_to_s3(
                 **asdict(upload_params), path=model_files_path
