@@ -10,8 +10,6 @@ const (
 
 	// The following keys are used to store the user access token in the context
 	RequestIdentityKey contextKey = "requestIdentityKey"
-	//For config.AuthMethodUser
-	XForwardedAccessTokenHeader = "X-Forwarded-Access-Token"
 
 	// For config.AuthMethodInternal
 	// Kubeflow authorization operates using custom authentication headers:

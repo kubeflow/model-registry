@@ -22,7 +22,7 @@ func NewKubernetesClientFactory(cfg config.EnvConfig, logger *slog.Logger) (Kube
 		return k8sFactory, nil
 
 	case config.AuthMethodUser:
-		k8sFactory := NewTokenClientFactory(logger)
+		k8sFactory := NewTokenClientFactory(logger, cfg)
 		return k8sFactory, nil
 
 	default:
@@ -65,7 +65,7 @@ func (f *StaticClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*R
 	userID := httpHeader.Get(constants.KubeflowUserIDHeader)
 	//`kubeflow-userid`: Contains the user's email address.
 	if userID == "" {
-		return nil, fmt.Errorf("missing required header on AuthMethodInternal: kubeflow-userid")
+		return nil, errors.New("missing required kubeflow-userid header")
 	}
 
 	userGroupsHeader := httpHeader.Get(constants.KubeflowUserGroupsIdHeader)
@@ -102,22 +102,36 @@ func (f *StaticClientFactory) ValidateRequestIdentity(identity *RequestIdentity)
 //
 
 type TokenClientFactory struct {
-	logger *slog.Logger
+	Logger *slog.Logger
+	Header string
+	Prefix string
 }
 
-func NewTokenClientFactory(logger *slog.Logger) KubernetesClientFactory {
-	return &TokenClientFactory{logger: logger}
+func NewTokenClientFactory(logger *slog.Logger, cfg config.EnvConfig) KubernetesClientFactory {
+	return &TokenClientFactory{
+		Logger: logger,
+		Header: cfg.AuthTokenHeader,
+		Prefix: cfg.AuthTokenPrefix,
+	}
 }
 
 func (f *TokenClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*RequestIdentity, error) {
-	token := httpHeader.Get(constants.XForwardedAccessTokenHeader)
-	if token == "" {
-		return nil, fmt.Errorf("missing required header on AuthMethodUser: access token")
+	raw := httpHeader.Get(f.Header)
+	if raw == "" {
+		return nil, fmt.Errorf("missing required Header: %s", f.Header)
 	}
-	identity := &RequestIdentity{
-		Token: token,
+
+	token := raw
+	if f.Prefix != "" {
+		if !strings.HasPrefix(raw, f.Prefix) {
+			return nil, fmt.Errorf("expected token Header %s to start with Prefix %q", f.Header, f.Prefix)
+		}
+		token = strings.TrimPrefix(raw, f.Prefix)
 	}
-	return identity, nil
+
+	return &RequestIdentity{
+		Token: strings.TrimSpace(token),
+	}, nil
 }
 
 func (f *TokenClientFactory) ValidateRequestIdentity(identity *RequestIdentity) error {
@@ -144,5 +158,5 @@ func (f *TokenClientFactory) GetClient(ctx context.Context) (KubernetesClientInt
 		return nil, fmt.Errorf("invalid or missing identity token")
 	}
 
-	return newTokenKubernetesClient(identity.Token, f.logger)
+	return newTokenKubernetesClient(identity.Token, f.Logger)
 }

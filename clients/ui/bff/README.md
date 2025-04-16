@@ -105,18 +105,18 @@ curl -i "localhost:4000/healthcheck"
 ```
 # GET /v1/user 
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/user"
-curl -i -H "X-Forwarded-Access-Token: $TOKEN" "localhost:4000/api/v1/user"
+curl -i -H "Authorization: Bearer $TOKEN" "localhost:4000/api/v1/user"
 ```
 ```
 # GET /v1/namespaces (only works when DEV_MODE=true)
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/namespaces"
-curl -i -H "X-Forwarded-Access-Token: $TOKEN" "localhost:4000/api/v1/namespaces"
+curl -i -H "Authorization: Bearer $TOKEN" "localhost:4000/api/v1/namespaces"
 ```
 
 ```
 # GET /v1/model_registry
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry?namespace=kubeflow"
-curl -i -H "X-Forwarded-Access-Token: $TOKEN" "localhost:4000/api/v1/model_registry?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "localhost:4000/api/v1/model_registry?namespace=kubeflow"
 ```
 
 ```
@@ -130,7 +130,7 @@ curl -i \
 ```
 # GET /v1/model_registry/{model_registry_id}/registered_models
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/model_registry/model-registry/registered_models?namespace=kubeflow"
-curl -i -H "X-Forwarded-Access-Token: $TOKEN" "localhost:4000/api/v1/model_registry/model-registry-service/registered_models?namespace=kubeflow-user-example-com""
+curl -i -H "Authorization: Bearer $TOKEN" "localhost:4000/api/v1/model_registry/model-registry-service/registered_models?namespace=kubeflow-user-example-com""
 ```
 
 ```
@@ -381,9 +381,8 @@ The BFF supports two authentication modes, selectable via the --auth-method flag
     - In this mode, user identity is passed via the kubeflow-userid and optionally kubeflow-groups headers.
     - This is the default mode and works well with mock clients and local testing.
 - `user_token`: Uses a user-provided Bearer token for authentication.
-    - The token must be passed in the `X-Forwarded-Access-Token` header.
-    - Useful when the frontend is fronted by an auth proxy (e.g., Istio + OIDC) that injects a valid Kubernetes token.
-
+  - The token must be passed in the `Authorization` header using the Bearer schema (e.g., `Authorization: Bearer <token>`).
+  - This method works with OIDC-authenticated flows and frontend proxies that preserve standard Bearer tokens.
 
 #### 4. How BFF authorization works?
 
@@ -391,7 +390,7 @@ Authorization is performed using Kubernetes access reviews, validating whether t
 There are two review mechanisms depending on the authentication mode:
 - Internal mode (auth-method=internal):
 Uses SubjectAccessReview (SAR) to check whether the impersonated user (from kubeflow-userid and kubeflow-groups headers) has the required permissions.
-- User token mode (auth-method=user_token): Uses SelfSubjectAccessReview (SSAR), leveraging the Bearer token provided in the X-Forwarded-Access-Token header to check the current user's permissions directly.
+- User token mode (auth-method=user_token): Uses SelfSubjectAccessReview (SSAR), leveraging the Bearer token provided in the `Authorization` header to check the current user's permissions directly.
 
 ##### Authorization logic
 * Access to Model Registry List (/v1/model_registry):
@@ -401,6 +400,25 @@ Uses SubjectAccessReview (SAR) to check whether the impersonated user (from kube
 * Access to Specific Model Registry Endpoints (/v1/model_registry/{model_registry_id}/...):
     - Checks for get on the specific service (identified by model_registry_id) in the namespace.
     - If authorized, access is granted.
+
+##### Overriding Token Header and Prefix
+
+By default, the BFF expects the token to be passed in the standard Authorization header with a Bearer prefix:
+
+```shell
+Authorization: Bearer <your-token>
+```
+If you're integrating with a proxy or tool that uses a custom header (e.g., X-Forwarded-Access-Token without a prefix), you can override this behavior using environment variables or Makefile arguments.
+
+```shell
+make run AUTH_METHOD=user_token AUTH_TOKEN_HEADER=X-Forwarded-Access-Token AUTH_TOKEN_PREFIX=""
+```
+This will configure the BFF to extract the raw token from the following header:
+
+```shell
+X-Forwarded-Access-Token: <your-token>
+```
+
 
 #### 5. How do I allow CORS requests from other origins
 

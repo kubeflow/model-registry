@@ -105,7 +105,12 @@ type MockedTokenClientFactory struct {
 
 // NewTokenClientFactory initializes a factory using a known envtest clientset + config.
 func NewTokenClientFactory(clientset kubernetes.Interface, restConfig *rest.Config, logger *slog.Logger) (k8s.KubernetesClientFactory, error) {
-	realFactory := k8s.NewTokenClientFactory(logger)
+	cfg := config.EnvConfig{
+		AuthMethod:      config.AuthMethodUser,
+		AuthTokenHeader: config.DefaultAuthTokenHeader,
+		AuthTokenPrefix: config.DefaultAuthTokenPrefix,
+	}
+	realFactory := k8s.NewTokenClientFactory(logger, cfg)
 
 	return &MockedTokenClientFactory{
 		logger:         logger,
