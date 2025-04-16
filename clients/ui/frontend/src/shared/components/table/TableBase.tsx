@@ -300,6 +300,7 @@ const TableBase = <T,>({
                 className="pf-v6-u-pr-lg"
               >
               </ToolbarItem>
+
             )}
           </ToolbarContent>
         </Toolbar>
