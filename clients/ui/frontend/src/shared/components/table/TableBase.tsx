@@ -124,7 +124,7 @@ const TableBase = <T,>({
   const selectAllRef = React.useRef(null);
   const showPagination = enablePagination;
 
-  const pagination = (variant: 'bottom') => (
+  const pagination = (variant: 'top' | 'bottom') => (
     <Pagination
       isCompact
       {...(!disableItemCount && { itemCount })}
@@ -299,6 +299,7 @@ const TableBase = <T,>({
                 align={{ default: 'alignEnd' }}
                 className="pf-v6-u-pr-lg"
               >
+                {pagination('top')}
               </ToolbarItem>
             )}
           </ToolbarContent>
