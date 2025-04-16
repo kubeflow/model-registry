@@ -234,7 +234,13 @@ class ModelRegistry:
             Registered model. See: :meth:`~ModelRegistry.register_model`
         """
         # Check if model does not already exist in Registry
-        if self.get_model_version(name=name, version=version):
+        ver = None
+        try:
+            ver = self.get_model_version(name=name, version=version)
+        except StoreError:
+            pass
+
+        if ver:
             raise StoreError(f"Model `{name}:{version}` already exists in Model Registry.")
 
         if isinstance(upload_params, S3Params):
