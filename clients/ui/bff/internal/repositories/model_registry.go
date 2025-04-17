@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 	"fmt"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 

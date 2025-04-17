@@ -1,10 +1,11 @@
-package repositories
+package tests
 
 import (
 	"context"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"log/slog"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -23,22 +24,23 @@ import (
 
 var (
 	kubernetesMockedStaticClientFactory k8s.KubernetesClientFactory
-	ctx                                 context.Context
-	cancel                              context.CancelFunc
-	logger                              *slog.Logger
-	testEnv                             *envtest.Environment
+
+	ctx        context.Context
+	cancel     context.CancelFunc
+	logger     *slog.Logger
+	testEnv    *envtest.Environment
+	clientset  kubernetes.Interface
+	restConfig *rest.Config
 )
 
 func TestAPI(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecs(t, "API Suite")
-
 }
 
 var _ = BeforeSuite(func() {
-	defer GinkgoRecover() // Ensure Ginkgo can handle any panic during setup
-
+	defer GinkgoRecover()
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 	ctx, cancel = context.WithCancel(context.Background())
 
@@ -47,17 +49,19 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping envtest")
 	var err error
-	var clientset kubernetes.Interface
+
 	testEnv, clientset, err = k8mocks.SetupEnvTest(k8mocks.TestEnvInput{
 		Logger: logger,
 		Ctx:    ctx,
 		Cancel: cancel,
 	})
 	Expect(err).NotTo(HaveOccurred())
+	restConfig = testEnv.Config
 
 	By("creating factory mock client using shared envtest")
 	kubernetesMockedStaticClientFactory, err = k8mocks.NewStaticClientFactory(clientset, logger)
 	Expect(err).NotTo(HaveOccurred())
+
 })
 
 var _ = AfterSuite(func() {
