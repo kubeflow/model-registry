@@ -241,7 +241,9 @@ class ModelRegistry:
             pass
 
         if ver:
-            raise StoreError(f"Model `{name}:{version}` already exists in Model Registry.")
+            raise StoreError(
+                f"Model `{name}:{version}` already exists in Model Registry."
+            )
 
         if isinstance(upload_params, S3Params):
             destination_uri = self.save_to_s3(

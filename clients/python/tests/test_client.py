@@ -893,7 +893,7 @@ def test_upload_artifact_and_register_model_with_default_oci(
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
-        custom_oci_backend=get_skopeo_backend_for_local_e2e_testing()
+        custom_oci_backend=get_skopeo_backend_for_local_e2e_testing(),
     )
 
     assert client.upload_artifact_and_register_model(
@@ -910,18 +910,15 @@ def test_upload_artifact_and_register_model_with_default_oci(
     assert ma.uri == f"oci://{oci_ref}"
 
     # Assert fail on duplicate
-    with pytest.raises(
-        StoreError, match="already exists"
-):
+    with pytest.raises(StoreError, match="already exists"):
         client.upload_artifact_and_register_model(
             name,
             model_files_path=model_dir,
             version=version,
             model_format_name="test format",
             model_format_version="test version",
-            upload_params=upload_params
+            upload_params=upload_params,
         )
-        
 
 
 @pytest.mark.e2e
