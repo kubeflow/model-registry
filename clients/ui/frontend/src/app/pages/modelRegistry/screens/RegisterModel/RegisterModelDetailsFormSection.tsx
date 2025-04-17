@@ -10,7 +10,6 @@ import React from 'react';
 import FormSection from '~/shared/components/pf-overrides/FormSection';
 import { UpdateObjectAtPropAndValue } from '~/shared/types';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
 import { MR_CHARACTER_LIMIT } from './const';
 import { RegisterModelFormData } from './useRegisterModelData';
 
@@ -26,8 +25,6 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   hasModelNameError,
   isModelNameDuplicate,
 }: RegisterModelDetailsFormSectionProp<D>): React.ReactNode => {
-  const { isMUITheme } = useThemeContext();
-
   const modelNameInput = (
     <TextInput
       isRequired
@@ -56,7 +53,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       description="Provide general details that apply to all versions of this model."
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
-        {isMUITheme ? <FormFieldset component={modelNameInput} /> : modelNameInput}
+        <FormFieldset component={modelNameInput} />
         {hasModelNameError && (
           <FormHelperText>
             <HelperText>
@@ -70,11 +67,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
         )}
       </FormGroup>
       <FormGroup label="Model description" fieldId="model-description">
-        {isMUITheme ? (
-          <FormFieldset component={modelDescriptionInput} field="Model Description" />
-        ) : (
-          modelDescriptionInput
-        )}
+        <FormFieldset component={modelDescriptionInput} field="Model Description" />
       </FormGroup>
     </FormSection>
   );
