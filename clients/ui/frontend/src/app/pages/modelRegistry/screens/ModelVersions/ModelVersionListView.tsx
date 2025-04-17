@@ -7,8 +7,6 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
-  SearchInput,
-  TextInput,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -16,26 +14,25 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
-import { useNavigate } from 'react-router';
-import { ModelVersion, RegisteredModel } from '~/app/types';
+import { useNavigate } from 'react-router-dom';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import { SearchType } from '~/shared/components/DashboardSearchField';
-import {
-  filterModelVersions,
-  sortModelVersionsByCreateTime,
-} from '~/app/pages/modelRegistry/screens/utils';
-import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
+import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import SimpleSelect from '~/shared/components/SimpleSelect';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import {
+  filterModelVersions,
+  sortModelVersionsByCreateTime,
+} from '~/app/pages/modelRegistry/screens/utils';
 import { asEnumMember } from '~/shared/utilities/utils';
-import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
-import SimpleSelect from '~/shared/components/SimpleSelect';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
 import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
+import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
+import ModelVersionsTable from './ModelVersionsTable';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
@@ -68,6 +65,8 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
 
   const filteredModelVersions = filterModelVersions(unfilteredModelVersions, search, searchType);
   const date = rm.lastUpdateTimeSinceEpoch && new Date(parseInt(rm.lastUpdateTimeSinceEpoch));
+
+  const resetFilters = () => setSearch('');
 
   if (unfilteredModelVersions.length === 0) {
     if (isArchiveModel) {
@@ -129,7 +128,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
       <ModelVersionsTable
         refresh={refresh}
         isArchiveModel={isArchiveModel}
-        clearFilters={() => setSearch('')}
+        clearFilters={resetFilters}
         modelVersions={sortModelVersionsByCreateTime(filteredModelVersions)}
         toolbarContent={
           <ToolbarContent>
@@ -137,8 +136,8 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
               <ToolbarGroup variant="filter-group">
                 <ToolbarFilter
                   labels={search === '' ? [] : [search]}
-                  deleteLabel={() => setSearch('')}
-                  deleteLabelGroup={() => setSearch('')}
+                  deleteLabel={resetFilters}
+                  deleteLabelGroup={resetFilters}
                   categoryName={searchType}
                 >
                   <SimpleSelect
@@ -158,35 +157,16 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                   />
                 </ToolbarFilter>
                 <ToolbarItem>
-                  {isMUITheme() ? (
-                    <FormFieldset
-                      className="toolbar-fieldset-wrapper"
-                      component={
-                        <TextInput
-                          value={search}
-                          type="text"
-                          onChange={(_, searchValue) => {
-                            setSearch(searchValue);
-                          }}
-                          style={{ minWidth: '200px' }}
-                          data-testid="model-versions-table-search"
-                          aria-label="Search"
-                        />
-                      }
-                      field={`Find by ${searchType.toLowerCase()}`}
-                    />
-                  ) : (
-                    <SearchInput
-                      placeholder={`Find by ${searchType.toLowerCase()}`}
-                      value={search}
-                      onChange={(_, searchValue) => {
-                        setSearch(searchValue);
-                      }}
-                      onClear={() => setSearch('')}
-                      style={{ minWidth: '200px' }}
-                      data-testid="model-versions-table-search"
-                    />
-                  )}
+                  <ThemeAwareSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    onClear={resetFilters}
+                    placeholder={`Find by ${searchType.toLowerCase()}`}
+                    fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                    className="toolbar-fieldset-wrapper"
+                    style={{ minWidth: '200px' }}
+                    data-testid="model-versions-table-search"
+                  />
                 </ToolbarItem>
               </ToolbarGroup>
 
