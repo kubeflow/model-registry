@@ -28,6 +28,7 @@ from .utils import (
     s3_uri_from,
     save_to_oci_registry,
 )
+import contextlib
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
@@ -235,15 +236,12 @@ class ModelRegistry:
         """
         # Check if model does not already exist in Registry
         ver = None
-        try:
+        with contextlib.suppress(StoreError):
             ver = self.get_model_version(name=name, version=version)
-        except StoreError:
-            pass
 
         if ver:
-            raise StoreError(
-                f"Model `{name}:{version}` already exists in Model Registry."
-            )
+            msg = f"Model `{name}:{version}` already exists in Model Registry."
+            raise StoreError(msg)
 
         if isinstance(upload_params, S3Params):
             destination_uri = self.save_to_s3(
