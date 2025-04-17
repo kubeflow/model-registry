@@ -29,7 +29,7 @@ USER root
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o model-registry
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as dev-build
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS dev-build
 
 WORKDIR /
 COPY --from=dev /workspace/model-registry .
@@ -39,7 +39,7 @@ ENTRYPOINT ["/model-registry"]
 
 ###### Dev stage - end ######
 
-FROM common as builder
+FROM common AS builder
 
 USER root
 # default NodeJS 14 is not enough for openapi-generator-cli, switch to Node JS currently supported
