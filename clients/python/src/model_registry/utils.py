@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import json
 import os
 import tempfile
 from dataclasses import dataclass
@@ -278,3 +280,38 @@ def get_files_from_path(path: str) -> list[tuple[str, str]]:
             files.append((absolute_path, relative_path))
 
     return files
+
+
+def _extract_auth_json(var: str | None = None) -> str:
+    """Extract the auth JSON from the environment variable.
+
+    Args:
+        var: The environment varaible.
+    """
+    # Set default to .dockerconfigjson
+    if not var:
+        var = ".dockerconfigjson"
+
+    if not (env_var := os.getenv(var)):
+        msg = f"Cannot find environment variable '{var}'"
+        raise ValueError(msg)
+    try:
+        invalid_json_msg = f"Environment variable '{var}' does not contain valid JSON."
+        auth_json = json.loads(env_var)
+        if type(auth_json) is not dict:
+            raise TypeError(msg)
+        registries = auth_json["auths"]
+        reg_keys = list(registries.keys())
+        if len(reg_keys) > 1:
+            msg = f"Auth JSON has multiple registries ({', '.join(reg_keys)}). This is not supported."
+            raise ValueError(msg)
+
+        key = registries[reg_keys[0]]["auth"]
+        auth = base64.b64decode(key)
+        return auth.decode()
+
+    except (AttributeError, KeyError) as e:
+        msg = "This is an invalid Auth JSON."
+        raise ValueError(msg) from e
+    except json.JSONDecodeError as e:
+        raise ValueError(invalid_json_msg) from e
