@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import inspect
 import logging
 import os
@@ -28,7 +29,6 @@ from .utils import (
     s3_uri_from,
     save_to_oci_registry,
 )
-import contextlib
 
 ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact]
 TModel = TypeVar("TModel", bound=ModelTypes)
