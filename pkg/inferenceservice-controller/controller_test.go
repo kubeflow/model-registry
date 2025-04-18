@@ -299,6 +299,7 @@ var _ = Describe("InferenceService Controller", func() {
 			resp, err := mrMockServer.Client().Get(mrUrl + "/api/model_registry/v1alpha3/inference_services/1")
 			Expect(err).To(BeNil())
 
+			//nolint:errcheck
 			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)
@@ -324,6 +325,7 @@ var _ = Describe("InferenceService Controller", func() {
 				resp, err := mrMockServer.Client().Get(mrUrl + "/api/model_registry/v1alpha3/inference_services/1")
 				Expect(err).To(BeNil())
 
+				//nolint:errcheck
 				defer resp.Body.Close()
 
 				body, err := io.ReadAll(resp.Body)
