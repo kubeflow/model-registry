@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -13,6 +14,7 @@ import (
 
 type ModelRegistrySettingsListEnvelope Envelope[[]models.ModelRegistryKind, None]
 type ModelRegistrySettingsEnvelope Envelope[models.ModelRegistryKind, None]
+type ModelRegistrySettingsPayloadEnvelope Envelope[models.ModelRegistrySettingsPayload, None]
 
 func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
@@ -71,15 +73,32 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 	}
 
-	registry := createSampleModelRegistry("new-model-registry", namespace)
+	var envelope ModelRegistrySettingsPayloadEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	var modelRegistryName = envelope.Data.ModelRegistry.Metadata.Name
+
+	if modelRegistryName == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+		return
+	}
+
+	ctxLogger.Info("Creating model registry", "name", modelRegistryName)
+
+	// For now, we're using the stub implementation, but we'd use envelope.Data.ModelRegistry
+	// and other fields from the payload in a real implementation
+	registry := createSampleModelRegistry(modelRegistryName, namespace)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
 	}
 
 	w.Header().Set("Location", r.URL.JoinPath(modelRegistryRes.Data.Metadata.Name).String())
-	err := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil)
-	if err != nil {
+	writeErr := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil)
+	if writeErr != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
 	}

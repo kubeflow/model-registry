@@ -38,16 +38,21 @@ const (
 	SettingsPath                  = ApiPathPrefix + "/settings"
 	ModelRegistrySettingsListPath = SettingsPath + "/model_registry"
 	ModelRegistrySettingsPath     = ModelRegistrySettingsListPath + "/:" + ModelRegistryId
-	RegisteredModelListPath       = ModelRegistryPath + "/registered_models"
-	RegisteredModelPath           = RegisteredModelListPath + "/:" + RegisteredModelId
-	RegisteredModelVersionsPath   = RegisteredModelPath + "/versions"
-	ModelVersionListPath          = ModelRegistryPath + "/model_versions"
-	ModelVersionPath              = ModelVersionListPath + "/:" + ModelVersionId
-	ModelVersionArtifactListPath  = ModelVersionPath + "/artifacts"
-	ModelArtifactListPath         = ModelRegistryPath + "/model_artifacts"
-	ModelArtifactPath             = ModelArtifactListPath + "/:" + ModelArtifactId
-	ArtifactListPath              = ModelRegistryPath + "/artifacts"
-	ArtifactPath                  = ArtifactListPath + "/:" + ArtifactId
+	// Add new constants for certificates and role bindings
+	CertificatesPath    = SettingsPath + "/certificates"
+	RoleBindingListPath = SettingsPath + "/role_bindings"
+	RoleBindingPath     = RoleBindingListPath + "/:" + RoleBindingNameParam // Use the constant defined in the rbac handler
+
+	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
+	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
+	RegisteredModelVersionsPath  = RegisteredModelPath + "/versions"
+	ModelVersionListPath         = ModelRegistryPath + "/model_versions"
+	ModelVersionPath             = ModelVersionListPath + "/:" + ModelVersionId
+	ModelVersionArtifactListPath = ModelVersionPath + "/artifacts"
+	ModelArtifactListPath        = ModelRegistryPath + "/model_artifacts"
+	ModelArtifactPath            = ModelArtifactListPath + "/:" + ModelArtifactId
+	ArtifactListPath             = ModelRegistryPath + "/artifacts"
+	ArtifactPath                 = ArtifactListPath + "/:" + ArtifactId
 )
 
 type App struct {
@@ -157,12 +162,20 @@ func (app *App) Routes() http.Handler {
 	// Standalone "only" routes
 	if app.config.StandaloneMode {
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
-		//Those endpoints are not implement yet. This is a STUB API to unblock frontend development
+		// Model Registry Settings endpoints
 		apiRouter.GET(ModelRegistrySettingsListPath, app.AttachNamespace(app.GetAllModelRegistriesSettingsHandler))
 		apiRouter.POST(ModelRegistrySettingsListPath, app.AttachNamespace(app.CreateModelRegistrySettingsHandler))
 		apiRouter.GET(ModelRegistrySettingsPath, app.AttachNamespace(app.GetModelRegistrySettingsHandler))
 		apiRouter.PATCH(ModelRegistrySettingsPath, app.AttachNamespace(app.UpdateModelRegistrySettingsHandler))
 		apiRouter.DELETE(ModelRegistrySettingsPath, app.AttachNamespace(app.DeleteModelRegistrySettingsHandler))
+
+		// Certificate endpoints
+		apiRouter.GET(CertificatesPath, app.AttachNamespace(app.GetCertificatesHandler))
+
+		// Role Binding endpoints
+		apiRouter.GET(RoleBindingListPath, app.AttachNamespace(app.GetRoleBindingsHandler))
+		apiRouter.POST(RoleBindingListPath, app.AttachNamespace(app.CreateRoleBindingHandler))
+		apiRouter.DELETE(RoleBindingPath, app.AttachNamespace(app.DeleteRoleBindingHandler))
 	}
 
 	// App Router
