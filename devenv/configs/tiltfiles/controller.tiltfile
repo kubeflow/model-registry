@@ -1,0 +1,88 @@
+load("ext://helm_resource", "helm_resource")
+load("ext://restart_process", "docker_build_with_restart")
+
+# Deploy Kserve CRDs
+
+helm_resource(
+    name="kserve-crd",
+    chart="oci://ghcr.io/kserve/charts/kserve-crd",
+    flags=["--version=v0.14.1"],
+    labels="kserve",
+)
+
+# Deploy Model Registry Controller
+
+manifests = kustomize("../../../manifests/kustomize/options/controller/overlays/base")
+
+objects = decode_yaml_stream(manifests)
+
+for o in objects:
+    if o["kind"] == "Deployment" and o.get("metadata").get("name") in ["controller-controller-manager"]:
+        o["spec"]["template"]["spec"]["securityContext"] = {"runAsNonRoot": False, "readOnlyRootFilesystem": False}
+        o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
+
+overridden_manifests = encode_yaml_stream(objects)
+
+k8s_yaml(overridden_manifests, allow_duplicates=True)
+
+k8s_resource(
+    new_name="controller-rbac",
+    objects=[
+       "controller-controller-manager:serviceaccount",
+       "controller-leader-election-role:role",
+       "controller-model-registry-manager-role:clusterrole",
+       "controller-metrics-auth-role:clusterrole",
+       "controller-metrics-reader:clusterrole",
+       "controller-leader-election-rolebinding:rolebinding",
+       "controller-metrics-auth-rolebinding:clusterrolebinding",
+       "controller-model-registry-manager-rolebinding:clusterrolebinding"
+    ],
+    resource_deps=["kubeflow-namespace"],
+    labels="controller",
+)
+
+k8s_resource(
+    new_name="controller-params",
+    objects=[
+        "model-registry-controller-parameters:configmap"
+    ],
+    resource_deps=["kubeflow-namespace"],
+    labels="controller",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+k8s_resource(
+    workload="controller-controller-manager",
+    new_name="controller",
+    labels="controller",
+    resource_deps=["kubeflow-namespace", "controller-params", "controller-rbac"],
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+local_resource(
+    "controller-bin",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./devenv/bin/manager cmd/controller/main.go",
+    dir = "../../../",
+    deps = [
+        "../../../cmd/controller",
+        "../../../internal/controller",
+        "../../../pkg/inferenceservice-controller",
+        "../../../go.mod",
+        "../../../go.sum",
+    ],
+    labels="controller",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+docker_build_with_restart(
+    "ghcr.io/kubeflow/model-registry/controller",
+    context="../../../",
+    dockerfile="../../../tilt-controller.dockerfile",
+    entrypoint=["/manager"],
+    only=[
+      "devenv/bin/manager",
+    ],
+    live_update=[
+        sync("../../bin/manager", "/manager"),
+    ],
+)

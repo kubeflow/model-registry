@@ -16,7 +16,7 @@ import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/component
 import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/shared/utilities/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
 
 type RegisteredModelsArchiveListViewProps = {
@@ -32,6 +32,8 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
 }) => {
   const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
   const [search, setSearch] = React.useState('');
+
+  const { isMUITheme } = useThemeContext();
 
   const searchTypes = [SearchType.KEYWORD, SearchType.OWNER];
   const filteredRegisteredModels = filterRegisteredModels(
@@ -84,7 +86,7 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                 />
               </ToolbarFilter>
               <ToolbarItem>
-                {isMUITheme() ? (
+                {isMUITheme ? (
                   <FormFieldset
                     className="toolbar-fieldset-wrapper"
                     component={

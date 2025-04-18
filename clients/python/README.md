@@ -202,13 +202,13 @@ Common S3 env vars will be automatically read, such ass the access_key_id, etc. 
 
 ```python
 s3_upload_params = S3Params(
-    bucket="my-bucket",
+    bucket_name="my-bucket",
     s3_prefix="models/my_fraud_model",
 )
 
 registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
-    model_fiels_path="/home/user-01/models/model_training_01"
+    model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
     # model_fiels_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
@@ -228,7 +228,7 @@ oci_upload_params = OCIParams(
 
 registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
-    model_fiels_path="/home/user-01/models/model_training_01"
+    model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
     # model_fiels_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
@@ -332,5 +332,9 @@ To run the e2e tests you will need [kind](https://kind.sigs.k8s.io/) to be insta
 
 Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
+
+### Troubleshooting
+
+- On running `make test test-e2e` if you see a similar problem `unknown flag: --load`, install [buildx](https://formulae.brew.sh/formula/docker-buildx)
 
 <!-- github-only -->

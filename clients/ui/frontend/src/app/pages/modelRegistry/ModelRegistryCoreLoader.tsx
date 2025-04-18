@@ -7,8 +7,8 @@ import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/u
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
 import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
 import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
-import { isMUITheme } from '~/shared/utilities/const';
 import KubeflowDocs from '~/shared/components/KubeflowDocs';
+import { useThemeContext } from '~/app/ThemeContext';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';
@@ -36,6 +36,7 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
     preferredModelRegistry,
     updatePreferredModelRegistry,
   } = React.useContext(ModelRegistrySelectorContext);
+  const { isMUITheme } = useThemeContext();
 
   const modelRegistryFromRoute = modelRegistries.find((mr) => mr.name === modelRegistry);
 
@@ -65,16 +66,16 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
       emptyStatePage: (
         <EmptyModelRegistryState
           testid="empty-model-registries-state"
-          title={isMUITheme() ? 'Deploy a model registry' : 'Request access to model registries'}
+          title={isMUITheme ? 'Deploy a model registry' : 'Request access to model registries'}
           description={
-            isMUITheme()
+            isMUITheme
               ? 'To deploy a new model registry, follow the instructions in the docs below.'
               : 'To request a new model registry, or to request permission to access an existing model registry, contact your administrator.'
           }
           headerIcon={() => (
             <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
           )}
-          customAction={isMUITheme() ? <KubeflowDocs /> : <WhosMyAdministrator />}
+          customAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
         />
       ),
       headerContent: null,
@@ -103,14 +104,14 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
   return (
     <ApplicationsPage
       title={
-        !isMUITheme() ? (
+        !isMUITheme ? (
           <TitleWithIcon title="Model Registry" objectType={ProjectObjectType.registeredModels} />
         ) : (
           'Model Registry'
         )
       }
       description={
-        !isMUITheme() ? (
+        !isMUITheme ? (
           'Select a model registry to view and manage your registered models. Model registries provide a structured and organized way to store, share, version, deploy, and track models.'
         ) : (
           <Divider />

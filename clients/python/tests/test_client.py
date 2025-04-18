@@ -7,6 +7,7 @@ import requests
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
+from tests.test_utils import get_skopeo_backend_for_local_e2e_testing
 
 from .extras.async_task_runner import AsyncTaskRunner
 
@@ -892,6 +893,7 @@ def test_upload_artifact_and_register_model_with_default_oci(
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
+        custom_oci_backend=get_skopeo_backend_for_local_e2e_testing(),
     )
 
     assert client.upload_artifact_and_register_model(
@@ -907,6 +909,17 @@ def test_upload_artifact_and_register_model_with_default_oci(
     assert (ma := client.get_model_artifact(name, version))
     assert ma.uri == f"oci://{oci_ref}"
 
+    # Assert fail on duplicate
+    with pytest.raises(StoreError, match="already exists"):
+        client.upload_artifact_and_register_model(
+            name,
+            model_files_path=model_dir,
+            version=version,
+            model_format_name="test format",
+            model_format_version="test version",
+            upload_params=upload_params,
+        )
+
 
 @pytest.mark.e2e
 def test_upload_artifact_and_register_model_with_default_s3(
@@ -914,9 +927,7 @@ def test_upload_artifact_and_register_model_with_default_s3(
     patch_s3_env,
     get_temp_dir_with_models,
 ) -> None:
-    # olot is required to run this test
-    pytest.importorskip("olot")
-    name = "oci-test/defaults"
+    name = "s3-test"
     version = "0.0.1"
 
     s3_prefix = f"my-model-{version}"

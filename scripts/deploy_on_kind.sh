@@ -4,7 +4,7 @@ set -e
 
 DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
-IMG="${IMG:-kubeflow/model-registry:latest}"
+IMG="${IMG:-quay.io/opendatahub/model-registry:latest}"
 
 source ./${DIR}/utils.sh
 
@@ -49,6 +49,6 @@ fi
 kubectl delete pod -n "$MR_NAMESPACE" --selector='component=model-registry-server'
 
 repeat_cmd_until "kubectl get pod -n "$MR_NAMESPACE" --selector='component=model-registry-server' \
--o jsonpath=\"{.items[*].spec.containers[?(@.name=='rest-container')].image}\"" "= $IMG" 300 "kubectl describe pod -n $MR_NAMESPACE --selector='component=model-registry-server'"
+-o jsonpath=\"{.items[*].spec.containers[?(@.name=='rest-container')].image}\"" "= $IMG" 500 "kubectl describe pod -n $MR_NAMESPACE --selector='component=model-registry-server'"
 
 kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-deployment --timeout=5m

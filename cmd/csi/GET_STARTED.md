@@ -176,7 +176,6 @@ spec:
         cpu: 100m
       limits:
         memory: 1Gi
-        cpu: "1"
   supportedUriFormats:
     - prefix: model-registry://
 

@@ -19,7 +19,13 @@ func (app *App) GetAllModelRegistriesHandler(w http.ResponseWriter, r *http.Requ
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 	}
 
-	registries, err := app.repositories.ModelRegistry.GetAllModelRegistries(r.Context(), app.kubernetesClient, namespace)
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	registries, err := app.repositories.ModelRegistry.GetAllModelRegistries(r.Context(), client, namespace)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

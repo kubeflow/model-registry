@@ -1,3 +1,3 @@
-package integrations
+package mrserver
 
 const ModelRegistryServiceComponentSelector = "model-registry-server"

@@ -14,7 +14,7 @@ import {
 } from '@patternfly/react-core';
 import ToastNotifications from '~/shared/components/ToastNotifications';
 import { useSettings } from '~/shared/hooks/useSettings';
-import { isMUITheme, Theme, AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
+import { AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
 import { logout } from '~/shared/utilities/appUtils';
 import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
 import NavSidebar from './NavSidebar';
@@ -35,15 +35,6 @@ const App: React.FC = () => {
     React.useContext(NamespaceSelectorContext);
 
   const username = userSettings?.userId;
-
-  React.useEffect(() => {
-    // Apply the theme based on the value of STYLE_THEME
-    if (isMUITheme()) {
-      document.documentElement.classList.add(Theme.MUI);
-    } else {
-      document.documentElement.classList.remove(Theme.MUI);
-    }
-  }, []);
 
   React.useEffect(() => {
     if (MOCK_AUTH && username) {

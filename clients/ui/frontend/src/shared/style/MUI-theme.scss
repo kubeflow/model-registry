@@ -13,6 +13,9 @@
   --mui-alert__icon--MarginBlockEnd: 7px;
   --mui-alert__icon--FontSize: 22px;
 
+  // Backdrop
+  --mui-backdrop-BackgroundColor: rgba(0, 0, 0, 0.5);
+
   // Button
   --mui-button-FontWeight: 500;
   --mui-button--hover--BorderWidth: 1px;
@@ -32,6 +35,7 @@
   --mui-menu__item--PaddingInlineStart: 16px;
   --mui-menu__item--PaddingInlineEnd: 16px;
   --mui-menu__item--FontSize: 1rem;
+  --mui-menu__item--selected--BackgroundColor: rgba(25, 118, 210, 0.08);
 
   // Menu toggle
   --mui-menu-toggle__toggle-icon--MinHeight: auto;
@@ -100,6 +104,7 @@
 
   --mui-spacing-4px: calc(0.5 * var(--mui-spacing));
   --mui-spacing-8px: var(--mui-spacing);
+  --mui-spacing-12px: calc(1.5 * var(--mui-spacing));
   --mui-spacing-16px: calc(2 * var(--mui-spacing));
 
   --pf-t--global--border--width--box--status--default: 1px;
@@ -140,6 +145,10 @@
 
 .mui-theme .pf-v6-c-alert__icon {
   --pf-v6-c-alert__icon--MarginBlockEnd: var(--mui-alert__icon--MarginBlockEnd);
+}
+
+.mui-theme .pf-v6-c-backdrop {
+  --pf-v6-c-backdrop--BackgroundColor: var(--mui-backdrop-BackgroundColor);
 }
 
 .mui-theme .pf-v6-c-brand.kubeflow_brand {
@@ -490,6 +499,13 @@
   --pf-v6-c-menu__item--PaddingInlineEnd: var(--mui-menu__item--PaddingInlineEnd);
   --pf-v6-c-menu__item--FontSize: var(--mui-menu__item--FontSize);
 }
+.mui-theme .pf-v6-c-menu__item.pf-m-selected {
+  --pf-v6-c-menu__item--BackgroundColor: var(--mui-menu__item--selected--BackgroundColor);
+}
+
+.mui-theme .pf-v6-c-menu__item-select-icon {
+  display: none;
+}
 
 .mui-theme .pf-v6-c-menu-toggle {
   --pf-v6-c-menu-toggle__toggle-icon--MinHeight: var(--mui-menu-toggle__toggle-icon--MinHeight);
@@ -654,12 +670,20 @@
 }
 
 .mui-theme .pf-v6-c-page__sidebar {
+  position: fixed;
+  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width);
   --pf-v6-c-page__sidebar--BackgroundColor: var(--kf-central-primary-background-color);
+  height: 100vh;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
 }
 
 .mui-theme .pf-v6-c-page__sidebar-body {
   --pf-v6-c-page__sidebar-body--PaddingInlineStart: 0px;
   --pf-v6-c-page__sidebar-body--PaddingInlineEnd: 0px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* Inner dot for checked state */
@@ -840,8 +864,8 @@
 }
 
 .mui-theme .pf-v6-c-modal-box {
-  --pf-v6-c-modal-box--BorderRadius: 0;
-  border: 2px solid var(--mui-palette-common-black);
+  --pf-v6-c-modal-box--BorderRadius: var(--mui-shape-borderRadius);
+  --pf-v6-c-modal-box--BoxShadow: var(--mui-shadows-24)
 }
 
 .mui-theme .pf-v6-c-button.pf-m-plain {
@@ -852,6 +876,23 @@
 
 .mui-theme .pf-v6-c-page {
   --pf-v6-c-page--BackgroundColor: var(--mui-palette-common-white);
+}
+
+.mui-theme .pf-v6-c-page__main {
+  --pf-v6-c-page__main--PaddingRight: 0;
+  overflow: visible;
+  margin-right: 2px;
+}
+
+.mui-theme .pf-v6-c-page__main-section {
+  --pf-v6-c-page__main-section--PaddingRight: 0;
+  overflow: visible;
+  margin-right: 2px;
+}
+
+.mui-theme .pf-v6-c-page__main-container {
+  overflow: visible;
+  margin-right: 2px;
 }
 
 .mui-theme .pf-v6-c-pagination {
@@ -874,16 +915,6 @@
 
 .mui-theme .pf-v6-c-pagination__page-menu::before {
   content: 'Rows per page:';
-}
-
-.mui-theme .pf-v6-c-page__sidebar {
-  position: absolute;
-  --pf-v6-c-page__sidebar--Width: var(--kf-central-app-drawer-width);
-  /* Sidebar width */
-  height: 100vh;
-  /* Take full height of viewport */
-  z-index: 300;
-  /* Position sidebar above the masthead */
 }
 
 /* Hide Masthead Toggle by default */
@@ -915,4 +946,26 @@
 .pf-v6-c-page__sidebar.pf-m-collapsed+.pf-v6-c-page__main-container {
   --pf-v6-c-page__main-container--MarginInlineStart: calc(-1 * var(--mui-spacing-8px));
   --pf-v6-c-page__main-container--MarginInlineEnd: calc(-1 * var(--mui-spacing-8px));
+}
+
+.mui-theme .pf-v6-c-form__group-control .pf-v6-c-menu-toggle.pf-m-full-width.pf-m-typeahead {
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  border-radius: var(--mui-shape-borderRadius);
+  background-color: var(--mui-palette-common-white);
+
+  &:hover {
+    border-color: var(--mui-palette-common-black);
+    background-color: var(--mui-palette-common-white);
+  }
+
+  &:focus-within {
+    border-color: var(--mui-palette-primary-main);
+    border-width: 2px;
+    background-color: var(--mui-palette-common-white);
+  }
+
+  .pf-v6-c-text-input-group__text-input {
+    padding-left: var(--mui-spacing-12px);
+  }
 }
