@@ -109,6 +109,13 @@ class BackendDefinition(TypedDict):
     pull: Callable[[str, Path], None]
     push: Callable[[Path, str], None]
 
+def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
+    """Convert kwargs to list of params
+    
+    Args:
+        kwargs: The keyword args dict.
+    """
+    return [f"{k}={v}" for k, v in kwargs.items()]
 
 def _get_skopeo_backend() -> BackendDefinition:
     try:
@@ -117,7 +124,31 @@ def _get_skopeo_backend() -> BackendDefinition:
         msg = "Could not import 'olot.backend.skopeo'. Ensure that 'olot' is installed if you want to use the 'skopeo' backend."
         raise ImportError(msg) from e
 
-    return {"is_available": is_skopeo, "pull": skopeo_pull, "push": skopeo_push}
+    def _skopeo_specific_params(type: str, **kwargs):
+        choices = ["push", "pull"]
+        if type not in choices:
+            raise ValueError(f"Choice `type` must be one of: ({', '.join(choices)}).")
+        
+        prefix = "--src" if type == "pull" else "--dest"
+        if (username := kwargs.pop("username", None)):
+                kwargs[f"{prefix}-username"] = username
+
+        if (password := kwargs.pop("password", None)):
+            kwargs[f"{prefix}-password"] = password
+
+        return kwargs
+
+    def wrapped_pull(base_image: str, dest: Path, **kwargs):
+        
+        return skopeo_pull(base_image, dest)
+
+    def wrapped_push(src: Path, ref: str, **kwargs):
+        kwargs = _skopeo_specific_params("push", kwargs)
+        params = _kwargs_to_params(kwargs)
+
+        return skopeo_push(src, ref, params)
+    
+    return {"is_available": is_skopeo, "pull": skopeo_pull, "push": wrapped_push}
 
 
 def _get_oras_backend() -> BackendDefinition:
@@ -147,6 +178,9 @@ class OCIParams:
     backend: str = "skopeo"
     modelcard: os.PathLike | None = None
     custom_oci_backend: BackendDefinition = None
+    oci_auth_env_var: str | None = None
+    oci_username: str | None = None
+    oci_password: str | None = None
 
 
 @dataclass
@@ -181,6 +215,9 @@ def save_to_oci_registry(
     backend: str = "skopeo",
     modelcard: os.PathLike | None = None,
     custom_oci_backend: BackendDefinition | None = None,
+    oci_auth_env_var: str | None = None,
+    oci_username: str | None = None,
+    oci_password: str | None = None
 ) -> str:
     """Appends a list of files to an OCI-based image.
 
@@ -190,8 +227,12 @@ def save_to_oci_registry(
         oci_ref: Destination of where to push the newly layered image to. eg, "quay.io/my-org/my-registry:1.0.0"
         model_files_path: Path to the files to add to the base_image as layers
         backend: The CLI tool to use to perform the oci image pull/push. One of: "skopeo", "oras"
-        modelcard: Optional, path to the modelcard to additionally include as a layer
-        custom_oci_backend: Optional, if you would like to use your own OCI Backend layer, you can provide it here
+        modelcard: [Optional] Path to the modelcard to additionally include as a layer
+        custom_oci_backend: [Optional] If you would like to use your own OCI Backend layer, you can provide it here
+        oci_auth_env_var: [Optional] The environment variable that holds the auth/config JSON for OCI registry auth.
+        oci_auth_env_var: [Optional] The environment variable that holds the auth/config JSON for OCI registry auth.
+        oci_username: [Optional] The username to the OCI registry.
+        oci_password: [Optional] (Must be used with OCI username) The password to the OCI registry.
     Raises:
         ValueError: If the chosen backend is not installed on the host
         ValueError: If the chosen backend is an invalid option
@@ -214,6 +255,10 @@ or
 ```
         """
         raise StoreError(msg) from e
+
+    if oci_auth_env_var:
+        env_value = _validate_env_var(oci_auth_env_var)
+        auth = _extract_auth_json(env_value)
 
     # If a custom backend is provided, use it, else fetch the backend out of the registry
     if custom_oci_backend:
@@ -282,22 +327,25 @@ def get_files_from_path(path: str) -> list[tuple[str, str]]:
     return files
 
 
-def _extract_auth_json(var: str | None = None) -> str:
-    """Extract the auth JSON from the environment variable.
+def _validate_env_var(var: str) -> str:
+    """Validate that an env var exists
+    
+    Args:
+        var: The env var to lookup.
+    """
+    if not (env_var := os.getenv(var)):
+        msg = f"Cannot find environment variable '{var}'."
+        raise ValueError(msg)
+    return env_var
+
+def _extract_auth_json(auth_data: str) -> str:
+    """Extract the auth JSON from a string value.
 
     Args:
-        var: The environment varaible.
+        var: The Auth JSON string.
     """
-    # Set default to .dockerconfigjson
-    if not var:
-        var = ".dockerconfigjson"
-
-    if not (env_var := os.getenv(var)):
-        msg = f"Cannot find environment variable '{var}'"
-        raise ValueError(msg)
     try:
-        invalid_json_msg = f"Environment variable '{var}' does not contain valid JSON."
-        auth_json = json.loads(env_var)
+        auth_json = json.loads(auth_data)
         if type(auth_json) is not dict:
             raise TypeError(msg)
         registries = auth_json["auths"]
@@ -314,4 +362,5 @@ def _extract_auth_json(var: str | None = None) -> str:
         msg = "This is an invalid Auth JSON."
         raise ValueError(msg) from e
     except json.JSONDecodeError as e:
+        invalid_json_msg = f"Auth data does not contain valid JSON."
         raise ValueError(invalid_json_msg) from e
