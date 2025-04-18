@@ -1,9 +1,10 @@
 package api
 
 import (
-	"errors"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"net/http"
 )
@@ -12,13 +13,20 @@ type UserEnvelope Envelope[*models.User, None]
 
 func (app *App) UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	userId, ok := r.Context().Value(constants.KubeflowUserIdKey).(string)
-	if !ok || userId == "" {
-		app.serverErrorResponse(w, r, errors.New("failed to retrieve kubeflow-userid from context"))
+	ctx := r.Context()
+	identity, ok := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+	if !ok || identity == nil {
+		app.badRequestResponse(w, r, fmt.Errorf("missing RequestIdentity in context"))
 		return
 	}
 
-	user, err := app.repositories.User.GetUser(app.kubernetesClient, userId)
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	user, err := app.repositories.User.GetUser(client, identity)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

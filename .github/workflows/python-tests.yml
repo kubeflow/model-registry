@@ -119,7 +119,8 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.12"] # see below for versions 3.9-3.11
-        kubernetes-version: ["v1.27.11", "v1.28.7", "v1.29.2", "v1.30.6", "v1.31.0"]
+        kubernetes-version:
+          ["v1.27.11", "v1.28.7", "v1.29.2", "v1.30.6", "v1.31.0"]
         exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
           - kubernetes-version: ${{ github.event_name != 'push' && 'v1.28.7' }}
           - kubernetes-version: ${{ github.event_name != 'push' && 'v1.29.2' }}
@@ -218,6 +219,7 @@ jobs:
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
           kubectl port-forward -n minio svc/minio 9000:9000 &
+          kubectl port-forward service/distribution-registry-test-service 5001:5001 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
 

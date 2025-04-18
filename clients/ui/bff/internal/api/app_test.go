@@ -24,10 +24,10 @@ var _ = Describe("Static File serving Test", func() {
 				StaticAssetsDir: resolveStaticAssetsDirOnTests(),
 			}
 			app := &App{
-				kubernetesClient: k8sClient,
-				repositories:     repositories.NewRepositories(mockMRClient),
-				logger:           logger,
-				config:           envConfig,
+				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
+				repositories:            repositories.NewRepositories(mockMRClient),
+				logger:                  logger,
+				config:                  envConfig,
 			}
 
 			server = httptest.NewServer(app.Routes())

@@ -82,7 +82,7 @@ local_resource(
         "DIST_DIR": "../../../devenv/ui-static",
         "DEPLOYMENT_MODE": "standalone",
         "MOCK_AUTH": "true",
-        "USERNAME": "test",
+        "KUBEFLOW_USERNAME": "test",
     },
     labels="frontend",
     trigger_mode=TRIGGER_MODE_AUTO

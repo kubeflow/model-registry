@@ -1,0 +1,40 @@
+name: Test Controller
+on:
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+  pull_request:
+    paths:
+      - "cmd/controller/**"
+      - "internal/controller/**"
+      - "internal/server/openapi/api_model_registry_service*"
+      - "pkg/openapi/**"
+      - "go.mod"
+
+env:
+  BRANCH: ${{ github.base_ref }}
+jobs:
+  test:
+    name: Run on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.22'
+
+      - name: Running Tests
+        run: |
+          go mod tidy
+          make controller/test

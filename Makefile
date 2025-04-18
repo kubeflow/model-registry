@@ -5,6 +5,7 @@ PROJECT_BIN := $(PROJECT_PATH)/bin
 GO ?= "$(shell which go)"
 UI_PATH := $(PROJECT_PATH)/clients/ui
 CSI_PATH := $(PROJECT_PATH)/cmd/csi
+CONTROLLER_PATH := $(PROJECT_PATH)/cmd/controller
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29
@@ -45,6 +46,11 @@ endif
 # The BUILD_PATH is still the root
 ifeq ($(IMG_REPO),model-registry/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
+endif
+
+# The BUILD_PATH is still the root
+ifeq ($(IMG_REPO),model-registry/controller)
+    DOCKERFILE := $(CONTROLLER_PATH)/Dockerfile.controller
 endif
 
 model-registry: build
@@ -133,7 +139,7 @@ clean-pkg-openapi:
 clean-internal-server-openapi:
 	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
 
-.PHONY: clean 
+.PHONY: clean
 clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
 	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
 
@@ -158,7 +164,7 @@ bin/envtest:
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.61.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v2.0.2
 
 GOVERTER ?= ${PROJECT_BIN}/goverter
 bin/goverter:
@@ -232,12 +238,12 @@ gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
 
 .PHONY: lint
-lint:
+lint: bin/golangci-lint
 	${GOLANGCI_LINT} run main.go  --timeout 3m
 	${GOLANGCI_LINT} run cmd/... internal/... ./pkg/...  --timeout 3m
 
 .PHONY: lint/csi
-lint/csi:
+lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run ${CSI_PATH}/main.go
 	${GOLANGCI_LINT} run internal/csi/...
 
@@ -308,3 +314,130 @@ image/push:
 	${DOCKER} push ${IMG}:$(IMG_VERSION)
 
 all: model-registry
+
+##  ------------------------------- ##
+##  ----  Controller Targets   ---- ##
+##  ------------------------------- ##
+
+##@ Development
+
+.PHONY: controller/manifests
+controller/manifests: bin/controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	$(CONTROLLER_GEN) rbac:roleName=model-registry-manager-role crd webhook paths="{./cmd/controller/..., ./internal/controller/...}" output:crd:artifacts:config=manifests/options/controller/crd/bases output:rbac:dir=manifests/kustomize/options/controller/rbac
+
+.PHONY: controller/generate
+controller/generate: bin/controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	$(CONTROLLER_GEN) object:headerFile="./cmd/controller/hack/boilerplate.go.txt" paths="{./cmd/controller/..., ./internal/controller/...}"
+
+.PHONY: controller/fmt
+controller/fmt: ## Run go fmt against code.
+	go fmt ./cmd/controller/... ./internal/controller/...
+
+.PHONY: controller/vet
+controller/vet: ## Run go vet against code.
+	go vet ./cmd/controller/... ./internal/controller/...
+
+.PHONY: controller/test
+controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -v /e2e) -coverprofile cover.out
+
+##@ Build
+
+.PHONY: controller/build
+controller/build: controller/manifests controller/generate controller/fmt controller/vet ## Build manager binary.
+	go build -o bin/manager cmd/controller/main.go
+
+.PHONY: controller/run
+controller/run: controller/manifests controller/generate controller/fmt controller/vet ## Run a controller from your host.
+	go run ./cmd/controller/main.go
+
+# If you wish to build the manager image targeting other platforms you can use the --platform flag.
+# (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
+# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+.PHONY: controller/docker-build
+controller/docker-build: ## Build docker image with the manager.
+	$(DOCKER) build -t ${IMG} -f ./cmd/controller/Dockerfile.controller .
+
+.PHONY: controller/docker-push
+controller/docker-push: ## Push docker image with the manager.
+	$(DOCKER) push ${IMG}
+
+# PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
+# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
+# - be able to use docker buildx. More info: https://docs.docker.com/build/buildx/
+# - have enabled BuildKit. More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+# - be able to push the image to your registry (i.e. if you do not set a valid value via IMG=<myregistry/image:<tag>> then the export will fail)
+# To adequately provide solutions that are compatible with multiple platforms, you should consider using this option.
+PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
+.PHONY: controller/docker-buildx
+controller/docker-buildx: ## Build and push docker image for the manager for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ./cmd/controller/Dockerfile.controller > Dockerfile.cross
+	- $(DOCKER) buildx create --name controller-builder
+	$(DOCKER) buildx use controller-builder
+	- $(DOCKER) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- $(DOCKER) buildx rm controller-builder
+	rm Dockerfile.cross
+
+.PHONY: controller/build-installer
+controller/build-installer: controller/manifests controller/generate bin/kustomize ## Generate a consolidated YAML with CRDs and deployment.
+	mkdir -p dist
+	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build manifests/kustomize/options/controller/default > dist/install.yaml
+
+##@ Deployment
+
+ifndef ignore-not-found
+  ignore-not-found = false
+endif
+
+.PHONY: controller/install
+controller/install: controller/manifests bin/kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build manifests/kustomize/options/controller/crd | $(KUBECTL) apply -f -
+
+.PHONY: controller/uninstall
+controller/uninstall: controller/manifests bin/kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build manifests/kustomize/options/controller/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: controller/deploy
+controller/deploy: controller/manifests bin/kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/model-registry/controller=${IMG}:${IMG_VERSION}
+	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) apply -f -
+
+.PHONY: controller/undeploy
+controller/undeploy: bin/kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+
+##@ Tools
+
+KUBECTL ?= kubectl
+CONTROLLER_GEN ?= $(PROJECT_BIN)/controller-gen
+KUSTOMIZE ?= $(PROJECT_BIN)/kustomize
+CONTROLLER_TOOLS_VERSION ?= v0.16.4
+KUSTOMIZE_VERSION ?= v5.5.0
+
+.PHONY: bin/kustomize
+bin/kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(PROJECT_BIN)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
+
+.PHONY: bin/controller-gen
+bin/controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(PROJECT_BIN)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
+
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) || true ;\
+GOBIN=$(PROJECT_BIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $(1)-$(3) $(1)
+endef
