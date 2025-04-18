@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
-import { Bullseye, Alert, Divider } from '@patternfly/react-core';
+import { Bullseye, Alert, Divider, Stack, StackItem } from '@patternfly/react-core';
 import ApplicationsPage from '~/shared/components/ApplicationsPage';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
@@ -104,18 +104,19 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
   return (
     <ApplicationsPage
       title={
-        !isMUITheme ? (
-          <TitleWithIcon title="Model Registry" objectType={ProjectObjectType.registeredModels} />
-        ) : (
-          'Model Registry'
-        )
+        <TitleWithIcon title="Model Registry" objectType={ProjectObjectType.registeredModels} />
       }
       description={
-        !isMUITheme ? (
-          'Select a model registry to view and manage your registered models. Model registries provide a structured and organized way to store, share, version, deploy, and track models.'
-        ) : (
-          <Divider />
-        )
+        <Stack hasGutter>
+          <StackItem>
+            Select a model registry to view and manage your registered models. Model registries
+            provide a structured and organized way to store, share, version, deploy, and track
+            models.
+          </StackItem>
+          <StackItem>
+            <Divider />
+          </StackItem>
+        </Stack>
       }
       headerContent={
         <ModelRegistrySelectorNavigator
