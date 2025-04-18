@@ -123,6 +123,7 @@ func readFileHeaderToTempFile(fileHeader *multipart.FileHeader) (*os.File, error
 		return nil, err
 	}
 
+	//nolint:errcheck
 	defer formFile.Close()
 
 	fileBytes, err := io.ReadAll(formFile)
@@ -135,6 +136,7 @@ func readFileHeaderToTempFile(fileHeader *multipart.FileHeader) (*os.File, error
 		return nil, err
 	}
 
+	//nolint:errcheck
 	defer file.Close()
 
 	// FIXME: return values are ignored!!!

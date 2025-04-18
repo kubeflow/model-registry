@@ -35,7 +35,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.63.4
+          version: v2.0.2
           working-directory: clients/ui/bff/
 
       - name: Build

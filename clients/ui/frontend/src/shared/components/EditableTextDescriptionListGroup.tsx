@@ -4,7 +4,7 @@ import DashboardDescriptionListGroup, {
   DashboardDescriptionListGroupProps,
 } from '~/shared/components/DashboardDescriptionListGroup';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
+import { useThemeContext } from '~/app/ThemeContext';
 
 type EditableTextDescriptionListGroupProps = Pick<
   DashboardDescriptionListGroupProps,
@@ -30,6 +30,7 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
   const [unsavedValue, setUnsavedValue] = React.useState(value);
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
   const [isTextExpanded, setIsTextExpanded] = React.useState(false);
+  const { isMUITheme } = useThemeContext();
 
   const editableTextArea =
     editableVariant === 'TextInput' ? (
@@ -66,7 +67,7 @@ const EditableTextDescriptionListGroup: React.FC<EditableTextDescriptionListGrou
       saveButtonTestId={baseTestId && `${baseTestId}-save`}
       cancelButtonTestId={baseTestId && `${baseTestId}-cancel`}
       contentWhenEditing={
-        isMUITheme() ? <FormFieldset component={editableTextArea} /> : editableTextArea
+        isMUITheme ? <FormFieldset component={editableTextArea} /> : editableTextArea
       }
       onEditClick={() => {
         setUnsavedValue(value);

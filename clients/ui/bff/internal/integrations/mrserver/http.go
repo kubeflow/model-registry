@@ -1,15 +1,16 @@
-package integrations
+package mrserver
 
 import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/google/uuid"
+	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 )
 
 type HTTPClientInterface interface {
@@ -90,8 +91,8 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
 		//see https://github.com/kubeflow/model-registry/issues/95
-		if httpError.ErrorResponse.Code == "" {
-			httpError.ErrorResponse.Code = strconv.Itoa(response.StatusCode)
+		if httpError.Code == "" {
+			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
 		return nil, httpError
 	}
@@ -136,8 +137,8 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
 		//see https://github.com/kubeflow/model-registry/issues/95
-		if httpError.ErrorResponse.Code == "" {
-			httpError.ErrorResponse.Code = strconv.Itoa(response.StatusCode)
+		if httpError.Code == "" {
+			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
 		return nil, httpError
 	}
@@ -182,8 +183,8 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
 		//see https://github.com/kubeflow/model-registry/issues/95
-		if httpError.ErrorResponse.Code == "" {
-			httpError.ErrorResponse.Code = strconv.Itoa(response.StatusCode)
+		if httpError.Code == "" {
+			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
 		return nil, httpError
 	}

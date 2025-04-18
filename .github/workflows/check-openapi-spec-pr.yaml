@@ -1,0 +1,13 @@
+name: Validate OpenAPI spec
+on:
+  pull_request:
+    paths:
+      - "api/openapi/model-registry.yaml"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate OpenAPI spec
+        run: |
+          make openapi/validate

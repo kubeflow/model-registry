@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import inspect
 import logging
 import os
@@ -233,6 +234,15 @@ class ModelRegistry:
         Returns:
             Registered model. See: :meth:`~ModelRegistry.register_model`
         """
+        # Check if model does not already exist in Registry
+        ver = None
+        with contextlib.suppress(StoreError):
+            ver = self.get_model_version(name=name, version=version)
+
+        if ver:
+            msg = f"Model `{name}:{version}` already exists in Model Registry."
+            raise StoreError(msg)
+
         if isinstance(upload_params, S3Params):
             destination_uri = self.save_to_s3(
                 **asdict(upload_params), path=model_files_path
@@ -696,7 +706,7 @@ class ModelRegistry:
         ):
             msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
             Please either set these environment variables or pass them in as parameters using
-            `aws_access_key_id` or `aws_access_secret_id`.
+            `access_key_id` or `secret_access_key`.
             """
             raise ValueError(msg)
 
