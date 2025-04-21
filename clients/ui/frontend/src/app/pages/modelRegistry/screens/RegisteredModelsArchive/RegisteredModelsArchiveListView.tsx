@@ -9,14 +9,12 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
+import { asEnumMember, SimpleSelect, useThemeContext } from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/shared/components/SimpleSelect';
-import { asEnumMember } from '~/shared/utilities/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
 
 type RegisteredModelsArchiveListViewProps = {

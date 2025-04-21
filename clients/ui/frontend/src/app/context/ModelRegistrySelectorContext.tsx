@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useQueryParamNamespaces } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
-import useQueryParamNamespaces from '~/shared/hooks/useQueryParamNamespaces';
 
 export type ModelRegistrySelectorContextType = {
   modelRegistriesLoaded: boolean;

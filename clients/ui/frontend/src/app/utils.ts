@@ -1,5 +1,5 @@
+import { K8sResourceCommon } from 'mod-arch-shared';
 import { ModelRegistry, ModelState, ModelVersion, RegisteredModel } from '~/app/types';
-import { K8sResourceCommon } from '~/shared/types';
 
 export type ObjectStorageFields = {
   endpoint: string;

@@ -1,10 +1,13 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageSection, Tab, Tabs, TabTitleText } from '@patternfly/react-core';
+import {
+  FetchStateObject,
+  isStandalone,
+  InferenceServiceKind,
+  ServingRuntimeKind,
+} from 'mod-arch-shared';
 import { ModelVersion } from '~/app/types';
-import { FetchStateObject } from '~/shared/types';
-import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
-import { isStandalone } from '~/shared/utilities/const';
 import { ModelVersionDetailsTabTitle, ModelVersionDetailsTab } from './const';
 import ModelVersionDetailsView from './ModelVersionDetailsView';
 import ModelVersionRegisteredDeploymentsView from './ModelVersionRegisteredDeploymentsView';

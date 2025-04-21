@@ -7,9 +7,9 @@ import {
   TextArea,
   TextInput,
 } from '@patternfly/react-core';
+import { useThemeContext } from 'mod-arch-shared';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
 import ResourceNameField from './ResourceNameField';
 
 // TODO: replace with the actual call once we have the endpoint

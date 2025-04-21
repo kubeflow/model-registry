@@ -1,5 +1,5 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
-import { mockBFFResponse } from '~/__mocks__/utils';
+import type { Namespace, UserSettings, mockModArchResponse } from 'mod-arch-shared';
 import type {
   ModelArtifact,
   ModelArtifactList,
@@ -9,7 +9,6 @@ import type {
   RegisteredModel,
   RegisteredModelList,
 } from '~/app/types';
-import type { Namespace, UserSettings } from '~/shared/types';
 
 const MODEL_REGISTRY_API_VERSION = 'v1';
 export { MODEL_REGISTRY_API_VERSION };
@@ -159,7 +158,7 @@ Cypress.Commands.add(
         query: options?.query,
         ...(options?.times && { times: options.times }),
       },
-      mockBFFResponse(response),
+      mockModArchResponse(response),
     );
   },
 );

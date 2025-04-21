@@ -17,24 +17,27 @@ import {
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router';
+import {
+  ProjectObjectType,
+  typedEmptyImage,
+  asEnumMember,
+  isMUITheme,
+  SimpleSelect,
+} from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { SearchType } from '~/shared/components/DashboardSearchField';
 import {
   filterModelVersions,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { asEnumMember } from '~/shared/utilities/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
-import SimpleSelect from '~/shared/components/SimpleSelect';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { isMUITheme } from '~/shared/utilities/const';
 import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
 
 type ModelVersionListViewProps = {
