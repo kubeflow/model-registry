@@ -12,7 +12,7 @@ import {
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
+import { ApplicationsPage } from 'mod-arch-shared';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';

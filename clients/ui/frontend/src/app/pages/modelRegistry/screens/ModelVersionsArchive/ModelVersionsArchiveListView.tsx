@@ -7,10 +7,9 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
+import { asEnumMember, SimpleSelect } from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import SimpleSelect from '~/shared/components/SimpleSelect';
-import { asEnumMember } from '~/shared/utilities/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';

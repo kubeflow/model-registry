@@ -15,12 +15,11 @@ import {
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { ProjectObjectType, typedEmptyImage, SimpleSelect, asEnumMember } from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/shared/components/SimpleSelect';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
@@ -29,10 +28,9 @@ import {
   filterModelVersions,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
-import { asEnumMember } from '~/shared/utilities/utils';
+import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
-import ModelVersionsTable from './ModelVersionsTable';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
