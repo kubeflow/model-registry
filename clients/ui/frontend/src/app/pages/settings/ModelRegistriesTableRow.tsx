@@ -2,10 +2,9 @@ import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';
+import { isPlatformDefault, ResourceNameTooltip } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
-import ResourceNameTooltip from '~/shared/components/ResourceNameTooltip';
 import { convertToK8sResourceCommon } from '~/app/utils';
-import { isPlatformDefault } from '~/shared/utilities/const';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {

@@ -2,7 +2,12 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
+import {
+  InferenceServiceKind,
+  ServingRuntimeKind,
+  FetchStateObject,
+  ApplicationsPage,
+} from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
@@ -13,8 +18,6 @@ import {
   modelVersionUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
-import { FetchStateObject } from '~/shared/types';
 import { ModelVersionDetailsTab } from './const';
 import ModelVersionSelector from './ModelVersionSelector';
 import ModelVersionDetailsTabs from './ModelVersionDetailsTabs';

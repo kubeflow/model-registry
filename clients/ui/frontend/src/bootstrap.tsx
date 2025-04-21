@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
+import {
+  BrowserStorageContextProvider,
+  NotificationContextProvider,
+  NamespaceSelectorContextProvider,
+  DashboardScriptLoader,
+  ThemeProvider,
+} from 'mod-arch-shared';
 import App from './app/App';
-import { BrowserStorageContextProvider } from './shared/components/browserStorage/BrowserStorageContext';
-import { NotificationContextProvider } from './app/context/NotificationContext';
-import { NamespaceSelectorContextProvider } from './shared/context/NamespaceSelectorContext';
-import DashboardScriptLoader from './shared/context/DashboardScriptLoader';
-import ThemeProvider from './app/ThemeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 

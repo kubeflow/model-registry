@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
+import { Table } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
-import { Table } from '~/shared/components/table';
 import { modelRegistryColumns } from './columns';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
@@ -42,7 +42,7 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
             </ToolbarContent>
           </Toolbar>
         }
-        rowRenderer={(mr) => (
+        rowRenderer={(mr: ModelRegistry) => (
           <ModelRegistriesTableRow
             key={mr.name}
             modelRegistry={mr}

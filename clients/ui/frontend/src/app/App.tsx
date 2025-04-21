@@ -12,16 +12,21 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import ToastNotifications from '~/shared/components/ToastNotifications';
-import { useSettings } from '~/shared/hooks/useSettings';
-import { AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
-import { logout } from '~/shared/utilities/appUtils';
-import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
-import NavSidebar from './NavSidebar';
+import {
+  ToastNotifications,
+  useSettings,
+  AUTH_HEADER,
+  MOCK_AUTH,
+  isStandalone,
+  logout,
+  NamespaceSelectorContext,
+  NavBar,
+} from 'mod-arch-shared';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
-import NavBar from './NavBar';
+import 'mod-arch-shared/style/MUI-theme.scss';
+import AppNavSidebar from './AppNavSidebar';
 
 const App: React.FC = () => {
   const {
@@ -116,7 +121,7 @@ const App: React.FC = () => {
           )
         }
         isManagedSidebar={isStandalone()}
-        sidebar={isStandalone() ? <NavSidebar /> : sidebar}
+        sidebar={isStandalone() ? <AppNavSidebar /> : sidebar}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />

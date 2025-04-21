@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Table } from '~/shared/components/table';
+import { DashboardEmptyTableView, Table } from 'mod-arch-shared';
 import { ModelVersion } from '~/app/types';
 import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
-import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import ModelVersionsTableRow from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
 
 type ModelVersionsTableProps = {
@@ -28,7 +27,7 @@ const ModelVersionsTable: React.FC<ModelVersionsTableProps> = ({
     enablePagination
     onClearFilters={clearFilters}
     emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
-    rowRenderer={(mv) => (
+    rowRenderer={(mv: ModelVersion) => (
       <ModelVersionsTableRow
         hasDeployment={false}
         key={mv.name}

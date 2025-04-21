@@ -1,18 +1,19 @@
-import { APIOptions } from '~/shared/api/types';
-import { handleRestFailures } from '~/shared/api/errorUtils';
 import {
-  assembleModelRegistryBody,
-  isModelRegistryResponse,
+  APIOptions,
+  handleRestFailures,
+  URL_PREFIX,
+  Namespace,
+  UserSettings,
+  ModelRegistryKind,
+  BFF_API_VERSION,
+  assembleModArchBody,
+  isModArchResponse,
   restCREATE,
   restDELETE,
   restGET,
   restPATCH,
-} from '~/shared/api/apiUtils';
+} from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
-import { BFF_API_VERSION } from '~/app/const';
-import { URL_PREFIX } from '~/shared/utilities/const';
-import { Namespace, UserSettings } from '~/shared/types';
-import { ModelRegistryKind } from '~/shared/k8sTypes';
 
 export const getListModelRegistries =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -20,7 +21,7 @@ export const getListModelRegistries =
     handleRestFailures(
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/model_registry`, queryParams, opts),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistry[]>(response)) {
+      if (isModArchResponse<ModelRegistry[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -32,7 +33,7 @@ export const getUser =
     handleRestFailures(
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/user`, {}, opts),
     ).then((response) => {
-      if (isModelRegistryResponse<UserSettings>(response)) {
+      if (isModArchResponse<UserSettings>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -44,7 +45,7 @@ export const getNamespaces =
     handleRestFailures(
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/namespaces`, {}, opts),
     ).then((response) => {
-      if (isModelRegistryResponse<Namespace[]>(response)) {
+      if (isModArchResponse<Namespace[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -61,7 +62,7 @@ export const getModelRegistrySettings =
         opts,
       ),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistryKind>(response)) {
+      if (isModArchResponse<ModelRegistryKind>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -78,7 +79,7 @@ export const listModelRegistrySettings =
         opts,
       ),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -91,12 +92,12 @@ export const createModelRegistrySettings =
       restCREATE(
         hostPath,
         `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/model_registry`,
-        assembleModelRegistryBody(data),
+        assembleModArchBody(data),
         queryParams,
         opts,
       ),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -113,12 +114,12 @@ export const deleteModelRegistrySettings =
       restDELETE(
         hostPath,
         `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/model_registry/${modelRegistryId}`,
-        assembleModelRegistryBody(data),
+        assembleModArchBody(data),
         queryParams,
         opts,
       ),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -135,12 +136,12 @@ export const patchModelRegistrySettings =
       restPATCH(
         hostPath,
         `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/model_registry/${modelRegistryId}`,
-        assembleModelRegistryBody(data),
+        assembleModArchBody(data),
         queryParams,
         opts,
       ),
     ).then((response) => {
-      if (isModelRegistryResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');

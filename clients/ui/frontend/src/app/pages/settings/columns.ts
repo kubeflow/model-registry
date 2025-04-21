@@ -1,6 +1,5 @@
-import { kebabTableColumn, SortableData } from '~/shared/components/table';
+import { kebabTableColumn, SortableData, isPlatformDefault } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
-import { isPlatformDefault } from '~/shared/utilities/const';
 
 export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
   {

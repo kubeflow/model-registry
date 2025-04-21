@@ -1,5 +1,5 @@
 import React from 'react';
-import { APIState } from '~/shared/api/types';
+import { APIState, useAPIState } from 'mod-arch-shared';
 import { ModelRegistryAPIs } from '~/app/types';
 import {
   createModelArtifactForModelVersion,
@@ -16,7 +16,6 @@ import {
   patchModelVersion,
   patchRegisteredModel,
 } from '~/app/api/service';
-import useAPIState from '~/shared/api/useAPIState';
 
 export type ModelRegistryAPIState = APIState<ModelRegistryAPIs>;
 

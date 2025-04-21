@@ -1,4 +1,6 @@
 /* eslint-disable camelcase */
+
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import {
@@ -18,7 +20,6 @@ import {
   mergeUpdatedProperty,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
-import { SearchType } from '~/shared/components/DashboardSearchField';
 
 describe('getLabels', () => {
   it('should return an empty array when customProperties is empty', () => {
