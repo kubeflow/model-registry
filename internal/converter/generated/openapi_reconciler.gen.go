@@ -366,17 +366,6 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 }
 func (c *OpenAPIReconcilerImpl) UpdateExistingServeModel(source converter.OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error) {
 	openapiServeModel := converter.InitWithExisting(source)
-	var pOpenapiExecutionState *openapi.ExecutionState
-	if source.Update != nil {
-		pOpenapiExecutionState = source.Update.LastKnownState
-	}
-	if pOpenapiExecutionState != nil {
-		openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*pOpenapiExecutionState)
-		if err != nil {
-			return openapiServeModel, fmt.Errorf("error setting field LastKnownState: %w", err)
-		}
-		openapiServeModel.LastKnownState = &openapiExecutionState
-	}
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
 		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
@@ -406,6 +395,17 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingServeModel(source converter.Openap
 	if pString2 != nil {
 		xstring2 := *pString2
 		openapiServeModel.ExternalId = &xstring2
+	}
+	var pOpenapiExecutionState *openapi.ExecutionState
+	if source.Update != nil {
+		pOpenapiExecutionState = source.Update.LastKnownState
+	}
+	if pOpenapiExecutionState != nil {
+		openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*pOpenapiExecutionState)
+		if err != nil {
+			return openapiServeModel, fmt.Errorf("error setting field LastKnownState: %w", err)
+		}
+		openapiServeModel.LastKnownState = &openapiExecutionState
 	}
 	return openapiServeModel, nil
 }

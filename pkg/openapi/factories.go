@@ -1,7 +1,7 @@
 package openapi
 
-func NewArtifactCreateWithDefaults() *ArtifactCreate {
-	return &ArtifactCreate{}
+func NewArtifactCreateWithDefaults() *Artifact {
+	return &Artifact{}
 }
 
 func NewArtifactUpdateWithDefaults() *ArtifactUpdate {

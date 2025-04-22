@@ -23,14 +23,14 @@ import (
 type ModelRegistryServiceAPIService service
 
 type ApiCreateArtifactRequest struct {
-	ctx            context.Context
-	ApiService     *ModelRegistryServiceAPIService
-	artifactCreate *ArtifactCreate
+	ctx        context.Context
+	ApiService *ModelRegistryServiceAPIService
+	artifact   *Artifact
 }
 
 // A new &#x60;Artifact&#x60; to be created.
-func (r ApiCreateArtifactRequest) ArtifactCreate(artifactCreate ArtifactCreate) ApiCreateArtifactRequest {
-	r.artifactCreate = &artifactCreate
+func (r ApiCreateArtifactRequest) Artifact(artifact Artifact) ApiCreateArtifactRequest {
+	r.artifact = &artifact
 	return r
 }
 
@@ -74,8 +74,8 @@ func (a *ModelRegistryServiceAPIService) CreateArtifactExecute(r ApiCreateArtifa
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.artifactCreate == nil {
-		return localVarReturnValue, nil, reportError("artifactCreate is required and must be specified")
+	if r.artifact == nil {
+		return localVarReturnValue, nil, reportError("artifact is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -96,7 +96,7 @@ func (a *ModelRegistryServiceAPIService) CreateArtifactExecute(r ApiCreateArtifa
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.artifactCreate
+	localVarPostBody = r.artifact
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -189,15 +189,15 @@ func (a *ModelRegistryServiceAPIService) CreateArtifactExecute(r ApiCreateArtifa
 }
 
 type ApiCreateEnvironmentInferenceServiceRequest struct {
-	ctx                    context.Context
-	ApiService             *ModelRegistryServiceAPIService
-	servingenvironmentId   string
-	inferenceServiceCreate *InferenceServiceCreate
+	ctx                  context.Context
+	ApiService           *ModelRegistryServiceAPIService
+	servingenvironmentId string
+	inferenceService     *InferenceService
 }
 
 // A new &#x60;InferenceService&#x60; to be created.
-func (r ApiCreateEnvironmentInferenceServiceRequest) InferenceServiceCreate(inferenceServiceCreate InferenceServiceCreate) ApiCreateEnvironmentInferenceServiceRequest {
-	r.inferenceServiceCreate = &inferenceServiceCreate
+func (r ApiCreateEnvironmentInferenceServiceRequest) InferenceService(inferenceService InferenceService) ApiCreateEnvironmentInferenceServiceRequest {
+	r.inferenceService = &inferenceService
 	return r
 }
 
@@ -244,8 +244,8 @@ func (a *ModelRegistryServiceAPIService) CreateEnvironmentInferenceServiceExecut
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.inferenceServiceCreate == nil {
-		return localVarReturnValue, nil, reportError("inferenceServiceCreate is required and must be specified")
+	if r.inferenceService == nil {
+		return localVarReturnValue, nil, reportError("inferenceService is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -266,7 +266,7 @@ func (a *ModelRegistryServiceAPIService) CreateEnvironmentInferenceServiceExecut
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.inferenceServiceCreate
+	localVarPostBody = r.inferenceService
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -370,14 +370,14 @@ func (a *ModelRegistryServiceAPIService) CreateEnvironmentInferenceServiceExecut
 }
 
 type ApiCreateInferenceServiceRequest struct {
-	ctx                    context.Context
-	ApiService             *ModelRegistryServiceAPIService
-	inferenceServiceCreate *InferenceServiceCreate
+	ctx              context.Context
+	ApiService       *ModelRegistryServiceAPIService
+	inferenceService *InferenceService
 }
 
 // A new &#x60;InferenceService&#x60; to be created.
-func (r ApiCreateInferenceServiceRequest) InferenceServiceCreate(inferenceServiceCreate InferenceServiceCreate) ApiCreateInferenceServiceRequest {
-	r.inferenceServiceCreate = &inferenceServiceCreate
+func (r ApiCreateInferenceServiceRequest) InferenceService(inferenceService InferenceService) ApiCreateInferenceServiceRequest {
+	r.inferenceService = &inferenceService
 	return r
 }
 
@@ -421,8 +421,8 @@ func (a *ModelRegistryServiceAPIService) CreateInferenceServiceExecute(r ApiCrea
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.inferenceServiceCreate == nil {
-		return localVarReturnValue, nil, reportError("inferenceServiceCreate is required and must be specified")
+	if r.inferenceService == nil {
+		return localVarReturnValue, nil, reportError("inferenceService is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -443,7 +443,7 @@ func (a *ModelRegistryServiceAPIService) CreateInferenceServiceExecute(r ApiCrea
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.inferenceServiceCreate
+	localVarPostBody = r.inferenceService
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -539,12 +539,12 @@ type ApiCreateInferenceServiceServeRequest struct {
 	ctx                context.Context
 	ApiService         *ModelRegistryServiceAPIService
 	inferenceserviceId string
-	serveModelCreate   *ServeModelCreate
+	serveModel         *ServeModel
 }
 
 // A new &#x60;ServeModel&#x60; to be associated with the &#x60;InferenceService&#x60;.
-func (r ApiCreateInferenceServiceServeRequest) ServeModelCreate(serveModelCreate ServeModelCreate) ApiCreateInferenceServiceServeRequest {
-	r.serveModelCreate = &serveModelCreate
+func (r ApiCreateInferenceServiceServeRequest) ServeModel(serveModel ServeModel) ApiCreateInferenceServiceServeRequest {
+	r.serveModel = &serveModel
 	return r
 }
 
@@ -591,8 +591,8 @@ func (a *ModelRegistryServiceAPIService) CreateInferenceServiceServeExecute(r Ap
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.serveModelCreate == nil {
-		return localVarReturnValue, nil, reportError("serveModelCreate is required and must be specified")
+	if r.serveModel == nil {
+		return localVarReturnValue, nil, reportError("serveModel is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -613,7 +613,7 @@ func (a *ModelRegistryServiceAPIService) CreateInferenceServiceServeExecute(r Ap
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.serveModelCreate
+	localVarPostBody = r.serveModel
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -717,14 +717,14 @@ func (a *ModelRegistryServiceAPIService) CreateInferenceServiceServeExecute(r Ap
 }
 
 type ApiCreateModelArtifactRequest struct {
-	ctx                 context.Context
-	ApiService          *ModelRegistryServiceAPIService
-	modelArtifactCreate *ModelArtifactCreate
+	ctx           context.Context
+	ApiService    *ModelRegistryServiceAPIService
+	modelArtifact *ModelArtifact
 }
 
 // A new &#x60;ModelArtifact&#x60; to be created.
-func (r ApiCreateModelArtifactRequest) ModelArtifactCreate(modelArtifactCreate ModelArtifactCreate) ApiCreateModelArtifactRequest {
-	r.modelArtifactCreate = &modelArtifactCreate
+func (r ApiCreateModelArtifactRequest) ModelArtifact(modelArtifact ModelArtifact) ApiCreateModelArtifactRequest {
+	r.modelArtifact = &modelArtifact
 	return r
 }
 
@@ -768,8 +768,8 @@ func (a *ModelRegistryServiceAPIService) CreateModelArtifactExecute(r ApiCreateM
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.modelArtifactCreate == nil {
-		return localVarReturnValue, nil, reportError("modelArtifactCreate is required and must be specified")
+	if r.modelArtifact == nil {
+		return localVarReturnValue, nil, reportError("modelArtifact is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -790,7 +790,7 @@ func (a *ModelRegistryServiceAPIService) CreateModelArtifactExecute(r ApiCreateM
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.modelArtifactCreate
+	localVarPostBody = r.modelArtifact
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -883,14 +883,14 @@ func (a *ModelRegistryServiceAPIService) CreateModelArtifactExecute(r ApiCreateM
 }
 
 type ApiCreateModelVersionRequest struct {
-	ctx                context.Context
-	ApiService         *ModelRegistryServiceAPIService
-	modelVersionCreate *ModelVersionCreate
+	ctx          context.Context
+	ApiService   *ModelRegistryServiceAPIService
+	modelVersion *ModelVersion
 }
 
 // A new &#x60;ModelVersion&#x60; to be created.
-func (r ApiCreateModelVersionRequest) ModelVersionCreate(modelVersionCreate ModelVersionCreate) ApiCreateModelVersionRequest {
-	r.modelVersionCreate = &modelVersionCreate
+func (r ApiCreateModelVersionRequest) ModelVersion(modelVersion ModelVersion) ApiCreateModelVersionRequest {
+	r.modelVersion = &modelVersion
 	return r
 }
 
@@ -934,8 +934,8 @@ func (a *ModelRegistryServiceAPIService) CreateModelVersionExecute(r ApiCreateMo
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.modelVersionCreate == nil {
-		return localVarReturnValue, nil, reportError("modelVersionCreate is required and must be specified")
+	if r.modelVersion == nil {
+		return localVarReturnValue, nil, reportError("modelVersion is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -956,7 +956,7 @@ func (a *ModelRegistryServiceAPIService) CreateModelVersionExecute(r ApiCreateMo
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.modelVersionCreate
+	localVarPostBody = r.modelVersion
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -1060,14 +1060,14 @@ func (a *ModelRegistryServiceAPIService) CreateModelVersionExecute(r ApiCreateMo
 }
 
 type ApiCreateRegisteredModelRequest struct {
-	ctx                   context.Context
-	ApiService            *ModelRegistryServiceAPIService
-	registeredModelCreate *RegisteredModelCreate
+	ctx             context.Context
+	ApiService      *ModelRegistryServiceAPIService
+	registeredModel *RegisteredModel
 }
 
 // A new &#x60;RegisteredModel&#x60; to be created.
-func (r ApiCreateRegisteredModelRequest) RegisteredModelCreate(registeredModelCreate RegisteredModelCreate) ApiCreateRegisteredModelRequest {
-	r.registeredModelCreate = &registeredModelCreate
+func (r ApiCreateRegisteredModelRequest) RegisteredModel(registeredModel RegisteredModel) ApiCreateRegisteredModelRequest {
+	r.registeredModel = &registeredModel
 	return r
 }
 
@@ -1111,8 +1111,8 @@ func (a *ModelRegistryServiceAPIService) CreateRegisteredModelExecute(r ApiCreat
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.registeredModelCreate == nil {
-		return localVarReturnValue, nil, reportError("registeredModelCreate is required and must be specified")
+	if r.registeredModel == nil {
+		return localVarReturnValue, nil, reportError("registeredModel is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1133,7 +1133,7 @@ func (a *ModelRegistryServiceAPIService) CreateRegisteredModelExecute(r ApiCreat
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.registeredModelCreate
+	localVarPostBody = r.registeredModel
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -1407,14 +1407,14 @@ func (a *ModelRegistryServiceAPIService) CreateRegisteredModelVersionExecute(r A
 }
 
 type ApiCreateServingEnvironmentRequest struct {
-	ctx                      context.Context
-	ApiService               *ModelRegistryServiceAPIService
-	servingEnvironmentCreate *ServingEnvironmentCreate
+	ctx                context.Context
+	ApiService         *ModelRegistryServiceAPIService
+	servingEnvironment *ServingEnvironment
 }
 
 // A new &#x60;ServingEnvironment&#x60; to be created.
-func (r ApiCreateServingEnvironmentRequest) ServingEnvironmentCreate(servingEnvironmentCreate ServingEnvironmentCreate) ApiCreateServingEnvironmentRequest {
-	r.servingEnvironmentCreate = &servingEnvironmentCreate
+func (r ApiCreateServingEnvironmentRequest) ServingEnvironment(servingEnvironment ServingEnvironment) ApiCreateServingEnvironmentRequest {
+	r.servingEnvironment = &servingEnvironment
 	return r
 }
 
@@ -1458,8 +1458,8 @@ func (a *ModelRegistryServiceAPIService) CreateServingEnvironmentExecute(r ApiCr
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.servingEnvironmentCreate == nil {
-		return localVarReturnValue, nil, reportError("servingEnvironmentCreate is required and must be specified")
+	if r.servingEnvironment == nil {
+		return localVarReturnValue, nil, reportError("servingEnvironment is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1480,7 +1480,7 @@ func (a *ModelRegistryServiceAPIService) CreateServingEnvironmentExecute(r ApiCr
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.servingEnvironmentCreate
+	localVarPostBody = r.servingEnvironment
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

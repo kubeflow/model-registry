@@ -17,18 +17,18 @@ import (
 // checks if the RegisteredModelCreate type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &RegisteredModelCreate{}
 
-// RegisteredModelCreate A registered model in model registry. A registered model has ModelVersion children.
+// RegisteredModelCreate A registered model to be created in model registry.
 type RegisteredModelCreate struct {
+	// The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set.
+	Name string `json:"name"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set.
-	Name  string                `json:"name"`
-	Owner *string               `json:"owner,omitempty"`
-	State *RegisteredModelState `json:"state,omitempty"`
+	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
+	ExternalId *string               `json:"externalId,omitempty"`
+	Owner      *string               `json:"owner,omitempty"`
+	State      *RegisteredModelState `json:"state,omitempty"`
 }
 
 // NewRegisteredModelCreate instantiates a new RegisteredModelCreate object
@@ -51,6 +51,30 @@ func NewRegisteredModelCreateWithDefaults() *RegisteredModelCreate {
 	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
 	this.State = &state
 	return &this
+}
+
+// GetName returns the Name field value
+func (o *RegisteredModelCreate) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelCreate) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *RegisteredModelCreate) SetName(v string) {
+	o.Name = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -149,30 +173,6 @@ func (o *RegisteredModelCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value
-func (o *RegisteredModelCreate) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *RegisteredModelCreate) SetName(v string) {
-	o.Name = v
-}
-
 // GetOwner returns the Owner field value if set, zero value otherwise.
 func (o *RegisteredModelCreate) GetOwner() string {
 	if o == nil || IsNil(o.Owner) {
@@ -247,6 +247,7 @@ func (o RegisteredModelCreate) MarshalJSON() ([]byte, error) {
 
 func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -256,7 +257,6 @@ func (o RegisteredModelCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	toSerialize["name"] = o.Name
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner
 	}

@@ -19,11 +19,12 @@ var _ MappedNullable = &RegisteredModelUpdate{}
 
 // RegisteredModelUpdate A registered model in model registry. A registered model has ModelVersion children.
 type RegisteredModelUpdate struct {
+	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
+	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string               `json:"externalId,omitempty"`
 	Owner      *string               `json:"owner,omitempty"`
 	State      *RegisteredModelState `json:"state,omitempty"`
@@ -48,6 +49,38 @@ func NewRegisteredModelUpdateWithDefaults() *RegisteredModelUpdate {
 	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
 	this.State = &state
 	return &this
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *RegisteredModelUpdate) SetName(v string) {
+	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -220,6 +253,9 @@ func (o RegisteredModelUpdate) MarshalJSON() ([]byte, error) {
 
 func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}

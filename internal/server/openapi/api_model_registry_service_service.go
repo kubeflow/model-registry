@@ -39,19 +39,15 @@ func NewModelRegistryServiceAPIService(coreApi api.ModelRegistryApi) ModelRegist
 }
 
 // CreateEnvironmentInferenceService - Create a InferenceService in ServingEnvironment
-func (s *ModelRegistryServiceAPIService) CreateEnvironmentInferenceService(ctx context.Context, servingenvironmentId string, inferenceServiceCreate model.InferenceServiceCreate) (ImplResponse, error) {
-	inferenceServiceCreate.ServingEnvironmentId = servingenvironmentId
-	return s.CreateInferenceService(ctx, inferenceServiceCreate)
+func (s *ModelRegistryServiceAPIService) CreateEnvironmentInferenceService(ctx context.Context, servingenvironmentId string, inferenceService model.InferenceService) (ImplResponse, error) {
+	inferenceService.ServingEnvironmentId = servingenvironmentId
+	return s.CreateInferenceService(ctx, inferenceService)
 	// TODO: return Response(http.StatusNotFound, Error{}), nil
 }
 
 // CreateInferenceService - Create a InferenceService
-func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Context, inferenceServiceCreate model.InferenceServiceCreate) (ImplResponse, error) {
-	entity, err := s.converter.ConvertInferenceServiceCreate(&inferenceServiceCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
+func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Context, inferenceService model.InferenceService) (ImplResponse, error) {
+	entity := &inferenceService
 	result, err := s.coreApi.UpsertInferenceService(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -60,12 +56,8 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Cont
 }
 
 // CreateInferenceServiceServe - Create a ServeModel action in a InferenceService
-func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context.Context, inferenceserviceId string, serveModelCreate model.ServeModelCreate) (ImplResponse, error) {
-	entity, err := s.converter.ConvertServeModelCreate(&serveModelCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
+func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context.Context, inferenceserviceId string, serveModel model.ServeModel) (ImplResponse, error) {
+	entity := &serveModel
 	result, err := s.coreApi.UpsertServeModel(entity, &inferenceserviceId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -74,12 +66,8 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context
 }
 
 // CreateArtifact - Create an Artifact
-func (s *ModelRegistryServiceAPIService) CreateArtifact(ctx context.Context, artifactCreate model.ArtifactCreate) (ImplResponse, error) {
-	entity, err := s.converter.ConvertArtifactCreate(&artifactCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
+func (s *ModelRegistryServiceAPIService) CreateArtifact(ctx context.Context, artifact model.Artifact) (ImplResponse, error) {
+	entity := &artifact
 	result, err := s.coreApi.UpsertArtifact(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -88,12 +76,8 @@ func (s *ModelRegistryServiceAPIService) CreateArtifact(ctx context.Context, art
 }
 
 // CreateModelArtifact - Create a ModelArtifact
-func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context, modelArtifactCreate model.ModelArtifactCreate) (ImplResponse, error) {
-	entity, err := s.converter.ConvertModelArtifactCreate(&modelArtifactCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
+func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context, modelArtifact model.ModelArtifact) (ImplResponse, error) {
+	entity := &modelArtifact
 	result, err := s.coreApi.UpsertModelArtifact(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -102,13 +86,9 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 }
 
 // CreateModelVersion - Create a ModelVersion
-func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context, modelVersionCreate model.ModelVersionCreate) (ImplResponse, error) {
-	modelVersion, err := s.converter.ConvertModelVersionCreate(&modelVersionCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
-	result, err := s.coreApi.UpsertModelVersion(modelVersion, &modelVersionCreate.RegisteredModelId)
+func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context, modelVersion model.ModelVersion) (ImplResponse, error) {
+	entity := &modelVersion
+	result, err := s.coreApi.UpsertModelVersion(entity, &modelVersion.RegisteredModelId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -132,13 +112,9 @@ func (s *ModelRegistryServiceAPIService) UpsertModelVersionArtifact(ctx context.
 }
 
 // CreateRegisteredModel - Create a RegisteredModel
-func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Context, registeredModelCreate model.RegisteredModelCreate) (ImplResponse, error) {
-	registeredModel, err := s.converter.ConvertRegisteredModelCreate(&registeredModelCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
-	result, err := s.coreApi.UpsertRegisteredModel(registeredModel)
+func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Context, registeredModel model.RegisteredModel) (ImplResponse, error) {
+	entity := &registeredModel
+	result, err := s.coreApi.UpsertRegisteredModel(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -155,12 +131,8 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx contex
 }
 
 // CreateServingEnvironment - Create a ServingEnvironment
-func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Context, servingEnvironmentCreate model.ServingEnvironmentCreate) (ImplResponse, error) {
-	entity, err := s.converter.ConvertServingEnvironmentCreate(&servingEnvironmentCreate)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-
+func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Context, servingEnvironment model.ServingEnvironment) (ImplResponse, error) {
+	entity := &servingEnvironment
 	result, err := s.coreApi.UpsertServingEnvironment(entity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err

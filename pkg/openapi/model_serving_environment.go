@@ -19,14 +19,14 @@ var _ MappedNullable = &ServingEnvironment{}
 
 // ServingEnvironment A Model Serving environment for serving `RegisteredModels`.
 type ServingEnvironment struct {
+	// The name of the ServingEnvironment.
+	Name string `json:"name"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
+	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The name of the ServingEnvironment.
-	Name string `json:"name"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
@@ -51,6 +51,30 @@ func NewServingEnvironment(name string) *ServingEnvironment {
 func NewServingEnvironmentWithDefaults() *ServingEnvironment {
 	this := ServingEnvironment{}
 	return &this
+}
+
+// GetName returns the Name field value
+func (o *ServingEnvironment) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ServingEnvironment) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ServingEnvironment) SetName(v string) {
+	o.Name = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -147,30 +171,6 @@ func (o *ServingEnvironment) HasExternalId() bool {
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
 func (o *ServingEnvironment) SetExternalId(v string) {
 	o.ExternalId = &v
-}
-
-// GetName returns the Name field value
-func (o *ServingEnvironment) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ServingEnvironment) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ServingEnvironment) SetName(v string) {
-	o.Name = v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -279,6 +279,7 @@ func (o ServingEnvironment) MarshalJSON() ([]byte, error) {
 
 func (o ServingEnvironment) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -288,7 +289,6 @@ func (o ServingEnvironment) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	toSerialize["name"] = o.Name
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}

@@ -19,14 +19,14 @@ var _ MappedNullable = &RegisteredModel{}
 
 // RegisteredModel A registered model in model registry. A registered model has ModelVersion children.
 type RegisteredModel struct {
+	// The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set.
+	Name string `json:"name"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
+	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set.
-	Name string `json:"name"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
@@ -57,6 +57,30 @@ func NewRegisteredModelWithDefaults() *RegisteredModel {
 	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
 	this.State = &state
 	return &this
+}
+
+// GetName returns the Name field value
+func (o *RegisteredModel) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *RegisteredModel) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *RegisteredModel) SetName(v string) {
+	o.Name = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -153,30 +177,6 @@ func (o *RegisteredModel) HasExternalId() bool {
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
 func (o *RegisteredModel) SetExternalId(v string) {
 	o.ExternalId = &v
-}
-
-// GetName returns the Name field value
-func (o *RegisteredModel) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *RegisteredModel) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *RegisteredModel) SetName(v string) {
-	o.Name = v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -349,6 +349,7 @@ func (o RegisteredModel) MarshalJSON() ([]byte, error) {
 
 func (o RegisteredModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["name"] = o.Name
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -358,7 +359,6 @@ func (o RegisteredModel) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	toSerialize["name"] = o.Name
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}

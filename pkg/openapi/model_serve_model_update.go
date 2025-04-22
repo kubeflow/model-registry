@@ -19,13 +19,15 @@ var _ MappedNullable = &ServeModelUpdate{}
 
 // ServeModelUpdate An ML model serving action.
 type ServeModelUpdate struct {
-	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
+	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
+	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
+	ExternalId     *string         `json:"externalId,omitempty"`
+	ModelVersionId *string         `json:"modelVersionId,omitempty"`
+	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
 }
 
 // NewServeModelUpdate instantiates a new ServeModelUpdate object
@@ -49,36 +51,36 @@ func NewServeModelUpdateWithDefaults() *ServeModelUpdate {
 	return &this
 }
 
-// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
-func (o *ServeModelUpdate) GetLastKnownState() ExecutionState {
-	if o == nil || IsNil(o.LastKnownState) {
-		var ret ExecutionState
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *ServeModelUpdate) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
 		return ret
 	}
-	return *o.LastKnownState
+	return *o.Name
 }
 
-// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ServeModelUpdate) GetLastKnownStateOk() (*ExecutionState, bool) {
-	if o == nil || IsNil(o.LastKnownState) {
+func (o *ServeModelUpdate) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
 		return nil, false
 	}
-	return o.LastKnownState, true
+	return o.Name, true
 }
 
-// HasLastKnownState returns a boolean if a field has been set.
-func (o *ServeModelUpdate) HasLastKnownState() bool {
-	if o != nil && !IsNil(o.LastKnownState) {
+// HasName returns a boolean if a field has been set.
+func (o *ServeModelUpdate) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
 		return true
 	}
 
 	return false
 }
 
-// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
-func (o *ServeModelUpdate) SetLastKnownState(v ExecutionState) {
-	o.LastKnownState = &v
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *ServeModelUpdate) SetName(v string) {
+	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -177,6 +179,70 @@ func (o *ServeModelUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
+// GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
+func (o *ServeModelUpdate) GetModelVersionId() string {
+	if o == nil || IsNil(o.ModelVersionId) {
+		var ret string
+		return ret
+	}
+	return *o.ModelVersionId
+}
+
+// GetModelVersionIdOk returns a tuple with the ModelVersionId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ServeModelUpdate) GetModelVersionIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelVersionId) {
+		return nil, false
+	}
+	return o.ModelVersionId, true
+}
+
+// HasModelVersionId returns a boolean if a field has been set.
+func (o *ServeModelUpdate) HasModelVersionId() bool {
+	if o != nil && !IsNil(o.ModelVersionId) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelVersionId gets a reference to the given string and assigns it to the ModelVersionId field.
+func (o *ServeModelUpdate) SetModelVersionId(v string) {
+	o.ModelVersionId = &v
+}
+
+// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
+func (o *ServeModelUpdate) GetLastKnownState() ExecutionState {
+	if o == nil || IsNil(o.LastKnownState) {
+		var ret ExecutionState
+		return ret
+	}
+	return *o.LastKnownState
+}
+
+// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ServeModelUpdate) GetLastKnownStateOk() (*ExecutionState, bool) {
+	if o == nil || IsNil(o.LastKnownState) {
+		return nil, false
+	}
+	return o.LastKnownState, true
+}
+
+// HasLastKnownState returns a boolean if a field has been set.
+func (o *ServeModelUpdate) HasLastKnownState() bool {
+	if o != nil && !IsNil(o.LastKnownState) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
+func (o *ServeModelUpdate) SetLastKnownState(v ExecutionState) {
+	o.LastKnownState = &v
+}
+
 func (o ServeModelUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -187,8 +253,8 @@ func (o ServeModelUpdate) MarshalJSON() ([]byte, error) {
 
 func (o ServeModelUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.LastKnownState) {
-		toSerialize["lastKnownState"] = o.LastKnownState
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
 	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -198,6 +264,12 @@ func (o ServeModelUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
+	}
+	if !IsNil(o.ModelVersionId) {
+		toSerialize["modelVersionId"] = o.ModelVersionId
+	}
+	if !IsNil(o.LastKnownState) {
+		toSerialize["lastKnownState"] = o.LastKnownState
 	}
 	return toSerialize, nil
 }

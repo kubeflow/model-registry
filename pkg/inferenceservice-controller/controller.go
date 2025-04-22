@@ -334,7 +334,7 @@ func (r *InferenceServiceController) createMRInferenceService(
 	if err != nil {
 		log.Info("Creating new model registry InferenceService", "name", isName, "registeredModelId", registeredModelId, "modelVersionId", modelVersionId)
 
-		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceServiceCreate(openapi.InferenceServiceCreate{
+		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceService(openapi.InferenceService{
 			DesiredState:         openapi.INFERENCESERVICESTATE_DEPLOYED.Ptr(),
 			ModelVersionId:       modelVersionIdPtr,
 			Name:                 &isName,
@@ -352,7 +352,7 @@ func (r *InferenceServiceController) getOrCreateServingEnvironment(ctx context.C
 	if err != nil {
 		log.Info("ServingEnvironment not found, creating it..")
 
-		servingEnvironment, _, err = mr.ModelRegistryServiceAPI.CreateServingEnvironment(ctx).ServingEnvironmentCreate(openapi.ServingEnvironmentCreate{
+		servingEnvironment, _, err = mr.ModelRegistryServiceAPI.CreateServingEnvironment(ctx).ServingEnvironment(openapi.ServingEnvironment{
 			Name: namespace,
 		}).Execute()
 		if err != nil {

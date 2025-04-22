@@ -68,15 +68,15 @@ type ModelRegistryServiceAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ModelRegistryServiceAPIServicer interface {
-	CreateArtifact(context.Context, model.ArtifactCreate) (ImplResponse, error)
-	CreateEnvironmentInferenceService(context.Context, string, model.InferenceServiceCreate) (ImplResponse, error)
-	CreateInferenceService(context.Context, model.InferenceServiceCreate) (ImplResponse, error)
-	CreateInferenceServiceServe(context.Context, string, model.ServeModelCreate) (ImplResponse, error)
-	CreateModelArtifact(context.Context, model.ModelArtifactCreate) (ImplResponse, error)
-	CreateModelVersion(context.Context, model.ModelVersionCreate) (ImplResponse, error)
-	CreateRegisteredModel(context.Context, model.RegisteredModelCreate) (ImplResponse, error)
+	CreateArtifact(context.Context, model.Artifact) (ImplResponse, error)
+	CreateEnvironmentInferenceService(context.Context, string, model.InferenceService) (ImplResponse, error)
+	CreateInferenceService(context.Context, model.InferenceService) (ImplResponse, error)
+	CreateInferenceServiceServe(context.Context, string, model.ServeModel) (ImplResponse, error)
+	CreateModelArtifact(context.Context, model.ModelArtifact) (ImplResponse, error)
+	CreateModelVersion(context.Context, model.ModelVersion) (ImplResponse, error)
+	CreateRegisteredModel(context.Context, model.RegisteredModel) (ImplResponse, error)
 	CreateRegisteredModelVersion(context.Context, string, model.ModelVersion) (ImplResponse, error)
-	CreateServingEnvironment(context.Context, model.ServingEnvironmentCreate) (ImplResponse, error)
+	CreateServingEnvironment(context.Context, model.ServingEnvironment) (ImplResponse, error)
 	FindArtifact(context.Context, string, string, string) (ImplResponse, error)
 	FindInferenceService(context.Context, string, string, string) (ImplResponse, error)
 	FindModelArtifact(context.Context, string, string, string) (ImplResponse, error)

@@ -71,7 +71,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ArtifactCreate"
+              $ref: "#/components/schemas/Artifact"
         required: true
       tags:
         - ModelRegistryService
@@ -208,7 +208,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InferenceServiceCreate"
+              $ref: "#/components/schemas/InferenceService"
         required: true
       tags:
         - ModelRegistryService
@@ -344,7 +344,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ServeModelCreate"
+              $ref: "#/components/schemas/ServeModel"
         required: true
       tags:
         - ModelRegistryService
@@ -462,7 +462,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ModelArtifactCreate"
+              $ref: "#/components/schemas/ModelArtifact"
         required: true
       tags:
         - ModelRegistryService
@@ -593,7 +593,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ModelVersionCreate"
+              $ref: "#/components/schemas/ModelVersion"
         required: true
       tags:
         - ModelRegistryService
@@ -787,7 +787,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisteredModelCreate"
+              $ref: "#/components/schemas/RegisteredModel"
         required: true
       tags:
         - ModelRegistryService
@@ -978,7 +978,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ServingEnvironmentCreate"
+              $ref: "#/components/schemas/ServingEnvironment"
         required: true
       tags:
         - ModelRegistryService
@@ -1086,7 +1086,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InferenceServiceCreate"
+              $ref: "#/components/schemas/InferenceService"
         required: true
       tags:
         - ModelRegistryService
@@ -1127,16 +1127,6 @@ components:
           model-artifact: "#/components/schemas/ModelArtifact"
           doc-artifact: "#/components/schemas/DocArtifact"
       description: A metadata Artifact Entity.
-    ArtifactCreate:
-      description: An Artifact to be created.
-      oneOf:
-        - $ref: "#/components/schemas/ModelArtifactCreate"
-        - $ref: "#/components/schemas/DocArtifactCreate"
-      discriminator:
-        propertyName: artifactType
-        mapping:
-          model-artifact: "#/components/schemas/ModelArtifactCreate"
-          doc-artifact: "#/components/schemas/DocArtifactCreate"
     ArtifactList:
       description: A list of Artifact entities.
       allOf:
@@ -1188,49 +1178,20 @@ components:
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactUpdate"
           doc-artifact: "#/components/schemas/DocArtifactUpdate"
-    BaseArtifact:
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    BaseArtifactCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
-        - $ref: "#/components/schemas/BaseResourceCreate"
-    BaseArtifactUpdate:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            uri:
-              description: |-
-                The uniform resource identifier of the physical artifact.
-                May be empty if there is no physical artifact.
-              type: string
-            state:
-              $ref: "#/components/schemas/ArtifactState"
-    BaseExecution:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    BaseExecutionCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionUpdate"
-        - $ref: "#/components/schemas/BaseResourceCreate"
-    BaseExecutionUpdate:
-      allOf:
-        - type: object
-          properties:
-            lastKnownState:
-              $ref: "#/components/schemas/ExecutionState"
-        - $ref: "#/components/schemas/BaseResourceUpdate"
     BaseResource:
       allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
             id:
               format: int64
               description: The unique server generated id of the resource.
+              type: string
+            name:
+              description: |-
+                The client provided name of the artifact. This field is optional. If set,
+                it must be unique among all the artifacts of the same artifact type within
+                a database instance and cannot be changed once set.
               type: string
             createTimeSinceEpoch:
               format: int64
@@ -1244,17 +1205,6 @@ components:
                 since epoch.
               type: string
               readOnly: true
-    BaseResourceCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            name:
-              description: |-
-                The client provided name of the artifact. This field is optional. If set,
-                it must be unique among all the artifacts of the same artifact type within
-                a database instance and cannot be changed once set.
-              type: string
     BaseResourceList:
       required:
         - nextPageToken
@@ -1276,6 +1226,9 @@ components:
     BaseResourceUpdate:
       type: object
       properties:
+        name:
+          readOnly: true
+          type: string
         customProperties:
           description: User provided custom properties which are not defined by its type.
           type: object
@@ -1287,23 +1240,13 @@ components:
           type: string
         externalId:
           description: |-
-            The external id that come from the clients’ system. This field is optional.
+            The external id that come from the clients' system. This field is optional.
             If set, it must be unique among all resources within a database instance.
           type: string
     DocArtifact:
       description: A document.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
-        - $ref: "#/components/schemas/DocArtifactCreate"
-        - type: object
-          properties:
-            artifactType:
-              type: string
-              default: "doc-artifact"
-    DocArtifactCreate:
-      description: A document artifact to be created.
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/DocArtifactUpdate"
         - type: object
           properties:
@@ -1313,12 +1256,17 @@ components:
     DocArtifactUpdate:
       description: A document artifact to be updated.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
             artifactType:
               type: string
               default: "doc-artifact"
+            uri:
+              description: "The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact."
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
     Error:
       description: Error code and message.
       required:
@@ -1356,17 +1304,11 @@ components:
     InferenceService:
       description: >-
         An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
-      allOf:
-        - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/InferenceServiceCreate"
-    InferenceServiceCreate:
-      description: >-
-        An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
       required:
         - registeredModelId
         - servingEnvironmentId
       allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/InferenceServiceUpdate"
         - type: object
           properties:
@@ -1527,22 +1469,13 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
-        - $ref: "#/components/schemas/ModelArtifactCreate"
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ModelArtifactUpdate"
         - type: object
           properties:
             artifactType:
               type: string
               default: "model-artifact"
-    ModelArtifactCreate:
-      description: An ML model artifact.
-      properties:
-        artifactType:
-          type: string
-          default: "model-artifact"
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
-        - $ref: "#/components/schemas/ModelArtifactUpdate"
     ModelArtifactList:
       description: List of ModelArtifact entities.
       allOf:
@@ -1559,9 +1492,14 @@ components:
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
+            uri:
+              description: "The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact."
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
             artifactType:
               type: string
               default: "model-artifact"
@@ -1602,16 +1540,11 @@ components:
               description: "A human-readable name for the source model. \nE.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`."
     ModelVersion:
       description: Represents a ModelVersion belonging to a RegisteredModel.
-      allOf:
-        - $ref: "#/components/schemas/ModelVersionCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    ModelVersionCreate:
-      description: Represents a ModelVersion belonging to a RegisteredModel.
       required:
         - name
         - registeredModelId
       allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ModelVersionUpdate"
         - type: object
           properties:
@@ -1651,6 +1584,12 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
+            name:
+              readOnly: true
+              type: string
+            registeredModelId:
+              readOnly: true
+              type: string
             state:
               $ref: "#/components/schemas/ModelVersionState"
             author:
@@ -1665,15 +1604,10 @@ components:
       type: string
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
-      allOf:
-        - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/RegisteredModelCreate"
-    RegisteredModelCreate:
-      description: A registered model in model registry. A registered model has ModelVersion children.
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/RegisteredModelUpdate"
         - type: object
           properties:
@@ -1711,21 +1645,19 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
+            name:
+              readOnly: true
+              type: string
             owner:
               type: string
             state:
               $ref: "#/components/schemas/RegisteredModelState"
     ServeModel:
       description: An ML model serving action.
-      allOf:
-        - $ref: "#/components/schemas/BaseExecution"
-        - $ref: "#/components/schemas/ServeModelCreate"
-    ServeModelCreate:
-      description: An ML model serving action.
       required:
         - modelVersionId
       allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ServeModelUpdate"
         - type: object
           properties:
@@ -1748,18 +1680,20 @@ components:
     ServeModelUpdate:
       description: An ML model serving action.
       allOf:
-        - $ref: "#/components/schemas/BaseExecutionUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            modelVersionId:
+              readOnly: true
+              type: string
+            lastKnownState:
+              $ref: "#/components/schemas/ExecutionState"
     ServingEnvironment:
-      description: A Model Serving environment for serving `RegisteredModels`.
-      allOf:
-        - $ref: "#/components/schemas/BaseResource"
-        - $ref: "#/components/schemas/ServingEnvironmentCreate"
-    ServingEnvironmentCreate:
       description: A Model Serving environment for serving `RegisteredModels`.
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ServingEnvironmentUpdate"
         - type: object
           properties:
@@ -1784,6 +1718,11 @@ components:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            name:
+              readOnly: true
+              type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
       enum:

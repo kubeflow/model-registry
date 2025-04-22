@@ -11,24 +11,6 @@ import (
 
 type OpenAPIConverterImpl struct{}
 
-func (c *OpenAPIConverterImpl) ConvertArtifactCreate(source *openapi.ArtifactCreate) (*openapi.Artifact, error) {
-	var pOpenapiArtifact *openapi.Artifact
-	if source != nil {
-		var openapiArtifact openapi.Artifact
-		pOpenapiDocArtifact, err := c.ConvertDocArtifactCreate((*source).DocArtifactCreate)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field DocArtifact: %w", err)
-		}
-		openapiArtifact.DocArtifact = pOpenapiDocArtifact
-		pOpenapiModelArtifact, err := c.ConvertModelArtifactCreate((*source).ModelArtifactCreate)
-		if err != nil {
-			return nil, fmt.Errorf("error setting field ModelArtifact: %w", err)
-		}
-		openapiArtifact.ModelArtifact = pOpenapiModelArtifact
-		pOpenapiArtifact = &openapiArtifact
-	}
-	return pOpenapiArtifact, nil
-}
 func (c *OpenAPIConverterImpl) ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error) {
 	var pOpenapiArtifact *openapi.Artifact
 	if source != nil {
@@ -46,47 +28,6 @@ func (c *OpenAPIConverterImpl) ConvertArtifactUpdate(source *openapi.ArtifactUpd
 		pOpenapiArtifact = &openapiArtifact
 	}
 	return pOpenapiArtifact, nil
-}
-func (c *OpenAPIConverterImpl) ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error) {
-	var pOpenapiDocArtifact *openapi.DocArtifact
-	if source != nil {
-		var openapiDocArtifact openapi.DocArtifact
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiDocArtifact.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiDocArtifact.ExternalId = &xstring2
-		}
-		if (*source).Uri != nil {
-			xstring3 := *(*source).Uri
-			openapiDocArtifact.Uri = &xstring3
-		}
-		if (*source).State != nil {
-			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiDocArtifact.State = &openapiArtifactState
-		}
-		if (*source).Name != nil {
-			xstring4 := *(*source).Name
-			openapiDocArtifact.Name = &xstring4
-		}
-		pOpenapiDocArtifact = &openapiDocArtifact
-	}
-	return pOpenapiDocArtifact, nil
 }
 func (c *OpenAPIConverterImpl) ConvertDocArtifactUpdate(source *openapi.DocArtifactUpdate) (*openapi.DocArtifact, error) {
 	var pOpenapiDocArtifact *openapi.DocArtifact
@@ -124,53 +65,6 @@ func (c *OpenAPIConverterImpl) ConvertDocArtifactUpdate(source *openapi.DocArtif
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
-}
-func (c *OpenAPIConverterImpl) ConvertInferenceServiceCreate(source *openapi.InferenceServiceCreate) (*openapi.InferenceService, error) {
-	var pOpenapiInferenceService *openapi.InferenceService
-	if source != nil {
-		var openapiInferenceService openapi.InferenceService
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiInferenceService.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiInferenceService.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiInferenceService.ExternalId = &xstring2
-		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiInferenceService.Name = &xstring3
-		}
-		if (*source).ModelVersionId != nil {
-			xstring4 := *(*source).ModelVersionId
-			openapiInferenceService.ModelVersionId = &xstring4
-		}
-		if (*source).Runtime != nil {
-			xstring5 := *(*source).Runtime
-			openapiInferenceService.Runtime = &xstring5
-		}
-		if (*source).DesiredState != nil {
-			openapiInferenceServiceState, err := c.openapiInferenceServiceStateToOpenapiInferenceServiceState(*(*source).DesiredState)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field DesiredState: %w", err)
-			}
-			openapiInferenceService.DesiredState = &openapiInferenceServiceState
-		}
-		openapiInferenceService.RegisteredModelId = (*source).RegisteredModelId
-		openapiInferenceService.ServingEnvironmentId = (*source).ServingEnvironmentId
-		pOpenapiInferenceService = &openapiInferenceService
-	}
-	return pOpenapiInferenceService, nil
 }
 func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.InferenceServiceUpdate) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
@@ -212,87 +106,6 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
-}
-func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error) {
-	var pOpenapiModelArtifact *openapi.ModelArtifact
-	if source != nil {
-		var openapiModelArtifact openapi.ModelArtifact
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiModelArtifact.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiModelArtifact.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiModelArtifact.ExternalId = &xstring2
-		}
-		if (*source).Uri != nil {
-			xstring3 := *(*source).Uri
-			openapiModelArtifact.Uri = &xstring3
-		}
-		if (*source).State != nil {
-			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiModelArtifact.State = &openapiArtifactState
-		}
-		if (*source).Name != nil {
-			xstring4 := *(*source).Name
-			openapiModelArtifact.Name = &xstring4
-		}
-		if (*source).ModelFormatName != nil {
-			xstring5 := *(*source).ModelFormatName
-			openapiModelArtifact.ModelFormatName = &xstring5
-		}
-		if (*source).StorageKey != nil {
-			xstring6 := *(*source).StorageKey
-			openapiModelArtifact.StorageKey = &xstring6
-		}
-		if (*source).StoragePath != nil {
-			xstring7 := *(*source).StoragePath
-			openapiModelArtifact.StoragePath = &xstring7
-		}
-		if (*source).ModelFormatVersion != nil {
-			xstring8 := *(*source).ModelFormatVersion
-			openapiModelArtifact.ModelFormatVersion = &xstring8
-		}
-		if (*source).ServiceAccountName != nil {
-			xstring9 := *(*source).ServiceAccountName
-			openapiModelArtifact.ServiceAccountName = &xstring9
-		}
-		if (*source).ModelSourceKind != nil {
-			xstring10 := *(*source).ModelSourceKind
-			openapiModelArtifact.ModelSourceKind = &xstring10
-		}
-		if (*source).ModelSourceClass != nil {
-			xstring11 := *(*source).ModelSourceClass
-			openapiModelArtifact.ModelSourceClass = &xstring11
-		}
-		if (*source).ModelSourceGroup != nil {
-			xstring12 := *(*source).ModelSourceGroup
-			openapiModelArtifact.ModelSourceGroup = &xstring12
-		}
-		if (*source).ModelSourceId != nil {
-			xstring13 := *(*source).ModelSourceId
-			openapiModelArtifact.ModelSourceId = &xstring13
-		}
-		if (*source).ModelSourceName != nil {
-			xstring14 := *(*source).ModelSourceName
-			openapiModelArtifact.ModelSourceName = &xstring14
-		}
-		pOpenapiModelArtifact = &openapiModelArtifact
-	}
-	return pOpenapiModelArtifact, nil
 }
 func (c *OpenAPIConverterImpl) ConvertModelArtifactUpdate(source *openapi.ModelArtifactUpdate) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
@@ -371,45 +184,6 @@ func (c *OpenAPIConverterImpl) ConvertModelArtifactUpdate(source *openapi.ModelA
 	}
 	return pOpenapiModelArtifact, nil
 }
-func (c *OpenAPIConverterImpl) ConvertModelVersionCreate(source *openapi.ModelVersionCreate) (*openapi.ModelVersion, error) {
-	var pOpenapiModelVersion *openapi.ModelVersion
-	if source != nil {
-		var openapiModelVersion openapi.ModelVersion
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiModelVersion.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiModelVersion.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiModelVersion.ExternalId = &xstring2
-		}
-		openapiModelVersion.Name = (*source).Name
-		if (*source).State != nil {
-			openapiModelVersionState, err := c.openapiModelVersionStateToOpenapiModelVersionState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiModelVersion.State = &openapiModelVersionState
-		}
-		if (*source).Author != nil {
-			xstring3 := *(*source).Author
-			openapiModelVersion.Author = &xstring3
-		}
-		openapiModelVersion.RegisteredModelId = (*source).RegisteredModelId
-		pOpenapiModelVersion = &openapiModelVersion
-	}
-	return pOpenapiModelVersion, nil
-}
 func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVersionUpdate) (*openapi.ModelVersion, error) {
 	var pOpenapiModelVersion *openapi.ModelVersion
 	if source != nil {
@@ -446,44 +220,6 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVe
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
-}
-func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.RegisteredModelCreate) (*openapi.RegisteredModel, error) {
-	var pOpenapiRegisteredModel *openapi.RegisteredModel
-	if source != nil {
-		var openapiRegisteredModel openapi.RegisteredModel
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiRegisteredModel.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiRegisteredModel.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiRegisteredModel.ExternalId = &xstring2
-		}
-		openapiRegisteredModel.Name = (*source).Name
-		if (*source).Owner != nil {
-			xstring3 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring3
-		}
-		if (*source).State != nil {
-			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field State: %w", err)
-			}
-			openapiRegisteredModel.State = &openapiRegisteredModelState
-		}
-		pOpenapiRegisteredModel = &openapiRegisteredModel
-	}
-	return pOpenapiRegisteredModel, nil
 }
 func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.RegisteredModelUpdate) (*openapi.RegisteredModel, error) {
 	var pOpenapiRegisteredModel *openapi.RegisteredModel
@@ -522,55 +258,10 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 	}
 	return pOpenapiRegisteredModel, nil
 }
-func (c *OpenAPIConverterImpl) ConvertServeModelCreate(source *openapi.ServeModelCreate) (*openapi.ServeModel, error) {
-	var pOpenapiServeModel *openapi.ServeModel
-	if source != nil {
-		var openapiServeModel openapi.ServeModel
-		if (*source).LastKnownState != nil {
-			openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*(*source).LastKnownState)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field LastKnownState: %w", err)
-			}
-			openapiServeModel.LastKnownState = &openapiExecutionState
-		}
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiServeModel.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiServeModel.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiServeModel.ExternalId = &xstring2
-		}
-		if (*source).Name != nil {
-			xstring3 := *(*source).Name
-			openapiServeModel.Name = &xstring3
-		}
-		openapiServeModel.ModelVersionId = (*source).ModelVersionId
-		pOpenapiServeModel = &openapiServeModel
-	}
-	return pOpenapiServeModel, nil
-}
 func (c *OpenAPIConverterImpl) ConvertServeModelUpdate(source *openapi.ServeModelUpdate) (*openapi.ServeModel, error) {
 	var pOpenapiServeModel *openapi.ServeModel
 	if source != nil {
 		var openapiServeModel openapi.ServeModel
-		if (*source).LastKnownState != nil {
-			openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*(*source).LastKnownState)
-			if err != nil {
-				return nil, fmt.Errorf("error setting field LastKnownState: %w", err)
-			}
-			openapiServeModel.LastKnownState = &openapiExecutionState
-		}
 		if (*source).CustomProperties != nil {
 			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 			if (*(*source).CustomProperties) != nil {
@@ -589,36 +280,16 @@ func (c *OpenAPIConverterImpl) ConvertServeModelUpdate(source *openapi.ServeMode
 			xstring2 := *(*source).ExternalId
 			openapiServeModel.ExternalId = &xstring2
 		}
+		if (*source).LastKnownState != nil {
+			openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*(*source).LastKnownState)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field LastKnownState: %w", err)
+			}
+			openapiServeModel.LastKnownState = &openapiExecutionState
+		}
 		pOpenapiServeModel = &openapiServeModel
 	}
 	return pOpenapiServeModel, nil
-}
-func (c *OpenAPIConverterImpl) ConvertServingEnvironmentCreate(source *openapi.ServingEnvironmentCreate) (*openapi.ServingEnvironment, error) {
-	var pOpenapiServingEnvironment *openapi.ServingEnvironment
-	if source != nil {
-		var openapiServingEnvironment openapi.ServingEnvironment
-		if (*source).CustomProperties != nil {
-			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
-			if (*(*source).CustomProperties) != nil {
-				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
-				for key, value := range *(*source).CustomProperties {
-					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
-				}
-			}
-			openapiServingEnvironment.CustomProperties = &mapStringOpenapiMetadataValue
-		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiServingEnvironment.Description = &xstring
-		}
-		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiServingEnvironment.ExternalId = &xstring2
-		}
-		openapiServingEnvironment.Name = (*source).Name
-		pOpenapiServingEnvironment = &openapiServingEnvironment
-	}
-	return pOpenapiServingEnvironment, nil
 }
 func (c *OpenAPIConverterImpl) ConvertServingEnvironmentUpdate(source *openapi.ServingEnvironmentUpdate) (*openapi.ServingEnvironment, error) {
 	var pOpenapiServingEnvironment *openapi.ServingEnvironment

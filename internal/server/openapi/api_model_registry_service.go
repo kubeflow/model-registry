@@ -258,22 +258,22 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 
 // CreateArtifact - Create an Artifact
 func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter, r *http.Request) {
-	artifactCreateParam := *model.NewArtifactCreateWithDefaults()
+	artifactParam := *model.NewArtifactWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&artifactCreateParam); err != nil {
+	if err := d.Decode(&artifactParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertArtifactCreateRequired(artifactCreateParam); err != nil {
+	if err := AssertArtifactRequired(artifactParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertArtifactCreateConstraints(artifactCreateParam); err != nil {
+	if err := AssertArtifactConstraints(artifactParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateArtifact(r.Context(), artifactCreateParam)
+	result, err := c.service.CreateArtifact(r.Context(), artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -286,22 +286,22 @@ func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter
 // CreateEnvironmentInferenceService - Create a InferenceService in ServingEnvironment
 func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w http.ResponseWriter, r *http.Request) {
 	servingenvironmentIdParam := chi.URLParam(r, "servingenvironmentId")
-	inferenceServiceCreateParam := *model.NewInferenceServiceCreateWithDefaults()
+	inferenceServiceParam := *model.NewInferenceServiceWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&inferenceServiceCreateParam); err != nil {
+	if err := d.Decode(&inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertInferenceServiceCreateRequired(inferenceServiceCreateParam); err != nil {
+	if err := AssertInferenceServiceRequired(inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertInferenceServiceCreateConstraints(inferenceServiceCreateParam); err != nil {
+	if err := AssertInferenceServiceConstraints(inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateEnvironmentInferenceService(r.Context(), servingenvironmentIdParam, inferenceServiceCreateParam)
+	result, err := c.service.CreateEnvironmentInferenceService(r.Context(), servingenvironmentIdParam, inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -313,22 +313,22 @@ func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w 
 
 // CreateInferenceService - Create a InferenceService
 func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.ResponseWriter, r *http.Request) {
-	inferenceServiceCreateParam := *model.NewInferenceServiceCreateWithDefaults()
+	inferenceServiceParam := *model.NewInferenceServiceWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&inferenceServiceCreateParam); err != nil {
+	if err := d.Decode(&inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertInferenceServiceCreateRequired(inferenceServiceCreateParam); err != nil {
+	if err := AssertInferenceServiceRequired(inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertInferenceServiceCreateConstraints(inferenceServiceCreateParam); err != nil {
+	if err := AssertInferenceServiceConstraints(inferenceServiceParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateInferenceService(r.Context(), inferenceServiceCreateParam)
+	result, err := c.service.CreateInferenceService(r.Context(), inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -341,22 +341,22 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.Respon
 // CreateInferenceServiceServe - Create a ServeModel action in a InferenceService
 func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.ResponseWriter, r *http.Request) {
 	inferenceserviceIdParam := chi.URLParam(r, "inferenceserviceId")
-	serveModelCreateParam := *model.NewServeModelCreateWithDefaults()
+	serveModelParam := *model.NewServeModelWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&serveModelCreateParam); err != nil {
+	if err := d.Decode(&serveModelParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertServeModelCreateRequired(serveModelCreateParam); err != nil {
+	if err := AssertServeModelRequired(serveModelParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertServeModelCreateConstraints(serveModelCreateParam); err != nil {
+	if err := AssertServeModelConstraints(serveModelParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateInferenceServiceServe(r.Context(), inferenceserviceIdParam, serveModelCreateParam)
+	result, err := c.service.CreateInferenceServiceServe(r.Context(), inferenceserviceIdParam, serveModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -368,22 +368,22 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.R
 
 // CreateModelArtifact - Create a ModelArtifact
 func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseWriter, r *http.Request) {
-	modelArtifactCreateParam := *model.NewModelArtifactCreateWithDefaults()
+	modelArtifactParam := *model.NewModelArtifactWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&modelArtifactCreateParam); err != nil {
+	if err := d.Decode(&modelArtifactParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertModelArtifactCreateRequired(modelArtifactCreateParam); err != nil {
+	if err := AssertModelArtifactRequired(modelArtifactParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertModelArtifactCreateConstraints(modelArtifactCreateParam); err != nil {
+	if err := AssertModelArtifactConstraints(modelArtifactParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateModelArtifact(r.Context(), modelArtifactCreateParam)
+	result, err := c.service.CreateModelArtifact(r.Context(), modelArtifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -395,22 +395,22 @@ func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseW
 
 // CreateModelVersion - Create a ModelVersion
 func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWriter, r *http.Request) {
-	modelVersionCreateParam := *model.NewModelVersionCreateWithDefaults()
+	modelVersionParam := *model.NewModelVersionWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&modelVersionCreateParam); err != nil {
+	if err := d.Decode(&modelVersionParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertModelVersionCreateRequired(modelVersionCreateParam); err != nil {
+	if err := AssertModelVersionRequired(modelVersionParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertModelVersionCreateConstraints(modelVersionCreateParam); err != nil {
+	if err := AssertModelVersionConstraints(modelVersionParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateModelVersion(r.Context(), modelVersionCreateParam)
+	result, err := c.service.CreateModelVersion(r.Context(), modelVersionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -422,22 +422,22 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 
 // CreateRegisteredModel - Create a RegisteredModel
 func (c *ModelRegistryServiceAPIController) CreateRegisteredModel(w http.ResponseWriter, r *http.Request) {
-	registeredModelCreateParam := *model.NewRegisteredModelCreateWithDefaults()
+	registeredModelParam := *model.NewRegisteredModelWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&registeredModelCreateParam); err != nil {
+	if err := d.Decode(&registeredModelParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertRegisteredModelCreateRequired(registeredModelCreateParam); err != nil {
+	if err := AssertRegisteredModelRequired(registeredModelParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertRegisteredModelCreateConstraints(registeredModelCreateParam); err != nil {
+	if err := AssertRegisteredModelConstraints(registeredModelParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateRegisteredModel(r.Context(), registeredModelCreateParam)
+	result, err := c.service.CreateRegisteredModel(r.Context(), registeredModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -477,22 +477,22 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModelVersion(w http.
 
 // CreateServingEnvironment - Create a ServingEnvironment
 func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.ResponseWriter, r *http.Request) {
-	servingEnvironmentCreateParam := *model.NewServingEnvironmentCreateWithDefaults()
+	servingEnvironmentParam := *model.NewServingEnvironmentWithDefaults()
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&servingEnvironmentCreateParam); err != nil {
+	if err := d.Decode(&servingEnvironmentParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertServingEnvironmentCreateRequired(servingEnvironmentCreateParam); err != nil {
+	if err := AssertServingEnvironmentRequired(servingEnvironmentParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertServingEnvironmentCreateConstraints(servingEnvironmentCreateParam); err != nil {
+	if err := AssertServingEnvironmentConstraints(servingEnvironmentParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateServingEnvironment(r.Context(), servingEnvironmentCreateParam)
+	result, err := c.service.CreateServingEnvironment(r.Context(), servingEnvironmentParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -21,16 +21,6 @@ func AssertArtifactConstraints(obj model.Artifact) error {
 	return nil
 }
 
-// AssertArtifactCreateConstraints checks if the values respects the defined constraints
-func AssertArtifactCreateConstraints(obj model.ArtifactCreate) error {
-	return nil
-}
-
-// AssertArtifactCreateRequired checks if the required fields are not zero-ed
-func AssertArtifactCreateRequired(obj model.ArtifactCreate) error {
-	return nil
-}
-
 // AssertArtifactListConstraints checks if the values respects the defined constraints
 func AssertArtifactListConstraints(obj model.ArtifactList) error {
 	return nil
@@ -83,78 +73,8 @@ func AssertArtifactUpdateRequired(obj model.ArtifactUpdate) error {
 	return nil
 }
 
-// AssertBaseArtifactConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactConstraints(obj model.BaseArtifact) error {
-	return nil
-}
-
-// AssertBaseArtifactCreateConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactCreateConstraints(obj model.BaseArtifactCreate) error {
-	return nil
-}
-
-// AssertBaseArtifactCreateRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactCreateRequired(obj model.BaseArtifactCreate) error {
-	return nil
-}
-
-// AssertBaseArtifactRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactRequired(obj model.BaseArtifact) error {
-	return nil
-}
-
-// AssertBaseArtifactUpdateConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactUpdateConstraints(obj model.BaseArtifactUpdate) error {
-	return nil
-}
-
-// AssertBaseArtifactUpdateRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactUpdateRequired(obj model.BaseArtifactUpdate) error {
-	return nil
-}
-
-// AssertBaseExecutionConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionConstraints(obj model.BaseExecution) error {
-	return nil
-}
-
-// AssertBaseExecutionCreateConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionCreateConstraints(obj model.BaseExecutionCreate) error {
-	return nil
-}
-
-// AssertBaseExecutionCreateRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionCreateRequired(obj model.BaseExecutionCreate) error {
-	return nil
-}
-
-// AssertBaseExecutionRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionRequired(obj model.BaseExecution) error {
-	return nil
-}
-
-// AssertBaseExecutionUpdateConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionUpdateConstraints(obj model.BaseExecutionUpdate) error {
-	return nil
-}
-
-// AssertBaseExecutionUpdateRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionUpdateRequired(obj model.BaseExecutionUpdate) error {
-	return nil
-}
-
 // AssertBaseResourceConstraints checks if the values respects the defined constraints
 func AssertBaseResourceConstraints(obj model.BaseResource) error {
-	return nil
-}
-
-// AssertBaseResourceCreateConstraints checks if the values respects the defined constraints
-func AssertBaseResourceCreateConstraints(obj model.BaseResourceCreate) error {
-	return nil
-}
-
-// AssertBaseResourceCreateRequired checks if the required fields are not zero-ed
-func AssertBaseResourceCreateRequired(obj model.BaseResourceCreate) error {
 	return nil
 }
 
@@ -196,16 +116,6 @@ func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
 
 // AssertDocArtifactConstraints checks if the values respects the defined constraints
 func AssertDocArtifactConstraints(obj model.DocArtifact) error {
-	return nil
-}
-
-// AssertDocArtifactCreateConstraints checks if the values respects the defined constraints
-func AssertDocArtifactCreateConstraints(obj model.DocArtifactCreate) error {
-	return nil
-}
-
-// AssertDocArtifactCreateRequired checks if the required fields are not zero-ed
-func AssertDocArtifactCreateRequired(obj model.DocArtifactCreate) error {
 	return nil
 }
 
@@ -256,26 +166,6 @@ func AssertExecutionStateRequired(obj model.ExecutionState) error {
 
 // AssertInferenceServiceConstraints checks if the values respects the defined constraints
 func AssertInferenceServiceConstraints(obj model.InferenceService) error {
-	return nil
-}
-
-// AssertInferenceServiceCreateConstraints checks if the values respects the defined constraints
-func AssertInferenceServiceCreateConstraints(obj model.InferenceServiceCreate) error {
-	return nil
-}
-
-// AssertInferenceServiceCreateRequired checks if the required fields are not zero-ed
-func AssertInferenceServiceCreateRequired(obj model.InferenceServiceCreate) error {
-	elements := map[string]interface{}{
-		"registeredModelId":    obj.RegisteredModelId,
-		"servingEnvironmentId": obj.ServingEnvironmentId,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
 	return nil
 }
 
@@ -494,16 +384,6 @@ func AssertModelArtifactConstraints(obj model.ModelArtifact) error {
 	return nil
 }
 
-// AssertModelArtifactCreateConstraints checks if the values respects the defined constraints
-func AssertModelArtifactCreateConstraints(obj model.ModelArtifactCreate) error {
-	return nil
-}
-
-// AssertModelArtifactCreateRequired checks if the required fields are not zero-ed
-func AssertModelArtifactCreateRequired(obj model.ModelArtifactCreate) error {
-	return nil
-}
-
 // AssertModelArtifactListConstraints checks if the values respects the defined constraints
 func AssertModelArtifactListConstraints(obj model.ModelArtifactList) error {
 	return nil
@@ -548,26 +428,6 @@ func AssertModelArtifactUpdateRequired(obj model.ModelArtifactUpdate) error {
 
 // AssertModelVersionConstraints checks if the values respects the defined constraints
 func AssertModelVersionConstraints(obj model.ModelVersion) error {
-	return nil
-}
-
-// AssertModelVersionCreateConstraints checks if the values respects the defined constraints
-func AssertModelVersionCreateConstraints(obj model.ModelVersionCreate) error {
-	return nil
-}
-
-// AssertModelVersionCreateRequired checks if the required fields are not zero-ed
-func AssertModelVersionCreateRequired(obj model.ModelVersionCreate) error {
-	elements := map[string]interface{}{
-		"name":              obj.Name,
-		"registeredModelId": obj.RegisteredModelId,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
 	return nil
 }
 
@@ -648,25 +508,6 @@ func AssertRegisteredModelConstraints(obj model.RegisteredModel) error {
 	return nil
 }
 
-// AssertRegisteredModelCreateConstraints checks if the values respects the defined constraints
-func AssertRegisteredModelCreateConstraints(obj model.RegisteredModelCreate) error {
-	return nil
-}
-
-// AssertRegisteredModelCreateRequired checks if the required fields are not zero-ed
-func AssertRegisteredModelCreateRequired(obj model.RegisteredModelCreate) error {
-	elements := map[string]interface{}{
-		"name": obj.Name,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
-	return nil
-}
-
 // AssertRegisteredModelListConstraints checks if the values respects the defined constraints
 func AssertRegisteredModelListConstraints(obj model.RegisteredModelList) error {
 	return nil
@@ -733,25 +574,6 @@ func AssertServeModelConstraints(obj model.ServeModel) error {
 	return nil
 }
 
-// AssertServeModelCreateConstraints checks if the values respects the defined constraints
-func AssertServeModelCreateConstraints(obj model.ServeModelCreate) error {
-	return nil
-}
-
-// AssertServeModelCreateRequired checks if the required fields are not zero-ed
-func AssertServeModelCreateRequired(obj model.ServeModelCreate) error {
-	elements := map[string]interface{}{
-		"modelVersionId": obj.ModelVersionId,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
-	return nil
-}
-
 // AssertServeModelListConstraints checks if the values respects the defined constraints
 func AssertServeModelListConstraints(obj model.ServeModelList) error {
 	return nil
@@ -805,25 +627,6 @@ func AssertServeModelUpdateRequired(obj model.ServeModelUpdate) error {
 
 // AssertServingEnvironmentConstraints checks if the values respects the defined constraints
 func AssertServingEnvironmentConstraints(obj model.ServingEnvironment) error {
-	return nil
-}
-
-// AssertServingEnvironmentCreateConstraints checks if the values respects the defined constraints
-func AssertServingEnvironmentCreateConstraints(obj model.ServingEnvironmentCreate) error {
-	return nil
-}
-
-// AssertServingEnvironmentCreateRequired checks if the required fields are not zero-ed
-func AssertServingEnvironmentCreateRequired(obj model.ServingEnvironmentCreate) error {
-	elements := map[string]interface{}{
-		"name": obj.Name,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
 	return nil
 }
 
