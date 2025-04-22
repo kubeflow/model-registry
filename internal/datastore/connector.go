@@ -35,6 +35,6 @@ func NewConnector(ds Datastore) (Connector, error) {
 
 		return mlmd, nil
 	default:
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedDatastore, ds.Type)
+		return nil, fmt.Errorf("%w: %s. Supported types: mlmd", ErrUnsupportedDatastore, ds.Type)
 	}
 }

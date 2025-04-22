@@ -37,8 +37,8 @@ func (c *MLMDConfig) Validate() error {
 		return fmt.Errorf("hostname is required")
 	}
 
-	if c.Port <= 0 {
-		return fmt.Errorf("port is required")
+	if c.Port <= 0 || c.Port > 65535 {
+		return fmt.Errorf("port must be in the range 1-65535")
 	}
 
 	return nil
@@ -58,7 +58,7 @@ func NewMLMDService(cfg *MLMDConfig) *MLMDService {
 func (s *MLMDService) Connect() (api.ModelRegistryApi, error) {
 	uri := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 
-	glog.Infof("connecting to MLMD service at %s..", uri)
+	glog.Infof("Connecting to MLMD service at %s..", uri)
 
 	conn, err := grpc.NewClient(uri, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -82,7 +82,13 @@ func (s *MLMDService) Connect() (api.ModelRegistryApi, error) {
 			return nil, fmt.Errorf("%w: %w", ErrMLMDTypeCreation, err)
 		}
 
+		glog.Warningf("Retrying connection to MLMD service (attempt %d/%d): %v", i+1, maxGRPCRetryAttempts, err)
+
 		time.Sleep(time.Duration(i+1) * time.Second)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrMLMDTypeCreation, err)
 	}
 
 	service, err := core.NewModelRegistryService(conn, mlmdTypeNamesConfig)
@@ -90,13 +96,17 @@ func (s *MLMDService) Connect() (api.ModelRegistryApi, error) {
 		return nil, fmt.Errorf("%w: %w", ErrMLMDCoreCreation, err)
 	}
 
-	glog.Infof("connected to MLMD service")
+	glog.Infof("Successfully connected to MLMD service")
 
 	return service, nil
 }
 
 func (s *MLMDService) Teardown() error {
-	glog.Info("closing connection to MLMD service")
+	glog.Info("Closing connection to MLMD service")
+
+	if s.gRPCConnection == nil {
+		return nil
+	}
 
 	if err := s.gRPCConnection.Close(); err != nil {
 		return fmt.Errorf("%w: %w", ErrMLMDConnectionClose, err)

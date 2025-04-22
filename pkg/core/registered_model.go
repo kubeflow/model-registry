@@ -145,7 +145,7 @@ func (serv *ModelRegistryService) GetRegisteredModelByParams(name *string, exter
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
 	}
-	glog.Info("filterQuery ", filterQuery)
+	glog.Info("FilterQuery ", filterQuery)
 
 	getByParamsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: &serv.nameConfig.RegisteredModelTypeName,

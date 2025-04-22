@@ -95,7 +95,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	go func() {
 		defer wg.Done()
 
-		glog.Infof("proxy server started at %s:%v", cfg.Hostname, cfg.Port)
+		glog.Infof("Proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
 		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
 		if err != nil {
