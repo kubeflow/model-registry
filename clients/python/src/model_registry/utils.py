@@ -8,12 +8,16 @@ import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, TypedDict
+from subprocess import CalledProcessError
+from typing import Callable, Protocol, TypeVar
 
-from typing_extensions import overload
+from typing_extensions import Literal, overload
 
 from ._utils import required_args
 from .exceptions import MissingMetadata, StoreError
+
+# Generic return type
+T = TypeVar("T")
 
 
 @overload
@@ -97,25 +101,40 @@ def s3_uri_from(
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
 
 
-class BackendDefinition(TypedDict):
+class PullFn(Protocol):
+    """Pull function definition."""
+
+    def __call__(self, base: str, dest: Path, **kwargs) -> T: ...
+
+
+class PushFn(Protocol):
+    """Push function definition."""
+
+    def __call__(self, src: Path, oci_ref: str, **kwargs) -> T: ...
+
+
+@dataclass
+class BackendDefinition:
     """Holds the 3 core callables for a backend.
 
     - is_available() -> bool
-    - pull(base_image: str, dest_dir: Path) -> None
-    - push(local_image_path: Path, oci_ref: str) -> None.
+    - pull(base_image: str, dest_dir: Path, **kwargs) -> T
+    - push(local_image_path: Path, oci_ref: str, **kwargs) -> T.
     """
 
-    available: Callable[[], bool]
-    pull: Callable[[str, Path], None]
-    push: Callable[[Path, str], None]
+    is_available: Callable[[], bool]
+    pull: PullFn
+    push: PushFn
+
 
 def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
-    """Convert kwargs to list of params
-    
+    """Convert kwargs to list of params.
+
     Args:
         kwargs: The keyword args dict.
     """
     return [f"{k}={v}" for k, v in kwargs.items()]
+
 
 def _get_skopeo_backend() -> BackendDefinition:
     try:
@@ -124,31 +143,21 @@ def _get_skopeo_backend() -> BackendDefinition:
         msg = "Could not import 'olot.backend.skopeo'. Ensure that 'olot' is installed if you want to use the 'skopeo' backend."
         raise ImportError(msg) from e
 
-    def _skopeo_specific_params(type: str, **kwargs):
-        choices = ["push", "pull"]
-        if type not in choices:
-            raise ValueError(f"Choice `type` must be one of: ({', '.join(choices)}).")
-        
-        prefix = "--src" if type == "pull" else "--dest"
-        if (username := kwargs.pop("username", None)):
-                kwargs[f"{prefix}-username"] = username
-
-        if (password := kwargs.pop("password", None)):
-            kwargs[f"{prefix}-password"] = password
-
-        return kwargs
-
-    def wrapped_pull(base_image: str, dest: Path, **kwargs):
-        
-        return skopeo_pull(base_image, dest)
-
-    def wrapped_push(src: Path, ref: str, **kwargs):
-        kwargs = _skopeo_specific_params("push", kwargs)
+    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
+        kwargs = _backend_specific_params("skopeo", "pull", **kwargs)
         params = _kwargs_to_params(kwargs)
 
-        return skopeo_push(src, ref, params)
-    
-    return {"is_available": is_skopeo, "pull": skopeo_pull, "push": wrapped_push}
+        return _scrub_errors(lambda: skopeo_pull(base_image, dest, params))
+
+    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
+        kwargs = _backend_specific_params("skopeo", "push", **kwargs)
+        params = _kwargs_to_params(kwargs)
+
+        return _scrub_errors(lambda: skopeo_push(src, oci_ref, params))
+
+    return BackendDefinition(
+        is_available=is_skopeo, pull=wrapped_pull, push=wrapped_push
+    )
 
 
 def _get_oras_backend() -> BackendDefinition:
@@ -158,11 +167,80 @@ def _get_oras_backend() -> BackendDefinition:
         msg = "Could not import 'olot.backend.oras_cp'. Ensure that 'olot' is installed if you want to use the 'oras_cp' backend."
         raise ImportError(msg) from e
 
-    return {
-        "is_available": is_oras,
-        "pull": oras_pull,
-        "push": oras_push,
-    }
+    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
+        kwargs = _backend_specific_params("oras", "pull", **kwargs)
+        params = _kwargs_to_params(kwargs)
+
+        return _scrub_errors(lambda: oras_pull(base_image, dest, params))
+
+    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
+        kwargs = _backend_specific_params("oras", "push", **kwargs)
+        params = _kwargs_to_params(kwargs)
+
+        return _scrub_errors(lambda: oras_push(src, oci_ref, params))
+
+    return BackendDefinition(
+        is_available=is_oras,
+        pull=wrapped_pull,
+        push=wrapped_push,
+    )
+
+
+def _backend_specific_params(
+    backend: Literal["skopeo", "oras"], type: Literal["push", "pull"], **kwargs
+) -> dict:
+    """Generate params based on the backend and action.
+
+    Args:
+        backend: The backend to use supported in olot.
+        type: The action to perform.
+        kwargs: Additional args defined below.
+
+    Keyword Args:
+        username: the usrername of the registry.
+        password: the password of the registry.
+    """
+    # Determine backend
+    if backend == "skopeo":
+        prefix = "--src" if type == "pull" else "--dest"
+    elif backend == "oras":
+        prefix = "--from" if type == "pull" else "--to"
+
+    # Actual param specifications
+    if username := kwargs.pop("username", None):
+        kwargs[f"{prefix}-username"] = username
+
+    if password := kwargs.pop("password", None):
+        kwargs[f"{prefix}-password"] = password
+
+    return kwargs
+
+
+def _scrub_errors(func: Callable[[], T]) -> T:
+    """Scrub errors of any sensitive data when passing around auth data.
+
+    Args:
+        func: A partial or lambda function that has not been yet executed.
+    """
+    filtered = ["username", "password", "=="]
+
+    def determine_sensitivity(e: Exception):
+        err = str(e)
+        return any(err.lower().find(filter) >= 0 for filter in filtered)
+
+    try:
+        return func()
+    except CalledProcessError as e:
+        if determine_sensitivity(e):
+            msg = """Sensitive operation when running a command line process failed.
+                (secrets were detected and scrubbed)"""
+            raise RuntimeError(msg) from None
+        raise e
+    except Exception as e:
+        if determine_sensitivity(e):
+            msg = """Sensitive operation failed before running the command line process.
+                (secrets were detected and scrubbed)"""
+        raise RuntimeError(msg) from None
 
 
 @dataclass
@@ -207,7 +285,7 @@ DEFAULT_BACKENDS: BackendDict = {
 }
 
 
-def save_to_oci_registry(
+def save_to_oci_registry(  # noqa: C901 ( complex args >8 )
     base_image: str,
     oci_ref: str,
     model_files_path: str | os.PathLike,
@@ -217,7 +295,7 @@ def save_to_oci_registry(
     custom_oci_backend: BackendDefinition | None = None,
     oci_auth_env_var: str | None = None,
     oci_username: str | None = None,
-    oci_password: str | None = None
+    oci_password: str | None = None,
 ) -> str:
     """Appends a list of files to an OCI-based image.
 
@@ -233,6 +311,7 @@ def save_to_oci_registry(
         oci_auth_env_var: [Optional] The environment variable that holds the auth/config JSON for OCI registry auth.
         oci_username: [Optional] The username to the OCI registry.
         oci_password: [Optional] (Must be used with OCI username) The password to the OCI registry.
+
     Raises:
         ValueError: If the chosen backend is not installed on the host
         ValueError: If the chosen backend is an invalid option
@@ -256,9 +335,17 @@ or
         """
         raise StoreError(msg) from e
 
+    # Check for OCI Auth Env and a default
+    auth: str = None
     if oci_auth_env_var:
         env_value = _validate_env_var(oci_auth_env_var)
         auth = _extract_auth_json(env_value)
+    else:
+        try:
+            env_value = _validate_env_var(".dockerconfigjson")
+            auth = _extract_auth_json(env_value)
+        except ValueError:
+            pass
 
     # If a custom backend is provided, use it, else fetch the backend out of the registry
     if custom_oci_backend:
@@ -270,18 +357,30 @@ or
         msg = f"'{backend}' is not an available backend to use. Available backends: {DEFAULT_BACKENDS.keys()}"
         raise ValueError(msg)
 
-    if not backend_def["is_available"]():
+    if not backend_def.is_available():
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
 
     if dest_dir is None:
         dest_dir = tempfile.mkdtemp()
     local_image_path = Path(dest_dir)
-    backend_def["pull"](base_image, local_image_path)
+
+    params = {}
+
+    # User/pass
+    if auth:
+        usr_pass = auth.split(":")
+        params["username"] = usr_pass[0]
+        params["password"] = usr_pass[-1]
+    elif oci_username and oci_password:
+        params["username"] = oci_username
+        params["password"] = oci_password
+
+    backend_def.pull(base_image, local_image_path, **params)
     # Extract the absolute path from the files found in the path
     files = [file[0] for file in get_files_from_path(model_files_path)]
     oci_layers_on_top(local_image_path, files, modelcard)
-    backend_def["push"](local_image_path, oci_ref)
+    backend_def.push(local_image_path, oci_ref, **params)
 
     # Return the OCI URI
 
@@ -328,8 +427,8 @@ def get_files_from_path(path: str) -> list[tuple[str, str]]:
 
 
 def _validate_env_var(var: str) -> str:
-    """Validate that an env var exists
-    
+    """Validate that an env var exists.
+
     Args:
         var: The env var to lookup.
     """
@@ -338,15 +437,17 @@ def _validate_env_var(var: str) -> str:
         raise ValueError(msg)
     return env_var
 
+
 def _extract_auth_json(auth_data: str) -> str:
     """Extract the auth JSON from a string value.
 
     Args:
-        var: The Auth JSON string.
+        auth_data: The Auth JSON string.
     """
     try:
         auth_json = json.loads(auth_data)
         if type(auth_json) is not dict:
+            msg = ""
             raise TypeError(msg)
         registries = auth_json["auths"]
         reg_keys = list(registries.keys())
@@ -362,5 +463,5 @@ def _extract_auth_json(auth_data: str) -> str:
         msg = "This is an invalid Auth JSON."
         raise ValueError(msg) from e
     except json.JSONDecodeError as e:
-        invalid_json_msg = f"Auth data does not contain valid JSON."
+        invalid_json_msg = "Auth data does not contain valid JSON."
         raise ValueError(invalid_json_msg) from e
