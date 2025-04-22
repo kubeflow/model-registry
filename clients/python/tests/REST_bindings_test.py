@@ -11,8 +11,8 @@ from mr_openapi import (
     MetadataValue,
     ModelArtifact,
     ModelRegistryServiceApi,
-    ModelVersionCreate,
-    RegisteredModelCreate,
+    ModelVersion,
+    RegisteredModel,
 )
 
 from .conftest import REGISTRY_URL, cleanup
@@ -29,13 +29,13 @@ async def client() -> AsyncIterator[ModelRegistryServiceApi]:
 
 
 @pytest.fixture
-def rm_create() -> RegisteredModelCreate:
-    return RegisteredModelCreate(name="registered", description="a registered model")
+def rm_create() -> RegisteredModel:
+    return RegisteredModel(name="registered", description="a registered model")
 
 
 @pytest.mark.e2e
 async def test_registered_model(
-    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
+    client: ModelRegistryServiceApi, rm_create: RegisteredModel
 ):
     rm_create.custom_properties = {
         "key1": MetadataValue.from_dict(
@@ -59,12 +59,12 @@ async def test_registered_model(
 
 @pytest.fixture
 async def mv_create(
-    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
-) -> ModelVersionCreate:
+    client: ModelRegistryServiceApi, rm_create: RegisteredModel
+) -> ModelVersion:
     # HACK: create an RM first because we need an ID for the instance
     rm = await client.create_registered_model(rm_create)
     assert rm is not None
-    return ModelVersionCreate(
+    return ModelVersion(
         name="version",
         author="author",
         registeredModelId=str(rm.id),
@@ -74,7 +74,7 @@ async def mv_create(
 
 @pytest.mark.e2e
 async def test_model_version(
-    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
+    client: ModelRegistryServiceApi, mv_create: ModelVersion
 ):
     mv_create.custom_properties = {
         "key1": MetadataValue.from_dict(
@@ -100,7 +100,7 @@ async def test_model_version(
 
 @pytest.mark.e2e
 async def test_model_artifact(
-    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
+    client: ModelRegistryServiceApi, mv_create: ModelVersion
 ):
     mv = await client.create_model_version(mv_create)
     assert mv is not None

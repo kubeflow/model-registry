@@ -15,31 +15,24 @@ from pydantic import Field, StrictFloat, StrictInt, StrictStr, validate_call
 from mr_openapi.api_client import ApiClient, RequestSerialized
 from mr_openapi.api_response import ApiResponse
 from mr_openapi.models.artifact import Artifact
-from mr_openapi.models.artifact_create import ArtifactCreate
 from mr_openapi.models.artifact_list import ArtifactList
 from mr_openapi.models.artifact_update import ArtifactUpdate
 from mr_openapi.models.inference_service import InferenceService
-from mr_openapi.models.inference_service_create import InferenceServiceCreate
 from mr_openapi.models.inference_service_list import InferenceServiceList
 from mr_openapi.models.inference_service_update import InferenceServiceUpdate
 from mr_openapi.models.model_artifact import ModelArtifact
-from mr_openapi.models.model_artifact_create import ModelArtifactCreate
 from mr_openapi.models.model_artifact_list import ModelArtifactList
 from mr_openapi.models.model_artifact_update import ModelArtifactUpdate
 from mr_openapi.models.model_version import ModelVersion
-from mr_openapi.models.model_version_create import ModelVersionCreate
 from mr_openapi.models.model_version_list import ModelVersionList
 from mr_openapi.models.model_version_update import ModelVersionUpdate
 from mr_openapi.models.order_by_field import OrderByField
 from mr_openapi.models.registered_model import RegisteredModel
-from mr_openapi.models.registered_model_create import RegisteredModelCreate
 from mr_openapi.models.registered_model_list import RegisteredModelList
 from mr_openapi.models.registered_model_update import RegisteredModelUpdate
 from mr_openapi.models.serve_model import ServeModel
-from mr_openapi.models.serve_model_create import ServeModelCreate
 from mr_openapi.models.serve_model_list import ServeModelList
 from mr_openapi.models.serving_environment import ServingEnvironment
-from mr_openapi.models.serving_environment_create import ServingEnvironmentCreate
 from mr_openapi.models.serving_environment_list import ServingEnvironmentList
 from mr_openapi.models.serving_environment_update import ServingEnvironmentUpdate
 from mr_openapi.models.sort_order import SortOrder
@@ -61,7 +54,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_artifact(
         self,
-        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        artifact: Annotated[Artifact, Field(description="A new `Artifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -76,8 +69,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of an `Artifact`.
 
-        :param artifact_create: A new `Artifact` to be created. (required)
-        :type artifact_create: ArtifactCreate
+        :param artifact: A new `Artifact` to be created. (required)
+        :type artifact: Artifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -100,7 +93,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_artifact_serialize(
-            artifact_create=artifact_create,
+            artifact=artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -125,7 +118,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_artifact_with_http_info(
         self,
-        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        artifact: Annotated[Artifact, Field(description="A new `Artifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -140,8 +133,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of an `Artifact`.
 
-        :param artifact_create: A new `Artifact` to be created. (required)
-        :type artifact_create: ArtifactCreate
+        :param artifact: A new `Artifact` to be created. (required)
+        :type artifact: Artifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -164,7 +157,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_artifact_serialize(
-            artifact_create=artifact_create,
+            artifact=artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -189,7 +182,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_artifact_without_preload_content(
         self,
-        artifact_create: Annotated[ArtifactCreate, Field(description="A new `Artifact` to be created.")],
+        artifact: Annotated[Artifact, Field(description="A new `Artifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -204,8 +197,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of an `Artifact`.
 
-        :param artifact_create: A new `Artifact` to be created. (required)
-        :type artifact_create: ArtifactCreate
+        :param artifact: A new `Artifact` to be created. (required)
+        :type artifact: Artifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -228,7 +221,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_artifact_serialize(
-            artifact_create=artifact_create,
+            artifact=artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -248,7 +241,7 @@ class ModelRegistryServiceApi:
 
     def _create_artifact_serialize(
         self,
-        artifact_create,
+        artifact,
         _request_auth,
         _content_type,
         _headers,
@@ -271,8 +264,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if artifact_create is not None:
-            _body_params = artifact_create
+        if artifact is not None:
+            _body_params = artifact
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -309,9 +302,7 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -328,8 +319,8 @@ class ModelRegistryServiceApi:
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -353,7 +344,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_environment_inference_service_serialize(
             servingenvironment_id=servingenvironment_id,
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -382,9 +373,7 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -401,8 +390,8 @@ class ModelRegistryServiceApi:
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -426,7 +415,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_environment_inference_service_serialize(
             servingenvironment_id=servingenvironment_id,
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -455,9 +444,7 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -474,8 +461,8 @@ class ModelRegistryServiceApi:
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -499,7 +486,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_environment_inference_service_serialize(
             servingenvironment_id=servingenvironment_id,
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -521,7 +508,7 @@ class ModelRegistryServiceApi:
     def _create_environment_inference_service_serialize(
         self,
         servingenvironment_id,
-        inference_service_create,
+        inference_service,
         _request_auth,
         _content_type,
         _headers,
@@ -546,8 +533,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if inference_service_create is not None:
-            _body_params = inference_service_create
+        if inference_service is not None:
+            _body_params = inference_service
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -581,9 +568,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service(
         self,
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -598,8 +583,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `InferenceService`.
 
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -622,7 +607,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_inference_service_serialize(
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -647,9 +632,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service_with_http_info(
         self,
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -664,8 +647,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `InferenceService`.
 
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -688,7 +671,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_inference_service_serialize(
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -713,9 +696,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service_without_preload_content(
         self,
-        inference_service_create: Annotated[
-            InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
-        ],
+        inference_service: Annotated[InferenceService, Field(description="A new `InferenceService` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -730,8 +711,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `InferenceService`.
 
-        :param inference_service_create: A new `InferenceService` to be created. (required)
-        :type inference_service_create: InferenceServiceCreate
+        :param inference_service: A new `InferenceService` to be created. (required)
+        :type inference_service: InferenceService
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -754,7 +735,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_inference_service_serialize(
-            inference_service_create=inference_service_create,
+            inference_service=inference_service,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -774,7 +755,7 @@ class ModelRegistryServiceApi:
 
     def _create_inference_service_serialize(
         self,
-        inference_service_create,
+        inference_service,
         _request_auth,
         _content_type,
         _headers,
@@ -797,8 +778,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if inference_service_create is not None:
-            _body_params = inference_service_create
+        if inference_service is not None:
+            _body_params = inference_service
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -833,8 +814,8 @@ class ModelRegistryServiceApi:
     async def create_inference_service_serve(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
-        serve_model_create: Annotated[
-            ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
+        serve_model: Annotated[
+            ServeModel, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
         _request_timeout: Union[
             None,
@@ -852,8 +833,8 @@ class ModelRegistryServiceApi:
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
-        :param serve_model_create: A new `ServeModel` to be associated with the `InferenceService`. (required)
-        :type serve_model_create: ServeModelCreate
+        :param serve_model: A new `ServeModel` to be associated with the `InferenceService`. (required)
+        :type serve_model: ServeModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -877,7 +858,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_inference_service_serve_serialize(
             inferenceservice_id=inferenceservice_id,
-            serve_model_create=serve_model_create,
+            serve_model=serve_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -904,8 +885,8 @@ class ModelRegistryServiceApi:
     async def create_inference_service_serve_with_http_info(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
-        serve_model_create: Annotated[
-            ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
+        serve_model: Annotated[
+            ServeModel, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
         _request_timeout: Union[
             None,
@@ -923,8 +904,8 @@ class ModelRegistryServiceApi:
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
-        :param serve_model_create: A new `ServeModel` to be associated with the `InferenceService`. (required)
-        :type serve_model_create: ServeModelCreate
+        :param serve_model: A new `ServeModel` to be associated with the `InferenceService`. (required)
+        :type serve_model: ServeModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -948,7 +929,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_inference_service_serve_serialize(
             inferenceservice_id=inferenceservice_id,
-            serve_model_create=serve_model_create,
+            serve_model=serve_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -975,8 +956,8 @@ class ModelRegistryServiceApi:
     async def create_inference_service_serve_without_preload_content(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
-        serve_model_create: Annotated[
-            ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
+        serve_model: Annotated[
+            ServeModel, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
         _request_timeout: Union[
             None,
@@ -994,8 +975,8 @@ class ModelRegistryServiceApi:
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
-        :param serve_model_create: A new `ServeModel` to be associated with the `InferenceService`. (required)
-        :type serve_model_create: ServeModelCreate
+        :param serve_model: A new `ServeModel` to be associated with the `InferenceService`. (required)
+        :type serve_model: ServeModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1019,7 +1000,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._create_inference_service_serve_serialize(
             inferenceservice_id=inferenceservice_id,
-            serve_model_create=serve_model_create,
+            serve_model=serve_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1041,7 +1022,7 @@ class ModelRegistryServiceApi:
     def _create_inference_service_serve_serialize(
         self,
         inferenceservice_id,
-        serve_model_create,
+        serve_model,
         _request_auth,
         _content_type,
         _headers,
@@ -1066,8 +1047,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if serve_model_create is not None:
-            _body_params = serve_model_create
+        if serve_model is not None:
+            _body_params = serve_model
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -1101,9 +1082,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_artifact(
         self,
-        model_artifact_create: Annotated[
-            ModelArtifactCreate, Field(description="A new `ModelArtifact` to be created.")
-        ],
+        model_artifact: Annotated[ModelArtifact, Field(description="A new `ModelArtifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1118,8 +1097,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelArtifact`.
 
-        :param model_artifact_create: A new `ModelArtifact` to be created. (required)
-        :type model_artifact_create: ModelArtifactCreate
+        :param model_artifact: A new `ModelArtifact` to be created. (required)
+        :type model_artifact: ModelArtifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1142,7 +1121,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_artifact_serialize(
-            model_artifact_create=model_artifact_create,
+            model_artifact=model_artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1167,9 +1146,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_artifact_with_http_info(
         self,
-        model_artifact_create: Annotated[
-            ModelArtifactCreate, Field(description="A new `ModelArtifact` to be created.")
-        ],
+        model_artifact: Annotated[ModelArtifact, Field(description="A new `ModelArtifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1184,8 +1161,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelArtifact`.
 
-        :param model_artifact_create: A new `ModelArtifact` to be created. (required)
-        :type model_artifact_create: ModelArtifactCreate
+        :param model_artifact: A new `ModelArtifact` to be created. (required)
+        :type model_artifact: ModelArtifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1208,7 +1185,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_artifact_serialize(
-            model_artifact_create=model_artifact_create,
+            model_artifact=model_artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1233,9 +1210,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_artifact_without_preload_content(
         self,
-        model_artifact_create: Annotated[
-            ModelArtifactCreate, Field(description="A new `ModelArtifact` to be created.")
-        ],
+        model_artifact: Annotated[ModelArtifact, Field(description="A new `ModelArtifact` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1250,8 +1225,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelArtifact`.
 
-        :param model_artifact_create: A new `ModelArtifact` to be created. (required)
-        :type model_artifact_create: ModelArtifactCreate
+        :param model_artifact: A new `ModelArtifact` to be created. (required)
+        :type model_artifact: ModelArtifact
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1274,7 +1249,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_artifact_serialize(
-            model_artifact_create=model_artifact_create,
+            model_artifact=model_artifact,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1294,7 +1269,7 @@ class ModelRegistryServiceApi:
 
     def _create_model_artifact_serialize(
         self,
-        model_artifact_create,
+        model_artifact,
         _request_auth,
         _content_type,
         _headers,
@@ -1317,8 +1292,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if model_artifact_create is not None:
-            _body_params = model_artifact_create
+        if model_artifact is not None:
+            _body_params = model_artifact
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -1352,7 +1327,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_version(
         self,
-        model_version_create: Annotated[ModelVersionCreate, Field(description="A new `ModelVersion` to be created.")],
+        model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1367,8 +1342,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelVersion`.
 
-        :param model_version_create: A new `ModelVersion` to be created. (required)
-        :type model_version_create: ModelVersionCreate
+        :param model_version: A new `ModelVersion` to be created. (required)
+        :type model_version: ModelVersion
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1391,7 +1366,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_version_serialize(
-            model_version_create=model_version_create,
+            model_version=model_version,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1417,7 +1392,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_version_with_http_info(
         self,
-        model_version_create: Annotated[ModelVersionCreate, Field(description="A new `ModelVersion` to be created.")],
+        model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1432,8 +1407,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelVersion`.
 
-        :param model_version_create: A new `ModelVersion` to be created. (required)
-        :type model_version_create: ModelVersionCreate
+        :param model_version: A new `ModelVersion` to be created. (required)
+        :type model_version: ModelVersion
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1456,7 +1431,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_version_serialize(
-            model_version_create=model_version_create,
+            model_version=model_version,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1482,7 +1457,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_model_version_without_preload_content(
         self,
-        model_version_create: Annotated[ModelVersionCreate, Field(description="A new `ModelVersion` to be created.")],
+        model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1497,8 +1472,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ModelVersion`.
 
-        :param model_version_create: A new `ModelVersion` to be created. (required)
-        :type model_version_create: ModelVersionCreate
+        :param model_version: A new `ModelVersion` to be created. (required)
+        :type model_version: ModelVersion
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1521,7 +1496,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_model_version_serialize(
-            model_version_create=model_version_create,
+            model_version=model_version,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1542,7 +1517,7 @@ class ModelRegistryServiceApi:
 
     def _create_model_version_serialize(
         self,
-        model_version_create,
+        model_version,
         _request_auth,
         _content_type,
         _headers,
@@ -1565,8 +1540,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if model_version_create is not None:
-            _body_params = model_version_create
+        if model_version is not None:
+            _body_params = model_version
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -1600,9 +1575,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model(
         self,
-        registered_model_create: Annotated[
-            RegisteredModelCreate, Field(description="A new `RegisteredModel` to be created.")
-        ],
+        registered_model: Annotated[RegisteredModel, Field(description="A new `RegisteredModel` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1617,8 +1590,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `RegisteredModel`.
 
-        :param registered_model_create: A new `RegisteredModel` to be created. (required)
-        :type registered_model_create: RegisteredModelCreate
+        :param registered_model: A new `RegisteredModel` to be created. (required)
+        :type registered_model: RegisteredModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1641,7 +1614,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_registered_model_serialize(
-            registered_model_create=registered_model_create,
+            registered_model=registered_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1666,9 +1639,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model_with_http_info(
         self,
-        registered_model_create: Annotated[
-            RegisteredModelCreate, Field(description="A new `RegisteredModel` to be created.")
-        ],
+        registered_model: Annotated[RegisteredModel, Field(description="A new `RegisteredModel` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1683,8 +1654,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `RegisteredModel`.
 
-        :param registered_model_create: A new `RegisteredModel` to be created. (required)
-        :type registered_model_create: RegisteredModelCreate
+        :param registered_model: A new `RegisteredModel` to be created. (required)
+        :type registered_model: RegisteredModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1707,7 +1678,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_registered_model_serialize(
-            registered_model_create=registered_model_create,
+            registered_model=registered_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1732,9 +1703,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model_without_preload_content(
         self,
-        registered_model_create: Annotated[
-            RegisteredModelCreate, Field(description="A new `RegisteredModel` to be created.")
-        ],
+        registered_model: Annotated[RegisteredModel, Field(description="A new `RegisteredModel` to be created.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1749,8 +1718,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `RegisteredModel`.
 
-        :param registered_model_create: A new `RegisteredModel` to be created. (required)
-        :type registered_model_create: RegisteredModelCreate
+        :param registered_model: A new `RegisteredModel` to be created. (required)
+        :type registered_model: RegisteredModel
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1773,7 +1742,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_registered_model_serialize(
-            registered_model_create=registered_model_create,
+            registered_model=registered_model,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1793,7 +1762,7 @@ class ModelRegistryServiceApi:
 
     def _create_registered_model_serialize(
         self,
-        registered_model_create,
+        registered_model,
         _request_auth,
         _content_type,
         _headers,
@@ -1816,8 +1785,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if registered_model_create is not None:
-            _body_params = registered_model_create
+        if registered_model is not None:
+            _body_params = registered_model
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
@@ -2114,8 +2083,8 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_serving_environment(
         self,
-        serving_environment_create: Annotated[
-            ServingEnvironmentCreate, Field(description="A new `ServingEnvironment` to be created.")
+        serving_environment: Annotated[
+            ServingEnvironment, Field(description="A new `ServingEnvironment` to be created.")
         ],
         _request_timeout: Union[
             None,
@@ -2131,8 +2100,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ServingEnvironment`.
 
-        :param serving_environment_create: A new `ServingEnvironment` to be created. (required)
-        :type serving_environment_create: ServingEnvironmentCreate
+        :param serving_environment: A new `ServingEnvironment` to be created. (required)
+        :type serving_environment: ServingEnvironment
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -2155,7 +2124,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_serving_environment_serialize(
-            serving_environment_create=serving_environment_create,
+            serving_environment=serving_environment,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -2180,8 +2149,8 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_serving_environment_with_http_info(
         self,
-        serving_environment_create: Annotated[
-            ServingEnvironmentCreate, Field(description="A new `ServingEnvironment` to be created.")
+        serving_environment: Annotated[
+            ServingEnvironment, Field(description="A new `ServingEnvironment` to be created.")
         ],
         _request_timeout: Union[
             None,
@@ -2197,8 +2166,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ServingEnvironment`.
 
-        :param serving_environment_create: A new `ServingEnvironment` to be created. (required)
-        :type serving_environment_create: ServingEnvironmentCreate
+        :param serving_environment: A new `ServingEnvironment` to be created. (required)
+        :type serving_environment: ServingEnvironment
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -2221,7 +2190,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_serving_environment_serialize(
-            serving_environment_create=serving_environment_create,
+            serving_environment=serving_environment,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -2246,8 +2215,8 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_serving_environment_without_preload_content(
         self,
-        serving_environment_create: Annotated[
-            ServingEnvironmentCreate, Field(description="A new `ServingEnvironment` to be created.")
+        serving_environment: Annotated[
+            ServingEnvironment, Field(description="A new `ServingEnvironment` to be created.")
         ],
         _request_timeout: Union[
             None,
@@ -2263,8 +2232,8 @@ class ModelRegistryServiceApi:
 
         Creates a new instance of a `ServingEnvironment`.
 
-        :param serving_environment_create: A new `ServingEnvironment` to be created. (required)
-        :type serving_environment_create: ServingEnvironmentCreate
+        :param serving_environment: A new `ServingEnvironment` to be created. (required)
+        :type serving_environment: ServingEnvironment
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -2287,7 +2256,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._create_serving_environment_serialize(
-            serving_environment_create=serving_environment_create,
+            serving_environment=serving_environment,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -2307,7 +2276,7 @@ class ModelRegistryServiceApi:
 
     def _create_serving_environment_serialize(
         self,
-        serving_environment_create,
+        serving_environment,
         _request_auth,
         _content_type,
         _headers,
@@ -2330,8 +2299,8 @@ class ModelRegistryServiceApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if serving_environment_create is not None:
-            _body_params = serving_environment_create
+        if serving_environment is not None:
+            _body_params = serving_environment
 
         # set the HTTP header `Accept`
         _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])

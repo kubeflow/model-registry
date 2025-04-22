@@ -55,11 +55,11 @@ configuration = mr_openapi.Configuration(
 async with mr_openapi.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = mr_openapi.ModelRegistryServiceApi(api_client)
-    artifact_create = mr_openapi.ArtifactCreate() # ArtifactCreate | A new `Artifact` to be created.
+    artifact = mr_openapi.Artifact() # Artifact | A new `Artifact` to be created.
 
     try:
         # Create an Artifact
-        api_response = await api_instance.create_artifact(artifact_create)
+        api_response = await api_instance.create_artifact(artifact)
         print("The response of ModelRegistryServiceApi->create_artifact:\n")
         pprint(api_response)
     except ApiException as e:
@@ -118,27 +118,17 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [Artifact](mr_openapi/docs/Artifact.md)
- - [ArtifactCreate](mr_openapi/docs/ArtifactCreate.md)
  - [ArtifactList](mr_openapi/docs/ArtifactList.md)
  - [ArtifactState](mr_openapi/docs/ArtifactState.md)
  - [ArtifactUpdate](mr_openapi/docs/ArtifactUpdate.md)
- - [BaseArtifact](mr_openapi/docs/BaseArtifact.md)
- - [BaseArtifactCreate](mr_openapi/docs/BaseArtifactCreate.md)
- - [BaseArtifactUpdate](mr_openapi/docs/BaseArtifactUpdate.md)
- - [BaseExecution](mr_openapi/docs/BaseExecution.md)
- - [BaseExecutionCreate](mr_openapi/docs/BaseExecutionCreate.md)
- - [BaseExecutionUpdate](mr_openapi/docs/BaseExecutionUpdate.md)
  - [BaseResource](mr_openapi/docs/BaseResource.md)
- - [BaseResourceCreate](mr_openapi/docs/BaseResourceCreate.md)
  - [BaseResourceList](mr_openapi/docs/BaseResourceList.md)
  - [BaseResourceUpdate](mr_openapi/docs/BaseResourceUpdate.md)
  - [DocArtifact](mr_openapi/docs/DocArtifact.md)
- - [DocArtifactCreate](mr_openapi/docs/DocArtifactCreate.md)
  - [DocArtifactUpdate](mr_openapi/docs/DocArtifactUpdate.md)
  - [Error](mr_openapi/docs/Error.md)
  - [ExecutionState](mr_openapi/docs/ExecutionState.md)
  - [InferenceService](mr_openapi/docs/InferenceService.md)
- - [InferenceServiceCreate](mr_openapi/docs/InferenceServiceCreate.md)
  - [InferenceServiceList](mr_openapi/docs/InferenceServiceList.md)
  - [InferenceServiceState](mr_openapi/docs/InferenceServiceState.md)
  - [InferenceServiceUpdate](mr_openapi/docs/InferenceServiceUpdate.md)
@@ -150,26 +140,21 @@ Class | Method | HTTP request | Description
  - [MetadataStructValue](mr_openapi/docs/MetadataStructValue.md)
  - [MetadataValue](mr_openapi/docs/MetadataValue.md)
  - [ModelArtifact](mr_openapi/docs/ModelArtifact.md)
- - [ModelArtifactCreate](mr_openapi/docs/ModelArtifactCreate.md)
  - [ModelArtifactList](mr_openapi/docs/ModelArtifactList.md)
  - [ModelArtifactUpdate](mr_openapi/docs/ModelArtifactUpdate.md)
  - [ModelVersion](mr_openapi/docs/ModelVersion.md)
- - [ModelVersionCreate](mr_openapi/docs/ModelVersionCreate.md)
  - [ModelVersionList](mr_openapi/docs/ModelVersionList.md)
  - [ModelVersionState](mr_openapi/docs/ModelVersionState.md)
  - [ModelVersionUpdate](mr_openapi/docs/ModelVersionUpdate.md)
  - [OrderByField](mr_openapi/docs/OrderByField.md)
  - [RegisteredModel](mr_openapi/docs/RegisteredModel.md)
- - [RegisteredModelCreate](mr_openapi/docs/RegisteredModelCreate.md)
  - [RegisteredModelList](mr_openapi/docs/RegisteredModelList.md)
  - [RegisteredModelState](mr_openapi/docs/RegisteredModelState.md)
  - [RegisteredModelUpdate](mr_openapi/docs/RegisteredModelUpdate.md)
  - [ServeModel](mr_openapi/docs/ServeModel.md)
- - [ServeModelCreate](mr_openapi/docs/ServeModelCreate.md)
  - [ServeModelList](mr_openapi/docs/ServeModelList.md)
  - [ServeModelUpdate](mr_openapi/docs/ServeModelUpdate.md)
  - [ServingEnvironment](mr_openapi/docs/ServingEnvironment.md)
- - [ServingEnvironmentCreate](mr_openapi/docs/ServingEnvironmentCreate.md)
  - [ServingEnvironmentList](mr_openapi/docs/ServingEnvironmentList.md)
  - [ServingEnvironmentUpdate](mr_openapi/docs/ServingEnvironmentUpdate.md)
  - [SortOrder](mr_openapi/docs/SortOrder.md)

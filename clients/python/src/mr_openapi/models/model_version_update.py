@@ -25,6 +25,7 @@ from mr_openapi.models.model_version_state import ModelVersionState
 class ModelVersionUpdate(BaseModel):
     """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
 
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,12 +34,21 @@ class ModelVersionUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    registered_model_id: StrictStr | None = Field(default=None, alias="registeredModelId")
     state: ModelVersionState | None = None
     author: StrictStr | None = Field(default=None, description="Name of the author.")
-    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "state", "author"]
+    __properties: ClassVar[list[str]] = [
+        "name",
+        "customProperties",
+        "description",
+        "externalId",
+        "registeredModelId",
+        "state",
+        "author",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -69,8 +79,13 @@ class ModelVersionUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = set()
+        excluded_fields: set[str] = {
+            "name",
+            "registered_model_id",
+        }
 
         _dict = self.model_dump(
             by_alias=True,
@@ -97,6 +112,7 @@ class ModelVersionUpdate(BaseModel):
 
         return cls.model_validate(
             {
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -104,6 +120,7 @@ class ModelVersionUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "registeredModelId": obj.get("registeredModelId"),
                 "state": obj.get("state"),
                 "author": obj.get("author"),
             }

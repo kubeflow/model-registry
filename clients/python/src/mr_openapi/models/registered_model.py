@@ -25,6 +25,9 @@ from mr_openapi.models.registered_model_state import RegisteredModelState
 class RegisteredModel(BaseModel):
     """A registered model in model registry. A registered model has ModelVersion children."""  # noqa: E501
 
+    name: StrictStr = Field(
+        description="The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set."
+    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,11 +36,8 @@ class RegisteredModel(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
-    )
-    name: StrictStr = Field(
-        description="The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set."
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
@@ -53,10 +53,10 @@ class RegisteredModel(BaseModel):
     owner: StrictStr | None = None
     state: RegisteredModelState | None = None
     __properties: ClassVar[list[str]] = [
+        "name",
         "customProperties",
         "description",
         "externalId",
-        "name",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
@@ -126,6 +126,7 @@ class RegisteredModel(BaseModel):
 
         return cls.model_validate(
             {
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -133,7 +134,6 @@ class RegisteredModel(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),

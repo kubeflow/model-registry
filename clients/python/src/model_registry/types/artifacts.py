@@ -22,14 +22,10 @@ from mr_openapi import (
 )
 from mr_openapi import (
     ArtifactState,
-    ModelArtifactCreate,
-    ModelArtifactUpdate,
+    ModelArtifact as ModelArtifactBaseModel,
 )
 from mr_openapi import (
     DocArtifact as DocArtifactBaseModel,
-)
-from mr_openapi import (
-    ModelArtifact as ModelArtifactBaseModel,
 )
 
 from .base import BaseResourceModel
@@ -142,7 +138,6 @@ class ModelArtifact(Artifact):
         model_source_name: A human-readable name for the source model.
     """
 
-    # TODO: this could be an enum of valid formats
     model_format_name: str | None = None
     model_format_version: str | None = None
     storage_key: str | None = None
@@ -157,9 +152,9 @@ class ModelArtifact(Artifact):
     _model_version_id: str | None = None
 
     @override
-    def create(self, **kwargs) -> ModelArtifactCreate:
-        """Create a new ModelArtifactCreate object."""
-        return ModelArtifactCreate(
+    def create(self, **kwargs) -> ModelArtifactBaseModel:
+        """Create a new ModelArtifact object."""
+        return ModelArtifactBaseModel(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "custom_properties")),
             artifactType="model-artifact",
@@ -167,9 +162,9 @@ class ModelArtifact(Artifact):
         )
 
     @override
-    def update(self, **kwargs) -> ModelArtifactUpdate:
+    def update(self, **kwargs) -> ModelArtifactBaseModel:
         """Create a new ModelArtifactUpdate object."""
-        return ModelArtifactUpdate(
+        return ModelArtifactBaseModel(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             artifactType="model-artifact",

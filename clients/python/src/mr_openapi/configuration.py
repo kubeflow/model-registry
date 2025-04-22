@@ -15,6 +15,8 @@ import sys
 from logging import FileHandler
 from typing import Optional
 
+import urllib3
+
 JSON_SCHEMA_VALIDATION_KEYWORDS = {
     "multipleOf",
     "maximum",
@@ -121,6 +123,7 @@ class Configuration:
         """Logging Settings
         """
         self.logger["package_logger"] = logging.getLogger("mr_openapi")
+        self.logger["urllib3_logger"] = logging.getLogger("urllib3")
         self.logger_format = "%(asctime)s %(levelname)s %(message)s"
         """Log format
         """
@@ -344,6 +347,19 @@ class Configuration:
                 return f"{prefix} {key}"
             return key
         return None
+
+    def get_basic_auth_token(self):
+        """Gets HTTP basic authentication header (string).
+
+        :return: The token for basic HTTP authentication.
+        """
+        username = ""
+        if self.username is not None:
+            username = self.username
+        password = ""
+        if self.password is not None:
+            password = self.password
+        return urllib3.util.make_headers(basic_auth=username + ":" + password).get("authorization")
 
     def auth_settings(self):
         """Gets Auth Settings dict for api client.

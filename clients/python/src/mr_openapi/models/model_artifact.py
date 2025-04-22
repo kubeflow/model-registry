@@ -25,6 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ModelArtifact(BaseModel):
     """An ML model artifact."""  # noqa: E501
 
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,17 +34,8 @@ class ModelArtifact(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
-    )
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
@@ -56,6 +48,11 @@ class ModelArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
     artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
@@ -96,15 +93,15 @@ class ModelArtifact(BaseModel):
         alias="modelSourceName",
     )
     __properties: ClassVar[list[str]] = [
+        "name",
         "customProperties",
         "description",
         "externalId",
-        "uri",
-        "state",
-        "name",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "uri",
+        "state",
         "artifactType",
         "modelFormatName",
         "storageKey",
@@ -149,8 +146,10 @@ class ModelArtifact(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
+            "name",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }
@@ -180,7 +179,7 @@ class ModelArtifact(BaseModel):
 
         return cls.model_validate(
             {
-                "artifactType": "model-artifact",
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -188,12 +187,11 @@ class ModelArtifact(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
-                "name": obj.get("name"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "uri": obj.get("uri"),
+                "state": obj.get("state"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),

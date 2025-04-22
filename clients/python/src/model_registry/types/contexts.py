@@ -15,17 +15,9 @@ from typing_extensions import override
 
 from mr_openapi import (
     ModelVersion as ModelVersionBaseModel,
-)
-from mr_openapi import (
-    ModelVersionCreate,
     ModelVersionState,
-    ModelVersionUpdate,
-    RegisteredModelCreate,
-    RegisteredModelState,
-    RegisteredModelUpdate,
-)
-from mr_openapi import (
     RegisteredModel as RegisteredModelBaseModel,
+    RegisteredModelState,
 )
 
 from .base import BaseResourceModel
@@ -47,8 +39,8 @@ class ModelVersion(BaseResourceModel):
     state: ModelVersionState = ModelVersionState.LIVE
 
     @override
-    def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionCreate:  # type: ignore[override]
-        return ModelVersionCreate(
+    def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionBaseModel:  # type: ignore[override]
+        return ModelVersionBaseModel(
             registeredModelId=registered_model_id,
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "custom_properties")),
@@ -56,8 +48,8 @@ class ModelVersion(BaseResourceModel):
         )
 
     @override
-    def update(self, **kwargs) -> ModelVersionUpdate:
-        return ModelVersionUpdate(
+    def update(self, **kwargs) -> ModelVersionBaseModel:
+        return ModelVersionBaseModel(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             **kwargs,
@@ -98,16 +90,16 @@ class RegisteredModel(BaseResourceModel):
     state: RegisteredModelState = RegisteredModelState.LIVE
 
     @override
-    def create(self, **kwargs) -> RegisteredModelCreate:
-        return RegisteredModelCreate(
+    def create(self, **kwargs) -> RegisteredModelBaseModel:
+        return RegisteredModelBaseModel(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "custom_properties")),
             **kwargs,
         )
 
     @override
-    def update(self, **kwargs) -> RegisteredModelUpdate:
-        return RegisteredModelUpdate(
+    def update(self, **kwargs) -> RegisteredModelBaseModel:
+        return RegisteredModelBaseModel(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             **kwargs,

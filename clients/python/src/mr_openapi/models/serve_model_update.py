@@ -25,7 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModelUpdate(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -34,10 +34,19 @@ class ServeModelUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    __properties: ClassVar[list[str]] = ["lastKnownState", "customProperties", "description", "externalId"]
+    model_version_id: StrictStr | None = Field(default=None, alias="modelVersionId")
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    __properties: ClassVar[list[str]] = [
+        "name",
+        "customProperties",
+        "description",
+        "externalId",
+        "modelVersionId",
+        "lastKnownState",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -68,8 +77,13 @@ class ServeModelUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = set()
+        excluded_fields: set[str] = {
+            "name",
+            "model_version_id",
+        }
 
         _dict = self.model_dump(
             by_alias=True,
@@ -96,7 +110,7 @@ class ServeModelUpdate(BaseModel):
 
         return cls.model_validate(
             {
-                "lastKnownState": obj.get("lastKnownState"),
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -104,5 +118,7 @@ class ServeModelUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "modelVersionId": obj.get("modelVersionId"),
+                "lastKnownState": obj.get("lastKnownState"),
             }
         )

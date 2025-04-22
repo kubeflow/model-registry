@@ -25,6 +25,7 @@ from mr_openapi.models.registered_model_state import RegisteredModelState
 class RegisteredModelUpdate(BaseModel):
     """A registered model in model registry. A registered model has ModelVersion children."""  # noqa: E501
 
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,12 +34,12 @@ class RegisteredModelUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
     owner: StrictStr | None = None
     state: RegisteredModelState | None = None
-    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "owner", "state"]
+    __properties: ClassVar[list[str]] = ["name", "customProperties", "description", "externalId", "owner", "state"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -69,8 +70,11 @@ class RegisteredModelUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = set()
+        excluded_fields: set[str] = {
+            "name",
+        }
 
         _dict = self.model_dump(
             by_alias=True,
@@ -97,6 +101,7 @@ class RegisteredModelUpdate(BaseModel):
 
         return cls.model_validate(
             {
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None

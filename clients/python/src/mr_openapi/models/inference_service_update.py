@@ -25,6 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class InferenceServiceUpdate(BaseModel):
     """An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving."""  # noqa: E501
 
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,7 +34,7 @@ class InferenceServiceUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
     model_version_id: StrictStr | None = Field(
@@ -44,6 +45,7 @@ class InferenceServiceUpdate(BaseModel):
     runtime: StrictStr | None = Field(default=None, description="Model runtime.")
     desired_state: InferenceServiceState | None = Field(default=None, alias="desiredState")
     __properties: ClassVar[list[str]] = [
+        "name",
         "customProperties",
         "description",
         "externalId",
@@ -81,8 +83,11 @@ class InferenceServiceUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = set()
+        excluded_fields: set[str] = {
+            "name",
+        }
 
         _dict = self.model_dump(
             by_alias=True,
@@ -109,6 +114,7 @@ class InferenceServiceUpdate(BaseModel):
 
         return cls.model_validate(
             {
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None

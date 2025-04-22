@@ -25,7 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModel(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -34,12 +34,8 @@ class ServeModel(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
-    )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
@@ -55,16 +51,17 @@ class ServeModel(BaseModel):
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     __properties: ClassVar[list[str]] = [
-        "lastKnownState",
+        "name",
         "customProperties",
         "description",
         "externalId",
-        "name",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
         "modelVersionId",
+        "lastKnownState",
     ]
 
     model_config = ConfigDict(
@@ -98,8 +95,10 @@ class ServeModel(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
+            "name",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }
@@ -129,7 +128,7 @@ class ServeModel(BaseModel):
 
         return cls.model_validate(
             {
-                "lastKnownState": obj.get("lastKnownState"),
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -137,10 +136,10 @@ class ServeModel(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "modelVersionId": obj.get("modelVersionId"),
+                "lastKnownState": obj.get("lastKnownState"),
             }
         )

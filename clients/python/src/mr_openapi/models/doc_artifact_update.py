@@ -25,6 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifactUpdate(BaseModel):
     """A document artifact to be updated."""  # noqa: E501
 
+    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -33,22 +34,23 @@ class DocArtifactUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
     uri: StrictStr | None = Field(
         default=None,
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
     state: ArtifactState | None = None
-    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
     __properties: ClassVar[list[str]] = [
+        "name",
         "customProperties",
         "description",
         "externalId",
+        "artifactType",
         "uri",
         "state",
-        "artifactType",
     ]
 
     model_config = ConfigDict(
@@ -80,8 +82,11 @@ class DocArtifactUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = set()
+        excluded_fields: set[str] = {
+            "name",
+        }
 
         _dict = self.model_dump(
             by_alias=True,
@@ -108,6 +113,7 @@ class DocArtifactUpdate(BaseModel):
 
         return cls.model_validate(
             {
+                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -115,8 +121,8 @@ class DocArtifactUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
             }
         )
