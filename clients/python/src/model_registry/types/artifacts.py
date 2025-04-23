@@ -22,10 +22,12 @@ from mr_openapi import (
 )
 from mr_openapi import (
     ArtifactState,
-    ModelArtifact as ModelArtifactBaseModel,
 )
 from mr_openapi import (
     DocArtifact as DocArtifactBaseModel,
+)
+from mr_openapi import (
+    ModelArtifact as ModelArtifactBaseModel,
 )
 
 from .base import BaseResourceModel

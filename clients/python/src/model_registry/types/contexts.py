@@ -15,9 +15,13 @@ from typing_extensions import override
 
 from mr_openapi import (
     ModelVersion as ModelVersionBaseModel,
+)
+from mr_openapi import (
     ModelVersionState,
-    RegisteredModel as RegisteredModelBaseModel,
     RegisteredModelState,
+)
+from mr_openapi import (
+    RegisteredModel as RegisteredModelBaseModel,
 )
 
 from .base import BaseResourceModel
