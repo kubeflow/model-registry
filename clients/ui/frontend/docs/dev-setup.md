@@ -36,7 +36,7 @@ This is the default context for running a local UI.  Make sure you build the pro
 npm run start:dev
 ```
 
-For in-depth local run guidance review the [contribution guidelines](../CONTRIBUTING.md).
+For in-depth local run guidance review the [contribution guidelines](../../../ui/CONTRIBUTING.md).
 
 ### Testing
 
