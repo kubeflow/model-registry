@@ -1,7 +1,7 @@
 [frontend requirements]: ./frontend/docs/dev-setup.md#requirements
 [BFF requirements]: ./bff/README.md#pre-requisites
 [Model registry UI]: ./docs/README.md
-[contributing guidelines]: ../CONTRIBUTING.md
+[contributing guidelines]: ./CONTRIBUTING.md
 
 # Model Registry UI
 
