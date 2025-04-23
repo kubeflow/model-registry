@@ -889,7 +889,6 @@ def test_upload_artifact_and_register_model_with_default_oci(
     oci_ref = "localhost:5001/foo/bar:latest"
 
     model_dir, _ = get_temp_dir_with_models
-
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,

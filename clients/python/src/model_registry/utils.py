@@ -240,7 +240,7 @@ def _scrub_errors(func: Callable[[], T]) -> T:
         if determine_sensitivity(e):
             msg = """Sensitive operation failed before running the command line process.
                 (secrets were detected and scrubbed)"""
-        raise RuntimeError(msg) from None
+            raise RuntimeError(msg) from None
 
 
 @dataclass
@@ -308,7 +308,6 @@ def save_to_oci_registry(  # noqa: C901 ( complex args >8 )
         modelcard: [Optional] Path to the modelcard to additionally include as a layer
         custom_oci_backend: [Optional] If you would like to use your own OCI Backend layer, you can provide it here
         oci_auth_env_var: [Optional] The environment variable that holds the auth/config JSON for OCI registry auth.
-        oci_auth_env_var: [Optional] The environment variable that holds the auth/config JSON for OCI registry auth.
         oci_username: [Optional] The username to the OCI registry.
         oci_password: [Optional] (Must be used with OCI username) The password to the OCI registry.
 
@@ -356,7 +355,6 @@ or
     else:
         msg = f"'{backend}' is not an available backend to use. Available backends: {DEFAULT_BACKENDS.keys()}"
         raise ValueError(msg)
-
     if not backend_def.is_available():
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
@@ -365,6 +363,7 @@ or
         dest_dir = tempfile.mkdtemp()
     local_image_path = Path(dest_dir)
 
+    # Set params
     params = {}
 
     # User/pass

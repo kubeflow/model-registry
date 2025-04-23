@@ -16,6 +16,7 @@ import requests
 import uvloop
 
 from model_registry import ModelRegistry
+from model_registry.utils import BackendDefinition
 
 
 def pytest_addoption(parser):
@@ -242,8 +243,6 @@ def get_mock_custom_oci_backend():
         pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
 
     pull_mock.side_effect = pull_mock_imple
-    return {
-        "is_available": is_available_mock,
-        "pull": pull_mock,
-        "push": push_mock,
-    }
+    return BackendDefinition(
+        is_available=is_available_mock, pull=pull_mock, push=push_mock
+    )
