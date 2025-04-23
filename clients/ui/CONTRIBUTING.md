@@ -38,4 +38,4 @@ make kind-deployment
 
 ## Debugging and Testing
 
-See [frontend testing guidelines](docs/testing.md) for testing the frontend.
+See [frontend testing guidelines](frontend/docs/testing.md) for testing the frontend.
