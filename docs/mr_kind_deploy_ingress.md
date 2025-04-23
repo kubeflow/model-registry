@@ -90,4 +90,4 @@ Run `curl http://model-registry.io:3080/api/model_registry/v1alpha3/registered_m
 
 ## Teardown
 
-kind delete cluster
+`kind delete cluster`
