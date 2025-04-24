@@ -37,7 +37,7 @@ test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 
 .PHONY: test-e2e-run
 test-e2e-run:
-	@echo "Ensuring extras are installed..."
+	@echo "Ensuring all extras are installed..."
 	poetry install --all-extras
 	@echo "Running tests..."
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
