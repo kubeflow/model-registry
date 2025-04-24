@@ -19,23 +19,24 @@ var _ MappedNullable = &DocArtifact{}
 
 // DocArtifact A document.
 type DocArtifact struct {
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
+	ExternalId   *string `json:"externalId,omitempty"`
+	ArtifactType *string `json:"artifactType,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	ArtifactType             *string `json:"artifactType,omitempty"`
-	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
 }
 
 // NewDocArtifact instantiates a new DocArtifact object
@@ -191,102 +192,6 @@ func (o *DocArtifact) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *DocArtifact) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *DocArtifact) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *DocArtifact) SetId(v string) {
-	o.Id = &v
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *DocArtifact) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *DocArtifact) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *DocArtifact) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *DocArtifact) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *DocArtifact) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
-}
-
 // GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
 func (o *DocArtifact) GetArtifactType() string {
 	if o == nil || IsNil(o.ArtifactType) {
@@ -383,6 +288,102 @@ func (o *DocArtifact) SetState(v ArtifactState) {
 	o.State = &v
 }
 
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *DocArtifact) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *DocArtifact) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *DocArtifact) SetId(v string) {
+	o.Id = &v
+}
+
+// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *DocArtifact) GetCreateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.CreateTimeSinceEpoch
+}
+
+// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.CreateTimeSinceEpoch, true
+}
+
+// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *DocArtifact) HasCreateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
+func (o *DocArtifact) SetCreateTimeSinceEpoch(v string) {
+	o.CreateTimeSinceEpoch = &v
+}
+
+// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *DocArtifact) GetLastUpdateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.LastUpdateTimeSinceEpoch
+}
+
+// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.LastUpdateTimeSinceEpoch, true
+}
+
+// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *DocArtifact) HasLastUpdateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
+func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
+	o.LastUpdateTimeSinceEpoch = &v
+}
+
 func (o DocArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -405,15 +406,6 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
 	if !IsNil(o.ArtifactType) {
 		toSerialize["artifactType"] = o.ArtifactType
 	}
@@ -422,6 +414,15 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.CreateTimeSinceEpoch) {
+		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
+	}
+	if !IsNil(o.LastUpdateTimeSinceEpoch) {
+		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
 	return toSerialize, nil
 }

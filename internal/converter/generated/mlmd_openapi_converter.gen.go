@@ -27,9 +27,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 			xstring := *(*source).ExternalId
 			openapiDocArtifact.ExternalId = &xstring
 		}
-		openapiDocArtifact.Id = converter.Int64ToString((*source).Id)
-		openapiDocArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
-		openapiDocArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		pString, err := converter.MapArtifactType(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
@@ -40,6 +37,9 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 			openapiDocArtifact.Uri = &xstring2
 		}
 		openapiDocArtifact.State = converter.MapMLMDArtifactState((*source).State)
+		openapiDocArtifact.Id = converter.Int64ToString((*source).Id)
+		openapiDocArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiDocArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
@@ -59,12 +59,12 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Conte
 			xstring := *(*source).ExternalId
 			openapiInferenceService.ExternalId = &xstring
 		}
-		openapiInferenceService.Id = converter.Int64ToString((*source).Id)
-		openapiInferenceService.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
-		openapiInferenceService.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		openapiInferenceService.ModelVersionId = converter.MapPropertyModelVersionId((*source).Properties)
 		openapiInferenceService.Runtime = converter.MapPropertyRuntime((*source).Properties)
 		openapiInferenceService.DesiredState = converter.MapInferenceServiceDesiredState((*source).Properties)
+		openapiInferenceService.Id = converter.Int64ToString((*source).Id)
+		openapiInferenceService.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiInferenceService.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		openapiInferenceService.RegisteredModelId = converter.MapPropertyRegisteredModelId((*source).Properties)
 		openapiInferenceService.ServingEnvironmentId = converter.MapPropertyServingEnvironmentId((*source).Properties)
 		pOpenapiInferenceService = &openapiInferenceService
@@ -86,9 +86,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 			xstring := *(*source).ExternalId
 			openapiModelArtifact.ExternalId = &xstring
 		}
-		openapiModelArtifact.Id = converter.Int64ToString((*source).Id)
-		openapiModelArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
-		openapiModelArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		if (*source).Uri != nil {
 			xstring2 := *(*source).Uri
 			openapiModelArtifact.Uri = &xstring2
@@ -109,6 +106,9 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact
 		openapiModelArtifact.ModelSourceGroup = converter.MapModelArtifactModelSourceGroup((*source).Properties)
 		openapiModelArtifact.ModelSourceId = converter.MapModelArtifactModelSourceId((*source).Properties)
 		openapiModelArtifact.ModelSourceName = converter.MapModelArtifactModelSourceName((*source).Properties)
+		openapiModelArtifact.Id = converter.Int64ToString((*source).Id)
+		openapiModelArtifact.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiModelArtifact.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		pOpenapiModelArtifact = &openapiModelArtifact
 	}
 	return pOpenapiModelArtifact, nil
@@ -128,9 +128,6 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 			xstring := *(*source).ExternalId
 			openapiModelVersion.ExternalId = &xstring
 		}
-		openapiModelVersion.Id = converter.Int64ToString((*source).Id)
-		openapiModelVersion.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
-		openapiModelVersion.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		xstring2, err := converter.MapRegisteredModelIdFromOwned((*source).Name)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field RegisteredModelId: %w", err)
@@ -138,6 +135,9 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 		openapiModelVersion.RegisteredModelId = xstring2
 		openapiModelVersion.State = converter.MapModelVersionState((*source).Properties)
 		openapiModelVersion.Author = converter.MapPropertyAuthor((*source).Properties)
+		openapiModelVersion.Id = converter.Int64ToString((*source).Id)
+		openapiModelVersion.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiModelVersion.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
@@ -159,11 +159,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Contex
 			xstring := *(*source).ExternalId
 			openapiRegisteredModel.ExternalId = &xstring
 		}
+		openapiRegisteredModel.Owner = converter.MapOwner((*source).Properties)
+		openapiRegisteredModel.State = converter.MapRegisteredModelState((*source).Properties)
 		openapiRegisteredModel.Id = converter.Int64ToString((*source).Id)
 		openapiRegisteredModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiRegisteredModel.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		openapiRegisteredModel.Owner = converter.MapOwner((*source).Properties)
-		openapiRegisteredModel.State = converter.MapRegisteredModelState((*source).Properties)
 		pOpenapiRegisteredModel = &openapiRegisteredModel
 	}
 	return pOpenapiRegisteredModel, nil
@@ -183,11 +183,11 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertServeModel(source *proto.Execution) 
 			xstring := *(*source).ExternalId
 			openapiServeModel.ExternalId = &xstring
 		}
+		openapiServeModel.ModelVersionId = converter.MapPropertyModelVersionIdAsValue((*source).Properties)
+		openapiServeModel.LastKnownState = converter.MapMLMDServeModelLastKnownState((*source).LastKnownState)
 		openapiServeModel.Id = converter.Int64ToString((*source).Id)
 		openapiServeModel.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
 		openapiServeModel.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
-		openapiServeModel.ModelVersionId = converter.MapPropertyModelVersionIdAsValue((*source).Properties)
-		openapiServeModel.LastKnownState = converter.MapMLMDServeModelLastKnownState((*source).LastKnownState)
 		pOpenapiServeModel = &openapiServeModel
 	}
 	return pOpenapiServeModel, nil

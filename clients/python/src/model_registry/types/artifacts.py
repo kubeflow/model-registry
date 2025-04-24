@@ -22,6 +22,7 @@ from mr_openapi import (
 )
 from mr_openapi import (
     ArtifactState,
+    ModelArtifactUpdate,
 )
 from mr_openapi import (
     DocArtifact as DocArtifactBaseModel,
@@ -43,9 +44,8 @@ class Artifact(BaseResourceModel, ABC):
         uri: URI of the artifact.
         state: State of the artifact.
     """
-
     name: str | None = None
-    uri: str
+    uri: str | None = None
     state: ArtifactState = ArtifactState.UNKNOWN
 
     @classmethod
@@ -156,17 +156,20 @@ class ModelArtifact(Artifact):
     @override
     def create(self, **kwargs) -> ModelArtifactBaseModel:
         """Create a new ModelArtifact object."""
+        props = self._props_as_dict(exclude=("id", "name", "custom_properties"))
+        if "state" not in props:
+            props["state"] = ArtifactState.UNKNOWN
         return ModelArtifactBaseModel(
+            name=self.name,
             customProperties=self._map_custom_properties(),
-            **self._props_as_dict(exclude=("id", "custom_properties")),
+            **props,
             artifactType="model-artifact",
             **kwargs,
         )
 
-    @override
-    def update(self, **kwargs) -> ModelArtifactBaseModel:
+    def update(self, **kwargs) -> ModelArtifactUpdate:
         """Create a new ModelArtifactUpdate object."""
-        return ModelArtifactBaseModel(
+        return ModelArtifactUpdate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             artifactType="model-artifact",

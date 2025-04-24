@@ -25,7 +25,10 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifact(BaseModel):
     """A document."""  # noqa: E501
 
-    name: StrictStr | None = None
+    name: StrictStr | None = Field(
+        default=None,
+        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
+    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -37,6 +40,12 @@ class DocArtifact(BaseModel):
         description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -48,23 +57,17 @@ class DocArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "name",
         "customProperties",
         "description",
         "externalId",
-        "id",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
         "artifactType",
         "uri",
         "state",
+        "id",
+        "createTimeSinceEpoch",
+        "lastUpdateTimeSinceEpoch",
     ]
 
     model_config = ConfigDict(
@@ -98,10 +101,8 @@ class DocArtifact(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
-            "name",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }
@@ -139,11 +140,11 @@ class DocArtifact(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "id": obj.get("id"),
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
+                "id": obj.get("id"),
+                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
+                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
             }
         )

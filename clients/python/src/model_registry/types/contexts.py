@@ -18,7 +18,9 @@ from mr_openapi import (
 )
 from mr_openapi import (
     ModelVersionState,
+    ModelVersionUpdate,
     RegisteredModelState,
+    RegisteredModelUpdate,
 )
 from mr_openapi import (
     RegisteredModel as RegisteredModelBaseModel,
@@ -53,7 +55,7 @@ class ModelVersion(BaseResourceModel):
 
     @override
     def update(self, **kwargs) -> ModelVersionBaseModel:
-        return ModelVersionBaseModel(
+        return ModelVersionUpdate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             **kwargs,
@@ -103,7 +105,7 @@ class RegisteredModel(BaseResourceModel):
 
     @override
     def update(self, **kwargs) -> RegisteredModelBaseModel:
-        return RegisteredModelBaseModel(
+        return RegisteredModelUpdate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
             **kwargs,

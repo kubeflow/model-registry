@@ -19,6 +19,7 @@ var _ MappedNullable = &ModelArtifact{}
 
 // ModelArtifact An ML model artifact.
 type ModelArtifact struct {
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
@@ -26,12 +27,6 @@ type ModelArtifact struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The unique server generated id of the resource.
-	Id *string `json:"id,omitempty"`
-	// Output only. Create time of the resource in millisecond since epoch.
-	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
-	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
 	Uri          *string        `json:"uri,omitempty"`
 	State        *ArtifactState `json:"state,omitempty"`
@@ -56,6 +51,12 @@ type ModelArtifact struct {
 	ModelSourceId *string `json:"modelSourceId,omitempty"`
 	// A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
 	ModelSourceName *string `json:"modelSourceName,omitempty"`
+	// The unique server generated id of the resource.
+	Id *string `json:"id,omitempty"`
+	// Output only. Create time of the resource in millisecond since epoch.
+	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
+	// Output only. Last update time of the resource since epoch in millisecond since epoch.
+	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 }
 
 // NewModelArtifact instantiates a new ModelArtifact object
@@ -209,102 +210,6 @@ func (o *ModelArtifact) HasExternalId() bool {
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
 func (o *ModelArtifact) SetExternalId(v string) {
 	o.ExternalId = &v
-}
-
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *ModelArtifact) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifact) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *ModelArtifact) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ModelArtifact) SetId(v string) {
-	o.Id = &v
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *ModelArtifact) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *ModelArtifact) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *ModelArtifact) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *ModelArtifact) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *ModelArtifact) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *ModelArtifact) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetUri returns the Uri field value if set, zero value otherwise.
@@ -723,6 +628,102 @@ func (o *ModelArtifact) SetModelSourceName(v string) {
 	o.ModelSourceName = &v
 }
 
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *ModelArtifact) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifact) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *ModelArtifact) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *ModelArtifact) SetId(v string) {
+	o.Id = &v
+}
+
+// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *ModelArtifact) GetCreateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.CreateTimeSinceEpoch
+}
+
+// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.CreateTimeSinceEpoch, true
+}
+
+// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *ModelArtifact) HasCreateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
+func (o *ModelArtifact) SetCreateTimeSinceEpoch(v string) {
+	o.CreateTimeSinceEpoch = &v
+}
+
+// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *ModelArtifact) GetLastUpdateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.LastUpdateTimeSinceEpoch
+}
+
+// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.LastUpdateTimeSinceEpoch, true
+}
+
+// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *ModelArtifact) HasLastUpdateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
+func (o *ModelArtifact) SetLastUpdateTimeSinceEpoch(v string) {
+	o.LastUpdateTimeSinceEpoch = &v
+}
+
 func (o ModelArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -744,15 +745,6 @@ func (o ModelArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
 	if !IsNil(o.Uri) {
 		toSerialize["uri"] = o.Uri
@@ -792,6 +784,15 @@ func (o ModelArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ModelSourceName) {
 		toSerialize["modelSourceName"] = o.ModelSourceName
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.CreateTimeSinceEpoch) {
+		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
+	}
+	if !IsNil(o.LastUpdateTimeSinceEpoch) {
+		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
 	return toSerialize, nil
 }

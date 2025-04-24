@@ -31,6 +31,7 @@ class BaseResourceModel(BaseModel, ABC):
     model_config = ConfigDict(protected_namespaces=())
 
     id: str | None = None
+    name: str | None = None
     description: str | None = None
     external_id: str | None = None
     create_time_since_epoch: str | None = None

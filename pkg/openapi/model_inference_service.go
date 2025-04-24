@@ -19,6 +19,7 @@ var _ MappedNullable = &InferenceService{}
 
 // InferenceService An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
 type InferenceService struct {
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
@@ -26,17 +27,17 @@ type InferenceService struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
+	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
+	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	// Model runtime.
+	Runtime      *string                `json:"runtime,omitempty"`
+	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
-	ModelVersionId *string `json:"modelVersionId,omitempty"`
-	// Model runtime.
-	Runtime      *string                `json:"runtime,omitempty"`
-	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// ID of the `RegisteredModel` to serve.
 	RegisteredModelId string `json:"registeredModelId"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
@@ -194,102 +195,6 @@ func (o *InferenceService) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetId returns the Id field value if set, zero value otherwise.
-func (o *InferenceService) GetId() string {
-	if o == nil || IsNil(o.Id) {
-		var ret string
-		return ret
-	}
-	return *o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetIdOk() (*string, bool) {
-	if o == nil || IsNil(o.Id) {
-		return nil, false
-	}
-	return o.Id, true
-}
-
-// HasId returns a boolean if a field has been set.
-func (o *InferenceService) HasId() bool {
-	if o != nil && !IsNil(o.Id) {
-		return true
-	}
-
-	return false
-}
-
-// SetId gets a reference to the given string and assigns it to the Id field.
-func (o *InferenceService) SetId(v string) {
-	o.Id = &v
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *InferenceService) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *InferenceService) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *InferenceService) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *InferenceService) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *InferenceService) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *InferenceService) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
-}
-
 // GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
 func (o *InferenceService) GetModelVersionId() string {
 	if o == nil || IsNil(o.ModelVersionId) {
@@ -386,6 +291,102 @@ func (o *InferenceService) SetDesiredState(v InferenceServiceState) {
 	o.DesiredState = &v
 }
 
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *InferenceService) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *InferenceService) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *InferenceService) SetId(v string) {
+	o.Id = &v
+}
+
+// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *InferenceService) GetCreateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.CreateTimeSinceEpoch
+}
+
+// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetCreateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.CreateTimeSinceEpoch, true
+}
+
+// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *InferenceService) HasCreateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
+func (o *InferenceService) SetCreateTimeSinceEpoch(v string) {
+	o.CreateTimeSinceEpoch = &v
+}
+
+// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *InferenceService) GetLastUpdateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.LastUpdateTimeSinceEpoch
+}
+
+// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.LastUpdateTimeSinceEpoch, true
+}
+
+// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *InferenceService) HasLastUpdateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
+func (o *InferenceService) SetLastUpdateTimeSinceEpoch(v string) {
+	o.LastUpdateTimeSinceEpoch = &v
+}
+
 // GetRegisteredModelId returns the RegisteredModelId field value
 func (o *InferenceService) GetRegisteredModelId() string {
 	if o == nil {
@@ -456,15 +457,6 @@ func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
 	if !IsNil(o.ModelVersionId) {
 		toSerialize["modelVersionId"] = o.ModelVersionId
 	}
@@ -473,6 +465,15 @@ func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.DesiredState) {
 		toSerialize["desiredState"] = o.DesiredState
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.CreateTimeSinceEpoch) {
+		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
+	}
+	if !IsNil(o.LastUpdateTimeSinceEpoch) {
+		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
 	toSerialize["servingEnvironmentId"] = o.ServingEnvironmentId

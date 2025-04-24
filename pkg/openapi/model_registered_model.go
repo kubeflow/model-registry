@@ -26,15 +26,15 @@ type RegisteredModel struct {
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
+	ExternalId *string               `json:"externalId,omitempty"`
+	Owner      *string               `json:"owner,omitempty"`
+	State      *RegisteredModelState `json:"state,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string               `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	Owner                    *string               `json:"owner,omitempty"`
-	State                    *RegisteredModelState `json:"state,omitempty"`
+	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 }
 
 // NewRegisteredModel instantiates a new RegisteredModel object
@@ -179,6 +179,70 @@ func (o *RegisteredModel) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
+// GetOwner returns the Owner field value if set, zero value otherwise.
+func (o *RegisteredModel) GetOwner() string {
+	if o == nil || IsNil(o.Owner) {
+		var ret string
+		return ret
+	}
+	return *o.Owner
+}
+
+// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModel) GetOwnerOk() (*string, bool) {
+	if o == nil || IsNil(o.Owner) {
+		return nil, false
+	}
+	return o.Owner, true
+}
+
+// HasOwner returns a boolean if a field has been set.
+func (o *RegisteredModel) HasOwner() bool {
+	if o != nil && !IsNil(o.Owner) {
+		return true
+	}
+
+	return false
+}
+
+// SetOwner gets a reference to the given string and assigns it to the Owner field.
+func (o *RegisteredModel) SetOwner(v string) {
+	o.Owner = &v
+}
+
+// GetState returns the State field value if set, zero value otherwise.
+func (o *RegisteredModel) GetState() RegisteredModelState {
+	if o == nil || IsNil(o.State) {
+		var ret RegisteredModelState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModel) GetStateOk() (*RegisteredModelState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *RegisteredModel) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
+func (o *RegisteredModel) SetState(v RegisteredModelState) {
+	o.State = &v
+}
+
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *RegisteredModel) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -275,70 +339,6 @@ func (o *RegisteredModel) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
-// GetOwner returns the Owner field value if set, zero value otherwise.
-func (o *RegisteredModel) GetOwner() string {
-	if o == nil || IsNil(o.Owner) {
-		var ret string
-		return ret
-	}
-	return *o.Owner
-}
-
-// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModel) GetOwnerOk() (*string, bool) {
-	if o == nil || IsNil(o.Owner) {
-		return nil, false
-	}
-	return o.Owner, true
-}
-
-// HasOwner returns a boolean if a field has been set.
-func (o *RegisteredModel) HasOwner() bool {
-	if o != nil && !IsNil(o.Owner) {
-		return true
-	}
-
-	return false
-}
-
-// SetOwner gets a reference to the given string and assigns it to the Owner field.
-func (o *RegisteredModel) SetOwner(v string) {
-	o.Owner = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *RegisteredModel) GetState() RegisteredModelState {
-	if o == nil || IsNil(o.State) {
-		var ret RegisteredModelState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModel) GetStateOk() (*RegisteredModelState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *RegisteredModel) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
-func (o *RegisteredModel) SetState(v RegisteredModelState) {
-	o.State = &v
-}
-
 func (o RegisteredModel) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -359,6 +359,12 @@ func (o RegisteredModel) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
+	if !IsNil(o.Owner) {
+		toSerialize["owner"] = o.Owner
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
+	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
@@ -367,12 +373,6 @@ func (o RegisteredModel) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
-	if !IsNil(o.Owner) {
-		toSerialize["owner"] = o.Owner
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

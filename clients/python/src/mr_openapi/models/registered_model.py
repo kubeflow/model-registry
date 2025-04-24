@@ -39,6 +39,8 @@ class RegisteredModel(BaseModel):
         description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    owner: StrictStr | None = None
+    state: RegisteredModelState | None = None
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -50,18 +52,16 @@ class RegisteredModel(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    owner: StrictStr | None = None
-    state: RegisteredModelState | None = None
     __properties: ClassVar[list[str]] = [
         "name",
         "customProperties",
         "description",
         "externalId",
+        "owner",
+        "state",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
-        "owner",
-        "state",
     ]
 
     model_config = ConfigDict(
@@ -134,10 +134,10 @@ class RegisteredModel(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "owner": obj.get("owner"),
+                "state": obj.get("state"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
-                "owner": obj.get("owner"),
-                "state": obj.get("state"),
             }
         )

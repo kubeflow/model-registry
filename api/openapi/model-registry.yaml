@@ -1246,8 +1246,8 @@ components:
     DocArtifact:
       description: A document.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/DocArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             artifactType:
@@ -1308,8 +1308,8 @@ components:
         - registeredModelId
         - servingEnvironmentId
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/InferenceServiceUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             registeredModelId:
@@ -1469,8 +1469,8 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ModelArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             artifactType:
@@ -1544,8 +1544,8 @@ components:
         - name
         - registeredModelId
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ModelVersionUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             registeredModelId:
@@ -1607,8 +1607,8 @@ components:
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/RegisteredModelUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             name:
@@ -1657,8 +1657,8 @@ components:
       required:
         - modelVersionId
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ServeModelUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             modelVersionId:
@@ -1693,8 +1693,8 @@ components:
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ServingEnvironmentUpdate"
+        - $ref: "#/components/schemas/BaseResource"
         - type: object
           properties:
             name:

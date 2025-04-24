@@ -39,6 +39,11 @@ class ModelVersion(BaseModel):
         description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    registered_model_id: StrictStr = Field(
+        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
+    )
+    state: ModelVersionState | None = None
+    author: StrictStr | None = Field(default=None, description="Name of the author.")
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -50,22 +55,17 @@ class ModelVersion(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    registered_model_id: StrictStr = Field(
-        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
-    )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
     __properties: ClassVar[list[str]] = [
         "name",
         "customProperties",
         "description",
         "externalId",
-        "id",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
         "registeredModelId",
         "state",
         "author",
+        "id",
+        "createTimeSinceEpoch",
+        "lastUpdateTimeSinceEpoch",
     ]
 
     model_config = ConfigDict(
@@ -138,11 +138,11 @@ class ModelVersion(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "id": obj.get("id"),
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "registeredModelId": obj.get("registeredModelId"),
                 "state": obj.get("state"),
                 "author": obj.get("author"),
+                "id": obj.get("id"),
+                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
+                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
             }
         )
