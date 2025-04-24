@@ -6,6 +6,7 @@ IMG_VERSION ?= latest
 install:
 	../../bin/openapi-generator-cli generate -i ../../api/openapi/model-registry.yaml -g python -o src/ --package-name mr_openapi --additional-properties=library=asyncio,generateSourceCodeOnly=true,useOneOfDiscriminatorLookup=true --template-dir templates/
 	mv src/mr_openapi_README.md src/mr_openapi/README.md
+	git apply patches/*
 	poetry install
 
 .PHONY: clean
@@ -65,8 +66,7 @@ tidy:
 	poetry run black src/mr_openapi
 
 .PHONY: build
-build: install tidy
-	git apply patches/*
+build: install tidy	
 	poetry build
 
 .PHONY: publish

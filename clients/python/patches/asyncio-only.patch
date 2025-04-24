@@ -1,26 +1,26 @@
 diff --git a/clients/python/src/mr_openapi/configuration.py b/clients/python/src/mr_openapi/configuration.py
-index 1afa8bb..0f4472e 100644
+index 26a26fb..592a341 100644
 --- a/clients/python/src/mr_openapi/configuration.py
 +++ b/clients/python/src/mr_openapi/configuration.py
-@@ -15,7 +15,6 @@ import sys
+@@ -17,7 +17,6 @@ import logging
  from logging import FileHandler
+ import sys
  from typing import Optional
- 
 -import urllib3
  
- JSON_SCHEMA_VALIDATION_KEYWORDS = {
-     "multipleOf",
-@@ -123,7 +122,6 @@ class Configuration:
+ import http.client as httplib
+ 
+@@ -114,7 +113,6 @@ class Configuration:
          """Logging Settings
          """
          self.logger["package_logger"] = logging.getLogger("mr_openapi")
 -        self.logger["urllib3_logger"] = logging.getLogger("urllib3")
-         self.logger_format = "%(asctime)s %(levelname)s %(message)s"
+         self.logger_format = '%(asctime)s %(levelname)s %(message)s'
          """Log format
          """
-@@ -348,19 +346,6 @@ class Configuration:
-             return key
-         return None
+@@ -339,21 +337,6 @@ class Configuration:
+             else:
+                 return key
  
 -    def get_basic_auth_token(self):
 -        """Gets HTTP basic authentication header (string).
@@ -33,7 +33,9 @@ index 1afa8bb..0f4472e 100644
 -        password = ""
 -        if self.password is not None:
 -            password = self.password
--        return urllib3.util.make_headers(basic_auth=username + ":" + password).get("authorization")
+-        return urllib3.util.make_headers(
+-            basic_auth=username + ':' + password
+-        ).get('authorization')
 -
      def auth_settings(self):
          """Gets Auth Settings dict for api client.
