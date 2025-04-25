@@ -136,7 +136,9 @@ def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
     return [f"{k}={v}" for k, v in kwargs.items()]
 
 
-def _get_skopeo_backend() -> BackendDefinition:
+def _get_skopeo_backend(
+    pull_args: list[str] | None = None, push_args: list[str] | None = None
+) -> BackendDefinition:
     try:
         from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
     except ImportError as e:
@@ -146,12 +148,14 @@ def _get_skopeo_backend() -> BackendDefinition:
     def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
         kwargs = _backend_specific_params("skopeo", "pull", **kwargs)
         params = _kwargs_to_params(kwargs)
+        params.extend(pull_args or [])
 
         return _scrub_errors(lambda: skopeo_pull(base_image, dest, params))
 
     def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
         kwargs = _backend_specific_params("skopeo", "push", **kwargs)
         params = _kwargs_to_params(kwargs)
+        params.extend(push_args or [])
 
         return _scrub_errors(lambda: skopeo_push(src, oci_ref, params))
 
@@ -160,7 +164,9 @@ def _get_skopeo_backend() -> BackendDefinition:
     )
 
 
-def _get_oras_backend() -> BackendDefinition:
+def _get_oras_backend(
+    pull_args: list[str] | None = None, push_args: list[str] | None = None
+) -> BackendDefinition:
     try:
         from olot.backend.oras_cp import is_oras, oras_pull, oras_push
     except ImportError as e:
@@ -170,12 +176,14 @@ def _get_oras_backend() -> BackendDefinition:
     def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
         kwargs = _backend_specific_params("oras", "pull", **kwargs)
         params = _kwargs_to_params(kwargs)
+        params.extend(pull_args or [])
 
         return _scrub_errors(lambda: oras_pull(base_image, dest, params))
 
     def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
         kwargs = _backend_specific_params("oras", "push", **kwargs)
         params = _kwargs_to_params(kwargs)
+        params.extend(push_args or [])
 
         return _scrub_errors(lambda: oras_push(src, oci_ref, params))
 
@@ -241,6 +249,7 @@ def _scrub_errors(func: Callable[[], T]) -> T:
             msg = """Sensitive operation failed before running the command line process.
                 (secrets were detected and scrubbed)"""
             raise RuntimeError(msg) from None
+        raise e
 
 
 @dataclass
