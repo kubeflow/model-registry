@@ -995,5 +995,6 @@ async  def test_register_model_with_owner(client):
        **model_params,
     )
     assert rm.id
+    assert rm.owner == model_params["owner"]
     assert (_get_rm := client.get_registered_model(name=model_params["name"]))
     assert _get_rm.owner == model_params["owner"]
