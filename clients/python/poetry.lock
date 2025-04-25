@@ -1363,24 +1363,20 @@ files = [
 
 [[package]]
 name = "olot"
-version = "0.1.7"
+version = "0.1.6"
 description = "oci layers on top"
 optional = true
-python-versions = "^3.9"
+python-versions = "<4.0,>=3.9"
 groups = ["main"]
 markers = "extra == \"olot\""
-files = []
-develop = false
+files = [
+    {file = "olot-0.1.6-py3-none-any.whl", hash = "sha256:7ab8461a019ff280fd508fb75af8abaec3a9e625b578a4b6224dc9346faad002"},
+    {file = "olot-0.1.6.tar.gz", hash = "sha256:aaf8f9196d80ef7ba25a4bf9e7c9c6128a60d5f4032c776763aa6f57a16d4290"},
+]
 
 [package.dependencies]
-click = "^8.1.7"
-pydantic = "^2.10.3"
-
-[package.source]
-type = "git"
-url = "https://github.com/containers/olot.git"
-reference = "HEAD"
-resolved_reference = "725a30a4b7e6e3de846e5ca06038a29c75008cbf"
+click = ">=8.1.7,<9.0.0"
+pydantic = ">=2.10.3,<3.0.0"
 
 [[package]]
 name = "packaging"
@@ -2395,7 +2391,6 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
 groups = ["main", "dev", "docs"]
-markers = "python_version == \"3.9\""
 files = [
     {file = "urllib3-1.26.20-py2.py3-none-any.whl", hash = "sha256:0ed14ccfbf1c30a9072c7ca157e4319b70d65f623e91e7b32fadb2853431016e"},
     {file = "urllib3-1.26.20.tar.gz", hash = "sha256:40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32"},
@@ -2405,25 +2400,6 @@ files = [
 brotli = ["brotli (==1.0.9) ; os_name != \"nt\" and python_version < \"3\" and platform_python_implementation == \"CPython\"", "brotli (>=1.0.9) ; python_version >= \"3\" and platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; (os_name != \"nt\" or python_version >= \"3\") and platform_python_implementation != \"CPython\"", "brotlipy (>=0.6.0) ; os_name == \"nt\" and python_version < \"3\""]
 secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress ; python_version == \"2.7\"", "pyOpenSSL (>=0.14)", "urllib3-secure-extra"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
-
-[[package]]
-name = "urllib3"
-version = "2.2.2"
-description = "HTTP library with thread-safe connection pooling, file post, and more."
-optional = false
-python-versions = ">=3.8"
-groups = ["main", "dev", "docs"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "urllib3-2.2.2-py3-none-any.whl", hash = "sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472"},
-    {file = "urllib3-2.2.2.tar.gz", hash = "sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168"},
-]
-
-[package.extras]
-brotli = ["brotli (>=1.0.9) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\""]
-h2 = ["h2 (>=4,<5)"]
-socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
-zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "uvicorn"
@@ -2789,4 +2765,4 @@ olot = ["olot"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.9, < 4.0"
-content-hash = "547f54e3c43e5d7ca6fd50c3cc7dfbb448b0778d67866b8c36ce7317f7df151e"
+content-hash = "dce978a008624eb0606f45d3f630d42443e3da92a033eb519c5a6cc0060cbafb"
