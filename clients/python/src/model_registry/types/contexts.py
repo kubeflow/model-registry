@@ -96,6 +96,7 @@ class RegisteredModel(BaseResourceModel):
     name: str
     owner: str | None = None
     state: RegisteredModelState = RegisteredModelState.LIVE
+    description: str | None = None
 
     @override
     def create(self, **kwargs) -> RegisteredModelCreate:

@@ -22,6 +22,7 @@ As a MLOps engineer I would like to store Model name
           And Should be equal    ${r["uri"]}    s3://12345
 
 As a MLOps engineer I would like to store a description of the model
+    # MIGRATED TO test_register_model_with_description in pytest
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}
     Set To Dictionary    ${model_version}    description=consectetur adipiscing elit
     Set To Dictionary    ${model_artifact}    description=sed do eiusmod tempor incididunt

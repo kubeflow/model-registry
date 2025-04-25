@@ -290,6 +290,8 @@ class ModelRegistry:
         owner: str | None = None,
         description: str | None = None,
         metadata: Mapping[str, SupportedTypes] | None = None,
+        model_version_description: str | None = None,
+        model_source_description: str | None = None,
     ) -> RegisteredModel:
         """Register a model.
 
@@ -321,17 +323,19 @@ class ModelRegistry:
             model_source_id: A unique identifier for a source model within kind, class, and group.
             model_source_name: A human-readable name for the source model.
             metadata: Additional version metadata. Defaults to values returned by `default_metadata()`.
+            model_version_description: Model version description
+            model_source_description: Model artifact description
 
         Returns:
             Registered model.
         """
-        rm = self.async_runner(self._register_model(name, owner=owner or self._author))
+        rm = self.async_runner(self._register_model(name, owner=owner or self._author, description=description))
         mv = self.async_runner(
             self._register_new_version(
                 rm,
                 version,
                 author or self._author,
-                description=description,
+                description=model_version_description,
                 custom_properties=metadata or {},
             )
         )
@@ -350,6 +354,7 @@ class ModelRegistry:
                 model_source_group=model_source_group,
                 model_source_id=model_source_id,
                 model_source_name=model_source_name,
+                description=model_source_description
             )
         )
 
