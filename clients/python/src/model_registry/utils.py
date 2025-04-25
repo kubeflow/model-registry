@@ -104,13 +104,13 @@ def s3_uri_from(
 class PullFn(Protocol):
     """Pull function definition."""
 
-    def __call__(self, base: str, dest: Path, **kwargs) -> T: ...
+    def __call__(self, base: str, dest: Path, **kwargs) -> T: ...  # noqa: D102
 
 
 class PushFn(Protocol):
     """Push function definition."""
 
-    def __call__(self, src: Path, oci_ref: str, **kwargs) -> T: ...
+    def __call__(self, src: Path, oci_ref: str, **kwargs) -> T: ...  # noqa: D102
 
 
 @dataclass
