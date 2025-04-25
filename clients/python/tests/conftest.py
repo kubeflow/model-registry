@@ -24,13 +24,29 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(config, items):
     for item in items:
-        skip_e2e = pytest.mark.skip(
-            reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
-        )
         if "e2e" in item.keywords:
+            skip_e2e = pytest.mark.skip(
+                reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
+            )
             if not config.getoption("--e2e"):
                 item.add_marker(skip_e2e)
             continue
+
+
+def pytest_report_teststatus(report, config):
+    test_name = report.head_line
+    if report.passed:
+        if report.when == "call":
+            print(f"\nTEST: {test_name} STATUS: \033[0;32mPASSED\033[0m")
+
+    elif report.skipped:
+       print(f"\nTEST: {test_name} STATUS: \033[1;33mSKIPPED\033[0m")
+
+    elif report.failed:
+        if report.when != "call":
+            print(f"\nTEST: {test_name} [{report.when}] STATUS: \033[0;31mERROR\033[0m")
+        else:
+            print(f"\nTEST: {test_name} STATUS: \033[0;31mFAILED\033[0m")
 
 
 REGISTRY_URL = os.environ.get("MR_URL", "http://localhost:8080")
