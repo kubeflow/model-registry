@@ -264,15 +264,15 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
     with (
         patch("olot.backend.skopeo.skopeo_pull") as skopeo_pull_mock,
         patch("olot.backend.skopeo.skopeo_push") as skopeo_push_mock,
-        patch("olot.basics.oci_layers_on_top") as olot_mock,
+        patch("olot.basics.oci_layers_on_top"),
     ):
         backend = _get_skopeo_backend(
             pull_args=generic_auth_vars, push_args=generic_auth_vars
         )
 
-        def pull_mock_override_with_assertions(base_image, dest_dir, params):
-            assert generic_auth_vars[0] in params
-            assert generic_auth_vars[1] in params
+        def mock_override(base_image, dest_dir, params):
+            return params
 
-        skopeo_pull_mock.side_effect = pull_mock_override_with_assertions
-        yield backend, skopeo_pull_mock, skopeo_push_mock, olot_mock
+        skopeo_pull_mock.side_effect = mock_override
+        skopeo_push_mock.side_effect = mock_override
+        yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
