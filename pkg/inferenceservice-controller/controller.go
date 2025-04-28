@@ -377,7 +377,11 @@ func (r *InferenceServiceController) createMRInferenceService(
 		}
 
 		if isvc.Status.URL != nil {
-			(*isCreate.CustomProperties)["url"].MetadataStringValue.StringValue = isvc.Status.URL.String()
+			isCreate.CustomProperties = &map[string]openapi.MetadataValue{}
+
+			(*isCreate.CustomProperties)["url"] = openapi.MetadataValue{
+				MetadataStringValue: openapi.NewMetadataStringValue(isvc.Status.URL.String(), "MetadataStringValue"),
+			}
 		}
 
 		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceServiceCreate(isCreate).Execute()
