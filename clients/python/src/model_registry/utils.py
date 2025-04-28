@@ -135,7 +135,7 @@ def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
     """
     args = []
     for k, v in kwargs.items():
-        args.append(f"--{k}")
+        args.append(f"{k}")
         args.append(str(v))
     return args
 
