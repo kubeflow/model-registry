@@ -28,7 +28,7 @@ To run the mocked development environment you can either:
 
 ### Kubernetes Deployment
 
-For an in-depth guide on how to deploy the Model Registry UI, please refer to the [local kubernetes deployment](./bff/docs/local-development-guide.md) documentation.
+For an in-depth guide on how to deploy the Model Registry UI, please refer to the [local kubernetes deployment](./docs/local-deployment-guide.md) documentation.
 
 To quickly enable the Model Registry UI in your Kind cluster, you can use the following command:
 
@@ -38,4 +38,4 @@ make kind-deployment
 
 ## Debugging and Testing
 
-See [frontend testing guidelines](docs/testing.md) for testing the frontend.
+See [frontend testing guidelines](frontend/docs/testing.md) for testing the frontend.

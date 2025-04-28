@@ -169,7 +169,7 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, mode
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
 	}
-	glog.Info("filterQuery ", filterQuery)
+	glog.Info("FilterQuery ", filterQuery)
 
 	artifactsResponse, err := serv.mlmdClient.GetArtifacts(context.Background(), &proto.GetArtifactsRequest{
 		Options: &proto.ListOperationOptions{
@@ -312,7 +312,7 @@ func (serv *ModelRegistryService) GetModelArtifactByParams(artifactName *string,
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
 	}
-	glog.Info("filterQuery ", filterQuery)
+	glog.Info("FilterQuery ", filterQuery)
 
 	artifactsResponse, err := serv.mlmdClient.GetArtifactsByType(context.Background(), &proto.GetArtifactsByTypeRequest{
 		TypeName: &serv.nameConfig.ModelArtifactTypeName,

@@ -90,7 +90,7 @@ func initConfig(cmd *cobra.Command) error {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		glog.Info("using config file: ", viper.ConfigFileUsed())
+		glog.Info("Using config file: ", viper.ConfigFileUsed())
 	} else {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		ok := errors.As(err, &configFileNotFoundError)

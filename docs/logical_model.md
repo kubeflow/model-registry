@@ -225,7 +225,7 @@ curl --silent -X 'GET' \
 }
 ```
 
-A ML model from S3 bucket with all required location details except of credentials:
+A ML model from S3 bucket with all required location details except credentials:
 
 ```python
 model = registry.register_model(

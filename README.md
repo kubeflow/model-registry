@@ -1,13 +1,15 @@
 # Model Registry
+
+![build checks status](https://github.com/kubeflow/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9937/badge)](https://www.bestpractices.dev/projects/9937)
+
 Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata. A Go-based application that leverages [ml_metadata](https://github.com/google/ml-metadata/) project under the hood.
 
 ## Red Hat's Pledge
 - Red Hat drives the project's development through Open Source principles, ensuring transparency, sustainability, and community ownership.
 - Red Hat values the Kubeflow community and commits to providing a minimum of 12 months' notice before ending project maintenance after the initial release.
-
-![build checks status](https://github.com/kubeflow/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
-[![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 
 > **Alpha**
 >
@@ -152,12 +154,12 @@ When shutting down the docker compose, you might want to clean-up the SQLite db 
 
 ### Testing architecture
 
-The following diagram illustrate testing strategy for the several components in Model Registry project:
+The following diagram illustrates testing strategy for the several components in Model Registry project:
 
 ![](/docs/Model%20Registry%20Testing%20areas.png)
 
 Go layers components are tested with Unit Tests written in Go, as well as Integration Tests leveraging Testcontainers.
-This allows to verify the expected "Core layer" of logical data mapping developed implemented in Go, matches technical expectations.
+This allows to verify the expected "Core layer" of logical data mapping developed and implemented in Go, matches technical expectations.
 
 Python client is also tested with Unit Tests and Integration Tests written in Python.
 
@@ -173,13 +175,13 @@ To delete something, simply update its status.
 ## Tips
 ### Pull image rate limiting
 
-Ocassionally you may encounter an 'ImagePullBackOff' error when deploying the Model Registry manifests. See example below for the `model-registry-db` container.
+Occasionally you may encounter an 'ImagePullBackOff' error when deploying the Model Registry manifests. See example below for the `model-registry-db` container.
 
 ```
 Failed to pull image “mysql:8.3.0”: rpc error: code = Unknown desc = fetching target platform image selected from image index: reading manifest sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62 in docker.io/library/mysql: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
 ```
 
-This error is triggered by the rate limits from docker.io; in this example specifically about the image `mysql:8.3.0` (the expanded reference is `docker.io/library/mysql:8.3.0`). To mitigate against this error you could [authenticate using image pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for _local development_; or replace the image used with alternative mirrored images, for instance with the following example:
+This error is triggered by the rate limits from docker.io; in this example specifically about the image `mysql:8.3.0` (the expanded reference is `docker.io/library/mysql:8.3.0`). To mitigate this error you could [authenticate using image pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for _local development_; or replace the image used with alternative mirrored images, for instance with the following example:
 ```
 manifests/kustomize/overlays/db/model-registry-db-deployment.yaml file.
 
