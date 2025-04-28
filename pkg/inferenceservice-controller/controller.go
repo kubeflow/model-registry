@@ -169,8 +169,8 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 
 		mrCurrentIvcUrl := ""
 
-		if mrIs.CustomProperties != nil && (*mrIs.CustomProperties)["url"].MetadataStringValue != nil {
-			mrCurrentIvcUrl = (*mrIs.CustomProperties)["url"].MetadataStringValue.StringValue
+		if mrIs.CustomProperties != nil {
+			mrCurrentIvcUrl = (*mrIs.CustomProperties)["url"].MetadataStringValue.GetStringValue()
 		}
 
 		urlAreDiff := r.checkURLDiff(isvc, mrCurrentIvcUrl)
