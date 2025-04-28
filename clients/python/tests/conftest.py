@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import inspect
+import json
 import os
 import pathlib
 import shutil
@@ -250,19 +252,14 @@ def get_mock_custom_oci_backend():
 
 @pytest.fixture
 def get_mock_skopeo_backend_for_auth(monkeypatch):
-    # ZmFrZV91c2VyOmFwYXNzd29yZGhlcmUK = fake_user:passwordhere (in base64)
-    auth_json = """
-    {
-        "auths": {
-            "localhost:5001": {
-            "auth": "ZmFrZV91c2VyOmFwYXNzd29yZGhlcmUK",
-            "email": ""
-            }
-        }
+    user_auth = b"myuser:passwordhere"
+    upc_encoded = base64.b64encode(user_auth)
+    auth_data = {
+        "auths": {"localhost:5001": {"auth": upc_encoded.decode(), "email": ""}}
     }
-    """
+    auth_json = json.dumps(auth_data)
     monkeypatch.setenv(".dockerconfigjson", auth_json)
-    generic_auth_vars = ["--username=myuser", "--password=mypasswordhere"]
+    generic_auth_vars = ["--username", "myuser", "--password", "mypasswordhere"]
 
     with (
         patch("olot.backend.skopeo.skopeo_pull") as skopeo_pull_mock,

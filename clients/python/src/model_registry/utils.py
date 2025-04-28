@@ -133,7 +133,11 @@ def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
     Args:
         kwargs: The keyword args dict.
     """
-    return [f"{k}={v}" for k, v in kwargs.items()]
+    args = []
+    for k, v in kwargs.items():
+        args.append(f"--{k}")
+        args.append(str(v))
+    return args
 
 
 def _get_skopeo_backend(
@@ -225,31 +229,16 @@ def _backend_specific_params(
 
 
 def _scrub_errors(func: Callable[[], T]) -> T:
-    """Scrub errors of any sensitive data when passing around auth data.
+    """Scrub errors of any subprocess command with sensitive data.
 
     Args:
         func: A partial or lambda function that has not been yet executed.
     """
-    filtered = ["username", "password", "=="]
-
-    def determine_sensitivity(e: Exception):
-        err = str(e)
-        return any(err.lower().find(filter) >= 0 for filter in filtered)
-
     try:
         return func()
-    except CalledProcessError as e:
-        if determine_sensitivity(e):
-            msg = """Sensitive operation when running a command line process failed.
-                (secrets were detected and scrubbed)"""
-            raise RuntimeError(msg) from None
-        raise e
-    except Exception as e:
-        if determine_sensitivity(e):
-            msg = """Sensitive operation failed before running the command line process.
-                (secrets were detected and scrubbed)"""
-            raise RuntimeError(msg) from None
-        raise e
+    except (CalledProcessError, Exception) as e:
+        msg = """Problem with command"""
+        raise RuntimeError(msg, e.returncode, e.stderr) from None
 
 
 @dataclass

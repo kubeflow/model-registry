@@ -219,7 +219,29 @@ registered_model = client.upload_artifact_and_register_model(
 
 #### OCI-registry based storage
 First, you must ensure you are logged in the to appropriate OCI registry using
-`skopeo login`, `podman login`, or using another way of authenticating or subsequent lines below will fail.
+`skopeo login`, `podman login`, or you can authenticate via the `OCIParams` by either:
+
+1. Reading a pull secret JSON from an environment variable. Default is `.dockerconfigjson`.
+
+    ```python
+    OCIParams(
+        ...,
+        oci_auth_env_var="DOCKER_CONFIG_JSON"
+    )
+    ```
+
+2. Passing in username and password directly.
+
+    ```python
+    OCIParams(
+        ...,
+        oci_username="user",
+        oci_password="userpass"
+    )
+    ```
+
+Full example:
+
 ```python
 oci_upload_params = OCIParams(
     base_image="busybox",
