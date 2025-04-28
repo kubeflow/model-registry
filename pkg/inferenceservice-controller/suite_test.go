@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -180,8 +179,8 @@ var _ = AfterSuite(func() {
 func ModelRegistryDefaultMockServer() *httptest.Server {
 	handler := http.NewServeMux()
 
-	servingEnvironments := new(sync.Map)
-	inferenceServices := new(sync.Map)
+	servingEnvironments := make(map[string]*openapi.ServingEnvironment)
+	inferenceServices := make(map[string]*openapi.InferenceService)
 
 	handler.HandleFunc("/api/model_registry/v1alpha3/serving_environments", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -210,7 +209,7 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 
 			senv.Id = &id
 
-			servingEnvironments.Store(id, senv)
+			servingEnvironments[id] = senv
 
 			w.WriteHeader(http.StatusCreated)
 
@@ -234,9 +233,10 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 
 	handler.HandleFunc("/api/model_registry/v1alpha3/inference_services/1", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		id := "1"
 
 		if r.Method == http.MethodGet {
-			isvc, ok := inferenceServices.Load("1")
+			isvc, ok := inferenceServices[id]
 			if !ok {
 				w.WriteHeader(http.StatusNotFound)
 
@@ -261,8 +261,6 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 		}
 
 		if r.Method == http.MethodPatch {
-			id := "1"
-
 			isvc := &openapi.InferenceService{}
 
 			isvcvJson, err := io.ReadAll(r.Body)
@@ -278,7 +276,7 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 
 			isvc.Id = &id
 
-			inferenceServices.Store(id, isvc)
+			inferenceServices[id] = isvc
 
 			w.WriteHeader(http.StatusCreated)
 
@@ -325,7 +323,7 @@ func ModelRegistryDefaultMockServer() *httptest.Server {
 
 			isvc.Id = &id
 
-			inferenceServices.Store(id, isvc)
+			inferenceServices[id] = isvc
 
 			w.WriteHeader(http.StatusCreated)
 
