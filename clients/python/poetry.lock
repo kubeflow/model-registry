@@ -782,7 +782,7 @@ version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev", "docs"]
+groups = ["docs"]
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -1363,15 +1363,15 @@ files = [
 
 [[package]]
 name = "olot"
-version = "0.1.5"
+version = "0.1.6"
 description = "oci layers on top"
 optional = true
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 markers = "extra == \"olot\""
 files = [
-    {file = "olot-0.1.5-py3-none-any.whl", hash = "sha256:5c9acd6c7f854b63ac91b9c99740a07ce96c11ea75c4c25577ec0837cbfc2dc0"},
-    {file = "olot-0.1.5.tar.gz", hash = "sha256:e0eb64db7279be714b54095244dd6570b3f119ceb577cfa260f90fefcc0b0838"},
+    {file = "olot-0.1.6-py3-none-any.whl", hash = "sha256:7ab8461a019ff280fd508fb75af8abaec3a9e625b578a4b6224dc9346faad002"},
+    {file = "olot-0.1.6.tar.gz", hash = "sha256:aaf8f9196d80ef7ba25a4bf9e7c9c6128a60d5f4032c776763aa6f57a16d4290"},
 ]
 
 [package.dependencies]
