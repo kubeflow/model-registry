@@ -248,8 +248,12 @@ class ModelRegistry:
                 **asdict(upload_params), path=model_files_path
             )
         elif isinstance(upload_params, OCIParams):
+            dict_params = asdict(upload_params)
+            del dict_params["custom_oci_backend"]
             destination_uri = save_to_oci_registry(
-                **asdict(upload_params), model_files_path=model_files_path
+                **dict_params,
+                custom_oci_backend=upload_params.custom_oci_backend,
+                model_files_path=model_files_path,
             )
         else:
             msg = 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'

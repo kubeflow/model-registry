@@ -84,15 +84,19 @@ def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir
     dest_dir, _ = get_temp_dir_with_models
     oci_ref = "localhost:5001/foo/bar:latest"
 
-    save_to_oci_registry(base_image, oci_ref, dest_dir, get_temp_dir, custom_oci_backend=get_skopeo_backend_for_local_e2e_testing())
-
-
-def get_skopeo_backend_for_local_e2e_testing():
-    # we implement a custom_backend because we want to OCI Push to a non-TLS OCI Registry in this (local) e2e-test
-    custom_backend = utils._get_skopeo_backend()
-    original_fn = custom_backend["push"]
-    custom_backend["push"] = lambda src, oci_ref : original_fn(src, oci_ref, ["--dest-tls-verify=false"])
-    return custom_backend
+    save_to_oci_registry(
+        base_image=base_image,
+        oci_ref=oci_ref,
+        model_files_path=dest_dir,
+        dest_dir=get_temp_dir,
+        custom_oci_backend=utils._get_skopeo_backend(
+            push_args=[
+                "--dest-tls-verify=false",
+                "--src-username=non_user",
+                "--src-password=nonpassword",
+            ],
+        ),
+    )
 
 
 def test_save_to_oci_registry_with_custom_backend(
@@ -114,10 +118,42 @@ def test_save_to_oci_registry_with_custom_backend(
         custom_oci_backend=get_mock_custom_oci_backend,
     )
     # Ensure our mocked backend was called
-    get_mock_custom_oci_backend["is_available"].assert_called_once()
-    get_mock_custom_oci_backend["pull"].assert_called_once()
-    get_mock_custom_oci_backend["push"].assert_called_once()
+    get_mock_custom_oci_backend.is_available.assert_called_once()
+    get_mock_custom_oci_backend.pull.assert_called_once()
+    get_mock_custom_oci_backend.push.assert_called_once()
     assert uri == f"oci://{oci_ref}"
+
+
+@pytest.mark.e2e(type="oci")
+def test_save_to_oci_registry_auth_params(
+    get_temp_dir_with_models,
+    get_temp_dir,
+    get_mock_skopeo_backend_for_auth,
+):
+    # similar to other test
+    base_image = "busybox:latest"
+    dest_dir, _ = get_temp_dir_with_models
+    oci_ref = "localhost:5001/foo/bar:latest"
+    backend, skopeo_pull_mock, skopeo_push_mock, generic_params = (
+        get_mock_skopeo_backend_for_auth
+    )
+
+    assert os.getenv(".dockerconfigjson") is not None  # noqa: SIM112 (no capitalization)
+
+    save_to_oci_registry(
+        base_image=base_image,
+        oci_ref=oci_ref,
+        model_files_path=dest_dir,
+        dest_dir=get_temp_dir,
+        modelcard=None,
+        custom_oci_backend=backend,
+    )
+    skopeo_pull_mock.assert_called_once()
+    skopeo_push_mock.assert_called_once()
+    args, _ = skopeo_pull_mock.call_args
+    params = args[2]
+    assert generic_params[0] in params
+    assert generic_params[-1] in params
 
 
 def test_save_to_oci_registry_backend_not_found():
