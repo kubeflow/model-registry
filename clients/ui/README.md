@@ -1,7 +1,7 @@
 [frontend requirements]: ./frontend/docs/dev-setup.md#requirements
 [BFF requirements]: ./bff/README.md#pre-requisites
 [Model registry UI]: ./docs/README.md
-[contributing guidelines]: ../CONTRIBUTING.md
+[contributing guidelines]: ./CONTRIBUTING.md
 
 # Model Registry UI
 
@@ -11,7 +11,7 @@ The Model Registry UI is a standalone web app for Kubeflow Model Registry. In th
 
 ## Contributing
 
-You can check the [contributing guidelines](../CONTRIBUTING.md) for more information on how to contribute to the Model Registry UI.
+You can check the [contributing guidelines] for more information on how to contribute to the Model Registry UI.
 
 ## OpenAPI Specification
 

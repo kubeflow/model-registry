@@ -57,7 +57,6 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceService(ctx context.Cont
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateInferenceServiceServe - Create a ServeModel action in a InferenceService
@@ -72,7 +71,6 @@ func (s *ModelRegistryServiceAPIService) CreateInferenceServiceServe(ctx context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateArtifact - Create an Artifact
@@ -87,7 +85,6 @@ func (s *ModelRegistryServiceAPIService) CreateArtifact(ctx context.Context, art
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateModelArtifact - Create a ModelArtifact
@@ -102,7 +99,6 @@ func (s *ModelRegistryServiceAPIService) CreateModelArtifact(ctx context.Context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateModelVersion - Create a ModelVersion
@@ -117,7 +113,6 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateModelVersionArtifact - Create an Artifact in a ModelVersion
@@ -134,7 +129,6 @@ func (s *ModelRegistryServiceAPIService) UpsertModelVersionArtifact(ctx context.
 	return Response(http.StatusOK, result), nil
 	// return Response(http.StatusNotImplemented, nil), errors.New("unsupported artifactType")
 	// TODO return Response(http.StatusOK, Artifact{}), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateRegisteredModel - Create a RegisteredModel
@@ -149,7 +143,6 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModel(ctx context.Conte
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateRegisteredModelVersion - Create a ModelVersion in RegisteredModel
@@ -159,7 +152,6 @@ func (s *ModelRegistryServiceAPIService) CreateRegisteredModelVersion(ctx contex
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // CreateServingEnvironment - Create a ServingEnvironment
@@ -174,7 +166,6 @@ func (s *ModelRegistryServiceAPIService) CreateServingEnvironment(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusCreated, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindInferenceService - Get an InferenceServices that matches search parameters.
@@ -184,7 +175,6 @@ func (s *ModelRegistryServiceAPIService) FindInferenceService(ctx context.Contex
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindArtifact - Get an Artifact that matches search parameters.
@@ -194,7 +184,6 @@ func (s *ModelRegistryServiceAPIService) FindArtifact(ctx context.Context, name 
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
@@ -204,7 +193,6 @@ func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, 
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindModelVersion - Get a ModelVersion that matches search parameters.
@@ -214,7 +202,6 @@ func (s *ModelRegistryServiceAPIService) FindModelVersion(ctx context.Context, n
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindRegisteredModel - Get a RegisteredModel that matches search parameters.
@@ -224,7 +211,6 @@ func (s *ModelRegistryServiceAPIService) FindRegisteredModel(ctx context.Context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // FindServingEnvironment - Find ServingEnvironment
@@ -234,7 +220,6 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetEnvironmentInferenceServices - List All ServingEnvironment&#39;s InferenceServices
@@ -248,7 +233,6 @@ func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx con
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetInferenceService - Get a InferenceService
@@ -258,7 +242,6 @@ func (s *ModelRegistryServiceAPIService) GetInferenceService(ctx context.Context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetInferenceServiceModel - Get InferenceService&#39;s RegisteredModel
@@ -268,7 +251,6 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetInferenceServiceServes - List All InferenceService&#39;s ServeModel actions
@@ -282,7 +264,6 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.C
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetInferenceServiceVersion - Get InferenceService&#39;s ModelVersion
@@ -292,7 +273,6 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetInferenceServices - List All InferenceServices
@@ -306,7 +286,6 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Contex
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetArtifact - Get a Artifact
@@ -316,7 +295,6 @@ func (s *ModelRegistryServiceAPIService) GetArtifact(ctx context.Context, artifa
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetArtifacts - List All Artifacts
@@ -330,7 +308,6 @@ func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, pageS
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetModelArtifact - Get a ModelArtifact
@@ -340,7 +317,6 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetModelArtifacts - List All ModelArtifacts
@@ -354,7 +330,6 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, 
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetModelVersion - Get a ModelVersion
@@ -364,7 +339,6 @@ func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, mo
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetModelVersionArtifacts - List All ModelVersion&#39;s artifacts
@@ -380,7 +354,6 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetModelVersions - List All ModelVersions
@@ -394,7 +367,6 @@ func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, p
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetRegisteredModel - Get a RegisteredModel
@@ -404,7 +376,6 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context,
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetRegisteredModelVersions - List All RegisteredModel&#39;s ModelVersions
@@ -420,7 +391,6 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetRegisteredModels - List All RegisteredModels
@@ -434,7 +404,6 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetServingEnvironment - Get a ServingEnvironment
@@ -444,7 +413,6 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO: return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // GetServingEnvironments - List All ServingEnvironments
@@ -458,7 +426,6 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Cont
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateInferenceService - Update a InferenceService
@@ -481,7 +448,6 @@ func (s *ModelRegistryServiceAPIService) UpdateInferenceService(ctx context.Cont
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateArtifact - Update a Artifact
@@ -509,7 +475,6 @@ func (s *ModelRegistryServiceAPIService) UpdateArtifact(ctx context.Context, art
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateModelArtifact - Update a ModelArtifact
@@ -532,7 +497,6 @@ func (s *ModelRegistryServiceAPIService) UpdateModelArtifact(ctx context.Context
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateModelVersion - Update a ModelVersion
@@ -555,7 +519,6 @@ func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context,
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateRegisteredModel - Update a RegisteredModel
@@ -578,7 +541,6 @@ func (s *ModelRegistryServiceAPIService) UpdateRegisteredModel(ctx context.Conte
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }
 
 // UpdateServingEnvironment - Update a ServingEnvironment
@@ -601,5 +563,4 @@ func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
-	// TODO return Response(http.StatusUnauthorized, Error{}), nil
 }

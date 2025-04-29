@@ -210,7 +210,7 @@ registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
-    # model_fiels_path="/home/user-01/models/model_training_01.onnx"
+    # model_files_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
     version="0.0.1",
     upload_params=s3_upload_params
@@ -230,7 +230,7 @@ registered_model = client.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
-    # model_fiels_path="/home/user-01/models/model_training_01.onnx"
+    # model_files_path="/home/user-01/models/model_training_01.onnx"
     author="Mr. Trainer",
     version="0.0.1",
     upload_params=oci_upload_params
