@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import inspect
+import json
 import os
 import pathlib
 import shutil
@@ -8,7 +10,7 @@ import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from urllib.parse import urlparse
 
 import pytest
@@ -16,6 +18,7 @@ import requests
 import uvloop
 
 from model_registry import ModelRegistry
+from model_registry.utils import BackendDefinition, _get_skopeo_backend
 
 
 def pytest_addoption(parser):
@@ -237,13 +240,39 @@ def get_mock_custom_oci_backend():
     pull_mock = Mock()
     push_mock = Mock()
 
-    def pull_mock_imple(base_image, dest_dir):
+    def pull_mock_imple(base_image, dest_dir, **kwargs):
         pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
         pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
 
     pull_mock.side_effect = pull_mock_imple
-    return {
-        "is_available": is_available_mock,
-        "pull": pull_mock,
-        "push": push_mock,
+    return BackendDefinition(
+        is_available=is_available_mock, pull=pull_mock, push=push_mock
+    )
+
+
+@pytest.fixture
+def get_mock_skopeo_backend_for_auth(monkeypatch):
+    user_auth = b"myuser:passwordhere"
+    upc_encoded = base64.b64encode(user_auth)
+    auth_data = {
+        "auths": {"localhost:5001": {"auth": upc_encoded.decode(), "email": ""}}
     }
+    auth_json = json.dumps(auth_data)
+    monkeypatch.setenv(".dockerconfigjson", auth_json)
+    generic_auth_vars = ["--username", "myuser", "--password", "mypasswordhere"]
+
+    with (
+        patch("olot.backend.skopeo.skopeo_pull") as skopeo_pull_mock,
+        patch("olot.backend.skopeo.skopeo_push") as skopeo_push_mock,
+        patch("olot.basics.oci_layers_on_top"),
+    ):
+        backend = _get_skopeo_backend(
+            pull_args=generic_auth_vars, push_args=generic_auth_vars
+        )
+
+        def mock_override(base_image, dest_dir, params):
+            return params
+
+        skopeo_pull_mock.side_effect = mock_override
+        skopeo_push_mock.side_effect = mock_override
+        yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
