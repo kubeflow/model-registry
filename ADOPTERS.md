@@ -1,6 +1,6 @@
 # Adopters of Kubeflow Model Registry
 
-Below are the adopters of project Model Registry. If you are using Model Registry please add yourself into the following list by a pull request. Please keep the list in alphabetical order.
+Below are the adopters of the Model Registry project. If you are using Model Registry, please add your name to the list by submitting a pull request. Ensure the list remains in alphabetical order.
 
 | Organization | Contact (GitHub User Name) | Environment | Description of Use |
 | ------------- | ------------- | ------------- | ------------- |
