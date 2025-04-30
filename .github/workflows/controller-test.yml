@@ -14,6 +14,7 @@ on:
   pull_request:
     paths:
       - "cmd/controller/**"
+      - ".github/workflows/**"
       - "internal/controller/**"
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"

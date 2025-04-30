@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "clients/ui/**"
+      - ".github/workflows/**"
       - "!LICENSE*"
       - "!DOCKERFILE*"
       - "!**.gitignore"

@@ -2,6 +2,7 @@ name: Validate OpenAPI spec
 on:
   pull_request:
     paths:
+      - ".github/workflows/**"
       - "api/openapi/model-registry.yaml"
 jobs:
   validate:
