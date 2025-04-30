@@ -27,7 +27,7 @@ class DocArtifact(BaseModel):
 
     name: StrictStr | None = Field(
         default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
+        description="The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.",
     )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -37,7 +37,7 @@ class DocArtifact(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
     artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
@@ -101,8 +101,10 @@ class DocArtifact(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
+            "id",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }

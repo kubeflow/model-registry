@@ -25,7 +25,7 @@ type ServingEnvironment struct {
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
+	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`

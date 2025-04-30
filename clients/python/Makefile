@@ -66,7 +66,7 @@ tidy:
 	poetry run black src/mr_openapi
 
 .PHONY: build
-build: install tidy	
+build: install tidy
 	poetry build
 
 .PHONY: publish

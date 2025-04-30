@@ -36,7 +36,7 @@ class RegisteredModel(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
     owner: StrictStr | None = None
@@ -95,8 +95,10 @@ class RegisteredModel(BaseModel):
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
+            "id",
             "create_time_since_epoch",
             "last_update_time_since_epoch",
         }

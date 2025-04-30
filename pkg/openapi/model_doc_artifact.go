@@ -19,13 +19,13 @@ var _ MappedNullable = &DocArtifact{}
 
 // DocArtifact A document.
 type DocArtifact struct {
-	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	// The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.
+	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId   *string `json:"externalId,omitempty"`
 	ArtifactType *string `json:"artifactType,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.

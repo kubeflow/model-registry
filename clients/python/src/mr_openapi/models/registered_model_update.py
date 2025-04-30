@@ -34,7 +34,7 @@ class RegisteredModelUpdate(BaseModel):
     description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
     external_id: StrictStr | None = Field(
         default=None,
-        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
     owner: StrictStr | None = None

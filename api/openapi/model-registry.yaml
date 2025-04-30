@@ -1187,10 +1187,11 @@ components:
               format: int64
               description: The unique server generated id of the resource.
               type: string
+              readOnly: true
             name:
               description: |-
-                The client provided name of the artifact. This field is optional. If set,
-                it must be unique among all the artifacts of the same artifact type within
+                The client provided name of the resource. This field is optional. If set,
+                it must be unique among all the resources of the same artifact type within
                 a database instance and cannot be changed once set.
               type: string
             createTimeSinceEpoch:
@@ -1240,7 +1241,7 @@ components:
           type: string
         externalId:
           description: |-
-            The external id that come from the clients' system. This field is optional.
+            The external id that comes from the client's system. This field is optional.
             If set, it must be unique among all resources within a database instance.
           type: string
     DocArtifact:
