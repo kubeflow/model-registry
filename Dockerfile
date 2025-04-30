@@ -22,6 +22,7 @@ COPY patches/ patches/
 COPY templates/ templates/
 
 ###### Dev stage - start ######
+# see: https://github.com/kubeflow/model-registry/pull/984#discussion_r2048732415
 
 FROM common AS dev
 
