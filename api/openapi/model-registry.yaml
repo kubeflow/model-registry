@@ -1587,12 +1587,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
-            name:
-              readOnly: true
-              type: string
-            registeredModelId:
-              readOnly: true
-              type: string
             state:
               $ref: "#/components/schemas/ModelVersionState"
             author:
@@ -1686,9 +1680,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
-            modelVersionId:
-              readOnly: true
-              type: string
             lastKnownState:
               $ref: "#/components/schemas/ExecutionState"
     ServingEnvironment:
@@ -1721,11 +1712,6 @@ components:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            name:
-              readOnly: true
-              type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
       enum:

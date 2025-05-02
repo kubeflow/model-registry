@@ -47,14 +47,14 @@ class ModelVersion(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    name: StrictStr = Field(
-        description="The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set."
-    )
+    state: ModelVersionState | None = None
+    author: StrictStr | None = Field(default=None, description="Name of the author.")
     registered_model_id: StrictStr = Field(
         description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
     )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
+    name: StrictStr = Field(
+        description="The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set."
+    )
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -62,10 +62,10 @@ class ModelVersion(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
-        "name",
-        "registeredModelId",
         "state",
         "author",
+        "registeredModelId",
+        "name",
     ]
 
     model_config = ConfigDict(
@@ -142,9 +142,9 @@ class ModelVersion(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
-                "name": obj.get("name"),
-                "registeredModelId": obj.get("registeredModelId"),
                 "state": obj.get("state"),
                 "author": obj.get("author"),
+                "registeredModelId": obj.get("registeredModelId"),
+                "name": obj.get("name"),
             }
         )

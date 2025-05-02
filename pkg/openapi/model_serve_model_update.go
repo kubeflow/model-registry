@@ -25,7 +25,6 @@ type ServeModelUpdate struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId     *string         `json:"externalId,omitempty"`
-	ModelVersionId *string         `json:"modelVersionId,omitempty"`
 	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
 }
 
@@ -146,38 +145,6 @@ func (o *ServeModelUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
-func (o *ServeModelUpdate) GetModelVersionId() string {
-	if o == nil || IsNil(o.ModelVersionId) {
-		var ret string
-		return ret
-	}
-	return *o.ModelVersionId
-}
-
-// GetModelVersionIdOk returns a tuple with the ModelVersionId field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ServeModelUpdate) GetModelVersionIdOk() (*string, bool) {
-	if o == nil || IsNil(o.ModelVersionId) {
-		return nil, false
-	}
-	return o.ModelVersionId, true
-}
-
-// HasModelVersionId returns a boolean if a field has been set.
-func (o *ServeModelUpdate) HasModelVersionId() bool {
-	if o != nil && !IsNil(o.ModelVersionId) {
-		return true
-	}
-
-	return false
-}
-
-// SetModelVersionId gets a reference to the given string and assigns it to the ModelVersionId field.
-func (o *ServeModelUpdate) SetModelVersionId(v string) {
-	o.ModelVersionId = &v
-}
-
 // GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
 func (o *ServeModelUpdate) GetLastKnownState() ExecutionState {
 	if o == nil || IsNil(o.LastKnownState) {
@@ -228,9 +195,6 @@ func (o ServeModelUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.ModelVersionId) {
-		toSerialize["modelVersionId"] = o.ModelVersionId
 	}
 	if !IsNil(o.LastKnownState) {
 		toSerialize["lastKnownState"] = o.LastKnownState

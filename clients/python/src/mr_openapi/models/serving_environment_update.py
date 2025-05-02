@@ -35,8 +35,7 @@ class ServingEnvironmentUpdate(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr | None = None
-    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "name"]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -67,11 +66,8 @@ class ServingEnvironmentUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "name",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -105,6 +101,5 @@ class ServingEnvironmentUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
             }
         )

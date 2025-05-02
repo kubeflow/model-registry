@@ -36,19 +36,9 @@ class ModelVersionUpdate(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr | None = None
-    registered_model_id: StrictStr | None = Field(default=None, alias="registeredModelId")
     state: ModelVersionState | None = None
     author: StrictStr | None = Field(default=None, description="Name of the author.")
-    __properties: ClassVar[list[str]] = [
-        "customProperties",
-        "description",
-        "externalId",
-        "name",
-        "registeredModelId",
-        "state",
-        "author",
-    ]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "state", "author"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -79,13 +69,8 @@ class ModelVersionUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "name",
-            "registered_model_id",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -119,8 +104,6 @@ class ModelVersionUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
-                "registeredModelId": obj.get("registeredModelId"),
                 "state": obj.get("state"),
                 "author": obj.get("author"),
             }

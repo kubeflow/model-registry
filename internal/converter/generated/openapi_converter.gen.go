@@ -377,17 +377,17 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source convert
 	openapiModelVersion := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = &source.Existing.Name
+		pString = &source.Existing.RegisteredModelId
 	}
 	if pString != nil {
-		openapiModelVersion.Name = *pString
+		openapiModelVersion.RegisteredModelId = *pString
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = &source.Existing.RegisteredModelId
+		pString2 = &source.Existing.Name
 	}
 	if pString2 != nil {
-		openapiModelVersion.RegisteredModelId = *pString2
+		openapiModelVersion.Name = *pString2
 	}
 	return openapiModelVersion, nil
 }
@@ -406,18 +406,18 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForServeModel(source converter
 	openapiServeModel := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = &source.Existing.ModelVersionId
+		pString = source.Existing.Name
 	}
 	if pString != nil {
-		openapiServeModel.ModelVersionId = *pString
+		xstring := *pString
+		openapiServeModel.Name = &xstring
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.Name
+		pString2 = &source.Existing.ModelVersionId
 	}
 	if pString2 != nil {
-		xstring := *pString2
-		openapiServeModel.Name = &xstring
+		openapiServeModel.ModelVersionId = *pString2
 	}
 	return openapiServeModel, nil
 }

@@ -36,15 +36,8 @@ class ServeModelUpdate(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    model_version_id: StrictStr | None = Field(default=None, alias="modelVersionId")
     last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
-    __properties: ClassVar[list[str]] = [
-        "customProperties",
-        "description",
-        "externalId",
-        "modelVersionId",
-        "lastKnownState",
-    ]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "lastKnownState"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -75,11 +68,8 @@ class ServeModelUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "model_version_id",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -113,7 +103,6 @@ class ServeModelUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "modelVersionId": obj.get("modelVersionId"),
                 "lastKnownState": obj.get("lastKnownState"),
             }
         )

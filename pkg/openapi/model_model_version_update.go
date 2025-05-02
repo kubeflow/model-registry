@@ -24,10 +24,8 @@ type ModelVersionUpdate struct {
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId        *string            `json:"externalId,omitempty"`
-	Name              *string            `json:"name,omitempty"`
-	RegisteredModelId *string            `json:"registeredModelId,omitempty"`
-	State             *ModelVersionState `json:"state,omitempty"`
+	ExternalId *string            `json:"externalId,omitempty"`
+	State      *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
 }
@@ -149,70 +147,6 @@ func (o *ModelVersionUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *ModelVersionUpdate) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelVersionUpdate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ModelVersionUpdate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *ModelVersionUpdate) SetName(v string) {
-	o.Name = &v
-}
-
-// GetRegisteredModelId returns the RegisteredModelId field value if set, zero value otherwise.
-func (o *ModelVersionUpdate) GetRegisteredModelId() string {
-	if o == nil || IsNil(o.RegisteredModelId) {
-		var ret string
-		return ret
-	}
-	return *o.RegisteredModelId
-}
-
-// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelVersionUpdate) GetRegisteredModelIdOk() (*string, bool) {
-	if o == nil || IsNil(o.RegisteredModelId) {
-		return nil, false
-	}
-	return o.RegisteredModelId, true
-}
-
-// HasRegisteredModelId returns a boolean if a field has been set.
-func (o *ModelVersionUpdate) HasRegisteredModelId() bool {
-	if o != nil && !IsNil(o.RegisteredModelId) {
-		return true
-	}
-
-	return false
-}
-
-// SetRegisteredModelId gets a reference to the given string and assigns it to the RegisteredModelId field.
-func (o *ModelVersionUpdate) SetRegisteredModelId(v string) {
-	o.RegisteredModelId = &v
-}
-
 // GetState returns the State field value if set, zero value otherwise.
 func (o *ModelVersionUpdate) GetState() ModelVersionState {
 	if o == nil || IsNil(o.State) {
@@ -295,12 +229,6 @@ func (o ModelVersionUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
-	if !IsNil(o.RegisteredModelId) {
-		toSerialize["registeredModelId"] = o.RegisteredModelId
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State

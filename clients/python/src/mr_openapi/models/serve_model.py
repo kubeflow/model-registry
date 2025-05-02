@@ -47,11 +47,11 @@ class ServeModel(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    name: StrictStr | None = Field(default=None, description="The name of the serving model.")
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
-    name: StrictStr | None = Field(default=None, description="The name of the serving model.")
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -59,9 +59,9 @@ class ServeModel(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
-        "modelVersionId",
         "lastKnownState",
         "name",
+        "modelVersionId",
     ]
 
     model_config = ConfigDict(
@@ -138,8 +138,8 @@ class ServeModel(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
-                "modelVersionId": obj.get("modelVersionId"),
                 "lastKnownState": obj.get("lastKnownState"),
                 "name": obj.get("name"),
+                "modelVersionId": obj.get("modelVersionId"),
             }
         )

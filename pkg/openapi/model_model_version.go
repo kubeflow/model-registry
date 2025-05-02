@@ -30,26 +30,26 @@ type ModelVersion struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	// The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set.
-	Name string `json:"name"`
-	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelId string             `json:"registeredModelId"`
-	State             *ModelVersionState `json:"state,omitempty"`
+	LastUpdateTimeSinceEpoch *string            `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	State                    *ModelVersionState `json:"state,omitempty"`
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
+	// ID of the `RegisteredModel` to which this version belongs.
+	RegisteredModelId string `json:"registeredModelId"`
+	// The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set.
+	Name string `json:"name"`
 }
 
 // NewModelVersion instantiates a new ModelVersion object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewModelVersion(name string, registeredModelId string) *ModelVersion {
+func NewModelVersion(registeredModelId string, name string) *ModelVersion {
 	this := ModelVersion{}
-	this.Name = name
-	this.RegisteredModelId = registeredModelId
 	var state ModelVersionState = MODELVERSIONSTATE_LIVE
 	this.State = &state
+	this.RegisteredModelId = registeredModelId
+	this.Name = name
 	return &this
 }
 
@@ -255,54 +255,6 @@ func (o *ModelVersion) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
-// GetName returns the Name field value
-func (o *ModelVersion) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ModelVersion) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ModelVersion) SetName(v string) {
-	o.Name = v
-}
-
-// GetRegisteredModelId returns the RegisteredModelId field value
-func (o *ModelVersion) GetRegisteredModelId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.RegisteredModelId
-}
-
-// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
-// and a boolean to check if the value has been set.
-func (o *ModelVersion) GetRegisteredModelIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.RegisteredModelId, true
-}
-
-// SetRegisteredModelId sets field value
-func (o *ModelVersion) SetRegisteredModelId(v string) {
-	o.RegisteredModelId = v
-}
-
 // GetState returns the State field value if set, zero value otherwise.
 func (o *ModelVersion) GetState() ModelVersionState {
 	if o == nil || IsNil(o.State) {
@@ -367,6 +319,54 @@ func (o *ModelVersion) SetAuthor(v string) {
 	o.Author = &v
 }
 
+// GetRegisteredModelId returns the RegisteredModelId field value
+func (o *ModelVersion) GetRegisteredModelId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.RegisteredModelId
+}
+
+// GetRegisteredModelIdOk returns a tuple with the RegisteredModelId field value
+// and a boolean to check if the value has been set.
+func (o *ModelVersion) GetRegisteredModelIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.RegisteredModelId, true
+}
+
+// SetRegisteredModelId sets field value
+func (o *ModelVersion) SetRegisteredModelId(v string) {
+	o.RegisteredModelId = v
+}
+
+// GetName returns the Name field value
+func (o *ModelVersion) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ModelVersion) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ModelVersion) SetName(v string) {
+	o.Name = v
+}
+
 func (o ModelVersion) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -395,14 +395,14 @@ func (o ModelVersion) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
-	toSerialize["name"] = o.Name
-	toSerialize["registeredModelId"] = o.RegisteredModelId
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}
 	if !IsNil(o.Author) {
 		toSerialize["author"] = o.Author
 	}
+	toSerialize["registeredModelId"] = o.RegisteredModelId
+	toSerialize["name"] = o.Name
 	return toSerialize, nil
 }
 
