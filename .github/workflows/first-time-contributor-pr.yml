@@ -1,0 +1,28 @@
+name: Welcome first-time contributors
+on:
+  pull_request_target:
+    types:
+      - opened
+permissions:
+  issues: write
+  pull-requests: read
+
+# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
+# goal: this is meant to remind maintainers/approvers to add labels to ensure all tests are executed before merging
+# and avoid merging without realizing that required tests has not been run; complementary to bulletpoint in template: https://github.com/kubeflow/model-registry/blame/de5f225d96a4daeca77506d233082b1c4ea5afa3/.github/pull_request_template.md#L21
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    steps:
+      - name: Add a comment to the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Maintainers: let's ensure the label `ok-to-test` has been maintained and all the tests has been executed before merging.<br/><br/>Thank you for your first Pull Request!🎉🎉"
+            })
+# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
