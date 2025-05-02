@@ -24,7 +24,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServingEnvironment(BaseModel):
     """A Model Serving environment for serving `RegisteredModels`."""  # noqa: E501
 
-    name: StrictStr = Field(description="The name of the ServingEnvironment.")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -47,14 +46,15 @@ class ServingEnvironment(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    name: StrictStr = Field(description="The name of the ServingEnvironment.")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "name",
     ]
 
     model_config = ConfigDict(
@@ -121,7 +121,6 @@ class ServingEnvironment(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -132,5 +131,6 @@ class ServingEnvironment(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "name": obj.get("name"),
             }
         )

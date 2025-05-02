@@ -24,10 +24,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class BaseResource(BaseModel):
     """BaseResource."""  # noqa: E501
 
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.",
-    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -51,7 +47,6 @@ class BaseResource(BaseModel):
         alias="lastUpdateTimeSinceEpoch",
     )
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
@@ -124,7 +119,6 @@ class BaseResource(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None

@@ -437,6 +437,10 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	}
 		{{/isModel}}
 	{{/isArray}}
+	{{#isModel}}
+	// Remove readonly properties before service call
+	RemoveReadOnly{{baseType}}Properties(&{{paramName}}Param)
+	{{/isModel}}
 	{{/isBodyParam}}
 	{{/allParams}}
 	result, err := c.service.{{nickname}}(r.Context(){{#allParams}}, {{paramName}}Param{{/allParams}})

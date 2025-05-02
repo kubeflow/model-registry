@@ -1123,6 +1123,8 @@ components:
         - $ref: "#/components/schemas/DocArtifact"
       discriminator:
         propertyName: artifactType
+        type: string
+        required: true
         mapping:
           model-artifact: "#/components/schemas/ModelArtifact"
           doc-artifact: "#/components/schemas/DocArtifact"
@@ -1188,12 +1190,6 @@ components:
               description: The unique server generated id of the resource.
               type: string
               readOnly: true
-            name:
-              description: |-
-                The client provided name of the resource. This field is optional. If set,
-                it must be unique among all the resources of the same artifact type within
-                a database instance and cannot be changed once set.
-              type: string
             createTimeSinceEpoch:
               format: int64
               description: Output only. Create time of the resource in millisecond since epoch.
@@ -1227,9 +1223,6 @@ components:
     BaseResourceUpdate:
       type: object
       properties:
-        name:
-          readOnly: true
-          type: string
         customProperties:
           description: User provided custom properties which are not defined by its type.
           type: object
@@ -1247,13 +1240,16 @@ components:
     DocArtifact:
       description: A document.
       allOf:
-        - $ref: "#/components/schemas/DocArtifactUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/DocArtifactUpdate"
         - type: object
           properties:
             artifactType:
               type: string
               default: "doc-artifact"
+            name:
+              description: The name of the document artifact.
+              type: string
     DocArtifactUpdate:
       description: A document artifact to be updated.
       allOf:
@@ -1309,8 +1305,8 @@ components:
         - registeredModelId
         - servingEnvironmentId
       allOf:
-        - $ref: "#/components/schemas/InferenceServiceUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/InferenceServiceUpdate"
         - type: object
           properties:
             registeredModelId:
@@ -1318,6 +1314,9 @@ components:
               type: string
             servingEnvironmentId:
               description: ID of the parent `ServingEnvironment` for this `InferenceService` entity.
+              type: string
+            name:
+              description: The name of the inference service.
               type: string
     InferenceServiceList:
       description: List of InferenceServices.
@@ -1470,13 +1469,16 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       allOf:
-        - $ref: "#/components/schemas/ModelArtifactUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ModelArtifactUpdate"
         - type: object
           properties:
             artifactType:
               type: string
               default: "model-artifact"
+            name:
+              description: The name of the model artifact.
+              type: string
     ModelArtifactList:
       description: List of ModelArtifact entities.
       allOf:
@@ -1545,8 +1547,8 @@ components:
         - name
         - registeredModelId
       allOf:
-        - $ref: "#/components/schemas/ModelVersionUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ModelVersionUpdate"
         - type: object
           properties:
             registeredModelId:
@@ -1608,8 +1610,8 @@ components:
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/RegisteredModelUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/RegisteredModelUpdate"
         - type: object
           properties:
             name:
@@ -1646,9 +1648,6 @@ components:
         - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
-            name:
-              readOnly: true
-              type: string
             owner:
               type: string
             state:
@@ -1658,10 +1657,13 @@ components:
       required:
         - modelVersionId
       allOf:
-        - $ref: "#/components/schemas/ServeModelUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ServeModelUpdate"
         - type: object
           properties:
+            name:
+              description: The name of the serving model.
+              type: string
             modelVersionId:
               description: ID of the `ModelVersion` that was served in `InferenceService`.
               type: string
@@ -1694,8 +1696,8 @@ components:
       required:
         - name
       allOf:
-        - $ref: "#/components/schemas/ServingEnvironmentUpdate"
         - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ServingEnvironmentUpdate"
         - type: object
           properties:
             name:

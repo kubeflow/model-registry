@@ -25,10 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class InferenceService(BaseModel):
     """An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving."""  # noqa: E501
 
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.",
-    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -40,13 +36,6 @@ class InferenceService(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    model_version_id: StrictStr | None = Field(
-        default=None,
-        description="ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.",
-        alias="modelVersionId",
-    )
-    runtime: StrictStr | None = Field(default=None, description="Model runtime.")
-    desired_state: InferenceServiceState | None = Field(default=None, alias="desiredState")
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -58,6 +47,13 @@ class InferenceService(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    model_version_id: StrictStr | None = Field(
+        default=None,
+        description="ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.",
+        alias="modelVersionId",
+    )
+    runtime: StrictStr | None = Field(default=None, description="Model runtime.")
+    desired_state: InferenceServiceState | None = Field(default=None, alias="desiredState")
     registered_model_id: StrictStr = Field(
         description="ID of the `RegisteredModel` to serve.", alias="registeredModelId"
     )
@@ -65,19 +61,20 @@ class InferenceService(BaseModel):
         description="ID of the parent `ServingEnvironment` for this `InferenceService` entity.",
         alias="servingEnvironmentId",
     )
+    name: StrictStr | None = Field(default=None, description="The name of the inference service.")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
-        "modelVersionId",
-        "runtime",
-        "desiredState",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "modelVersionId",
+        "runtime",
+        "desiredState",
         "registeredModelId",
         "servingEnvironmentId",
+        "name",
     ]
 
     model_config = ConfigDict(
@@ -144,7 +141,6 @@ class InferenceService(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -152,13 +148,14 @@ class InferenceService(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "modelVersionId": obj.get("modelVersionId"),
-                "runtime": obj.get("runtime"),
-                "desiredState": obj.get("desiredState"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "modelVersionId": obj.get("modelVersionId"),
+                "runtime": obj.get("runtime"),
+                "desiredState": obj.get("desiredState"),
                 "registeredModelId": obj.get("registeredModelId"),
                 "servingEnvironmentId": obj.get("servingEnvironmentId"),
+                "name": obj.get("name"),
             }
         )

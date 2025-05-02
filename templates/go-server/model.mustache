@@ -109,4 +109,14 @@ func Assert{{classname}}Constraints(obj model.{{classname}}) error {
 {{/maximum}}
 {{/Vars}}
 	return nil
-}{{/model}}{{/models}}
+}
+
+// RemoveReadOnly{{classname}}Properties sets all readonly properties to nil
+func RemoveReadOnly{{classname}}Properties(obj *model.{{classname}}) {
+{{#Vars}}
+{{#isReadOnly}}
+	obj.{{name}} = nil
+{{/isReadOnly}}
+{{/Vars}}
+}
+{{/model}}{{/models}}

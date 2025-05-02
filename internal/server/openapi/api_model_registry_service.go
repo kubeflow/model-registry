@@ -273,6 +273,8 @@ func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyArtifactProperties(&artifactParam)
 	result, err := c.service.CreateArtifact(r.Context(), artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -301,6 +303,8 @@ func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w 
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyInferenceServiceProperties(&inferenceServiceParam)
 	result, err := c.service.CreateEnvironmentInferenceService(r.Context(), servingenvironmentIdParam, inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -328,6 +332,8 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.Respon
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyInferenceServiceProperties(&inferenceServiceParam)
 	result, err := c.service.CreateInferenceService(r.Context(), inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -356,6 +362,8 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.R
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyServeModelProperties(&serveModelParam)
 	result, err := c.service.CreateInferenceServiceServe(r.Context(), inferenceserviceIdParam, serveModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -383,6 +391,8 @@ func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseW
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyModelArtifactProperties(&modelArtifactParam)
 	result, err := c.service.CreateModelArtifact(r.Context(), modelArtifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -410,6 +420,8 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyModelVersionProperties(&modelVersionParam)
 	result, err := c.service.CreateModelVersion(r.Context(), modelVersionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -437,6 +449,8 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModel(w http.Respons
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyRegisteredModelProperties(&registeredModelParam)
 	result, err := c.service.CreateRegisteredModel(r.Context(), registeredModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -465,6 +479,8 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModelVersion(w http.
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyModelVersionProperties(&modelVersionParam)
 	result, err := c.service.CreateRegisteredModelVersion(r.Context(), registeredmodelIdParam, modelVersionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -492,6 +508,8 @@ func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.Resp
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyServingEnvironmentProperties(&servingEnvironmentParam)
 	result, err := c.service.CreateServingEnvironment(r.Context(), servingEnvironmentParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -900,6 +918,8 @@ func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
 	result, err := c.service.UpdateArtifact(r.Context(), idParam, artifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -928,6 +948,8 @@ func (c *ModelRegistryServiceAPIController) UpdateInferenceService(w http.Respon
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyInferenceServiceUpdateProperties(&inferenceServiceUpdateParam)
 	result, err := c.service.UpdateInferenceService(r.Context(), inferenceserviceIdParam, inferenceServiceUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -956,6 +978,8 @@ func (c *ModelRegistryServiceAPIController) UpdateModelArtifact(w http.ResponseW
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyModelArtifactUpdateProperties(&modelArtifactUpdateParam)
 	result, err := c.service.UpdateModelArtifact(r.Context(), modelartifactIdParam, modelArtifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -984,6 +1008,8 @@ func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWr
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyModelVersionUpdateProperties(&modelVersionUpdateParam)
 	result, err := c.service.UpdateModelVersion(r.Context(), modelversionIdParam, modelVersionUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1012,6 +1038,8 @@ func (c *ModelRegistryServiceAPIController) UpdateRegisteredModel(w http.Respons
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyRegisteredModelUpdateProperties(&registeredModelUpdateParam)
 	result, err := c.service.UpdateRegisteredModel(r.Context(), registeredmodelIdParam, registeredModelUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1040,6 +1068,8 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyServingEnvironmentUpdateProperties(&servingEnvironmentUpdateParam)
 	result, err := c.service.UpdateServingEnvironment(r.Context(), servingenvironmentIdParam, servingEnvironmentUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1068,6 +1098,8 @@ func (c *ModelRegistryServiceAPIController) UpsertModelVersionArtifact(w http.Re
 		c.errorHandler(w, r, err, nil)
 		return
 	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyArtifactProperties(&artifactParam)
 	result, err := c.service.UpsertModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {

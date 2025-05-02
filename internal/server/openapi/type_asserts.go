@@ -460,8 +460,8 @@ func AssertModelVersionListRequired(obj model.ModelVersionList) error {
 // AssertModelVersionRequired checks if the required fields are not zero-ed
 func AssertModelVersionRequired(obj model.ModelVersion) error {
 	elements := map[string]interface{}{
-		"name":              obj.Name,
 		"registeredModelId": obj.RegisteredModelId,
+		"name":              obj.Name,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -822,8 +822,6 @@ func RemoveReadOnlyModelVersionStateProperties(obj *model.ModelVersionState) {
 
 // RemoveReadOnlyModelVersionUpdateProperties sets all readonly properties to nil
 func RemoveReadOnlyModelVersionUpdateProperties(obj *model.ModelVersionUpdate) {
-	obj.Name = nil
-	obj.RegisteredModelId = nil
 }
 
 // RemoveReadOnlyOrderByFieldProperties sets all readonly properties to nil
@@ -862,7 +860,6 @@ func RemoveReadOnlyServeModelProperties(obj *model.ServeModel) {
 
 // RemoveReadOnlyServeModelUpdateProperties sets all readonly properties to nil
 func RemoveReadOnlyServeModelUpdateProperties(obj *model.ServeModelUpdate) {
-	obj.ModelVersionId = nil
 }
 
 // RemoveReadOnlyServingEnvironmentListProperties sets all readonly properties to nil
@@ -878,7 +875,6 @@ func RemoveReadOnlyServingEnvironmentProperties(obj *model.ServingEnvironment) {
 
 // RemoveReadOnlyServingEnvironmentUpdateProperties sets all readonly properties to nil
 func RemoveReadOnlyServingEnvironmentUpdateProperties(obj *model.ServingEnvironmentUpdate) {
-	obj.Name = nil
 }
 
 // RemoveReadOnlySortOrderProperties sets all readonly properties to nil

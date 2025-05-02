@@ -25,7 +25,6 @@ from mr_openapi.models.model_version_state import ModelVersionState
 class ModelVersionUpdate(BaseModel):
     """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
 
-    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -37,14 +36,15 @@ class ModelVersionUpdate(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    name: StrictStr | None = None
     registered_model_id: StrictStr | None = Field(default=None, alias="registeredModelId")
     state: ModelVersionState | None = None
     author: StrictStr | None = Field(default=None, description="Name of the author.")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
+        "name",
         "registeredModelId",
         "state",
         "author",
@@ -112,7 +112,6 @@ class ModelVersionUpdate(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -120,6 +119,7 @@ class ModelVersionUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "name": obj.get("name"),
                 "registeredModelId": obj.get("registeredModelId"),
                 "state": obj.get("state"),
                 "author": obj.get("author"),

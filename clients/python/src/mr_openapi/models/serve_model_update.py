@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModelUpdate(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -40,7 +39,6 @@ class ServeModelUpdate(BaseModel):
     model_version_id: StrictStr | None = Field(default=None, alias="modelVersionId")
     last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
@@ -78,10 +76,8 @@ class ServeModelUpdate(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = {
-            "name",
             "model_version_id",
         }
 
@@ -110,7 +106,6 @@ class ServeModelUpdate(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None

@@ -19,7 +19,6 @@ var _ MappedNullable = &ServeModelUpdate{}
 
 // ServeModelUpdate An ML model serving action.
 type ServeModelUpdate struct {
-	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -49,38 +48,6 @@ func NewServeModelUpdateWithDefaults() *ServeModelUpdate {
 	var lastKnownState ExecutionState = EXECUTIONSTATE_UNKNOWN
 	this.LastKnownState = &lastKnownState
 	return &this
-}
-
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *ServeModelUpdate) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ServeModelUpdate) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *ServeModelUpdate) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *ServeModelUpdate) SetName(v string) {
-	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -253,9 +220,6 @@ func (o ServeModelUpdate) MarshalJSON() ([]byte, error) {
 
 func (o ServeModelUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}

@@ -19,24 +19,24 @@ var _ MappedNullable = &DocArtifact{}
 
 // DocArtifact A document.
 type DocArtifact struct {
-	// The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId   *string `json:"externalId,omitempty"`
-	ArtifactType *string `json:"artifactType,omitempty"`
-	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	ArtifactType             *string `json:"artifactType,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
+	// The name of the document artifact.
+	Name *string `json:"name,omitempty"`
 }
 
 // NewDocArtifact instantiates a new DocArtifact object
@@ -62,38 +62,6 @@ func NewDocArtifactWithDefaults() *DocArtifact {
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
-}
-
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *DocArtifact) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *DocArtifact) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *DocArtifact) SetName(v string) {
-	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -192,102 +160,6 @@ func (o *DocArtifact) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
-func (o *DocArtifact) GetArtifactType() string {
-	if o == nil || IsNil(o.ArtifactType) {
-		var ret string
-		return ret
-	}
-	return *o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.ArtifactType) {
-		return nil, false
-	}
-	return o.ArtifactType, true
-}
-
-// HasArtifactType returns a boolean if a field has been set.
-func (o *DocArtifact) HasArtifactType() bool {
-	if o != nil && !IsNil(o.ArtifactType) {
-		return true
-	}
-
-	return false
-}
-
-// SetArtifactType gets a reference to the given string and assigns it to the ArtifactType field.
-func (o *DocArtifact) SetArtifactType(v string) {
-	o.ArtifactType = &v
-}
-
-// GetUri returns the Uri field value if set, zero value otherwise.
-func (o *DocArtifact) GetUri() string {
-	if o == nil || IsNil(o.Uri) {
-		var ret string
-		return ret
-	}
-	return *o.Uri
-}
-
-// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetUriOk() (*string, bool) {
-	if o == nil || IsNil(o.Uri) {
-		return nil, false
-	}
-	return o.Uri, true
-}
-
-// HasUri returns a boolean if a field has been set.
-func (o *DocArtifact) HasUri() bool {
-	if o != nil && !IsNil(o.Uri) {
-		return true
-	}
-
-	return false
-}
-
-// SetUri gets a reference to the given string and assigns it to the Uri field.
-func (o *DocArtifact) SetUri(v string) {
-	o.Uri = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *DocArtifact) GetState() ArtifactState {
-	if o == nil || IsNil(o.State) {
-		var ret ArtifactState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifact) GetStateOk() (*ArtifactState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *DocArtifact) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *DocArtifact) SetState(v ArtifactState) {
-	o.State = &v
-}
-
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *DocArtifact) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -384,6 +256,134 @@ func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
+func (o *DocArtifact) GetArtifactType() string {
+	if o == nil || IsNil(o.ArtifactType) {
+		var ret string
+		return ret
+	}
+	return *o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetArtifactTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.ArtifactType) {
+		return nil, false
+	}
+	return o.ArtifactType, true
+}
+
+// HasArtifactType returns a boolean if a field has been set.
+func (o *DocArtifact) HasArtifactType() bool {
+	if o != nil && !IsNil(o.ArtifactType) {
+		return true
+	}
+
+	return false
+}
+
+// SetArtifactType gets a reference to the given string and assigns it to the ArtifactType field.
+func (o *DocArtifact) SetArtifactType(v string) {
+	o.ArtifactType = &v
+}
+
+// GetUri returns the Uri field value if set, zero value otherwise.
+func (o *DocArtifact) GetUri() string {
+	if o == nil || IsNil(o.Uri) {
+		var ret string
+		return ret
+	}
+	return *o.Uri
+}
+
+// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetUriOk() (*string, bool) {
+	if o == nil || IsNil(o.Uri) {
+		return nil, false
+	}
+	return o.Uri, true
+}
+
+// HasUri returns a boolean if a field has been set.
+func (o *DocArtifact) HasUri() bool {
+	if o != nil && !IsNil(o.Uri) {
+		return true
+	}
+
+	return false
+}
+
+// SetUri gets a reference to the given string and assigns it to the Uri field.
+func (o *DocArtifact) SetUri(v string) {
+	o.Uri = &v
+}
+
+// GetState returns the State field value if set, zero value otherwise.
+func (o *DocArtifact) GetState() ArtifactState {
+	if o == nil || IsNil(o.State) {
+		var ret ArtifactState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetStateOk() (*ArtifactState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *DocArtifact) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given ArtifactState and assigns it to the State field.
+func (o *DocArtifact) SetState(v ArtifactState) {
+	o.State = &v
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *DocArtifact) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *DocArtifact) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *DocArtifact) SetName(v string) {
+	o.Name = &v
+}
+
 func (o DocArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -394,9 +394,6 @@ func (o DocArtifact) MarshalJSON() ([]byte, error) {
 
 func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -405,6 +402,15 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.CreateTimeSinceEpoch) {
+		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
+	}
+	if !IsNil(o.LastUpdateTimeSinceEpoch) {
+		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
 	if !IsNil(o.ArtifactType) {
 		toSerialize["artifactType"] = o.ArtifactType
@@ -415,14 +421,8 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
 	}
-	if !IsNil(o.Id) {
-		toSerialize["id"] = o.Id
-	}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
 	}
 	return toSerialize, nil
 }

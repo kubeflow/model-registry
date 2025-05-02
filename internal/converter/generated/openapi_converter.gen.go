@@ -331,25 +331,25 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source con
 	openapiInferenceService := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.RegisteredModelId
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiInferenceService.Name = &xstring
+		openapiInferenceService.RegisteredModelId = *pString
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = &source.Existing.RegisteredModelId
+		pString2 = &source.Existing.ServingEnvironmentId
 	}
 	if pString2 != nil {
-		openapiInferenceService.RegisteredModelId = *pString2
+		openapiInferenceService.ServingEnvironmentId = *pString2
 	}
 	var pString3 *string
 	if source.Existing != nil {
-		pString3 = &source.Existing.ServingEnvironmentId
+		pString3 = source.Existing.Name
 	}
 	if pString3 != nil {
-		openapiInferenceService.ServingEnvironmentId = *pString3
+		xstring := *pString3
+		openapiInferenceService.Name = &xstring
 	}
 	return openapiInferenceService, nil
 }
@@ -357,19 +357,19 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	openapiModelArtifact := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = source.Existing.ArtifactType
 	}
 	if pString != nil {
 		xstring := *pString
-		openapiModelArtifact.Name = &xstring
+		openapiModelArtifact.ArtifactType = &xstring
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.ArtifactType
+		pString2 = source.Existing.Name
 	}
 	if pString2 != nil {
 		xstring2 := *pString2
-		openapiModelArtifact.ArtifactType = &xstring2
+		openapiModelArtifact.Name = &xstring2
 	}
 	return openapiModelArtifact, nil
 }
@@ -406,18 +406,18 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForServeModel(source converter
 	openapiServeModel := converter.InitWithUpdate(source)
 	var pString *string
 	if source.Existing != nil {
-		pString = source.Existing.Name
+		pString = &source.Existing.ModelVersionId
 	}
 	if pString != nil {
-		xstring := *pString
-		openapiServeModel.Name = &xstring
+		openapiServeModel.ModelVersionId = *pString
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = &source.Existing.ModelVersionId
+		pString2 = source.Existing.Name
 	}
 	if pString2 != nil {
-		openapiServeModel.ModelVersionId = *pString2
+		xstring := *pString2
+		openapiServeModel.Name = &xstring
 	}
 	return openapiServeModel, nil
 }

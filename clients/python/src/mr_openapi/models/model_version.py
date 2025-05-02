@@ -25,9 +25,6 @@ from mr_openapi.models.model_version_state import ModelVersionState
 class ModelVersion(BaseModel):
     """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
 
-    name: StrictStr = Field(
-        description="The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set."
-    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -39,11 +36,6 @@ class ModelVersion(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    registered_model_id: StrictStr = Field(
-        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
-    )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -55,17 +47,25 @@ class ModelVersion(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    name: StrictStr = Field(
+        description="The client provided name of the model's version. It must be unique among all the ModelVersions of the same type within a Model Registry instance and cannot be changed once set."
+    )
+    registered_model_id: StrictStr = Field(
+        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
+    )
+    state: ModelVersionState | None = None
+    author: StrictStr | None = Field(default=None, description="Name of the author.")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
-        "registeredModelId",
-        "state",
-        "author",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "name",
+        "registeredModelId",
+        "state",
+        "author",
     ]
 
     model_config = ConfigDict(
@@ -132,7 +132,6 @@ class ModelVersion(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -140,11 +139,12 @@ class ModelVersion(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "registeredModelId": obj.get("registeredModelId"),
-                "state": obj.get("state"),
-                "author": obj.get("author"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "name": obj.get("name"),
+                "registeredModelId": obj.get("registeredModelId"),
+                "state": obj.get("state"),
+                "author": obj.get("author"),
             }
         )

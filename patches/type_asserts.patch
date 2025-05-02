@@ -1,8 +1,8 @@
 diff --git a/internal/server/openapi/type_asserts.go b/internal/server/openapi/type_asserts.go
-index b001018..9907fbc 100644
+index 48034a4..7333ab8 100644
 --- a/internal/server/openapi/type_asserts.go
 +++ b/internal/server/openapi/type_asserts.go
-@@ -449,21 +449,22 @@ func AssertMetadataStructValueConstraints(obj model.MetadataStructValue) error {
+@@ -359,21 +359,22 @@ func AssertMetadataValueConstraints(obj model.MetadataValue) error {
  
  // AssertMetadataValueRequired checks if the required fields are not zero-ed
  func AssertMetadataValueRequired(obj model.MetadataValue) error {
@@ -40,3 +40,19 @@ index b001018..9907fbc 100644
  
  	return nil
  }
+@@ -696,9 +697,12 @@ func RemoveReadOnlyArtifactListProperties(obj *model.ArtifactList) {
+ 
+ // RemoveReadOnlyArtifactProperties sets all readonly properties to nil
+ func RemoveReadOnlyArtifactProperties(obj *model.Artifact) {
+-	obj.Id = nil
+-	obj.CreateTimeSinceEpoch = nil
+-	obj.LastUpdateTimeSinceEpoch = nil
++	if obj.DocArtifact != nil {
++		RemoveReadOnlyDocArtifactProperties(obj.DocArtifact)
++	}
++	if obj.ModelArtifact != nil {
++		RemoveReadOnlyModelArtifactProperties(obj.ModelArtifact)
++	}
+ }
+ 
+ // RemoveReadOnlyArtifactStateProperties sets all readonly properties to nil

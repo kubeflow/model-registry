@@ -19,8 +19,6 @@ var _ MappedNullable = &ServingEnvironment{}
 
 // ServingEnvironment A Model Serving environment for serving `RegisteredModels`.
 type ServingEnvironment struct {
-	// The name of the ServingEnvironment.
-	Name string `json:"name"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -33,6 +31,8 @@ type ServingEnvironment struct {
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	// The name of the ServingEnvironment.
+	Name string `json:"name"`
 }
 
 // NewServingEnvironment instantiates a new ServingEnvironment object
@@ -51,30 +51,6 @@ func NewServingEnvironment(name string) *ServingEnvironment {
 func NewServingEnvironmentWithDefaults() *ServingEnvironment {
 	this := ServingEnvironment{}
 	return &this
-}
-
-// GetName returns the Name field value
-func (o *ServingEnvironment) GetName() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value
-// and a boolean to check if the value has been set.
-func (o *ServingEnvironment) GetNameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Name, true
-}
-
-// SetName sets field value
-func (o *ServingEnvironment) SetName(v string) {
-	o.Name = v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -269,6 +245,30 @@ func (o *ServingEnvironment) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetName returns the Name field value
+func (o *ServingEnvironment) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *ServingEnvironment) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *ServingEnvironment) SetName(v string) {
+	o.Name = v
+}
+
 func (o ServingEnvironment) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -279,7 +279,6 @@ func (o ServingEnvironment) MarshalJSON() ([]byte, error) {
 
 func (o ServingEnvironment) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["name"] = o.Name
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -298,6 +297,7 @@ func (o ServingEnvironment) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
+	toSerialize["name"] = o.Name
 	return toSerialize, nil
 }
 

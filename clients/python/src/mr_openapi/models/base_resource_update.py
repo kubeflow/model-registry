@@ -24,7 +24,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class BaseResourceUpdate(BaseModel):
     """BaseResourceUpdate."""  # noqa: E501
 
-    name: StrictStr | None = None
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -36,7 +35,7 @@ class BaseResourceUpdate(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    __properties: ClassVar[list[str]] = ["name", "customProperties", "description", "externalId"]
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -67,11 +66,8 @@ class BaseResourceUpdate(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "name",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -98,7 +94,6 @@ class BaseResourceUpdate(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None

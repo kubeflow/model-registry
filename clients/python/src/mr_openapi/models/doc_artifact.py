@@ -25,10 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class DocArtifact(BaseModel):
     """A document."""  # noqa: E501
 
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.",
-    )
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -40,12 +36,6 @@ class DocArtifact(BaseModel):
         description="The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
@@ -57,17 +47,24 @@ class DocArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
+    name: StrictStr | None = Field(default=None, description="The name of the document artifact.")
     __properties: ClassVar[list[str]] = [
-        "name",
         "customProperties",
         "description",
         "externalId",
-        "artifactType",
-        "uri",
-        "state",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "artifactType",
+        "uri",
+        "state",
+        "name",
     ]
 
     model_config = ConfigDict(
@@ -134,7 +131,6 @@ class DocArtifact(BaseModel):
 
         return cls.model_validate(
             {
-                "name": obj.get("name"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -142,11 +138,12 @@ class DocArtifact(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
+                "uri": obj.get("uri"),
+                "state": obj.get("state"),
+                "name": obj.get("name"),
             }
         )

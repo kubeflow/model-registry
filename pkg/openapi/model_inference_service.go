@@ -19,29 +19,29 @@ var _ MappedNullable = &InferenceService{}
 
 // InferenceService An `InferenceService` entity in a `ServingEnvironment` represents a deployed `ModelVersion` from a `RegisteredModel` created by Model Serving.
 type InferenceService struct {
-	// The client provided name of the resource. This field is optional. If set, it must be unique among all the resources of the same artifact type within a database instance and cannot be changed once set.
-	Name *string `json:"name,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that comes from the client's system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
-	ModelVersionId *string `json:"modelVersionId,omitempty"`
-	// Model runtime.
-	Runtime      *string                `json:"runtime,omitempty"`
-	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
+	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	// Model runtime.
+	Runtime      *string                `json:"runtime,omitempty"`
+	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// ID of the `RegisteredModel` to serve.
 	RegisteredModelId string `json:"registeredModelId"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
 	ServingEnvironmentId string `json:"servingEnvironmentId"`
+	// The name of the inference service.
+	Name *string `json:"name,omitempty"`
 }
 
 // NewInferenceService instantiates a new InferenceService object
@@ -65,38 +65,6 @@ func NewInferenceServiceWithDefaults() *InferenceService {
 	var desiredState InferenceServiceState = INFERENCESERVICESTATE_DEPLOYED
 	this.DesiredState = &desiredState
 	return &this
-}
-
-// GetName returns the Name field value if set, zero value otherwise.
-func (o *InferenceService) GetName() string {
-	if o == nil || IsNil(o.Name) {
-		var ret string
-		return ret
-	}
-	return *o.Name
-}
-
-// GetNameOk returns a tuple with the Name field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetNameOk() (*string, bool) {
-	if o == nil || IsNil(o.Name) {
-		return nil, false
-	}
-	return o.Name, true
-}
-
-// HasName returns a boolean if a field has been set.
-func (o *InferenceService) HasName() bool {
-	if o != nil && !IsNil(o.Name) {
-		return true
-	}
-
-	return false
-}
-
-// SetName gets a reference to the given string and assigns it to the Name field.
-func (o *InferenceService) SetName(v string) {
-	o.Name = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -195,102 +163,6 @@ func (o *InferenceService) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
-func (o *InferenceService) GetModelVersionId() string {
-	if o == nil || IsNil(o.ModelVersionId) {
-		var ret string
-		return ret
-	}
-	return *o.ModelVersionId
-}
-
-// GetModelVersionIdOk returns a tuple with the ModelVersionId field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetModelVersionIdOk() (*string, bool) {
-	if o == nil || IsNil(o.ModelVersionId) {
-		return nil, false
-	}
-	return o.ModelVersionId, true
-}
-
-// HasModelVersionId returns a boolean if a field has been set.
-func (o *InferenceService) HasModelVersionId() bool {
-	if o != nil && !IsNil(o.ModelVersionId) {
-		return true
-	}
-
-	return false
-}
-
-// SetModelVersionId gets a reference to the given string and assigns it to the ModelVersionId field.
-func (o *InferenceService) SetModelVersionId(v string) {
-	o.ModelVersionId = &v
-}
-
-// GetRuntime returns the Runtime field value if set, zero value otherwise.
-func (o *InferenceService) GetRuntime() string {
-	if o == nil || IsNil(o.Runtime) {
-		var ret string
-		return ret
-	}
-	return *o.Runtime
-}
-
-// GetRuntimeOk returns a tuple with the Runtime field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetRuntimeOk() (*string, bool) {
-	if o == nil || IsNil(o.Runtime) {
-		return nil, false
-	}
-	return o.Runtime, true
-}
-
-// HasRuntime returns a boolean if a field has been set.
-func (o *InferenceService) HasRuntime() bool {
-	if o != nil && !IsNil(o.Runtime) {
-		return true
-	}
-
-	return false
-}
-
-// SetRuntime gets a reference to the given string and assigns it to the Runtime field.
-func (o *InferenceService) SetRuntime(v string) {
-	o.Runtime = &v
-}
-
-// GetDesiredState returns the DesiredState field value if set, zero value otherwise.
-func (o *InferenceService) GetDesiredState() InferenceServiceState {
-	if o == nil || IsNil(o.DesiredState) {
-		var ret InferenceServiceState
-		return ret
-	}
-	return *o.DesiredState
-}
-
-// GetDesiredStateOk returns a tuple with the DesiredState field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InferenceService) GetDesiredStateOk() (*InferenceServiceState, bool) {
-	if o == nil || IsNil(o.DesiredState) {
-		return nil, false
-	}
-	return o.DesiredState, true
-}
-
-// HasDesiredState returns a boolean if a field has been set.
-func (o *InferenceService) HasDesiredState() bool {
-	if o != nil && !IsNil(o.DesiredState) {
-		return true
-	}
-
-	return false
-}
-
-// SetDesiredState gets a reference to the given InferenceServiceState and assigns it to the DesiredState field.
-func (o *InferenceService) SetDesiredState(v InferenceServiceState) {
-	o.DesiredState = &v
-}
-
 // GetId returns the Id field value if set, zero value otherwise.
 func (o *InferenceService) GetId() string {
 	if o == nil || IsNil(o.Id) {
@@ -387,6 +259,102 @@ func (o *InferenceService) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetModelVersionId returns the ModelVersionId field value if set, zero value otherwise.
+func (o *InferenceService) GetModelVersionId() string {
+	if o == nil || IsNil(o.ModelVersionId) {
+		var ret string
+		return ret
+	}
+	return *o.ModelVersionId
+}
+
+// GetModelVersionIdOk returns a tuple with the ModelVersionId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetModelVersionIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ModelVersionId) {
+		return nil, false
+	}
+	return o.ModelVersionId, true
+}
+
+// HasModelVersionId returns a boolean if a field has been set.
+func (o *InferenceService) HasModelVersionId() bool {
+	if o != nil && !IsNil(o.ModelVersionId) {
+		return true
+	}
+
+	return false
+}
+
+// SetModelVersionId gets a reference to the given string and assigns it to the ModelVersionId field.
+func (o *InferenceService) SetModelVersionId(v string) {
+	o.ModelVersionId = &v
+}
+
+// GetRuntime returns the Runtime field value if set, zero value otherwise.
+func (o *InferenceService) GetRuntime() string {
+	if o == nil || IsNil(o.Runtime) {
+		var ret string
+		return ret
+	}
+	return *o.Runtime
+}
+
+// GetRuntimeOk returns a tuple with the Runtime field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetRuntimeOk() (*string, bool) {
+	if o == nil || IsNil(o.Runtime) {
+		return nil, false
+	}
+	return o.Runtime, true
+}
+
+// HasRuntime returns a boolean if a field has been set.
+func (o *InferenceService) HasRuntime() bool {
+	if o != nil && !IsNil(o.Runtime) {
+		return true
+	}
+
+	return false
+}
+
+// SetRuntime gets a reference to the given string and assigns it to the Runtime field.
+func (o *InferenceService) SetRuntime(v string) {
+	o.Runtime = &v
+}
+
+// GetDesiredState returns the DesiredState field value if set, zero value otherwise.
+func (o *InferenceService) GetDesiredState() InferenceServiceState {
+	if o == nil || IsNil(o.DesiredState) {
+		var ret InferenceServiceState
+		return ret
+	}
+	return *o.DesiredState
+}
+
+// GetDesiredStateOk returns a tuple with the DesiredState field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetDesiredStateOk() (*InferenceServiceState, bool) {
+	if o == nil || IsNil(o.DesiredState) {
+		return nil, false
+	}
+	return o.DesiredState, true
+}
+
+// HasDesiredState returns a boolean if a field has been set.
+func (o *InferenceService) HasDesiredState() bool {
+	if o != nil && !IsNil(o.DesiredState) {
+		return true
+	}
+
+	return false
+}
+
+// SetDesiredState gets a reference to the given InferenceServiceState and assigns it to the DesiredState field.
+func (o *InferenceService) SetDesiredState(v InferenceServiceState) {
+	o.DesiredState = &v
+}
+
 // GetRegisteredModelId returns the RegisteredModelId field value
 func (o *InferenceService) GetRegisteredModelId() string {
 	if o == nil {
@@ -435,6 +403,38 @@ func (o *InferenceService) SetServingEnvironmentId(v string) {
 	o.ServingEnvironmentId = v
 }
 
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *InferenceService) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InferenceService) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *InferenceService) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *InferenceService) SetName(v string) {
+	o.Name = &v
+}
+
 func (o InferenceService) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -445,9 +445,6 @@ func (o InferenceService) MarshalJSON() ([]byte, error) {
 
 func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Name) {
-		toSerialize["name"] = o.Name
-	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -456,15 +453,6 @@ func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.ModelVersionId) {
-		toSerialize["modelVersionId"] = o.ModelVersionId
-	}
-	if !IsNil(o.Runtime) {
-		toSerialize["runtime"] = o.Runtime
-	}
-	if !IsNil(o.DesiredState) {
-		toSerialize["desiredState"] = o.DesiredState
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
@@ -475,8 +463,20 @@ func (o InferenceService) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
+	if !IsNil(o.ModelVersionId) {
+		toSerialize["modelVersionId"] = o.ModelVersionId
+	}
+	if !IsNil(o.Runtime) {
+		toSerialize["runtime"] = o.Runtime
+	}
+	if !IsNil(o.DesiredState) {
+		toSerialize["desiredState"] = o.DesiredState
+	}
 	toSerialize["registeredModelId"] = o.RegisteredModelId
 	toSerialize["servingEnvironmentId"] = o.ServingEnvironmentId
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
 	return toSerialize, nil
 }
 
