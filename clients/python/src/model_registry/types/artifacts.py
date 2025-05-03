@@ -30,6 +30,7 @@ from mr_openapi import (
 from mr_openapi import (
     ModelArtifact as ModelArtifactBaseModel,
 )
+from mr_openapi.models import DocArtifactUpdate
 
 from .base import BaseResourceModel
 
@@ -85,11 +86,30 @@ class DocArtifact(Artifact):
 
     @override
     def create(self, **kwargs) -> Any:
-        raise NotImplementedError
+        """Create a new DocArtifact object."""
+        props = self._props_as_dict(exclude=("id", "name", "custom_properties"))
+        if "state" not in props:
+            props["state"] = ArtifactState.UNKNOWN
+        return DocArtifactBaseModel(
+            name=self.name,
+            customProperties=self._map_custom_properties(),
+            **props,
+            artifactType="doc-artifact",
+            **kwargs,
+        )
 
     @override
     def update(self, **kwargs) -> Any:
-        raise NotImplementedError
+        """Update the document artifact.
+
+        Returns:
+            DocArtifactUpdate object.
+        """
+        return DocArtifactUpdate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("custom_properties", "id", "create_time_since_epoch", "last_update_time_since_epoch")),
+            artifactType="doc-artifact",
+        )
 
     @override
     def as_basemodel(self) -> DocArtifactBaseModel:

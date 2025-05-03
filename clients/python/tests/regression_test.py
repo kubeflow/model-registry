@@ -98,7 +98,7 @@ async def test_create_standalone_model_artifact(client: ModelRegistry):
     mv = client.get_model_version("test_model", "1.0.0")
     assert mv
     assert mv.id
-    mv_ma = await client._api.upsert_model_version_artifact(new_ma, mv.id)
+    mv_ma = await client._api.update_model_version_artifact(new_ma, mv.id)
     assert mv_ma.id == new_ma.id
 
 @pytest.mark.e2e

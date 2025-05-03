@@ -83,6 +83,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/model_versions",
 			c.CreateModelVersion,
 		},
+		"CreateModelVersionArtifact": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
+			c.CreateModelVersionArtifact,
+		},
 		"CreateRegisteredModel": Route{
 			strings.ToUpper("Post"),
 			"/api/model_registry/v1alpha3/registered_models",
@@ -238,6 +243,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/model_versions/{modelversionId}",
 			c.UpdateModelVersion,
 		},
+		"UpdateModelVersionArtifact": Route{
+			strings.ToUpper("Patch"),
+			"/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts/{artifactId}",
+			c.UpdateModelVersionArtifact,
+		},
 		"UpdateRegisteredModel": Route{
 			strings.ToUpper("Patch"),
 			"/api/model_registry/v1alpha3/registered_models/{registeredmodelId}",
@@ -247,11 +257,6 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			strings.ToUpper("Patch"),
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}",
 			c.UpdateServingEnvironment,
-		},
-		"UpsertModelVersionArtifact": Route{
-			strings.ToUpper("Post"),
-			"/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
-			c.UpsertModelVersionArtifact,
 		},
 	}
 }
@@ -423,6 +428,36 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 	// Remove readonly properties before service call
 	RemoveReadOnlyModelVersionProperties(&modelVersionParam)
 	result, err := c.service.CreateModelVersion(r.Context(), modelVersionParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// CreateModelVersionArtifact - Create an Artifact in a ModelVersion
+func (c *ModelRegistryServiceAPIController) CreateModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
+	modelversionIdParam := chi.URLParam(r, "modelversionId")
+	artifactParam := *model.NewArtifactWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactRequired(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactConstraints(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyArtifactProperties(&artifactParam)
+	result, err := c.service.CreateModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1020,6 +1055,37 @@ func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWr
 	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
+// UpdateModelVersionArtifact - Update an Artifact in a ModelVersion
+func (c *ModelRegistryServiceAPIController) UpdateModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
+	modelversionIdParam := chi.URLParam(r, "modelversionId")
+	artifactIdParam := chi.URLParam(r, "artifactId")
+	artifactUpdateParam := *model.NewArtifactUpdateWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactUpdateRequired(artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactUpdateConstraints(artifactUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	// Remove readonly properties before service call
+	RemoveReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
+	result, err := c.service.UpdateModelVersionArtifact(r.Context(), modelversionIdParam, artifactIdParam, artifactUpdateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
 // UpdateRegisteredModel - Update a RegisteredModel
 func (c *ModelRegistryServiceAPIController) UpdateRegisteredModel(w http.ResponseWriter, r *http.Request) {
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
@@ -1071,36 +1137,6 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 	// Remove readonly properties before service call
 	RemoveReadOnlyServingEnvironmentUpdateProperties(&servingEnvironmentUpdateParam)
 	result, err := c.service.UpdateServingEnvironment(r.Context(), servingenvironmentIdParam, servingEnvironmentUpdateParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// UpsertModelVersionArtifact - Upsert an Artifact in a ModelVersion
-func (c *ModelRegistryServiceAPIController) UpsertModelVersionArtifact(w http.ResponseWriter, r *http.Request) {
-	modelversionIdParam := chi.URLParam(r, "modelversionId")
-	artifactParam := *model.NewArtifactWithDefaults()
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&artifactParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertArtifactRequired(artifactParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertArtifactConstraints(artifactParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	// Remove readonly properties before service call
-	RemoveReadOnlyArtifactProperties(&artifactParam)
-	result, err := c.service.UpsertModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -186,7 +186,7 @@ class ModelRegistry:
         self, mv: ModelVersion, name: str, uri: str, /, **kwargs
     ) -> ModelArtifact:
         assert mv.id is not None, "Model version must have an ID"
-        return await self._api.upsert_model_version_artifact(
+        return await self._api.create_model_version_artifact(
             ModelArtifact(name=name, uri=uri, **kwargs), mv.id
         )
 

@@ -96,7 +96,7 @@ func (s *ModelRegistryServiceAPIService) CreateModelVersion(ctx context.Context,
 }
 
 // CreateModelVersionArtifact - Create an Artifact in a ModelVersion
-func (s *ModelRegistryServiceAPIService) UpsertModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
+func (s *ModelRegistryServiceAPIService) CreateModelVersionArtifact(ctx context.Context, modelversionId string, artifact model.Artifact) (ImplResponse, error) {
 	creating := (artifact.DocArtifact != nil && artifact.DocArtifact.Id == nil) || (artifact.ModelArtifact != nil && artifact.ModelArtifact.Id == nil)
 
 	result, err := s.coreApi.UpsertModelVersionArtifact(&artifact, modelversionId)
@@ -487,6 +487,37 @@ func (s *ModelRegistryServiceAPIService) UpdateModelVersion(ctx context.Context,
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 	result, err := s.coreApi.UpsertModelVersion(&update, nil)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpdateModelVersionArtifact - Update an Artifact in a ModelVersion
+func (s *ModelRegistryServiceAPIService) UpdateModelVersionArtifact(ctx context.Context, modelversionId string, artifactId string, artifactUpdate model.ArtifactUpdate) (ImplResponse, error) {
+	_, err := s.coreApi.GetModelVersionById(modelversionId)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	artifact, err := s.converter.ConvertArtifactUpdate(&artifactUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	if artifactUpdate.DocArtifactUpdate != nil {
+		artifact.DocArtifact.Id = &artifactId
+	}
+	if artifactUpdate.ModelArtifactUpdate != nil {
+		artifact.ModelArtifact.Id = &artifactId
+	}
+	existing, err := s.coreApi.GetArtifactById(artifactId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := converter.UpdateExistingArtifact(s.reconciler, converter.NewOpenapiUpdateWrapper(existing, artifact))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	result, err := s.coreApi.UpsertArtifact(&update)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}

@@ -27,6 +27,7 @@ type ModelRegistryServiceAPIRouter interface {
 	CreateInferenceServiceServe(http.ResponseWriter, *http.Request)
 	CreateModelArtifact(http.ResponseWriter, *http.Request)
 	CreateModelVersion(http.ResponseWriter, *http.Request)
+	CreateModelVersionArtifact(http.ResponseWriter, *http.Request)
 	CreateRegisteredModel(http.ResponseWriter, *http.Request)
 	CreateRegisteredModelVersion(http.ResponseWriter, *http.Request)
 	CreateServingEnvironment(http.ResponseWriter, *http.Request)
@@ -58,9 +59,9 @@ type ModelRegistryServiceAPIRouter interface {
 	UpdateInferenceService(http.ResponseWriter, *http.Request)
 	UpdateModelArtifact(http.ResponseWriter, *http.Request)
 	UpdateModelVersion(http.ResponseWriter, *http.Request)
+	UpdateModelVersionArtifact(http.ResponseWriter, *http.Request)
 	UpdateRegisteredModel(http.ResponseWriter, *http.Request)
 	UpdateServingEnvironment(http.ResponseWriter, *http.Request)
-	UpsertModelVersionArtifact(http.ResponseWriter, *http.Request)
 }
 
 // ModelRegistryServiceAPIServicer defines the api actions for the ModelRegistryServiceAPI service
@@ -74,6 +75,7 @@ type ModelRegistryServiceAPIServicer interface {
 	CreateInferenceServiceServe(context.Context, string, model.ServeModel) (ImplResponse, error)
 	CreateModelArtifact(context.Context, model.ModelArtifact) (ImplResponse, error)
 	CreateModelVersion(context.Context, model.ModelVersion) (ImplResponse, error)
+	CreateModelVersionArtifact(context.Context, string, model.Artifact) (ImplResponse, error)
 	CreateRegisteredModel(context.Context, model.RegisteredModel) (ImplResponse, error)
 	CreateRegisteredModelVersion(context.Context, string, model.ModelVersion) (ImplResponse, error)
 	CreateServingEnvironment(context.Context, model.ServingEnvironment) (ImplResponse, error)
@@ -105,7 +107,7 @@ type ModelRegistryServiceAPIServicer interface {
 	UpdateInferenceService(context.Context, string, model.InferenceServiceUpdate) (ImplResponse, error)
 	UpdateModelArtifact(context.Context, string, model.ModelArtifactUpdate) (ImplResponse, error)
 	UpdateModelVersion(context.Context, string, model.ModelVersionUpdate) (ImplResponse, error)
+	UpdateModelVersionArtifact(context.Context, string, string, model.ArtifactUpdate) (ImplResponse, error)
 	UpdateRegisteredModel(context.Context, string, model.RegisteredModelUpdate) (ImplResponse, error)
 	UpdateServingEnvironment(context.Context, string, model.ServingEnvironmentUpdate) (ImplResponse, error)
-	UpsertModelVersionArtifact(context.Context, string, model.Artifact) (ImplResponse, error)
 }

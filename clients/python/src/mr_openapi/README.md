@@ -79,6 +79,7 @@ Class | Method | HTTP request | Description
 *ModelRegistryServiceApi* | [**create_inference_service_serve**](mr_openapi/docs/ModelRegistryServiceApi.md#create_inference_service_serve) | **POST** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves | Create a ServeModel action in a InferenceService
 *ModelRegistryServiceApi* | [**create_model_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#create_model_artifact) | **POST** /api/model_registry/v1alpha3/model_artifacts | Create a ModelArtifact
 *ModelRegistryServiceApi* | [**create_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#create_model_version) | **POST** /api/model_registry/v1alpha3/model_versions | Create a ModelVersion
+*ModelRegistryServiceApi* | [**create_model_version_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#create_model_version_artifact) | **POST** /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts | Create an Artifact in a ModelVersion
 *ModelRegistryServiceApi* | [**create_registered_model**](mr_openapi/docs/ModelRegistryServiceApi.md#create_registered_model) | **POST** /api/model_registry/v1alpha3/registered_models | Create a RegisteredModel
 *ModelRegistryServiceApi* | [**create_registered_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#create_registered_model_version) | **POST** /api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions | Create a ModelVersion in RegisteredModel
 *ModelRegistryServiceApi* | [**create_serving_environment**](mr_openapi/docs/ModelRegistryServiceApi.md#create_serving_environment) | **POST** /api/model_registry/v1alpha3/serving_environments | Create a ServingEnvironment
@@ -110,9 +111,9 @@ Class | Method | HTTP request | Description
 *ModelRegistryServiceApi* | [**update_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#update_inference_service) | **PATCH** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId} | Update a InferenceService
 *ModelRegistryServiceApi* | [**update_model_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#update_model_artifact) | **PATCH** /api/model_registry/v1alpha3/model_artifacts/{modelartifactId} | Update a ModelArtifact
 *ModelRegistryServiceApi* | [**update_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#update_model_version) | **PATCH** /api/model_registry/v1alpha3/model_versions/{modelversionId} | Update a ModelVersion
+*ModelRegistryServiceApi* | [**update_model_version_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#update_model_version_artifact) | **PATCH** /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts/{artifactId} | Update an Artifact in a ModelVersion
 *ModelRegistryServiceApi* | [**update_registered_model**](mr_openapi/docs/ModelRegistryServiceApi.md#update_registered_model) | **PATCH** /api/model_registry/v1alpha3/registered_models/{registeredmodelId} | Update a RegisteredModel
 *ModelRegistryServiceApi* | [**update_serving_environment**](mr_openapi/docs/ModelRegistryServiceApi.md#update_serving_environment) | **PATCH** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId} | Update a ServingEnvironment
-*ModelRegistryServiceApi* | [**upsert_model_version_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#upsert_model_version_artifact) | **POST** /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts | Upsert an Artifact in a ModelVersion
 
 
 ## Documentation For Models

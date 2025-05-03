@@ -5,12 +5,13 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from typing_extensions import overload
 
 from mr_openapi import (
     ApiClient,
+    ArtifactUpdate,
     Configuration,
     ModelRegistryServiceApi,
 )
@@ -26,6 +27,7 @@ from .types import (
     ModelVersion,
     RegisteredModel,
 )
+from .types.artifacts import DocArtifact
 
 ArtifactT = TypeVar("ArtifactT", bound=Artifact)
 
@@ -320,7 +322,44 @@ class ModelRegistryAPIClient:
                 )
         return ModelArtifact.from_basemodel(ma)
 
-    async def upsert_model_version_artifact(
+    async def update_model_version_artifact(
+        self, artifact: ArtifactT, model_version_id: str
+    ) -> ArtifactT:
+        """Updates a model version artifact.
+
+        Updates a model version artifact on the server.
+
+        Args:
+            artifact: Model version artifact to update.
+            model_version_id: ID of the model version this artifact will be associated to.
+
+        Returns:
+            Updated model version artifact.
+        """
+        async with self.get_client() as client:
+            if not artifact.id:
+                msg = "Artifact must have an ID to be updated"
+                raise ValueError(msg)
+            update = artifact.update()
+            if isinstance(artifact, ModelArtifact):
+                update.artifact_type = "model-artifact"
+                artifact_update = ArtifactUpdate(actual_instance=update)
+            elif isinstance(artifact, DocArtifact):
+                update.artifact_type = "doc-artifact"
+                artifact_update = ArtifactUpdate(actual_instance=update)
+            else:
+                msg = f"Unsupported artifact type: {type(artifact)}"
+                raise ValueError(msg)
+            return cast(
+                ArtifactT,
+                Artifact.validate_artifact(
+                    await client.update_model_version_artifact(
+                        model_version_id, artifact.id, artifact_update
+                    )
+                ),
+            )
+
+    async def create_model_version_artifact(
         self, artifact: ArtifactT, model_version_id: str
     ) -> ArtifactT:
         """Creates a model version artifact.
@@ -328,17 +367,17 @@ class ModelRegistryAPIClient:
         Creates a model version artifact on the server.
 
         Args:
-            artifact: Model version artifact to upsert.
+            artifact: Model version artifact to create.
             model_version_id: ID of the model version this artifact will be associated to.
 
         Returns:
-            New model version artifact.
+            Created model version artifact.
         """
         async with self.get_client() as client:
             return cast(
                 ArtifactT,
                 Artifact.validate_artifact(
-                    await client.upsert_model_version_artifact(
+                    await client.create_model_version_artifact(
                         model_version_id, artifact.wrap()
                     )
                 ),
@@ -462,3 +501,65 @@ class ModelRegistryAPIClient:
         if options:
             options.next_page_token = art_list.next_page_token
         return [Artifact.validate_artifact(art) for art in art_list.items or []]
+
+    async def create_model_artifact(
+        self, model_artifact: ModelArtifact
+    ) -> ModelArtifact:
+        """Create a model artifact.
+
+        Creates a model artifact on the server.
+
+        Args:
+            model_artifact: Model artifact to create.
+
+        Returns:
+            Created model artifact.
+        """
+        async with self.get_client() as client:
+            ma = await client.create_model_artifact(model_artifact.create())
+        return ModelArtifact.from_basemodel(ma)
+
+    async def update_model_artifact(self, artifact: ArtifactT) -> ArtifactT:
+        """Update a model artifact.
+
+        Args:
+            artifact: The model artifact to update.
+
+        Returns:
+            The updated model artifact.
+        """
+        update = artifact.update()
+        async with self.get_client() as client:
+            return await client.update_model_artifact(str(artifact.id), update)
+
+    async def upsert_model_version_artifact(
+        self, artifact: ArtifactT, model_version_id: str
+    ) -> ArtifactT:
+        """Upsert a model version artifact.
+
+        Updates or creates a model version artifact on the server.
+
+        Args:
+            artifact: Model version artifact to upsert.
+            model_version_id: ID of the model version this artifact will be associated to.
+
+        Returns:
+            Updated or created model version artifact.
+        """
+        if artifact.id:
+            return await self.update_model_version_artifact(artifact, model_version_id)
+        return await self.create_model_version_artifact(artifact, model_version_id)
+
+    def _convert_artifact(self, artifact: Any) -> ArtifactT:
+        """Convert an artifact from the API response to the appropriate type.
+
+        Args:
+            artifact: The artifact from the API response.
+
+        Returns:
+            The converted artifact.
+        """
+        if isinstance(artifact, (ModelArtifact, DocArtifact)):
+            return artifact
+        msg = f"Unknown artifact type: {type(artifact)}"
+        raise ValueError(msg)

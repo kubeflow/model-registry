@@ -222,7 +222,7 @@ async def test_insert_model_version_artifact(
         uri="test uri",
     )
     assert model_version.id
-    da = await client.upsert_model_version_artifact(model, model_version.id)
+    da = await client.create_model_version_artifact(model, model_version.id)
     assert da.id
     assert da.name == "test model"
     assert da.uri
@@ -235,11 +235,11 @@ async def test_update_model_version_artifact(
         client: ModelRegistryAPIClient, model_version: ModelVersion
 ):
     model = DocArtifact(name="updated model", uri="uri")
-    da = await client.upsert_model_version_artifact(model, str(model_version.id))
+    da = await client.create_model_version_artifact(model, str(model_version.id))
     assert da.id
     last_update = da.last_update_time_since_epoch
     da.description = "lorem ipsum"
-    da = await client.upsert_model_version_artifact(da, str(model_version.id))
+    da = await client.update_model_version_artifact(da, str(model_version.id))
 
     assert da.description == "lorem ipsum"
     assert da.last_update_time_since_epoch != last_update
@@ -263,7 +263,7 @@ async def test_insert_model_artifact(
         model_source_id="test source id",
         model_source_name="test source name",
     )
-    ma = await client.upsert_model_artifact(model)
+    ma = await client.create_model_artifact(model)
     assert ma.id
     assert ma.name == "test model"
     assert ma.uri
@@ -286,10 +286,10 @@ async def test_insert_model_artifact(
 @pytest.mark.e2e
 async def test_update_model_artifact(client: ModelRegistryAPIClient):
     model = ModelArtifact(name="updated model", uri="uri")
-    ma = await client.upsert_model_artifact(model)
+    ma = await client.create_model_artifact(model)
     last_update = ma.last_update_time_since_epoch
     ma.description = "lorem ipsum"
-    ma = await client.upsert_model_artifact(ma)
+    ma = await client.update_model_artifact(ma)
 
     assert ma.description == "lorem ipsum"
     assert ma.last_update_time_since_epoch != last_update
@@ -300,7 +300,7 @@ async def model(
         client: ModelRegistryAPIClient,
         model_version: ModelVersion,
 ) -> ModelArtifact:
-    return await client.upsert_model_version_artifact(
+    return await client.create_model_version_artifact(
         ModelArtifact(name="model", uri="uri", external_id="ma id"),
         str(model_version.id),
     )

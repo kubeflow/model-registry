@@ -118,7 +118,7 @@ async def test_model_artifact(
     )
 
     new_ma = (
-        await client.upsert_model_version_artifact(str(mv.id), Artifact(ma_create))
+        await client.create_model_version_artifact(str(mv.id), Artifact(ma_create))
     ).actual_instance
     assert new_ma is not None
     print("created MA", new_ma, "with ID", new_ma.id)
@@ -148,7 +148,7 @@ async def test_model_artifact(
     )
 
     new_da = (
-        await client.upsert_model_version_artifact(str(mv.id), Artifact(doc_art))
+        await client.create_model_version_artifact(str(mv.id), Artifact(doc_art))
     ).actual_instance
     assert new_da is not None
     print("created DA", new_da, "with ID", new_da.id)

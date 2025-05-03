@@ -615,7 +615,7 @@ paths:
       operationId: createModelVersion
       summary: Create a ModelVersion
       description: Creates a new instance of a `ModelVersion`.
-  "/api/model_registry/v1alpha3/model_versions/{modelversionId}":
+  /api/model_registry/v1alpha3/model_versions/{modelversionId}:
     summary: Path used to manage a single ModelVersion.
     description: >-
       The REST endpoint/path used to get and update single instances of an `ModelVersion`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
@@ -669,7 +669,7 @@ paths:
           type: string
         in: path
         required: true
-  "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
+  /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts:
     summary: Path used to manage the list of artifacts for a modelversion.
     description: >-
       The REST endpoint/path used to list and create zero or more `Artifact` entities for a `ModelVersion`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
@@ -698,7 +698,7 @@ paths:
       summary: List all artifacts associated with the `ModelVersion`
     post:
       requestBody:
-        description: A new or existing `Artifact` to be associated with the `ModelVersion`.
+        description: A new `Artifact` to be created and associated with the `ModelVersion`.
         content:
           application/json:
             schema:
@@ -723,12 +723,52 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-      operationId: upsertModelVersionArtifact
-      summary: Upsert an Artifact in a ModelVersion
-      description: Creates a new instance of an Artifact if needed and associates it with `ModelVersion`.
+      operationId: createModelVersionArtifact
+      summary: Create an Artifact in a ModelVersion
+      description: Creates a new instance of an Artifact and associates it with `ModelVersion`.
     parameters:
       - name: modelversionId
         description: A unique identifier for a `ModelVersion`.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts/{artifactId}:
+    patch:
+      requestBody:
+        description: Update an `ArtifactUpdate` in the `ModelVersion`.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtifactUpdate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: updateModelVersionArtifact
+      summary: Update an Artifact in a ModelVersion
+      description: Updates an existing Artifact in the `ModelVersion`.
+    parameters:
+      - name: modelversionId
+        description: A unique identifier for a `ModelVersion`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: artifactId
+        description: A unique identifier for an `Artifact`.
         schema:
           type: string
         in: path
