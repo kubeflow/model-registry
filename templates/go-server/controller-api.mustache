@@ -439,7 +439,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 	{{#isModel}}
 	// Remove readonly properties before service call
-	RemoveReadOnly{{baseType}}Properties(&{{paramName}}Param)
+	removeReadOnly{{baseType}}Properties(&{{paramName}}Param)
 	{{/isModel}}
 	{{/isBodyParam}}
 	{{/allParams}}

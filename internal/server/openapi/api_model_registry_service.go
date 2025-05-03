@@ -279,7 +279,7 @@ func (c *ModelRegistryServiceAPIController) CreateArtifact(w http.ResponseWriter
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyArtifactProperties(&artifactParam)
+	removeReadOnlyArtifactProperties(&artifactParam)
 	result, err := c.service.CreateArtifact(r.Context(), artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -309,7 +309,7 @@ func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w 
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyInferenceServiceProperties(&inferenceServiceParam)
+	removeReadOnlyInferenceServiceProperties(&inferenceServiceParam)
 	result, err := c.service.CreateEnvironmentInferenceService(r.Context(), servingenvironmentIdParam, inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -338,7 +338,7 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceService(w http.Respon
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyInferenceServiceProperties(&inferenceServiceParam)
+	removeReadOnlyInferenceServiceProperties(&inferenceServiceParam)
 	result, err := c.service.CreateInferenceService(r.Context(), inferenceServiceParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -368,7 +368,7 @@ func (c *ModelRegistryServiceAPIController) CreateInferenceServiceServe(w http.R
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyServeModelProperties(&serveModelParam)
+	removeReadOnlyServeModelProperties(&serveModelParam)
 	result, err := c.service.CreateInferenceServiceServe(r.Context(), inferenceserviceIdParam, serveModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -397,7 +397,7 @@ func (c *ModelRegistryServiceAPIController) CreateModelArtifact(w http.ResponseW
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyModelArtifactProperties(&modelArtifactParam)
+	removeReadOnlyModelArtifactProperties(&modelArtifactParam)
 	result, err := c.service.CreateModelArtifact(r.Context(), modelArtifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -426,7 +426,7 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersion(w http.ResponseWr
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyModelVersionProperties(&modelVersionParam)
+	removeReadOnlyModelVersionProperties(&modelVersionParam)
 	result, err := c.service.CreateModelVersion(r.Context(), modelVersionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -456,7 +456,7 @@ func (c *ModelRegistryServiceAPIController) CreateModelVersionArtifact(w http.Re
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyArtifactProperties(&artifactParam)
+	removeReadOnlyArtifactProperties(&artifactParam)
 	result, err := c.service.CreateModelVersionArtifact(r.Context(), modelversionIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -485,7 +485,7 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModel(w http.Respons
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyRegisteredModelProperties(&registeredModelParam)
+	removeReadOnlyRegisteredModelProperties(&registeredModelParam)
 	result, err := c.service.CreateRegisteredModel(r.Context(), registeredModelParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -515,7 +515,7 @@ func (c *ModelRegistryServiceAPIController) CreateRegisteredModelVersion(w http.
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyModelVersionProperties(&modelVersionParam)
+	removeReadOnlyModelVersionProperties(&modelVersionParam)
 	result, err := c.service.CreateRegisteredModelVersion(r.Context(), registeredmodelIdParam, modelVersionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -544,7 +544,7 @@ func (c *ModelRegistryServiceAPIController) CreateServingEnvironment(w http.Resp
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyServingEnvironmentProperties(&servingEnvironmentParam)
+	removeReadOnlyServingEnvironmentProperties(&servingEnvironmentParam)
 	result, err := c.service.CreateServingEnvironment(r.Context(), servingEnvironmentParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -954,7 +954,7 @@ func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
+	removeReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
 	result, err := c.service.UpdateArtifact(r.Context(), idParam, artifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -984,7 +984,7 @@ func (c *ModelRegistryServiceAPIController) UpdateInferenceService(w http.Respon
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyInferenceServiceUpdateProperties(&inferenceServiceUpdateParam)
+	removeReadOnlyInferenceServiceUpdateProperties(&inferenceServiceUpdateParam)
 	result, err := c.service.UpdateInferenceService(r.Context(), inferenceserviceIdParam, inferenceServiceUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1014,7 +1014,7 @@ func (c *ModelRegistryServiceAPIController) UpdateModelArtifact(w http.ResponseW
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyModelArtifactUpdateProperties(&modelArtifactUpdateParam)
+	removeReadOnlyModelArtifactUpdateProperties(&modelArtifactUpdateParam)
 	result, err := c.service.UpdateModelArtifact(r.Context(), modelartifactIdParam, modelArtifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1044,7 +1044,7 @@ func (c *ModelRegistryServiceAPIController) UpdateModelVersion(w http.ResponseWr
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyModelVersionUpdateProperties(&modelVersionUpdateParam)
+	removeReadOnlyModelVersionUpdateProperties(&modelVersionUpdateParam)
 	result, err := c.service.UpdateModelVersion(r.Context(), modelversionIdParam, modelVersionUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1075,7 +1075,7 @@ func (c *ModelRegistryServiceAPIController) UpdateModelVersionArtifact(w http.Re
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
+	removeReadOnlyArtifactUpdateProperties(&artifactUpdateParam)
 	result, err := c.service.UpdateModelVersionArtifact(r.Context(), modelversionIdParam, artifactIdParam, artifactUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1105,7 +1105,7 @@ func (c *ModelRegistryServiceAPIController) UpdateRegisteredModel(w http.Respons
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyRegisteredModelUpdateProperties(&registeredModelUpdateParam)
+	removeReadOnlyRegisteredModelUpdateProperties(&registeredModelUpdateParam)
 	result, err := c.service.UpdateRegisteredModel(r.Context(), registeredmodelIdParam, registeredModelUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -1135,7 +1135,7 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 		return
 	}
 	// Remove readonly properties before service call
-	RemoveReadOnlyServingEnvironmentUpdateProperties(&servingEnvironmentUpdateParam)
+	removeReadOnlyServingEnvironmentUpdateProperties(&servingEnvironmentUpdateParam)
 	result, err := c.service.UpdateServingEnvironment(r.Context(), servingenvironmentIdParam, servingEnvironmentUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {

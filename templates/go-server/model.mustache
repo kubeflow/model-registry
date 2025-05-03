@@ -111,8 +111,8 @@ func Assert{{classname}}Constraints(obj model.{{classname}}) error {
 	return nil
 }
 
-// RemoveReadOnly{{classname}}Properties sets all readonly properties to nil
-func RemoveReadOnly{{classname}}Properties(obj *model.{{classname}}) {
+// removeReadOnly{{classname}}Properties sets all readonly properties to nil
+func removeReadOnly{{classname}}Properties(obj *model.{{classname}}) {
 {{#Vars}}
 {{#isReadOnly}}
 	obj.{{name}} = nil

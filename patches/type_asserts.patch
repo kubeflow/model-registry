@@ -1,5 +1,5 @@
 diff --git a/internal/server/openapi/type_asserts.go b/internal/server/openapi/type_asserts.go
-index 650fea9..470472b 100644
+index 02a27fb..b73a63a 100644
 --- a/internal/server/openapi/type_asserts.go
 +++ b/internal/server/openapi/type_asserts.go
 @@ -359,21 +359,22 @@ func AssertMetadataValueConstraints(obj model.MetadataValue) error {
@@ -40,39 +40,198 @@ index 650fea9..470472b 100644
  
  	return nil
  }
-@@ -696,9 +697,12 @@ func RemoveReadOnlyArtifactListProperties(obj *model.ArtifactList) {
+@@ -690,38 +691,24 @@ func AssertSortOrderRequired(obj model.SortOrder) error {
+ 	return nil
+ }
  
- // RemoveReadOnlyArtifactProperties sets all readonly properties to nil
- func RemoveReadOnlyArtifactProperties(obj *model.Artifact) {
+-// removeReadOnlyArtifactListProperties sets all readonly properties to nil
+-func removeReadOnlyArtifactListProperties(obj *model.ArtifactList) {
+-}
+-
+-// removeReadOnlyArtifactProperties sets all readonly properties to nil
++// removeReadOnlyArtifactProperties sets all readonly properties to their zero values based on type
+ func removeReadOnlyArtifactProperties(obj *model.Artifact) {
 -	obj.Id = nil
 -	obj.CreateTimeSinceEpoch = nil
 -	obj.LastUpdateTimeSinceEpoch = nil
-+	if obj.DocArtifact != nil {
-+		RemoveReadOnlyDocArtifactProperties(obj.DocArtifact)
-+	}
-+	if obj.ModelArtifact != nil {
-+		RemoveReadOnlyModelArtifactProperties(obj.ModelArtifact)
-+	}
- }
- 
- // RemoveReadOnlyArtifactStateProperties sets all readonly properties to nil
-@@ -707,13 +711,13 @@ func RemoveReadOnlyArtifactStateProperties(obj *model.ArtifactState) {
- 
- // RemoveReadOnlyArtifactUpdateProperties sets all readonly properties to nil
- func RemoveReadOnlyArtifactUpdateProperties(obj *model.ArtifactUpdate) {
-+	if obj.DocArtifactUpdate != nil {
-+		RemoveReadOnlyDocArtifactUpdateProperties(obj.DocArtifactUpdate)
-+	}
-+	if obj.ModelArtifactUpdate != nil {
-+		RemoveReadOnlyModelArtifactUpdateProperties(obj.ModelArtifactUpdate)
-+	}
- }
--
--// RemoveReadOnlyBaseResourceListProperties sets all readonly properties to nil
--func RemoveReadOnlyBaseResourceListProperties(obj *model.BaseResourceList) {
 -}
 -
--// RemoveReadOnlyBaseResourceProperties sets all readonly properties to nil
- func RemoveReadOnlyBaseResourceProperties(obj *model.BaseResource) {
+-// removeReadOnlyArtifactStateProperties sets all readonly properties to nil
+-func removeReadOnlyArtifactStateProperties(obj *model.ArtifactState) {
++	if obj.DocArtifact != nil {
++		removeReadOnlyDocArtifactProperties(obj.DocArtifact)
++	}
++	if obj.ModelArtifact != nil {
++		removeReadOnlyModelArtifactProperties(obj.ModelArtifact)
++	}
+ }
+ 
+-// removeReadOnlyArtifactUpdateProperties sets all readonly properties to nil
++// removeReadOnlyArtifactUpdateProperties sets all readonly properties to their zero values based on type
+ func removeReadOnlyArtifactUpdateProperties(obj *model.ArtifactUpdate) {
+-}
+-
+-// removeReadOnlyBaseResourceListProperties sets all readonly properties to nil
+-func removeReadOnlyBaseResourceListProperties(obj *model.BaseResourceList) {
+-}
+-
+-// removeReadOnlyBaseResourceProperties sets all readonly properties to nil
+-func removeReadOnlyBaseResourceProperties(obj *model.BaseResource) {
+-	obj.Id = nil
+-	obj.CreateTimeSinceEpoch = nil
+-	obj.LastUpdateTimeSinceEpoch = nil
+-}
+-
+-// removeReadOnlyBaseResourceUpdateProperties sets all readonly properties to nil
+-func removeReadOnlyBaseResourceUpdateProperties(obj *model.BaseResourceUpdate) {
++	if obj.DocArtifactUpdate != nil {
++		removeReadOnlyDocArtifactUpdateProperties(obj.DocArtifactUpdate)
++	}
++	if obj.ModelArtifactUpdate != nil {
++		removeReadOnlyModelArtifactUpdateProperties(obj.ModelArtifactUpdate)
++	}
+ }
+ 
+ // removeReadOnlyDocArtifactProperties sets all readonly properties to nil
+@@ -735,18 +722,6 @@ func removeReadOnlyDocArtifactProperties(obj *model.DocArtifact) {
+ func removeReadOnlyDocArtifactUpdateProperties(obj *model.DocArtifactUpdate) {
+ }
+ 
+-// removeReadOnlyErrorProperties sets all readonly properties to nil
+-func removeReadOnlyErrorProperties(obj *model.Error) {
+-}
+-
+-// removeReadOnlyExecutionStateProperties sets all readonly properties to nil
+-func removeReadOnlyExecutionStateProperties(obj *model.ExecutionState) {
+-}
+-
+-// removeReadOnlyInferenceServiceListProperties sets all readonly properties to nil
+-func removeReadOnlyInferenceServiceListProperties(obj *model.InferenceServiceList) {
+-}
+-
+ // removeReadOnlyInferenceServiceProperties sets all readonly properties to nil
+ func removeReadOnlyInferenceServiceProperties(obj *model.InferenceService) {
  	obj.Id = nil
- 	obj.CreateTimeSinceEpoch = nil
+@@ -754,46 +729,10 @@ func removeReadOnlyInferenceServiceProperties(obj *model.InferenceService) {
+ 	obj.LastUpdateTimeSinceEpoch = nil
+ }
+ 
+-// removeReadOnlyInferenceServiceStateProperties sets all readonly properties to nil
+-func removeReadOnlyInferenceServiceStateProperties(obj *model.InferenceServiceState) {
+-}
+-
+ // removeReadOnlyInferenceServiceUpdateProperties sets all readonly properties to nil
+ func removeReadOnlyInferenceServiceUpdateProperties(obj *model.InferenceServiceUpdate) {
+ }
+ 
+-// removeReadOnlyMetadataBoolValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataBoolValueProperties(obj *model.MetadataBoolValue) {
+-}
+-
+-// removeReadOnlyMetadataDoubleValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataDoubleValueProperties(obj *model.MetadataDoubleValue) {
+-}
+-
+-// removeReadOnlyMetadataIntValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataIntValueProperties(obj *model.MetadataIntValue) {
+-}
+-
+-// removeReadOnlyMetadataProtoValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataProtoValueProperties(obj *model.MetadataProtoValue) {
+-}
+-
+-// removeReadOnlyMetadataStringValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataStringValueProperties(obj *model.MetadataStringValue) {
+-}
+-
+-// removeReadOnlyMetadataStructValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataStructValueProperties(obj *model.MetadataStructValue) {
+-}
+-
+-// removeReadOnlyMetadataValueProperties sets all readonly properties to nil
+-func removeReadOnlyMetadataValueProperties(obj *model.MetadataValue) {
+-}
+-
+-// removeReadOnlyModelArtifactListProperties sets all readonly properties to nil
+-func removeReadOnlyModelArtifactListProperties(obj *model.ModelArtifactList) {
+-}
+-
+ // removeReadOnlyModelArtifactProperties sets all readonly properties to nil
+ func removeReadOnlyModelArtifactProperties(obj *model.ModelArtifact) {
+ 	obj.Id = nil
+@@ -805,10 +744,6 @@ func removeReadOnlyModelArtifactProperties(obj *model.ModelArtifact) {
+ func removeReadOnlyModelArtifactUpdateProperties(obj *model.ModelArtifactUpdate) {
+ }
+ 
+-// removeReadOnlyModelVersionListProperties sets all readonly properties to nil
+-func removeReadOnlyModelVersionListProperties(obj *model.ModelVersionList) {
+-}
+-
+ // removeReadOnlyModelVersionProperties sets all readonly properties to nil
+ func removeReadOnlyModelVersionProperties(obj *model.ModelVersion) {
+ 	obj.Id = nil
+@@ -816,22 +751,10 @@ func removeReadOnlyModelVersionProperties(obj *model.ModelVersion) {
+ 	obj.LastUpdateTimeSinceEpoch = nil
+ }
+ 
+-// removeReadOnlyModelVersionStateProperties sets all readonly properties to nil
+-func removeReadOnlyModelVersionStateProperties(obj *model.ModelVersionState) {
+-}
+-
+ // removeReadOnlyModelVersionUpdateProperties sets all readonly properties to nil
+ func removeReadOnlyModelVersionUpdateProperties(obj *model.ModelVersionUpdate) {
+ }
+ 
+-// removeReadOnlyOrderByFieldProperties sets all readonly properties to nil
+-func removeReadOnlyOrderByFieldProperties(obj *model.OrderByField) {
+-}
+-
+-// removeReadOnlyRegisteredModelListProperties sets all readonly properties to nil
+-func removeReadOnlyRegisteredModelListProperties(obj *model.RegisteredModelList) {
+-}
+-
+ // removeReadOnlyRegisteredModelProperties sets all readonly properties to nil
+ func removeReadOnlyRegisteredModelProperties(obj *model.RegisteredModel) {
+ 	obj.Id = nil
+@@ -839,18 +762,10 @@ func removeReadOnlyRegisteredModelProperties(obj *model.RegisteredModel) {
+ 	obj.LastUpdateTimeSinceEpoch = nil
+ }
+ 
+-// removeReadOnlyRegisteredModelStateProperties sets all readonly properties to nil
+-func removeReadOnlyRegisteredModelStateProperties(obj *model.RegisteredModelState) {
+-}
+-
+ // removeReadOnlyRegisteredModelUpdateProperties sets all readonly properties to nil
+ func removeReadOnlyRegisteredModelUpdateProperties(obj *model.RegisteredModelUpdate) {
+ }
+ 
+-// removeReadOnlyServeModelListProperties sets all readonly properties to nil
+-func removeReadOnlyServeModelListProperties(obj *model.ServeModelList) {
+-}
+-
+ // removeReadOnlyServeModelProperties sets all readonly properties to nil
+ func removeReadOnlyServeModelProperties(obj *model.ServeModel) {
+ 	obj.Id = nil
+@@ -858,14 +773,6 @@ func removeReadOnlyServeModelProperties(obj *model.ServeModel) {
+ 	obj.LastUpdateTimeSinceEpoch = nil
+ }
+ 
+-// removeReadOnlyServeModelUpdateProperties sets all readonly properties to nil
+-func removeReadOnlyServeModelUpdateProperties(obj *model.ServeModelUpdate) {
+-}
+-
+-// removeReadOnlyServingEnvironmentListProperties sets all readonly properties to nil
+-func removeReadOnlyServingEnvironmentListProperties(obj *model.ServingEnvironmentList) {
+-}
+-
+ // removeReadOnlyServingEnvironmentProperties sets all readonly properties to nil
+ func removeReadOnlyServingEnvironmentProperties(obj *model.ServingEnvironment) {
+ 	obj.Id = nil
+@@ -876,7 +783,3 @@ func removeReadOnlyServingEnvironmentProperties(obj *model.ServingEnvironment) {
+ // removeReadOnlyServingEnvironmentUpdateProperties sets all readonly properties to nil
+ func removeReadOnlyServingEnvironmentUpdateProperties(obj *model.ServingEnvironmentUpdate) {
+ }
+-
+-// removeReadOnlySortOrderProperties sets all readonly properties to nil
+-func removeReadOnlySortOrderProperties(obj *model.SortOrder) {
+-}
