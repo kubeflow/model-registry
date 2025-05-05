@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "model-registry"
-version = "0.2.17"
+version = "0.2.18"
 description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
@@ -28,7 +28,7 @@ nest-asyncio = "^1.6.0"
 eval-type-backport = "^0.2.0"
 
 huggingface-hub = { version = ">=0.20.1,<0.31.0", optional = true }
-olot = { version = "^0.1.4", optional = true }
+olot = { version = "^0.1.6", optional = true }
 boto3 = { version = "^1.37.34", optional = true } 
 
 [tool.poetry.extras]

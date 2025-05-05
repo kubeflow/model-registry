@@ -7,7 +7,6 @@ import requests
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
-from tests.test_utils import get_skopeo_backend_for_local_e2e_testing
 
 from .extras.async_task_runner import AsyncTaskRunner
 
@@ -889,11 +888,12 @@ def test_upload_artifact_and_register_model_with_default_oci(
     oci_ref = "localhost:5001/foo/bar:latest"
 
     model_dir, _ = get_temp_dir_with_models
-
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
-        custom_oci_backend=get_skopeo_backend_for_local_e2e_testing(),
+        custom_oci_backend=utils._get_skopeo_backend(
+            push_args=["--dest-tls-verify=false"]
+        ),
     )
 
     assert client.upload_artifact_and_register_model(
@@ -979,3 +979,22 @@ def test_upload_artifact_and_register_model_missing_upload_params(client):
         'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
         in str(e.value)
     )
+
+
+@pytest.mark.e2e
+async  def test_register_model_with_owner(client):
+    model_params = {
+        "name": "test_model",
+        "uri": "s3",
+        "model_format_name": "test_format",
+        "model_format_version": "test_version",
+        "version": "1.0.0",
+        "owner": "test owner",
+    }
+    rm = client.register_model(
+       **model_params,
+    )
+    assert rm.id
+    assert rm.owner == model_params["owner"]
+    assert (_get_rm := client.get_registered_model(name=model_params["name"]))
+    assert _get_rm.owner == model_params["owner"]
