@@ -979,3 +979,22 @@ def test_upload_artifact_and_register_model_missing_upload_params(client):
         'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
         in str(e.value)
     )
+
+
+@pytest.mark.e2e
+async  def test_register_model_with_owner(client):
+    model_params = {
+        "name": "test_model",
+        "uri": "s3",
+        "model_format_name": "test_format",
+        "model_format_version": "test_version",
+        "version": "1.0.0",
+        "owner": "test owner",
+    }
+    rm = client.register_model(
+       **model_params,
+    )
+    assert rm.id
+    assert rm.owner == model_params["owner"]
+    assert (_get_rm := client.get_registered_model(name=model_params["name"]))
+    assert _get_rm.owner == model_params["owner"]

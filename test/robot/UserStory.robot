@@ -92,6 +92,7 @@ As a MLOps engineer I would like to store some labels
           And Dictionaries Should Be Equal   ${r["customProperties"]}  ${cp3}
 
 As a MLOps engineer I would like to store an owner for the RegisteredModel
+    # MIGRATED TO test_register_model_with_owner in pytest
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  owner=My owner
     ${rId}  Given I create a RegisteredModel    payload=${registered_model}
     ${r}  Then I get RegisteredModelByID    id=${rId}
