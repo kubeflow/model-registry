@@ -843,8 +843,7 @@ async def test_custom_async_runner_with_ray(
     client_attrs: dict[str, any], client: ModelRegistry
 ):
     import asyncio
-
-    import ray
+    ray = pytest.importorskip("ray")
     import uvloop
 
     # Check to make sure the uvloop event loop is running
