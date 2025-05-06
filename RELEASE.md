@@ -19,7 +19,7 @@ The Release of the Kubeflow Model Registry provides:
 - a container image for the Backend; known as the "KF MR Go REST server"
 - a Python client to be used in a Jupyter notebook, programmatically, or that can be integrated in the Kubeflow SDK; known as the "MR py client"
 - an optional Model Registry Custom Storage Initializer container image for KServe; the "Model Registry CSI"
-- a collection of Kubernetes Manifest, which get synchronized to the `kubeflow/manifests` repository
+- a collection of Kubernetes Manifests, which get synchronized to the `kubeflow/manifests` repository
 - an update to the Kubeflow website
 
 # Instructions
