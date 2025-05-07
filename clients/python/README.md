@@ -201,12 +201,14 @@ In order to utilize this method you must instantiate an `upload_params` object w
 Common S3 env vars will be automatically read, such ass the access_key_id, etc. It can also be provided explicitly in the `S3Params` object if desired.
 
 ```python
+from model_registry.utils import S3Params
+
 s3_upload_params = S3Params(
     bucket_name="my-bucket",
     s3_prefix="models/my_fraud_model",
 )
 
-registered_model = client.upload_artifact_and_register_model(
+registered_model = registry.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
@@ -243,12 +245,14 @@ First, you must ensure you are logged in the to appropriate OCI registry using
 Full example:
 
 ```python
+from model_registry.utils import OCIParams
+
 oci_upload_params = OCIParams(
     base_image="busybox",
     oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1"
 )
 
-registered_model = client.upload_artifact_and_register_model(
+registered_model = registry.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
