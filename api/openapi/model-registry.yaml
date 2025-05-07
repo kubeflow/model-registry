@@ -1209,52 +1209,150 @@ components:
             state:
               $ref: "#/components/schemas/ArtifactState"
     BaseExecution:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
-        - $ref: "#/components/schemas/BaseResource"
+      properties:
+        lastKnownState:
+          $ref: "#/components/schemas/ExecutionState"
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
+        id:
+          format: int64
+          description: The unique server generated id of the resource.
+          type: string
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: |-
+            Output only. Last update time of the resource since epoch in millisecond
+            since epoch.
+          type: string
+          readOnly: true
     BaseExecutionCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionUpdate"
-        - $ref: "#/components/schemas/BaseResourceCreate"
+      properties:
+        lastKnownState:
+          $ref: "#/components/schemas/ExecutionState"
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
     BaseExecutionUpdate:
-      allOf:
-        - type: object
-          properties:
-            lastKnownState:
-              $ref: "#/components/schemas/ExecutionState"
-        - $ref: "#/components/schemas/BaseResourceUpdate"
+      type: object
+      properties:
+        lastKnownState:
+          $ref: "#/components/schemas/ExecutionState"
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
     BaseResource:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
-        - type: object
-          properties:
-            id:
-              format: int64
-              description: The unique server generated id of the resource.
-              type: string
-            createTimeSinceEpoch:
-              format: int64
-              description: Output only. Create time of the resource in millisecond since epoch.
-              type: string
-              readOnly: true
-            lastUpdateTimeSinceEpoch:
-              format: int64
-              description: |-
-                Output only. Last update time of the resource since epoch in millisecond
-                since epoch.
-              type: string
-              readOnly: true
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
+        id:
+          format: int64
+          description: The unique server generated id of the resource.
+          type: string
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: |-
+            Output only. Last update time of the resource since epoch in millisecond
+            since epoch.
+          type: string
+          readOnly: true
     BaseResourceCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            name:
-              description: |-
-                The client provided name of the artifact. This field is optional. If set,
-                it must be unique among all the artifacts of the same artifact type within
-                a database instance and cannot be changed once set.
-              type: string
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
     BaseResourceList:
       required:
         - nextPageToken

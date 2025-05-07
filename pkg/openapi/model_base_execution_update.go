@@ -19,13 +19,13 @@ var _ MappedNullable = &BaseExecutionUpdate{}
 
 // BaseExecutionUpdate struct for BaseExecutionUpdate
 type BaseExecutionUpdate struct {
+	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId     *string         `json:"externalId,omitempty"`
-	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
 }
 
 // NewBaseExecutionUpdate instantiates a new BaseExecutionUpdate object
@@ -47,6 +47,38 @@ func NewBaseExecutionUpdateWithDefaults() *BaseExecutionUpdate {
 	var lastKnownState ExecutionState = EXECUTIONSTATE_UNKNOWN
 	this.LastKnownState = &lastKnownState
 	return &this
+}
+
+// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
+func (o *BaseExecutionUpdate) GetLastKnownState() ExecutionState {
+	if o == nil || IsNil(o.LastKnownState) {
+		var ret ExecutionState
+		return ret
+	}
+	return *o.LastKnownState
+}
+
+// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *BaseExecutionUpdate) GetLastKnownStateOk() (*ExecutionState, bool) {
+	if o == nil || IsNil(o.LastKnownState) {
+		return nil, false
+	}
+	return o.LastKnownState, true
+}
+
+// HasLastKnownState returns a boolean if a field has been set.
+func (o *BaseExecutionUpdate) HasLastKnownState() bool {
+	if o != nil && !IsNil(o.LastKnownState) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
+func (o *BaseExecutionUpdate) SetLastKnownState(v ExecutionState) {
+	o.LastKnownState = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -145,38 +177,6 @@ func (o *BaseExecutionUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
-func (o *BaseExecutionUpdate) GetLastKnownState() ExecutionState {
-	if o == nil || IsNil(o.LastKnownState) {
-		var ret ExecutionState
-		return ret
-	}
-	return *o.LastKnownState
-}
-
-// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *BaseExecutionUpdate) GetLastKnownStateOk() (*ExecutionState, bool) {
-	if o == nil || IsNil(o.LastKnownState) {
-		return nil, false
-	}
-	return o.LastKnownState, true
-}
-
-// HasLastKnownState returns a boolean if a field has been set.
-func (o *BaseExecutionUpdate) HasLastKnownState() bool {
-	if o != nil && !IsNil(o.LastKnownState) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
-func (o *BaseExecutionUpdate) SetLastKnownState(v ExecutionState) {
-	o.LastKnownState = &v
-}
-
 func (o BaseExecutionUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -187,6 +187,9 @@ func (o BaseExecutionUpdate) MarshalJSON() ([]byte, error) {
 
 func (o BaseExecutionUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.LastKnownState) {
+		toSerialize["lastKnownState"] = o.LastKnownState
+	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -195,9 +198,6 @@ func (o BaseExecutionUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.LastKnownState) {
-		toSerialize["lastKnownState"] = o.LastKnownState
 	}
 	return toSerialize, nil
 }
