@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "make build debug",
+        "type": "shell",
+        "command": "make build DEBUG=true",
+        "group": "build",
+        "problemMatcher": []
+      }
+    ]
+  }
+  
