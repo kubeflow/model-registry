@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
 	"strings"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -180,11 +181,11 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 
 		allowed, err := client.CanListServicesInNamespace(ctx, identity, namespace)
 		if err != nil {
-			app.forbiddenResponse(w, r, fmt.Sprintf("failed to perform SAR: %v", err))
+			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR failed for namespace %s: %v", namespace, err))
 			return
 		}
 		if !allowed {
-			app.forbiddenResponse(w, r, "access denied")
+			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR denied access to namespace %s", namespace))
 			return
 		}
 
@@ -228,11 +229,11 @@ func (app *App) RequireAccessToService(next func(http.ResponseWriter, *http.Requ
 		allowed, err := client.CanAccessServiceInNamespace(r.Context(), identity, namespace, serviceName)
 
 		if err != nil {
-			app.forbiddenResponse(w, r, "failed to perform SAR: %v")
+			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR AccessReview failed for service %s in namespace %s: %v", serviceName, namespace, err))
 			return
 		}
 		if !allowed {
-			app.forbiddenResponse(w, r, "access denied")
+			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR AccessReview denied access to service %s in namespace %s", serviceName, namespace))
 			return
 		}
 
