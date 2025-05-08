@@ -1,2 +1,6 @@
 /bin
 /static-local-run
+# Ignore personal vscode settings but keep launch/tasks
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
