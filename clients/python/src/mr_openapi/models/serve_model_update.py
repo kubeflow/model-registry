@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModelUpdate(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -37,7 +36,8 @@ class ServeModelUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    __properties: ClassVar[list[str]] = ["lastKnownState", "customProperties", "description", "externalId"]
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "lastKnownState"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -96,7 +96,6 @@ class ServeModelUpdate(BaseModel):
 
         return cls.model_validate(
             {
-                "lastKnownState": obj.get("lastKnownState"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -104,5 +103,6 @@ class ServeModelUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "lastKnownState": obj.get("lastKnownState"),
             }
         )

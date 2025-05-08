@@ -37,11 +37,6 @@ class ModelArtifactCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
     name: StrictStr | None = Field(
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
@@ -84,12 +79,15 @@ class ModelArtifactCreate(BaseModel):
         description="A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.",
         alias="modelSourceName",
     )
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
-        "uri",
-        "state",
         "name",
         "artifactType",
         "modelFormatName",
@@ -102,6 +100,8 @@ class ModelArtifactCreate(BaseModel):
         "modelSourceGroup",
         "modelSourceId",
         "modelSourceName",
+        "uri",
+        "state",
     ]
 
     model_config = ConfigDict(
@@ -168,8 +168,6 @@ class ModelArtifactCreate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
                 "name": obj.get("name"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
@@ -182,5 +180,7 @@ class ModelArtifactCreate(BaseModel):
                 "modelSourceGroup": obj.get("modelSourceGroup"),
                 "modelSourceId": obj.get("modelSourceId"),
                 "modelSourceName": obj.get("modelSourceName"),
+                "uri": obj.get("uri"),
+                "state": obj.get("state"),
             }
         )

@@ -19,7 +19,6 @@ var _ MappedNullable = &ServeModel{}
 
 // ServeModel An ML model serving action.
 type ServeModel struct {
-	LastKnownState *ExecutionState `json:"lastKnownState,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -33,7 +32,8 @@ type ServeModel struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	LastUpdateTimeSinceEpoch *string         `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	LastKnownState           *ExecutionState `json:"lastKnownState,omitempty"`
 	// ID of the `ModelVersion` that was served in `InferenceService`.
 	ModelVersionId string `json:"modelVersionId"`
 }
@@ -58,38 +58,6 @@ func NewServeModelWithDefaults() *ServeModel {
 	var lastKnownState ExecutionState = EXECUTIONSTATE_UNKNOWN
 	this.LastKnownState = &lastKnownState
 	return &this
-}
-
-// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
-func (o *ServeModel) GetLastKnownState() ExecutionState {
-	if o == nil || IsNil(o.LastKnownState) {
-		var ret ExecutionState
-		return ret
-	}
-	return *o.LastKnownState
-}
-
-// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ServeModel) GetLastKnownStateOk() (*ExecutionState, bool) {
-	if o == nil || IsNil(o.LastKnownState) {
-		return nil, false
-	}
-	return o.LastKnownState, true
-}
-
-// HasLastKnownState returns a boolean if a field has been set.
-func (o *ServeModel) HasLastKnownState() bool {
-	if o != nil && !IsNil(o.LastKnownState) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
-func (o *ServeModel) SetLastKnownState(v ExecutionState) {
-	o.LastKnownState = &v
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -316,6 +284,38 @@ func (o *ServeModel) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetLastKnownState returns the LastKnownState field value if set, zero value otherwise.
+func (o *ServeModel) GetLastKnownState() ExecutionState {
+	if o == nil || IsNil(o.LastKnownState) {
+		var ret ExecutionState
+		return ret
+	}
+	return *o.LastKnownState
+}
+
+// GetLastKnownStateOk returns a tuple with the LastKnownState field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ServeModel) GetLastKnownStateOk() (*ExecutionState, bool) {
+	if o == nil || IsNil(o.LastKnownState) {
+		return nil, false
+	}
+	return o.LastKnownState, true
+}
+
+// HasLastKnownState returns a boolean if a field has been set.
+func (o *ServeModel) HasLastKnownState() bool {
+	if o != nil && !IsNil(o.LastKnownState) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastKnownState gets a reference to the given ExecutionState and assigns it to the LastKnownState field.
+func (o *ServeModel) SetLastKnownState(v ExecutionState) {
+	o.LastKnownState = &v
+}
+
 // GetModelVersionId returns the ModelVersionId field value
 func (o *ServeModel) GetModelVersionId() string {
 	if o == nil {
@@ -350,9 +350,6 @@ func (o ServeModel) MarshalJSON() ([]byte, error) {
 
 func (o ServeModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.LastKnownState) {
-		toSerialize["lastKnownState"] = o.LastKnownState
-	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
@@ -373,6 +370,9 @@ func (o ServeModel) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	}
+	if !IsNil(o.LastKnownState) {
+		toSerialize["lastKnownState"] = o.LastKnownState
 	}
 	toSerialize["modelVersionId"] = o.ModelVersionId
 	return toSerialize, nil
