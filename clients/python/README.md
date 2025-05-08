@@ -188,6 +188,12 @@ By default, all queries will be `ascending`, but this method is also available f
 > Advanced usage note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
 
+#### Implementation notes
+
+The pager will manage pages for you in order to prevent infinite looping.
+Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
+
+
 ### Uploading local models to external storage and registering them
 
 To both upload and register a model, use the convenience method `upload_artifact_and_register_model`.
@@ -299,11 +305,6 @@ oci_upload_params = OCIParams(
     custom_oci_backend=custom_oci_backend,
 )
 ```
-
-#### Implementation notes
-
-The pager will manage pages for you in order to prevent infinite looping.
-Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
 
 ### Running ModelRegistry on Ray or Uvloop
