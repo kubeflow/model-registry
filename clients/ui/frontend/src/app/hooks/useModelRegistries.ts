@@ -1,11 +1,12 @@
 import * as React from 'react';
-import useFetchState, {
+import {
+  useDeepCompareMemoize,
   FetchState,
   FetchStateCallbackPromise,
-} from '~/shared/utilities/useFetchState';
+  useFetchState,
+} from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
 import { getListModelRegistries } from '~/app/api/k8s';
-import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
 
 const useModelRegistries = (queryParams: Record<string, unknown>): FetchState<ModelRegistry[]> => {
   const paramsMemo = useDeepCompareMemoize(queryParams);

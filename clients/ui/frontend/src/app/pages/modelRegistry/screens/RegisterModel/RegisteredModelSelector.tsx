@@ -1,9 +1,9 @@
 import React from 'react';
 import { FormGroup, TextInput } from '@patternfly/react-core';
+import { useThemeContext, TypeaheadSelect } from 'mod-arch-shared';
+import { TypeaheadSelectOption } from 'mod-arch-shared/dist/components/TypeaheadSelect';
 import { RegisteredModel } from '~/app/types';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import TypeaheadSelect, { TypeaheadSelectOption } from '~/shared/components/TypeaheadSelect';
-import { useThemeContext } from '~/app/ThemeContext';
 
 type RegisteredModelSelectorProps = {
   registeredModels: RegisteredModel[];

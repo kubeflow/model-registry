@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { mockModArchResponse } from 'mod-arch-shared';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
@@ -8,7 +9,6 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import type { ModelRegistry, ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistryMetadataType, ModelState } from '~/app/types';
-import { mockBFFResponse } from '~/__mocks__/utils';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -296,7 +296,7 @@ describe('Restoring archive model', () => {
     notification.find();
 
     cy.wait('@modelRestored').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'LIVE' }));
     });
   });
 
@@ -323,7 +323,7 @@ describe('Restoring archive model', () => {
     notification.find();
 
     cy.wait('@modelRestored').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'LIVE' }));
     });
   });
 });
@@ -355,7 +355,7 @@ describe('Archiving model', () => {
     notification.find();
 
     cy.wait('@modelArchived').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'ARCHIVED' }));
     });
   });
 
@@ -390,7 +390,7 @@ describe('Archiving model', () => {
     notification.find();
 
     cy.wait('@modelArchived').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'ARCHIVED' }));
     });
   });
 });

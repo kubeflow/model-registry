@@ -8,11 +8,16 @@ import {
 } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
+import {
+  ProjectObjectType,
+  typedEmptyImage,
+  asEnumMember,
+  useThemeContext,
+  SimpleSelect,
+} from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
-import SimpleSelect from '~/shared/components/SimpleSelect';
 import {
   registeredModelArchiveUrl,
   registerModelUrl,
@@ -20,9 +25,7 @@ import {
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
-import { asEnumMember } from '~/shared/utilities/utils';
 import { filterArchiveModels, filterLiveModels } from '~/app/utils';
-import { useThemeContext } from '~/app/ThemeContext';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
 

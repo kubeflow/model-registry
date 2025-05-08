@@ -1,7 +1,6 @@
+import { GenericObjectState } from 'mod-arch-shared';
+import useGenericObjectState from 'mod-arch-shared/dist/utilities/useGenericObjectState';
 import { ModelRegistryCustomProperties } from '~/app/types';
-import useGenericObjectState, {
-  GenericObjectState,
-} from '~/shared/utilities/useGenericObjectState';
 
 export enum ModelLocationType {
   ObjectStorage = 'Object storage',

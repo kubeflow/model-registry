@@ -12,10 +12,8 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-icons';
-import { KeyValuePair } from '~/shared/types';
-import { EitherNotBoth } from '~/shared/typeHelpers';
+import { KeyValuePair, useThemeContext, EitherNotBoth } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
 import { isValidHttpUrl } from './utils';
 
 type ModelPropertiesTableRowProps = {
