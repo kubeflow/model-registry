@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { useThemeContext } from '~/app/ThemeContext';
 
 interface FormFieldsetProps {
   component: ReactNode;
@@ -6,17 +7,25 @@ interface FormFieldsetProps {
   className?: string;
 }
 
-const FormFieldset: React.FC<FormFieldsetProps> = ({ component, field, className }) => (
-  <div className={className ?? 'form-fieldset-wrapper'}>
-    {component}
-    <fieldset aria-hidden="true" className="form-fieldset">
-      {field && (
-        <legend className="form-fieldset-legend">
-          <span>{field}</span>
-        </legend>
-      )}
-    </fieldset>
-  </div>
-);
+const FormFieldset: React.FC<FormFieldsetProps> = ({ component, field, className }) => {
+  const { isMUITheme } = useThemeContext();
+
+  if (!isMUITheme) {
+    return <>{component}</>;
+  }
+
+  return (
+    <div className={className ?? 'form-fieldset-wrapper'}>
+      {component}
+      <fieldset aria-hidden="true" className="form-fieldset">
+        {field && (
+          <legend className="form-fieldset-legend">
+            <span>{field}</span>
+          </legend>
+        )}
+      </fieldset>
+    </div>
+  );
+};
 
 export default FormFieldset;
