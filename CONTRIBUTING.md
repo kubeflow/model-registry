@@ -8,7 +8,7 @@ The contributor's guide:
 
 * explains how to use the Developer Certificate of Origin (DCO) with git commit system
   * like explained in [this guide](https://wiki.linuxfoundation.org/dco), or [this example](https://github.com/kubeflow/community/tree/master/dco-signoff-hook#signing-off-commits)
-* references the [Code of Conducts](https://www.kubeflow.org/docs/about/contributing/#follow-the-code-of-conduct)
+* references the [Code of Conduct](https://www.kubeflow.org/docs/about/contributing/#follow-the-code-of-conduct)
 * helps you get started with your first contribution to Kubeflow
   * like how to identify [good-first-issue](https://github.com/kubeflow/model-registry/labels/good%20first%20issue) tickets
 * and [describes](https://www.kubeflow.org/docs/about/contributing/#owners-files-and-pr-workflow) the pull request and review workflow in detail, including the
