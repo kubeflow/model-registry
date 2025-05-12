@@ -997,3 +997,66 @@ async  def test_register_model_with_owner(client):
     assert rm.owner == model_params["owner"]
     assert (_get_rm := client.get_registered_model(name=model_params["name"]))
     assert _get_rm.owner == model_params["owner"]
+
+
+@pytest.mark.e2e
+async def test_register_model_with_s3_data_connection(client: ModelRegistry):
+    """As a MLOps engineer I want to track a Model from an S3 bucket Data Connection"""
+    data_connection_name = "aws-connection-my-data-connection"
+    s3_bucket = "my-bucket"
+    s3_path = "my-path"
+    s3_endpoint = "https://minio-api.acme.org"
+    s3_region = "us-east-1"
+
+    # Create the S3 URI using the utility function
+    uri = utils.s3_uri_from(
+        path=s3_path,
+        bucket=s3_bucket,
+        endpoint=s3_endpoint,
+        region=s3_region
+    )
+
+    model_params = {
+        "name": "test_model",
+        "uri": uri,
+        "model_format_name": "onnx",
+        "model_format_version": "1",
+        "version": "v1.0",
+        "description": "The Model",  # This will be set on the model version
+        "storage_key": data_connection_name,
+        "storage_path": s3_path
+    }
+
+    # Register the model with S3 connection details
+    rm = client.register_model(**model_params)
+    assert rm.id
+
+    # Get model version ID by name and parent model ID
+    mv = await client._api.get_model_version_by_params(rm.id, model_params["version"])
+    assert mv
+    assert mv.id
+
+    # Get model artifact ID by name and parent version ID
+    ma = await client._api.get_model_artifact_by_params(model_params["name"], mv.id)
+    assert ma
+    assert ma.id
+
+    # Now fetch each resource by their ID
+    rm_by_id = await client._api.get_registered_model_by_id(rm.id)
+    assert rm_by_id
+    assert rm_by_id.id == rm.id
+
+    mv_by_id = await client._api.get_model_version_by_id(mv.id)
+    assert mv_by_id
+    assert mv_by_id.id == mv.id
+    assert mv_by_id.description == "The Model"  # This is set during registration
+    assert mv_by_id.name == "v1.0"
+
+    ma_by_id = await client._api.get_model_artifact_by_id(ma.id)
+    assert ma_by_id
+    assert ma_by_id.id == ma.id
+    assert ma_by_id.uri == uri
+    assert ma_by_id.model_format_name == "onnx"
+    assert ma_by_id.model_format_version == "1"
+    assert ma_by_id.storage_key == data_connection_name
+    assert ma_by_id.storage_path == s3_path
