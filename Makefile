@@ -94,17 +94,14 @@ internal/converter/generated/converter.go: internal/converter/*.go
 .PHONY: gen/converter
 gen/converter: gen/grpc internal/converter/generated/converter.go
 
-YQ_EXPR := 'sort_keys(.components.schemas) | sort_keys(.paths) | sort_keys(.components.responses)'
-
-.PHONY: fmt/openapi
-fmt/openapi: api/openapi/model-registry.yaml bin/yq
-	@$(YQ) -i $(YQ_EXPR) $<
+api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi/src/lib/*.yaml bin/yq
+	scripts/merge_openapi.sh model-registry.yaml
 
 # validate the openapi schema
 .PHONY: openapi/validate
-openapi/validate: api/openapi/model-registry.yaml bin/openapi-generator-cli bin/yq
-	@$(YQ) $(YQ_EXPR) $< | diff -u $< - || (echo "$< is incorrectly formatted. Run 'make fmt/openapi' to fix it."; exit 1)
-	$(OPENAPI_GENERATOR) validate -i $<
+openapi/validate: bin/openapi-generator-cli bin/yq
+	@scripts/merge_openapi.sh --check model-registry.yaml || (echo "api/openapi/model-registry.yaml is incorrectly formatted. Run 'make api/openapi/model-registry.yaml' to fix it."; exit 1)
+	$(OPENAPI_GENERATOR) validate -i api/openapi/model-registry.yaml
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
@@ -115,7 +112,7 @@ internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
-gen/openapi: bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
+gen/openapi: api/openapi/model-registry.yaml bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
 
 pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi
 	${OPENAPI_GENERATOR} generate \
