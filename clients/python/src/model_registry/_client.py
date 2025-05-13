@@ -604,17 +604,14 @@ class ModelRegistry:
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
         )
-        try:
-            return self.__upload_to_s3(
-                path=path,
-                path_prefix=s3_prefix,
-                bucket=bucket_name,
-                s3=s3,
-                endpoint_url=endpoint_url,
-                region=region,
-            )
-        except Exception as e:
-            raise e
+        return self.__upload_to_s3(
+            path=path,
+            path_prefix=s3_prefix,
+            bucket=bucket_name,
+            s3=s3,
+            endpoint_url=endpoint_url,
+            region=region,
+        )
 
     def __upload_to_s3(  # noqa: C901
         self,
