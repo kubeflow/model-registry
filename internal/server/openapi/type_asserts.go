@@ -83,66 +83,6 @@ func AssertArtifactUpdateRequired(obj model.ArtifactUpdate) error {
 	return nil
 }
 
-// AssertBaseArtifactConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactConstraints(obj model.BaseArtifact) error {
-	return nil
-}
-
-// AssertBaseArtifactCreateConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactCreateConstraints(obj model.BaseArtifactCreate) error {
-	return nil
-}
-
-// AssertBaseArtifactCreateRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactCreateRequired(obj model.BaseArtifactCreate) error {
-	return nil
-}
-
-// AssertBaseArtifactRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactRequired(obj model.BaseArtifact) error {
-	return nil
-}
-
-// AssertBaseArtifactUpdateConstraints checks if the values respects the defined constraints
-func AssertBaseArtifactUpdateConstraints(obj model.BaseArtifactUpdate) error {
-	return nil
-}
-
-// AssertBaseArtifactUpdateRequired checks if the required fields are not zero-ed
-func AssertBaseArtifactUpdateRequired(obj model.BaseArtifactUpdate) error {
-	return nil
-}
-
-// AssertBaseExecutionConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionConstraints(obj model.BaseExecution) error {
-	return nil
-}
-
-// AssertBaseExecutionCreateConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionCreateConstraints(obj model.BaseExecutionCreate) error {
-	return nil
-}
-
-// AssertBaseExecutionCreateRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionCreateRequired(obj model.BaseExecutionCreate) error {
-	return nil
-}
-
-// AssertBaseExecutionRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionRequired(obj model.BaseExecution) error {
-	return nil
-}
-
-// AssertBaseExecutionUpdateConstraints checks if the values respects the defined constraints
-func AssertBaseExecutionUpdateConstraints(obj model.BaseExecutionUpdate) error {
-	return nil
-}
-
-// AssertBaseExecutionUpdateRequired checks if the required fields are not zero-ed
-func AssertBaseExecutionUpdateRequired(obj model.BaseExecutionUpdate) error {
-	return nil
-}
-
 // AssertBaseResourceConstraints checks if the values respects the defined constraints
 func AssertBaseResourceConstraints(obj model.BaseResource) error {
 	return nil

@@ -36,24 +36,24 @@ class DocArtifactCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
     name: StrictStr | None = Field(
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
     artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
-        "uri",
-        "state",
         "name",
         "artifactType",
+        "uri",
+        "state",
     ]
 
     model_config = ConfigDict(
@@ -120,9 +120,9 @@ class DocArtifactCreate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
                 "name": obj.get("name"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
+                "uri": obj.get("uri"),
+                "state": obj.get("state"),
             }
         )

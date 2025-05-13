@@ -6,12 +6,6 @@ model_artifact_create.go
 model_artifact_list.go
 model_artifact_state.go
 model_artifact_update.go
-model_base_artifact.go
-model_base_artifact_create.go
-model_base_artifact_update.go
-model_base_execution.go
-model_base_execution_create.go
-model_base_execution_update.go
 model_base_resource.go
 model_base_resource_create.go
 model_base_resource_list.go
