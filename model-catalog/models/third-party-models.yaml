@@ -443,6 +443,8 @@ models:
       are quantized using a symmetric per-tensor (dynamic) scheme, whereas weights are quantized using a symmetric 
       per-channel scheme. The quantized model is obtained with the llm-compressor library.
   readme: |-
+    [View Red Hat validated benchmark performance and accuracy evaluations for this model.](https://oa.jounce.io/mc/model/88ca670f-2c41-44b3-942e-8cf43a059fcd)
+
     # Mistral-Small-24B-Instruct-FP8-dynamic
 
     ## Model Overview
@@ -540,7 +542,6 @@ models:
   language: ["en", "fr", "de", "es", "it", "pt", "zh", "ja", "ru", "ko"]
   license: apache-2.0
   licenseLink: https://huggingface.co/datasets/choosealicense/licenses/blob/main/markdown/apache-2.0.md
-  modelInsights: https://oa.jounce.io/mc/model/88ca670f-2c41-44b3-942e-8cf43a059fcd
   maturity: Generally Available
   libraryName: transformers
   baseModel:
@@ -725,6 +726,8 @@ models:
     requirements (by approximately 50%) and increasing matrix-multiply compute throughput (by approximately 2x). Weight 
     quantization also reduces disk size requirements by approximately 50%. The llm-compressor library is used for quantization.
   readme: |-
+    [View Red Hat validated benchmark performance and accuracy evaluations for this model.](https://oa.jounce.io/mc/model/ee2e3c43-9b5c-45b1-bade-704a9fbc0e44)
+
     # Llama-4-Scout-17B-16E-Instruct-FP8-dynamic
 
     ## Model Overview
@@ -881,7 +884,6 @@ models:
   language: ["ar","de","en","es","fr","hi","id","it","pt","th","tl","vi"]
   license: llama4
   licenseLink: https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct/blob/main/LICENSE
-  modelInsights: https://oa.jounce.io/mc/model/ee2e3c43-9b5c-45b1-bade-704a9fbc0e44
   maturity: Generally Available
   libraryName: transformers
   baseModel:
@@ -917,6 +919,8 @@ models:
     3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source 
     and closed chat models on common industry benchmarks.
   readme: |-
+    [View Red Hat validated benchmark performance and accuracy evaluations for this model.](https://oa.jounce.io/mc/model/4ca530c4-5967-4e80-b5bd-6f2cb289194a)
+
     ## Model Information
 
     The Meta Llama 3.3 multilingual large language model (LLM) is an instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.
@@ -991,7 +995,6 @@ models:
   language: ["en","fr","it","pt","hi","es","th","de"]
   license: llama3.3
   licenseLink: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct/blob/main/LICENSE
-  modelInsights: https://oa.jounce.io/mc/model/4ca530c4-5967-4e80-b5bd-6f2cb289194a
   maturity: Generally Available
   libraryName: transformers
   baseModel:
@@ -1023,6 +1026,8 @@ models:
     not have any moderation mechanisms. We're looking forward to engaging with the community on ways to make the model finely respect guardrails, allowing 
     for deployment in environments requiring moderated outputs.
   readme: |-
+    [View Red Hat validated benchmark performance and accuracy evaluations for this model.](https://oa.jounce.io/mc/model/3ff8f36d-b848-473a-9e24-036452298edd)
+
     # Model Card for Mixtral-8x7B
 
     ### Tokenization with `mistral-common`
@@ -1136,7 +1141,6 @@ models:
   language: ["fr","it","de","es","en"]
   license: apache-2.0
   licenseLink: https://huggingface.co/datasets/choosealicense/licenses/blob/main/markdown/apache-2.0.md
-  modelInsights: https://oa.jounce.io/mc/model/3ff8f36d-b848-473a-9e24-036452298edd
   maturity: Generally Available
   libraryName: transformers
   baseModel:
@@ -1161,6 +1165,8 @@ models:
     This model was obtained by quantizing the weights of Mistral-Small-3.1-24B-Instruct-2503 to INT4 data type. This optimization 
     reduces the number of bits per parameter from 16 to 4, reducing the disk size and GPU memory requirements by approximately 75%.
   readme: |-
+    [View Red Hat validated benchmark performance and accuracy evaluations for this model.](https://oa.jounce.io/mc/model/6b562afd-0920-4503-b720-90bb0fb84347)
+
     # Mistral-Small-3.1-24B-Instruct-2503-quantized.w4a16
 
     ## Model Overview
@@ -1356,7 +1362,6 @@ models:
   language: ["en","fr","de","es","pt","it","ja","ko","ru","zh","ar","fa","id","ms","ne","pl","ro","sr","sv","tr","uk","vi","hi","bn"]
   license: apache-2.0
   licenseLink: https://huggingface.co/datasets/choosealicense/licenses/blob/main/markdown/apache-2.0.md
-  modelInsights: https://oa.jounce.io/mc/model/6b562afd-0920-4503-b720-90bb0fb84347
   maturity: Generally Available
   libraryName: Transformers
   baseModel:
@@ -1832,7 +1837,7 @@ models:
   artifacts:
     - protocol: oci
       tags: ["1.5.0"]
-      uri: oci//registry.redhat.io/rhelai1/modelcar-mixtral-8x22b-v0-1-quantized-w4a16:1.5
+      uri: oci://registry.redhat.io/rhelai1/modelcar-mixtral-8x22b-v0-1-quantized-w4a16:1.5
 - repository: RedHatAI
   name: Pixtral-Large-Instruct-2411-hf-quantized.w8a8
   provider: Red Hat AI
