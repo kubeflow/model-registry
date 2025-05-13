@@ -1,4 +1,4 @@
-package datastore
+package mlmd
 
 import (
 	"errors"
