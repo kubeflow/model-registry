@@ -1031,32 +1031,19 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
     rm = client.register_model(**model_params)
     assert rm.id
 
-    # Get model version ID by name and parent model ID
-    mv = await client._api.get_model_version_by_params(rm.id, model_params["version"])
-    assert mv
-    assert mv.id
+    # Get and verify the registered model
+    rm_by_name = client.get_registered_model(model_params["name"])
+    assert rm_by_name.id == rm.id
 
-    # Get model artifact ID by name and parent version ID
-    ma = await client._api.get_model_artifact_by_params(model_params["name"], mv.id)
-    assert ma
-    assert ma.id
+    # Get and verify the model version
+    mv = client.get_model_version(model_params["name"], model_params["version"])
+    assert mv.description == "The Model"
+    assert mv.name == "v1.0"
 
-    # Now fetch each resource by their ID
-    rm_by_id = await client._api.get_registered_model_by_id(rm.id)
-    assert rm_by_id
-    assert rm_by_id.id == rm.id
-
-    mv_by_id = await client._api.get_model_version_by_id(mv.id)
-    assert mv_by_id
-    assert mv_by_id.id == mv.id
-    assert mv_by_id.description == "The Model"  # This is set during registration
-    assert mv_by_id.name == "v1.0"
-
-    ma_by_id = await client._api.get_model_artifact_by_id(ma.id)
-    assert ma_by_id
-    assert ma_by_id.id == ma.id
-    assert ma_by_id.uri == uri
-    assert ma_by_id.model_format_name == "onnx"
-    assert ma_by_id.model_format_version == "1"
-    assert ma_by_id.storage_key == data_connection_name
-    assert ma_by_id.storage_path == s3_path
+    # Get and verify the model artifact
+    ma = client.get_model_artifact(model_params["name"], model_params["version"])
+    assert ma.uri == uri
+    assert ma.model_format_name == "onnx"
+    assert ma.model_format_version == "1"
+    assert ma.storage_key == data_connection_name
+    assert ma.storage_path == s3_path
