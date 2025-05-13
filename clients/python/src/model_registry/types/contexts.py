@@ -81,17 +81,17 @@ class ModelVersion(BaseResourceModel):
             if source.custom_properties
             else None,
         )
-    
+
     def __repr_str__(self, join_str: str) -> str:
-        """overrides pydantic Representation.__repr_str__ to bring name to the front"""
+        """Overrides pydantic Representation.__repr_str__ to bring name to the front."""
         result = []
         for a, v in self.__repr_args__():
             if a is None:
                 result.append(repr(v))
             elif a == "name":
-                result.insert(0, f'{a}={v!r}')
+                result.insert(0, f"{a}={v!r}")
             else:
-                result.append(f'{a}={v!r}')
+                result.append(f"{a}={v!r}")
         return join_str.join(result)
 
 
@@ -143,15 +143,15 @@ class RegisteredModel(BaseResourceModel):
             if source.custom_properties
             else None,
         )
-    
+
     def __repr_str__(self, join_str: str) -> str:
-        """overrides pydantic Representation.__repr_str__ to bring name to the front"""
+        """Overrides pydantic Representation.__repr_str__ to bring name to the front."""
         result = []
         for a, v in self.__repr_args__():
             if a is None:
                 result.append(repr(v))
             elif a == "name":
-                result.insert(0, f'{a}={v!r}')
+                result.insert(0, f"{a}={v!r}")
             else:
-                result.append(f'{a}={v!r}')
+                result.append(f"{a}={v!r}")
         return join_str.join(result)
