@@ -32,13 +32,13 @@ The `scripts/update-unmanaged-sources-configmap.sh` script updates the `model-ca
 Using the default namespace (redhat-ods-applications):
 
 ```bash
-./scripts/update-unmanaged-sources-configmap.sh models/neural-magic-models.yaml
+./scripts/update-unmanaged-sources-configmap.sh models/third-party-models.yaml
 ```
 
 Using the opendatahub namespace:
 
 ```bash
-./scripts/update-unmanaged-sources-configmap.sh models/neural-magic-models.yaml opendatahub
+./scripts/update-unmanaged-sources-configmap.sh models/third-party-models.yaml opendatahub
 ```
 
 ### Prerequisites
