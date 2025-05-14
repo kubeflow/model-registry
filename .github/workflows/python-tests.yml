@@ -114,7 +114,7 @@ jobs:
 
   test:
     name: Test against Py ${{ matrix.python }} and K8s ${{ matrix.kubernetes-version }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -194,6 +194,11 @@ jobs:
           node_image: kindest/node:${{ matrix.kubernetes-version }}
           cluster_name: chart-testing-py-${{ matrix.python }}
           kubectl_version: ${{ matrix.kubernetes-version }}
+      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
+        run: |
+          set -x
+          sudo apt install apparmor-utils
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Load Local Registry Test Image
         env:
           IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
