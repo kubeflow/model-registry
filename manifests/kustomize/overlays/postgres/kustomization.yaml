@@ -52,7 +52,7 @@ replacements:
   targets:
   - fieldPaths:
     - spec.template.metadata.annotations.[traffic.sidecar.istio.io/excludeOutboundPorts]
-    select: 
+    select:
       group: apps
       kind: Deployment
       name: model-registry-deployment
