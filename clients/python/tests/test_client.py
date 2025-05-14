@@ -843,6 +843,7 @@ async def test_custom_async_runner_with_ray(
     client_attrs: dict[str, any], client: ModelRegistry
 ):
     import asyncio
+
     ray = pytest.importorskip("ray")
     import uvloop
 
@@ -981,7 +982,7 @@ def test_upload_artifact_and_register_model_missing_upload_params(client):
 
 
 @pytest.mark.e2e
-async  def test_register_model_with_owner(client):
+async def test_register_model_with_owner(client):
     model_params = {
         "name": "test_model",
         "uri": "s3",
@@ -991,7 +992,7 @@ async  def test_register_model_with_owner(client):
         "owner": "test owner",
     }
     rm = client.register_model(
-       **model_params,
+        **model_params,
     )
     assert rm.id
     assert rm.owner == model_params["owner"]
@@ -1047,3 +1048,48 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
     assert ma.model_format_version == "1"
     assert ma.storage_key == data_connection_name
     assert ma.storage_path == s3_path
+
+
+@pytest.mark.e2e
+def test_upload_large_model_file(
+    get_large_model_dir, patch_s3_env, client: ModelRegistry
+):
+    """Test uploading and registering a large model file (300-500MB)."""
+    pytest.importorskip("boto3")
+    import boto3
+
+    # Verify the large model file exists and has correct size
+    model_file = os.path.join(get_large_model_dir, "large_model.onnx")
+    file_size = os.path.getsize(model_file)
+    assert 300 * 1024 * 1024 <= file_size <= 500 * 1024 * 1024, (
+        f"File size {file_size} bytes is not in expected range"
+    )
+
+    version = "1.0.0"
+    prefix = "large_models"
+    bucket, s3_endpoint, access_key_id, secret_access_key, region = patch_s3_env
+
+    client.upload_artifact_and_register_model(
+        "large_test_model",
+        model_files_path=get_large_model_dir,
+        author="Tester McTesterson",
+        version=version,
+        model_format_name="test_format",
+        model_format_version="test_version",
+        upload_params=utils.S3Params(
+            bucket,
+            prefix,
+            s3_endpoint,
+            access_key_id,
+            secret_access_key,
+            region,
+            multipart_threshold=1024 * 1024,  # 1MB
+            multipart_chunksize=1024 * 1024,  # 1MB
+            max_pool_connections=10,
+        ),
+    )
+
+    # Verify the model was registered correctly
+    mv = client.get_model_artifact(name="large_test_model", version=version)
+    assert mv
+    assert mv.name == "large_test_model"

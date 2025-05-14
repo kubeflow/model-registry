@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,6 +22,7 @@ T = TypeVar("T")
 
 # If we want to forward reference
 if TYPE_CHECKING:
+    from boto3.s3.transfer import TransferConfig
     from botocore.client import BaseClient
 
 
@@ -276,6 +278,9 @@ class S3Params:
     access_key_id: str | None = None
     secret_access_key: str | None = None
     region: str | None = None
+    multipart_threshold: int = 1024 * 1024
+    multipart_chunksize: int = 1024 * 1024
+    max_pool_connections: int = 10
 
 
 # A dict mapping backend names to their definitions
@@ -361,8 +366,10 @@ or
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
 
+    dest_dir_cleanup = False
     if dest_dir is None:
         dest_dir = tempfile.mkdtemp()
+        dest_dir_cleanup = True
     local_image_path = Path(dest_dir)
 
     # Set params
@@ -384,7 +391,8 @@ or
     backend_def.push(local_image_path, oci_ref, **params)
 
     # Return the OCI URI
-
+    if dest_dir_cleanup:
+        shutil.rmtree(dest_dir)
     return f"oci://{oci_ref}"
 
 
@@ -448,6 +456,7 @@ def _upload_to_s3(  # noqa: C901
     *,
     endpoint_url: str | None = None,
     region: str | None = None,
+    transfer_config: TransferConfig | None = None,
 ) -> str:
     """Internal method for recursively uploading all files to S3.
 
@@ -456,6 +465,7 @@ def _upload_to_s3(  # noqa: C901
         bucket: The name of the S3 bucket.
         s3: The S3 Client object.
         path_prefix: The folder prefix to store under the root of the bucket.
+        transfer_config: The transfer config to use for the upload.
 
     Keyword Args:
         endpoint_url: The endpoint url for the S3 bucket.
@@ -479,11 +489,15 @@ def _upload_to_s3(  # noqa: C901
         endpoint=endpoint_url,
         region=region,
     )
-
     files = _get_files_from_path(path)
     for absolute_path_filename, relative_path_filename in files:
         s3_key = os.path.join(path_prefix, relative_path_filename)
-        s3.upload_file(absolute_path_filename, bucket, s3_key)
+        s3.upload_file(
+            Filename=absolute_path_filename,
+            Bucket=bucket,
+            Key=s3_key,
+            Config=transfer_config,
+        )
 
     return uri
 
@@ -493,7 +507,10 @@ def _connect_to_s3(
     access_key_id: str | None = None,
     secret_access_key: str | None = None,
     region: str | None = None,
-) -> BaseClient:
+    multipart_threshold: int = None,
+    multipart_chunksize: int = None,
+    max_pool_connections: int = None,
+) -> tuple[BaseClient, TransferConfig]:
     """Internal method to connect to Boto3 Client.
 
     Args:
@@ -501,6 +518,12 @@ def _connect_to_s3(
         access_key_id: The S3 compatible object storage access key ID.
         secret_access_key: The S3 compatible object storage secret access key.
         region: The region name for the S3 object storage.
+        multipart_threshold: The threshold for multipart uploads.
+        multipart_chunksize: The size of chunks for multipart uploads.
+        max_pool_connections: The maximum number of connections in the pool.
+
+    Returns:
+        tuple(client, config): A tuple of the Boto3 client and the TransferConfig.
 
     Raises:
         StoreError: If Boto3 is not installed.
@@ -508,6 +531,9 @@ def _connect_to_s3(
     """
     try:
         from boto3 import client  # type: ignore
+        from boto3.s3.transfer import TransferConfig
+        from botocore.config import Config
+
     except ImportError as e:
         msg = """package `boto3` is not installed.
             To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
@@ -520,13 +546,28 @@ def _connect_to_s3(
             ```            """
         raise StoreError(msg) from e
 
+    config = Config(
+        max_pool_connections=max_pool_connections,
+    )
+    transfer_config = TransferConfig(
+        multipart_threshold=multipart_threshold,
+        multipart_chunksize=multipart_chunksize,
+    )
+    print(
+        "tcx",
+        multipart_threshold,
+        multipart_chunksize,
+        multipart_threshold,
+        transfer_config,
+    )
     return client(
         "s3",
         endpoint_url=endpoint_url,
         aws_access_key_id=access_key_id,
         aws_secret_access_key=secret_access_key,
         region_name=region,
-    )
+        config=config,
+    ), transfer_config
 
 
 def _get_files_from_path(path: str) -> list[tuple[str, str]]:

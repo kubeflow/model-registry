@@ -570,6 +570,9 @@ class ModelRegistry:
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
         region: str | None = None,
+        multipart_threshold: int = 1024 * 1024,
+        multipart_chunksize: int = 1024 * 1024,
+        max_pool_connections: int = 10,
     ) -> str:
         """Saves a model to an S3 compatible storage.
 
@@ -584,6 +587,9 @@ class ModelRegistry:
             access_key_id: The S3 compatible object storage access ID.
             secret_access_key: The S3 compatible object storage secret access key.
             region: The region name for the S3 object storage.
+            multipart_threshold: The threshold for multipart uploads.
+            multipart_chunksize: The size of chunks for multipart uploads.
+            max_pool_connections: The maximum number of connections in the pool.
 
         Returns:
             The S3 URI to the uploaded files.
@@ -596,10 +602,13 @@ class ModelRegistry:
             endpoint_url, access_key_id, secret_access_key, region
         )
 
-        s3 = _connect_to_s3(
+        s3, transfer_config = _connect_to_s3(
             endpoint_url=endpoint_url,
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
+            multipart_threshold=multipart_threshold,
+            multipart_chunksize=multipart_chunksize,
+            max_pool_connections=max_pool_connections,
         )
         return _upload_to_s3(
             path=path,
@@ -608,4 +617,5 @@ class ModelRegistry:
             s3=s3,
             endpoint_url=endpoint_url,
             region=region,
+            transfer_config=transfer_config,
         )

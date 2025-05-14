@@ -43,7 +43,7 @@ def pytest_report_teststatus(report, config):
             print(f"\nTEST: {test_name} STATUS: \033[0;32mPASSED\033[0m")
 
     elif report.skipped:
-       print(f"\nTEST: {test_name} STATUS: \033[1;33mSKIPPED\033[0m")
+        print(f"\nTEST: {test_name} STATUS: \033[1;33mSKIPPED\033[0m")
 
     elif report.failed:
         if report.when != "call":
@@ -218,6 +218,31 @@ def get_temp_dir_with_nested_models():
             os.remove(file)
     os.rmdir(nested_dir)
     os.rmdir(temp_dir)
+
+
+@pytest.fixture
+def get_large_model_dir():
+    """Creates a directory containing a large model file (300-500MB) for testing file size extremes."""
+    temp_dir = tempfile.mkdtemp()
+
+    # Create the large model file
+    model_file = os.path.join(temp_dir, "large_model.onnx")
+    with open(model_file, "wb") as f:
+        # Write random data in chunks to create a large file
+        chunk_size = 1024 * 1024  # 1MB chunks
+        target_size = 400 * 1024 * 1024  # 400MB target size
+        bytes_written = 0
+
+        while bytes_written < target_size:
+            # Generate random bytes for this chunk
+            chunk = os.urandom(min(chunk_size, target_size - bytes_written))
+            f.write(chunk)
+            bytes_written += len(chunk)
+
+    yield temp_dir
+
+    # Cleanup
+    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture
