@@ -40,7 +40,7 @@ replacements:
     options:
       delimiter: =
       index: 1
-    select: 
+    select:
       group: apps
       kind: Deployment
       name: model-registry-deployment
