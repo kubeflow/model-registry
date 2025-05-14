@@ -38,7 +38,7 @@ replacements:
   - fieldPaths:
     - spec.template.spec.containers.1.args.1
     options:
-      delimiter: "="
+      delimiter: =
       index: 1
     select: 
       group: apps
