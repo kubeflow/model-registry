@@ -26,10 +26,8 @@ from .utils import (
     OCIParams,
     S3Params,
     _connect_to_s3,
-    _get_files_from_path,
     _s3_creds,
     _upload_to_s3,
-    s3_uri_from,
     save_to_oci_registry,
 )
 

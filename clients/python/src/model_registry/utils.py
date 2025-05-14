@@ -23,6 +23,7 @@ T = TypeVar("T")
 if TYPE_CHECKING:
     from botocore.client import BaseClient
 
+
 @overload
 def s3_uri_from(
     path: str,
@@ -317,7 +318,7 @@ def save_to_oci_registry(  # noqa: C901 ( complex args >8 )
         ValueError: If the chosen backend is an invalid option
         StoreError: If `olot` is not installed as a python package
     Returns:
-        None.
+        uri: The OCI URI of the uploaded model.
     """
     try:
         from olot.basics import oci_layers_on_top
@@ -438,75 +439,77 @@ def _s3_creds(
 
     return endpoint_url, access_key_id, secret_access_key, region
 
+
 def _upload_to_s3(  # noqa: C901
-        path: str,
-        bucket: str,
-        s3: BaseClient,
-        path_prefix: str,
-        *,
-        endpoint_url: str | None = None,
-        region: str | None = None,
-    ) -> str:
-        """Internal method for recursively uploading all files to S3.
+    path: str,
+    bucket: str,
+    s3: BaseClient,
+    path_prefix: str,
+    *,
+    endpoint_url: str | None = None,
+    region: str | None = None,
+) -> str:
+    """Internal method for recursively uploading all files to S3.
 
-        Args:
-            path: The path to where the models or artifacts are.
-            bucket: The name of the S3 bucket.
-            s3: The S3 Client object.
-            path_prefix: The folder prefix to store under the root of the bucket.
+    Args:
+        path: The path to where the models or artifacts are.
+        bucket: The name of the S3 bucket.
+        s3: The S3 Client object.
+        path_prefix: The folder prefix to store under the root of the bucket.
 
-        Keyword Args:
-            endpoint_url: The endpoint url for the S3 bucket.
-            region: The region name for the S3 bucket.
+    Keyword Args:
+        endpoint_url: The endpoint url for the S3 bucket.
+        region: The region name for the S3 bucket.
 
-        Returns:  The S3 URI path of the uploaded files.
+    Returns:  The S3 URI path of the uploaded files.
 
-        Raises:
-            StoreError if `path` does not exist.
-            StoreError if `path_prefix` is not set.
-        """
-        if not path_prefix:
-            msg = "`path_prefix` must be set."
-            raise StoreError(msg)
+    Raises:
+        StoreError if `path` does not exist.
+        StoreError if `path_prefix` is not set.
+    """
+    if not path_prefix:
+        msg = "`path_prefix` must be set."
+        raise StoreError(msg)
 
-        path_prefix = path_prefix.rstrip("/")
+    path_prefix = path_prefix.rstrip("/")
 
-        uri = s3_uri_from(
-            path=path_prefix,
-            bucket=bucket,
-            endpoint=endpoint_url,
-            region=region,
-        )
+    uri = s3_uri_from(
+        path=path_prefix,
+        bucket=bucket,
+        endpoint=endpoint_url,
+        region=region,
+    )
 
-        files = _get_files_from_path(path)
-        for absolute_path_filename, relative_path_filename in files:
-            s3_key = os.path.join(path_prefix, relative_path_filename)
-            s3.upload_file(absolute_path_filename, bucket, s3_key)
+    files = _get_files_from_path(path)
+    for absolute_path_filename, relative_path_filename in files:
+        s3_key = os.path.join(path_prefix, relative_path_filename)
+        s3.upload_file(absolute_path_filename, bucket, s3_key)
 
-        return uri
+    return uri
+
 
 def _connect_to_s3(
-        endpoint_url: str | None = None,
-        access_key_id: str | None = None,
-        secret_access_key: str | None = None,
-        region: str | None = None,
-    ) -> None:
-        """Internal method to connect to Boto3 Client.
+    endpoint_url: str | None = None,
+    access_key_id: str | None = None,
+    secret_access_key: str | None = None,
+    region: str | None = None,
+) -> BaseClient:
+    """Internal method to connect to Boto3 Client.
 
-        Args:
-            endpoint_url: The S3 compatible object storage endpoint.
-            access_key_id: The S3 compatible object storage access key ID.
-            secret_access_key: The S3 compatible object storage secret access key.
-            region: The region name for the S3 object storage.
+    Args:
+        endpoint_url: The S3 compatible object storage endpoint.
+        access_key_id: The S3 compatible object storage access key ID.
+        secret_access_key: The S3 compatible object storage secret access key.
+        region: The region name for the S3 object storage.
 
-        Raises:
-            StoreError: If Boto3 is not installed.
-            ValueError: If the appropriate values are not supplied.
-        """
-        try:
-            from boto3 import client  # type: ignore
-        except ImportError as e:
-            msg = """package `boto3` is not installed.
+    Raises:
+        StoreError: If Boto3 is not installed.
+        ValueError: If the appropriate values are not supplied.
+    """
+    try:
+        from boto3 import client  # type: ignore
+    except ImportError as e:
+        msg = """package `boto3` is not installed.
             To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
             extra (available as `model-registry[boto3]`), e.g.:
             ```sh
@@ -515,15 +518,15 @@ def _connect_to_s3(
             ```sh
             !pip install boto3
             ```            """
-            raise StoreError(msg) from e
+        raise StoreError(msg) from e
 
-        return client(
-            "s3",
-            endpoint_url=endpoint_url,
-            aws_access_key_id=access_key_id,
-            aws_secret_access_key=secret_access_key,
-            region_name=region,
-        )
+    return client(
+        "s3",
+        endpoint_url=endpoint_url,
+        aws_access_key_id=access_key_id,
+        aws_secret_access_key=secret_access_key,
+        region_name=region,
+    )
 
 
 def _get_files_from_path(path: str) -> list[tuple[str, str]]:
