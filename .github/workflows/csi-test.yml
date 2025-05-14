@@ -30,7 +30,7 @@ env:
   BRANCH: ${{ github.base_ref }}
 jobs:
   build-and-test-csi-image:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
