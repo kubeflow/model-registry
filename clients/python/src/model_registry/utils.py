@@ -9,7 +9,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Callable, Protocol, TypeVar
+from typing import TYPE_CHECKING, Callable, Protocol, TypeVar
 
 from typing_extensions import Literal, overload
 
@@ -19,6 +19,9 @@ from .exceptions import MissingMetadata, StoreError
 # Generic return type
 T = TypeVar("T")
 
+# If we want to forward reference
+if TYPE_CHECKING:
+    from botocore.client import BaseClient
 
 @overload
 def s3_uri_from(
@@ -375,7 +378,7 @@ or
 
     backend_def.pull(base_image, local_image_path, **params)
     # Extract the absolute path from the files found in the path
-    files = [file[0] for file in get_files_from_path(model_files_path)]
+    files = [file[0] for file in _get_files_from_path(model_files_path)]
     oci_layers_on_top(local_image_path, files, modelcard)
     backend_def.push(local_image_path, oci_ref, **params)
 
@@ -384,7 +387,146 @@ or
     return f"oci://{oci_ref}"
 
 
-def get_files_from_path(path: str) -> list[tuple[str, str]]:
+def _s3_creds(
+    endpoint_url: str | None = None,
+    access_key_id: str | None = None,
+    secret_access_key: str | None = None,
+    region: str | None = None,
+):
+    """Internal method to return mix and matched S3 credentials based on presence.
+
+    Args:
+        endpoint_url: The S3 compatible object storage endpoint.
+        access_key_id: The S3 compatible object storage access key ID.
+        secret_access_key: The S3 compatible object storage secret access key.
+        region: The region name for the S3 object storage.
+
+    Raises:
+        ValueError if the required values are None.
+
+    Returns:
+        tuple(endpoint, access_key_id, secret_access_key, region)
+    """
+    aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+
+    # Set values to parameter values or environment values
+    endpoint_url = endpoint_url if endpoint_url else aws_s3_endpoint
+    access_key_id = access_key_id if access_key_id else aws_access_key_id
+    secret_access_key = (
+        secret_access_key if secret_access_key else aws_secret_access_key
+    )
+    region = region if region else aws_default_region
+
+    if not any((aws_s3_endpoint, endpoint_url)):
+        msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
+            or specify `endpoint_url` as the parameter.
+            """
+        raise ValueError(msg)
+
+    # Check if we have credentials from either source
+    has_env_creds = aws_access_key_id and aws_secret_access_key
+    has_param_creds = access_key_id and secret_access_key
+    if not (has_env_creds or has_param_creds):
+        msg = """Environment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
+            Please either set these environment variables or pass them in as parameters using
+            `access_key_id` or `secret_access_key`.
+            """
+        raise ValueError(msg)
+
+    return endpoint_url, access_key_id, secret_access_key, region
+
+def _upload_to_s3(  # noqa: C901
+        path: str,
+        bucket: str,
+        s3: BaseClient,
+        path_prefix: str,
+        *,
+        endpoint_url: str | None = None,
+        region: str | None = None,
+    ) -> str:
+        """Internal method for recursively uploading all files to S3.
+
+        Args:
+            path: The path to where the models or artifacts are.
+            bucket: The name of the S3 bucket.
+            s3: The S3 Client object.
+            path_prefix: The folder prefix to store under the root of the bucket.
+
+        Keyword Args:
+            endpoint_url: The endpoint url for the S3 bucket.
+            region: The region name for the S3 bucket.
+
+        Returns:  The S3 URI path of the uploaded files.
+
+        Raises:
+            StoreError if `path` does not exist.
+            StoreError if `path_prefix` is not set.
+        """
+        if not path_prefix:
+            msg = "`path_prefix` must be set."
+            raise StoreError(msg)
+
+        path_prefix = path_prefix.rstrip("/")
+
+        uri = s3_uri_from(
+            path=path_prefix,
+            bucket=bucket,
+            endpoint=endpoint_url,
+            region=region,
+        )
+
+        files = _get_files_from_path(path)
+        for absolute_path_filename, relative_path_filename in files:
+            s3_key = os.path.join(path_prefix, relative_path_filename)
+            s3.upload_file(absolute_path_filename, bucket, s3_key)
+
+        return uri
+
+def _connect_to_s3(
+        endpoint_url: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
+        region: str | None = None,
+    ) -> None:
+        """Internal method to connect to Boto3 Client.
+
+        Args:
+            endpoint_url: The S3 compatible object storage endpoint.
+            access_key_id: The S3 compatible object storage access key ID.
+            secret_access_key: The S3 compatible object storage secret access key.
+            region: The region name for the S3 object storage.
+
+        Raises:
+            StoreError: If Boto3 is not installed.
+            ValueError: If the appropriate values are not supplied.
+        """
+        try:
+            from boto3 import client  # type: ignore
+        except ImportError as e:
+            msg = """package `boto3` is not installed.
+            To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
+            extra (available as `model-registry[boto3]`), e.g.:
+            ```sh
+            !pip install --pre model-registry[boto3]
+            ```            or
+            ```sh
+            !pip install boto3
+            ```            """
+            raise StoreError(msg) from e
+
+        return client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+            region_name=region,
+        )
+
+
+def _get_files_from_path(path: str) -> list[tuple[str, str]]:
     """Given a path, get the list of files.
 
     If the path points to a single file, that file's absolute_path and filename will be the only entry returned
