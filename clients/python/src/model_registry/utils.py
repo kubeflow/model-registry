@@ -553,13 +553,6 @@ def _connect_to_s3(
         multipart_threshold=multipart_threshold,
         multipart_chunksize=multipart_chunksize,
     )
-    print(
-        "tcx",
-        multipart_threshold,
-        multipart_chunksize,
-        multipart_threshold,
-        transfer_config,
-    )
     return client(
         "s3",
         endpoint_url=endpoint_url,
