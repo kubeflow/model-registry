@@ -1053,7 +1053,6 @@ def test_upload_large_model_file(
 ):
     """Test uploading and registering a large model file (300-500MB)."""
     pytest.importorskip("boto3")
-    import boto3
 
     # Verify the large model file exists and has correct size
     model_file = os.path.join(get_large_model_dir, "large_model.onnx")
