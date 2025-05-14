@@ -1011,10 +1011,7 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
 
     # Create the S3 URI using the utility function
     uri = utils.s3_uri_from(
-        path=s3_path,
-        bucket=s3_bucket,
-        endpoint=s3_endpoint,
-        region=s3_region
+        path=s3_path, bucket=s3_bucket, endpoint=s3_endpoint, region=s3_region
     )
 
     model_params = {
@@ -1025,7 +1022,7 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
         "version": "v1.0",
         "description": "The Model",  # This will be set on the model version
         "storage_key": data_connection_name,
-        "storage_path": s3_path
+        "storage_path": s3_path,
     }
 
     # Register the model with S3 connection details
