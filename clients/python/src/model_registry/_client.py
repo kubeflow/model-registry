@@ -9,7 +9,7 @@ import os
 from collections.abc import Coroutine, Mapping
 from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, get_args
+from typing import Any, Callable, TypeVar, Union, get_args
 from warnings import warn
 
 from .core import ModelRegistryAPIClient
@@ -25,8 +25,9 @@ from .types import (
 from .utils import (
     OCIParams,
     S3Params,
-    get_files_from_path,
-    s3_uri_from,
+    _connect_to_s3,
+    _s3_creds,
+    _upload_to_s3,
     save_to_oci_registry,
 )
 
@@ -56,10 +57,6 @@ logging.basicConfig(
 logger = logging.getLogger("model-registry")
 
 DEFAULT_USER_TOKEN_ENVVAR = "KF_PIPELINES_SA_TOKEN_PATH"  # noqa: S105
-
-# If we want to forward reference
-if TYPE_CHECKING:
-    from botocore.client import BaseClient
 
 
 class ModelRegistry:
@@ -573,6 +570,9 @@ class ModelRegistry:
         access_key_id: str | None = None,
         secret_access_key: str | None = None,
         region: str | None = None,
+        multipart_threshold: int = 1024 * 1024,
+        multipart_chunksize: int = 1024 * 1024,
+        max_pool_connections: int = 10,
     ) -> str:
         """Saves a model to an S3 compatible storage.
 
@@ -587,6 +587,9 @@ class ModelRegistry:
             access_key_id: The S3 compatible object storage access ID.
             secret_access_key: The S3 compatible object storage secret access key.
             region: The region name for the S3 object storage.
+            multipart_threshold: The threshold for multipart uploads.
+            multipart_chunksize: The size of chunks for multipart uploads.
+            max_pool_connections: The maximum number of connections in the pool.
 
         Returns:
             The S3 URI to the uploaded files.
@@ -595,166 +598,24 @@ class ModelRegistry:
             StoreError: If there was an issue uploading to S3.
         """
         # Get mixed credentials
-        endpoint_url, access_key_id, secret_access_key, region = self.__s3_creds(
+        endpoint_url, access_key_id, secret_access_key, region = _s3_creds(
             endpoint_url, access_key_id, secret_access_key, region
         )
 
-        s3 = self.__connect_to_s3(
+        s3, transfer_config = _connect_to_s3(
             endpoint_url=endpoint_url,
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
+            multipart_threshold=multipart_threshold,
+            multipart_chunksize=multipart_chunksize,
+            max_pool_connections=max_pool_connections,
         )
-        try:
-            return self.__upload_to_s3(
-                path=path,
-                path_prefix=s3_prefix,
-                bucket=bucket_name,
-                s3=s3,
-                endpoint_url=endpoint_url,
-                region=region,
-            )
-        except Exception as e:
-            raise e
-
-    def __upload_to_s3(  # noqa: C901
-        self,
-        path: str,
-        bucket: str,
-        s3: BaseClient,
-        path_prefix: str,
-        *,
-        endpoint_url: str | None = None,
-        region: str | None = None,
-    ) -> str:
-        """Internal method for recursively uploading all files to S3.
-
-        Args:
-            path: The path to where the models or artifacts are.
-            bucket: The name of the S3 bucket.
-            s3: The S3 Client object.
-            path_prefix: The folder prefix to store under the root of the bucket.
-
-        Keyword Args:
-            endpoint_url: The endpoint url for the S3 bucket.
-            region: The region name for the S3 bucket.
-
-        Returns:  The S3 URI path of the uploaded files.
-
-        Raises:
-            StoreError if `path` does not exist.
-            StoreError if `path_prefix` is not set.
-        """
-        if not path_prefix:
-            msg = "`path_prefix` must be set."
-            raise StoreError(msg)
-
-        if path_prefix.endswith("/"):
-            path_prefix = path_prefix[:-1]
-
-        uri = s3_uri_from(
-            path=path_prefix,
-            bucket=bucket,
-            endpoint=endpoint_url,
-            region=region,
-        )
-
-        files = get_files_from_path(path)
-        for absolute_path_filename, relative_path_filename in files:
-            s3_key = os.path.join(path_prefix, relative_path_filename)
-            s3.upload_file(absolute_path_filename, bucket, s3_key)
-
-        return uri
-
-    def __s3_creds(
-        self,
-        endpoint_url: str | None = None,
-        access_key_id: str | None = None,
-        secret_access_key: str | None = None,
-        region: str | None = None,
-    ):
-        """Internal method to return mix and matched S3 credentials based on presence.
-
-        Args:
-            endpoint_url: The S3 compatible object storage endpoint.
-            access_key_id: The S3 compatible object storage access key ID.
-            secret_access_key: The S3 compatible object storage secret access key.
-            region: The region name for the S3 object storage.
-
-        Raises:
-            ValueError if the required values are None.
-
-        Returns:
-            tuple(endpoint, access_key_id, secret_access_key, region)
-        """
-        aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
-        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        aws_default_region = os.getenv("AWS_DEFAULT_REGION")
-
-        # Set values to parameter values or environment values
-        endpoint_url = endpoint_url if endpoint_url else aws_s3_endpoint
-        access_key_id = access_key_id if access_key_id else aws_access_key_id
-        secret_access_key = (
-            secret_access_key if secret_access_key else aws_secret_access_key
-        )
-        region = region if region else aws_default_region
-
-        if not any((aws_s3_endpoint, endpoint_url)):
-            msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
-            or specify `endpoint_url` as the parameter.
-            """
-            raise ValueError(msg)
-
-        if not any((aws_access_key_id, aws_secret_access_key)) and not any(
-            (access_key_id, secret_access_key)
-        ):
-            msg = """Envrionment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
-            Please either set these environment variables or pass them in as parameters using
-            `access_key_id` or `secret_access_key`.
-            """
-            raise ValueError(msg)
-
-        return endpoint_url, access_key_id, secret_access_key, region
-
-    def __connect_to_s3(
-        self,
-        endpoint_url: str | None = None,
-        access_key_id: str | None = None,
-        secret_access_key: str | None = None,
-        region: str | None = None,
-    ) -> None:
-        """Internal method to connect to Boto3 Client.
-
-        Args:
-            endpoint_url: The S3 compatible object storage endpoint.
-            access_key_id: The S3 compatible object storage access key ID.
-            secret_access_key: The S3 compatible object storage secret access key.
-            region: The region name for the S3 object storage.
-
-        Raises:
-            StoreError: If Boto3 is not installed.
-            ValueError: If the appropriate values are not supplied.
-        """
-        try:
-            from boto3 import client  # type: ignore
-        except ImportError as e:
-            msg = """package `boto3` is not installed.
-            To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
-            extra (available as `model-registry[boto3]`), e.g.:
-            ```sh
-            !pip install --pre model-registry[boto3]
-            ```
-            or
-            ```sh
-            !pip install boto3
-            ```
-            """
-            raise StoreError(msg) from e
-
-        return client(
-            "s3",
+        return _upload_to_s3(
+            path=path,
+            path_prefix=s3_prefix,
+            bucket=bucket_name,
+            s3=s3,
             endpoint_url=endpoint_url,
-            aws_access_key_id=access_key_id,
-            aws_secret_access_key=secret_access_key,
-            region_name=region,
+            region=region,
+            transfer_config=transfer_config,
         )

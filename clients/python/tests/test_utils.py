@@ -5,7 +5,7 @@ import pytest
 from model_registry import utils
 from model_registry.exceptions import MissingMetadata
 from model_registry.utils import (
-    get_files_from_path,
+    _get_files_from_path,
     s3_uri_from,
     save_to_oci_registry,
 )
@@ -169,12 +169,12 @@ def test_save_to_oci_registry_backend_not_found():
 def test_get_files_from_path_no_path():
     path = "/in/val/id/pa/th"
     with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
-        get_files_from_path(path)
+        _get_files_from_path(path)
     assert e
 
 
 def test_get_files_from_path_single_file(get_model_file):
-    file = get_files_from_path(get_model_file)
+    file = _get_files_from_path(get_model_file)
     # It returns only 1 file in the list, and it is a tuple of (absolute_path, filename)
     assert len(file) == 1
     assert file[0] == (get_model_file, os.path.basename(get_model_file))
@@ -182,7 +182,7 @@ def test_get_files_from_path_single_file(get_model_file):
 
 def test_get_files_from_path_multiple_files(get_temp_dir_with_models):
     path, generated_files = get_temp_dir_with_models
-    files = get_files_from_path(path)
+    files = _get_files_from_path(path)
     # It returns the same number of files as were generated, and it is a list tuple of (absolute_path, filename)
     assert len(files) == len(generated_files)
     for abs, filename in files:

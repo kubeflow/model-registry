@@ -24,7 +24,14 @@ def human_join(seq: Sequence[str], *, delim: str = ", ", final: str = "or") -> s
 
 
 def quote(string: str) -> str:
-    """Add single quotation marks around the given string. Does *not* do any escaping."""
+    """Add single quotation marks around the given string. Does *not* do any escaping.
+
+    Args:
+        string: The string to quote.
+
+    Returns:
+        The quoted string.
+    """
     return f"'{string}'"
 
 
