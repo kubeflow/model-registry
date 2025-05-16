@@ -38,18 +38,25 @@ if [ ! -f "$INPUT_YAML" ]; then
 fi
 
 # Convert input YAML to JSON and wrap it in a sources array
-export WRAPPED_JSON=$(yq -o=json "$INPUT_YAML" | jq -c '{sources: [.]}')
+_model_catalog_sources_json_string=$(yq -o=json "$INPUT_YAML" | jq -c '{sources: [.]}')
 
 # Grab the existing configmap and update the modelCatalogSources field with the new content
 mkdir tmp
 oc get configmap model-catalog-unmanaged-sources -n "$NAMESPACE" -o yaml > tmp/model-catalog-unmanaged-sources.yaml
-yq -i '.data.modelCatalogSources = strenv(WRAPPED_JSON)' tmp/model-catalog-unmanaged-sources.yaml
+
+# Write the new JSON string to a temporary file
+echo "$_model_catalog_sources_json_string" > tmp/new_sources_content.json
+
+# Use yq to load the string content from the temporary file
+# and assign it to the modelCatalogSources field.
+yq -i '.data.modelCatalogSources = load_str("tmp/new_sources_content.json")' tmp/model-catalog-unmanaged-sources.yaml
 
 # Update the configmap with the new content
 oc apply -f tmp/model-catalog-unmanaged-sources.yaml -n "$NAMESPACE"
 
 # Clean up
 rm tmp/model-catalog-unmanaged-sources.yaml
+rm tmp/new_sources_content.json # Remove the temporary content file
 rmdir tmp
 
 echo "Success"
