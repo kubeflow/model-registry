@@ -25,12 +25,12 @@ type DocArtifactCreate struct {
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri   *string        `json:"uri,omitempty"`
-	State *ArtifactState `json:"state,omitempty"`
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name         *string `json:"name,omitempty"`
 	ArtifactType *string `json:"artifactType,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
 }
 
 // NewDocArtifactCreate instantiates a new DocArtifactCreate object
@@ -39,10 +39,10 @@ type DocArtifactCreate struct {
 // will change when the set of required properties is changed
 func NewDocArtifactCreate() *DocArtifactCreate {
 	this := DocArtifactCreate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "doc-artifact"
 	this.ArtifactType = &artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
 }
 
@@ -51,10 +51,10 @@ func NewDocArtifactCreate() *DocArtifactCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewDocArtifactCreateWithDefaults() *DocArtifactCreate {
 	this := DocArtifactCreate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "doc-artifact"
 	this.ArtifactType = &artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
 }
 
@@ -154,70 +154,6 @@ func (o *DocArtifactCreate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetUri returns the Uri field value if set, zero value otherwise.
-func (o *DocArtifactCreate) GetUri() string {
-	if o == nil || IsNil(o.Uri) {
-		var ret string
-		return ret
-	}
-	return *o.Uri
-}
-
-// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifactCreate) GetUriOk() (*string, bool) {
-	if o == nil || IsNil(o.Uri) {
-		return nil, false
-	}
-	return o.Uri, true
-}
-
-// HasUri returns a boolean if a field has been set.
-func (o *DocArtifactCreate) HasUri() bool {
-	if o != nil && !IsNil(o.Uri) {
-		return true
-	}
-
-	return false
-}
-
-// SetUri gets a reference to the given string and assigns it to the Uri field.
-func (o *DocArtifactCreate) SetUri(v string) {
-	o.Uri = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *DocArtifactCreate) GetState() ArtifactState {
-	if o == nil || IsNil(o.State) {
-		var ret ArtifactState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *DocArtifactCreate) GetStateOk() (*ArtifactState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *DocArtifactCreate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *DocArtifactCreate) SetState(v ArtifactState) {
-	o.State = &v
-}
-
 // GetName returns the Name field value if set, zero value otherwise.
 func (o *DocArtifactCreate) GetName() string {
 	if o == nil || IsNil(o.Name) {
@@ -282,6 +218,70 @@ func (o *DocArtifactCreate) SetArtifactType(v string) {
 	o.ArtifactType = &v
 }
 
+// GetUri returns the Uri field value if set, zero value otherwise.
+func (o *DocArtifactCreate) GetUri() string {
+	if o == nil || IsNil(o.Uri) {
+		var ret string
+		return ret
+	}
+	return *o.Uri
+}
+
+// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifactCreate) GetUriOk() (*string, bool) {
+	if o == nil || IsNil(o.Uri) {
+		return nil, false
+	}
+	return o.Uri, true
+}
+
+// HasUri returns a boolean if a field has been set.
+func (o *DocArtifactCreate) HasUri() bool {
+	if o != nil && !IsNil(o.Uri) {
+		return true
+	}
+
+	return false
+}
+
+// SetUri gets a reference to the given string and assigns it to the Uri field.
+func (o *DocArtifactCreate) SetUri(v string) {
+	o.Uri = &v
+}
+
+// GetState returns the State field value if set, zero value otherwise.
+func (o *DocArtifactCreate) GetState() ArtifactState {
+	if o == nil || IsNil(o.State) {
+		var ret ArtifactState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifactCreate) GetStateOk() (*ArtifactState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *DocArtifactCreate) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given ArtifactState and assigns it to the State field.
+func (o *DocArtifactCreate) SetState(v ArtifactState) {
+	o.State = &v
+}
+
 func (o DocArtifactCreate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -301,17 +301,17 @@ func (o DocArtifactCreate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Uri) {
-		toSerialize["uri"] = o.Uri
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
-	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name
 	}
 	if !IsNil(o.ArtifactType) {
 		toSerialize["artifactType"] = o.ArtifactType
+	}
+	if !IsNil(o.Uri) {
+		toSerialize["uri"] = o.Uri
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

@@ -20,6 +20,7 @@ Model registry provides a central repository for model developers to store and m
 1. Introduction
  - [What is Kubeflow Model Registry](https://www.kubeflow.org/docs/components/model-registry/overview/)
  - [Blog KF 1.9 introducing Model Registry](https://blog.kubeflow.org/kubeflow-1.9-release/#model-registry)
+ - [Blog KF 1.10 introducing UI for Model Registry, CSI, and other features](https://blog.kubeflow.org/kubeflow-1.10-release/#model-registry)
 2. Installation
  - [installing Model Registry standalone](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation)
  - [installing Model Registry with Kubeflow manifests](https://github.com/kubeflow/manifests/tree/master/apps/model-registry/upstream#readme)

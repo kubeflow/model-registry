@@ -1,7 +1,5 @@
 import * as React from 'react';
 import {
-  SearchInput,
-  TextInput,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -15,8 +13,7 @@ import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils'
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/shared/utilities/utils';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
+import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
 
 type RegisteredModelsArchiveListViewProps = {
@@ -32,8 +29,6 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
 }) => {
   const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
   const [search, setSearch] = React.useState('');
-
-  const { isMUITheme } = useThemeContext();
 
   const searchTypes = [SearchType.KEYWORD, SearchType.OWNER];
   const filteredRegisteredModels = filterRegisteredModels(
@@ -55,10 +50,12 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
     );
   }
 
+  const resetFilters = () => setSearch('');
+
   return (
     <RegisteredModelsArchiveTable
       refresh={refresh}
-      clearFilters={() => setSearch('')}
+      clearFilters={resetFilters}
       registeredModels={filteredRegisteredModels}
       toolbarContent={
         <ToolbarContent>
@@ -66,8 +63,8 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
             <ToolbarGroup variant="filter-group">
               <ToolbarFilter
                 labels={search === '' ? [] : [search]}
-                deleteLabel={() => setSearch('')}
-                deleteLabelGroup={() => setSearch('')}
+                deleteLabel={resetFilters}
+                deleteLabelGroup={resetFilters}
                 categoryName="Keyword"
               >
                 <SimpleSelect
@@ -86,35 +83,16 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                 />
               </ToolbarFilter>
               <ToolbarItem>
-                {isMUITheme ? (
-                  <FormFieldset
-                    className="toolbar-fieldset-wrapper"
-                    component={
-                      <TextInput
-                        value={search}
-                        type="text"
-                        onChange={(_, searchValue) => {
-                          setSearch(searchValue);
-                        }}
-                        style={{ minWidth: '200px' }}
-                        data-testid="registered-models-archive-table-search"
-                        aria-label="Search"
-                      />
-                    }
-                    field={`Find by ${searchType.toLowerCase()}`}
-                  />
-                ) : (
-                  <SearchInput
-                    placeholder={`Find by ${searchType.toLowerCase()}`}
-                    value={search}
-                    onChange={(_, searchValue) => {
-                      setSearch(searchValue);
-                    }}
-                    onClear={() => setSearch('')}
-                    style={{ minWidth: '200px' }}
-                    data-testid="registered-models-archive-table-search"
-                  />
-                )}
+                <ThemeAwareSearchInput
+                  value={search}
+                  onChange={setSearch}
+                  onClear={resetFilters}
+                  placeholder={`Find by ${searchType.toLowerCase()}`}
+                  fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                  className="toolbar-fieldset-wrapper"
+                  style={{ minWidth: '200px' }}
+                  data-testid="registered-models-archive-table-search"
+                />
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarToggleGroup>

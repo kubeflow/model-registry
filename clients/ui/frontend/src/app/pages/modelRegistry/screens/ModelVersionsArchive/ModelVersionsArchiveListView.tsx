@@ -1,7 +1,5 @@
 import * as React from 'react';
 import {
-  SearchInput,
-  TextInput,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -15,8 +13,7 @@ import SimpleSelect from '~/shared/components/SimpleSelect';
 import { asEnumMember } from '~/shared/utilities/utils';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
+import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import ModelVersionsArchiveTable from './ModelVersionsArchiveTable';
 
 type ModelVersionsArchiveListViewProps = {
@@ -33,8 +30,6 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
 
   const searchTypes = [SearchType.KEYWORD, SearchType.AUTHOR];
 
-  const { isMUITheme } = useThemeContext();
-
   const filteredModelVersions = filterModelVersions(unfilteredmodelVersions, search, searchType);
 
   if (unfilteredmodelVersions.length === 0) {
@@ -48,10 +43,12 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
     );
   }
 
+  const resetFilters = () => setSearch('');
+
   return (
     <ModelVersionsArchiveTable
       refresh={refresh}
-      clearFilters={() => setSearch('')}
+      clearFilters={resetFilters}
       modelVersions={filteredModelVersions}
       toolbarContent={
         <ToolbarContent>
@@ -59,8 +56,8 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
             <ToolbarGroup variant="filter-group">
               <ToolbarFilter
                 labels={search === '' ? [] : [search]}
-                deleteLabel={() => setSearch('')}
-                deleteLabelGroup={() => setSearch('')}
+                deleteLabel={resetFilters}
+                deleteLabelGroup={resetFilters}
                 categoryName="Keyword"
               >
                 <SimpleSelect
@@ -79,35 +76,16 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
                 />
               </ToolbarFilter>
               <ToolbarItem>
-                {isMUITheme ? (
-                  <FormFieldset
-                    className="toolbar-fieldset-wrapper"
-                    component={
-                      <TextInput
-                        value={search}
-                        type="text"
-                        onChange={(_, searchValue) => {
-                          setSearch(searchValue);
-                        }}
-                        style={{ minWidth: '200px' }}
-                        data-testid="model-versions-archive-table-search"
-                        aria-label="Search"
-                      />
-                    }
-                    field={`Find by ${searchType.toLowerCase()}`}
-                  />
-                ) : (
-                  <SearchInput
-                    placeholder={`Find by ${searchType.toLowerCase()}`}
-                    value={search}
-                    onChange={(_, searchValue) => {
-                      setSearch(searchValue);
-                    }}
-                    onClear={() => setSearch('')}
-                    style={{ minWidth: '200px' }}
-                    data-testid="model-versions-archive-table-search"
-                  />
-                )}
+                <ThemeAwareSearchInput
+                  value={search}
+                  onChange={setSearch}
+                  onClear={resetFilters}
+                  placeholder={`Find by ${searchType.toLowerCase()}`}
+                  fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                  className="toolbar-fieldset-wrapper"
+                  style={{ minWidth: '200px' }}
+                  data-testid="model-versions-archive-table-search"
+                />
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarToggleGroup>

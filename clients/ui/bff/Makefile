@@ -13,6 +13,8 @@ STATIC_ASSETS_DIR ?= ./static
 ENVTEST_K8S_VERSION = 1.29.0
 LOG_LEVEL ?= info
 ALLOWED_ORIGINS ?= ""
+DEBUG ?= false
+GCFLAGS_DEBUG := -gcflags="all=-N -l"
 
 .PHONY: all
 all: build
@@ -48,7 +50,11 @@ test: fmt vet envtest ## Runs the full test suite.
 
 .PHONY: build
 build: fmt vet test ## Builds the project to produce a binary executable.
+ifeq ($(DEBUG), true) ## If DEBUG is true, build with debugging symbols
+	go build $(GCFLAGS_DEBUG) -o bin/bff ./cmd
+else
 	go build -o bin/bff ./cmd
+endif
 
 .PHONY: run
 run: fmt vet envtest ## Runs the project.

@@ -462,7 +462,7 @@
   display: none;
 }
 
-.pf-v6-c-helper-text__item.pf-m-error {
+.mui-theme .pf-v6-c-helper-text__item.pf-m-error {
   --pf-v6-c-helper-text__item-text--Color: var(--mui-palette-error-main);
   --pf-v6-c-helper-text__item-text--FontWeight: var(--mui-helper-text__item--FontWeight);
   margin-left: 14px;

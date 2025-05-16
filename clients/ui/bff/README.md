@@ -6,7 +6,7 @@ The Kubeflow Model Registry UI BFF is the _backend for frontend_ (BFF) used by t
 
 ### Dependencies
 
-- Go >= 1.23.5
+- Go >= 1.24.3
 
 ### Running model registry & ml-metadata
 
@@ -52,6 +52,7 @@ make run LOG_LEVEL=DEBUG
 ```
 
 ## Running the linter locally
+
 The BFF directory uses golangci-lint to combine multiple linters for a more comprehensive linting process. To install and run simply use:
 
 ```shell
@@ -62,6 +63,7 @@ make lint
 For more information on configuring golangci-lint see the [documentation](https://golangci-lint.run/).
 
 ## Running the linter locally
+
 The BFF directory uses golangci-lint to combine multiple linters for a more comprehensive linting process. To install and run simply use:
 
 ```shell
@@ -98,15 +100,18 @@ See the [OpenAPI specification](../api/openapi/mod-arch.yaml) for a complete lis
 You will need to inject your requests with a `kubeflow-userid` header and namespace for authorization purposes.
 
 When running the service with the mocked Kubernetes client (MOCK_K8S_CLIENT=true), the user `user@example.com` is preconfigured with the necessary RBAC permissions to perform these actions.
+
 ```
-# GET /v1/healthcheck  
+# GET /v1/healthcheck
 curl -i "localhost:4000/healthcheck"
-``` 
 ```
-# GET /v1/user 
+
+```
+# GET /v1/user
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/user"
 curl -i -H "Authorization: Bearer $TOKEN" "localhost:4000/api/v1/user"
 ```
+
 ```
 # GET /v1/namespaces (only works when DEV_MODE=true)
 curl -i -H "kubeflow-userid: user@example.com" "localhost:4000/api/v1/namespaces"
@@ -376,10 +381,10 @@ The mock Kubernetes environment is activated when the environment variable `MOCK
 The BFF supports two authentication modes, selectable via the --auth-method flag or AUTH_METHOD environment variable (default: internal):
 
 - `internal`: Uses the credentials of the running backend.
-    - If running inside the cluster, it uses the pod’s service account.
-    - If running locally (e.g. for development), it uses the current user's active kubeconfig context.
-    - In this mode, user identity is passed via the kubeflow-userid and optionally kubeflow-groups headers.
-    - This is the default mode and works well with mock clients and local testing.
+  - If running inside the cluster, it uses the pod’s service account.
+  - If running locally (e.g. for development), it uses the current user's active kubeconfig context.
+  - In this mode, user identity is passed via the kubeflow-userid and optionally kubeflow-groups headers.
+  - This is the default mode and works well with mock clients and local testing.
 - `user_token`: Uses a user-provided Bearer token for authentication.
   - The token must be passed in the `Authorization` header using the Bearer schema (e.g., `Authorization: Bearer <token>`).
   - This method works with OIDC-authenticated flows and frontend proxies that preserve standard Bearer tokens.
@@ -388,18 +393,21 @@ The BFF supports two authentication modes, selectable via the --auth-method flag
 
 Authorization is performed using Kubernetes access reviews, validating whether the user (or their groups) can perform certain actions.
 There are two review mechanisms depending on the authentication mode:
+
 - Internal mode (auth-method=internal):
-Uses SubjectAccessReview (SAR) to check whether the impersonated user (from kubeflow-userid and kubeflow-groups headers) has the required permissions.
+  Uses SubjectAccessReview (SAR) to check whether the impersonated user (from kubeflow-userid and kubeflow-groups headers) has the required permissions.
 - User token mode (auth-method=user_token): Uses SelfSubjectAccessReview (SSAR), leveraging the Bearer token provided in the `Authorization` header to check the current user's permissions directly.
 
 ##### Authorization logic
-* Access to Model Registry List (/v1/model_registry):
-    - Checks for get and list on services in the target namespace.
-    - If the user (or groups, in internal mode) has permission, access is granted.
 
-* Access to Specific Model Registry Endpoints (/v1/model_registry/{model_registry_id}/...):
-    - Checks for get on the specific service (identified by model_registry_id) in the namespace.
-    - If authorized, access is granted.
+- Access to Model Registry List (/v1/model_registry):
+
+  - Checks for get and list on services in the target namespace.
+  - If the user (or groups, in internal mode) has permission, access is granted.
+
+- Access to Specific Model Registry Endpoints (/v1/model_registry/{model_registry_id}/...):
+  - Checks for get on the specific service (identified by model_registry_id) in the namespace.
+  - If authorized, access is granted.
 
 ##### Overriding Token Header and Prefix
 
@@ -408,17 +416,18 @@ By default, the BFF expects the token to be passed in the standard Authorization
 ```shell
 Authorization: Bearer <your-token>
 ```
+
 If you're integrating with a proxy or tool that uses a custom header (e.g., X-Forwarded-Access-Token without a prefix), you can override this behavior using environment variables or Makefile arguments.
 
 ```shell
 make run AUTH_METHOD=user_token AUTH_TOKEN_HEADER=X-Forwarded-Access-Token AUTH_TOKEN_PREFIX=""
 ```
+
 This will configure the BFF to extract the raw token from the following header:
 
 ```shell
 X-Forwarded-Access-Token: <your-token>
 ```
-
 
 #### 5. How do I allow CORS requests from other origins
 

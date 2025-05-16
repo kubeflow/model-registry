@@ -166,6 +166,27 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("unable to find InferenceService with id %s in model registry: %w", mrIsvcId, err)
 		}
+
+		mrCurrentIvcUrl := ""
+
+		if mrIs.CustomProperties != nil {
+			mrCurrentIvcUrl = (*mrIs.CustomProperties)["url"].MetadataStringValue.GetStringValue()
+		}
+
+		urlAreDiff := r.checkURLDiff(isvc, mrCurrentIvcUrl)
+		if urlAreDiff {
+			err := r.updateMRInferenceService(
+				mrApiCtx,
+				log,
+				mrApi,
+				isvc,
+				mrIs,
+			)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
 	} else if okRegisteredModelId {
 		// No corresponding InferenceService in model registry, create new one
 		mrIs, err = r.createMRInferenceService(mrApiCtx, log, mrApi, isvc, *servingEnvironment.Id, registeredModelId, modelVersionId)
@@ -223,6 +244,18 @@ func (r *InferenceServiceController) SetupWithManager(mgr ctrl.Manager) error {
 		For(&kservev1beta1.InferenceService{})
 
 	return builder.Complete(r)
+}
+
+func (r *InferenceServiceController) checkURLDiff(isvc *kservev1beta1.InferenceService, mrIsvcUrl string) bool {
+	if mrIsvcUrl == "" && isvc.Status.URL == nil {
+		return false
+	}
+
+	if isvc.Status.URL == nil {
+		return true
+	}
+
+	return mrIsvcUrl != isvc.Status.URL.String()
 }
 
 func (r *InferenceServiceController) initModelRegistryService(ctx context.Context, log logr.Logger, name, namespace, url string) (*openapi.APIClient, error) {
@@ -334,17 +367,57 @@ func (r *InferenceServiceController) createMRInferenceService(
 	if err != nil {
 		log.Info("Creating new model registry InferenceService", "name", isName, "registeredModelId", registeredModelId, "modelVersionId", modelVersionId)
 
-		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceServiceCreate(openapi.InferenceServiceCreate{
+		isCreate := openapi.InferenceServiceCreate{
 			DesiredState:         openapi.INFERENCESERVICESTATE_DEPLOYED.Ptr(),
 			ModelVersionId:       modelVersionIdPtr,
 			Name:                 &isName,
 			RegisteredModelId:    registeredModelId,
 			Runtime:              isvc.Spec.Predictor.Model.Runtime,
 			ServingEnvironmentId: servingEnvironmentId,
-		}).Execute()
+		}
+
+		if isvc.Status.URL != nil {
+			isCreate.CustomProperties = &map[string]openapi.MetadataValue{}
+
+			(*isCreate.CustomProperties)["url"] = openapi.MetadataValue{
+				MetadataStringValue: openapi.NewMetadataStringValue(isvc.Status.URL.String(), "MetadataStringValue"),
+			}
+		}
+
+		is, _, err = mr.ModelRegistryServiceAPI.CreateInferenceService(ctx).InferenceServiceCreate(isCreate).Execute()
 	}
 
 	return is, err
+}
+
+func (r *InferenceServiceController) updateMRInferenceService(
+	ctx context.Context,
+	log logr.Logger,
+	mr *openapi.APIClient,
+	isvc *kservev1beta1.InferenceService,
+	mrIsvc *openapi.InferenceService,
+) error {
+	log.Info("Updating model registry InferenceService..")
+
+	url := ""
+
+	if isvc.Status.URL != nil {
+		url = isvc.Status.URL.String()
+	}
+
+	if mrIsvc.CustomProperties == nil {
+		mrIsvc.CustomProperties = &map[string]openapi.MetadataValue{}
+	}
+
+	(*mrIsvc.CustomProperties)["url"] = openapi.MetadataValue{
+		MetadataStringValue: openapi.NewMetadataStringValue(url, "MetadataStringValue"),
+	}
+
+	_, _, err := mr.ModelRegistryServiceAPI.UpdateInferenceService(ctx, *mrIsvc.Id).InferenceServiceUpdate(openapi.InferenceServiceUpdate{
+		CustomProperties: mrIsvc.CustomProperties,
+	}).Execute()
+
+	return err
 }
 
 func (r *InferenceServiceController) getOrCreateServingEnvironment(ctx context.Context, log logr.Logger, mr *openapi.APIClient, namespace string) (*openapi.ServingEnvironment, error) {

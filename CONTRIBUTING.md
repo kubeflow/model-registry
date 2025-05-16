@@ -1,20 +1,26 @@
 # Kubeflow Contributor Guide
 
-Welcome to the Kubeflow project! We'd love to accept your patches and 
+Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and 
 contributions to this project. Please read the 
 [contributor's guide in our docs](https://www.kubeflow.org/docs/about/contributing/).
 
-The contributor's guide
+The contributor's guide:
 
-* shows you where to find the Contributor License Agreement (CLA) that you need 
-  to sign,
-* helps you get started with your first contribution to Kubeflow,
-* and describes the pull request and review workflow in detail, including the
-  OWNERS files and automated workflow tool.
+* explains how to use the Developer Certificate of Origin (DCO) with git commit system
+  * like explained in [this guide](https://wiki.linuxfoundation.org/dco), or [this example](https://github.com/kubeflow/community/tree/master/dco-signoff-hook#signing-off-commits)
+* references the [Code of Conduct](https://www.kubeflow.org/docs/about/contributing/#follow-the-code-of-conduct)
+* helps you get started with your first contribution to Kubeflow
+  * like how to identify [good-first-issue](https://github.com/kubeflow/model-registry/labels/good%20first%20issue) tickets
+* and [describes](https://www.kubeflow.org/docs/about/contributing/#owners-files-and-pr-workflow) the pull request and review workflow in detail, including the
+  OWNERS files and automated workflow tool
+
+The [Kubeflow Community calendar](https://www.kubeflow.org/docs/about/community/#kubeflow-community-calendar) provides an overview of the community calls and specifically the bi-weekly Kubeflow Model Registry meeting.
 
 <hr/>
 
-This document focus on technical aspects while contributing to the Model Registry project
+The remainder of this document focuses on technical aspects while contributing to the Model Registry project specifically.
+
+The [Model Registry documentation](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
 
 # Contributing to Model Registry using Apple-silicon/ARM-based computers
 

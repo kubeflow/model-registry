@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModel(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -52,11 +51,11 @@ class ServeModel(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
     __properties: ClassVar[list[str]] = [
-        "lastKnownState",
         "customProperties",
         "description",
         "externalId",
@@ -64,6 +63,7 @@ class ServeModel(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "lastKnownState",
         "modelVersionId",
     ]
 
@@ -129,7 +129,6 @@ class ServeModel(BaseModel):
 
         return cls.model_validate(
             {
-                "lastKnownState": obj.get("lastKnownState"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -141,6 +140,7 @@ class ServeModel(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "lastKnownState": obj.get("lastKnownState"),
                 "modelVersionId": obj.get("modelVersionId"),
             }
         )
