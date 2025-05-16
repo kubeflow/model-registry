@@ -19,23 +19,6 @@ docker push quay.io/<org>/async-upload-job:<tag>
 # TODO: Run locally...
 ```
 
----
-
-## Security & supply‑chain
-
-- **Non‑root runtime**
-- **Distroless‑ish** slim base, no build tools in final layer
-- **SBOM generation** – use `syft packages dir:.` in CI
-- **Image signing** – add `cosign sign --key cosign.key <image>`
-
----
-
-## License
-
-Licensed under the **Apache License 2.0** – see [`LICENSE`](../../LICENSE) in root for details.
-
----
-
 ## References
 
 - Issue thread : [https://github.com/kubeflow/model-registry/issues/1108](https://github.com/kubeflow/model-registry/issues/1108)

@@ -2,7 +2,7 @@
 #  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
 ###############################################################################
 
-FROM python:3.12.10-slim AS base
+FROM ubi10/python-312-minimal AS base
 
 # security/env hardening
 ENV PYTHONDONTWRITEBYTECODE=1 \
