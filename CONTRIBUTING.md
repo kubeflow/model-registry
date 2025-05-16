@@ -14,11 +14,13 @@ The contributor's guide:
 * and [describes](https://www.kubeflow.org/docs/about/contributing/#owners-files-and-pr-workflow) the pull request and review workflow in detail, including the
   OWNERS files and automated workflow tool
 
+The [Kubeflow Community calendar](https://www.kubeflow.org/docs/about/community/#kubeflow-community-calendar) provides an overview of the community calls and specifically the bi-weekly Kubeflow Model Registry meeting.
+
 <hr/>
 
 The remainder of this document focuses on technical aspects while contributing to the Model Registry project specifically.
 
-Don't forget to reference the [Model Registry documentation](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links) that details: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
+The [Model Registry documentation](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
 
 # Contributing to Model Registry using Apple-silicon/ARM-based computers
 
