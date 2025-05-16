@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/cors v1.2.1
 	github.com/go-logr/logr v1.4.2
-	github.com/golang/glog v1.2.4
+	github.com/golang/glog v1.2.5
 	github.com/kserve/kserve v0.15.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.23.4
@@ -22,6 +22,7 @@ require (
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
+	knative.dev/pkg v0.0.0-20250117084104-c43477f0052b
 	sigs.k8s.io/controller-runtime v0.20.4
 )
 
@@ -135,7 +136,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e // indirect
 	knative.dev/networking v0.0.0-20250117155906-67d1c274ba6a // indirect
-	knative.dev/pkg v0.0.0-20250117084104-c43477f0052b // indirect
 	knative.dev/serving v0.44.0 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.0 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect

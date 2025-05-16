@@ -100,6 +100,7 @@ As a MLOps engineer I would like to store an owner for the RegisteredModel
           And Should be equal    ${r["owner"]}    My owner
 
 As a MLOps engineer I want to track a Model from an S3 bucket Data Connection
+    # MIGRATED TO test_register_model_with_s3_data_connection in pytest
     ${data_connection_name}  Set Variable   aws-connection-my-data-connection
     ${s3_bucket}  Set Variable  my-bucket
     ${s3_path}  Set Variable  my-path

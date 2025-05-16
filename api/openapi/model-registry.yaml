@@ -1188,73 +1188,68 @@ components:
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactUpdate"
           doc-artifact: "#/components/schemas/DocArtifactUpdate"
-    BaseArtifact:
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    BaseArtifactCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
-        - $ref: "#/components/schemas/BaseResourceCreate"
-    BaseArtifactUpdate:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            uri:
-              description: |-
-                The uniform resource identifier of the physical artifact.
-                May be empty if there is no physical artifact.
-              type: string
-            state:
-              $ref: "#/components/schemas/ArtifactState"
-    BaseExecution:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
-        - $ref: "#/components/schemas/BaseResource"
-    BaseExecutionCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseExecutionUpdate"
-        - $ref: "#/components/schemas/BaseResourceCreate"
-    BaseExecutionUpdate:
-      allOf:
-        - type: object
-          properties:
-            lastKnownState:
-              $ref: "#/components/schemas/ExecutionState"
-        - $ref: "#/components/schemas/BaseResourceUpdate"
     BaseResource:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceCreate"
-        - type: object
-          properties:
-            id:
-              format: int64
-              description: The unique server generated id of the resource.
-              type: string
-            createTimeSinceEpoch:
-              format: int64
-              description: Output only. Create time of the resource in millisecond since epoch.
-              type: string
-              readOnly: true
-            lastUpdateTimeSinceEpoch:
-              format: int64
-              description: |-
-                Output only. Last update time of the resource since epoch in millisecond
-                since epoch.
-              type: string
-              readOnly: true
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
+        id:
+          format: int64
+          description: The unique server generated id of the resource.
+          type: string
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: |-
+            Output only. Last update time of the resource since epoch in millisecond
+            since epoch.
+          type: string
+          readOnly: true
     BaseResourceCreate:
-      allOf:
-        - $ref: "#/components/schemas/BaseResourceUpdate"
-        - type: object
-          properties:
-            name:
-              description: |-
-                The client provided name of the artifact. This field is optional. If set,
-                it must be unique among all the artifacts of the same artifact type within
-                a database instance and cannot be changed once set.
-              type: string
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
     BaseResourceList:
       required:
         - nextPageToken
@@ -1293,7 +1288,7 @@ components:
     DocArtifact:
       description: A document.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/DocArtifactCreate"
         - type: object
           properties:
@@ -1303,7 +1298,7 @@ components:
     DocArtifactCreate:
       description: A document artifact to be created.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/DocArtifactUpdate"
         - type: object
           properties:
@@ -1313,12 +1308,19 @@ components:
     DocArtifactUpdate:
       description: A document artifact to be updated.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
             artifactType:
               type: string
               default: "doc-artifact"
+            uri:
+              description: |-
+                The uniform resource identifier of the physical artifact.
+                May be empty if there is no physical artifact.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
     Error:
       description: Error code and message.
       required:
@@ -1527,7 +1529,7 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifact"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ModelArtifactCreate"
         - type: object
           properties:
@@ -1541,7 +1543,7 @@ components:
           type: string
           default: "model-artifact"
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactCreate"
+        - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ModelArtifactUpdate"
     ModelArtifactList:
       description: List of ModelArtifact entities.
@@ -1559,7 +1561,7 @@ components:
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
       allOf:
-        - $ref: "#/components/schemas/BaseArtifactUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
         - type: object
           properties:
             artifactType:
@@ -1600,6 +1602,13 @@ components:
             modelSourceName:
               type: string
               description: "A human-readable name for the source model. \nE.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`."
+            uri:
+              description: |-
+                The uniform resource identifier of the physical artifact.
+                May be empty if there is no physical artifact.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
     ModelVersion:
       description: Represents a ModelVersion belonging to a RegisteredModel.
       allOf:
@@ -1718,14 +1727,14 @@ components:
     ServeModel:
       description: An ML model serving action.
       allOf:
-        - $ref: "#/components/schemas/BaseExecution"
+        - $ref: "#/components/schemas/BaseResource"
         - $ref: "#/components/schemas/ServeModelCreate"
     ServeModelCreate:
       description: An ML model serving action.
       required:
         - modelVersionId
       allOf:
-        - $ref: "#/components/schemas/BaseExecutionCreate"
+        - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ServeModelUpdate"
         - type: object
           properties:
@@ -1748,7 +1757,11 @@ components:
     ServeModelUpdate:
       description: An ML model serving action.
       allOf:
-        - $ref: "#/components/schemas/BaseExecutionUpdate"
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            lastKnownState:
+              $ref: "#/components/schemas/ExecutionState"
     ServingEnvironment:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:

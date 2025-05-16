@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  SearchInput,
-  TextInput,
-  ToolbarFilter,
-  ToolbarGroup,
-  ToolbarItem,
-} from '@patternfly/react-core';
+import { ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { ModelVersion, RegisteredModel } from '~/app/types';
@@ -18,11 +12,10 @@ import {
   registerModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import { asEnumMember } from '~/shared/utilities/utils';
 import { filterArchiveModels, filterLiveModels } from '~/app/utils';
-import { useThemeContext } from '~/app/ThemeContext';
+import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
 
@@ -44,7 +37,6 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
   const unfilteredRegisteredModels = filterLiveModels(registeredModels);
   const archiveRegisteredModels = filterArchiveModels(registeredModels);
   const searchTypes = React.useMemo(() => [SearchType.KEYWORD, SearchType.OWNER], []);
-  const { isMUITheme } = useThemeContext();
 
   if (unfilteredRegisteredModels.length === 0) {
     return (
@@ -109,35 +101,16 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
         />
       </ToolbarFilter>
       <ToolbarItem>
-        {isMUITheme ? (
-          <FormFieldset
-            className="toolbar-fieldset-wrapper"
-            component={
-              <TextInput
-                value={search}
-                type="text"
-                onChange={(_, searchValue) => {
-                  setSearch(searchValue);
-                }}
-                style={{ minWidth: '200px' }}
-                data-testid="registered-model-table-search"
-                aria-label="Search"
-              />
-            }
-            field={`Find by ${searchType.toLowerCase()}`}
-          />
-        ) : (
-          <SearchInput
-            placeholder={`Find by ${searchType.toLowerCase()}`}
-            value={search}
-            onChange={(_, searchValue) => {
-              setSearch(searchValue);
-            }}
-            onClear={resetFilters}
-            style={{ minWidth: '200px' }}
-            data-testid="registered-model-table-search"
-          />
-        )}
+        <ThemeAwareSearchInput
+          value={search}
+          onChange={setSearch}
+          onClear={resetFilters}
+          placeholder={`Find by ${searchType.toLowerCase()}`}
+          fieldLabel={`Find by ${searchType.toLowerCase()}`}
+          className="toolbar-fieldset-wrapper"
+          style={{ minWidth: '200px' }}
+          data-testid="registered-model-table-search"
+        />
       </ToolbarItem>
     </ToolbarGroup>
   );

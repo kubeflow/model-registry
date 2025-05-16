@@ -9,7 +9,7 @@ on:
       - "!DOCKERFILE*"
       - "!**.gitignore"
       - "!**.md"
-  
+
   pull_request:
     paths:
       - "clients/ui/**"
@@ -27,16 +27,16 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.5"
+          go-version: "1.24.3"
 
       - name: Clean
         working-directory: clients/ui/bff
         run: make clean
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.0.2
+          version: v2.1.0
           working-directory: clients/ui/bff/
 
       - name: Build

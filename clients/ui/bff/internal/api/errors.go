@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"net/http"
 	"strconv"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 )
 
 type HTTPError struct {
@@ -43,11 +44,14 @@ func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err e
 }
 
 func (app *App) forbiddenResponse(w http.ResponseWriter, r *http.Request, message string) {
+	// Log the detailed error message as a warning
+	app.logger.Warn("Access forbidden", "message", message, "method", r.Method, "uri", r.URL.RequestURI())
+
 	httpError := &mrserver.HTTPError{
 		StatusCode: http.StatusForbidden,
 		ErrorResponse: mrserver.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusForbidden),
-			Message: message,
+			Message: "Access forbidden",
 		},
 	}
 	app.errorResponse(w, r, httpError)

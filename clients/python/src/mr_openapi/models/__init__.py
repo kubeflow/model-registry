@@ -19,12 +19,6 @@ from mr_openapi.models.artifact_create import ArtifactCreate
 from mr_openapi.models.artifact_list import ArtifactList
 from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.artifact_update import ArtifactUpdate
-from mr_openapi.models.base_artifact import BaseArtifact
-from mr_openapi.models.base_artifact_create import BaseArtifactCreate
-from mr_openapi.models.base_artifact_update import BaseArtifactUpdate
-from mr_openapi.models.base_execution import BaseExecution
-from mr_openapi.models.base_execution_create import BaseExecutionCreate
-from mr_openapi.models.base_execution_update import BaseExecutionUpdate
 from mr_openapi.models.base_resource import BaseResource
 from mr_openapi.models.base_resource_create import BaseResourceCreate
 from mr_openapi.models.base_resource_list import BaseResourceList

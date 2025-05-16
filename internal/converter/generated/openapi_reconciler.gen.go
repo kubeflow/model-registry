@@ -159,11 +159,91 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Uri
+		pString3 = source.Update.ModelFormatName
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiModelArtifact.Uri = &xstring3
+		openapiModelArtifact.ModelFormatName = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.StorageKey
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiModelArtifact.StorageKey = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.StoragePath
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiModelArtifact.StoragePath = &xstring5
+	}
+	var pString6 *string
+	if source.Update != nil {
+		pString6 = source.Update.ModelFormatVersion
+	}
+	if pString6 != nil {
+		xstring6 := *pString6
+		openapiModelArtifact.ModelFormatVersion = &xstring6
+	}
+	var pString7 *string
+	if source.Update != nil {
+		pString7 = source.Update.ServiceAccountName
+	}
+	if pString7 != nil {
+		xstring7 := *pString7
+		openapiModelArtifact.ServiceAccountName = &xstring7
+	}
+	var pString8 *string
+	if source.Update != nil {
+		pString8 = source.Update.ModelSourceKind
+	}
+	if pString8 != nil {
+		xstring8 := *pString8
+		openapiModelArtifact.ModelSourceKind = &xstring8
+	}
+	var pString9 *string
+	if source.Update != nil {
+		pString9 = source.Update.ModelSourceClass
+	}
+	if pString9 != nil {
+		xstring9 := *pString9
+		openapiModelArtifact.ModelSourceClass = &xstring9
+	}
+	var pString10 *string
+	if source.Update != nil {
+		pString10 = source.Update.ModelSourceGroup
+	}
+	if pString10 != nil {
+		xstring10 := *pString10
+		openapiModelArtifact.ModelSourceGroup = &xstring10
+	}
+	var pString11 *string
+	if source.Update != nil {
+		pString11 = source.Update.ModelSourceId
+	}
+	if pString11 != nil {
+		xstring11 := *pString11
+		openapiModelArtifact.ModelSourceId = &xstring11
+	}
+	var pString12 *string
+	if source.Update != nil {
+		pString12 = source.Update.ModelSourceName
+	}
+	if pString12 != nil {
+		xstring12 := *pString12
+		openapiModelArtifact.ModelSourceName = &xstring12
+	}
+	var pString13 *string
+	if source.Update != nil {
+		pString13 = source.Update.Uri
+	}
+	if pString13 != nil {
+		xstring13 := *pString13
+		openapiModelArtifact.Uri = &xstring13
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -175,86 +255,6 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 			return openapiModelArtifact, fmt.Errorf("error setting field State: %w", err)
 		}
 		openapiModelArtifact.State = &openapiArtifactState
-	}
-	var pString4 *string
-	if source.Update != nil {
-		pString4 = source.Update.ModelFormatName
-	}
-	if pString4 != nil {
-		xstring4 := *pString4
-		openapiModelArtifact.ModelFormatName = &xstring4
-	}
-	var pString5 *string
-	if source.Update != nil {
-		pString5 = source.Update.StorageKey
-	}
-	if pString5 != nil {
-		xstring5 := *pString5
-		openapiModelArtifact.StorageKey = &xstring5
-	}
-	var pString6 *string
-	if source.Update != nil {
-		pString6 = source.Update.StoragePath
-	}
-	if pString6 != nil {
-		xstring6 := *pString6
-		openapiModelArtifact.StoragePath = &xstring6
-	}
-	var pString7 *string
-	if source.Update != nil {
-		pString7 = source.Update.ModelFormatVersion
-	}
-	if pString7 != nil {
-		xstring7 := *pString7
-		openapiModelArtifact.ModelFormatVersion = &xstring7
-	}
-	var pString8 *string
-	if source.Update != nil {
-		pString8 = source.Update.ServiceAccountName
-	}
-	if pString8 != nil {
-		xstring8 := *pString8
-		openapiModelArtifact.ServiceAccountName = &xstring8
-	}
-	var pString9 *string
-	if source.Update != nil {
-		pString9 = source.Update.ModelSourceKind
-	}
-	if pString9 != nil {
-		xstring9 := *pString9
-		openapiModelArtifact.ModelSourceKind = &xstring9
-	}
-	var pString10 *string
-	if source.Update != nil {
-		pString10 = source.Update.ModelSourceClass
-	}
-	if pString10 != nil {
-		xstring10 := *pString10
-		openapiModelArtifact.ModelSourceClass = &xstring10
-	}
-	var pString11 *string
-	if source.Update != nil {
-		pString11 = source.Update.ModelSourceGroup
-	}
-	if pString11 != nil {
-		xstring11 := *pString11
-		openapiModelArtifact.ModelSourceGroup = &xstring11
-	}
-	var pString12 *string
-	if source.Update != nil {
-		pString12 = source.Update.ModelSourceId
-	}
-	if pString12 != nil {
-		xstring12 := *pString12
-		openapiModelArtifact.ModelSourceId = &xstring12
-	}
-	var pString13 *string
-	if source.Update != nil {
-		pString13 = source.Update.ModelSourceName
-	}
-	if pString13 != nil {
-		xstring13 := *pString13
-		openapiModelArtifact.ModelSourceName = &xstring13
 	}
 	return openapiModelArtifact, nil
 }
@@ -366,17 +366,6 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 }
 func (c *OpenAPIReconcilerImpl) UpdateExistingServeModel(source converter.OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error) {
 	openapiServeModel := converter.InitWithExisting(source)
-	var pOpenapiExecutionState *openapi.ExecutionState
-	if source.Update != nil {
-		pOpenapiExecutionState = source.Update.LastKnownState
-	}
-	if pOpenapiExecutionState != nil {
-		openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*pOpenapiExecutionState)
-		if err != nil {
-			return openapiServeModel, fmt.Errorf("error setting field LastKnownState: %w", err)
-		}
-		openapiServeModel.LastKnownState = &openapiExecutionState
-	}
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
 		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
@@ -406,6 +395,17 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingServeModel(source converter.Openap
 	if pString2 != nil {
 		xstring2 := *pString2
 		openapiServeModel.ExternalId = &xstring2
+	}
+	var pOpenapiExecutionState *openapi.ExecutionState
+	if source.Update != nil {
+		pOpenapiExecutionState = source.Update.LastKnownState
+	}
+	if pOpenapiExecutionState != nil {
+		openapiExecutionState, err := c.openapiExecutionStateToOpenapiExecutionState(*pOpenapiExecutionState)
+		if err != nil {
+			return openapiServeModel, fmt.Errorf("error setting field LastKnownState: %w", err)
+		}
+		openapiServeModel.LastKnownState = &openapiExecutionState
 	}
 	return openapiServeModel, nil
 }

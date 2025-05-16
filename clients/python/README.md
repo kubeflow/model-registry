@@ -188,6 +188,12 @@ By default, all queries will be `ascending`, but this method is also available f
 > Advanced usage note: You can also set the `page_size()` that you want the Pager to use when invoking the Model Registry backend.
 > When using it as an iterator, it will automatically manage pages for you.
 
+#### Implementation notes
+
+The pager will manage pages for you in order to prevent infinite looping.
+Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
+
+
 ### Uploading local models to external storage and registering them
 
 To both upload and register a model, use the convenience method `upload_artifact_and_register_model`.
@@ -201,12 +207,14 @@ In order to utilize this method you must instantiate an `upload_params` object w
 Common S3 env vars will be automatically read, such ass the access_key_id, etc. It can also be provided explicitly in the `S3Params` object if desired.
 
 ```python
+from model_registry.utils import S3Params
+
 s3_upload_params = S3Params(
     bucket_name="my-bucket",
     s3_prefix="models/my_fraud_model",
 )
 
-registered_model = client.upload_artifact_and_register_model(
+registered_model = registry.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
@@ -243,12 +251,14 @@ First, you must ensure you are logged in the to appropriate OCI registry using
 Full example:
 
 ```python
+from model_registry.utils import OCIParams
+
 oci_upload_params = OCIParams(
     base_image="busybox",
     oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1"
 )
 
-registered_model = client.upload_artifact_and_register_model(
+registered_model = registry.upload_artifact_and_register_model(
     name="hello_world_model",
     model_files_path="/home/user-01/models/model_training_01",
     # If the model consists of a single file, such as a .onnx file, you can specify that as well
@@ -295,11 +305,6 @@ oci_upload_params = OCIParams(
     custom_oci_backend=custom_oci_backend,
 )
 ```
-
-#### Implementation notes
-
-The pager will manage pages for you in order to prevent infinite looping.
-Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
 
 ### Running ModelRegistry on Ray or Uvloop
@@ -357,6 +362,35 @@ Check out our [recommendations on setting up your docker engine](https://github.
 
 ### Troubleshooting
 
-- On running `make test test-e2e` if you see a similar problem `unknown flag: --load`, install [buildx](https://formulae.brew.sh/formula/docker-buildx)
+- On running `make test test-e2e` if you see a similar problem `unknown flag: --load`, install [buildx](https://formulae.brew.sh/formula/docker-buildx). You will then need to add `cliPluginsExtraDirs` to ~/.docker/config.json, like so:
+```
+"cliPluginsExtraDirs": [
+      "/opt/homebrew/lib/docker/cli-plugins"  # depending on your system config, brew should give you the proper one
+  ]
+```
+Before running make, ensure docker is running (`docker ps -a`). If it's not, assuming you're using `colima` on macos, run
+`colima start`.
+
+- On running `make test-e2e` you might see an error similar to
+```
+102.7 /workspace/bin/golangci-lint run cmd/... internal/... ./pkg/...  --timeout 3m
+124.6 make: *** [Makefile:243: lint] Killed
+------
+Dockerfile:60
+--------------------
+  58 |     
+  59 |     # prepare the build in a separate layer
+  60 | >>> RUN make clean build/prepare
+  61 |     # compile separately to optimize multi-platform builds
+  62 |     RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} make build/compile
+--------------------
+ERROR: failed to solve: process "/bin/sh -c make clean build/prepare" did not complete successfully: exit code: 2
+make[1]: *** [image/build] Error 1
+make: *** [deploy-latest-mr] Error 2
+```
+To solve it, you can try launching `colima` with these settings:
+```
+colima start --cpu 6 --memory 16 --profile docker --arch aarch64 --vm-type=vz --vz-rosetta
+```
 
 <!-- github-only -->

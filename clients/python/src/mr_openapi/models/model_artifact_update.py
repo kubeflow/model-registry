@@ -36,11 +36,6 @@ class ModelArtifactUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
-    )
-    state: ArtifactState | None = None
     artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
@@ -80,12 +75,15 @@ class ModelArtifactUpdate(BaseModel):
         description="A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.",
         alias="modelSourceName",
     )
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
+    )
+    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
-        "uri",
-        "state",
         "artifactType",
         "modelFormatName",
         "storageKey",
@@ -97,6 +95,8 @@ class ModelArtifactUpdate(BaseModel):
         "modelSourceGroup",
         "modelSourceId",
         "modelSourceName",
+        "uri",
+        "state",
     ]
 
     model_config = ConfigDict(
@@ -163,8 +163,6 @@ class ModelArtifactUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
@@ -176,5 +174,7 @@ class ModelArtifactUpdate(BaseModel):
                 "modelSourceGroup": obj.get("modelSourceGroup"),
                 "modelSourceId": obj.get("modelSourceId"),
                 "modelSourceName": obj.get("modelSourceName"),
+                "uri": obj.get("uri"),
+                "state": obj.get("state"),
             }
         )

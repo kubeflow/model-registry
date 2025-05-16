@@ -35,14 +35,14 @@ else
     kubectl create namespace "$MR_NAMESPACE"
 fi
 
-kubectl apply -k manifests/kustomize/overlays/db
+kubectl apply -k manifests/kustomize/overlays/db -n "$MR_NAMESPACE"
 kubectl patch deployment -n "$MR_NAMESPACE" model-registry-deployment \
 --patch '{"spec": {"template": {"spec": {"containers": [{"name": "rest-container", "image": "'$IMG'", "imagePullPolicy": "IfNotPresent"}]}}}}'
 
 if ! kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-db --timeout=5m ; then
     kubectl events -A
-    kubectl describe deployment/model-registry-db -n kubeflow
-    kubectl logs deployment/model-registry-db -n kubeflow
+    kubectl describe deployment/model-registry-db -n "$MR_NAMESPACE"
+    kubectl logs deployment/model-registry-db -n "$MR_NAMESPACE"
     exit 1
 fi
 

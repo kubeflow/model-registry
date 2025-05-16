@@ -24,11 +24,8 @@ type ModelArtifactUpdate struct {
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
-	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
-	Uri          *string        `json:"uri,omitempty"`
-	State        *ArtifactState `json:"state,omitempty"`
-	ArtifactType *string        `json:"artifactType,omitempty"`
+	ExternalId   *string `json:"externalId,omitempty"`
+	ArtifactType *string `json:"artifactType,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`
 	// Storage secret name.
@@ -49,6 +46,9 @@ type ModelArtifactUpdate struct {
 	ModelSourceId *string `json:"modelSourceId,omitempty"`
 	// A human-readable name for the source model.  E.g. `my-project/1`, `ibm-granite/granite-3.1-8b-base:2.1.2`.
 	ModelSourceName *string `json:"modelSourceName,omitempty"`
+	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
+	Uri   *string        `json:"uri,omitempty"`
+	State *ArtifactState `json:"state,omitempty"`
 }
 
 // NewModelArtifactUpdate instantiates a new ModelArtifactUpdate object
@@ -57,10 +57,10 @@ type ModelArtifactUpdate struct {
 // will change when the set of required properties is changed
 func NewModelArtifactUpdate() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "model-artifact"
 	this.ArtifactType = &artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
 }
 
@@ -69,10 +69,10 @@ func NewModelArtifactUpdate() *ModelArtifactUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
 	var artifactType string = "model-artifact"
 	this.ArtifactType = &artifactType
+	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
+	this.State = &state
 	return &this
 }
 
@@ -170,70 +170,6 @@ func (o *ModelArtifactUpdate) HasExternalId() bool {
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
 func (o *ModelArtifactUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
-}
-
-// GetUri returns the Uri field value if set, zero value otherwise.
-func (o *ModelArtifactUpdate) GetUri() string {
-	if o == nil || IsNil(o.Uri) {
-		var ret string
-		return ret
-	}
-	return *o.Uri
-}
-
-// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactUpdate) GetUriOk() (*string, bool) {
-	if o == nil || IsNil(o.Uri) {
-		return nil, false
-	}
-	return o.Uri, true
-}
-
-// HasUri returns a boolean if a field has been set.
-func (o *ModelArtifactUpdate) HasUri() bool {
-	if o != nil && !IsNil(o.Uri) {
-		return true
-	}
-
-	return false
-}
-
-// SetUri gets a reference to the given string and assigns it to the Uri field.
-func (o *ModelArtifactUpdate) SetUri(v string) {
-	o.Uri = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *ModelArtifactUpdate) GetState() ArtifactState {
-	if o == nil || IsNil(o.State) {
-		var ret ArtifactState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelArtifactUpdate) GetStateOk() (*ArtifactState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *ModelArtifactUpdate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
-	o.State = &v
 }
 
 // GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
@@ -588,6 +524,70 @@ func (o *ModelArtifactUpdate) SetModelSourceName(v string) {
 	o.ModelSourceName = &v
 }
 
+// GetUri returns the Uri field value if set, zero value otherwise.
+func (o *ModelArtifactUpdate) GetUri() string {
+	if o == nil || IsNil(o.Uri) {
+		var ret string
+		return ret
+	}
+	return *o.Uri
+}
+
+// GetUriOk returns a tuple with the Uri field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetUriOk() (*string, bool) {
+	if o == nil || IsNil(o.Uri) {
+		return nil, false
+	}
+	return o.Uri, true
+}
+
+// HasUri returns a boolean if a field has been set.
+func (o *ModelArtifactUpdate) HasUri() bool {
+	if o != nil && !IsNil(o.Uri) {
+		return true
+	}
+
+	return false
+}
+
+// SetUri gets a reference to the given string and assigns it to the Uri field.
+func (o *ModelArtifactUpdate) SetUri(v string) {
+	o.Uri = &v
+}
+
+// GetState returns the State field value if set, zero value otherwise.
+func (o *ModelArtifactUpdate) GetState() ArtifactState {
+	if o == nil || IsNil(o.State) {
+		var ret ArtifactState
+		return ret
+	}
+	return *o.State
+}
+
+// GetStateOk returns a tuple with the State field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelArtifactUpdate) GetStateOk() (*ArtifactState, bool) {
+	if o == nil || IsNil(o.State) {
+		return nil, false
+	}
+	return o.State, true
+}
+
+// HasState returns a boolean if a field has been set.
+func (o *ModelArtifactUpdate) HasState() bool {
+	if o != nil && !IsNil(o.State) {
+		return true
+	}
+
+	return false
+}
+
+// SetState gets a reference to the given ArtifactState and assigns it to the State field.
+func (o *ModelArtifactUpdate) SetState(v ArtifactState) {
+	o.State = &v
+}
+
 func (o ModelArtifactUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -606,12 +606,6 @@ func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
-	}
-	if !IsNil(o.Uri) {
-		toSerialize["uri"] = o.Uri
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
 	}
 	if !IsNil(o.ArtifactType) {
 		toSerialize["artifactType"] = o.ArtifactType
@@ -645,6 +639,12 @@ func (o ModelArtifactUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ModelSourceName) {
 		toSerialize["modelSourceName"] = o.ModelSourceName
+	}
+	if !IsNil(o.Uri) {
+		toSerialize["uri"] = o.Uri
+	}
+	if !IsNil(o.State) {
+		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
 }

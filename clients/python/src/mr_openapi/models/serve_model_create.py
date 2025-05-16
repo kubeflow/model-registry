@@ -25,7 +25,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ServeModelCreate(BaseModel):
     """An ML model serving action."""  # noqa: E501
 
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -41,15 +40,16 @@ class ServeModelCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
+    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
     __properties: ClassVar[list[str]] = [
-        "lastKnownState",
         "customProperties",
         "description",
         "externalId",
         "name",
+        "lastKnownState",
         "modelVersionId",
     ]
 
@@ -110,7 +110,6 @@ class ServeModelCreate(BaseModel):
 
         return cls.model_validate(
             {
-                "lastKnownState": obj.get("lastKnownState"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -119,6 +118,7 @@ class ServeModelCreate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
+                "lastKnownState": obj.get("lastKnownState"),
                 "modelVersionId": obj.get("modelVersionId"),
             }
         )
