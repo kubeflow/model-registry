@@ -43,10 +43,16 @@ func (e *HTTPError) Error() string {
 
 func NewHTTPClient(logger *slog.Logger, modelRegistryID string, baseURL string, headers http.Header) (HTTPClientInterface, error) {
 
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	if headers.Get("Authorization") != "" {
+		transport.TLSClientConfig.InsecureSkipVerify = false
+	}
+
 	return &HTTPClient{
-		client: &http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}},
+		client:          &http.Client{Transport: transport},
 		baseURL:         baseURL,
 		ModelRegistryID: modelRegistryID,
 		logger:          logger,

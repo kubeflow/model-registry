@@ -17,6 +17,11 @@ const (
 	// AuthMethodUser uses a user-provided Bearer token for authentication.
 	AuthMethodUser = "user_token"
 
+	// AuthMethodRedHatUser is a Red Hat–specific variant of user token authentication.
+	// It allows injecting a custom Kubernetes client that wraps or extends the default behavior.
+	// Typically used to add custom functionality from RHOAI downstream.
+	AuthMethodRedHatUser = "user_token_red_hat"
+
 	// DefaultAuthTokenHeader is the standard header for Bearer token auth.
 	DefaultAuthTokenHeader = "Authorization"
 
@@ -85,7 +90,7 @@ type EnvConfig struct {
 
 	// ─── AUTH ───────────────────────────────────────────────────
 	// Specifies the authentication method used by the server.
-	// Valid values: "internal" or "user_token"
+	// Valid values: "internal" or "user_token" or "user_token_red_hat"
 	AuthMethod string
 
 	// Header used to extract the authentication token.
