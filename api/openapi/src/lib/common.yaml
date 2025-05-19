@@ -1,0 +1,362 @@
+components:
+  schemas:
+    BaseResource:
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
+        id:
+          format: int64
+          description: The unique server generated id of the resource.
+          type: string
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: |-
+            Output only. Last update time of the resource since epoch in millisecond
+            since epoch.
+          type: string
+          readOnly: true
+    BaseResourceCreate:
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+        name:
+          description: |-
+            The client provided name of the artifact. This field is optional. If set,
+            it must be unique among all the artifacts of the same artifact type within
+            a database instance and cannot be changed once set.
+          type: string
+    BaseResourceList:
+      required:
+        - nextPageToken
+        - pageSize
+        - size
+      type: object
+      properties:
+        nextPageToken:
+          description: Token to use to retrieve next page of results.
+          type: string
+        pageSize:
+          format: int32
+          description: Maximum number of resources to return in the result.
+          type: integer
+        size:
+          format: int32
+          description: Number of items in result list.
+          type: integer
+    BaseResourceUpdate:
+      type: object
+      properties:
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        description:
+          description: |-
+            An optional description about the resource.
+          type: string
+        externalId:
+          description: |-
+            The external id that come from the clients’ system. This field is optional.
+            If set, it must be unique among all resources within a database instance.
+          type: string
+    Error:
+      description: Error code and message.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          description: Error code
+          type: string
+        message:
+          description: Error message
+          type: string
+    MetadataBoolValue:
+      description: A bool property value.
+      type: object
+      required:
+        - metadataType
+        - bool_value
+      properties:
+        bool_value:
+          type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
+          default: MetadataBoolValue
+    MetadataDoubleValue:
+      description: A double property value.
+      type: object
+      required:
+        - metadataType
+        - double_value
+      properties:
+        double_value:
+          format: double
+          type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
+          default: MetadataDoubleValue
+    MetadataIntValue:
+      description: An integer (int64) property value.
+      type: object
+      required:
+        - metadataType
+        - int_value
+      properties:
+        int_value:
+          format: int64
+          type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
+          default: MetadataIntValue
+    MetadataProtoValue:
+      description: A proto property value.
+      type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
+      properties:
+        type:
+          description: url describing proto value
+          type: string
+        proto_value:
+          description: Base64 encoded bytes for proto value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
+          default: MetadataProtoValue
+    MetadataStringValue:
+      description: A string property value.
+      type: object
+      required:
+        - metadataType
+        - string_value
+      properties:
+        string_value:
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
+          default: MetadataStringValue
+    MetadataStructValue:
+      description: A struct property value.
+      type: object
+      required:
+        - metadataType
+        - struct_value
+      properties:
+        struct_value:
+          description: Base64 encoded bytes for struct value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
+          default: MetadataStructValue
+    MetadataValue:
+      oneOf:
+        - $ref: "#/components/schemas/MetadataIntValue"
+        - $ref: "#/components/schemas/MetadataDoubleValue"
+        - $ref: "#/components/schemas/MetadataStringValue"
+        - $ref: "#/components/schemas/MetadataStructValue"
+        - $ref: "#/components/schemas/MetadataProtoValue"
+        - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
+      description: A value in properties.
+      example:
+        string_value: my_value
+        metadataType: MetadataStringValue
+    OrderByField:
+      description: Supported fields for ordering result entities.
+      enum:
+        - CREATE_TIME
+        - LAST_UPDATE_TIME
+        - ID
+      type: string
+    SortOrder:
+      description: Supported sort direction for ordering result entities.
+      enum:
+        - ASC
+        - DESC
+      type: string
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Bad Request parameters
+    Conflict:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Conflict with current state of target resource
+    InternalServerError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unexpected internal server error
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: The specified resource was not found
+    ServiceUnavailable:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Service is unavailable
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unauthorized
+    UnprocessableEntity:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unprocessable Entity error
+  parameters:
+    id:
+      name: id
+      description: The ID of resource.
+      schema:
+        type: string
+      in: path
+      required: true
+    name:
+      examples:
+        name:
+          value: entity-name
+      name: name
+      description: Name of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    externalId:
+      examples:
+        externalId:
+          value: "10"
+      name: externalId
+      description: External ID of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    parentResourceId:
+      examples:
+        parentResourceId:
+          value: "10"
+      name: parentResourceId
+      description: ID of the parent resource to use for search.
+      schema:
+        type: string
+      in: query
+      required: false
+    pageSize:
+      examples:
+        pageSize:
+          value: "100"
+      name: pageSize
+      description: Number of entities in each page.
+      schema:
+        type: string
+      in: query
+      required: false
+    nextPageToken:
+      name: nextPageToken
+      description: Token to use to retrieve next page of results.
+      schema:
+        type: string
+      in: query
+      required: false
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    sortOrder:
+      style: form
+      explode: true
+      examples:
+        sortOrder:
+          value: DESC
+      name: sortOrder
+      description: "Specifies the sort order for listing entities, defaults to ASC."
+      schema:
+        $ref: "#/components/schemas/SortOrder"
+      in: query
+      required: false
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: Bearer JWT scheme
+security:
+  - Bearer: []
