@@ -422,12 +422,10 @@ def _s3_creds(
     aws_default_region = os.getenv("AWS_DEFAULT_REGION")
 
     # Set values to parameter values or environment values
-    endpoint_url = endpoint_url if endpoint_url else aws_s3_endpoint
-    access_key_id = access_key_id if access_key_id else aws_access_key_id
-    secret_access_key = (
-        secret_access_key if secret_access_key else aws_secret_access_key
-    )
-    region = region if region else aws_default_region
+    endpoint_url = endpoint_url or aws_s3_endpoint
+    access_key_id = access_key_id or aws_access_key_id
+    secret_access_key = secret_access_key or aws_secret_access_key
+    region = region or aws_default_region
 
     if not any((aws_s3_endpoint, endpoint_url)):
         msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
@@ -435,10 +433,7 @@ def _s3_creds(
             """
         raise ValueError(msg)
 
-    # Check if we have credentials from either source
-    has_env_creds = aws_access_key_id and aws_secret_access_key
-    has_param_creds = access_key_id and secret_access_key
-    if not (has_env_creds or has_param_creds):
+    if not (access_key_id and secret_access_key):
         msg = """Environment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
             Please either set these environment variables or pass them in as parameters using
             `access_key_id` or `secret_access_key`.
@@ -477,10 +472,6 @@ def _upload_to_s3(  # noqa: C901
         StoreError if `path` does not exist.
         StoreError if `path_prefix` is not set.
     """
-    if not path_prefix:
-        msg = "`path_prefix` must be set."
-        raise StoreError(msg)
-
     path_prefix = path_prefix.rstrip("/")
 
     uri = s3_uri_from(
