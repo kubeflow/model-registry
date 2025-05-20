@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check contributor status
+        id: check_1st_time_contrib
         uses: actions/github-script@v7
         with:
           script: |
@@ -27,11 +28,16 @@ jobs:
             console.log(`First-time contributor status: ${isFirstTimeContributor}`);
             return { isFirstTimeContributor };
 
-      - name: Log contributor status
-        run: echo "First-time contributor status is ${{ steps.check_author.outputs.isFirstTimeContributor }}"
+      - name: Log contributor status (isFirstTimeContributor true)
+        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
+        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
+    
+      - name: Log contributor status (isFirstTimeContributor false)
+        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'false'
+        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
     
       # - name: Add a comment to the PR if first time contributor
-      #   if: steps.check_author.outputs.isFirstTimeContributor == 'true'
+      #   if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
       #   uses: actions/github-script@v7
       #   with:
       #     script: |
