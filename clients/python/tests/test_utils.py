@@ -9,6 +9,9 @@ from model_registry.utils import (
     save_to_oci_registry,
 )
 
+def test_temp_matteo():
+    raise Exception("Just a test an making this fail")
+    
 
 def test_s3_uri_builder():
     s3_uri = s3_uri_from(
