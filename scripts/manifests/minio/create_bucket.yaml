@@ -27,6 +27,6 @@ spec:
             # Wait a few seconds for MinIO to be up and running.
             sleep 5
             # Configure alias 'local' for our MinIO instance.
-            mc alias set local http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+            mc --config-dir /tmp alias set local http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
             # Create a default bucket named "default-bucket". If it already exists, ignore the error.
-            mc mb local/default || true
+            mc --config-dir /tmp mb local/default || true
