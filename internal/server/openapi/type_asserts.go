@@ -83,6 +83,16 @@ func AssertArtifactUpdateRequired(obj model.ArtifactUpdate) error {
 	return nil
 }
 
+// AssertBaseModelConstraints checks if the values respects the defined constraints
+func AssertBaseModelConstraints(obj model.BaseModel) error {
+	return nil
+}
+
+// AssertBaseModelRequired checks if the required fields are not zero-ed
+func AssertBaseModelRequired(obj model.BaseModel) error {
+	return nil
+}
+
 // AssertBaseResourceConstraints checks if the values respects the defined constraints
 func AssertBaseResourceConstraints(obj model.BaseResource) error {
 	return nil
@@ -95,6 +105,16 @@ func AssertBaseResourceCreateConstraints(obj model.BaseResourceCreate) error {
 
 // AssertBaseResourceCreateRequired checks if the required fields are not zero-ed
 func AssertBaseResourceCreateRequired(obj model.BaseResourceCreate) error {
+	return nil
+}
+
+// AssertBaseResourceDatesConstraints checks if the values respects the defined constraints
+func AssertBaseResourceDatesConstraints(obj model.BaseResourceDates) error {
+	return nil
+}
+
+// AssertBaseResourceDatesRequired checks if the required fields are not zero-ed
+func AssertBaseResourceDatesRequired(obj model.BaseResourceDates) error {
 	return nil
 }
 
