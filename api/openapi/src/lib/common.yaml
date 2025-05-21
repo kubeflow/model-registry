@@ -5,7 +5,7 @@ components:
       properties:
         description:
           type: string
-          description: Short description of the model version.
+          description: Human-readable description of the model.
         readme:
           type: string
           description: Model documentation in Markdown.
