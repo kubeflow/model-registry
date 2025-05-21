@@ -6,8 +6,10 @@ model_artifact_create.go
 model_artifact_list.go
 model_artifact_state.go
 model_artifact_update.go
+model_base_model.go
 model_base_resource.go
 model_base_resource_create.go
+model_base_resource_dates.go
 model_base_resource_list.go
 model_base_resource_update.go
 model_doc_artifact.go
