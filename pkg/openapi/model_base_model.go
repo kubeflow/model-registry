@@ -14,17 +14,13 @@ import (
 	"encoding/json"
 )
 
-// checks if the RegisteredModelUpdate type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &RegisteredModelUpdate{}
+// checks if the BaseModel type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &BaseModel{}
 
-// RegisteredModelUpdate A registered model in model registry. A registered model has ModelVersion children.
-type RegisteredModelUpdate struct {
-	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+// BaseModel struct for BaseModel
+type BaseModel struct {
 	// Short description of the model version.
 	Description *string `json:"description,omitempty"`
-	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
 	// Longer description of the model version.
 	LongDescription *string `json:"longDescription,omitempty"`
 	// Model documentation in Markdown.
@@ -42,67 +38,31 @@ type RegisteredModelUpdate struct {
 	// Short name of the model's license.
 	License *string `json:"license,omitempty"`
 	// URL to the license text.
-	LicenseLink *string               `json:"licenseLink,omitempty"`
-	LibraryName *string               `json:"libraryName,omitempty"`
-	Owner       *string               `json:"owner,omitempty"`
-	State       *RegisteredModelState `json:"state,omitempty"`
+	LicenseLink *string `json:"licenseLink,omitempty"`
+	LibraryName *string `json:"libraryName,omitempty"`
+	// User provided custom properties which are not defined by its type.
+	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 }
 
-// NewRegisteredModelUpdate instantiates a new RegisteredModelUpdate object
+// NewBaseModel instantiates a new BaseModel object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegisteredModelUpdate() *RegisteredModelUpdate {
-	this := RegisteredModelUpdate{}
-	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
-	this.State = &state
+func NewBaseModel() *BaseModel {
+	this := BaseModel{}
 	return &this
 }
 
-// NewRegisteredModelUpdateWithDefaults instantiates a new RegisteredModelUpdate object
+// NewBaseModelWithDefaults instantiates a new BaseModel object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewRegisteredModelUpdateWithDefaults() *RegisteredModelUpdate {
-	this := RegisteredModelUpdate{}
-	var state RegisteredModelState = REGISTEREDMODELSTATE_LIVE
-	this.State = &state
+func NewBaseModelWithDefaults() *BaseModel {
+	this := BaseModel{}
 	return &this
-}
-
-// GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetCustomProperties() map[string]MetadataValue {
-	if o == nil || IsNil(o.CustomProperties) {
-		var ret map[string]MetadataValue
-		return ret
-	}
-	return *o.CustomProperties
-}
-
-// GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
-	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
-	}
-	return o.CustomProperties, true
-}
-
-// HasCustomProperties returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasCustomProperties() bool {
-	if o != nil && !IsNil(o.CustomProperties) {
-		return true
-	}
-
-	return false
-}
-
-// SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *RegisteredModelUpdate) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetDescription() string {
+func (o *BaseModel) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -112,7 +72,7 @@ func (o *RegisteredModelUpdate) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetDescriptionOk() (*string, bool) {
+func (o *BaseModel) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -120,7 +80,7 @@ func (o *RegisteredModelUpdate) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasDescription() bool {
+func (o *BaseModel) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -129,44 +89,12 @@ func (o *RegisteredModelUpdate) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *RegisteredModelUpdate) SetDescription(v string) {
+func (o *BaseModel) SetDescription(v string) {
 	o.Description = &v
 }
 
-// GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetExternalId() string {
-	if o == nil || IsNil(o.ExternalId) {
-		var ret string
-		return ret
-	}
-	return *o.ExternalId
-}
-
-// GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetExternalIdOk() (*string, bool) {
-	if o == nil || IsNil(o.ExternalId) {
-		return nil, false
-	}
-	return o.ExternalId, true
-}
-
-// HasExternalId returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasExternalId() bool {
-	if o != nil && !IsNil(o.ExternalId) {
-		return true
-	}
-
-	return false
-}
-
-// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *RegisteredModelUpdate) SetExternalId(v string) {
-	o.ExternalId = &v
-}
-
 // GetLongDescription returns the LongDescription field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLongDescription() string {
+func (o *BaseModel) GetLongDescription() string {
 	if o == nil || IsNil(o.LongDescription) {
 		var ret string
 		return ret
@@ -176,7 +104,7 @@ func (o *RegisteredModelUpdate) GetLongDescription() string {
 
 // GetLongDescriptionOk returns a tuple with the LongDescription field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLongDescriptionOk() (*string, bool) {
+func (o *BaseModel) GetLongDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.LongDescription) {
 		return nil, false
 	}
@@ -184,7 +112,7 @@ func (o *RegisteredModelUpdate) GetLongDescriptionOk() (*string, bool) {
 }
 
 // HasLongDescription returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLongDescription() bool {
+func (o *BaseModel) HasLongDescription() bool {
 	if o != nil && !IsNil(o.LongDescription) {
 		return true
 	}
@@ -193,12 +121,12 @@ func (o *RegisteredModelUpdate) HasLongDescription() bool {
 }
 
 // SetLongDescription gets a reference to the given string and assigns it to the LongDescription field.
-func (o *RegisteredModelUpdate) SetLongDescription(v string) {
+func (o *BaseModel) SetLongDescription(v string) {
 	o.LongDescription = &v
 }
 
 // GetReadme returns the Readme field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetReadme() string {
+func (o *BaseModel) GetReadme() string {
 	if o == nil || IsNil(o.Readme) {
 		var ret string
 		return ret
@@ -208,7 +136,7 @@ func (o *RegisteredModelUpdate) GetReadme() string {
 
 // GetReadmeOk returns a tuple with the Readme field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetReadmeOk() (*string, bool) {
+func (o *BaseModel) GetReadmeOk() (*string, bool) {
 	if o == nil || IsNil(o.Readme) {
 		return nil, false
 	}
@@ -216,7 +144,7 @@ func (o *RegisteredModelUpdate) GetReadmeOk() (*string, bool) {
 }
 
 // HasReadme returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasReadme() bool {
+func (o *BaseModel) HasReadme() bool {
 	if o != nil && !IsNil(o.Readme) {
 		return true
 	}
@@ -225,12 +153,12 @@ func (o *RegisteredModelUpdate) HasReadme() bool {
 }
 
 // SetReadme gets a reference to the given string and assigns it to the Readme field.
-func (o *RegisteredModelUpdate) SetReadme(v string) {
+func (o *BaseModel) SetReadme(v string) {
 	o.Readme = &v
 }
 
 // GetMaturity returns the Maturity field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetMaturity() string {
+func (o *BaseModel) GetMaturity() string {
 	if o == nil || IsNil(o.Maturity) {
 		var ret string
 		return ret
@@ -240,7 +168,7 @@ func (o *RegisteredModelUpdate) GetMaturity() string {
 
 // GetMaturityOk returns a tuple with the Maturity field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetMaturityOk() (*string, bool) {
+func (o *BaseModel) GetMaturityOk() (*string, bool) {
 	if o == nil || IsNil(o.Maturity) {
 		return nil, false
 	}
@@ -248,7 +176,7 @@ func (o *RegisteredModelUpdate) GetMaturityOk() (*string, bool) {
 }
 
 // HasMaturity returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasMaturity() bool {
+func (o *BaseModel) HasMaturity() bool {
 	if o != nil && !IsNil(o.Maturity) {
 		return true
 	}
@@ -257,12 +185,12 @@ func (o *RegisteredModelUpdate) HasMaturity() bool {
 }
 
 // SetMaturity gets a reference to the given string and assigns it to the Maturity field.
-func (o *RegisteredModelUpdate) SetMaturity(v string) {
+func (o *BaseModel) SetMaturity(v string) {
 	o.Maturity = &v
 }
 
 // GetLanguage returns the Language field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLanguage() []string {
+func (o *BaseModel) GetLanguage() []string {
 	if o == nil || IsNil(o.Language) {
 		var ret []string
 		return ret
@@ -272,7 +200,7 @@ func (o *RegisteredModelUpdate) GetLanguage() []string {
 
 // GetLanguageOk returns a tuple with the Language field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLanguageOk() ([]string, bool) {
+func (o *BaseModel) GetLanguageOk() ([]string, bool) {
 	if o == nil || IsNil(o.Language) {
 		return nil, false
 	}
@@ -280,7 +208,7 @@ func (o *RegisteredModelUpdate) GetLanguageOk() ([]string, bool) {
 }
 
 // HasLanguage returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLanguage() bool {
+func (o *BaseModel) HasLanguage() bool {
 	if o != nil && !IsNil(o.Language) {
 		return true
 	}
@@ -289,12 +217,12 @@ func (o *RegisteredModelUpdate) HasLanguage() bool {
 }
 
 // SetLanguage gets a reference to the given []string and assigns it to the Language field.
-func (o *RegisteredModelUpdate) SetLanguage(v []string) {
+func (o *BaseModel) SetLanguage(v []string) {
 	o.Language = v
 }
 
 // GetTasks returns the Tasks field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetTasks() []string {
+func (o *BaseModel) GetTasks() []string {
 	if o == nil || IsNil(o.Tasks) {
 		var ret []string
 		return ret
@@ -304,7 +232,7 @@ func (o *RegisteredModelUpdate) GetTasks() []string {
 
 // GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetTasksOk() ([]string, bool) {
+func (o *BaseModel) GetTasksOk() ([]string, bool) {
 	if o == nil || IsNil(o.Tasks) {
 		return nil, false
 	}
@@ -312,7 +240,7 @@ func (o *RegisteredModelUpdate) GetTasksOk() ([]string, bool) {
 }
 
 // HasTasks returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasTasks() bool {
+func (o *BaseModel) HasTasks() bool {
 	if o != nil && !IsNil(o.Tasks) {
 		return true
 	}
@@ -321,12 +249,12 @@ func (o *RegisteredModelUpdate) HasTasks() bool {
 }
 
 // SetTasks gets a reference to the given []string and assigns it to the Tasks field.
-func (o *RegisteredModelUpdate) SetTasks(v []string) {
+func (o *BaseModel) SetTasks(v []string) {
 	o.Tasks = v
 }
 
 // GetProvider returns the Provider field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetProvider() string {
+func (o *BaseModel) GetProvider() string {
 	if o == nil || IsNil(o.Provider) {
 		var ret string
 		return ret
@@ -336,7 +264,7 @@ func (o *RegisteredModelUpdate) GetProvider() string {
 
 // GetProviderOk returns a tuple with the Provider field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetProviderOk() (*string, bool) {
+func (o *BaseModel) GetProviderOk() (*string, bool) {
 	if o == nil || IsNil(o.Provider) {
 		return nil, false
 	}
@@ -344,7 +272,7 @@ func (o *RegisteredModelUpdate) GetProviderOk() (*string, bool) {
 }
 
 // HasProvider returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasProvider() bool {
+func (o *BaseModel) HasProvider() bool {
 	if o != nil && !IsNil(o.Provider) {
 		return true
 	}
@@ -353,12 +281,12 @@ func (o *RegisteredModelUpdate) HasProvider() bool {
 }
 
 // SetProvider gets a reference to the given string and assigns it to the Provider field.
-func (o *RegisteredModelUpdate) SetProvider(v string) {
+func (o *BaseModel) SetProvider(v string) {
 	o.Provider = &v
 }
 
 // GetLogo returns the Logo field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLogo() string {
+func (o *BaseModel) GetLogo() string {
 	if o == nil || IsNil(o.Logo) {
 		var ret string
 		return ret
@@ -368,7 +296,7 @@ func (o *RegisteredModelUpdate) GetLogo() string {
 
 // GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLogoOk() (*string, bool) {
+func (o *BaseModel) GetLogoOk() (*string, bool) {
 	if o == nil || IsNil(o.Logo) {
 		return nil, false
 	}
@@ -376,7 +304,7 @@ func (o *RegisteredModelUpdate) GetLogoOk() (*string, bool) {
 }
 
 // HasLogo returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLogo() bool {
+func (o *BaseModel) HasLogo() bool {
 	if o != nil && !IsNil(o.Logo) {
 		return true
 	}
@@ -385,12 +313,12 @@ func (o *RegisteredModelUpdate) HasLogo() bool {
 }
 
 // SetLogo gets a reference to the given string and assigns it to the Logo field.
-func (o *RegisteredModelUpdate) SetLogo(v string) {
+func (o *BaseModel) SetLogo(v string) {
 	o.Logo = &v
 }
 
 // GetLicense returns the License field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLicense() string {
+func (o *BaseModel) GetLicense() string {
 	if o == nil || IsNil(o.License) {
 		var ret string
 		return ret
@@ -400,7 +328,7 @@ func (o *RegisteredModelUpdate) GetLicense() string {
 
 // GetLicenseOk returns a tuple with the License field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLicenseOk() (*string, bool) {
+func (o *BaseModel) GetLicenseOk() (*string, bool) {
 	if o == nil || IsNil(o.License) {
 		return nil, false
 	}
@@ -408,7 +336,7 @@ func (o *RegisteredModelUpdate) GetLicenseOk() (*string, bool) {
 }
 
 // HasLicense returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLicense() bool {
+func (o *BaseModel) HasLicense() bool {
 	if o != nil && !IsNil(o.License) {
 		return true
 	}
@@ -417,12 +345,12 @@ func (o *RegisteredModelUpdate) HasLicense() bool {
 }
 
 // SetLicense gets a reference to the given string and assigns it to the License field.
-func (o *RegisteredModelUpdate) SetLicense(v string) {
+func (o *BaseModel) SetLicense(v string) {
 	o.License = &v
 }
 
 // GetLicenseLink returns the LicenseLink field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLicenseLink() string {
+func (o *BaseModel) GetLicenseLink() string {
 	if o == nil || IsNil(o.LicenseLink) {
 		var ret string
 		return ret
@@ -432,7 +360,7 @@ func (o *RegisteredModelUpdate) GetLicenseLink() string {
 
 // GetLicenseLinkOk returns a tuple with the LicenseLink field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLicenseLinkOk() (*string, bool) {
+func (o *BaseModel) GetLicenseLinkOk() (*string, bool) {
 	if o == nil || IsNil(o.LicenseLink) {
 		return nil, false
 	}
@@ -440,7 +368,7 @@ func (o *RegisteredModelUpdate) GetLicenseLinkOk() (*string, bool) {
 }
 
 // HasLicenseLink returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLicenseLink() bool {
+func (o *BaseModel) HasLicenseLink() bool {
 	if o != nil && !IsNil(o.LicenseLink) {
 		return true
 	}
@@ -449,12 +377,12 @@ func (o *RegisteredModelUpdate) HasLicenseLink() bool {
 }
 
 // SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
-func (o *RegisteredModelUpdate) SetLicenseLink(v string) {
+func (o *BaseModel) SetLicenseLink(v string) {
 	o.LicenseLink = &v
 }
 
 // GetLibraryName returns the LibraryName field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetLibraryName() string {
+func (o *BaseModel) GetLibraryName() string {
 	if o == nil || IsNil(o.LibraryName) {
 		var ret string
 		return ret
@@ -464,7 +392,7 @@ func (o *RegisteredModelUpdate) GetLibraryName() string {
 
 // GetLibraryNameOk returns a tuple with the LibraryName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetLibraryNameOk() (*string, bool) {
+func (o *BaseModel) GetLibraryNameOk() (*string, bool) {
 	if o == nil || IsNil(o.LibraryName) {
 		return nil, false
 	}
@@ -472,7 +400,7 @@ func (o *RegisteredModelUpdate) GetLibraryNameOk() (*string, bool) {
 }
 
 // HasLibraryName returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasLibraryName() bool {
+func (o *BaseModel) HasLibraryName() bool {
 	if o != nil && !IsNil(o.LibraryName) {
 		return true
 	}
@@ -481,75 +409,43 @@ func (o *RegisteredModelUpdate) HasLibraryName() bool {
 }
 
 // SetLibraryName gets a reference to the given string and assigns it to the LibraryName field.
-func (o *RegisteredModelUpdate) SetLibraryName(v string) {
+func (o *BaseModel) SetLibraryName(v string) {
 	o.LibraryName = &v
 }
 
-// GetOwner returns the Owner field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetOwner() string {
-	if o == nil || IsNil(o.Owner) {
-		var ret string
+// GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
+func (o *BaseModel) GetCustomProperties() map[string]MetadataValue {
+	if o == nil || IsNil(o.CustomProperties) {
+		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.Owner
+	return *o.CustomProperties
 }
 
-// GetOwnerOk returns a tuple with the Owner field value if set, nil otherwise
+// GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetOwnerOk() (*string, bool) {
-	if o == nil || IsNil(o.Owner) {
+func (o *BaseModel) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+	if o == nil || IsNil(o.CustomProperties) {
 		return nil, false
 	}
-	return o.Owner, true
+	return o.CustomProperties, true
 }
 
-// HasOwner returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasOwner() bool {
-	if o != nil && !IsNil(o.Owner) {
+// HasCustomProperties returns a boolean if a field has been set.
+func (o *BaseModel) HasCustomProperties() bool {
+	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
 
 	return false
 }
 
-// SetOwner gets a reference to the given string and assigns it to the Owner field.
-func (o *RegisteredModelUpdate) SetOwner(v string) {
-	o.Owner = &v
+// SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
+func (o *BaseModel) SetCustomProperties(v map[string]MetadataValue) {
+	o.CustomProperties = &v
 }
 
-// GetState returns the State field value if set, zero value otherwise.
-func (o *RegisteredModelUpdate) GetState() RegisteredModelState {
-	if o == nil || IsNil(o.State) {
-		var ret RegisteredModelState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *RegisteredModelUpdate) GetStateOk() (*RegisteredModelState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *RegisteredModelUpdate) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given RegisteredModelState and assigns it to the State field.
-func (o *RegisteredModelUpdate) SetState(v RegisteredModelState) {
-	o.State = &v
-}
-
-func (o RegisteredModelUpdate) MarshalJSON() ([]byte, error) {
+func (o BaseModel) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -557,16 +453,10 @@ func (o RegisteredModelUpdate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
+func (o BaseModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.CustomProperties) {
-		toSerialize["customProperties"] = o.CustomProperties
-	}
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
-	}
-	if !IsNil(o.ExternalId) {
-		toSerialize["externalId"] = o.ExternalId
 	}
 	if !IsNil(o.LongDescription) {
 		toSerialize["longDescription"] = o.LongDescription
@@ -598,47 +488,44 @@ func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LibraryName) {
 		toSerialize["libraryName"] = o.LibraryName
 	}
-	if !IsNil(o.Owner) {
-		toSerialize["owner"] = o.Owner
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
+	if !IsNil(o.CustomProperties) {
+		toSerialize["customProperties"] = o.CustomProperties
 	}
 	return toSerialize, nil
 }
 
-type NullableRegisteredModelUpdate struct {
-	value *RegisteredModelUpdate
+type NullableBaseModel struct {
+	value *BaseModel
 	isSet bool
 }
 
-func (v NullableRegisteredModelUpdate) Get() *RegisteredModelUpdate {
+func (v NullableBaseModel) Get() *BaseModel {
 	return v.value
 }
 
-func (v *NullableRegisteredModelUpdate) Set(val *RegisteredModelUpdate) {
+func (v *NullableBaseModel) Set(val *BaseModel) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableRegisteredModelUpdate) IsSet() bool {
+func (v NullableBaseModel) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableRegisteredModelUpdate) Unset() {
+func (v *NullableBaseModel) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableRegisteredModelUpdate(val *RegisteredModelUpdate) *NullableRegisteredModelUpdate {
-	return &NullableRegisteredModelUpdate{value: val, isSet: true}
+func NewNullableBaseModel(val *BaseModel) *NullableBaseModel {
+	return &NullableBaseModel{value: val, isSet: true}
 }
 
-func (v NullableRegisteredModelUpdate) MarshalJSON() ([]byte, error) {
+func (v NullableBaseModel) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableRegisteredModelUpdate) UnmarshalJSON(src []byte) error {
+func (v *NullableBaseModel) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

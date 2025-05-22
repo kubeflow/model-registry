@@ -367,7 +367,7 @@ func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
 	})
 	suite.NotNilf(regModelResp.ContextType, "registered model type %s should exists", *registeredModelTypeName)
 	suite.Equal(*registeredModelTypeName, *regModelResp.ContextType.Name)
-	suite.Equal(3, len(regModelResp.ContextType.Properties))
+	suite.Equal(13, len(regModelResp.ContextType.Properties))
 
 	modelVersionResp, _ = suite.mlmdClient.GetContextType(ctx, &proto.GetContextTypeRequest{
 		TypeName: modelVersionTypeName,

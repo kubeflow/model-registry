@@ -345,11 +345,103 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Owner
+		pString3 = source.Update.LongDescription
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiRegisteredModel.Owner = &xstring3
+		openapiRegisteredModel.LongDescription = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.Readme
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiRegisteredModel.Readme = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Maturity
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiRegisteredModel.Maturity = &xstring5
+	}
+	var pStringList *[]string
+	if source.Update != nil {
+		pStringList = &source.Update.Language
+	}
+	if pStringList != nil {
+		var stringList []string
+		if (*pStringList) != nil {
+			stringList = make([]string, len((*pStringList)))
+			for i := 0; i < len((*pStringList)); i++ {
+				stringList[i] = (*pStringList)[i]
+			}
+		}
+		openapiRegisteredModel.Language = stringList
+	}
+	var pStringList2 *[]string
+	if source.Update != nil {
+		pStringList2 = &source.Update.Tasks
+	}
+	if pStringList2 != nil {
+		var stringList2 []string
+		if (*pStringList2) != nil {
+			stringList2 = make([]string, len((*pStringList2)))
+			for j := 0; j < len((*pStringList2)); j++ {
+				stringList2[j] = (*pStringList2)[j]
+			}
+		}
+		openapiRegisteredModel.Tasks = stringList2
+	}
+	var pString6 *string
+	if source.Update != nil {
+		pString6 = source.Update.Provider
+	}
+	if pString6 != nil {
+		xstring6 := *pString6
+		openapiRegisteredModel.Provider = &xstring6
+	}
+	var pString7 *string
+	if source.Update != nil {
+		pString7 = source.Update.Logo
+	}
+	if pString7 != nil {
+		xstring7 := *pString7
+		openapiRegisteredModel.Logo = &xstring7
+	}
+	var pString8 *string
+	if source.Update != nil {
+		pString8 = source.Update.License
+	}
+	if pString8 != nil {
+		xstring8 := *pString8
+		openapiRegisteredModel.License = &xstring8
+	}
+	var pString9 *string
+	if source.Update != nil {
+		pString9 = source.Update.LicenseLink
+	}
+	if pString9 != nil {
+		xstring9 := *pString9
+		openapiRegisteredModel.LicenseLink = &xstring9
+	}
+	var pString10 *string
+	if source.Update != nil {
+		pString10 = source.Update.LibraryName
+	}
+	if pString10 != nil {
+		xstring10 := *pString10
+		openapiRegisteredModel.LibraryName = &xstring10
+	}
+	var pString11 *string
+	if source.Update != nil {
+		pString11 = source.Update.Owner
+	}
+	if pString11 != nil {
+		xstring11 := *pString11
+		openapiRegisteredModel.Owner = &xstring11
 	}
 	var pOpenapiRegisteredModelState *openapi.RegisteredModelState
 	if source.Update != nil {
