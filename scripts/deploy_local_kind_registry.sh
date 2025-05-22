@@ -1,6 +1,8 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(dirname "$(realpath "$BASH_SOURCE")")"
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+
+SCRIPT_DIR="$(dirname "$(realpath_fallback "$BASH_SOURCE")")"
 set -e
 
 kubectl apply -f "${SCRIPT_DIR}/services/container_registry.yaml"

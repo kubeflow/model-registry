@@ -4,7 +4,9 @@ set -e
 
 echo "Generating the OpenAPI server"
 
-PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+
+PROJECT_ROOT=$(realpath_fallback "$(dirname "$0")"/..)
 OPENAPI_GENERATOR=${OPENAPI_GENERATOR:-"$PROJECT_ROOT"/bin/openapi-generator-cli}
 
 $OPENAPI_GENERATOR generate \

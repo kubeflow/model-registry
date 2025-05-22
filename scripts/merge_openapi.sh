@@ -2,8 +2,15 @@
 
 set -e
 
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+
 cd "$(pwd)/$(dirname "$0")/.."
-YQ=${YQ:-$(realpath -e "bin/yq")}
+if [ -f "bin/yq" ]; then
+  YQ=${YQ:-$(realpath_fallback "bin/yq")}
+else
+  echo "bin/yq does not exist"
+  exit 1
+fi
 
 usage() {
     echo "Usage: $0 [--check] <basename.yaml>"
@@ -50,7 +57,12 @@ fi
 
 OUT_FILE="api/openapi/$BASENAME"
 if [[ "$CHECK" == "true" ]]; then
-    OUT_FILE=$(mktemp --suffix=.yaml)
+    # Portable mktemp for .yaml suffix
+    if mktemp --version 2>/dev/null | grep -q 'GNU coreutils'; then
+        OUT_FILE=$(mktemp --suffix=.yaml)
+    else
+        OUT_FILE=$(mktemp -t model-registry.XXXXXX.yaml)
+    fi
     trap 'rm "$OUT_FILE"' EXIT
 fi
 

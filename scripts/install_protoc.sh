@@ -16,7 +16,9 @@ elif [[ "$ARCH" == "ppc64le" ]] ; then
   ARCH="ppcle_64"
 fi
 
-PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+
+PROJECT_ROOT=$(realpath_fallback "$(dirname "$0")"/..)
 
 VERSION="24.3"
 URL=https://github.com/protocolbuffers/protobuf/releases/download/v${VERSION}/protoc-${VERSION}-${OS}-${ARCH}.zip

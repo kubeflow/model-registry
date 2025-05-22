@@ -2,7 +2,9 @@
 
 set -e
 
-PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+
+PROJECT_ROOT=$(realpath_fallback "$(dirname "$0")"/..)
 
 ASSERT_FILE_PATH="${PROJECT_ROOT}/internal/server/openapi/type_asserts.go"
 PATCH="${PROJECT_ROOT}/patches/type_asserts.patch"
