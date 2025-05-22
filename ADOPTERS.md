@@ -10,4 +10,4 @@ Below are the adopters of the Model Registry project. If you are using Model Reg
 | [INFN (National Institute for Nuclear Physics)](https://www.infn.it/en/) | [@mginfn](https://github.com/mginfn) | Experimenting  | Building a platform for running ML workflows |
 | [YIQISOFT](https://www.yiqisoft.com) | [@jiekechoo](https://github.com/jiekechoo) | Production | Model Registry is part of [YiAI](https://www.yiqisoft.cn/products/)|
 | [VMware](https://www.vmware.com) | [@tiansiyuan](https://github.com/tiansiyuan) | Testing | Model Registry is important for LLMs |
-| <Independent Contributer>| < [@SophiaLi20](https://github.com/SophiaLi20) > | <Experimenting>       | <Exploring Kubeflow Model Registry for personal MLOps workflows>                                       |
+| Independent Contributer| < [@SophiaLi20](https://github.com/SophiaLi20) > | Experimenting| Exploring Kubeflow Model Registry for personal MLOps workflows|
