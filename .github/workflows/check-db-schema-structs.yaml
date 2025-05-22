@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.6"
-      - name: Check DB schema structs
+      - name: Generate DB schema structs
         run: make gen/gorm
       - name: Check if there are uncommitted file changes
         run: |
