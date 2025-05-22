@@ -135,7 +135,7 @@ stop/mysql:
 gen/gorm: bin/gorm-gen bin/golang-migrate start/mysql
 	@(trap '$(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
-	$(GORM_GEN) --dsn 'mysql://root:root@tcp(localhost:3306)/model-registry' --db mysql --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
+	$(GORM_GEN) --dsn 'root:root@tcp(localhost:3306)/model-registry' --db mysql --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
 
 .PHONY: vet
 vet:

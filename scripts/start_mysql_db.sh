@@ -18,4 +18,12 @@ while ! docker exec mysql-db mysql -uroot -proot -e "SELECT 1" >/dev/null 2>&1; 
     sleep 1
 done
 
+# Additional wait to ensure MySQL is fully initialized
+sleep 5
+
+# Verify the database exists and is accessible
+while ! docker exec mysql-db mysql -uroot -proot -e "USE \`model-registry\`; SELECT 1" >/dev/null 2>&1; do
+    sleep 2
+done
+
 echo "MySQL is ready"
