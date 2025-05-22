@@ -8,9 +8,18 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "pytest (>=8.3.5,<9.0.0)",
+    "configargparse (>=1.7.1,<2.0.0)"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.poetry.scripts]
+debug-test = "debugpy:main --listen 5678 --wait-for-client -m pytest jobs/async-upload/tests/test_config.py -v"
