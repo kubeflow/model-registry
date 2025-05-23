@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"fmt"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
-	"k8s.io/client-go/kubernetes"
 	"log/slog"
 	"net/http"
 	"path"
+
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
@@ -41,6 +42,7 @@ const (
 	// Add new constants for certificates and role bindings
 	CertificatesPath    = SettingsPath + "/certificates"
 	RoleBindingListPath = SettingsPath + "/role_bindings"
+	GroupsPath          = SettingsPath + "/groups"
 	RoleBindingPath     = RoleBindingListPath + "/:" + RoleBindingNameParam // Use the constant defined in the rbac handler
 
 	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
@@ -176,6 +178,10 @@ func (app *App) Routes() http.Handler {
 		apiRouter.GET(RoleBindingListPath, app.AttachNamespace(app.GetRoleBindingsHandler))
 		apiRouter.POST(RoleBindingListPath, app.AttachNamespace(app.CreateRoleBindingHandler))
 		apiRouter.DELETE(RoleBindingPath, app.AttachNamespace(app.DeleteRoleBindingHandler))
+
+		// Groups endpoints
+		apiRouter.GET(GroupsPath, app.GetGroupsHandler)
+
 	}
 
 	// App Router

@@ -3,9 +3,10 @@ package k8mocks
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
 )
 
 // ⚠️ WHY THIS FILE EXISTS:
@@ -58,4 +59,8 @@ func (m *TokenKubernetesClientMock) GetServiceDetailsByName(sessionCtx context.C
 // BearerToken always returns a fake token for tests
 func (m *TokenKubernetesClientMock) BearerToken() (string, error) {
 	return "FAKE-BEARER-TOKEN", nil
+}
+
+func (kc *TokenKubernetesClientMock) GetGroups(ctx context.Context) ([]string, error) {
+	return []string{"dora-group-mock", "bella-group-mock"}, nil
 }
