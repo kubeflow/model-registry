@@ -3,12 +3,13 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
+
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
-	"time"
 )
 
 type SharedClientLogic struct {
@@ -138,4 +139,9 @@ func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context,
 func (kc *SharedClientLogic) BearerToken() (string, error) {
 	// Token is retained for follow-up calls; do not log it.
 	return kc.Token.Raw(), nil
+}
+
+func (kc *SharedClientLogic) GetGroups(ctx context.Context) ([]string, error) {
+	kc.Logger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development until we have a definition on how to create model registries")
+	return []string{}, nil
 }

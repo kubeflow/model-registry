@@ -3,9 +3,10 @@ package k8mocks
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
 )
 
 type InternalKubernetesClientMock struct {
@@ -53,4 +54,8 @@ func (m *InternalKubernetesClientMock) GetServiceDetailsByName(sessionCtx contex
 // BearerToken always returns a fake token for tests
 func (m *InternalKubernetesClientMock) BearerToken() (string, error) {
 	return "FAKE-BEARER-TOKEN", nil
+}
+
+func (kc *InternalKubernetesClientMock) GetGroups(ctx context.Context) ([]string, error) {
+	return []string{"dora-group-mock", "bella-group-mock"}, nil
 }

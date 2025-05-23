@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -24,4 +25,7 @@ type KubernetesClientInterface interface {
 	IsClusterAdmin(identity *RequestIdentity) (bool, error)
 	BearerToken() (string, error)
 	GetUser(identity *RequestIdentity) (string, error)
+
+	// Model Registry Settings
+	GetGroups(ctx context.Context) ([]string, error)
 }
