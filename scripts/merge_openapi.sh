@@ -58,7 +58,7 @@ fi
 
 OUT_FILE="api/openapi/$BASENAME"
 if [[ "$CHECK" == "true" ]]; then
-    OUT_FILE="$(mktemp -t modelregistry_openapi_temp).yaml"
+    OUT_FILE="$(mktemp -t modelregistry_openapi_tempXXXXXX).yaml"
     trap 'rm "$OUT_FILE"' EXIT
 fi
 
