@@ -13,7 +13,6 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
-      - "scripts/**"
 jobs:
   build:
     runs-on: ubuntu-latest
