@@ -81,6 +81,22 @@ For more background on Model Registry Go core library and instructions on using 
 
 ## Development
 
+### Database Schema Changes
+
+When making changes to the database schema, you need to regenerate the GORM structs. This is done using the `gen/gorm` target:
+
+```bash
+make gen/gorm
+```
+
+This target will:
+1. Start a temporary database
+2. Run migrations
+3. Generate GORM structs based on the schema
+4. Clean up the temporary database
+
+> **NOTE:** The target requires Docker to be running.
+
 ### Building
 Run the following command to build the server binary:
 
