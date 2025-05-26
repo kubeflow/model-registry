@@ -27,6 +27,11 @@ The [Model Registry documentation](https://github.com/kubeflow/model-registry?ta
 Some limitations apply when developing on this project, specifically using Apple-silicon and Mac OSX.
 The content from this guide might also be applicable in part for general ARM-based developers/users, beyond Mac OSX.
 
+## Consider installing coreutils
+
+While we strived to keep the repository scripts cross-compatible with GNU and BSD utilities, you might want to consider installing the `coreutils` from Homebrew, [following these instructions](https://formulae.brew.sh/formula/coreutils).
+You will need to ensure the gnubin directory is added to your shell path. 
+
 ## Makefile
 
 The make command shipped with Mac OSX (at the time of writing) is a bit old:
