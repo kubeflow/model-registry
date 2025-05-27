@@ -1,3 +1,7 @@
+# Local development demo/example compose file
+# Composes:
+# - a mlmd-server connected to a SQLite file in test/config/ml-metadata/metadata.sqlite.db,
+# - a model-registry server connected to the mlmd-server.
 version: '3'
 services:
   mlmd-server:
@@ -10,10 +14,11 @@ services:
     volumes:
       - ./test/config/ml-metadata:/tmp/shared
   model-registry:
-    image: docker.io/kubeflow/model-registry:latest
+    image: ghcr.io/kubeflow/model-registry/server:latest
     command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "8080", "--datastore-type", "mlmd"]
     container_name: model-registry
     ports:
       - "8080:8080"
     depends_on:
       - mlmd-server
+ 
