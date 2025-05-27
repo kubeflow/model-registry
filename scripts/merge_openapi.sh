@@ -3,7 +3,15 @@
 set -e
 
 cd "$(pwd)/$(dirname "$0")/.."
-YQ=${YQ:-$(realpath -e "bin/yq")}
+
+if [ -z "$YQ" ]; then
+  if [ -e "bin/yq" ]; then
+    YQ="$(realpath "bin/yq")"
+  else
+    echo "Error: YQ is not set and bin/yq does not exist" >&2
+    exit 1
+  fi
+fi
 
 usage() {
     echo "Usage: $0 [--check] <basename.yaml>"
@@ -50,7 +58,7 @@ fi
 
 OUT_FILE="api/openapi/$BASENAME"
 if [[ "$CHECK" == "true" ]]; then
-    OUT_FILE=$(mktemp --suffix=.yaml)
+    OUT_FILE="$(mktemp -t modelregistry_openapi_tempXXXXXX).yaml"
     trap 'rm "$OUT_FILE"' EXIT
 fi
 
