@@ -97,11 +97,16 @@ gen/converter: gen/grpc internal/converter/generated/converter.go
 api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi/src/lib/*.yaml bin/yq
 	scripts/merge_openapi.sh model-registry.yaml
 
+api/openapi/catalog.yaml: api/openapi/src/catalog.yaml api/openapi/src/lib/*.yaml bin/yq
+	scripts/merge_openapi.sh catalog.yaml
+
 # validate the openapi schema
 .PHONY: openapi/validate
 openapi/validate: bin/openapi-generator-cli bin/yq
 	@scripts/merge_openapi.sh --check model-registry.yaml || (echo "api/openapi/model-registry.yaml is incorrectly formatted. Run 'make api/openapi/model-registry.yaml' to fix it."; exit 1)
+	@scripts/merge_openapi.sh --check catalog.yaml || (echo "$< is incorrectly formatted. Run 'make api/openapi/catalog.yaml' to fix it."; exit 1)
 	$(OPENAPI_GENERATOR) validate -i api/openapi/model-registry.yaml
+	$(OPENAPI_GENERATOR) validate -i api/openapi/catalog.yaml
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server

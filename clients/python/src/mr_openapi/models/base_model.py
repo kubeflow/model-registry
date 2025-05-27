@@ -21,43 +21,44 @@ from typing_extensions import Self
 from mr_openapi.models.metadata_value import MetadataValue
 
 
-class BaseResource(BaseModel):
-    """BaseResource."""  # noqa: E501
+class BaseModel(BaseModel):
+    """BaseModel."""  # noqa: E501
 
-    create_time_since_epoch: StrictStr | None = Field(
+    description: StrictStr | None = Field(default=None, description="Short description of the model version.")
+    readme: StrictStr | None = Field(default=None, description="Model documentation in Markdown.")
+    maturity: StrictStr | None = Field(default=None, description="Maturity level of the model.")
+    language: list[StrictStr] | None = Field(
         default=None,
-        description="Output only. Create time of the resource in millisecond since epoch.",
-        alias="createTimeSinceEpoch",
+        description="List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).",
     )
-    last_update_time_since_epoch: StrictStr | None = Field(
+    tasks: list[StrictStr] | None = Field(default=None, description="List of tasks the model is designed for.")
+    provider: StrictStr | None = Field(
+        default=None, description="Name of the organization or entity that provides the model."
+    )
+    logo: StrictStr | None = Field(
         default=None,
-        description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
-        alias="lastUpdateTimeSinceEpoch",
+        description="URL to the model's logo. A [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) is recommended.",
     )
+    license: StrictStr | None = Field(default=None, description="Short name of the model's license.")
+    license_link: StrictStr | None = Field(default=None, description="URL to the license text.", alias="licenseLink")
+    library_name: StrictStr | None = Field(default=None, alias="libraryName")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
         alias="customProperties",
     )
-    description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
-    external_id: StrictStr | None = Field(
-        default=None,
-        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
-        alias="externalId",
-    )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
-    )
-    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     __properties: ClassVar[list[str]] = [
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
-        "customProperties",
         "description",
-        "externalId",
-        "name",
-        "id",
+        "readme",
+        "maturity",
+        "language",
+        "tasks",
+        "provider",
+        "logo",
+        "license",
+        "licenseLink",
+        "libraryName",
+        "customProperties",
     ]
 
     model_config = ConfigDict(
@@ -77,7 +78,7 @@ class BaseResource(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of BaseResource from a JSON string."""
+        """Create an instance of BaseModel from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,13 +90,8 @@ class BaseResource(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "create_time_since_epoch",
-            "last_update_time_since_epoch",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -113,7 +109,7 @@ class BaseResource(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of BaseResource from a dict."""
+        """Create an instance of BaseModel from a dict."""
         if obj is None:
             return None
 
@@ -122,16 +118,20 @@ class BaseResource(BaseModel):
 
         return cls.model_validate(
             {
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "description": obj.get("description"),
+                "readme": obj.get("readme"),
+                "maturity": obj.get("maturity"),
+                "language": obj.get("language"),
+                "tasks": obj.get("tasks"),
+                "provider": obj.get("provider"),
+                "logo": obj.get("logo"),
+                "license": obj.get("license"),
+                "licenseLink": obj.get("licenseLink"),
+                "libraryName": obj.get("libraryName"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
                     else None
                 ),
-                "description": obj.get("description"),
-                "externalId": obj.get("externalId"),
-                "name": obj.get("name"),
-                "id": obj.get("id"),
             }
         )
