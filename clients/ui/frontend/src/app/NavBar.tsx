@@ -20,8 +20,8 @@ import {
 } from '@patternfly/react-core';
 import { SimpleSelect } from '@patternfly/react-templates';
 import { BarsIcon } from '@patternfly/react-icons';
-import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
-import logoDarkTheme from '~/images/logo-dark-theme.svg';
+import { NamespaceSelectorContext } from '#~/shared/context/NamespaceSelectorContext';
+import logoDarkTheme from '#~/images/logo-dark-theme.svg';
 import { useThemeContext } from './ThemeContext';
 
 interface NavBarProps {

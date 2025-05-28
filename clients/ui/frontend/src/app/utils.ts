@@ -1,5 +1,5 @@
-import { ModelRegistry, ModelState, ModelVersion, RegisteredModel } from '~/app/types';
-import { K8sResourceCommon } from '~/shared/types';
+import { ModelRegistry, ModelState, ModelVersion, RegisteredModel } from '#~/app/types';
+import { K8sResourceCommon } from '#~/shared/types';
 
 export type ObjectStorageFields = {
   endpoint: string;

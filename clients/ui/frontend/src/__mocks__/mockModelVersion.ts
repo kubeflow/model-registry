@@ -1,4 +1,4 @@
-import { ModelVersion, ModelState, ModelRegistryCustomProperties } from '~/app/types';
+import { ModelVersion, ModelState, ModelRegistryCustomProperties } from '#~/app/types';
 
 type MockModelVersionType = {
   author?: string;

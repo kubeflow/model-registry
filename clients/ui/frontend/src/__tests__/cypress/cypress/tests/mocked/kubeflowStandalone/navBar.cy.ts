@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
-import { mockNamespace } from '~/__mocks__/mockNamespace';
-import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
-import { navBar } from '~/__tests__/cypress/cypress/pages/navBar';
-import type { Namespace } from '~/shared/types';
-import { mockUserSettings } from '~/__mocks__/mockUserSettings';
-import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import type { ModelRegistry } from '~/app/types';
+import { mockNamespace } from '#~/__mocks__/mockNamespace';
+import { appChrome } from '#~/__tests__/cypress/cypress/pages/appChrome';
+import { navBar } from '#~/__tests__/cypress/cypress/pages/navBar';
+import type { Namespace } from '#~/shared/types';
+import { mockUserSettings } from '#~/__mocks__/mockUserSettings';
+import { MODEL_REGISTRY_API_VERSION } from '#~/__tests__/cypress/cypress/support/commands/api';
+import type { ModelRegistry } from '#~/app/types';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];

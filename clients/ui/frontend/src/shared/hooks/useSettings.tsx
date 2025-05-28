@@ -1,9 +1,14 @@
 import * as React from 'react';
-import { KUBEFLOW_USERNAME, POLL_INTERVAL, AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
-import { useDeepCompareMemoize } from '~/shared/utilities/useDeepCompareMemoize';
-import { ConfigSettings, UserSettings } from '~/shared/types';
-import useTimeBasedRefresh from '~/shared/hooks/useTimeBasedRefresh';
-import { getNamespaces, getUser } from '~/app/api/k8s';
+import {
+  KUBEFLOW_USERNAME,
+  POLL_INTERVAL,
+  AUTH_HEADER,
+  MOCK_AUTH,
+} from '#~/shared/utilities/const';
+import { useDeepCompareMemoize } from '#~/shared/utilities/useDeepCompareMemoize';
+import { ConfigSettings, UserSettings } from '#~/shared/types';
+import useTimeBasedRefresh from '#~/shared/hooks/useTimeBasedRefresh';
+import { getNamespaces, getUser } from '#~/app/api/k8s';
 
 export const useSettings = (): {
   configSettings: ConfigSettings | null;

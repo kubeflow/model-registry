@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import PopoverListContent from '~/shared/components/PopoverListContent';
-import { FindAdministratorOptions } from '~/shared/utilities/const';
+import PopoverListContent from '#~/shared/components/PopoverListContent';
+import { FindAdministratorOptions } from '#~/shared/utilities/const';
 
 type Props = {
   buttonLabel?: string;

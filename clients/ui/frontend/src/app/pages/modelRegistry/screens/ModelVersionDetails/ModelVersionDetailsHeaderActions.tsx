@@ -10,11 +10,11 @@ import {
   ActionListItem,
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';
-import { ModelState, ModelVersion } from '~/app/types';
-import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { ArchiveModelVersionModal } from '~/app/pages/modelRegistry/screens/components/ArchiveModelVersionModal';
-import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { ModelState, ModelVersion } from '#~/app/types';
+import { ModelRegistryContext } from '#~/app/context/ModelRegistryContext';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import { ArchiveModelVersionModal } from '#~/app/pages/modelRegistry/screens/components/ArchiveModelVersionModal';
+import { modelVersionListUrl } from '#~/app/pages/modelRegistry/screens/routeUtils';
 
 interface ModelVersionsDetailsHeaderActionsProps {
   mv: ModelVersion;

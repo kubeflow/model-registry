@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageSection, Tab, Tabs, TabTitleText } from '@patternfly/react-core';
-import ModelDetailsView from '~/app/pages/modelRegistry/screens/ModelVersions/ModelDetailsView';
-import { ModelVersion, RegisteredModel } from '~/app/types';
+import ModelDetailsView from '#~/app/pages/modelRegistry/screens/ModelVersions/ModelDetailsView';
+import { ModelVersion, RegisteredModel } from '#~/app/types';
 import {
   ModelVersionsTab,
   ModelVersionsTabTitle,
-} from '~/app/pages/modelRegistry/screens/ModelVersions/const';
-import ModelVersionListView from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionListView';
+} from '#~/app/pages/modelRegistry/screens/ModelVersions/const';
+import ModelVersionListView from '#~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionListView';
 
 type ModelVersionsTabProps = {
   tab: ModelVersionsTab;

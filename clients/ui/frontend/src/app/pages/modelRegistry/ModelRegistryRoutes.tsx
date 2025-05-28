@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { isStandalone } from '~/shared/utilities/const';
+import { isStandalone } from '#~/shared/utilities/const';
 import ModelRegistry from './screens/ModelRegistry';
 import ModelRegistryCoreLoader from './ModelRegistryCoreLoader';
 import { modelRegistryUrl } from './screens/routeUtils';
@@ -15,7 +15,7 @@ import ArchiveModelVersionDetails from './screens/ModelVersionsArchive/ArchiveMo
 import RegisteredModelsArchiveDetails from './screens/RegisteredModelsArchive/RegisteredModelArchiveDetails';
 import RegisterModel from './screens/RegisterModel/RegisterModel';
 import RegisterVersion from './screens/RegisterModel/RegisterVersion';
-import '~/shared/style/MUI-theme.scss';
+import '#~/shared/style/MUI-theme.scss';
 
 const ModelRegistryRoutes: React.FC = () => (
   <Routes>

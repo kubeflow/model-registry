@@ -1,9 +1,9 @@
-import { RegisteredModelList } from '~/app/types';
+import { RegisteredModelList } from '#~/app/types';
 import {
   isModelNameExisting,
   isNameValid,
-} from '~/app/pages/modelRegistry/screens/RegisterModel/utils';
-import { MR_CHARACTER_LIMIT } from '~/app/pages/modelRegistry/screens/RegisterModel/const';
+} from '#~/app/pages/modelRegistry/screens/RegisterModel/utils';
+import { MR_CHARACTER_LIMIT } from '#~/app/pages/modelRegistry/screens/RegisterModel/const';
 
 describe('RegisterModel utils', () => {
   describe('isModelNameExisting', () => {

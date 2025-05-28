@@ -1,18 +1,18 @@
 /* eslint-disable camelcase */
-import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
-import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
+import { mockModelRegistry } from '#~/__mocks__/mockModelRegistry';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { mockModelVersionList } from '#~/__mocks__/mockModelVersionList';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
+import { mockRegisteredModelList } from '#~/__mocks__/mockRegisteredModelsList';
+import { labelModal, modelRegistry } from '#~/__tests__/cypress/cypress/pages/modelRegistry';
 import {
   ModelRegistryMetadataType,
   type ModelRegistry,
   type ModelVersion,
   type RegisteredModel,
-} from '~/app/types';
-import { be } from '~/__tests__/cypress/cypress/utils/should';
-import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+} from '#~/app/types';
+import { be } from '#~/__tests__/cypress/cypress/utils/should';
+import { MODEL_REGISTRY_API_VERSION } from '#~/__tests__/cypress/cypress/support/commands/api';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];

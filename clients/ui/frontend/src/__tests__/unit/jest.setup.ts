@@ -5,7 +5,7 @@ import {
   BooleanValues,
   RenderHookResultExt,
   createComparativeValue,
-} from '~/__tests__/unit/testUtils/hooks';
+} from '#~/__tests__/unit/testUtils/hooks';
 
 global.TextEncoder = TextEncoder;
 

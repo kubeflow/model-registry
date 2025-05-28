@@ -1,6 +1,6 @@
-import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import type { ModelRegistry } from '~/app/types';
-import { modelRegistrySettings } from '~/__tests__/cypress/cypress/pages/modelRegistrySettings';
+import { mockModelRegistry } from '#~/__mocks__/mockModelRegistry';
+import type { ModelRegistry } from '#~/app/types';
+import { modelRegistrySettings } from '#~/__tests__/cypress/cypress/pages/modelRegistrySettings';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];

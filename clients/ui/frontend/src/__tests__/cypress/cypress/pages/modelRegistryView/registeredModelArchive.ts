@@ -1,5 +1,5 @@
-import { TableRow } from '~/__tests__/cypress/cypress/pages/components/table';
-import { Modal } from '~/__tests__/cypress/cypress/pages/components/Modal';
+import { TableRow } from '#~/__tests__/cypress/cypress/pages/components/table';
+import { Modal } from '#~/__tests__/cypress/cypress/pages/components/Modal';
 
 class ArchiveModelTableRow extends TableRow {
   findName() {

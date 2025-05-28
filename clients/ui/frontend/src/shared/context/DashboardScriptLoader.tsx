@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Bullseye, Spinner } from '@patternfly/react-core';
-import { isIntegrated } from '~/shared/utilities/const';
+import { isIntegrated } from '#~/shared/utilities/const';
 
 type DashboardScriptLoaderProps = {
   children: React.ReactNode;

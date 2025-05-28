@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormGroup, HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { useThemeContext } from '~/app/ThemeContext';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { useThemeContext } from '#~/app/ThemeContext';
 
 type ResourceNameFieldProps = {
   allowEdit: boolean;

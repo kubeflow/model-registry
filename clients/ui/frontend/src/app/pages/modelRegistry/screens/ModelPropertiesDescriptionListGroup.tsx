@@ -4,14 +4,14 @@ import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
-import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
+import DashboardDescriptionListGroup from '#~/shared/components/DashboardDescriptionListGroup';
 import {
   filterCustomProperties,
   getProperties,
   mergeUpdatedProperty,
-} from '~/app/pages/modelRegistry/screens/utils';
-import { ModelRegistryCustomProperties } from '~/app/types';
-import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/ModelPropertiesTableRow';
+} from '#~/app/pages/modelRegistry/screens/utils';
+import { ModelRegistryCustomProperties } from '#~/app/types';
+import ModelPropertiesTableRow from '#~/app/pages/modelRegistry/screens/ModelPropertiesTableRow';
 import { pipelineRunSpecificKeys } from './ModelVersionDetails/const';
 
 type ModelPropertiesDescriptionListGroupProps = {

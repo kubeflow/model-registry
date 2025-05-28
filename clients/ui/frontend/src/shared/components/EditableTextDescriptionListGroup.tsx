@@ -2,8 +2,8 @@ import * as React from 'react';
 import { ExpandableSection, TextArea, TextInput } from '@patternfly/react-core';
 import DashboardDescriptionListGroup, {
   DashboardDescriptionListGroupProps,
-} from '~/shared/components/DashboardDescriptionListGroup';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+} from '#~/shared/components/DashboardDescriptionListGroup';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type EditableTextDescriptionListGroupProps = Pick<
   DashboardDescriptionListGroupProps,

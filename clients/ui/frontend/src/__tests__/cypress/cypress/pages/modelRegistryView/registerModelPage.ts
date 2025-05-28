@@ -1,4 +1,4 @@
-import { SearchSelector } from '~/__tests__/cypress/cypress/pages/components/subComponents/SearchSelector';
+import { SearchSelector } from '#~/__tests__/cypress/cypress/pages/components/subComponents/SearchSelector';
 
 export enum FormFieldSelector {
   MODEL_NAME = '#model-name',

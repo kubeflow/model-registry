@@ -1,16 +1,16 @@
-import { mockModelVersion, mockRegisteredModel } from '~/__mocks__';
+import { mockModelVersion, mockRegisteredModel } from '#~/__mocks__';
 import {
   ModelRegistryAPIs,
   ModelState,
   ModelRegistryMetadataType,
   ModelVersion,
   RegisteredModel,
-} from '~/app/types';
+} from '#~/app/types';
 import {
   bumpModelVersionTimestamp,
   bumpRegisteredModelTimestamp,
   bumpBothTimestamps,
-} from '~/app/api/updateTimestamps';
+} from '#~/app/api/updateTimestamps';
 
 describe('updateTimestamps', () => {
   const mockApi = jest.mocked<ModelRegistryAPIs>({

@@ -1,9 +1,9 @@
 import React from 'react';
-import { RegisteredModel, ModelVersion, ModelArtifact } from '~/app/types';
-import { filterLiveVersions, getLastCreatedItem, uriToStorageFields } from '~/app/utils';
-import { UpdateObjectAtPropAndValue } from '~/shared/types';
-import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
-import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
+import { RegisteredModel, ModelVersion, ModelArtifact } from '#~/app/types';
+import { filterLiveVersions, getLastCreatedItem, uriToStorageFields } from '#~/app/utils';
+import { UpdateObjectAtPropAndValue } from '#~/shared/types';
+import useModelArtifactsByVersionId from '#~/app/hooks/useModelArtifactsByVersionId';
+import useModelVersionsByRegisteredModel from '#~/app/hooks/useModelVersionsByRegisteredModel';
 import { RegisterVersionFormData, ModelLocationType } from './useRegisterModelData';
 
 type UsePrefillRegisterVersionFieldsArgs = {

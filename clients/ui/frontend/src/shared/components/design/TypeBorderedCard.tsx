@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { css } from '@patternfly/react-styles';
 import { Card, CardProps } from '@patternfly/react-core';
-import { ProjectObjectType, SectionType } from '~/shared/components/design/utils';
+import { ProjectObjectType, SectionType } from '#~/shared/components/design/utils';
 
 import './TypeBorderCard.scss';
 

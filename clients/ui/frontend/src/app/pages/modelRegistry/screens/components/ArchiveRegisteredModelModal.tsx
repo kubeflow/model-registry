@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Flex, FlexItem, Stack, StackItem, TextInput } from '@patternfly/react-core';
 import { Modal } from '@patternfly/react-core/deprecated';
-import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
-import { useNotification } from '~/app/hooks/useNotification';
+import DashboardModalFooter from '#~/shared/components/DashboardModalFooter';
+import { useNotification } from '#~/app/hooks/useNotification';
 
 interface ArchiveRegisteredModelModalProps {
   onCancel: () => void;

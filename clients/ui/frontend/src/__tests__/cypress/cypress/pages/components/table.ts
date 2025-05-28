@@ -1,4 +1,4 @@
-import { Contextual } from '~/__tests__/cypress/cypress/pages/components/Contextual';
+import { Contextual } from '#~/__tests__/cypress/cypress/pages/components/Contextual';
 
 export class TableRow extends Contextual<HTMLTableRowElement> {
   findExpandButton(): Cypress.Chainable<JQuery<HTMLElement>> {

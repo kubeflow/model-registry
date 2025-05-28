@@ -2,19 +2,19 @@ import * as React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
 import { Content, ContentVariants, FlexItem, Truncate } from '@patternfly/react-core';
-import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { ModelState, RegisteredModel } from '~/app/types';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import ModelLabels from '~/app/pages/modelRegistry/screens/components/ModelLabels';
-import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
-import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
-import { RestoreRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
+import { ModelRegistryContext } from '#~/app/context/ModelRegistryContext';
+import { ModelState, RegisteredModel } from '#~/app/types';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import ModelLabels from '#~/app/pages/modelRegistry/screens/components/ModelLabels';
+import ModelTimestamp from '#~/app/pages/modelRegistry/screens/components/ModelTimestamp';
+import { ArchiveRegisteredModelModal } from '#~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
+import { RestoreRegisteredModelModal } from '#~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
 import {
   registeredModelArchiveDetailsUrl,
   registeredModelArchiveUrl,
   registeredModelUrl,
-} from '~/app/pages/modelRegistry/screens/routeUtils';
-import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
+} from '#~/app/pages/modelRegistry/screens/routeUtils';
+import { ModelVersionsTab } from '#~/app/pages/modelRegistry/screens/ModelVersions/const';
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;

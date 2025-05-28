@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { APIState } from '~/shared/api/types';
+import { APIState } from '#~/shared/api/types';
 
 const useAPIState = <T>(
   hostPath: string | null,

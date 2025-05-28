@@ -1,6 +1,6 @@
 import { act } from 'react';
-import { testHook } from '~/__tests__/unit/testUtils/hooks';
-import { useCheckboxTable } from '~/shared/components/table';
+import { testHook } from '#~/__tests__/unit/testUtils/hooks';
+import { useCheckboxTable } from '#~/shared/components/table';
 
 describe('useCheckboxTable', () => {
   it('should select/unselect all', () => {

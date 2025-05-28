@@ -1,4 +1,4 @@
-import { ModelArtifact } from '~/app/types';
+import { ModelArtifact } from '#~/app/types';
 
 export const mockModelArtifact = (partial?: Partial<ModelArtifact>): ModelArtifact => ({
   createTimeSinceEpoch: '1712234877179',

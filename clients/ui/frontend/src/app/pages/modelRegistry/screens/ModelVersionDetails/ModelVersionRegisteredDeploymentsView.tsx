@@ -1,7 +1,7 @@
 import React from 'react';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
-import ModelVersionDetailsTabs from '~/app/pages/modelRegistry/screens/ModelVersionDetails/ModelVersionDetailsTabs';
-import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import { ProjectObjectType, typedEmptyImage } from '#~/shared/components/design/utils';
+import ModelVersionDetailsTabs from '#~/app/pages/modelRegistry/screens/ModelVersionDetails/ModelVersionDetailsTabs';
+import EmptyModelRegistryState from '#~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 
 type ModelVersionRegisteredDeploymentsViewProps = Pick<
   React.ComponentProps<typeof ModelVersionDetailsTabs>,

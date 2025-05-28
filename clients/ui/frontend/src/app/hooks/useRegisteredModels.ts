@@ -2,9 +2,9 @@ import * as React from 'react';
 import useFetchState, {
   FetchState,
   FetchStateCallbackPromise,
-} from '~/shared/utilities/useFetchState';
-import { RegisteredModelList } from '~/app/types';
-import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
+} from '#~/shared/utilities/useFetchState';
+import { RegisteredModelList } from '#~/app/types';
+import { useModelRegistryAPI } from '#~/app/hooks/useModelRegistryAPI';
 
 const useRegisteredModels = (): FetchState<RegisteredModelList> => {
   const { api, apiAvailable } = useModelRegistryAPI();

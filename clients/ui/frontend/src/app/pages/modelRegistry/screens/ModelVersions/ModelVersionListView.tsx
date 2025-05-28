@@ -15,23 +15,23 @@ import {
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { ModelVersion, RegisteredModel } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
-import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/shared/components/SimpleSelect';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import { ModelVersion, RegisteredModel } from '#~/app/types';
+import { SearchType } from '#~/shared/components/DashboardSearchField';
+import { ProjectObjectType, typedEmptyImage } from '#~/shared/components/design/utils';
+import EmptyModelRegistryState from '#~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import SimpleSelect from '#~/shared/components/SimpleSelect';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
-} from '~/app/pages/modelRegistry/screens/routeUtils';
+} from '#~/app/pages/modelRegistry/screens/routeUtils';
 import {
   filterModelVersions,
   sortModelVersionsByCreateTime,
-} from '~/app/pages/modelRegistry/screens/utils';
-import { asEnumMember } from '~/shared/utilities/utils';
-import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
-import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
+} from '#~/app/pages/modelRegistry/screens/utils';
+import { asEnumMember } from '#~/shared/utilities/utils';
+import { filterArchiveVersions, filterLiveVersions } from '#~/app/utils';
+import ThemeAwareSearchInput from '#~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import ModelVersionsTable from './ModelVersionsTable';
 
 type ModelVersionListViewProps = {

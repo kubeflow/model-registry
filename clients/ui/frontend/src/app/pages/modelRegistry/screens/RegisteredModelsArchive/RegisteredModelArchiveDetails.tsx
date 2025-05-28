@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Button, Flex, FlexItem, Label, Truncate } from '@patternfly/react-core';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
-import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { ModelState } from '~/app/types';
-import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
-import ModelVersionsTabs from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTabs';
-import { RestoreRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
-import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import ApplicationsPage from '#~/shared/components/ApplicationsPage';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import { ModelRegistryContext } from '#~/app/context/ModelRegistryContext';
+import useRegisteredModelById from '#~/app/hooks/useRegisteredModelById';
+import useModelVersionsByRegisteredModel from '#~/app/hooks/useModelVersionsByRegisteredModel';
+import { ModelState } from '#~/app/types';
+import { ModelVersionsTab } from '#~/app/pages/modelRegistry/screens/ModelVersions/const';
+import ModelVersionsTabs from '#~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTabs';
+import { RestoreRegisteredModelModal } from '#~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
+import { registeredModelUrl } from '#~/app/pages/modelRegistry/screens/routeUtils';
 import RegisteredModelArchiveDetailsBreadcrumb from './RegisteredModelArchiveDetailsBreadcrumb';
 
 type RegisteredModelsArchiveDetailsProps = {

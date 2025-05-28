@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCheckboxTableBase } from '~/shared/components/table';
+import { useCheckboxTableBase } from '#~/shared/components/table';
 import type Table from './Table';
 
 type UseCheckboxTable = {

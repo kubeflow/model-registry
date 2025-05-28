@@ -1,4 +1,4 @@
-import { ModelRegistry } from '~/app/types';
+import { ModelRegistry } from '#~/app/types';
 
 type MockModelRegistry = {
   name?: string;

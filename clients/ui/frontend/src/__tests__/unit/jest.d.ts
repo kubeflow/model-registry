@@ -9,14 +9,14 @@ declare namespace jest {
     hookToHaveUpdateCount: (expected: number) => R;
     hookToBeStable: <
       V extends T extends Pick<
-        import('~/__tests__/unit/testUtils/hooks').RenderHookResultExt<
+        import('#~/__tests__/unit/testUtils/hooks').RenderHookResultExt<
           infer Result,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           any
         >,
         'result'
       >
-        ? import('~/__tests__/unit/testUtils/hooks').BooleanValues<Result>
+        ? import('#~/__tests__/unit/testUtils/hooks').BooleanValues<Result>
         : never,
     >(
       expected?: V,

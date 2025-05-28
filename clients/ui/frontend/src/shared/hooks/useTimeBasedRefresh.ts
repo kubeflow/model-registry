@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useBrowserStorage } from '~/shared/components/browserStorage';
-import { logout } from '~/shared/utilities/appUtils';
+import { useBrowserStorage } from '#~/shared/components/browserStorage';
+import { logout } from '#~/shared/utilities/appUtils';
 
 export type SetTime = (refreshDateMarker: Date) => void;
 

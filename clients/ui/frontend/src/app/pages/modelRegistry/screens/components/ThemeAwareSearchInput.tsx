@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { SearchInput, SearchInputProps, TextInput } from '@patternfly/react-core';
-import { useThemeContext } from '~/app/ThemeContext';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { useThemeContext } from '#~/app/ThemeContext';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ThemeAwareSearchInputProps = Omit<SearchInputProps, 'onChange' | 'onClear'> & {
   onChange: (value: string) => void; // Simplified onChange signature

@@ -1,4 +1,4 @@
-import { SearchType } from '~/shared/components/DashboardSearchField';
+import { SearchType } from '#~/shared/components/DashboardSearchField';
 import {
   ModelRegistry,
   ModelRegistryCustomProperties,
@@ -6,8 +6,8 @@ import {
   ModelRegistryStringCustomProperties,
   ModelVersion,
   RegisteredModel,
-} from '~/app/types';
-import { KeyValuePair } from '~/shared/types';
+} from '#~/app/types';
+import { KeyValuePair } from '#~/shared/types';
 
 export type ObjectStorageFields = {
   endpoint: string;

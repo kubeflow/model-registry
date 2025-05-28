@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ModelArtifactList } from '~/app/types';
+import { ModelArtifactList } from '#~/app/types';
 
 export const mockModelArtifactList = ({
   items = [],

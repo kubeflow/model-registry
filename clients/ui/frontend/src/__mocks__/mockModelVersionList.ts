@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ModelVersionList } from '~/app/types';
+import { ModelVersionList } from '#~/app/types';
 
 export const mockModelVersionList = ({
   items = [],

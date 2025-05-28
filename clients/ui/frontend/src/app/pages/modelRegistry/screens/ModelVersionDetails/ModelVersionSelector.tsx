@@ -12,9 +12,9 @@ import {
   MenuToggle,
   SearchInput,
 } from '@patternfly/react-core';
-import { ModelVersion } from '~/app/types';
-import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { filterLiveVersions } from '~/app/utils';
+import { ModelVersion } from '#~/app/types';
+import useModelVersionsByRegisteredModel from '#~/app/hooks/useModelVersionsByRegisteredModel';
+import { filterLiveVersions } from '#~/app/utils';
 
 type ModelVersionSelectorProps = {
   rmId?: string;

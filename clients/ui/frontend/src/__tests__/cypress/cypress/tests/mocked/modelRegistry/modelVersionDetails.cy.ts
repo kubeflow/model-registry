@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
-import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
-import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
-import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
-import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
-import { mockBFFResponse } from '~/__mocks__/utils';
+import { verifyRelativeURL } from '#~/__tests__/cypress/cypress/utils/url';
+import { mockModelRegistry } from '#~/__mocks__/mockModelRegistry';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
+import { mockModelVersionList } from '#~/__mocks__/mockModelVersionList';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { mockModelArtifactList } from '#~/__mocks__/mockModelArtifactList';
+import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '#~/app/types';
+import { MODEL_REGISTRY_API_VERSION } from '#~/__tests__/cypress/cypress/support/commands/api';
+import { modelVersionDetails } from '#~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
+import { mockBFFResponse } from '#~/__mocks__/utils';
 
 const mockModelVersions = mockModelVersion({
   id: '1',

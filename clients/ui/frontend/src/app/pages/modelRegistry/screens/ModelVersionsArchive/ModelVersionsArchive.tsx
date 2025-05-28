@@ -2,12 +2,12 @@ import React from 'react';
 import { useParams } from 'react-router';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
-import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { filterArchiveVersions } from '~/app/utils';
+import ApplicationsPage from '#~/shared/components/ApplicationsPage';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import useRegisteredModelById from '#~/app/hooks/useRegisteredModelById';
+import useModelVersionsByRegisteredModel from '#~/app/hooks/useModelVersionsByRegisteredModel';
+import { registeredModelUrl } from '#~/app/pages/modelRegistry/screens/routeUtils';
+import { filterArchiveVersions } from '#~/app/utils';
 import ModelVersionsArchiveListView from './ModelVersionsArchiveListView';
 
 type ModelVersionsArchiveProps = Omit<

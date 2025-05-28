@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormGroup } from '@patternfly/react-core';
-import { useThemeContext } from '~/app/ThemeContext';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { useThemeContext } from '#~/app/ThemeContext';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 // Props required by this wrapper component
 type ThemeAwareFormGroupWrapperProps = {

@@ -4,7 +4,7 @@ import {
   ModelRegistryMetadataType,
   ModelVersion,
   RegisteredModel,
-} from '~/app/types';
+} from '#~/app/types';
 
 type MinimalModelRegistryAPI = Pick<ModelRegistryAPIs, 'patchRegisteredModel'>;
 

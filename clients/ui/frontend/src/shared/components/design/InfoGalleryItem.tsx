@@ -8,8 +8,8 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { SectionType, sectionTypeBackgroundColor } from '~/shared/components/design/utils';
-import DividedGalleryItem from '~/shared/components/design/DividedGalleryItem';
+import { SectionType, sectionTypeBackgroundColor } from '#~/shared/components/design/utils';
+import DividedGalleryItem from '#~/shared/components/design/DividedGalleryItem';
 
 const HEADER_ICON_SIZE = 40;
 const HEADER_ICON_PADDING = 2;

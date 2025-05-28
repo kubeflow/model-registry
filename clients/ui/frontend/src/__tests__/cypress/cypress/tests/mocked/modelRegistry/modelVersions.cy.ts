@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
-import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
-import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
-import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
-import { be } from '~/__tests__/cypress/cypress/utils/should';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import { ModelRegistryMetadataType, type ModelRegistry, type ModelVersion } from '~/app/types';
-import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
-import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { mockModelVersionList } from '#~/__mocks__/mockModelVersionList';
+import { mockRegisteredModelList } from '#~/__mocks__/mockRegisteredModelsList';
+import { labelModal, modelRegistry } from '#~/__tests__/cypress/cypress/pages/modelRegistry';
+import { be } from '#~/__tests__/cypress/cypress/utils/should';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
+import { ModelRegistryMetadataType, type ModelRegistry, type ModelVersion } from '#~/app/types';
+import { verifyRelativeURL } from '#~/__tests__/cypress/cypress/utils/url';
+import { mockModelRegistry } from '#~/__mocks__/mockModelRegistry';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { MODEL_REGISTRY_API_VERSION } from '#~/__tests__/cypress/cypress/support/commands/api';
 
 type HandlersProps = {
   registeredModelsSize?: number;

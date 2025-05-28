@@ -3,9 +3,9 @@ import useFetchState, {
   FetchState,
   FetchStateCallbackPromise,
   NotReadyError,
-} from '~/shared/utilities/useFetchState';
-import { ModelArtifactList } from '~/app/types';
-import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
+} from '#~/shared/utilities/useFetchState';
+import { ModelArtifactList } from '#~/app/types';
+import { useModelRegistryAPI } from '#~/app/hooks/useModelRegistryAPI';
 
 const useModelArtifactsByVersionId = (modelVersionId?: string): FetchState<ModelArtifactList> => {
   const { api, apiAvailable } = useModelRegistryAPI();

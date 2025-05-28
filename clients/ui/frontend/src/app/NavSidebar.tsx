@@ -9,7 +9,7 @@ import {
   PageSidebar,
   PageSidebarBody,
 } from '@patternfly/react-core';
-import { LOGO_LIGHT } from '~/shared/utilities/const';
+import { LOGO_LIGHT } from '#~/shared/utilities/const';
 import { useNavData, isNavDataGroup, NavDataHref, NavDataGroup } from './AppRoutes';
 
 const NavHref: React.FC<{ item: NavDataHref }> = ({ item }) => (

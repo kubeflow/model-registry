@@ -1,5 +1,5 @@
 import * as React from 'react';
-import EmptyStateErrorMessage from '~/shared/components/EmptyStateErrorMessage';
+import EmptyStateErrorMessage from '#~/shared/components/EmptyStateErrorMessage';
 import { modelRegistryUrl } from './routeUtils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
 

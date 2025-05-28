@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Label, LabelGroup, Alert, AlertVariant } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
-import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
+import DashboardDescriptionListGroup from '#~/shared/components/DashboardDescriptionListGroup';
 
 interface EditableLabelsProps {
   labels: string[];

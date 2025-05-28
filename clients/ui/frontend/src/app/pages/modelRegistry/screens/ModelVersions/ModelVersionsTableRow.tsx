@@ -2,18 +2,18 @@ import * as React from 'react';
 import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
 import { Content, ContentVariants, Truncate, FlexItem } from '@patternfly/react-core';
 import { Link, useNavigate } from 'react-router-dom';
-import { ModelState, ModelVersion } from '~/app/types';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
+import { ModelState, ModelVersion } from '#~/app/types';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import { ModelRegistryContext } from '#~/app/context/ModelRegistryContext';
 import {
   archiveModelVersionDetailsUrl,
   modelVersionArchiveDetailsUrl,
   modelVersionUrl,
-} from '~/app/pages/modelRegistry/screens/routeUtils';
-import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
-import ModelLabels from '~/app/pages/modelRegistry/screens/components/ModelLabels';
-import { ArchiveModelVersionModal } from '~/app/pages/modelRegistry/screens/components/ArchiveModelVersionModal';
-import { RestoreModelVersionModal } from '~/app/pages/modelRegistry/screens/components/RestoreModelVersionModal';
+} from '#~/app/pages/modelRegistry/screens/routeUtils';
+import ModelTimestamp from '#~/app/pages/modelRegistry/screens/components/ModelTimestamp';
+import ModelLabels from '#~/app/pages/modelRegistry/screens/components/ModelLabels';
+import { ArchiveModelVersionModal } from '#~/app/pages/modelRegistry/screens/components/ArchiveModelVersionModal';
+import { RestoreModelVersionModal } from '#~/app/pages/modelRegistry/screens/components/RestoreModelVersionModal';
 
 type ModelVersionsTableRowProps = {
   modelVersion: ModelVersion;

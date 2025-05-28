@@ -1,7 +1,7 @@
-import { ModelRegistryCustomProperties } from '~/app/types';
+import { ModelRegistryCustomProperties } from '#~/app/types';
 import useGenericObjectState, {
   GenericObjectState,
-} from '~/shared/utilities/useGenericObjectState';
+} from '#~/shared/utilities/useGenericObjectState';
 
 export enum ModelLocationType {
   ObjectStorage = 'Object storage',

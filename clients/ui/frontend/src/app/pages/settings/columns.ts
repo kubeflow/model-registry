@@ -1,6 +1,6 @@
-import { kebabTableColumn, SortableData } from '~/shared/components/table';
-import { ModelRegistry } from '~/app/types';
-import { isPlatformDefault } from '~/shared/utilities/const';
+import { kebabTableColumn, SortableData } from '#~/shared/components/table';
+import { ModelRegistry } from '#~/app/types';
+import { isPlatformDefault } from '#~/shared/utilities/const';
 
 export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
   {

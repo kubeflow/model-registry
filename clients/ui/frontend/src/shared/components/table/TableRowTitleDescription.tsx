@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Content } from '@patternfly/react-core';
-import MarkdownView from '~/shared/components/MarkdownView';
+import MarkdownView from '#~/shared/components/MarkdownView';
 
 type TableRowTitleDescriptionProps = {
   title: React.ReactNode;

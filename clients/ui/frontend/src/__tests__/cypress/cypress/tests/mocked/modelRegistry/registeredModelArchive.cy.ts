@@ -1,22 +1,22 @@
 /* eslint-disable camelcase */
-import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
-import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/modelRegistry';
-import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
-import { be } from '~/__tests__/cypress/cypress/utils/should';
-import type { ModelRegistry, ModelVersion, RegisteredModel } from '~/app/types';
-import { ModelRegistryMetadataType, ModelState } from '~/app/types';
-import { mockBFFResponse } from '~/__mocks__/utils';
-import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { mockRegisteredModelList } from '#~/__mocks__/mockRegisteredModelsList';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
+import { verifyRelativeURL } from '#~/__tests__/cypress/cypress/utils/url';
+import { labelModal, modelRegistry } from '#~/__tests__/cypress/cypress/pages/modelRegistry';
+import { mockModelVersionList } from '#~/__mocks__/mockModelVersionList';
+import { be } from '#~/__tests__/cypress/cypress/utils/should';
+import type { ModelRegistry, ModelVersion, RegisteredModel } from '#~/app/types';
+import { ModelRegistryMetadataType, ModelState } from '#~/app/types';
+import { mockBFFResponse } from '#~/__mocks__/utils';
+import { mockModelRegistry } from '#~/__mocks__/mockModelRegistry';
+import { MODEL_REGISTRY_API_VERSION } from '#~/__tests__/cypress/cypress/support/commands/api';
 import {
   archiveModelModal,
   registeredModelArchive,
   restoreModelModal,
-} from '~/__tests__/cypress/cypress/pages/modelRegistryView/registeredModelArchive';
-import { ToastNotification } from '~/__tests__/cypress/cypress/pages/components/Notification';
+} from '#~/__tests__/cypress/cypress/pages/modelRegistryView/registeredModelArchive';
+import { ToastNotification } from '#~/__tests__/cypress/cypress/pages/components/Notification';
 
 type HandlersProps = {
   registeredModels?: RegisteredModel[];

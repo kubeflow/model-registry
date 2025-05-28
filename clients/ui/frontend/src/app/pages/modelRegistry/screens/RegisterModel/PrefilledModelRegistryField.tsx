@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormGroup, TextInput } from '@patternfly/react-core';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type PrefilledModelRegistryFieldProps = {
   mrName?: string;

@@ -12,9 +12,9 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-icons';
-import { KeyValuePair } from '~/shared/types';
-import { EitherNotBoth } from '~/shared/typeHelpers';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { KeyValuePair } from '#~/shared/types';
+import { EitherNotBoth } from '#~/shared/typeHelpers';
+import FormFieldset from '#~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isValidHttpUrl } from './utils';
 
 type ModelPropertiesTableRowProps = {

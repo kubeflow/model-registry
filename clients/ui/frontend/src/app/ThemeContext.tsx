@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createTheme } from '@mui/material';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
-import { isMUITheme, Theme } from '~/shared/utilities/const';
+import { isMUITheme, Theme } from '#~/shared/utilities/const';
 
 type ThemeProviderProps = {
   children: React.ReactNode;

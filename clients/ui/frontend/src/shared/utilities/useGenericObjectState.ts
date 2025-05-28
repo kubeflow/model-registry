@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { UpdateObjectAtPropAndValue } from '~/shared/types';
+import { UpdateObjectAtPropAndValue } from '#~/shared/types';
 
 export type GenericObjectState<T> = [
   data: T,
