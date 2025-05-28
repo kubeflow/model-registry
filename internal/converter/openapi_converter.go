@@ -67,7 +67,7 @@ type OpenAPIConverter interface {
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Owner
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Owner Readme Maturity Language Tasks Provider Logo License LicenseLink LibraryName
 	OverrideNotEditableForRegisteredModel(source OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error)
 
 	// Ignore all fields that ARE editable

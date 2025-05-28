@@ -1193,7 +1193,7 @@ components:
       properties:
         description:
           type: string
-          description: Short description of the model version.
+          description: Human-readable description of the model.
         readme:
           type: string
           description: Model documentation in Markdown.
@@ -1778,8 +1778,7 @@ components:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
-        # TODO: uncomment this when the BaseModel fields are implemented
-        #- $ref: "#/components/schemas/BaseModel"
+        - $ref: "#/components/schemas/BaseModel"
         - type: object
           properties:
             owner:

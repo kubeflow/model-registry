@@ -43,9 +43,18 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		ContextType: &proto.ContextType{
 			Name: &nameConfig.RegisteredModelTypeName,
 			Properties: map[string]proto.PropertyType{
-				"description": proto.PropertyType_STRING,
-				"owner":       proto.PropertyType_STRING,
-				"state":       proto.PropertyType_STRING,
+				"description":  proto.PropertyType_STRING,
+				"language":     proto.PropertyType_STRUCT,
+				"library_name": proto.PropertyType_STRING,
+				"license_link": proto.PropertyType_STRING,
+				"license":      proto.PropertyType_STRING,
+				"logo":         proto.PropertyType_STRING,
+				"maturity":     proto.PropertyType_STRING,
+				"owner":        proto.PropertyType_STRING,
+				"provider":     proto.PropertyType_STRING,
+				"readme":       proto.PropertyType_STRING,
+				"state":        proto.PropertyType_STRING,
+				"tasks":        proto.PropertyType_STRUCT,
 			},
 		},
 	}

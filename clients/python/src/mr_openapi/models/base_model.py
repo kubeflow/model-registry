@@ -24,7 +24,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class BaseModel(BaseModel):
     """BaseModel."""  # noqa: E501
 
-    description: StrictStr | None = Field(default=None, description="Short description of the model version.")
+    description: StrictStr | None = Field(default=None, description="Human-readable description of the model.")
     readme: StrictStr | None = Field(default=None, description="Model documentation in Markdown.")
     maturity: StrictStr | None = Field(default=None, description="Maturity level of the model.")
     language: list[StrictStr] | None = Field(

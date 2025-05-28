@@ -19,7 +19,7 @@ var _ MappedNullable = &BaseModel{}
 
 // BaseModel struct for BaseModel
 type BaseModel struct {
-	// Short description of the model version.
+	// Human-readable description of the model.
 	Description *string `json:"description,omitempty"`
 	// Model documentation in Markdown.
 	Readme *string `json:"readme,omitempty"`

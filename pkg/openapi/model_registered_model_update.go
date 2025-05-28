@@ -21,12 +21,29 @@ var _ MappedNullable = &RegisteredModelUpdate{}
 type RegisteredModelUpdate struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
-	// An optional description about the resource.
+	// Human-readable description of the model.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string               `json:"externalId,omitempty"`
-	Owner      *string               `json:"owner,omitempty"`
-	State      *RegisteredModelState `json:"state,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
+	// Model documentation in Markdown.
+	Readme *string `json:"readme,omitempty"`
+	// Maturity level of the model.
+	Maturity *string `json:"maturity,omitempty"`
+	// List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+	Language []string `json:"language,omitempty"`
+	// List of tasks the model is designed for.
+	Tasks []string `json:"tasks,omitempty"`
+	// Name of the organization or entity that provides the model.
+	Provider *string `json:"provider,omitempty"`
+	// URL to the model's logo. A [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) is recommended.
+	Logo *string `json:"logo,omitempty"`
+	// Short name of the model's license.
+	License *string `json:"license,omitempty"`
+	// URL to the license text.
+	LicenseLink *string               `json:"licenseLink,omitempty"`
+	LibraryName *string               `json:"libraryName,omitempty"`
+	Owner       *string               `json:"owner,omitempty"`
+	State       *RegisteredModelState `json:"state,omitempty"`
 }
 
 // NewRegisteredModelUpdate instantiates a new RegisteredModelUpdate object
@@ -146,6 +163,294 @@ func (o *RegisteredModelUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
+// GetReadme returns the Readme field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetReadme() string {
+	if o == nil || IsNil(o.Readme) {
+		var ret string
+		return ret
+	}
+	return *o.Readme
+}
+
+// GetReadmeOk returns a tuple with the Readme field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetReadmeOk() (*string, bool) {
+	if o == nil || IsNil(o.Readme) {
+		return nil, false
+	}
+	return o.Readme, true
+}
+
+// HasReadme returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasReadme() bool {
+	if o != nil && !IsNil(o.Readme) {
+		return true
+	}
+
+	return false
+}
+
+// SetReadme gets a reference to the given string and assigns it to the Readme field.
+func (o *RegisteredModelUpdate) SetReadme(v string) {
+	o.Readme = &v
+}
+
+// GetMaturity returns the Maturity field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetMaturity() string {
+	if o == nil || IsNil(o.Maturity) {
+		var ret string
+		return ret
+	}
+	return *o.Maturity
+}
+
+// GetMaturityOk returns a tuple with the Maturity field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetMaturityOk() (*string, bool) {
+	if o == nil || IsNil(o.Maturity) {
+		return nil, false
+	}
+	return o.Maturity, true
+}
+
+// HasMaturity returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasMaturity() bool {
+	if o != nil && !IsNil(o.Maturity) {
+		return true
+	}
+
+	return false
+}
+
+// SetMaturity gets a reference to the given string and assigns it to the Maturity field.
+func (o *RegisteredModelUpdate) SetMaturity(v string) {
+	o.Maturity = &v
+}
+
+// GetLanguage returns the Language field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetLanguage() []string {
+	if o == nil || IsNil(o.Language) {
+		var ret []string
+		return ret
+	}
+	return o.Language
+}
+
+// GetLanguageOk returns a tuple with the Language field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetLanguageOk() ([]string, bool) {
+	if o == nil || IsNil(o.Language) {
+		return nil, false
+	}
+	return o.Language, true
+}
+
+// HasLanguage returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasLanguage() bool {
+	if o != nil && !IsNil(o.Language) {
+		return true
+	}
+
+	return false
+}
+
+// SetLanguage gets a reference to the given []string and assigns it to the Language field.
+func (o *RegisteredModelUpdate) SetLanguage(v []string) {
+	o.Language = v
+}
+
+// GetTasks returns the Tasks field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetTasks() []string {
+	if o == nil || IsNil(o.Tasks) {
+		var ret []string
+		return ret
+	}
+	return o.Tasks
+}
+
+// GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetTasksOk() ([]string, bool) {
+	if o == nil || IsNil(o.Tasks) {
+		return nil, false
+	}
+	return o.Tasks, true
+}
+
+// HasTasks returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasTasks() bool {
+	if o != nil && !IsNil(o.Tasks) {
+		return true
+	}
+
+	return false
+}
+
+// SetTasks gets a reference to the given []string and assigns it to the Tasks field.
+func (o *RegisteredModelUpdate) SetTasks(v []string) {
+	o.Tasks = v
+}
+
+// GetProvider returns the Provider field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetProvider() string {
+	if o == nil || IsNil(o.Provider) {
+		var ret string
+		return ret
+	}
+	return *o.Provider
+}
+
+// GetProviderOk returns a tuple with the Provider field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetProviderOk() (*string, bool) {
+	if o == nil || IsNil(o.Provider) {
+		return nil, false
+	}
+	return o.Provider, true
+}
+
+// HasProvider returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasProvider() bool {
+	if o != nil && !IsNil(o.Provider) {
+		return true
+	}
+
+	return false
+}
+
+// SetProvider gets a reference to the given string and assigns it to the Provider field.
+func (o *RegisteredModelUpdate) SetProvider(v string) {
+	o.Provider = &v
+}
+
+// GetLogo returns the Logo field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetLogo() string {
+	if o == nil || IsNil(o.Logo) {
+		var ret string
+		return ret
+	}
+	return *o.Logo
+}
+
+// GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetLogoOk() (*string, bool) {
+	if o == nil || IsNil(o.Logo) {
+		return nil, false
+	}
+	return o.Logo, true
+}
+
+// HasLogo returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasLogo() bool {
+	if o != nil && !IsNil(o.Logo) {
+		return true
+	}
+
+	return false
+}
+
+// SetLogo gets a reference to the given string and assigns it to the Logo field.
+func (o *RegisteredModelUpdate) SetLogo(v string) {
+	o.Logo = &v
+}
+
+// GetLicense returns the License field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetLicense() string {
+	if o == nil || IsNil(o.License) {
+		var ret string
+		return ret
+	}
+	return *o.License
+}
+
+// GetLicenseOk returns a tuple with the License field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetLicenseOk() (*string, bool) {
+	if o == nil || IsNil(o.License) {
+		return nil, false
+	}
+	return o.License, true
+}
+
+// HasLicense returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasLicense() bool {
+	if o != nil && !IsNil(o.License) {
+		return true
+	}
+
+	return false
+}
+
+// SetLicense gets a reference to the given string and assigns it to the License field.
+func (o *RegisteredModelUpdate) SetLicense(v string) {
+	o.License = &v
+}
+
+// GetLicenseLink returns the LicenseLink field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetLicenseLink() string {
+	if o == nil || IsNil(o.LicenseLink) {
+		var ret string
+		return ret
+	}
+	return *o.LicenseLink
+}
+
+// GetLicenseLinkOk returns a tuple with the LicenseLink field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetLicenseLinkOk() (*string, bool) {
+	if o == nil || IsNil(o.LicenseLink) {
+		return nil, false
+	}
+	return o.LicenseLink, true
+}
+
+// HasLicenseLink returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasLicenseLink() bool {
+	if o != nil && !IsNil(o.LicenseLink) {
+		return true
+	}
+
+	return false
+}
+
+// SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
+func (o *RegisteredModelUpdate) SetLicenseLink(v string) {
+	o.LicenseLink = &v
+}
+
+// GetLibraryName returns the LibraryName field value if set, zero value otherwise.
+func (o *RegisteredModelUpdate) GetLibraryName() string {
+	if o == nil || IsNil(o.LibraryName) {
+		var ret string
+		return ret
+	}
+	return *o.LibraryName
+}
+
+// GetLibraryNameOk returns a tuple with the LibraryName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RegisteredModelUpdate) GetLibraryNameOk() (*string, bool) {
+	if o == nil || IsNil(o.LibraryName) {
+		return nil, false
+	}
+	return o.LibraryName, true
+}
+
+// HasLibraryName returns a boolean if a field has been set.
+func (o *RegisteredModelUpdate) HasLibraryName() bool {
+	if o != nil && !IsNil(o.LibraryName) {
+		return true
+	}
+
+	return false
+}
+
+// SetLibraryName gets a reference to the given string and assigns it to the LibraryName field.
+func (o *RegisteredModelUpdate) SetLibraryName(v string) {
+	o.LibraryName = &v
+}
+
 // GetOwner returns the Owner field value if set, zero value otherwise.
 func (o *RegisteredModelUpdate) GetOwner() string {
 	if o == nil || IsNil(o.Owner) {
@@ -228,6 +533,33 @@ func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
+	}
+	if !IsNil(o.Readme) {
+		toSerialize["readme"] = o.Readme
+	}
+	if !IsNil(o.Maturity) {
+		toSerialize["maturity"] = o.Maturity
+	}
+	if !IsNil(o.Language) {
+		toSerialize["language"] = o.Language
+	}
+	if !IsNil(o.Tasks) {
+		toSerialize["tasks"] = o.Tasks
+	}
+	if !IsNil(o.Provider) {
+		toSerialize["provider"] = o.Provider
+	}
+	if !IsNil(o.Logo) {
+		toSerialize["logo"] = o.Logo
+	}
+	if !IsNil(o.License) {
+		toSerialize["license"] = o.License
+	}
+	if !IsNil(o.LicenseLink) {
+		toSerialize["licenseLink"] = o.LicenseLink
+	}
+	if !IsNil(o.LibraryName) {
+		toSerialize["libraryName"] = o.LibraryName
 	}
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner
