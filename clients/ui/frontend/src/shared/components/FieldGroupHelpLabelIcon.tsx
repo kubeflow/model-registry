@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Popover } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import DashboardPopupIconButton from '~/shared/components/dashboard/DashboardPopupIconButton';
+import DashboardPopupIconButton from '#~/shared/components/dashboard/DashboardPopupIconButton';
 
 type FieldGroupHelpLabelIconProps = {
   content: React.ComponentProps<typeof Popover>['bodyContent'];

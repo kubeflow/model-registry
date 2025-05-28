@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
 import {
   ModelRegistryCustomProperties,
   ModelRegistryMetadataType,
@@ -8,7 +8,7 @@ import {
   ModelState,
   ModelVersion,
   RegisteredModel,
-} from '~/app/types';
+} from '#~/app/types';
 import {
   filterModelVersions,
   filterRegisteredModels,
@@ -17,8 +17,8 @@ import {
   mergeUpdatedLabels,
   mergeUpdatedProperty,
   sortModelVersionsByCreateTime,
-} from '~/app/pages/modelRegistry/screens/utils';
-import { SearchType } from '~/shared/components/DashboardSearchField';
+} from '#~/app/pages/modelRegistry/screens/utils';
+import { SearchType } from '#~/shared/components/DashboardSearchField';
 
 describe('getLabels', () => {
   it('should return an empty array when customProperties is empty', () => {

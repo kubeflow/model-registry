@@ -1,4 +1,4 @@
-import { SubComponentBase } from '~/__tests__/cypress/cypress/pages/components/subComponents/SubComponentBase';
+import { SubComponentBase } from '#~/__tests__/cypress/cypress/pages/components/subComponents/SubComponentBase';
 
 export class SearchSelector extends SubComponentBase {
   constructor(

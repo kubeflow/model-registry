@@ -2,20 +2,20 @@ import * as React from 'react';
 import { ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelVersion, RegisteredModel } from '~/app/types';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
-import SimpleSelect from '~/shared/components/SimpleSelect';
+import { ModelVersion, RegisteredModel } from '#~/app/types';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
+import { SearchType } from '#~/shared/components/DashboardSearchField';
+import { ProjectObjectType, typedEmptyImage } from '#~/shared/components/design/utils';
+import SimpleSelect from '#~/shared/components/SimpleSelect';
 import {
   registeredModelArchiveUrl,
   registerModelUrl,
-} from '~/app/pages/modelRegistry/screens/routeUtils';
-import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
-import { asEnumMember } from '~/shared/utilities/utils';
-import { filterArchiveModels, filterLiveModels } from '~/app/utils';
-import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
+} from '#~/app/pages/modelRegistry/screens/routeUtils';
+import EmptyModelRegistryState from '#~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
+import { filterRegisteredModels } from '#~/app/pages/modelRegistry/screens/utils';
+import { asEnumMember } from '#~/shared/utilities/utils';
+import { filterArchiveModels, filterLiveModels } from '#~/app/utils';
+import ThemeAwareSearchInput from '#~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
 

@@ -1,4 +1,4 @@
-import { UserSettings } from '~/shared/types';
+import { UserSettings } from '#~/shared/types';
 
 type MockUserSettingsType = {
   userId?: string;

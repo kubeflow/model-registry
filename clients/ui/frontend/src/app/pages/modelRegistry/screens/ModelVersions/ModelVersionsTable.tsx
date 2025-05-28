@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Table } from '~/shared/components/table';
-import { ModelVersion } from '~/app/types';
-import { mvColumns } from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
-import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
-import ModelVersionsTableRow from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
+import { Table } from '#~/shared/components/table';
+import { ModelVersion } from '#~/app/types';
+import { mvColumns } from '#~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableColumns';
+import DashboardEmptyTableView from '#~/shared/components/DashboardEmptyTableView';
+import ModelVersionsTableRow from '#~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTableRow';
 
 type ModelVersionsTableProps = {
   clearFilters: () => void;

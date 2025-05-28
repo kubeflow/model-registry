@@ -21,7 +21,7 @@ import {
   HelperText,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import TruncatedText from '~/shared/components/TruncatedText';
+import TruncatedText from '#~/shared/components/TruncatedText';
 
 export interface TypeaheadSelectOption extends Omit<SelectOptionProps, 'content' | 'isSelected'> {
   /** Content of the select option. */

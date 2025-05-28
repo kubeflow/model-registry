@@ -1,13 +1,13 @@
 import { waitFor } from '@testing-library/react';
-import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
-import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
-import { ModelRegistryAPIs } from '~/app/types';
-import { mockModelArtifact } from '~/__mocks__/mockModelArtifact';
-import { testHook } from '~/__tests__/unit/testUtils/hooks';
+import useModelArtifactsByVersionId from '#~/app/hooks/useModelArtifactsByVersionId';
+import { useModelRegistryAPI } from '#~/app/hooks/useModelRegistryAPI';
+import { ModelRegistryAPIs } from '#~/app/types';
+import { mockModelArtifact } from '#~/__mocks__/mockModelArtifact';
+import { testHook } from '#~/__tests__/unit/testUtils/hooks';
 
 global.fetch = jest.fn();
 // Mock the useModelRegistryAPI hook
-jest.mock('~/app/hooks/useModelRegistryAPI', () => ({
+jest.mock('#~/app/hooks/useModelRegistryAPI', () => ({
   useModelRegistryAPI: jest.fn(),
 }));
 

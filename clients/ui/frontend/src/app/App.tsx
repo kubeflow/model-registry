@@ -12,11 +12,11 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import ToastNotifications from '~/shared/components/ToastNotifications';
-import { useSettings } from '~/shared/hooks/useSettings';
-import { AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
-import { logout } from '~/shared/utilities/appUtils';
-import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
+import ToastNotifications from '#~/shared/components/ToastNotifications';
+import { useSettings } from '#~/shared/hooks/useSettings';
+import { AUTH_HEADER, MOCK_AUTH, isStandalone } from '#~/shared/utilities/const';
+import { logout } from '#~/shared/utilities/appUtils';
+import { NamespaceSelectorContext } from '#~/shared/context/NamespaceSelectorContext';
 import NavSidebar from './NavSidebar';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
