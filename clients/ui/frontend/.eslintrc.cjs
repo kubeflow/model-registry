@@ -148,7 +148,7 @@ module.exports = {
       {
         "pathGroups": [
           {
-            "pattern": "~/**",
+            "pattern": "#~/**",
             "group": "external",
             "position": "after"
           }
@@ -233,7 +233,7 @@ module.exports = {
         "no-restricted-imports": [
           "off",
           {
-            "patterns": ["~/api/**"]
+            "patterns": ["#~/api/**"]
           }
         ]
       }

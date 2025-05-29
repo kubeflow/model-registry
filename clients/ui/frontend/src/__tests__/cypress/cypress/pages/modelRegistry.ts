@@ -1,4 +1,4 @@
-import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
+import { appChrome } from '#~/__tests__/cypress/cypress/pages/appChrome';
 import { TableRow } from './components/table';
 import { Modal } from './components/Modal';
 

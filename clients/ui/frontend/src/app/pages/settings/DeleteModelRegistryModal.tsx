@@ -1,8 +1,8 @@
 import React from 'react';
 import { Content, TextInput, Stack, StackItem } from '@patternfly/react-core';
 import { Modal } from '@patternfly/react-core/deprecated';
-import { ModelRegistry } from '~/app/types';
-import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
+import { ModelRegistry } from '#~/app/types';
+import DashboardModalFooter from '#~/shared/components/DashboardModalFooter';
 
 type DeleteModelRegistryModalProps = {
   modelRegistry: ModelRegistry;

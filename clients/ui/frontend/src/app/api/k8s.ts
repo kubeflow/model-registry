@@ -1,5 +1,5 @@
-import { APIOptions } from '~/shared/api/types';
-import { handleRestFailures } from '~/shared/api/errorUtils';
+import { APIOptions } from '#~/shared/api/types';
+import { handleRestFailures } from '#~/shared/api/errorUtils';
 import {
   assembleModelRegistryBody,
   isModelRegistryResponse,
@@ -7,12 +7,12 @@ import {
   restDELETE,
   restGET,
   restPATCH,
-} from '~/shared/api/apiUtils';
-import { ModelRegistry } from '~/app/types';
-import { BFF_API_VERSION } from '~/app/const';
-import { URL_PREFIX } from '~/shared/utilities/const';
-import { Namespace, UserSettings } from '~/shared/types';
-import { ModelRegistryKind } from '~/shared/k8sTypes';
+} from '#~/shared/api/apiUtils';
+import { ModelRegistry } from '#~/app/types';
+import { BFF_API_VERSION } from '#~/app/const';
+import { URL_PREFIX } from '#~/shared/utilities/const';
+import { Namespace, UserSettings } from '#~/shared/types';
+import { ModelRegistryKind } from '#~/shared/k8sTypes';
 
 export const getListModelRegistries =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>

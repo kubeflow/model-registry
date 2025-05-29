@@ -1,5 +1,5 @@
-import { APIError } from '~/shared/api/types';
-import { isCommonStateError } from '~/shared/utilities/useFetchState';
+import { APIError } from '#~/shared/api/types';
+import { isCommonStateError } from '#~/shared/utilities/useFetchState';
 
 const isError = (e: unknown): e is APIError => typeof e === 'object' && e !== null && 'error' in e;
 

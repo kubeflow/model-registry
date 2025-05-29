@@ -1,6 +1,6 @@
-import { isModelRegistryResponse, restCREATE, restGET, restPATCH } from '~/shared/api/apiUtils';
-import { handleRestFailures } from '~/shared/api/errorUtils';
-import { ModelState, ModelArtifactState } from '~/app/types';
+import { isModelRegistryResponse, restCREATE, restGET, restPATCH } from '#~/shared/api/apiUtils';
+import { handleRestFailures } from '#~/shared/api/errorUtils';
+import { ModelState, ModelArtifactState } from '#~/app/types';
 import {
   createRegisteredModel,
   getRegisteredModel,
@@ -15,14 +15,14 @@ import {
   getModelArtifactsByModelVersion,
   createModelVersionForRegisteredModel,
   createModelArtifactForModelVersion,
-} from '~/app/api/service';
-import { BFF_API_VERSION } from '~/app/const';
-import { mockRegisteredModel } from '~/__mocks__';
+} from '#~/app/api/service';
+import { BFF_API_VERSION } from '#~/app/const';
+import { mockRegisteredModel } from '#~/__mocks__';
 
 const mockRestPromise = Promise.resolve({ data: {} });
 const mockRestResponse = {};
 
-jest.mock('~/shared/api/apiUtils', () => ({
+jest.mock('#~/shared/api/apiUtils', () => ({
   restCREATE: jest.fn(() => mockRestPromise),
   restGET: jest.fn(() => mockRestPromise),
   restPATCH: jest.fn(() => mockRestPromise),
@@ -30,7 +30,7 @@ jest.mock('~/shared/api/apiUtils', () => ({
   isModelRegistryResponse: jest.fn(() => true),
 }));
 
-jest.mock('~/shared/api/errorUtils', () => ({
+jest.mock('#~/shared/api/errorUtils', () => ({
   handleRestFailures: jest.fn(() => mockRestPromise),
 }));
 

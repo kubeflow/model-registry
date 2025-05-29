@@ -1,5 +1,5 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
-import { mockBFFResponse } from '~/__mocks__/utils';
+import { mockBFFResponse } from '#~/__mocks__/utils';
 import type {
   ModelArtifact,
   ModelArtifactList,
@@ -8,8 +8,8 @@ import type {
   ModelVersionList,
   RegisteredModel,
   RegisteredModelList,
-} from '~/app/types';
-import type { Namespace, UserSettings } from '~/shared/types';
+} from '#~/app/types';
+import type { Namespace, UserSettings } from '#~/shared/types';
 
 const MODEL_REGISTRY_API_VERSION = 'v1';
 export { MODEL_REGISTRY_API_VERSION };

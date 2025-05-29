@@ -1,5 +1,5 @@
-import { mockModelVersion } from '~/__mocks__/mockModelVersion';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
+import { mockModelVersion } from '#~/__mocks__/mockModelVersion';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
 import {
   filterArchiveModels,
   filterArchiveVersions,
@@ -8,8 +8,8 @@ import {
   getLastCreatedItem,
   objectStorageFieldsToUri,
   uriToStorageFields,
-} from '~/app/utils';
-import { RegisteredModel, ModelState, ModelVersion } from '~/app/types';
+} from '#~/app/utils';
+import { RegisteredModel, ModelState, ModelVersion } from '#~/app/types';
 
 describe('objectStorageFieldsToUri', () => {
   it('converts fields to URI with all fields present', () => {

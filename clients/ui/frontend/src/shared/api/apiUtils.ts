@@ -1,7 +1,7 @@
-import { APIOptions } from '~/shared/api/types';
-import { EitherOrNone } from '~/shared/typeHelpers';
-import { ModelRegistryBody } from '~/app/types';
-import { AUTH_HEADER, MOCK_AUTH } from '~/shared/utilities/const';
+import { APIOptions } from '#~/shared/api/types';
+import { EitherOrNone } from '#~/shared/typeHelpers';
+import { ModelRegistryBody } from '#~/app/types';
+import { AUTH_HEADER, MOCK_AUTH } from '#~/shared/utilities/const';
 
 export const mergeRequestInit = (
   opts: APIOptions = {},
