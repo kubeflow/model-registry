@@ -12,16 +12,19 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import ToastNotifications from '~/shared/components/ToastNotifications';
-import { useSettings } from '~/shared/hooks/useSettings';
-import { AUTH_HEADER, MOCK_AUTH, isStandalone } from '~/shared/utilities/const';
-import { logout } from '~/shared/utilities/appUtils';
-import { NamespaceSelectorContext } from '~/shared/context/NamespaceSelectorContext';
-import NavSidebar from './NavSidebar';
+import {
+  ToastNotifications,
+  useSettings,
+  logout,
+  NamespaceSelectorContext,
+  NavBar,
+  useModularArchContext,
+} from 'mod-arch-shared';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
-import NavBar from './NavBar';
+import 'mod-arch-shared/style/MUI-theme.scss';
+import AppNavSidebar from './AppNavSidebar';
 
 const App: React.FC = () => {
   const {
@@ -35,14 +38,7 @@ const App: React.FC = () => {
     React.useContext(NamespaceSelectorContext);
 
   const username = userSettings?.userId;
-
-  React.useEffect(() => {
-    if (MOCK_AUTH && username) {
-      localStorage.setItem(AUTH_HEADER, username);
-    } else {
-      localStorage.removeItem(AUTH_HEADER);
-    }
-  }, [username]);
+  const { isIntegrated } = useModularArchContext();
 
   const contextValue = React.useMemo(
     () =>
@@ -104,7 +100,7 @@ const App: React.FC = () => {
       <Page
         mainContainerId="primary-app-container"
         masthead={
-          isStandalone() ? (
+          !isIntegrated ? (
             <NavBar
               username={username}
               onLogout={() => {
@@ -115,8 +111,8 @@ const App: React.FC = () => {
             ''
           )
         }
-        isManagedSidebar={isStandalone()}
-        sidebar={isStandalone() ? <NavSidebar /> : sidebar}
+        isManagedSidebar={!isIntegrated}
+        sidebar={!isIntegrated ? <AppNavSidebar /> : sidebar}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />

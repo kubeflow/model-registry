@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Modal } from '@patternfly/react-core/deprecated';
-import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
+import { DashboardModalFooter } from 'mod-arch-shared';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreRegisteredModelModalProps {

@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { mockModArchResponse } from 'mod-arch-shared';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
@@ -8,7 +9,6 @@ import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
-import { mockBFFResponse } from '~/__mocks__/utils';
 
 const mockModelVersions = mockModelVersion({
   id: '1',
@@ -241,7 +241,7 @@ describe('Model version details', () => {
       modelVersionDetails.findSaveButton().click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
-          mockBFFResponse({
+          mockModArchResponse({
             customProperties: {
               a1: { metadataType: 'MetadataStringValue', string_value: 'v1' },
               a2: { metadataType: 'MetadataStringValue', string_value: 'v2' },
@@ -274,7 +274,7 @@ describe('Model version details', () => {
       propertyRow.find().findKebabAction('Delete').click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
-          mockBFFResponse({
+          mockModArchResponse({
             customProperties: {
               a1: { metadataType: 'MetadataStringValue', string_value: 'v1' },
               a2: { metadataType: 'MetadataStringValue', string_value: 'v2' },

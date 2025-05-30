@@ -10,9 +10,8 @@ import {
 } from '@patternfly/react-core';
 import { Modal } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router';
+import { FormSection } from 'mod-arch-shared';
 import ModelRegistryCreateModalFooter from '~/app/pages/settings/ModelRegistryCreateModalFooter';
-import FormSection from '~/shared/components/pf-overrides/FormSection';
-
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
 import ThemeAwareFormGroupWrapper from './components/ThemeAwareFormGroupWrapper';

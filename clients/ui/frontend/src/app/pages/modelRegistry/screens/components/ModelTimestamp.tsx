@@ -1,6 +1,6 @@
 import { Timestamp, TimestampTooltipVariant } from '@patternfly/react-core';
 import React from 'react';
-import { relativeTime } from '~/shared/utilities/time';
+import { relativeTime } from 'mod-arch-shared';
 
 type ModelTimestampProps = {
   timeSinceEpoch?: string;

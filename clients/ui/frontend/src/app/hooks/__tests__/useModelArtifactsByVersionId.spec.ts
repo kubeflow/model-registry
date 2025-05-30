@@ -1,9 +1,23 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as React from 'react';
 import { waitFor } from '@testing-library/react';
+import { useFetchState } from 'mod-arch-shared';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 import { ModelRegistryAPIs } from '~/app/types';
 import { mockModelArtifact } from '~/__mocks__/mockModelArtifact';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
+
+// Mock mod-arch-shared to avoid React context issues
+jest.mock('mod-arch-shared', () => ({
+  useFetchState: jest.fn(),
+  NotReadyError: class NotReadyError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'NotReadyError';
+    }
+  },
+}));
 
 global.fetch = jest.fn();
 // Mock the useModelRegistryAPI hook
@@ -12,6 +26,7 @@ jest.mock('~/app/hooks/useModelRegistryAPI', () => ({
 }));
 
 const mockUseModelRegistryAPI = jest.mocked(useModelRegistryAPI);
+const mockUseFetchState = jest.mocked(useFetchState);
 
 const mockModelRegistryAPIs: ModelRegistryAPIs = {
   createRegisteredModel: jest.fn(),
@@ -40,6 +55,15 @@ describe('useModelArtifactsByVersionId', () => {
       refreshAllAPI: jest.fn(),
     });
 
+    // Mock useFetchState to return error state
+    const mockError = new Error('API not yet available');
+    mockUseFetchState.mockReturnValue([
+      { items: [], size: 0, pageSize: 0, nextPageToken: '' },
+      false,
+      mockError,
+      jest.fn(),
+    ]);
+
     const { result } = testHook(useModelArtifactsByVersionId)('version-id');
 
     await waitFor(() => {
@@ -55,6 +79,14 @@ describe('useModelArtifactsByVersionId', () => {
       apiAvailable: true,
       refreshAllAPI: jest.fn(),
     });
+
+    // Mock useFetchState to return no error state (silently fail)
+    mockUseFetchState.mockReturnValue([
+      { items: [], size: 0, pageSize: 0, nextPageToken: '' },
+      false,
+      undefined,
+      jest.fn(),
+    ]);
 
     const { result } = testHook(useModelArtifactsByVersionId)();
 
@@ -79,6 +111,9 @@ describe('useModelArtifactsByVersionId', () => {
       apiAvailable: true,
       refreshAllAPI: jest.fn(),
     });
+
+    // Mock useFetchState to return success state
+    mockUseFetchState.mockReturnValue([mockedResponse, true, undefined, jest.fn()]);
 
     const { result } = testHook(useModelArtifactsByVersionId)('version-id');
 

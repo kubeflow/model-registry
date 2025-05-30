@@ -1,13 +1,12 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { ModelRegistry } from '~/app/types';
-import { Table } from '~/shared/components/table';
+import { ModelRegistryKind, Table } from 'mod-arch-shared';
 import { modelRegistryColumns } from './columns';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
 
 type ModelRegistriesTableProps = {
-  modelRegistries: ModelRegistry[];
+  modelRegistries: ModelRegistryKind[];
   onCreateModelRegistryClick: () => void;
   refresh: () => void;
 };
@@ -19,7 +18,7 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
 }) => {
   // TODO: [Midstream] Complete once we have permissions
 
-  const [deleteRegistry, setDeleteRegistry] = React.useState<ModelRegistry>();
+  const [deleteRegistry, setDeleteRegistry] = React.useState<ModelRegistryKind>();
 
   return (
     <>
@@ -42,9 +41,9 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
             </ToolbarContent>
           </Toolbar>
         }
-        rowRenderer={(mr) => (
+        rowRenderer={(mr: ModelRegistryKind) => (
           <ModelRegistriesTableRow
-            key={mr.name}
+            key={mr.metadata.name}
             modelRegistry={mr}
             onDeleteRegistry={(i) => setDeleteRegistry(i)}
             // eslint-disable-next-line @typescript-eslint/no-empty-function

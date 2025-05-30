@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { Bullseye, Alert, Divider, Stack, StackItem } from '@patternfly/react-core';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
+import {
+  ProjectObjectType,
+  typedEmptyImage,
+  useThemeContext,
+  TitleWithIcon,
+  WhosMyAdministrator,
+  KubeflowDocs,
+  ApplicationsPage,
+} from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
-import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
-import WhosMyAdministrator from '~/shared/components/WhosMyAdministrator';
-import KubeflowDocs from '~/shared/components/KubeflowDocs';
-import { useThemeContext } from '~/app/ThemeContext';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';

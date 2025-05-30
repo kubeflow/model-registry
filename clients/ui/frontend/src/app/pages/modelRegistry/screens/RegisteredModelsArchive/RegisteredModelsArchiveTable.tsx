@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Table } from '~/shared/components/table';
+import { Table, DashboardEmptyTableView } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import { rmColumns } from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelsTableColumns';
-import DashboardEmptyTableView from '~/shared/components/DashboardEmptyTableView';
 import RegisteredModelTableRow from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelTableRow';
 
 type RegisteredModelsArchiveTableProps = {
@@ -26,7 +25,7 @@ const RegisteredModelsArchiveTable: React.FC<RegisteredModelsArchiveTableProps> 
     onClearFilters={clearFilters}
     enablePagination
     emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
-    rowRenderer={(rm) => (
+    rowRenderer={(rm: RegisteredModel) => (
       <RegisteredModelTableRow key={rm.name} registeredModel={rm} isArchiveRow refresh={refresh} />
     )}
   />
