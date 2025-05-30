@@ -97,11 +97,16 @@ gen/converter: gen/grpc internal/converter/generated/converter.go
 api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi/src/lib/*.yaml bin/yq
 	scripts/merge_openapi.sh model-registry.yaml
 
+api/openapi/catalog.yaml: api/openapi/src/catalog.yaml api/openapi/src/lib/*.yaml bin/yq
+	scripts/merge_openapi.sh catalog.yaml
+
 # validate the openapi schema
 .PHONY: openapi/validate
 openapi/validate: bin/openapi-generator-cli bin/yq
 	@scripts/merge_openapi.sh --check model-registry.yaml || (echo "api/openapi/model-registry.yaml is incorrectly formatted. Run 'make api/openapi/model-registry.yaml' to fix it."; exit 1)
+	@scripts/merge_openapi.sh --check catalog.yaml || (echo "$< is incorrectly formatted. Run 'make api/openapi/catalog.yaml' to fix it."; exit 1)
 	$(OPENAPI_GENERATOR) validate -i api/openapi/model-registry.yaml
+	$(OPENAPI_GENERATOR) validate -i api/openapi/catalog.yaml
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
@@ -119,6 +124,23 @@ pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
 		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
 	gofmt -w pkg/openapi
+
+# Start the MySQL database
+.PHONY: start/mysql
+start/mysql:
+	./scripts/start_mysql_db.sh
+
+# Stop the MySQL database
+.PHONY: stop/mysql
+stop/mysql:
+	./scripts/teardown_mysql_db.sh
+
+# generate the gorm structs
+.PHONY: gen/gorm
+gen/gorm: bin/gorm-gen bin/golang-migrate start/mysql
+	@(trap '$(MAKE) stop/mysql' EXIT; \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
+	$(GORM_GEN) --dsn 'root:root@tcp(localhost:3306)/model-registry' --db mysql --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
 
 .PHONY: vet
 vet:
@@ -170,6 +192,14 @@ bin/goverter:
 YQ ?= ${PROJECT_BIN}/yq
 bin/yq:
 	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/mikefarah/yq/v4@v4.45.1
+
+GORM_GEN ?= ${PROJECT_BIN}/gentool
+bin/gorm-gen:
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install gorm.io/gen/tools/gentool@v0.0.1
+
+GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
+bin/golang-migrate:
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"

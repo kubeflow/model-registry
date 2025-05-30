@@ -24,22 +24,6 @@ from mr_openapi.models.metadata_value import MetadataValue
 class BaseResource(BaseModel):
     """BaseResource."""  # noqa: E501
 
-    custom_properties: dict[str, MetadataValue] | None = Field(
-        default=None,
-        description="User provided custom properties which are not defined by its type.",
-        alias="customProperties",
-    )
-    description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
-    external_id: StrictStr | None = Field(
-        default=None,
-        description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
-        alias="externalId",
-    )
-    name: StrictStr | None = Field(
-        default=None,
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
-    )
-    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
         default=None,
         description="Output only. Create time of the resource in millisecond since epoch.",
@@ -50,14 +34,30 @@ class BaseResource(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    custom_properties: dict[str, MetadataValue] | None = Field(
+        default=None,
+        description="User provided custom properties which are not defined by its type.",
+        alias="customProperties",
+    )
+    description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
+    external_id: StrictStr | None = Field(
+        default=None,
+        description="The external id that come from the clients' system. This field is optional. If set, it must be unique among all resources within a database instance.",
+        alias="externalId",
+    )
+    name: StrictStr | None = Field(
+        default=None,
+        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
+    )
+    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     __properties: ClassVar[list[str]] = [
+        "createTimeSinceEpoch",
+        "lastUpdateTimeSinceEpoch",
         "customProperties",
         "description",
         "externalId",
         "name",
         "id",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
     ]
 
     model_config = ConfigDict(
@@ -122,6 +122,8 @@ class BaseResource(BaseModel):
 
         return cls.model_validate(
             {
+                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
+                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "customProperties": (
                     {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
                     if obj.get("customProperties") is not None
@@ -131,7 +133,5 @@ class BaseResource(BaseModel):
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
                 "id": obj.get("id"),
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
             }
         )

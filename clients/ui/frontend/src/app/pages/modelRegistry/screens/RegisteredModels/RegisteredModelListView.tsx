@@ -91,6 +91,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
             label: key,
           }))}
           value={searchType}
+          toggleProps={{ style: { minWidth: '150px' } }}
           onChange={(newSearchType) => {
             const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
             if (newSearchTypeInput !== null) {

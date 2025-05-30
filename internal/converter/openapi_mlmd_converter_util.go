@@ -140,6 +140,78 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 			}
 		}
 
+		if source.Readme != nil {
+			props["readme"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Readme,
+				},
+			}
+		}
+
+		if source.Maturity != nil {
+			props["maturity"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Maturity,
+				},
+			}
+		}
+
+		if len(source.Language) > 0 {
+			var err error
+			props["language"], err = mapOpenAPIStringSlice(source.Language, "language")
+			if err != nil {
+				return nil, fmt.Errorf("failed to create struct for language: %w", err)
+			}
+		}
+
+		if len(source.Tasks) > 0 {
+			var err error
+			props["tasks"], err = mapOpenAPIStringSlice(source.Tasks, "tasks")
+			if err != nil {
+				return nil, fmt.Errorf("failed to create struct for tasks: %w", err)
+			}
+		}
+
+		if source.Provider != nil {
+			props["provider"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Provider,
+				},
+			}
+		}
+
+		if source.Logo != nil {
+			props["logo"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Logo,
+				},
+			}
+		}
+
+		if source.License != nil {
+			props["license"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.License,
+				},
+			}
+		}
+
+		if source.LicenseLink != nil {
+			props["license_link"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.LicenseLink,
+				},
+			}
+		}
+
+		if source.LibraryName != nil {
+			props["library_name"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.LibraryName,
+				},
+			}
+		}
+
 		if source.State != nil {
 			props["state"] = &proto.Value{
 				Value: &proto.Value_StringValue{
@@ -149,6 +221,25 @@ func MapRegisteredModelProperties(source *openapi.RegisteredModel) (map[string]*
 		}
 	}
 	return props, nil
+}
+
+func mapOpenAPIStringSlice(s []string, key string) (*proto.Value, error) {
+	sa := make([]any, len(s))
+	for i, v := range s {
+		sa[i] = v
+	}
+	sv, err := structpb.NewStruct(map[string]any{
+		key: sa,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create struct for %s: %w", key, err)
+	}
+
+	return &proto.Value{
+		Value: &proto.Value_StructValue{
+			StructValue: sv,
+		},
+	}, nil
 }
 
 // MapRegisteredModelType return RegisteredModel corresponding MLMD context type

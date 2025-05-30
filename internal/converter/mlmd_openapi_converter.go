@@ -17,6 +17,15 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
 	// goverter:map Properties Owner | MapOwner
 	// goverter:map Properties State | MapRegisteredModelState
+	// goverter:map Properties Readme | MapRegisteredModelReadme
+	// goverter:map Properties Maturity | MapRegisteredModelMaturity
+	// goverter:map Properties Language | MapRegisteredModelLanguage
+	// goverter:map Properties Tasks | MapRegisteredModelTasks
+	// goverter:map Properties Provider | MapRegisteredModelProvider
+	// goverter:map Properties Logo | MapRegisteredModelLogo
+	// goverter:map Properties License | MapRegisteredModelLicense
+	// goverter:map Properties LicenseLink | MapRegisteredModelLicenseLink
+	// goverter:map Properties LibraryName | MapRegisteredModelLibraryName
 	ConvertRegisteredModel(source *proto.Context) (*openapi.RegisteredModel, error)
 
 	// goverter:map Name | MapName

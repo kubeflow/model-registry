@@ -201,21 +201,19 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if isMarkedToBeDeleted {
-		err := r.onDeletion(ctx, mrApi, log, mrIs)
+		err := r.onDeletion(mrApiCtx, mrApi, log, mrIs)
 		if err != nil {
-			return ctrl.Result{Requeue: true}, err
+			return ctrl.Result{}, fmt.Errorf("failed to update DesiredState to UNDEPLOYED: %w", err)
 		}
 
 		if controllerutil.ContainsFinalizer(isvc, r.modelRegistryFinalizer) {
 			log.Info("Removing Finalizer for modelRegistry after successfully perform the operations")
 			if ok := controllerutil.RemoveFinalizer(isvc, r.modelRegistryFinalizer); !ok {
-				log.Error(err, "Failed to remove modelRegistry finalizer for InferenceService")
-				return ctrl.Result{Requeue: true}, nil
+				return ctrl.Result{}, fmt.Errorf("failed to remove modelRegistry finalizer for InferenceService: %w", err)
 			}
 
 			if err = r.client.Update(ctx, isvc); IgnoreDeletingErrors(err) != nil {
-				log.Error(err, "Failed to remove modelRegistry finalizer for InferenceService")
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to remove modelRegistry finalizer for InferenceService: %w", err)
 			}
 		}
 		return ctrl.Result{}, nil

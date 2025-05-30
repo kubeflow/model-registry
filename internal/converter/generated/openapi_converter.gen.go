@@ -470,9 +470,49 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 			openapiRegisteredModel.ExternalId = &xstring2
 		}
 		openapiRegisteredModel.Name = (*source).Name
+		if (*source).Readme != nil {
+			xstring3 := *(*source).Readme
+			openapiRegisteredModel.Readme = &xstring3
+		}
+		if (*source).Maturity != nil {
+			xstring4 := *(*source).Maturity
+			openapiRegisteredModel.Maturity = &xstring4
+		}
+		if (*source).Language != nil {
+			openapiRegisteredModel.Language = make([]string, len((*source).Language))
+			for i := 0; i < len((*source).Language); i++ {
+				openapiRegisteredModel.Language[i] = (*source).Language[i]
+			}
+		}
+		if (*source).Tasks != nil {
+			openapiRegisteredModel.Tasks = make([]string, len((*source).Tasks))
+			for j := 0; j < len((*source).Tasks); j++ {
+				openapiRegisteredModel.Tasks[j] = (*source).Tasks[j]
+			}
+		}
+		if (*source).Provider != nil {
+			xstring5 := *(*source).Provider
+			openapiRegisteredModel.Provider = &xstring5
+		}
+		if (*source).Logo != nil {
+			xstring6 := *(*source).Logo
+			openapiRegisteredModel.Logo = &xstring6
+		}
+		if (*source).License != nil {
+			xstring7 := *(*source).License
+			openapiRegisteredModel.License = &xstring7
+		}
+		if (*source).LicenseLink != nil {
+			xstring8 := *(*source).LicenseLink
+			openapiRegisteredModel.LicenseLink = &xstring8
+		}
+		if (*source).LibraryName != nil {
+			xstring9 := *(*source).LibraryName
+			openapiRegisteredModel.LibraryName = &xstring9
+		}
 		if (*source).Owner != nil {
-			xstring3 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring3
+			xstring10 := *(*source).Owner
+			openapiRegisteredModel.Owner = &xstring10
 		}
 		if (*source).State != nil {
 			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)
@@ -507,9 +547,49 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 			xstring2 := *(*source).ExternalId
 			openapiRegisteredModel.ExternalId = &xstring2
 		}
+		if (*source).Readme != nil {
+			xstring3 := *(*source).Readme
+			openapiRegisteredModel.Readme = &xstring3
+		}
+		if (*source).Maturity != nil {
+			xstring4 := *(*source).Maturity
+			openapiRegisteredModel.Maturity = &xstring4
+		}
+		if (*source).Language != nil {
+			openapiRegisteredModel.Language = make([]string, len((*source).Language))
+			for i := 0; i < len((*source).Language); i++ {
+				openapiRegisteredModel.Language[i] = (*source).Language[i]
+			}
+		}
+		if (*source).Tasks != nil {
+			openapiRegisteredModel.Tasks = make([]string, len((*source).Tasks))
+			for j := 0; j < len((*source).Tasks); j++ {
+				openapiRegisteredModel.Tasks[j] = (*source).Tasks[j]
+			}
+		}
+		if (*source).Provider != nil {
+			xstring5 := *(*source).Provider
+			openapiRegisteredModel.Provider = &xstring5
+		}
+		if (*source).Logo != nil {
+			xstring6 := *(*source).Logo
+			openapiRegisteredModel.Logo = &xstring6
+		}
+		if (*source).License != nil {
+			xstring7 := *(*source).License
+			openapiRegisteredModel.License = &xstring7
+		}
+		if (*source).LicenseLink != nil {
+			xstring8 := *(*source).LicenseLink
+			openapiRegisteredModel.LicenseLink = &xstring8
+		}
+		if (*source).LibraryName != nil {
+			xstring9 := *(*source).LibraryName
+			openapiRegisteredModel.LibraryName = &xstring9
+		}
 		if (*source).Owner != nil {
-			xstring3 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring3
+			xstring10 := *(*source).Owner
+			openapiRegisteredModel.Owner = &xstring10
 		}
 		if (*source).State != nil {
 			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)

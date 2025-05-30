@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"fmt"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
-	"k8s.io/client-go/kubernetes"
 	"log/slog"
 	"net/http"
 	"path"
+
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
@@ -38,10 +39,11 @@ const (
 	SettingsPath                  = ApiPathPrefix + "/settings"
 	ModelRegistrySettingsListPath = SettingsPath + "/model_registry"
 	ModelRegistrySettingsPath     = ModelRegistrySettingsListPath + "/:" + ModelRegistryId
-	// Add new constants for certificates and role bindings
-	CertificatesPath    = SettingsPath + "/certificates"
-	RoleBindingListPath = SettingsPath + "/role_bindings"
-	RoleBindingPath     = RoleBindingListPath + "/:" + RoleBindingNameParam // Use the constant defined in the rbac handler
+	CertificatesPath              = SettingsPath + "/certificates"
+	RoleBindingListPath           = SettingsPath + "/role_bindings"
+	GroupsPath                    = SettingsPath + "/groups"
+	SettingsNamespacePath         = SettingsPath + "/namespaces"
+	RoleBindingPath               = RoleBindingListPath + "/:" + RoleBindingNameParam
 
 	RegisteredModelListPath      = ModelRegistryPath + "/registered_models"
 	RegisteredModelPath          = RegisteredModelListPath + "/:" + RegisteredModelId
@@ -161,21 +163,34 @@ func (app *App) Routes() http.Handler {
 
 	// Standalone "only" routes
 	if app.config.StandaloneMode {
+		// This namespace endpoint is used on standalone mode to simulate
+		// Kubeflow Central Dashboard namespace selector dropdown on our standalone web app
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
-		// Model Registry Settings endpoints
+
+		// SettingsPath endpoints are used to manage the model registry settings and create new model registries
+		// We are still discussing the best way to create model registries in the community
+		// But in the meantime, those endpoints are STUBs endpoints used to unblock the frontend development
 		apiRouter.GET(ModelRegistrySettingsListPath, app.AttachNamespace(app.GetAllModelRegistriesSettingsHandler))
 		apiRouter.POST(ModelRegistrySettingsListPath, app.AttachNamespace(app.CreateModelRegistrySettingsHandler))
 		apiRouter.GET(ModelRegistrySettingsPath, app.AttachNamespace(app.GetModelRegistrySettingsHandler))
 		apiRouter.PATCH(ModelRegistrySettingsPath, app.AttachNamespace(app.UpdateModelRegistrySettingsHandler))
 		apiRouter.DELETE(ModelRegistrySettingsPath, app.AttachNamespace(app.DeleteModelRegistrySettingsHandler))
 
-		// Certificate endpoints
+		//SettingsPath: Certificate endpoints
 		apiRouter.GET(CertificatesPath, app.AttachNamespace(app.GetCertificatesHandler))
 
-		// Role Binding endpoints
+		//SettingsPath: Role Binding endpoints
 		apiRouter.GET(RoleBindingListPath, app.AttachNamespace(app.GetRoleBindingsHandler))
 		apiRouter.POST(RoleBindingListPath, app.AttachNamespace(app.CreateRoleBindingHandler))
 		apiRouter.DELETE(RoleBindingPath, app.AttachNamespace(app.DeleteRoleBindingHandler))
+
+		//SettingsPath Groups endpoints
+		apiRouter.GET(GroupsPath, app.GetGroupsHandler)
+
+		//SettingsPath Namespace endpoints
+		//This namespace endpoint is used to get the namespaces for the current user inside the model registry settings
+		apiRouter.GET(SettingsNamespacePath, app.GetNamespacesHandler)
+
 	}
 
 	// App Router

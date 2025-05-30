@@ -53,6 +53,16 @@ test-e2e-cleanup:
 		rm -f .port-forwards.pid; \
 	fi
 
+.PHONY: undeploy-minio
+undeploy-minio:
+	@echo "Undeploy Minio..."
+	cd ../../ && ./scripts/undeploy_minio.sh
+
+.PHONY: undeploy-local-kind-registry
+undeploy-local-kind-registry:
+	@echo "Undeploy Local Kind Registry..."
+	cd ../../ && ./scripts/undeploy_local_registry.sh
+
 .PHONY: test
 test:
 	poetry run pytest -s -rA
