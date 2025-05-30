@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { URL_PREFIX, useQueryParamNamespaces, BFF_API_VERSION } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-shared';
 import useModelRegistryAPIState, {
   ModelRegistryAPIState,
 } from '~/app/hooks/useModelRegistryAPIState';
+import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelRegistryContextType = {
   apiState: ModelRegistryAPIState;

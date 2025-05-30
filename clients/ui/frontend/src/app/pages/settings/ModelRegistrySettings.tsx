@@ -14,8 +14,8 @@ import {
   ApplicationsPage,
   useQueryParamNamespaces,
 } from 'mod-arch-shared';
-import useModelRegistries from '~/app/hooks/useModelRegistries';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
 import ModelRegistriesTable from './ModelRegistriesTable';
 import CreateModal from './ModelRegistryCreateModal';
 
@@ -26,7 +26,7 @@ const ModelRegistrySettings: React.FC = () => {
     mrloaded,
     loadError,
     // refreshModelRegistries
-  ] = useModelRegistries(queryParams);
+  ] = useModelRegistriesSettings(queryParams);
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   // TODO: [Midstream] Implement this when adding logic for rules review
   // const { refreshRulesReview } = React.useContext(ModelRegistrySelectorContext);

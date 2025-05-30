@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { PageSection, Tab, Tabs, TabTitleText } from '@patternfly/react-core';
 import {
   FetchStateObject,
-  isStandalone,
   InferenceServiceKind,
   ServingRuntimeKind,
+  useModularArchContext,
 } from 'mod-arch-shared';
 import { ModelVersion } from '~/app/types';
 import { ModelVersionDetailsTabTitle, ModelVersionDetailsTab } from './const';
@@ -30,6 +30,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   refresh,
 }) => {
   const navigate = useNavigate();
+  const { isIntegrated } = useModularArchContext();
   return (
     <Tabs
       activeKey={tab}
@@ -56,7 +57,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
           />
         </PageSection>
       </Tab>
-      {!isArchiveVersion && isStandalone() && (
+      {!isArchiveVersion && !isIntegrated && (
         <Tab
           eventKey={ModelVersionDetailsTab.DEPLOYMENTS}
           title={<TabTitleText>{ModelVersionDetailsTabTitle.DEPLOYMENTS}</TabTitleText>}

@@ -4,7 +4,6 @@ import {
   restGET,
   restPATCH,
   handleRestFailures,
-  BFF_API_VERSION,
 } from 'mod-arch-shared';
 import { ModelState, ModelArtifactState } from '~/app/types';
 import {
@@ -23,6 +22,7 @@ import {
   createModelArtifactForModelVersion,
 } from '~/app/api/service';
 import { mockRegisteredModel } from '~/__mocks__';
+import { BFF_API_VERSION } from '~/app/utilities/const';
 
 const mockRestPromise = Promise.resolve({ data: {} });
 const mockRestResponse = {};

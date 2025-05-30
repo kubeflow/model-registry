@@ -1,11 +1,9 @@
 import {
   APIOptions,
   handleRestFailures,
-  URL_PREFIX,
   Namespace,
   UserSettings,
   ModelRegistryKind,
-  BFF_API_VERSION,
   assembleModArchBody,
   isModArchResponse,
   restCREATE,
@@ -14,6 +12,7 @@ import {
   restPATCH,
 } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
+import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export const getListModelRegistries =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
