@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry
 
-go 1.23.6
+go 1.24.0
 
 require (
 	github.com/go-chi/chi/v5 v5.2.1
@@ -24,7 +24,7 @@ require (
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.26.0
 	k8s.io/api v0.32.3
-	k8s.io/apimachinery v0.32.3
+	k8s.io/apimachinery v0.33.1
 	k8s.io/client-go v0.32.3
 	knative.dev/pkg v0.0.0-20250117084104-c43477f0052b
 	sigs.k8s.io/controller-runtime v0.20.4
@@ -78,7 +78,6 @@ require (
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.16.1 // indirect
-	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
