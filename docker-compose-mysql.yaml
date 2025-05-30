@@ -25,7 +25,7 @@ services:
       "--enable_database_upgrade=true"
     ]
   model-registry:
-    image: ghcr.io/kubeflow/model-registry/server:latest
+    image: quay.io/opendatahub/model-registry:latest
     command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "9090", "--datastore-type", "mlmd"]
     container_name: model-registry
     ports:
