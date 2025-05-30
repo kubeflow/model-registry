@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { useModularArchContext } from 'mod-arch-shared';
+import { DeploymentMode, useModularArchContext } from 'mod-arch-shared';
 import ModelRegistry from './screens/ModelRegistry';
 import ModelRegistryCoreLoader from './ModelRegistryCoreLoader';
 import { modelRegistryUrl } from './screens/routeUtils';
@@ -17,7 +17,8 @@ import RegisterModel from './screens/RegisterModel/RegisterModel';
 import RegisterVersion from './screens/RegisterModel/RegisterVersion';
 
 const ModelRegistryRoutes: React.FC = () => {
-  const { isIntegrated } = useModularArchContext();
+  const { deploymentMode } = useModularArchContext();
+  const isIntegrated = deploymentMode === DeploymentMode.Integrated;
   return (
     <Routes>
       <Route

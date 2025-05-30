@@ -4,12 +4,16 @@ import { defineConfig } from 'cypress';
 import coverage from '@cypress/code-coverage/task';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore no types available
+import webpack from '@cypress/webpack-preprocessor';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore no types available
 import cypressHighResolution from 'cypress-high-resolution';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore no types available
 import { beforeRunHook, afterRunHook } from 'cypress-mochawesome-reporter/lib';
 import { mergeFiles } from 'junit-report-merger';
 import { env, BASE_URL } from '~/__tests__/cypress/cypress/utils/testConfig';
+import webpackConfig from './webpack.config';
 
 const resultsDir = `${env.CY_RESULTS_DIR || 'results'}/${env.CY_MOCK ? 'mocked' : 'e2e'}`;
 
@@ -54,6 +58,14 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       cypressHighResolution(on, config);
       coverage(on, config);
+
+      // Configure webpack preprocessor with custom webpack config
+      const options = {
+        webpackOptions: webpackConfig,
+        watchOptions: {},
+      };
+      on('file:preprocessor', webpack(options));
+
       on('task', {
         readJSON(filePath: string) {
           const absPath = path.resolve(__dirname, filePath);

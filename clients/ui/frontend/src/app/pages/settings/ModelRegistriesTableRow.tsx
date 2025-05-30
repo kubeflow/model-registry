@@ -2,7 +2,12 @@ import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';
-import { ModelRegistryKind, ResourceNameTooltip, useModularArchContext } from 'mod-arch-shared';
+import {
+  ModelRegistryKind,
+  PlatformMode,
+  ResourceNameTooltip,
+  useModularArchContext,
+} from 'mod-arch-shared';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {
@@ -19,7 +24,8 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   onDeleteRegistry,
 }) => {
   const navigate = useNavigate();
-  const { isPlatformKubeflow } = useModularArchContext();
+  const { platformMode } = useModularArchContext();
+  const isPlatformKubeflow = platformMode === PlatformMode.Kubeflow;
   const filteredRoleBindings = []; // TODO: [Midstream] Filter role bindings for this model registry
 
   return (

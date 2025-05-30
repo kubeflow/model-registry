@@ -33,10 +33,22 @@ jest.mock('mod-arch-shared', () => ({
   restPATCH: jest.fn(() => mockRestPromise),
   assembleModArchBody: jest.fn(() => ({})),
   isModArchResponse: jest.fn(() => true),
-}));
-
-jest.mock('mod-arch-shared', () => ({
   handleRestFailures: jest.fn(() => mockRestPromise),
+  asEnumMember: jest.fn((value, enumObj) =>
+    value && Object.values(enumObj).includes(value) ? value : undefined,
+  ),
+  Theme: {
+    Default: 'default',
+    MUI: 'mui',
+  },
+  DeploymentMode: {
+    Integrated: 'integrated',
+    Default: 'default',
+  },
+  PlatformMode: {
+    Kubeflow: 'kubeflow',
+    Default: 'default',
+  },
 }));
 
 const handleRestFailuresMock = jest.mocked(handleRestFailures);

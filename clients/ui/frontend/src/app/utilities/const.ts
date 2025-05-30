@@ -1,14 +1,13 @@
-import { Theme, DeploymentMode, PlatformMode } from 'mod-arch-shared';
+import { Theme, DeploymentMode, PlatformMode, asEnumMember } from 'mod-arch-shared';
 
-export const isMUITheme = (): boolean => STYLE_THEME === Theme.MUI;
 export const isIntegrated = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Integrated;
 export const isPlatformKubeflow = (): boolean => PLATFORM_MODE === PlatformMode.Kubeflow;
 
-const STYLE_THEME = process.env.STYLE_THEME || Theme.Default;
-const PLATFORM_MODE = process.env.PLATFORM_MODE || PlatformMode.Default;
+const STYLE_THEME = asEnumMember(process.env.STYLE_THEME, Theme) || Theme.Default;
+const PLATFORM_MODE = asEnumMember(process.env.PLATFORM_MODE, PlatformMode) || PlatformMode.Default;
+const DEPLOYMENT_MODE =
+  asEnumMember(process.env.DEPLOYMENT_MODE, DeploymentMode) || DeploymentMode.Integrated;
 const DEV_MODE = process.env.APP_ENV === 'development';
-const MOCK_AUTH = process.env.MOCK_AUTH === 'true';
-const DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || DeploymentMode.Integrated;
 const POLL_INTERVAL = process.env.POLL_INTERVAL ? parseInt(process.env.POLL_INTERVAL) : 30000;
 const AUTH_HEADER = process.env.AUTH_HEADER || 'kubeflow-userid';
 const KUBEFLOW_USERNAME = process.env.KUBEFLOW_USERNAME || 'user@example.com';
@@ -18,15 +17,16 @@ const URL_PREFIX = '/model-registry';
 const BFF_API_VERSION = 'v1';
 
 export {
+  STYLE_THEME,
   POLL_INTERVAL,
   DEV_MODE,
   AUTH_HEADER,
   KUBEFLOW_USERNAME,
   IMAGE_DIR,
   LOGO_LIGHT,
-  MOCK_AUTH,
   URL_PREFIX,
   PLATFORM_MODE,
+  DEPLOYMENT_MODE,
   BFF_API_VERSION,
 };
 

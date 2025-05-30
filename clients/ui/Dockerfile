@@ -12,12 +12,14 @@ FROM ${NODE_BASE_IMAGE} AS ui-builder
 
 ARG UI_SOURCE_CODE
 ARG DEPLOYMENT_MODE
-ARG MOCK_AUTH
 
 WORKDIR /usr/src/app
 
 # Copy the source code to the container
 COPY ${UI_SOURCE_CODE} /usr/src/app
+
+# List files for debugging
+RUN ls -la /usr/src/app
 
 # Install the dependencies and build
 RUN npm cache clean --force

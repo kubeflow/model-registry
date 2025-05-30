@@ -4,27 +4,24 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import {
   BrowserStorageContextProvider,
   NotificationContextProvider,
-  NamespaceSelectorContextProvider,
-  DashboardScriptLoader,
   ThemeProvider,
   ModularArchContextProvider,
+  ModularArchConfig,
 } from 'mod-arch-shared';
-import 'mod-arch-shared/style/MUI-theme.scss';
 import App from './app/App';
 import {
   BFF_API_VERSION,
-  isIntegrated,
-  isMUITheme,
-  isPlatformKubeflow,
+  DEPLOYMENT_MODE,
+  PLATFORM_MODE,
+  STYLE_THEME,
   URL_PREFIX,
 } from './app/utilities/const';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-const modularArchConfig = {
-  isMUITheme: isMUITheme(),
-  isIntegrated: isIntegrated(),
-  isPlatformKubeflow: isPlatformKubeflow(),
+const modularArchConfig: ModularArchConfig = {
+  platformMode: PLATFORM_MODE,
+  deploymentMode: DEPLOYMENT_MODE,
   URL_PREFIX,
   BFF_API_VERSION,
 };
@@ -33,17 +30,13 @@ root.render(
   <React.StrictMode>
     <Router>
       <ModularArchContextProvider config={modularArchConfig}>
-        <BrowserStorageContextProvider>
-          <ThemeProvider>
+        <ThemeProvider theme={STYLE_THEME}>
+          <BrowserStorageContextProvider>
             <NotificationContextProvider>
-              <DashboardScriptLoader>
-                <NamespaceSelectorContextProvider>
-                  <App />
-                </NamespaceSelectorContextProvider>
-              </DashboardScriptLoader>
+              <App />
             </NotificationContextProvider>
-          </ThemeProvider>
-        </BrowserStorageContextProvider>
+          </BrowserStorageContextProvider>
+        </ThemeProvider>
       </ModularArchContextProvider>
     </Router>
   </React.StrictMode>,

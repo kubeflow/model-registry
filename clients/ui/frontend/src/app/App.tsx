@@ -16,9 +16,10 @@ import {
   ToastNotifications,
   useSettings,
   logout,
-  NamespaceSelectorContext,
   NavBar,
   useModularArchContext,
+  DeploymentMode,
+  useNamespaceSelector,
 } from 'mod-arch-shared';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -34,11 +35,11 @@ const App: React.FC = () => {
     loadError: configError,
   } = useSettings();
 
-  const { namespacesLoaded, namespacesLoadError, initializationError } =
-    React.useContext(NamespaceSelectorContext);
+  const { namespacesLoaded, namespacesLoadError, initializationError } = useNamespaceSelector();
 
   const username = userSettings?.userId;
-  const { isIntegrated } = useModularArchContext();
+  const { deploymentMode } = useModularArchContext();
+  const isIntegrated = deploymentMode === DeploymentMode.Integrated;
 
   const contextValue = React.useMemo(
     () =>
