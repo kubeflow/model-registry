@@ -123,5 +123,8 @@ func init() {
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.MLMD.Hostname, "mlmd-hostname", proxyCfg.Datastore.MLMD.Hostname, "MLMD hostname")
 	proxyCmd.Flags().IntVar(&proxyCfg.Datastore.MLMD.Port, "mlmd-port", proxyCfg.Datastore.MLMD.Port, "MLMD port")
 
+	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseType, "embedmd-database-type", "mysql", "EmbedMD database type")
+	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseDSN, "embedmd-database-dsn", "", "EmbedMD database DSN")
+
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.Type, "datastore-type", proxyCfg.Datastore.Type, "Datastore type")
 }

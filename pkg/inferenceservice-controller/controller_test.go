@@ -69,6 +69,87 @@ var _ = Describe("InferenceService Controller", func() {
 				return nil
 			}, 10*time.Second, 1*time.Second).Should(Succeed())
 		})
+
+		It("Should successfully set the DesiredState to UNDEPLOYED if the InferenceService is deleted", func() {
+			const CorrectInferenceServicePath = "./testdata/inferenceservices/inference-service-correct.yaml"
+			const ModelRegistrySVCPath = "./testdata/deploy/model-registry-svc.yaml"
+			const namespace = "correct-delete"
+			const mrUrl = "http://model-registry.svc.cluster.local:8080"
+
+			restIsvc := &openapi.InferenceService{}
+
+			ns := &corev1.Namespace{}
+
+			ns.SetName(namespace)
+
+			if err := cli.Create(ctx, ns); err != nil && !errors.IsAlreadyExists(err) {
+				Fail(err.Error())
+			}
+
+			mrSvc := &corev1.Service{}
+			Expect(ConvertFileToStructuredResource(ModelRegistrySVCPath, mrSvc)).To(Succeed())
+
+			mrSvc.SetNamespace(namespace)
+
+			if err := cli.Create(ctx, mrSvc); err != nil && !errors.IsAlreadyExists(err) {
+				Fail(err.Error())
+			}
+
+			inferenceService := &kservev1beta1.InferenceService{}
+			Expect(ConvertFileToStructuredResource(CorrectInferenceServicePath, inferenceService)).To(Succeed())
+
+			inferenceService.SetNamespace(namespace)
+
+			inferenceService.Labels[namespaceLabel] = namespace
+
+			if err := cli.Create(ctx, inferenceService); err != nil && !errors.IsAlreadyExists(err) {
+				Fail(err.Error())
+			}
+
+			Eventually(func() error {
+				isvc := &kservev1beta1.InferenceService{}
+				err := cli.Get(ctx, types.NamespacedName{
+					Name:      inferenceService.Name,
+					Namespace: inferenceService.Namespace,
+				}, isvc)
+				if err != nil {
+					return err
+				}
+
+				if isvc.Labels[inferenceServiceIDLabel] != "1" {
+					return fmt.Errorf("Label for InferenceServiceID is not set, got %s", isvc.Labels[inferenceServiceIDLabel])
+				}
+
+				return nil
+			}, 10*time.Second, 1*time.Second).Should(Succeed())
+
+			err := cli.Delete(ctx, inferenceService)
+			Expect(err).To(BeNil())
+
+			Eventually(func() error {
+				resp, err := mrMockServer.Client().Get(mrUrl + "/api/model_registry/v1alpha3/inference_services/1")
+				Expect(err).To(BeNil())
+
+				//nolint:errcheck
+				defer resp.Body.Close()
+
+				body, err := io.ReadAll(resp.Body)
+				Expect(err).To(BeNil())
+
+				err = json.Unmarshal(body, &restIsvc)
+				Expect(err).To(BeNil())
+
+				if restIsvc.DesiredState == nil {
+					return fmt.Errorf("DesiredState is not set")
+				}
+
+				if *restIsvc.DesiredState != openapi.INFERENCESERVICESTATE_UNDEPLOYED {
+					return fmt.Errorf("DesiredState is not set to UNDEPLOYED, got %s", *restIsvc.DesiredState)
+				}
+
+				return nil
+			}, 10*time.Second, 1*time.Second).Should(Succeed())
+		})
 	})
 
 	When("Creating a new InferenceService without a Model Registry name", func() {

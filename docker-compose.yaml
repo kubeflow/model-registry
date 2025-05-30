@@ -1,3 +1,7 @@
+# Local development demo/example compose file
+# Composes:
+# - a mlmd-server connected to a SQLite file in test/config/ml-metadata/metadata.sqlite.db,
+# - a model-registry server connected to the mlmd-server.
 version: '3'
 services:
   mlmd-server:
@@ -17,3 +21,4 @@ services:
       - "8080:8080"
     depends_on:
       - mlmd-server
+ 

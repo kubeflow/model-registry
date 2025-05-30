@@ -1,20 +1,20 @@
+# goal: this is meant to remind maintainers/approvers to add labels to ensure all tests are executed before merging
+# and avoid merging without realizing that required tests has not been run; complementary to bulletpoint in template: https://github.com/kubeflow/model-registry/blame/de5f225d96a4daeca77506d233082b1c4ea5afa3/.github/pull_request_template.md#L21
 name: Welcome first-time contributors (Beta)
 on:
   pull_request_target:
     types:
       - opened
 permissions:
-  issues: write
-  pull-requests: read
+  pull-requests: write
 
 # do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
-# goal: this is meant to remind maintainers/approvers to add labels to ensure all tests are executed before merging
-# and avoid merging without realizing that required tests has not been run; complementary to bulletpoint in template: https://github.com/kubeflow/model-registry/blame/de5f225d96a4daeca77506d233082b1c4ea5afa3/.github/pull_request_template.md#L21
 jobs:
   welcome:
     runs-on: ubuntu-latest
     steps:
       - name: Check contributor status
+        id: check_1st_time_contrib
         uses: actions/github-script@v7
         with:
           script: |
@@ -25,20 +25,25 @@ jobs:
             });
             const isFirstTimeContributor = pr.user.contributions === 0;
             console.log(`First-time contributor status: ${isFirstTimeContributor}`);
-            return { isFirstTimeContributor };
+            core.setOutput('isFirstTimeContributor', isFirstTimeContributor.toString());
 
-      - name: Log contributor status
-        run: echo "First-time contributor status is ${{ steps.check_author.outputs.isFirstTimeContributor }}"
+      - name: Log contributor status (isFirstTimeContributor true)
+        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
+        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
     
-      # - name: Add a comment to the PR if first time contributor
-      #   if: steps.check_author.outputs.isFirstTimeContributor == 'true'
-      #   uses: actions/github-script@v7
-      #   with:
-      #     script: |
-      #       github.rest.issues.createComment({
-      #         issue_number: context.issue.number,
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         body: "Maintainers: let's ensure the label `ok-to-test` has been maintained and all the tests have been executed before merging.<br/><br/>Thank you for your first Pull Request! 🎉🎉"
-      #       })
+      - name: Log contributor status (isFirstTimeContributor false)
+        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'false'
+        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
+    
+      - name: Add a comment to the PR if first time contributor
+        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Maintainers: let's ensure the label `ok-to-test` has been maintained and all the tests have been executed before merging.<br/><br/>Thank you for your first Pull Request! 🎉🎉"
+            })
 # do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs

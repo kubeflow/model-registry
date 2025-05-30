@@ -5,11 +5,12 @@ from __future__ import annotations
 import base64
 import json
 import os
+import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Callable, Protocol, TypeVar
+from typing import TYPE_CHECKING, Callable, Protocol, TypeVar
 
 from typing_extensions import Literal, overload
 
@@ -18,6 +19,11 @@ from .exceptions import MissingMetadata, StoreError
 
 # Generic return type
 T = TypeVar("T")
+
+# If we want to forward reference
+if TYPE_CHECKING:
+    from boto3.s3.transfer import TransferConfig
+    from botocore.client import BaseClient
 
 
 @overload
@@ -272,6 +278,9 @@ class S3Params:
     access_key_id: str | None = None
     secret_access_key: str | None = None
     region: str | None = None
+    multipart_threshold: int = 1024 * 1024
+    multipart_chunksize: int = 1024 * 1024
+    max_pool_connections: int = 10
 
 
 # A dict mapping backend names to their definitions
@@ -314,7 +323,7 @@ def save_to_oci_registry(  # noqa: C901 ( complex args >8 )
         ValueError: If the chosen backend is an invalid option
         StoreError: If `olot` is not installed as a python package
     Returns:
-        None.
+        uri: The OCI URI of the uploaded model.
     """
     try:
         from olot.basics import oci_layers_on_top
@@ -357,8 +366,10 @@ or
         msg = f"Backend '{backend}' is selected, but not available on the system. Ensure the dependencies for '{backend}' are installed in your environment."
         raise ValueError(msg)
 
+    dest_dir_cleanup = False
     if dest_dir is None:
         dest_dir = tempfile.mkdtemp()
+        dest_dir_cleanup = True
     local_image_path = Path(dest_dir)
 
     # Set params
@@ -375,16 +386,175 @@ or
 
     backend_def.pull(base_image, local_image_path, **params)
     # Extract the absolute path from the files found in the path
-    files = [file[0] for file in get_files_from_path(model_files_path)]
+    files = [file[0] for file in _get_files_from_path(model_files_path)]
     oci_layers_on_top(local_image_path, files, modelcard)
     backend_def.push(local_image_path, oci_ref, **params)
 
     # Return the OCI URI
-
+    if dest_dir_cleanup:
+        shutil.rmtree(dest_dir)
     return f"oci://{oci_ref}"
 
 
-def get_files_from_path(path: str) -> list[tuple[str, str]]:
+def _s3_creds(
+    endpoint_url: str | None = None,
+    access_key_id: str | None = None,
+    secret_access_key: str | None = None,
+    region: str | None = None,
+):
+    """Internal method to return mix and matched S3 credentials based on presence.
+
+    Args:
+        endpoint_url: The S3 compatible object storage endpoint.
+        access_key_id: The S3 compatible object storage access key ID.
+        secret_access_key: The S3 compatible object storage secret access key.
+        region: The region name for the S3 object storage.
+
+    Raises:
+        ValueError if the required values are None.
+
+    Returns:
+        tuple(endpoint, access_key_id, secret_access_key, region)
+    """
+    aws_s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+
+    # Set values to parameter values or environment values
+    endpoint_url = endpoint_url or aws_s3_endpoint
+    access_key_id = access_key_id or aws_access_key_id
+    secret_access_key = secret_access_key or aws_secret_access_key
+    region = region or aws_default_region
+
+    if not any((aws_s3_endpoint, endpoint_url)):
+        msg = """Please set either `AWS_S3_ENDPOINT` as environment variable
+            or specify `endpoint_url` as the parameter.
+            """
+        raise ValueError(msg)
+
+    if not (access_key_id and secret_access_key):
+        msg = """Environment variables `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` were not set.
+            Please either set these environment variables or pass them in as parameters using
+            `access_key_id` or `secret_access_key`.
+            """
+        raise ValueError(msg)
+
+    return endpoint_url, access_key_id, secret_access_key, region
+
+
+def _upload_to_s3(  # noqa: C901
+    path: str,
+    bucket: str,
+    s3: BaseClient,
+    path_prefix: str,
+    *,
+    endpoint_url: str | None = None,
+    region: str | None = None,
+    transfer_config: TransferConfig | None = None,
+) -> str:
+    """Internal method for recursively uploading all files to S3.
+
+    Args:
+        path: The path to where the models or artifacts are.
+        bucket: The name of the S3 bucket.
+        s3: The S3 Client object.
+        path_prefix: The folder prefix to store under the root of the bucket.
+        transfer_config: The transfer config to use for the upload.
+
+    Keyword Args:
+        endpoint_url: The endpoint url for the S3 bucket.
+        region: The region name for the S3 bucket.
+
+    Returns:  The S3 URI path of the uploaded files.
+
+    Raises:
+        StoreError if `path` does not exist.
+        StoreError if `path_prefix` is not set.
+    """
+    path_prefix = path_prefix.rstrip("/")
+
+    uri = s3_uri_from(
+        path=path_prefix,
+        bucket=bucket,
+        endpoint=endpoint_url,
+        region=region,
+    )
+    files = _get_files_from_path(path)
+    for absolute_path_filename, relative_path_filename in files:
+        s3_key = os.path.join(path_prefix, relative_path_filename)
+        s3.upload_file(
+            Filename=absolute_path_filename,
+            Bucket=bucket,
+            Key=s3_key,
+            Config=transfer_config,
+        )
+
+    return uri
+
+
+def _connect_to_s3(
+    endpoint_url: str | None = None,
+    access_key_id: str | None = None,
+    secret_access_key: str | None = None,
+    region: str | None = None,
+    multipart_threshold: int = None,
+    multipart_chunksize: int = None,
+    max_pool_connections: int = None,
+) -> tuple[BaseClient, TransferConfig]:
+    """Internal method to connect to Boto3 Client.
+
+    Args:
+        endpoint_url: The S3 compatible object storage endpoint.
+        access_key_id: The S3 compatible object storage access key ID.
+        secret_access_key: The S3 compatible object storage secret access key.
+        region: The region name for the S3 object storage.
+        multipart_threshold: The threshold for multipart uploads.
+        multipart_chunksize: The size of chunks for multipart uploads.
+        max_pool_connections: The maximum number of connections in the pool.
+
+    Returns:
+        tuple(client, config): A tuple of the Boto3 client and the TransferConfig.
+
+    Raises:
+        StoreError: If Boto3 is not installed.
+        ValueError: If the appropriate values are not supplied.
+    """
+    try:
+        from boto3 import client  # type: ignore
+        from boto3.s3.transfer import TransferConfig
+        from botocore.config import Config
+
+    except ImportError as e:
+        msg = """package `boto3` is not installed.
+            To save models to an S3 compatible storage, start by installing the `boto3` package, either directly or as an
+            extra (available as `model-registry[boto3]`), e.g.:
+            ```sh
+            !pip install --pre model-registry[boto3]
+            ```            or
+            ```sh
+            !pip install boto3
+            ```            """
+        raise StoreError(msg) from e
+
+    config = Config(
+        max_pool_connections=max_pool_connections,
+    )
+    transfer_config = TransferConfig(
+        multipart_threshold=multipart_threshold,
+        multipart_chunksize=multipart_chunksize,
+    )
+    return client(
+        "s3",
+        endpoint_url=endpoint_url,
+        aws_access_key_id=access_key_id,
+        aws_secret_access_key=secret_access_key,
+        region_name=region,
+        config=config,
+    ), transfer_config
+
+
+def _get_files_from_path(path: str) -> list[tuple[str, str]]:
     """Given a path, get the list of files.
 
     If the path points to a single file, that file's absolute_path and filename will be the only entry returned

@@ -1188,45 +1188,91 @@ components:
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactUpdate"
           doc-artifact: "#/components/schemas/DocArtifactUpdate"
-    BaseResource:
+    BaseModel:
       type: object
       properties:
+        description:
+          type: string
+          description: Human-readable description of the model.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
         customProperties:
           description: User provided custom properties which are not defined by its type.
           type: object
           additionalProperties:
             $ref: "#/components/schemas/MetadataValue"
-        description:
-          description: |-
-            An optional description about the resource.
-          type: string
-        externalId:
-          description: |-
-            The external id that come from the clients’ system. This field is optional.
-            If set, it must be unique among all resources within a database instance.
-          type: string
-        name:
-          description: |-
-            The client provided name of the artifact. This field is optional. If set,
-            it must be unique among all the artifacts of the same artifact type within
-            a database instance and cannot be changed once set.
-          type: string
-        id:
-          format: int64
-          description: The unique server generated id of the resource.
-          type: string
-        createTimeSinceEpoch:
-          format: int64
-          description: Output only. Create time of the resource in millisecond since epoch.
-          type: string
-          readOnly: true
-        lastUpdateTimeSinceEpoch:
-          format: int64
-          description: |-
-            Output only. Last update time of the resource since epoch in millisecond
-            since epoch.
-          type: string
-          readOnly: true
+    BaseResource:
+      allOf:
+        - type: object
+          properties:
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+            description:
+              description: |-
+                An optional description about the resource.
+              type: string
+            externalId:
+              description: |-
+                The external id that come from the clients' system. This field is optional.
+                If set, it must be unique among all resources within a database instance.
+              type: string
+            name:
+              description: |-
+                The client provided name of the artifact. This field is optional. If set,
+                it must be unique among all the artifacts of the same artifact type within
+                a database instance and cannot be changed once set.
+              type: string
+            id:
+              format: int64
+              description: The unique server generated id of the resource.
+              type: string
+        - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceCreate:
       type: object
       properties:
@@ -1250,6 +1296,20 @@ components:
             it must be unique among all the artifacts of the same artifact type within
             a database instance and cannot be changed once set.
           type: string
+    BaseResourceDates:
+      description: Common timestamp fields for resources
+      type: object
+      properties:
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: Output only. Last update time of the resource since epoch in millisecond since epoch.
+          type: string
+          readOnly: true
     BaseResourceList:
       required:
         - nextPageToken
@@ -1718,6 +1778,7 @@ components:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+        - $ref: "#/components/schemas/BaseModel"
         - type: object
           properties:
             owner:

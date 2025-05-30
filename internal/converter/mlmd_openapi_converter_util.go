@@ -115,6 +115,42 @@ func MapName(source *string) string {
 
 // REGISTERED MODEL
 
+func MapRegisteredModelReadme(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "readme")
+}
+
+func MapRegisteredModelMaturity(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "maturity")
+}
+
+func MapRegisteredModelLanguage(properties map[string]*proto.Value) []string {
+	return MapStringSliceProperty(properties, "language")
+}
+
+func MapRegisteredModelTasks(properties map[string]*proto.Value) []string {
+	return MapStringSliceProperty(properties, "tasks")
+}
+
+func MapRegisteredModelProvider(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "provider")
+}
+
+func MapRegisteredModelLogo(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "logo")
+}
+
+func MapRegisteredModelLicense(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "license")
+}
+
+func MapRegisteredModelLicenseLink(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "license_link")
+}
+
+func MapRegisteredModelLibraryName(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "library_name")
+}
+
 // MODEL VERSION
 
 func MapPropertyAuthor(properties map[string]*proto.Value) *string {
@@ -198,6 +234,28 @@ func MapStringProperty(properties map[string]*proto.Value, key string) *string {
 	}
 
 	return nil
+}
+
+func MapStringSliceProperty(properties map[string]*proto.Value, key string) []string {
+	structValue := properties[key].GetStructValue()
+	if structValue == nil {
+		return nil
+	}
+
+	listValue := structValue.Fields[key].GetListValue()
+	if listValue == nil {
+		return nil
+	}
+
+	anySlice := listValue.AsSlice()
+	strSlice := make([]string, 0, len(anySlice))
+	for _, v := range anySlice {
+		if s, ok := v.(string); ok {
+			strSlice = append(strSlice, s)
+		}
+	}
+
+	return strSlice
 }
 
 // MapIntProperty maps int proto.Value property to specific string field

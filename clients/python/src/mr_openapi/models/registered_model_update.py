@@ -30,15 +30,47 @@ class RegisteredModelUpdate(BaseModel):
         description="User provided custom properties which are not defined by its type.",
         alias="customProperties",
     )
-    description: StrictStr | None = Field(default=None, description="An optional description about the resource.")
+    description: StrictStr | None = Field(default=None, description="Human-readable description of the model.")
     external_id: StrictStr | None = Field(
         default=None,
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
+    readme: StrictStr | None = Field(default=None, description="Model documentation in Markdown.")
+    maturity: StrictStr | None = Field(default=None, description="Maturity level of the model.")
+    language: list[StrictStr] | None = Field(
+        default=None,
+        description="List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).",
+    )
+    tasks: list[StrictStr] | None = Field(default=None, description="List of tasks the model is designed for.")
+    provider: StrictStr | None = Field(
+        default=None, description="Name of the organization or entity that provides the model."
+    )
+    logo: StrictStr | None = Field(
+        default=None,
+        description="URL to the model's logo. A [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) is recommended.",
+    )
+    license: StrictStr | None = Field(default=None, description="Short name of the model's license.")
+    license_link: StrictStr | None = Field(default=None, description="URL to the license text.", alias="licenseLink")
+    library_name: StrictStr | None = Field(default=None, alias="libraryName")
     owner: StrictStr | None = None
     state: RegisteredModelState | None = None
-    __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "owner", "state"]
+    __properties: ClassVar[list[str]] = [
+        "customProperties",
+        "description",
+        "externalId",
+        "readme",
+        "maturity",
+        "language",
+        "tasks",
+        "provider",
+        "logo",
+        "license",
+        "licenseLink",
+        "libraryName",
+        "owner",
+        "state",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -104,6 +136,15 @@ class RegisteredModelUpdate(BaseModel):
                 ),
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
+                "readme": obj.get("readme"),
+                "maturity": obj.get("maturity"),
+                "language": obj.get("language"),
+                "tasks": obj.get("tasks"),
+                "provider": obj.get("provider"),
+                "logo": obj.get("logo"),
+                "license": obj.get("license"),
+                "licenseLink": obj.get("licenseLink"),
+                "libraryName": obj.get("libraryName"),
                 "owner": obj.get("owner"),
                 "state": obj.get("state"),
             }

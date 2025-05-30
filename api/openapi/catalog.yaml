@@ -1,0 +1,601 @@
+openapi: 3.0.3
+info:
+  title: Model Catalog REST API
+  version: v1alpha1
+  description: REST API for Model Registry to create and manage ML model metadata
+  license:
+    name: Apache 2.0
+    url: "https://www.apache.org/licenses/LICENSE-2.0"
+servers:
+  - url: "https://localhost:8080"
+  - url: "http://localhost:8080"
+paths:
+  /api/model_catalog/v1alpha1/models:
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
+    get:
+      summary: Search catalog models across sources.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - name: source
+          description: |-
+            Filter models by source. If not provided, models from all sources
+            are returned. If multiple sources are provided, models from any of
+            the sources are returned.
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: q
+          description: Free-form keyword search used to filter the response.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllCatalogModels
+  /api/model_catalog/v1alpha1/sources:
+    summary: Path used to get the list of catalog sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogSource` entities.
+    get:
+      summary: List All CatalogSources
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSources
+      description: Gets a list of all `CatalogSource` entities.
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}:
+    description: >-
+      The REST endpoint/path used to get a `CatalogModel`.
+    get:
+      summary: Get a `CatalogModel`.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogModel
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts:
+    description: >-
+      The REST endpoint/path used to list `CatalogModelArtifacts`.
+    get:
+      summary: List CatalogModelArtifacts.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findCatalogModelArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+components:
+  schemas:
+    BaseModel:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Human-readable description of the model.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+    BaseResourceDates:
+      description: Common timestamp fields for resources
+      type: object
+      properties:
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: Output only. Last update time of the resource since epoch in millisecond since epoch.
+          type: string
+          readOnly: true
+    BaseResourceList:
+      required:
+        - nextPageToken
+        - pageSize
+        - size
+      type: object
+      properties:
+        nextPageToken:
+          description: Token to use to retrieve next page of results.
+          type: string
+        pageSize:
+          format: int32
+          description: Maximum number of resources to return in the result.
+          type: integer
+        size:
+          format: int32
+          description: Number of items in result list.
+          type: integer
+    CatalogModel:
+      description: A model in the model catalog.
+      allOf:
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the model. Must be unique within a source.
+              example: ibm-granite/granite-3.1-8b-base
+            source_id:
+              type: string
+              description: ID of the source this model belongs to.
+        - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/BaseModel"
+    CatalogModelArtifact:
+      description: A single artifact for a catalog model.
+      allOf:
+        - type: object
+          required:
+            - uri
+          properties:
+            uri:
+              type: string
+              format: uri
+              description: URI where the artifact can be retrieved.
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+        - $ref: "#/components/schemas/BaseResourceDates"
+    CatalogModelArtifactList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModelArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModelArtifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogModelList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSource:
+      description: A catalog source. A catalog source has CatalogModel children.
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          description: The name of the catalog source.
+          type: string
+    CatalogSourceList:
+      description: List of CatalogSource entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogSource` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogSource"
+        - $ref: "#/components/schemas/BaseResourceList"
+    Error:
+      description: Error code and message.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          description: Error code
+          type: string
+        message:
+          description: Error message
+          type: string
+    MetadataBoolValue:
+      description: A bool property value.
+      type: object
+      required:
+        - metadataType
+        - bool_value
+      properties:
+        bool_value:
+          type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
+          default: MetadataBoolValue
+    MetadataDoubleValue:
+      description: A double property value.
+      type: object
+      required:
+        - metadataType
+        - double_value
+      properties:
+        double_value:
+          format: double
+          type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
+          default: MetadataDoubleValue
+    MetadataIntValue:
+      description: An integer (int64) property value.
+      type: object
+      required:
+        - metadataType
+        - int_value
+      properties:
+        int_value:
+          format: int64
+          type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
+          default: MetadataIntValue
+    MetadataProtoValue:
+      description: A proto property value.
+      type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
+      properties:
+        type:
+          description: url describing proto value
+          type: string
+        proto_value:
+          description: Base64 encoded bytes for proto value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
+          default: MetadataProtoValue
+    MetadataStringValue:
+      description: A string property value.
+      type: object
+      required:
+        - metadataType
+        - string_value
+      properties:
+        string_value:
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
+          default: MetadataStringValue
+    MetadataStructValue:
+      description: A struct property value.
+      type: object
+      required:
+        - metadataType
+        - struct_value
+      properties:
+        struct_value:
+          description: Base64 encoded bytes for struct value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
+          default: MetadataStructValue
+    MetadataValue:
+      oneOf:
+        - $ref: "#/components/schemas/MetadataIntValue"
+        - $ref: "#/components/schemas/MetadataDoubleValue"
+        - $ref: "#/components/schemas/MetadataStringValue"
+        - $ref: "#/components/schemas/MetadataStructValue"
+        - $ref: "#/components/schemas/MetadataProtoValue"
+        - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
+      description: A value in properties.
+      example:
+        string_value: my_value
+        metadataType: MetadataStringValue
+    OrderByField:
+      description: Supported fields for ordering result entities.
+      enum:
+        - CREATE_TIME
+        - LAST_UPDATE_TIME
+        - ID
+      type: string
+    SortOrder:
+      description: Supported sort direction for ordering result entities.
+      enum:
+        - ASC
+        - DESC
+      type: string
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Bad Request parameters
+    CatalogModelArtifactListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelArtifactList"
+      description: A response containing a list of CatalogSource entities.
+    CatalogModelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelList"
+      description: A response containing a list of CatalogModel entities.
+    CatalogModelResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModel"
+      description: A response containing a `CatalogModel` entity.
+    CatalogSourceListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourceList"
+      description: A response containing a list of CatalogSource entities.
+    CatalogSourceResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSource"
+      description: A response containing a `CatalogSource` entity.
+    Conflict:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Conflict with current state of target resource
+    InternalServerError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unexpected internal server error
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: The specified resource was not found
+    ServiceUnavailable:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Service is unavailable
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unauthorized
+    UnprocessableEntity:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unprocessable Entity error
+  parameters:
+    id:
+      name: id
+      description: The ID of resource.
+      schema:
+        type: string
+      in: path
+      required: true
+    name:
+      examples:
+        name:
+          value: entity-name
+      name: name
+      description: Name of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    externalId:
+      examples:
+        externalId:
+          value: "10"
+      name: externalId
+      description: External ID of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    parentResourceId:
+      examples:
+        parentResourceId:
+          value: "10"
+      name: parentResourceId
+      description: ID of the parent resource to use for search.
+      schema:
+        type: string
+      in: query
+      required: false
+    pageSize:
+      examples:
+        pageSize:
+          value: "100"
+      name: pageSize
+      description: Number of entities in each page.
+      schema:
+        type: string
+      in: query
+      required: false
+    nextPageToken:
+      name: nextPageToken
+      description: Token to use to retrieve next page of results.
+      schema:
+        type: string
+      in: query
+      required: false
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    sortOrder:
+      style: form
+      explode: true
+      examples:
+        sortOrder:
+          value: DESC
+      name: sortOrder
+      description: "Specifies the sort order for listing entities, defaults to ASC."
+      schema:
+        $ref: "#/components/schemas/SortOrder"
+      in: query
+      required: false
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: Bearer JWT scheme
+security:
+  - Bearer: []
+tags: []

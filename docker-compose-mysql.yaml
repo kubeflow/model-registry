@@ -1,0 +1,56 @@
+# Local development demo/example compose file
+# Composes:
+# - a MySQL database,
+# - a mlmd-server connected to the MySQL database,
+# - a model-registry server connected to the mlmd-server.
+version: '3'
+services:
+  mlmd-server:
+    image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0
+    container_name: mlmd-server
+    depends_on:
+      mysql:
+        condition: service_healthy
+        required: true
+    ports:
+      - "9090:9090"
+    entrypoint: ["/bin/metadata_store_server"]
+    command: [
+      "--grpc_port=9090",
+      "--mysql_config_database=model_registry",
+      "--mysql_config_host=mysql",
+      "--mysql_config_port=3306",
+      "--mysql_config_user=root",
+      "--mysql_config_password=demo",
+      "--enable_database_upgrade=true"
+    ]
+  model-registry:
+    image: quay.io/opendatahub/model-registry:latest
+    command: ["proxy", "--hostname", "0.0.0.0", "--mlmd-hostname", "mlmd-server", "--mlmd-port", "9090", "--datastore-type", "mlmd"]
+    container_name: model-registry
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mlmd-server
+  mysql:
+    image: mysql:8.3
+    container_name: mysql
+    command: 
+      - --datadir=/var/lib/mysql/datadir
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=demo
+      - MYSQL_DATABASE=model_registry
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -D $$MYSQL_DATABASE -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mysql_data:

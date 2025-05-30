@@ -198,14 +198,35 @@ func TestMapRegisteredModelProperties(t *testing.T) {
 
 	props, err := MapRegisteredModelProperties(&openapi.RegisteredModel{
 		Description: of("super description"),
+		Readme:      of("super readme"),
+		Maturity:    of("ga"),
+		Language:    []string{"en", "fr"},
+		Tasks:       []string{"task1", "task2"},
+		Provider:    of("provider"),
+		Logo:        of("super logo"),
+		License:     of("super license"),
+		LicenseLink: of("super license link"),
+		LibraryName: of("super library name"),
 	})
-	assertion.Nil(err)
-	assertion.Equal(1, len(props))
+	if !assertion.NoError(err) {
+		return
+	}
+	assertion.Equal(10, len(props))
 	assertion.Equal("super description", props["description"].GetStringValue())
+	assertion.Equal("super readme", props["readme"].GetStringValue())
+	assertion.Equal("ga", props["maturity"].GetStringValue())
+	assertion.Equal([]string{"en", "fr"}, MapStringSliceProperty(props, "language"))
+	assertion.Equal([]string{"task1", "task2"}, MapStringSliceProperty(props, "tasks"))
+	assertion.Equal("provider", props["provider"].GetStringValue())
+	assertion.Equal("super logo", props["logo"].GetStringValue())
+	assertion.Equal("super license", props["license"].GetStringValue())
+	assertion.Equal("super license link", props["license_link"].GetStringValue())
+	assertion.Equal("super library name", props["library_name"].GetStringValue())
 
 	props, err = MapRegisteredModelProperties(&openapi.RegisteredModel{})
-	assertion.Nil(err)
-	assertion.Equal(0, len(props))
+	if assertion.NoError(err) {
+		assertion.Equal(0, len(props))
+	}
 }
 
 func TestMapRegisteredModelType(t *testing.T) {
