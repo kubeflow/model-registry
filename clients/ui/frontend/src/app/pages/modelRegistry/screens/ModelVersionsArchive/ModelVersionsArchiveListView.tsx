@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Toolbar,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -50,45 +51,47 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
       clearFilters={resetFilters}
       modelVersions={filteredModelVersions}
       toolbarContent={
-        <ToolbarContent>
-          <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
-            <ToolbarGroup variant="filter-group">
-              <ToolbarFilter
-                labels={search === '' ? [] : [search]}
-                deleteLabel={resetFilters}
-                deleteLabelGroup={resetFilters}
-                categoryName="Keyword"
-              >
-                <SimpleSelect
-                  options={searchTypes.map((key) => ({
-                    key,
-                    label: key,
-                  }))}
-                  value={searchType}
-                  onChange={(newSearchType) => {
-                    const enumMember = asEnumMember(newSearchType, SearchType);
-                    if (enumMember) {
-                      setSearchType(enumMember);
-                    }
-                  }}
-                  icon={<FilterIcon />}
-                />
-              </ToolbarFilter>
-              <ToolbarItem>
-                <ThemeAwareSearchInput
-                  value={search}
-                  onChange={setSearch}
-                  onClear={resetFilters}
-                  placeholder={`Find by ${searchType.toLowerCase()}`}
-                  fieldLabel={`Find by ${searchType.toLowerCase()}`}
-                  className="toolbar-fieldset-wrapper"
-                  style={{ minWidth: '200px' }}
-                  data-testid="model-versions-archive-table-search"
-                />
-              </ToolbarItem>
-            </ToolbarGroup>
-          </ToolbarToggleGroup>
-        </ToolbarContent>
+        <Toolbar>
+          <ToolbarContent>
+            <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+              <ToolbarGroup variant="filter-group">
+                <ToolbarFilter
+                  labels={search === '' ? [] : [search]}
+                  deleteLabel={resetFilters}
+                  deleteLabelGroup={resetFilters}
+                  categoryName="Keyword"
+                >
+                  <SimpleSelect
+                    options={searchTypes.map((key) => ({
+                      key,
+                      label: key,
+                    }))}
+                    value={searchType}
+                    onChange={(newSearchType) => {
+                      const enumMember = asEnumMember(newSearchType, SearchType);
+                      if (enumMember) {
+                        setSearchType(enumMember);
+                      }
+                    }}
+                    icon={<FilterIcon />}
+                  />
+                </ToolbarFilter>
+                <ToolbarItem>
+                  <ThemeAwareSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    onClear={resetFilters}
+                    placeholder={`Find by ${searchType.toLowerCase()}`}
+                    fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                    className="toolbar-fieldset-wrapper"
+                    style={{ minWidth: '200px' }}
+                    data-testid="model-versions-archive-table-search"
+                  />
+                </ToolbarItem>
+              </ToolbarGroup>
+            </ToolbarToggleGroup>
+          </ToolbarContent>
+        </Toolbar>
       }
     />
   );

@@ -60,6 +60,11 @@ module.exports = smp.wrap(
               port: PROXY_PORT,
             },
             changeOrigin: true,
+            ...(DEPLOYMENT_MODE === 'standalone' && {
+              headers: {
+                'kubeflow-userid': 'user@example.com',
+              },
+            }),
           },
         ],
         devMiddleware: {

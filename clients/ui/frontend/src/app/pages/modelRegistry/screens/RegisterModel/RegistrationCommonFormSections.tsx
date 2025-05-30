@@ -11,7 +11,7 @@ import {
   TextInputGroup,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
-import { useThemeContext, FormSection, UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import { FormSection, UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 // import { DataConnection, UpdateObjectAtPropAndValue } from '~/pages/projects/types';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';

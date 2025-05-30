@@ -1,5 +1,5 @@
+import { useThemeContext } from 'mod-arch-shared';
 import React, { ReactNode } from 'react';
-import { useThemeContext } from '~/app/ThemeContext';
 
 interface FormFieldsetProps {
   component: ReactNode;

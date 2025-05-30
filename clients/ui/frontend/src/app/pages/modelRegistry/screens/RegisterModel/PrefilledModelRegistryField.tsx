@@ -1,6 +1,5 @@
 import React from 'react';
 import { FormGroup, TextInput } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type PrefilledModelRegistryFieldProps = {

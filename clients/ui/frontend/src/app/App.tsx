@@ -15,12 +15,10 @@ import {
 import {
   ToastNotifications,
   useSettings,
-  AUTH_HEADER,
-  MOCK_AUTH,
-  isStandalone,
   logout,
   NamespaceSelectorContext,
   NavBar,
+  useModularArchContext,
 } from 'mod-arch-shared';
 import AppRoutes from './AppRoutes';
 import { AppContext } from './AppContext';
@@ -40,14 +38,7 @@ const App: React.FC = () => {
     React.useContext(NamespaceSelectorContext);
 
   const username = userSettings?.userId;
-
-  React.useEffect(() => {
-    if (MOCK_AUTH && username) {
-      localStorage.setItem(AUTH_HEADER, username);
-    } else {
-      localStorage.removeItem(AUTH_HEADER);
-    }
-  }, [username]);
+  const { isIntegrated } = useModularArchContext();
 
   const contextValue = React.useMemo(
     () =>
@@ -109,7 +100,7 @@ const App: React.FC = () => {
       <Page
         mainContainerId="primary-app-container"
         masthead={
-          isStandalone() ? (
+          !isIntegrated ? (
             <NavBar
               username={username}
               onLogout={() => {
@@ -120,8 +111,8 @@ const App: React.FC = () => {
             ''
           )
         }
-        isManagedSidebar={isStandalone()}
-        sidebar={isStandalone() ? <AppNavSidebar /> : sidebar}
+        isManagedSidebar={!isIntegrated}
+        sidebar={!isIntegrated ? <AppNavSidebar /> : sidebar}
       >
         <ModelRegistrySelectorContextProvider>
           <AppRoutes />
