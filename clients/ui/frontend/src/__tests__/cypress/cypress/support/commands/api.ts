@@ -1,5 +1,6 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
-import type { Namespace, UserSettings, mockModArchResponse } from 'mod-arch-shared';
+import type { ModelRegistryKind, Namespace, UserSettings } from 'mod-arch-shared';
+import { mockModArchResponse } from 'mod-arch-shared';
 import type {
   ModelArtifact,
   ModelArtifactList,
@@ -109,6 +110,11 @@ declare global {
           type: 'GET /api/:apiVersion/model_registry',
           options: { path: { apiVersion: string } },
           response: ApiResponse<ModelRegistry[]>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/settings/model_registry',
+          options: { path: { apiVersion: string } },
+          response: ApiResponse<ModelRegistryKind[]>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/user',
