@@ -107,7 +107,7 @@
     "@patternfly/react-core": "^6.2.0",
     "@patternfly/react-icons": "^6.2.0",
     "@patternfly/react-styles": "^6.2.0",
-    "@patternfly/react-table": "^6.2.0",
+    "@patternfly/react-table": "^6.2.2",
     "@patternfly/react-templates": "^6.2.0",
     "classnames": "^2.2.6",
     "dompurify": "^3.2.4",
