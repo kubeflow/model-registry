@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
 	"gorm.io/gorm"
 )
 
