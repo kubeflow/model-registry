@@ -100,7 +100,7 @@ func TestMigrations(t *testing.T) {
 	var schemaVersion int
 	err = db.Raw("SELECT schema_version FROM MLMDEnv LIMIT 1").Scan(&schemaVersion).Error
 	require.NoError(t, err)
-	assert.Equal(t, 1, schemaVersion)
+	assert.Equal(t, 10, schemaVersion)
 
 	// Verify Type table has expected entries
 	var count int64
