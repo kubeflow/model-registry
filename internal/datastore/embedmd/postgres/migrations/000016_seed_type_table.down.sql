@@ -1,4 +1,4 @@
-DELETE FROM type WHERE name IN (
+DELETE FROM Type WHERE name IN (
     'mlmd.Dataset',
     'mlmd.Model',
     'mlmd.Metrics',
