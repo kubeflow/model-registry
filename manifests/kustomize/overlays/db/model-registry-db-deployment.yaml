@@ -42,13 +42,15 @@ spec:
             command:
             - "/bin/bash"
             - "-c"
-            - "mysql -D $$MYSQL_DATABASE -u$$MYSQL_USER_NAME -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"
+            - "/scripts/check-db-readiness.sh"
           initialDelaySeconds: 5
           periodSeconds: 2
           timeoutSeconds: 1
         volumeMounts:
         - name: metadata-mysql
           mountPath: /var/lib/mysql
+        - name: scripts
+          mountPath: /scripts
         securityContext:
           runAsUser: 999
           runAsGroup: 999
@@ -60,3 +62,7 @@ spec:
       - name: metadata-mysql
         persistentVolumeClaim:
           claimName: metadata-mysql
+      - name: scripts
+        hostPath:
+          path: /scripts
+          type: Directory
