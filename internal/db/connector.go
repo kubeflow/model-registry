@@ -5,6 +5,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
 	"gorm.io/gorm"
 )
 
@@ -24,7 +25,9 @@ func NewConnector(dbType string, dsn string, tlsConfig *tls.TLSConfig) (Connecto
 		}
 
 		return mysql.NewMySQLDBConnector(dsn, &tls.TLSConfig{}), nil
+	case "postgres":
+		return postgres.NewPostgresDBConnector(dsn), nil
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, "mysql", "postgres")
 }
