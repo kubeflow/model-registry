@@ -17,7 +17,9 @@ func NewDBMigrator(dbType string, db *gorm.DB) (DBMigrator, error) {
 	switch dbType {
 	case "mysql":
 		return mysql.NewMySQLMigrator(db)
+	case "postgres":
+		return postgres.NewPostgresMigrator(db)
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, "mysql", "postgres")
 }

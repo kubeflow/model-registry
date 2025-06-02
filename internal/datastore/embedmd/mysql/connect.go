@@ -62,6 +62,7 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
+	fmt.Printf("Successfully connected to MySQL database\n")
 
 	c.db = db
 
