@@ -1,8 +1,7 @@
 package postgres
 
 import (
-	"fmt"
-
+	"github.com/golang/glog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -19,14 +18,14 @@ func NewPostgresDBConnector(dsn string) *PostgresDBConnector {
 }
 
 func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
-	fmt.Printf("Attempting to connect with DSN: %q\n", c.DSN)
+	glog.V(2).Infof("Attempting to connect with DSN: %q", c.DSN)
 	db, err := gorm.Open(postgres.Open(c.DSN), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
 	c.db = db
-	fmt.Printf("Successfully connected to PostgreSQL database\n")
+	glog.Info("Successfully connected to PostgreSQL database")
 	return db, nil
 } 
 

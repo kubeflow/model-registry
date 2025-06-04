@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,7 +63,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 	// Construct the connection string in URL format
 	dsn := fmt.Sprintf("postgres://postgres:postgres@%s:%s/test?sslmode=disable",
 		host, port.Port())
-	t.Logf("Constructed DSN for GORM: %s", dsn)
+	glog.V(2).Infof("Constructed DSN for GORM: %s", dsn)
 	
 	dbConnector := postgres.NewPostgresDBConnector(dsn)
 	require.NoError(t, err)
