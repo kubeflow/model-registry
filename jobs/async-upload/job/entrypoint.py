@@ -17,7 +17,7 @@ def main() -> None:
         # Get complete configuration
         config = get_config()
 
-        # TODO: Validate credentials
+        # TODO: Validate credentials and connection to Model Registry
 
         logger.info(
             f"Source: {config.source.type.upper()} storage at {config.source.endpoint or 'default endpoint'}"
