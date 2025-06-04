@@ -42,7 +42,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--destination-oci-username")
     p.add("--destination-oci-password")
 
-    # --- model-registry ---
+    # --- model-registry --- TODO: use IDs https://github.com/kubeflow/model-registry/issues/1108#issuecomment-2880448765
     p.add("--model-name")
     p.add("--model-version")
     p.add("--model-format")
