@@ -1,0 +1,27 @@
+apiVersion: modelregistry.opendatahub.io/v1alpha1
+kind: ModelRegistry
+metadata:
+  name: model-registry
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/instance: model-registry
+    app.kubernetes.io/part-of: model-registry-operator
+    app.kubernetes.io/created-by: model-registry-operator
+spec:
+  grpc: {}
+  rest: {}
+  istio:
+    gateway:
+      grpc:
+        tls: {}
+      rest:
+        tls: {}
+  mysql:
+    host: model-registry-db.rhoai-model-registries.svc.cluster.local
+    database: metadb
+    passwordSecret:
+      key: MYSQL_ROOT_PASSWORD
+      name: model-registry-db-secrets
+    port: DB_PORT_PLACEHOLDER
+    skipDBCreation: False
+    username: root

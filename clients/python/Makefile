@@ -1,7 +1,8 @@
 all: install tidy
 
 IMG_REGISTRY ?= quay.io
-IMG_VERSION ?= latest 
+IMG_VERSION ?= latest
+include odh_rules.mk
 
 .PHONY: install
 install:
