@@ -1,4 +1,4 @@
-import { Namespace } from '~/shared/types';
+import { Namespace } from '#~/shared/types';
 
 type MockNamespace = {
   name?: string;

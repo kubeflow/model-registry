@@ -1,5 +1,5 @@
 import React from 'react';
-import PasswordInput from '~/app/pages/settings/PasswordInput';
+import PasswordInput from '#~/app/pages/settings/PasswordInput';
 
 type ModelRegistryDatabasePasswordProps = {
   password: string | undefined;

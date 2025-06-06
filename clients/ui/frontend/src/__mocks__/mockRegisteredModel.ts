@@ -1,4 +1,4 @@
-import { ModelRegistryCustomProperties, ModelState, RegisteredModel } from '~/app/types';
+import { ModelRegistryCustomProperties, ModelState, RegisteredModel } from '#~/app/types';
 
 type MockRegisteredModelType = {
   id?: string;

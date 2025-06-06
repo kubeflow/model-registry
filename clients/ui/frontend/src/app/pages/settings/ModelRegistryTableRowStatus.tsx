@@ -8,7 +8,7 @@ import {
   InProgressIcon,
 } from '@patternfly/react-icons';
 
-import { K8sCondition } from '~/shared/k8sTypes';
+import { K8sCondition } from '#~/shared/k8sTypes';
 
 enum ModelRegistryStatus {
   Progressing = 'Progressing',

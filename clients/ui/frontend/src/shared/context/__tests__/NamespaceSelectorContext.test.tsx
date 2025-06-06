@@ -1,16 +1,16 @@
 import '@testing-library/jest-dom';
 import * as React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import useNamespaces from '~/shared/hooks/useNamespaces';
-import * as constUtils from '~/shared/utilities/const';
+import useNamespaces from '#~/shared/hooks/useNamespaces';
+import * as constUtils from '#~/shared/utilities/const';
 import {
   NamespaceSelectorContext,
   NamespaceSelectorContextProvider,
-} from '~/shared/context/NamespaceSelectorContext';
+} from '#~/shared/context/NamespaceSelectorContext';
 
 // Mock the hooks and utilities
-jest.mock('~/shared/hooks/useNamespaces');
-jest.mock('~/shared/utilities/const');
+jest.mock('#~/shared/hooks/useNamespaces');
+jest.mock('#~/shared/utilities/const');
 
 const mockNamespaces = [{ name: 'namespace-2' }, { name: 'namespace-3' }, { name: 'namespace-1' }];
 

@@ -1,5 +1,5 @@
 import React, { createContext } from 'react';
-import { Notification, NotificationActionTypes, NotificationAction } from '~/app/types';
+import { Notification, NotificationActionTypes, NotificationAction } from '#~/app/types';
 
 type NotificationContextProps = {
   notifications: Notification[];

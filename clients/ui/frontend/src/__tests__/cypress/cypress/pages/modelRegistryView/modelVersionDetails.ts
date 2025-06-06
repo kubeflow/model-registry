@@ -1,4 +1,4 @@
-import { TableRow } from '~/__tests__/cypress/cypress/pages/components/table';
+import { TableRow } from '#~/__tests__/cypress/cypress/pages/components/table';
 
 class ModelVersionDetails {
   visit() {

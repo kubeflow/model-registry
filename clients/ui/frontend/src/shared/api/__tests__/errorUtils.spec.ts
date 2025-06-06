@@ -1,8 +1,8 @@
-import { NotReadyError } from '~/shared/utilities/useFetchState';
-import { APIError } from '~/shared/api/types';
-import { handleRestFailures } from '~/shared/api/errorUtils';
-import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
-import { mockBFFResponse } from '~/__mocks__/utils';
+import { NotReadyError } from '#~/shared/utilities/useFetchState';
+import { APIError } from '#~/shared/api/types';
+import { handleRestFailures } from '#~/shared/api/errorUtils';
+import { mockRegisteredModel } from '#~/__mocks__/mockRegisteredModel';
+import { mockBFFResponse } from '#~/__mocks__/utils';
 
 describe('handleRestFailures', () => {
   it('should successfully return registered models', async () => {

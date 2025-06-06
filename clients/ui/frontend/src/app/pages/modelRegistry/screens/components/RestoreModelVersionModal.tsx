@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Modal } from '@patternfly/react-core/deprecated';
-import DashboardModalFooter from '~/shared/components/DashboardModalFooter';
-import { useNotification } from '~/app/hooks/useNotification';
+import DashboardModalFooter from '#~/shared/components/DashboardModalFooter';
+import { useNotification } from '#~/app/hooks/useNotification';
 
 interface RestoreModelVersionModalProps {
   onCancel: () => void;

@@ -8,17 +8,17 @@ import {
   ModelVersion,
   RegisteredModelList,
   RegisteredModel,
-} from '~/app/types';
+} from '#~/app/types';
 import {
   assembleModelRegistryBody,
   isModelRegistryResponse,
   restCREATE,
   restGET,
   restPATCH,
-} from '~/shared/api/apiUtils';
-import { APIOptions } from '~/shared/api/types';
-import { handleRestFailures } from '~/shared/api/errorUtils';
-import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
+} from '#~/shared/api/apiUtils';
+import { APIOptions } from '#~/shared/api/types';
+import { handleRestFailures } from '#~/shared/api/errorUtils';
+import { bumpRegisteredModelTimestamp } from '#~/app/api/updateTimestamps';
 
 export const createRegisteredModel =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>

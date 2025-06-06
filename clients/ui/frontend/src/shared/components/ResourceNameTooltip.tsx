@@ -12,9 +12,9 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import { K8sResourceCommon } from '~/shared/types';
-import '~/shared/components/NotebookController.scss';
-import DashboardPopupIconButton from '~/shared/components/dashboard/DashboardPopupIconButton';
+import { K8sResourceCommon } from '#~/shared/types';
+import '#~/shared/components/NotebookController.scss';
+import DashboardPopupIconButton from '#~/shared/components/dashboard/DashboardPopupIconButton';
 
 type ResourceNameTooltipProps = {
   resource: K8sResourceCommon;

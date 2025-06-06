@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AlertGroup } from '@patternfly/react-core';
-import { NotificationContext } from '~/app/context/NotificationContext';
+import { NotificationContext } from '#~/app/context/NotificationContext';
 import ToastNotification from './ToastNotification';
 
 const ToastNotifications: React.FC = () => {

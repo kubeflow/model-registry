@@ -4,8 +4,8 @@ import {
   ProjectObjectType,
   typedBackgroundColor,
   typedObjectImage,
-} from '~/shared/components/design/utils';
-import TypedObjectIcon from '~/shared/components/design/TypedObjectIcon';
+} from '#~/shared/components/design/utils';
+import TypedObjectIcon from '#~/shared/components/design/TypedObjectIcon';
 
 interface TitleWithIconProps {
   title: React.ReactNode;

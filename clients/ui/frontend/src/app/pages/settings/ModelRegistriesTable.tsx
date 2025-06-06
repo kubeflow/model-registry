@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { ModelRegistry } from '~/app/types';
-import { Table } from '~/shared/components/table';
+import { ModelRegistry } from '#~/app/types';
+import { Table } from '#~/shared/components/table';
 import { modelRegistryColumns } from './columns';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';

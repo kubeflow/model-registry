@@ -21,7 +21,7 @@ import {
 } from '@patternfly/react-icons';
 
 import './DashboardDescriptionListGroup.scss';
-import DashboardPopupIconButton from '~/shared/components/dashboard/DashboardPopupIconButton';
+import DashboardPopupIconButton from '#~/shared/components/dashboard/DashboardPopupIconButton';
 
 type EditableProps = {
   isEditing: boolean;

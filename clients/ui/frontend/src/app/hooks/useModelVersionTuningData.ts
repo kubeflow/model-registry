@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import type { ModelVersion, RegisteredModel } from '~/app/types';
-import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
-import { getServerAddress } from '~/app/pages/modelRegistry/screens/utils';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import type { ModelVersion, RegisteredModel } from '#~/app/types';
+import useModelArtifactsByVersionId from '#~/app/hooks/useModelArtifactsByVersionId';
+import { getServerAddress } from '#~/app/pages/modelRegistry/screens/utils';
+import { ModelRegistrySelectorContext } from '#~/app/context/ModelRegistrySelectorContext';
 
 export const useModelVersionTuningData = (
   modelVersionId: string | null,
