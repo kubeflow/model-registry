@@ -11,7 +11,7 @@ import { generateRoleBindingPermissions } from '~/app/api/k8s';
 import RoleBindingPermissionsTableRow from './RoleBindingPermissionsTableRow';
 import { columnsRoleBindingPermissions } from './data';
 import { RoleBindingPermissionsRoleType } from './types';
-import { firstSubject, tryPatchRoleBinding } from './utils';
+import { firstSubject } from './utils';
 
 type RoleBindingPermissionsTableProps = {
   ownerReference?: K8sResourceCommon;
@@ -30,6 +30,10 @@ type RoleBindingPermissionsTableProps = {
   typeAhead?: string[];
   createRoleBinding: (roleBinding: RoleBindingKind) => Promise<RoleBindingKind>;
   deleteRoleBinding: (name: string, namespace: string) => Promise<K8sStatus>;
+  tryPatchRoleBinding: (
+    oldRBObject: RoleBindingKind,
+    newRBObject: RoleBindingKind,
+  ) => Promise<boolean>;
   onDismissNewRow: () => void;
   onError: (error: React.ReactNode) => void;
   refresh: () => void;
@@ -49,6 +53,7 @@ const RoleBindingPermissionsTable: React.FC<RoleBindingPermissionsTableProps> = 
   isAdding,
   createRoleBinding,
   deleteRoleBinding,
+  tryPatchRoleBinding,
   onDismissNewRow,
   onError,
   refresh,

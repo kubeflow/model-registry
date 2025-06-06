@@ -1,5 +1,5 @@
 import * as React from 'react';
-import DeleteModal from '~/app/shared/components/DeleteModal';
+import DeleteModal from './DeleteModal';
 
 type RoleBindingPermissionsChangeModalProps = {
   onClose: () => void;

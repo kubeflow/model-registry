@@ -32,7 +32,10 @@ type RoleBindingPermissionsProps = {
   }[];
   createRoleBinding: (roleBinding: RoleBindingKind) => Promise<RoleBindingKind>;
   deleteRoleBinding: (name: string, namespace: string) => Promise<K8sStatus>;
-
+  tryPatchRoleBinding: (
+    oldRBObject: RoleBindingKind,
+    newRBObject: RoleBindingKind,
+  ) => Promise<boolean>;
   projectName: string;
   roleRefKind: RoleBindingRoleRef['kind'];
   roleRefName?: RoleBindingRoleRef['name'];
@@ -50,6 +53,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
   projectName,
   createRoleBinding,
   deleteRoleBinding,
+  tryPatchRoleBinding,
   roleRefKind,
   roleRefName,
   labels,
@@ -107,6 +111,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="user"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 
@@ -128,6 +133,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="group"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 

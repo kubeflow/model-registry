@@ -1,6 +1,11 @@
 import { capitalize } from '@patternfly/react-core';
+<<<<<<< HEAD
 import { RoleBindingKind } from 'mod-arch-shared';
 import { patchRoleBinding } from '~/app/api/k8s';
+=======
+
+import { RoleBindingKind } from 'mod-arch-shared';
+>>>>>>> c51662a (Add rolebinding to manage permissions)
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 
 export const filterRoleBindingSubjects = (
