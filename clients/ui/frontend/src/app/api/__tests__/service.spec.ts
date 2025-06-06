@@ -1,5 +1,10 @@
-import { isModelRegistryResponse, restCREATE, restGET, restPATCH } from '~/shared/api/apiUtils';
-import { handleRestFailures } from '~/shared/api/errorUtils';
+import {
+  isModArchResponse,
+  restCREATE,
+  restGET,
+  restPATCH,
+  handleRestFailures,
+} from 'mod-arch-shared';
 import { ModelState, ModelArtifactState } from '~/app/types';
 import {
   createRegisteredModel,
@@ -16,29 +21,41 @@ import {
   createModelVersionForRegisteredModel,
   createModelArtifactForModelVersion,
 } from '~/app/api/service';
-import { BFF_API_VERSION } from '~/app/const';
 import { mockRegisteredModel } from '~/__mocks__';
+import { BFF_API_VERSION } from '~/app/utilities/const';
 
 const mockRestPromise = Promise.resolve({ data: {} });
 const mockRestResponse = {};
 
-jest.mock('~/shared/api/apiUtils', () => ({
+jest.mock('mod-arch-shared', () => ({
   restCREATE: jest.fn(() => mockRestPromise),
   restGET: jest.fn(() => mockRestPromise),
   restPATCH: jest.fn(() => mockRestPromise),
-  assembleModelRegistryBody: jest.fn(() => ({})),
-  isModelRegistryResponse: jest.fn(() => true),
-}));
-
-jest.mock('~/shared/api/errorUtils', () => ({
+  assembleModArchBody: jest.fn(() => ({})),
+  isModArchResponse: jest.fn(() => true),
   handleRestFailures: jest.fn(() => mockRestPromise),
+  asEnumMember: jest.fn((value, enumObj) =>
+    value && Object.values(enumObj).includes(value) ? value : undefined,
+  ),
+  Theme: {
+    Default: 'default',
+    MUI: 'mui',
+  },
+  DeploymentMode: {
+    Integrated: 'integrated',
+    Default: 'default',
+  },
+  PlatformMode: {
+    Kubeflow: 'kubeflow',
+    Default: 'default',
+  },
 }));
 
 const handleRestFailuresMock = jest.mocked(handleRestFailures);
 const restCREATEMock = jest.mocked(restCREATE);
 const restGETMock = jest.mocked(restGET);
 const restPATCHMock = jest.mocked(restPATCH);
-const isModelRegistryResponseMock = jest.mocked(isModelRegistryResponse);
+const isModelRegistryResponseMock = jest.mocked(isModArchResponse);
 
 const APIOptionsMock = {};
 

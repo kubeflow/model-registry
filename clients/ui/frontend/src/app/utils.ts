@@ -1,5 +1,4 @@
-import { ModelRegistry, ModelState, ModelVersion, RegisteredModel } from '~/app/types';
-import { K8sResourceCommon } from '~/shared/types';
+import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -80,23 +79,3 @@ export const filterArchiveModels = (registeredModels: RegisteredModel[]): Regist
 
 export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
   registeredModels.filter((rm) => rm.state === ModelState.LIVE);
-
-export const convertToK8sResourceCommon = (modelRegistry: ModelRegistry): K8sResourceCommon => ({
-  apiVersion: 'v1',
-  kind: 'ModelRegistry',
-  metadata: {
-    name: modelRegistry.name,
-  },
-  spec: {
-    // Add any additional fields from ModelRegistry to K8sResourceCommon spec if needed
-  },
-  status: {
-    conditions: [
-      {
-        type: 'Degrading',
-        status: 'True',
-        lastTransitionTime: new Date().toISOString(),
-      },
-    ],
-  },
-});

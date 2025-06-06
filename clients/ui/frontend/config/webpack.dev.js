@@ -60,6 +60,11 @@ module.exports = smp.wrap(
               port: PROXY_PORT,
             },
             changeOrigin: true,
+            ...(DEPLOYMENT_MODE === 'standalone' && {
+              headers: {
+                'kubeflow-userid': 'user@example.com',
+              },
+            }),
           },
         ],
         devMiddleware: {
@@ -90,6 +95,10 @@ module.exports = smp.wrap(
               SRC_DIR,
               COMMON_DIR,
               path.resolve(RELATIVE_DIRNAME, 'node_modules/@patternfly'),
+              path.resolve(
+                RELATIVE_DIRNAME,
+                'node_modules/mod-arch-shared/node_modules/@patternfly',
+              ),
             ],
             use: ['style-loader', 'css-loader'],
           },

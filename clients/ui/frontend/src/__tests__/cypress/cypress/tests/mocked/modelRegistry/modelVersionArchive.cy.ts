@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { mockModArchResponse } from 'mod-arch-shared';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
 import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
@@ -8,7 +9,6 @@ import { labelModal, modelRegistry } from '~/__tests__/cypress/cypress/pages/mod
 import type { ModelRegistry, ModelVersion } from '~/app/types';
 import { ModelRegistryMetadataType, ModelState } from '~/app/types';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import { mockBFFResponse } from '~/__mocks__/utils';
 import {
   archiveVersionModal,
   modelVersionArchive,
@@ -234,7 +234,7 @@ describe('Restoring archive version', () => {
     notification.find();
 
     cy.wait('@versionRestored').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'LIVE' }));
     });
   });
 
@@ -261,7 +261,7 @@ describe('Restoring archive version', () => {
     notification.find();
 
     cy.wait('@versionRestored').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'LIVE' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'LIVE' }));
     });
   });
 });
@@ -293,7 +293,7 @@ describe('Archiving version', () => {
     notification.find();
 
     cy.wait('@versionArchived').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'ARCHIVED' }));
     });
   });
 
@@ -332,7 +332,7 @@ describe('Archiving version', () => {
     notification.find();
 
     cy.wait('@versionArchived').then((interception) => {
-      expect(interception.request.body).to.eql(mockBFFResponse({ state: 'ARCHIVED' }));
+      expect(interception.request.body).to.eql(mockModArchResponse({ state: 'ARCHIVED' }));
     });
   });
 });
