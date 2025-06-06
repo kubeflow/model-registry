@@ -32,6 +32,13 @@ export declare type K8sResourceIdentifier = {
   kind: string;
 };
 
+export declare type K8sStatus = K8sResourceIdentifier & {
+  code: number;
+  message: string;
+  reason: string;
+  status: 'Success' | 'Failure';
+};
+
 export declare type K8sResourceCommon = K8sResourceIdentifier &
   Partial<{
     metadata: Partial<{
