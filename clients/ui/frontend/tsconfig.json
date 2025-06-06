@@ -3,15 +3,15 @@
     "rootDir": ".",
     "outDir": "dist",
     "module": "esnext",
-    "target": "es5",
+    "target": "es2021",
     "lib": [
-      "es6",
+      "es2021",
       "dom",
       "ES2023.Array"
     ],
     "sourceMap": true,
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
@@ -29,7 +29,8 @@
     },
     "importHelpers": true,
     "skipLibCheck": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "noEmit": true
   },
   "include": [
     "**/*.ts",
