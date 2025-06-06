@@ -16,7 +16,7 @@ You can check the [contributing guidelines] for more information on how to contr
 ## OpenAPI Specification
 
 You can find the OpenAPI specification for the Model Registry UI in the [openapi](./api/openapi) directory.
-A live version of the OpenAPI specification can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/clients/ui/api/openapi/mod-arch.yaml).
+A live version of the OpenAPI specification can be found [here](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/clients/ui/api/openapi/mod-arch.yaml#/).
 
 ## Targeted environments
 
