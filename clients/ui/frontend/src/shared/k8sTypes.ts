@@ -263,3 +263,31 @@ export type ServiceKind = K8sResourceCommon & {
     }[];
   };
 };
+
+export type RoleBindingSubject = {
+  kind: string;
+  apiGroup?: string;
+  name: string;
+};
+
+export type RoleBindingRoleRef = {
+  kind: 'Role' | 'ClusterRole';
+  apiGroup?: string;
+  name: string;
+};
+
+export type RoleBindingKind = K8sResourceCommon & {
+  metadata: {
+    name: string;
+    namespace: string;
+  };
+  subjects: RoleBindingSubject[];
+  roleRef: RoleBindingRoleRef;
+};
+
+export type GroupKind = K8sResourceCommon & {
+  metadata: {
+    name: string;
+  };
+  users: string[];
+};
