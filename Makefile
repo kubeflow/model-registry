@@ -135,12 +135,30 @@ start/mysql:
 stop/mysql:
 	./scripts/teardown_mysql_db.sh
 
+# Start the PostgreSQL database
+.PHONY: start/postgres
+start/postgres:
+	./scripts/start_postgres_db.sh
+
+# Stop the PostgreSQL database
+.PHONY: stop/postgres
+stop/postgres:
+	./scripts/teardown_postgres_db.sh
+
 # generate the gorm structs
 .PHONY: gen/gorm
-gen/gorm: bin/gorm-gen bin/golang-migrate start/mysql
+gen/gorm: bin/gorm-gen bin/golang-migrate
+ifeq ($(DB_TYPE),postgres)
+	@(trap '$(MAKE) stop/postgres' EXIT; \
+	$(MAKE) start/postgres && \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
+	$(GORM_GEN) --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' --db postgres --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
+else
 	@(trap '$(MAKE) stop/mysql' EXIT; \
+	$(MAKE) start/mysql && \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
 	$(GORM_GEN) --dsn 'root:root@tcp(localhost:3306)/model-registry' --db mysql --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
+endif
 
 .PHONY: vet
 vet:
@@ -199,7 +217,7 @@ bin/gorm-gen:
 
 GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
