@@ -3,9 +3,9 @@ package db
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/model-registry/internal/db/types"
 	"gorm.io/gorm"
 )
 
@@ -16,11 +16,11 @@ type Connector interface {
 
 func NewConnector(dbType string, dsn string) (Connector, error) {
 	switch dbType {
-	case embedmd.DatabaseTypeMySQL:
+	case types.DatabaseTypeMySQL:
 		return mysql.NewMySQLDBConnector(dsn), nil
-	case embedmd.DatabaseTypePostgres:
+	case types.DatabaseTypePostgres:
 		return postgres.NewPostgresDBConnector(dsn), nil
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, embedmd.DatabaseTypeMySQL, embedmd.DatabaseTypePostgres)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 }
