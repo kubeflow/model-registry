@@ -421,6 +421,7 @@ models:
     - chat
     - neuralmagic
     - llmcompressor
+    - featured
   tasks:
     - text-generation
   createTimeSinceEpoch: 1733702400
@@ -1649,6 +1650,7 @@ models:
     - deepseek
     - fp8
     - vllm
+    - featured
   tasks:
     - text-generation
   createTimeSinceEpoch: 1738368000
