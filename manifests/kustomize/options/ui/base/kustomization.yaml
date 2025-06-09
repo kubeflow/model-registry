@@ -9,5 +9,5 @@ resources:
 
 images:
 - name: model-registry-ui
-  newName: quay.io/lferrnan/model-registry-ui
-  newTag: latest
+  newName: ghcr.io/kubeflow/model-registry/ui
+  newTag: v0.2.19
