@@ -18,6 +18,7 @@ type MLMDTypeNamesConfig struct {
 	InferenceServiceTypeName   string
 	ServeModelTypeName         string
 	CanAddFields               bool
+	CanOmitFields              bool
 }
 
 func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
@@ -30,6 +31,7 @@ func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
 		InferenceServiceTypeName:   defaults.InferenceServiceTypeName,
 		ServeModelTypeName:         defaults.ServeModelTypeName,
 		CanAddFields:               true,
+		CanOmitFields:              true,
 	}
 }
 
@@ -39,7 +41,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	client := proto.NewMetadataStoreServiceClient(cc)
 
 	registeredModelReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields:  &nameConfig.CanAddFields,
+		CanOmitFields: &nameConfig.CanOmitFields,
 		ContextType: &proto.ContextType{
 			Name: &nameConfig.RegisteredModelTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -60,7 +63,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	modelVersionReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields:  &nameConfig.CanAddFields,
+		CanOmitFields: &nameConfig.CanOmitFields,
 		ContextType: &proto.ContextType{
 			Name: &nameConfig.ModelVersionTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -104,7 +108,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	servingEnvironmentReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields:  &nameConfig.CanAddFields,
+		CanOmitFields: &nameConfig.CanOmitFields,
 		ContextType: &proto.ContextType{
 			Name: &nameConfig.ServingEnvironmentTypeName,
 			Properties: map[string]proto.PropertyType{
@@ -114,7 +119,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 	}
 
 	inferenceServiceReq := proto.PutContextTypeRequest{
-		CanAddFields: &nameConfig.CanAddFields,
+		CanAddFields:  &nameConfig.CanAddFields,
+		CanOmitFields: &nameConfig.CanOmitFields,
 		ContextType: &proto.ContextType{
 			Name: &nameConfig.InferenceServiceTypeName,
 			Properties: map[string]proto.PropertyType{
