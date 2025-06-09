@@ -1,4 +1,4 @@
-import { SortableData } from '~/shared/components/table';
+import { SortableData } from 'mod-arch-shared';
 import { ModelVersion } from '~/app/types';
 
 export const mvColumns: SortableData<ModelVersion>[] = [

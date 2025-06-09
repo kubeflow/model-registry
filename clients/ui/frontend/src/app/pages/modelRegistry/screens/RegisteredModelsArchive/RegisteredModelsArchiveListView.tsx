@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Toolbar,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -7,12 +8,11 @@ import {
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
+import { asEnumMember, SimpleSelect } from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/shared/components/SimpleSelect';
-import { asEnumMember } from '~/shared/utilities/utils';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelsArchiveTable from './RegisteredModelsArchiveTable';
 
@@ -58,45 +58,47 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
       clearFilters={resetFilters}
       registeredModels={filteredRegisteredModels}
       toolbarContent={
-        <ToolbarContent>
-          <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
-            <ToolbarGroup variant="filter-group">
-              <ToolbarFilter
-                labels={search === '' ? [] : [search]}
-                deleteLabel={resetFilters}
-                deleteLabelGroup={resetFilters}
-                categoryName="Keyword"
-              >
-                <SimpleSelect
-                  options={searchTypes.map((key) => ({
-                    key,
-                    label: key,
-                  }))}
-                  value={searchType}
-                  onChange={(newSearchType) => {
-                    const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
-                    if (newSearchTypeInput !== null) {
-                      setSearchType(newSearchTypeInput);
-                    }
-                  }}
-                  icon={<FilterIcon />}
-                />
-              </ToolbarFilter>
-              <ToolbarItem>
-                <ThemeAwareSearchInput
-                  value={search}
-                  onChange={setSearch}
-                  onClear={resetFilters}
-                  placeholder={`Find by ${searchType.toLowerCase()}`}
-                  fieldLabel={`Find by ${searchType.toLowerCase()}`}
-                  className="toolbar-fieldset-wrapper"
-                  style={{ minWidth: '200px' }}
-                  data-testid="registered-models-archive-table-search"
-                />
-              </ToolbarItem>
-            </ToolbarGroup>
-          </ToolbarToggleGroup>
-        </ToolbarContent>
+        <Toolbar>
+          <ToolbarContent>
+            <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+              <ToolbarGroup variant="filter-group">
+                <ToolbarFilter
+                  labels={search === '' ? [] : [search]}
+                  deleteLabel={resetFilters}
+                  deleteLabelGroup={resetFilters}
+                  categoryName="Keyword"
+                >
+                  <SimpleSelect
+                    options={searchTypes.map((key) => ({
+                      key,
+                      label: key,
+                    }))}
+                    value={searchType}
+                    onChange={(newSearchType) => {
+                      const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
+                      if (newSearchTypeInput !== null) {
+                        setSearchType(newSearchTypeInput);
+                      }
+                    }}
+                    icon={<FilterIcon />}
+                  />
+                </ToolbarFilter>
+                <ToolbarItem>
+                  <ThemeAwareSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    onClear={resetFilters}
+                    placeholder={`Find by ${searchType.toLowerCase()}`}
+                    fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                    className="toolbar-fieldset-wrapper"
+                    style={{ minWidth: '200px' }}
+                    data-testid="registered-models-archive-table-search"
+                  />
+                </ToolbarItem>
+              </ToolbarGroup>
+            </ToolbarToggleGroup>
+          </ToolbarContent>
+        </Toolbar>
       }
     />
   );

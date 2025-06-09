@@ -1,12 +1,10 @@
-import { kebabTableColumn, SortableData } from '~/shared/components/table';
-import { ModelRegistry } from '~/app/types';
-import { isPlatformDefault } from '~/shared/utilities/const';
+import { kebabTableColumn, SortableData, ModelRegistryKind } from 'mod-arch-shared';
 
-export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
+export const modelRegistryColumns: SortableData<ModelRegistryKind>[] = [
   {
     field: 'model regisry name',
     label: 'Model registry name',
-    sortable: (a, b) => a.name.localeCompare(b.name),
+    sortable: (a, b) => a.metadata.name.localeCompare(b.metadata.name),
     width: 30,
   },
   {
@@ -14,14 +12,10 @@ export const modelRegistryColumns: SortableData<ModelRegistry>[] = [
     label: 'Status',
     sortable: false,
   },
-  ...(isPlatformDefault()
-    ? [
-        {
-          field: 'manage permissions',
-          label: '',
-          sortable: false,
-        },
-        kebabTableColumn(),
-      ]
-    : []),
+  {
+    field: 'manage permissions',
+    label: '',
+    sortable: false,
+  },
+  kebabTableColumn(),
 ];
