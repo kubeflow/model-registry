@@ -1,8 +1,8 @@
 import { Button, Label, LabelGroup, Popover, SearchInput, Content } from '@patternfly/react-core';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import React from 'react';
+import { useDebounceCallback } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
-import useDebounceCallback from '~/shared/utilities/useDebounceCallback';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 
 // Threshold count to decide whether to choose modal or popover

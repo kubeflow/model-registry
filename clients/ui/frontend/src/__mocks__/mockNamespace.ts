@@ -1,4 +1,4 @@
-import { Namespace } from '~/shared/types';
+import { Namespace } from 'mod-arch-shared';
 
 type MockNamespace = {
   name?: string;

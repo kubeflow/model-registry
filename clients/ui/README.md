@@ -55,12 +55,6 @@ The following environment variables are used to configure the deployment and dev
 * **Default Value**: `linux/amd64`
 * **Example**: `PLATFORM=linux/amd64`
 
-### `MOCK_AUTH`
-
-* **Description**: Specifies whether to mock authentication in the UI.
-* **Default Value**: `true` (in dev mode) / `false` (in production mode)
-* **Possible Values**: `true`, `false`
-
 ### `DEPLOYMENT_MODE`
 
 * **Description**: Specifies the deployment mode for the UI.

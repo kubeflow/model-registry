@@ -1,4 +1,4 @@
-import { SortableData } from '~/shared/components/table';
+import { SortableData } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 
 export const rmColumns: SortableData<RegisteredModel>[] = [

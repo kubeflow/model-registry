@@ -1,10 +1,15 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageSection, Tab, Tabs, TabTitleText } from '@patternfly/react-core';
+import {
+  DeploymentMode,
+  FetchStateObject,
+  InferenceServiceKind,
+  PlatformMode,
+  ServingRuntimeKind,
+  useModularArchContext,
+} from 'mod-arch-shared';
 import { ModelVersion } from '~/app/types';
-import { FetchStateObject } from '~/shared/types';
-import { InferenceServiceKind, ServingRuntimeKind } from '~/shared/k8sTypes';
-import { isStandalone } from '~/shared/utilities/const';
 import { ModelVersionDetailsTabTitle, ModelVersionDetailsTab } from './const';
 import ModelVersionDetailsView from './ModelVersionDetailsView';
 import ModelVersionRegisteredDeploymentsView from './ModelVersionRegisteredDeploymentsView';
@@ -27,6 +32,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   refresh,
 }) => {
   const navigate = useNavigate();
+  const { deploymentMode, platformMode } = useModularArchContext();
   return (
     <Tabs
       activeKey={tab}
@@ -53,22 +59,24 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
           />
         </PageSection>
       </Tab>
-      {!isArchiveVersion && isStandalone() && (
-        <Tab
-          eventKey={ModelVersionDetailsTab.DEPLOYMENTS}
-          title={<TabTitleText>{ModelVersionDetailsTabTitle.DEPLOYMENTS}</TabTitleText>}
-          aria-label="Deployments tab"
-          data-testid="deployments-tab"
-        >
-          <PageSection hasBodyWrapper={false} isFilled data-testid="deployments-tab-content">
-            <ModelVersionRegisteredDeploymentsView
-              inferenceServices={inferenceServices}
-              servingRuntimes={servingRuntimes}
-              refresh={refresh}
-            />
-          </PageSection>
-        </Tab>
-      )}
+      {!isArchiveVersion &&
+        (deploymentMode === DeploymentMode.Standalone ||
+          platformMode !== PlatformMode.Kubeflow) && (
+          <Tab
+            eventKey={ModelVersionDetailsTab.DEPLOYMENTS}
+            title={<TabTitleText>{ModelVersionDetailsTabTitle.DEPLOYMENTS}</TabTitleText>}
+            aria-label="Deployments tab"
+            data-testid="deployments-tab"
+          >
+            <PageSection hasBodyWrapper={false} isFilled data-testid="deployments-tab-content">
+              <ModelVersionRegisteredDeploymentsView
+                inferenceServices={inferenceServices}
+                servingRuntimes={servingRuntimes}
+                refresh={refresh}
+              />
+            </PageSection>
+          </Tab>
+        )}
     </Tabs>
   );
 };

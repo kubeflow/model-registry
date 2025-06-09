@@ -1,10 +1,8 @@
 import React from 'react';
 import { Divider, Stack, StackItem } from '@patternfly/react-core';
-import ApplicationsPage from '~/shared/components/ApplicationsPage';
+import { ProjectObjectType, ApplicationsPage, TitleWithIcon } from 'mod-arch-shared';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useModelVersions from '~/app/hooks/useModelVersions';
-import TitleWithIcon from '~/shared/components/design/TitleWithIcon';
-import { ProjectObjectType } from '~/shared/components/design/utils';
 import ModelRegistrySelectorNavigator from './ModelRegistrySelectorNavigator';
 import RegisteredModelListView from './RegisteredModels/RegisteredModelListView';
 import { modelRegistryUrl } from './routeUtils';
