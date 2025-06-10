@@ -7,6 +7,7 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
+  Toolbar,
   ToolbarContent,
   ToolbarFilter,
   ToolbarGroup,
@@ -15,12 +16,11 @@ import {
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { ProjectObjectType, typedEmptyImage, SimpleSelect, asEnumMember } from 'mod-arch-shared';
+import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import { ModelVersion, RegisteredModel } from '~/app/types';
-import { SearchType } from '~/shared/components/DashboardSearchField';
-import { ProjectObjectType, typedEmptyImage } from '~/shared/components/design/utils';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import SimpleSelect from '~/shared/components/SimpleSelect';
 import {
   modelVersionArchiveUrl,
   registerVersionForModelUrl,
@@ -29,10 +29,9 @@ import {
   filterModelVersions,
   sortModelVersionsByCreateTime,
 } from '~/app/pages/modelRegistry/screens/utils';
-import { asEnumMember } from '~/shared/utilities/utils';
+import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
-import ModelVersionsTable from './ModelVersionsTable';
 
 type ModelVersionListViewProps = {
   modelVersions: ModelVersion[];
@@ -131,98 +130,105 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
         clearFilters={resetFilters}
         modelVersions={sortModelVersionsByCreateTime(filteredModelVersions)}
         toolbarContent={
-          <ToolbarContent>
-            <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
-              <ToolbarGroup variant="filter-group">
-                <ToolbarFilter
-                  labels={search === '' ? [] : [search]}
-                  deleteLabel={resetFilters}
-                  deleteLabelGroup={resetFilters}
-                  categoryName={searchType}
-                >
-                  <SimpleSelect
-                    dataTestId="model-versions-table-filter"
-                    options={searchTypes.map((key) => ({
-                      key,
-                      label: key,
-                    }))}
-                    value={searchType}
-                    onChange={(newSearchType) => {
-                      const enumMember = asEnumMember(newSearchType, SearchType);
-                      if (enumMember !== null) {
-                        setSearchType(enumMember);
-                      }
-                    }}
-                    icon={<FilterIcon />}
-                  />
-                </ToolbarFilter>
-                <ToolbarItem>
-                  <ThemeAwareSearchInput
-                    value={search}
-                    onChange={setSearch}
-                    onClear={resetFilters}
-                    placeholder={`Find by ${searchType.toLowerCase()}`}
-                    fieldLabel={`Find by ${searchType.toLowerCase()}`}
-                    className="toolbar-fieldset-wrapper"
-                    style={{ minWidth: '200px' }}
-                    data-testid="model-versions-table-search"
-                  />
-                </ToolbarItem>
-              </ToolbarGroup>
-
-              {!isArchiveModel && (
-                <>
-                  <ToolbarGroup>
-                    <ToolbarItem>
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
-                        }}
-                      >
-                        Register new version
-                      </Button>
-                    </ToolbarItem>
-                    <ToolbarItem>
-                      <Dropdown
-                        isOpen={isArchivedModelVersionKebabOpen}
-                        onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
-                        onOpenChange={(isOpen: boolean) =>
-                          setIsArchivedModelVersionKebabOpen(isOpen)
+          <Toolbar data-testid="model-versions-table-toolbar">
+            <ToolbarContent>
+              <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+                <ToolbarGroup variant="filter-group">
+                  <ToolbarFilter
+                    labels={search === '' ? [] : [search]}
+                    deleteLabel={resetFilters}
+                    deleteLabelGroup={resetFilters}
+                    categoryName={searchType}
+                  >
+                    <SimpleSelect
+                      dataTestId="model-versions-table-filter"
+                      options={searchTypes.map((key) => ({
+                        key,
+                        label: key,
+                      }))}
+                      value={searchType}
+                      toggleProps={{ style: { minWidth: '150px' } }}
+                      onChange={(newSearchType) => {
+                        const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
+                        if (newSearchTypeInput !== null) {
+                          setSearchType(newSearchTypeInput);
                         }
-                        toggle={(tr: React.Ref<MenuToggleElement>) => (
-                          <MenuToggle
-                            data-testid="model-versions-table-kebab-action"
-                            ref={tr}
-                            variant="plain"
-                            onClick={() =>
-                              setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
-                            }
-                            isExpanded={isArchivedModelVersionKebabOpen}
-                            aria-label="View archived versions"
-                          >
-                            <EllipsisVIcon />
-                          </MenuToggle>
-                        )}
-                        shouldFocusToggleOnSelect
-                        popperProps={{ appendTo: 'inline' }}
-                      >
-                        <DropdownList>
-                          <DropdownItem
-                            onClick={() =>
-                              navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
-                            }
-                          >
-                            View archived versions
-                          </DropdownItem>
-                        </DropdownList>
-                      </Dropdown>
-                    </ToolbarItem>
-                  </ToolbarGroup>
-                </>
-              )}
-            </ToolbarToggleGroup>
-          </ToolbarContent>
+                      }}
+                      icon={<FilterIcon />}
+                    />
+                  </ToolbarFilter>
+                  <ToolbarItem>
+                    <ThemeAwareSearchInput
+                      value={search}
+                      onChange={setSearch}
+                      onClear={resetFilters}
+                      placeholder={`Find by ${searchType.toLowerCase()}`}
+                      fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                      className="toolbar-fieldset-wrapper"
+                      style={{ minWidth: '200px' }}
+                      data-testid="model-versions-table-search"
+                    />
+                  </ToolbarItem>
+                </ToolbarGroup>
+
+                {!isArchiveModel && (
+                  <>
+                    <ToolbarGroup>
+                      <ToolbarItem>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            navigate(
+                              registerVersionForModelUrl(rm.id, preferredModelRegistry?.name),
+                            );
+                          }}
+                        >
+                          Register new version
+                        </Button>
+                      </ToolbarItem>
+                      <ToolbarItem>
+                        <Dropdown
+                          isOpen={isArchivedModelVersionKebabOpen}
+                          onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
+                          onOpenChange={(isOpen: boolean) =>
+                            setIsArchivedModelVersionKebabOpen(isOpen)
+                          }
+                          toggle={(tr: React.Ref<MenuToggleElement>) => (
+                            <MenuToggle
+                              data-testid="model-versions-table-kebab-action"
+                              ref={tr}
+                              variant="plain"
+                              onClick={() =>
+                                setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
+                              }
+                              isExpanded={isArchivedModelVersionKebabOpen}
+                              aria-label="View archived versions"
+                            >
+                              <EllipsisVIcon />
+                            </MenuToggle>
+                          )}
+                          shouldFocusToggleOnSelect
+                          popperProps={{ appendTo: 'inline' }}
+                        >
+                          <DropdownList>
+                            <DropdownItem
+                              onClick={() =>
+                                navigate(
+                                  modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name),
+                                )
+                              }
+                            >
+                              View archived versions
+                            </DropdownItem>
+                          </DropdownList>
+                        </Dropdown>
+                      </ToolbarItem>
+                    </ToolbarGroup>
+                  </>
+                )}
+              </ToolbarToggleGroup>
+            </ToolbarContent>
+          </Toolbar>
         }
       />
     </>

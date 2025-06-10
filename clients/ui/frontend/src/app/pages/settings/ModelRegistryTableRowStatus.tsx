@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { Label, Popover, Stack, StackItem } from '@patternfly/react-core';
 import {
   CheckCircleIcon,
@@ -7,8 +6,7 @@ import {
   ExclamationTriangleIcon,
   InProgressIcon,
 } from '@patternfly/react-icons';
-
-import { K8sCondition } from '~/shared/k8sTypes';
+import { K8sCondition } from 'mod-arch-shared';
 
 enum ModelRegistryStatus {
   Progressing = 'Progressing',

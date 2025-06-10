@@ -73,7 +73,6 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
-          MOCK_AUTH=true
           DEPLOYMENT_MODE=standalone
         cache-from: type=gha
         cache-to: type=gha,mode=max

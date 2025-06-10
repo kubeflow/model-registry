@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { ClipboardCopy, DescriptionList, Flex, FlexItem, Content } from '@patternfly/react-core';
+import {
+  EditableLabelsDescriptionListGroup,
+  EditableTextDescriptionListGroup,
+  DashboardDescriptionListGroup,
+} from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import EditableTextDescriptionListGroup from '~/shared/components/EditableTextDescriptionListGroup';
-import { EditableLabelsDescriptionListGroup } from '~/shared/components/EditableLabelsDescriptionListGroup';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
-import DashboardDescriptionListGroup from '~/shared/components/DashboardDescriptionListGroup';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 
 type ModelDetailsViewProps = {
