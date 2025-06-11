@@ -41,7 +41,7 @@ test-e2e-run:
 	poetry install --all-extras
 	@echo "Running tests..."
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
-	poetry run pytest --e2e -s -rA
+	poetry run pytest --e2e -s -rA --html=report.html --self-contained-html
 	@rm -f ../../scripts/manifests/minio/.env
 
 .PHONY: test-e2e-cleanup
