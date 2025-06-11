@@ -22,15 +22,16 @@ const (
 )
 
 type EnvConfig struct {
-	Port            int
-	MockK8Client    bool
-	MockMRClient    bool
-	DevMode         bool
-	StandaloneMode  bool
-	DevModePort     int
-	StaticAssetsDir string
-	LogLevel        slog.Level
-	AllowedOrigins  []string
+	Port              int
+	MockK8Client      bool
+	MockMRClient      bool
+	DevMode           bool
+	StandaloneMode    bool
+	FederatedPlatform bool
+	DevModePort       int
+	StaticAssetsDir   string
+	LogLevel          slog.Level
+	AllowedOrigins    []string
 
 	// ─── AUTH ───────────────────────────────────────────────────
 	// Specifies the authentication method used by the server.

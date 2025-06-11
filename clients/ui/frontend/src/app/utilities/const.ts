@@ -3,8 +3,9 @@ import { Theme, DeploymentMode, PlatformMode, asEnumMember } from 'mod-arch-shar
 export const isIntegrated = (): boolean => DEPLOYMENT_MODE === DeploymentMode.Integrated;
 export const isPlatformKubeflow = (): boolean => PLATFORM_MODE === PlatformMode.Kubeflow;
 
-const STYLE_THEME = asEnumMember(process.env.STYLE_THEME, Theme) || Theme.Default;
-const PLATFORM_MODE = asEnumMember(process.env.PLATFORM_MODE, PlatformMode) || PlatformMode.Default;
+const STYLE_THEME = asEnumMember(process.env.STYLE_THEME, Theme) || Theme.Patternfly;
+const PLATFORM_MODE =
+  asEnumMember(process.env.PLATFORM_MODE, PlatformMode) || PlatformMode.Federated;
 const DEPLOYMENT_MODE =
   asEnumMember(process.env.DEPLOYMENT_MODE, DeploymentMode) || DeploymentMode.Integrated;
 const DEV_MODE = process.env.APP_ENV === 'development';

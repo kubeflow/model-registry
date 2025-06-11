@@ -17,7 +17,7 @@ import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { AppContext } from '~/app/AppContext';
+import { AppContext } from '~/app/context/AppContext';
 import { useRegisterVersionData } from './useRegisterModelData';
 import { isRegisterVersionSubmitDisabled, registerVersion } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';

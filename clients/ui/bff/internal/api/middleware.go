@@ -40,6 +40,20 @@ func (app *App) InjectRequestIdentity(next http.Handler) http.Handler {
 			return
 		}
 
+		// Temporary: In standalone mode, add default kubeflow-userid header if missing
+		// This is a temporary solution until we have proper authentication in standalone mode
+		if app.config.StandaloneMode {
+			if r.Header.Get(constants.KubeflowUserIDHeader) == "" {
+				// Create a copy of the headers to avoid modifying the original request
+				headerCopy := make(http.Header)
+				for k, v := range r.Header {
+					headerCopy[k] = v
+				}
+				headerCopy.Set(constants.KubeflowUserIDHeader, "user@example.com")
+				r.Header = headerCopy
+			}
+		}
+
 		identity, error := app.kubernetesClientFactory.ExtractRequestIdentity(r.Header)
 		if error != nil {
 			app.badRequestResponse(w, r, error)
@@ -112,7 +126,7 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 		// If we are in dev mode, we need to resolve the server address to the local host
 		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
 		if app.config.DevMode {
-			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort))
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort), modelRegistry.IsHTTPS)
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for

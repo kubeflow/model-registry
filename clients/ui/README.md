@@ -49,6 +49,12 @@ The following environment variables are used to configure the deployment and dev
 * **Default Value**: `ghcr.io/kubeflow/model-registry/ui-standalone:latest`
 * **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-standalone:latest`
 
+### `IMG_UI_STANDALONE`
+
+* **Description**: Specifies the image name and tag for the UI (with BFF) in **federated mode**, used for federated mode outside kubeflow.
+* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-federated:latest`
+* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-federated:latest`
+
 ### `PLATFORM`
 
 * **Description**: Specifies the platform for a **docker buildx** build.
