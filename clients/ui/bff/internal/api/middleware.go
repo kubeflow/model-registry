@@ -112,7 +112,7 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 		// If we are in dev mode, we need to resolve the server address to the local host
 		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
 		if app.config.DevMode {
-			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort))
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort), modelRegistry.IsHTTPS)
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for

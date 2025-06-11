@@ -10,7 +10,5 @@ The following environment variables are used to configure the deployment and dev
   - The file name for the favicon of the application.
 - `PRODUCT_NAME="Model Registry"`
   - The name of the product displayed in the UI.
-- `STYLE_THEME=mui-theme`
-  - The style theme used for the UI, in this case, Material-UI theme.
 - `KUBEFLOW_USERNAME="user@example.com"`
   - The default username for the application. **DO NOT CHANGE THIS IF BFF IS SET IN MOCK MODE**.

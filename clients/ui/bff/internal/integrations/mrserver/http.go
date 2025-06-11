@@ -82,7 +82,16 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 	if response.StatusCode != http.StatusOK {
 		var errorResponse ErrorResponse
 		if err := json.Unmarshal(body, &errorResponse); err != nil {
-			return nil, fmt.Errorf("error unmarshalling error response: %w", err)
+			// If we can't unmarshal as JSON, create a generic error response with the raw body
+			c.logger.Warn("received non-JSON error response",
+				"status_code", response.StatusCode,
+				"content_type", response.Header.Get("Content-Type"),
+				"body_preview", string(body[:min(len(body), 200)]))
+
+			errorResponse = ErrorResponse{
+				Code:    strconv.Itoa(response.StatusCode),
+				Message: fmt.Sprintf("HTTP %d: %s", response.StatusCode, string(body)),
+			}
 		}
 		httpError := &HTTPError{
 			StatusCode:    response.StatusCode,
@@ -128,7 +137,16 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	if response.StatusCode != http.StatusCreated {
 		var errorResponse ErrorResponse
 		if err := json.Unmarshal(responseBody, &errorResponse); err != nil {
-			return nil, fmt.Errorf("error unmarshalling error response: %w", err)
+			// If we can't unmarshal as JSON, create a generic error response with the raw body
+			c.logger.Warn("received non-JSON error response",
+				"status_code", response.StatusCode,
+				"content_type", response.Header.Get("Content-Type"),
+				"body_preview", string(responseBody[:min(len(responseBody), 200)]))
+
+			errorResponse = ErrorResponse{
+				Code:    strconv.Itoa(response.StatusCode),
+				Message: fmt.Sprintf("HTTP %d: %s", response.StatusCode, string(responseBody)),
+			}
 		}
 		httpError := &HTTPError{
 			StatusCode:    response.StatusCode,
@@ -174,7 +192,16 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 	if response.StatusCode != http.StatusOK {
 		var errorResponse ErrorResponse
 		if err := json.Unmarshal(responseBody, &errorResponse); err != nil {
-			return nil, fmt.Errorf("error unmarshalling error response: %w", err)
+			// If we can't unmarshal as JSON, create a generic error response with the raw body
+			c.logger.Warn("received non-JSON error response",
+				"status_code", response.StatusCode,
+				"content_type", response.Header.Get("Content-Type"),
+				"body_preview", string(responseBody[:min(len(responseBody), 200)]))
+
+			errorResponse = ErrorResponse{
+				Code:    strconv.Itoa(response.StatusCode),
+				Message: fmt.Sprintf("HTTP %d: %s", response.StatusCode, string(responseBody)),
+			}
 		}
 		httpError := &HTTPError{
 			StatusCode:    response.StatusCode,

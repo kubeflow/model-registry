@@ -26,7 +26,7 @@ var _ = Describe("TestRoleBindingHandlers", func() {
 
 		BeforeAll(func() {
 			testApp = App{
-				config:                  config.EnvConfig{StandaloneMode: true},
+				config:                  config.EnvConfig{DeploymentMode: config.DeploymentModeStandalone},
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
 				repositories:            repositories.NewRepositories(mockMRClient),
 				logger:                  logger,

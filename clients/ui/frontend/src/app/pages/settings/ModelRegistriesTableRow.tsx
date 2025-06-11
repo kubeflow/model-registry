@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
 import {
+  DeploymentMode,
   ModelRegistryKind,
-  PlatformMode,
   ResourceNameTooltip,
   useModularArchContext,
   RoleBindingKind,
@@ -26,8 +26,9 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   onDeleteRegistry,
 }) => {
   const navigate = useNavigate();
-  const { platformMode } = useModularArchContext();
-  const isPlatformKubeflow = platformMode === PlatformMode.Kubeflow;
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
+  const isDeploymentKubeflow = deploymentMode === DeploymentMode.Kubeflow;
   const filteredRoleBindings = roleBindings.data.filter(
     (rb) =>
       rb.metadata.labels?.['app.kubernetes.io/name'] ===
@@ -76,7 +77,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
             },
             {
               title: 'Delete model registry',
-              disabled: isPlatformKubeflow,
+              disabled: isDeploymentKubeflow,
               onClick: () => {
                 onDeleteRegistry(mr);
               },
