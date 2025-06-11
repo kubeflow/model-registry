@@ -22,7 +22,7 @@ import {
   useNamespaceSelector,
 } from 'mod-arch-shared';
 import AppRoutes from './AppRoutes';
-import { AppContext } from './AppContext';
+import { AppContext } from './context/AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
 import 'mod-arch-shared/style/MUI-theme.scss';
 import AppNavSidebar from './AppNavSidebar';
@@ -38,7 +38,8 @@ const App: React.FC = () => {
   const { namespacesLoaded, namespacesLoadError, initializationError } = useNamespaceSelector();
 
   const username = userSettings?.userId;
-  const { deploymentMode } = useModularArchContext();
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
   const isIntegrated = deploymentMode === DeploymentMode.Integrated;
 
   const contextValue = React.useMemo(

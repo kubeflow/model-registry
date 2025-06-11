@@ -32,7 +32,7 @@ dev-install-dependencies:
 
 .PHONY: dev-bff
 dev-bff:
-	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true DEV_MODE=true STANDALONE_MODE=true
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true DEV_MODE=true STANDALONE_MODE=true DEFAULT_PLATFORM=false
 
 .PHONY: dev-frontend
 dev-frontend:
@@ -42,18 +42,31 @@ dev-frontend:
 dev-start: 
 	make -j 2 dev-bff dev-frontend
 
-########### Dev Integrated ############
+########### Dev Kubeflow ############
 .PHONY: dev-start-kubeflow
 dev-start-kubeflow: 
 	make -j 2 dev-bff-kubeflow dev-frontend-kubeflow
 
 .PHONY: dev-frontend-kubeflow
 dev-frontend-kubeflow:
-	DEPLOYMENT_MODE=integrated && cd frontend && npm run start:dev
+	DEPLOYMENT_MODE=integrated && PLATFORM_MODE=kubeflow && cd frontend && npm run start:dev
 
 .PHONY: dev-bff-kubeflow
 dev-bff-kubeflow:
-	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=false MOCK_MR_CLIENT=false DEV_MODE=true STANDALONE_MODE=false DEV_MODE_PORT=8085
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=false MOCK_MR_CLIENT=false DEV_MODE=true STANDALONE_MODE=false DEFAULT_PLATFORM=false DEV_MODE_PORT=8085
+
+########### Dev Federated ############
+.PHONY: dev-start-federated
+dev-start-federated: 
+	make -j 2 dev-bff-federated dev-frontend-federated
+
+.PHONY: dev-frontend-federated
+dev-frontend-federated:
+	DEPLOYMENT_MODE=integrated && PLATFORM_MODE=default && cd frontend && npm run start:dev
+
+.PHONY: dev-bff-federated
+dev-bff-federated:
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=false MOCK_MR_CLIENT=false DEV_MODE=true STANDALONE_MODE=false DEFAULT_PLATFORM=true DEV_MODE_PORT=8085
 
 ############ Build ############
 

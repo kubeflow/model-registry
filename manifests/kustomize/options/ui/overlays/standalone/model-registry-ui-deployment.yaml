@@ -2,4 +2,5 @@
   path: /spec/template/spec/containers/0/args
   value: 
     - "--standalone-mode=true"
+    - "--default-platform=false"
     - "--port=8080"
