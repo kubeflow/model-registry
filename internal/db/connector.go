@@ -3,10 +3,10 @@ package db
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/tls"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/model-registry/internal/db/types"
 	"gorm.io/gorm"
 )
 
@@ -30,5 +30,5 @@ func NewConnector(dbType string, dsn string, tlsConfig *tls.TLSConfig) (Connecto
 		return postgres.NewPostgresDBConnector(dsn), nil
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, embedmd.DatabaseTypeMySQL, embedmd.DatabaseTypePostgres)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 }

@@ -3,9 +3,9 @@ package db
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/model-registry/internal/db/types"
 	"gorm.io/gorm"
 )
 
@@ -17,11 +17,11 @@ type DBMigrator interface {
 
 func NewDBMigrator(dbType string, db *gorm.DB) (DBMigrator, error) {
 	switch dbType {
-	case embedmd.DatabaseTypeMySQL:
+	case types.DatabaseTypeMySQL:
 		return mysql.NewMySQLMigrator(db)
-	case embedmd.DatabaseTypePostgres:
+	case types.DatabaseTypePostgres:
 		return postgres.NewPostgresMigrator(db)
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, embedmd.DatabaseTypeMySQL, embedmd.DatabaseTypePostgres)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 }
