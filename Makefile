@@ -135,6 +135,16 @@ start/mysql:
 stop/mysql:
 	./scripts/teardown_mysql_db.sh
 
+# Start the PostgreSQL database
+.PHONY: start/postgres
+start/postgres:
+	./scripts/start_postgres_db.sh
+
+# Stop the PostgreSQL database
+.PHONY: stop/postgres
+stop/postgres:
+	./scripts/teardown_postgres_db.sh
+
 # generate the gorm structs
 .PHONY: gen/gorm
 gen/gorm: bin/golang-migrate start/mysql
@@ -195,7 +205,7 @@ bin/yq:
 
 GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
