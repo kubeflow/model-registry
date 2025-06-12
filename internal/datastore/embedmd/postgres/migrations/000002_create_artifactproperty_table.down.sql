@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS ArtifactProperty; 
+DROP TABLE IF EXISTS "ArtifactProperty"; 

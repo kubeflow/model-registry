@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS ParentType; 
+DROP TABLE IF EXISTS "ParentType"; 

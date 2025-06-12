@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS ExecutionProperty; 
+DROP TABLE IF EXISTS "ExecutionProperty"; 

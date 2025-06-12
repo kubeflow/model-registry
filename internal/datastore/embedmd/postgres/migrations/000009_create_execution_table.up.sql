@@ -1,6 +1,6 @@
 -- Create Execution table
-CREATE TABLE IF NOT EXISTS Execution (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS "Execution" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY,
     type_id INTEGER NOT NULL,
     last_known_state INTEGER DEFAULT NULL,
     name VARCHAR(255) DEFAULT NULL,
@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS Execution (
     UNIQUE (type_id, name)
 );
 
-CREATE INDEX idx_execution_create_time_since_epoch ON Execution (create_time_since_epoch);
-CREATE INDEX idx_execution_last_update_time_since_epoch ON Execution (last_update_time_since_epoch);
-CREATE INDEX idx_execution_external_id ON Execution (external_id); 
+CREATE INDEX idx_execution_create_time_since_epoch ON "Execution" (create_time_since_epoch);
+CREATE INDEX idx_execution_last_update_time_since_epoch ON "Execution" (last_update_time_since_epoch);
+CREATE INDEX idx_execution_external_id ON "Execution" (external_id); 

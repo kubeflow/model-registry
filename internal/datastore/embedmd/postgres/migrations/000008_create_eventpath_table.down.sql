@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS EventPath; 
+DROP TABLE IF EXISTS "EventPath"; 

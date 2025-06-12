@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS Association; 
+DROP TABLE IF EXISTS "Association"; 

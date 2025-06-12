@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS ContextProperty; 
+DROP TABLE IF EXISTS "ContextProperty"; 

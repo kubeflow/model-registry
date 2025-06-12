@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS TypeProperty; 
+DROP TABLE IF EXISTS "TypeProperty"; 

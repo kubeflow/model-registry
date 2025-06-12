@@ -1,6 +1,6 @@
 -- Create Type table
-CREATE TABLE IF NOT EXISTS Type (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS "Type" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(255) NOT NULL,
     version VARCHAR(255) DEFAULT NULL,
     type_kind SMALLINT NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS Type (
     UNIQUE (external_id)
 );
 
-CREATE INDEX idx_type_name ON Type (name);
-CREATE INDEX idx_type_external_id ON Type (external_id); 
+CREATE INDEX idx_type_name ON "Type" (name);
+CREATE INDEX idx_type_external_id ON "Type" (external_id); 

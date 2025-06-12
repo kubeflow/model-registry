@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS Artifact; 
+DROP TABLE IF EXISTS "Artifact"; 
