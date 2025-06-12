@@ -4,7 +4,7 @@
 
 package schema
 
-const TableNameExecutionproperty = "executionproperty"
+const TableNameExecutionProperty = "ExecutionProperty"
 
 // ExecutionProperty mapped from table <ExecutionProperty>
 type ExecutionProperty struct {
@@ -19,7 +19,7 @@ type ExecutionProperty struct {
 	BoolValue        *bool    `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName Executionproperty's table name
-func (*Executionproperty) TableName() string {
-	return TableNameExecutionproperty
+// TableName ExecutionProperty's table name
+func (*ExecutionProperty) TableName() string {
+	return TableNameExecutionProperty
 }

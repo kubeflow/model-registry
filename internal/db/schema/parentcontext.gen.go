@@ -4,15 +4,15 @@
 
 package schema
 
-const TableNameParentcontext = "parentcontext"
+const TableNameParentContext = "ParentContext"
 
-// Parentcontext mapped from table <parentcontext>
-type Parentcontext struct {
+// ParentContext mapped from table <ParentContext>
+type ParentContext struct {
 	ContextID       int32 `gorm:"column:context_id;primaryKey" json:"context_id"`
 	ParentContextID int32 `gorm:"column:parent_context_id;primaryKey" json:"parent_context_id"`
 }
 
-// TableName Parentcontext's table name
-func (*Parentcontext) TableName() string {
-	return TableNameParentcontext
+// TableName ParentContext's table name
+func (*ParentContext) TableName() string {
+	return TableNameParentContext
 }
