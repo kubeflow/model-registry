@@ -4,17 +4,17 @@
 
 package schema
 
-const TableNameEventpath = "eventpath"
+const TableNameEventPath = "EventPath"
 
-// Eventpath mapped from table <eventpath>
-type Eventpath struct {
-	EventID     int32 `gorm:"column:event_id;not null" json:"event_id"`
-	StepIndex   int32 `gorm:"column:step_index;primaryKey" json:"step_index"`
-	IsIndexStep int16 `gorm:"column:is_index_step;not null" json:"is_index_step"`
-	ExecutionID int32 `gorm:"column:execution_id;primaryKey" json:"execution_id"`
+// EventPath mapped from table <EventPath>
+type EventPath struct {
+	EventID     int32  `gorm:"column:event_id;not null" json:"event_id"`
+	IsIndexStep bool   `gorm:"column:is_index_step;not null" json:"is_index_step"`
+	StepIndex   int32  `gorm:"column:step_index" json:"step_index"`
+	StepKey     string `gorm:"column:step_key" json:"step_key"`
 }
 
-// TableName Eventpath's table name
-func (*Eventpath) TableName() string {
-	return TableNameEventpath
+// TableName EventPath's table name
+func (*EventPath) TableName() string {
+	return TableNameEventPath
 }

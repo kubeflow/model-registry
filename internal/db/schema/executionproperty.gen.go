@@ -4,22 +4,22 @@
 
 package schema
 
-const TableNameExecutionproperty = "executionproperty"
+const TableNameExecutionProperty = "ExecutionProperty"
 
-// Executionproperty mapped from table <executionproperty>
-type Executionproperty struct {
+// ExecutionProperty mapped from table <ExecutionProperty>
+type ExecutionProperty struct {
 	ExecutionID      int32   `gorm:"column:execution_id;primaryKey" json:"execution_id"`
 	Name             string  `gorm:"column:name;primaryKey" json:"name"`
-	IsCustomProperty int16   `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
+	IsCustomProperty bool    `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
 	IntValue         int32   `gorm:"column:int_value" json:"int_value"`
 	DoubleValue      float64 `gorm:"column:double_value" json:"double_value"`
 	StringValue      string  `gorm:"column:string_value" json:"string_value"`
-	ByteValue        []uint8 `gorm:"column:byte_value" json:"byte_value"`
-	ProtoValue       []uint8 `gorm:"column:proto_value" json:"proto_value"`
-	BoolValue        int16   `gorm:"column:bool_value" json:"bool_value"`
+	ByteValue        []byte  `gorm:"column:byte_value" json:"byte_value"`
+	ProtoValue       []byte  `gorm:"column:proto_value" json:"proto_value"`
+	BoolValue        bool    `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName Executionproperty's table name
-func (*Executionproperty) TableName() string {
-	return TableNameExecutionproperty
+// TableName ExecutionProperty's table name
+func (*ExecutionProperty) TableName() string {
+	return TableNameExecutionProperty
 }

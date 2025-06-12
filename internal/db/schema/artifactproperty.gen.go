@@ -4,22 +4,22 @@
 
 package schema
 
-const TableNameArtifactproperty = "artifactproperty"
+const TableNameArtifactProperty = "ArtifactProperty"
 
-// Artifactproperty mapped from table <artifactproperty>
-type Artifactproperty struct {
+// ArtifactProperty mapped from table <ArtifactProperty>
+type ArtifactProperty struct {
 	ArtifactID       int32   `gorm:"column:artifact_id;primaryKey" json:"artifact_id"`
 	Name             string  `gorm:"column:name;primaryKey" json:"name"`
-	IsCustomProperty int16   `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
+	IsCustomProperty bool    `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
 	IntValue         int32   `gorm:"column:int_value" json:"int_value"`
 	DoubleValue      float64 `gorm:"column:double_value" json:"double_value"`
 	StringValue      string  `gorm:"column:string_value" json:"string_value"`
-	ByteValue        []uint8 `gorm:"column:byte_value" json:"byte_value"`
-	ProtoValue       []uint8 `gorm:"column:proto_value" json:"proto_value"`
-	BoolValue        int16   `gorm:"column:bool_value" json:"bool_value"`
+	ByteValue        []byte  `gorm:"column:byte_value" json:"byte_value"`
+	ProtoValue       []byte  `gorm:"column:proto_value" json:"proto_value"`
+	BoolValue        bool    `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName Artifactproperty's table name
-func (*Artifactproperty) TableName() string {
-	return TableNameArtifactproperty
+// TableName ArtifactProperty's table name
+func (*ArtifactProperty) TableName() string {
+	return TableNameArtifactProperty
 }
