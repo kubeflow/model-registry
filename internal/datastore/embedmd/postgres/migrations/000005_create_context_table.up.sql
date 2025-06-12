@@ -1,6 +1,6 @@
 -- Create Context table
-CREATE TABLE IF NOT EXISTS Context (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS "Context" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY,
     type_id INTEGER NOT NULL,
     name VARCHAR(255) NOT NULL,
     external_id VARCHAR(255) DEFAULT NULL,
@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS Context (
     UNIQUE (external_id)
 );
 
-CREATE INDEX idx_context_create_time_since_epoch ON Context (create_time_since_epoch);
-CREATE INDEX idx_context_last_update_time_since_epoch ON Context (last_update_time_since_epoch);
-CREATE INDEX idx_context_external_id ON Context (external_id); 
+CREATE INDEX idx_context_create_time_since_epoch ON "Context" (create_time_since_epoch);
+CREATE INDEX idx_context_last_update_time_since_epoch ON "Context" (last_update_time_since_epoch);
+CREATE INDEX idx_context_external_id ON "Context" (external_id); 
