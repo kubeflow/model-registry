@@ -10,8 +10,10 @@ import {
   restDELETE,
   restGET,
   restPATCH,
+  Group,
+  RoleBinding,
 } from 'mod-arch-shared';
-import { Group, ModelRegistry, RoleBinding } from '~/app/types';
+import { ModelRegistry } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export const getListModelRegistries =
