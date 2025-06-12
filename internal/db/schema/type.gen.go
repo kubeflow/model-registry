@@ -4,9 +4,9 @@
 
 package schema
 
-const TableNameType = "type"
+const TableNameType = "Type"
 
-// Type mapped from table <type>
+// Type mapped from table <Type>
 type Type struct {
 	ID          int32   `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	Name        string  `gorm:"column:name;not null" json:"name"`

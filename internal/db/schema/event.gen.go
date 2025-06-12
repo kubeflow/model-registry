@@ -4,9 +4,9 @@
 
 package schema
 
-const TableNameEvent = "event"
+const TableNameEvent = "Event"
 
-// Event mapped from table <event>
+// Event mapped from table <Event>
 type Event struct {
 	ID                     int32  `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	ArtifactID             int32  `gorm:"column:artifact_id;not null" json:"artifact_id"`
