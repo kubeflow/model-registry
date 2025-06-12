@@ -4,7 +4,7 @@
 
 package schema
 
-const TableNameArtifactproperty = "artifactproperty"
+const TableNameArtifactProperty = "ArtifactProperty"
 
 // ArtifactProperty mapped from table <ArtifactProperty>
 type ArtifactProperty struct {
@@ -19,7 +19,7 @@ type ArtifactProperty struct {
 	BoolValue        *bool    `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName Artifactproperty's table name
-func (*Artifactproperty) TableName() string {
-	return TableNameArtifactproperty
+// TableName ArtifactProperty's table name
+func (*ArtifactProperty) TableName() string {
+	return TableNameArtifactProperty
 }

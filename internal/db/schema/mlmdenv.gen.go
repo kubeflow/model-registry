@@ -4,14 +4,14 @@
 
 package schema
 
-const TableNameMlmdenv = "mlmdenv"
+const TableNameMLMDEnv = "MLMDEnv"
 
-// Mlmdenv mapped from table <mlmdenv>
-type Mlmdenv struct {
+// MLMDEnv mapped from table <MLMDEnv>
+type MLMDEnv struct {
 	SchemaVersion int32 `gorm:"column:schema_version;primaryKey" json:"schema_version"`
 }
 
-// TableName Mlmdenv's table name
-func (*Mlmdenv) TableName() string {
-	return TableNameMlmdenv
+// TableName MLMDEnv's table name
+func (*MLMDEnv) TableName() string {
+	return TableNameMLMDEnv
 }

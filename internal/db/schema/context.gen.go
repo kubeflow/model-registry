@@ -4,9 +4,9 @@
 
 package schema
 
-const TableNameContext = "context"
+const TableNameContext = "Context"
 
-// Context mapped from table <context>
+// Context mapped from table <Context>
 type Context struct {
 	ID                       int32   `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	TypeID                   int32   `gorm:"column:type_id;not null" json:"type_id"`

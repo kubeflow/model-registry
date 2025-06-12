@@ -4,9 +4,9 @@
 
 package schema
 
-const TableNameExecution = "execution"
+const TableNameExecution = "Execution"
 
-// Execution mapped from table <execution>
+// Execution mapped from table <Execution>
 type Execution struct {
 	ID                       int32   `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	TypeID                   int32   `gorm:"column:type_id;not null" json:"type_id"`

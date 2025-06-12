@@ -4,7 +4,7 @@
 
 package schema
 
-const TableNameEventpath = "eventpath"
+const TableNameEventPath = "EventPath"
 
 // EventPath mapped from table <EventPath>
 type EventPath struct {
@@ -14,7 +14,7 @@ type EventPath struct {
 	StepKey     *string `gorm:"column:step_key" json:"step_key"`
 }
 
-// TableName Eventpath's table name
-func (*Eventpath) TableName() string {
-	return TableNameEventpath
+// TableName EventPath's table name
+func (*EventPath) TableName() string {
+	return TableNameEventPath
 }
