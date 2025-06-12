@@ -84,18 +84,19 @@ func (r *ServingEnvironmentRepositoryImpl) Save(servEnv models.ServingEnvironmen
 			result := tx.Where("context_id = ? AND name = ? AND is_custom_property = ?",
 				prop.ContextID, prop.Name, prop.IsCustomProperty).First(&existingProp)
 
-			if result.Error == nil {
+			switch result.Error {
+			case nil:
 				prop.ContextID = existingProp.ContextID
 				prop.Name = existingProp.Name
 				prop.IsCustomProperty = existingProp.IsCustomProperty
 				if err := tx.Model(&existingProp).Updates(prop).Error; err != nil {
 					return fmt.Errorf("error updating serving environment context property: %w", err)
 				}
-			} else if result.Error == gorm.ErrRecordNotFound {
+			case gorm.ErrRecordNotFound:
 				if err := tx.Create(&prop).Error; err != nil {
 					return fmt.Errorf("error creating serving environment context property: %w", err)
 				}
-			} else {
+			default:
 				return fmt.Errorf("error checking existing property: %w", result.Error)
 			}
 		}
@@ -111,7 +112,7 @@ func (r *ServingEnvironmentRepositoryImpl) Save(servEnv models.ServingEnvironmen
 
 func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnvironmentListOptions) (*models.ListWrapper[models.ServingEnvironment], error) {
 	list := models.ListWrapper[models.ServingEnvironment]{
-		PageSize: *listOptions.Pagination.GetPageSize(),
+		PageSize: *listOptions.GetPageSize(),
 	}
 
 	servEnvs := []models.ServingEnvironment{}
@@ -131,7 +132,7 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 	}
 
 	hasMore := false
-	pageSize := listOptions.Pagination.GetPageSize()
+	pageSize := listOptions.GetPageSize()
 	if pageSize != nil && *pageSize > 0 {
 		hasMore = len(servEnvsCtx) > int(*pageSize)
 		if hasMore {
@@ -150,7 +151,7 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 
 	if hasMore && len(servEnvsCtx) > 0 {
 		lastModel := servEnvsCtx[len(servEnvsCtx)-1]
-		orderBy := listOptions.Pagination.GetOrderBy()
+		orderBy := listOptions.GetOrderBy()
 		value := ""
 		if orderBy != nil && *orderBy != "" {
 			switch *orderBy {
@@ -165,14 +166,14 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 			}
 		}
 		nextToken := scopes.CreateNextPageToken(lastModel.ID, value)
-		listOptions.Pagination.NextPageToken = &nextToken
+		listOptions.NextPageToken = &nextToken
 	} else {
-		listOptions.Pagination.NextPageToken = nil
+		listOptions.NextPageToken = nil
 	}
 
 	list.Items = servEnvs
-	list.NextPageToken = ptr.In(listOptions.Pagination.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.Pagination.GetPageSize())
+	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
+	list.PageSize = ptr.In(listOptions.GetPageSize())
 	list.Size = int32(len(servEnvs))
 
 	return &list, nil

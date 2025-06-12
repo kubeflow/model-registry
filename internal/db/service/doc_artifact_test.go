@@ -369,7 +369,7 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Find our test artifacts in the results
 		var foundArtifact1, foundArtifact2 models.DocArtifact
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

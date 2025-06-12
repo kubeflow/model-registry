@@ -317,7 +317,7 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Find our test versions in the results
 		var foundVersion1, foundVersion2 models.ModelVersion
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

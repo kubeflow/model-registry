@@ -505,7 +505,7 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Find our test serve models in the results
 		var foundServeModel1, foundServeModel2 models.ServeModel
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

@@ -94,18 +94,19 @@ func (r *DocArtifactRepositoryImpl) Save(docArtifact models.DocArtifact, modelVe
 			result := tx.Where("artifact_id = ? AND name = ? AND is_custom_property = ?",
 				prop.ArtifactID, prop.Name, prop.IsCustomProperty).First(&existingProp)
 
-			if result.Error == nil {
+			switch result.Error {
+			case nil:
 				prop.ArtifactID = existingProp.ArtifactID
 				prop.Name = existingProp.Name
 				prop.IsCustomProperty = existingProp.IsCustomProperty
 				if err := tx.Model(&existingProp).Updates(prop).Error; err != nil {
 					return fmt.Errorf("error updating doc artifact property: %w", err)
 				}
-			} else if result.Error == gorm.ErrRecordNotFound {
+			case gorm.ErrRecordNotFound:
 				if err := tx.Create(&prop).Error; err != nil {
 					return fmt.Errorf("error creating doc artifact property: %w", err)
 				}
-			} else {
+			default:
 				return fmt.Errorf("error checking existing property: %w", result.Error)
 			}
 		}
@@ -143,7 +144,7 @@ func (r *DocArtifactRepositoryImpl) Save(docArtifact models.DocArtifact, modelVe
 
 func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptions) (*models.ListWrapper[models.DocArtifact], error) {
 	list := models.ListWrapper[models.DocArtifact]{
-		PageSize: *listOptions.Pagination.GetPageSize(),
+		PageSize: *listOptions.GetPageSize(),
 	}
 
 	docArtifacts := []models.DocArtifact{}
@@ -169,7 +170,7 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 	}
 
 	hasMore := false
-	pageSize := listOptions.Pagination.GetPageSize()
+	pageSize := listOptions.GetPageSize()
 	if pageSize != nil && *pageSize > 0 {
 		hasMore = len(docArtifactsArt) > int(*pageSize)
 		if hasMore {
@@ -189,7 +190,7 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 
 	if hasMore && len(docArtifactsArt) > 0 {
 		lastModel := docArtifactsArt[len(docArtifactsArt)-1]
-		orderBy := listOptions.Pagination.GetOrderBy()
+		orderBy := listOptions.GetOrderBy()
 		value := ""
 		if orderBy != nil && *orderBy != "" {
 			switch *orderBy {
@@ -204,14 +205,14 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 			}
 		}
 		nextToken := scopes.CreateNextPageToken(lastModel.ID, value)
-		listOptions.Pagination.NextPageToken = &nextToken
+		listOptions.NextPageToken = &nextToken
 	} else {
-		listOptions.Pagination.NextPageToken = nil
+		listOptions.NextPageToken = nil
 	}
 
 	list.Items = docArtifacts
-	list.NextPageToken = ptr.In(listOptions.Pagination.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.Pagination.GetPageSize())
+	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
+	list.PageSize = ptr.In(listOptions.GetPageSize())
 	list.Size = int32(len(docArtifacts))
 
 	return &list, nil

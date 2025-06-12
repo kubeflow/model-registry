@@ -419,7 +419,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Find our test inference services in the results
 		var foundInfSvc1, foundInfSvc2 models.InferenceService
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

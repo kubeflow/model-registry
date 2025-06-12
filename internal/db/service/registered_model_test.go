@@ -265,7 +265,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 		// Find our test models in the results
 		var foundModel1, foundModel2 models.RegisteredModel
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

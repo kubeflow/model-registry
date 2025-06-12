@@ -223,7 +223,7 @@ func TestServingEnvironmentRepository(t *testing.T) {
 
 		// Find our test environments in the results
 		var foundEnv1, foundEnv2 models.ServingEnvironment
-		var index1, index2 int = -1, -1
+		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
 			if *item.GetID() == *saved1.GetID() {

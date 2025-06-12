@@ -29,11 +29,12 @@ func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *go
 		if orderBy != nil && sortOrder != nil {
 			orderByStr := ""
 
-			if *orderBy == "CREATE_TIME" {
+			switch *orderBy {
+			case "CREATE_TIME":
 				orderByStr = "create_time_since_epoch"
-			} else if *orderBy == "LAST_UPDATE_TIME" {
+			case "LAST_UPDATE_TIME":
 				orderByStr = "last_update_time_since_epoch"
-			} else {
+			default:
 				orderByStr = "id"
 			}
 

@@ -50,7 +50,7 @@ func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
 
 func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*models.ListWrapper[models.Artifact], error) {
 	list := models.ListWrapper[models.Artifact]{
-		PageSize: *listOptions.Pagination.GetPageSize(),
+		PageSize: *listOptions.GetPageSize(),
 	}
 
 	artifacts := []models.Artifact{}
@@ -76,7 +76,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	}
 
 	hasMore := false
-	pageSize := listOptions.Pagination.GetPageSize()
+	pageSize := listOptions.GetPageSize()
 	if pageSize != nil && *pageSize > 0 {
 		hasMore = len(artifactsArt) > int(*pageSize)
 		if hasMore {
@@ -96,7 +96,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 
 	if hasMore && len(artifactsArt) > 0 {
 		lastArtifact := artifactsArt[len(artifactsArt)-1]
-		orderBy := listOptions.Pagination.GetOrderBy()
+		orderBy := listOptions.GetOrderBy()
 		value := ""
 		if orderBy != nil && *orderBy != "" {
 			switch *orderBy {
@@ -111,14 +111,14 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 			}
 		}
 		nextToken := scopes.CreateNextPageToken(lastArtifact.ID, value)
-		listOptions.Pagination.NextPageToken = &nextToken
+		listOptions.NextPageToken = &nextToken
 	} else {
-		listOptions.Pagination.NextPageToken = nil
+		listOptions.NextPageToken = nil
 	}
 
 	list.Items = artifacts
-	list.NextPageToken = ptr.In(listOptions.Pagination.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.Pagination.GetPageSize())
+	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
+	list.PageSize = ptr.In(listOptions.GetPageSize())
 	list.Size = int32(len(artifacts))
 
 	return &list, nil

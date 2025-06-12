@@ -93,18 +93,19 @@ func (r *ServeModelRepositoryImpl) Save(serveModel models.ServeModel, inferenceS
 			result := tx.Where("execution_id = ? AND name = ? AND is_custom_property = ?",
 				prop.ExecutionID, prop.Name, prop.IsCustomProperty).First(&existingProp)
 
-			if result.Error == nil {
+			switch result.Error {
+			case nil:
 				prop.ExecutionID = existingProp.ExecutionID
 				prop.Name = existingProp.Name
 				prop.IsCustomProperty = existingProp.IsCustomProperty
 				if err := tx.Model(&existingProp).Updates(prop).Error; err != nil {
 					return fmt.Errorf("error updating serve model property: %w", err)
 				}
-			} else if result.Error == gorm.ErrRecordNotFound {
+			case gorm.ErrRecordNotFound:
 				if err := tx.Create(&prop).Error; err != nil {
 					return fmt.Errorf("error creating serve model property: %w", err)
 				}
-			} else {
+			default:
 				return fmt.Errorf("error checking existing property: %w", result.Error)
 			}
 		}
@@ -152,7 +153,7 @@ func (r *ServeModelRepositoryImpl) Save(serveModel models.ServeModel, inferenceS
 
 func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions) (*models.ListWrapper[models.ServeModel], error) {
 	list := models.ListWrapper[models.ServeModel]{
-		PageSize: *listOptions.Pagination.GetPageSize(),
+		PageSize: *listOptions.GetPageSize(),
 	}
 
 	serveModels := []models.ServeModel{}
@@ -178,7 +179,7 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	}
 
 	hasMore := false
-	pageSize := listOptions.Pagination.GetPageSize()
+	pageSize := listOptions.GetPageSize()
 	if pageSize != nil && *pageSize > 0 {
 		hasMore = len(serveModels) > int(*pageSize)
 		if hasMore {
@@ -198,7 +199,7 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 
 	if hasMore && len(serveModelsExec) > 0 {
 		lastModel := serveModelsExec[len(serveModelsExec)-1]
-		orderBy := listOptions.Pagination.GetOrderBy()
+		orderBy := listOptions.GetOrderBy()
 		value := ""
 		if orderBy != nil && *orderBy != "" {
 			switch *orderBy {
@@ -214,14 +215,14 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 		}
 
 		nextToken := scopes.CreateNextPageToken(lastModel.ID, value)
-		listOptions.Pagination.NextPageToken = &nextToken
+		listOptions.NextPageToken = &nextToken
 	} else {
-		listOptions.Pagination.NextPageToken = nil
+		listOptions.NextPageToken = nil
 	}
 
 	list.Items = serveModels
-	list.NextPageToken = ptr.In(listOptions.Pagination.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.Pagination.GetPageSize())
+	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
+	list.PageSize = ptr.In(listOptions.GetPageSize())
 	list.Size = int32(len(serveModels))
 
 	return &list, nil
