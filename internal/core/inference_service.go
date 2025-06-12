@@ -1,0 +1,143 @@
+package core
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/model-registry/pkg/openapi"
+)
+
+func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.InferenceService) (*openapi.InferenceService, error) {
+	if inferenceService == nil {
+		return nil, fmt.Errorf("invalid inference service pointer, cannot be nil: %w", api.ErrBadRequest)
+	}
+
+	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
+	if err != nil {
+		return nil, err
+	}
+
+	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, *infSvc.GetAttributes().Name)
+	infSvc.GetAttributes().Name = &prefixedName
+
+	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
+	if err != nil {
+		return nil, err
+	}
+
+	toReturn, err := b.mapper.MapToInferenceService(savedInfSvc)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
+}
+
+func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
+	glog.Infof("Getting InferenceService by id %s", id)
+
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	model, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	if err != nil {
+		return nil, fmt.Errorf("no InferenceService found for id %s: %w", id, api.ErrNotFound)
+	}
+
+	toReturn, err := b.mapper.MapToInferenceService(model)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
+}
+
+func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
+	var combinedName *string
+
+	if name != nil && parentResourceId != nil {
+		n := converter.PrefixWhenOwned(parentResourceId, *name)
+		combinedName = &n
+	} else if externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
+	}
+
+	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
+		Name:       combinedName,
+		ExternalID: externalId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(infServicesList.Items) > 1 {
+		return nil, fmt.Errorf("multiple inference services found for name=%v, parentResourceId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	if len(infServicesList.Items) == 0 {
+		return nil, fmt.Errorf("no inference service found for name=%v, parentResourceId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	glog.Infof("Found InferenceService - with name=%v, parentResourceId=%v, externalId=%v", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId))
+
+	toReturn, err := b.mapper.MapToInferenceService(infServicesList.Items[0])
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
+}
+
+func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions, servingEnvironmentId *string, runtime *string) (*openapi.InferenceServiceList, error) {
+	var parentResourceID *int32
+
+	if servingEnvironmentId != nil {
+		convertedId, err := strconv.Atoi(*servingEnvironmentId)
+		if err != nil {
+			return nil, fmt.Errorf("invalid serving environment id: %w", err)
+		}
+
+		id := int32(convertedId)
+
+		parentResourceID = &id
+	}
+
+	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
+		Pagination: models.Pagination{
+			PageSize:      listOptions.PageSize,
+			OrderBy:       listOptions.OrderBy,
+			SortOrder:     listOptions.SortOrder,
+			NextPageToken: listOptions.NextPageToken,
+		},
+		Runtime:          runtime,
+		ParentResourceID: parentResourceID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	inferenceServiceList := &openapi.InferenceServiceList{
+		Items: []openapi.InferenceService{},
+	}
+
+	for _, infSvc := range infServicesList.Items {
+		inferenceService, err := b.mapper.MapToInferenceService(infSvc)
+		if err != nil {
+			return nil, err
+		}
+		inferenceServiceList.Items = append(inferenceServiceList.Items, *inferenceService)
+	}
+
+	inferenceServiceList.NextPageToken = infServicesList.NextPageToken
+	inferenceServiceList.PageSize = infServicesList.PageSize
+	inferenceServiceList.Size = int32(infServicesList.Size)
+
+	return inferenceServiceList, nil
+}

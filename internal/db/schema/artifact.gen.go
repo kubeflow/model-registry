@@ -13,7 +13,7 @@ type Artifact struct {
 	URI                      string `gorm:"column:uri" json:"uri"`
 	State                    int32  `gorm:"column:state" json:"state"`
 	Name                     string `gorm:"column:name" json:"name"`
-	ExternalID               string `gorm:"column:external_id" json:"external_id"`
+	ExternalID               *string `gorm:"column:external_id" json:"external_id"`
 	CreateTimeSinceEpoch     int64  `gorm:"column:create_time_since_epoch;not null" json:"create_time_since_epoch"`
 	LastUpdateTimeSinceEpoch int64  `gorm:"column:last_update_time_since_epoch;not null" json:"last_update_time_since_epoch"`
 }

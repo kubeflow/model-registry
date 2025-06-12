@@ -1,0 +1,928 @@
+package core_test
+
+import (
+	"testing"
+
+	"github.com/kubeflow/model-registry/internal/core"
+	"github.com/kubeflow/model-registry/internal/ptr"
+	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestUpsertArtifact(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful create model artifact", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of("test-model-artifact"),
+			Description:        ptr.Of("Test model artifact description"),
+			ExternalId:         ptr.Of("model-ext-123"),
+			Uri:                ptr.Of("s3://bucket/model.pkl"),
+			State:              ptr.Of(openapi.ARTIFACTSTATE_LIVE),
+			ModelFormatName:    ptr.Of("pickle"),
+			ModelFormatVersion: ptr.Of("1.0"),
+			StorageKey:         ptr.Of("model-storage-key"),
+			StoragePath:        ptr.Of("/models/test"),
+			ServiceAccountName: ptr.Of("model-sa"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.NotNil(t, result.ModelArtifact.Id)
+		assert.Equal(t, "test-model-artifact", *result.ModelArtifact.Name)
+		assert.Equal(t, "model-ext-123", *result.ModelArtifact.ExternalId)
+		assert.Equal(t, "s3://bucket/model.pkl", *result.ModelArtifact.Uri)
+		assert.Equal(t, openapi.ARTIFACTSTATE_LIVE, *result.ModelArtifact.State)
+		assert.Equal(t, "pickle", *result.ModelArtifact.ModelFormatName)
+		assert.Equal(t, "1.0", *result.ModelArtifact.ModelFormatVersion)
+		assert.Equal(t, "model-storage-key", *result.ModelArtifact.StorageKey)
+		assert.Equal(t, "/models/test", *result.ModelArtifact.StoragePath)
+		assert.Equal(t, "model-sa", *result.ModelArtifact.ServiceAccountName)
+		assert.NotNil(t, result.ModelArtifact.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.ModelArtifact.LastUpdateTimeSinceEpoch)
+	})
+
+	t.Run("successful create doc artifact", func(t *testing.T) {
+		docArtifact := &openapi.DocArtifact{
+			Name:        ptr.Of("test-doc-artifact"),
+			Description: ptr.Of("Test doc artifact description"),
+			ExternalId:  ptr.Of("doc-ext-123"),
+			Uri:         ptr.Of("s3://bucket/doc.pdf"),
+			State:       ptr.Of(openapi.ARTIFACTSTATE_LIVE),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.DocArtifact)
+		assert.NotNil(t, result.DocArtifact.Id)
+		assert.Equal(t, "test-doc-artifact", *result.DocArtifact.Name)
+		assert.Equal(t, "doc-ext-123", *result.DocArtifact.ExternalId)
+		assert.Equal(t, "s3://bucket/doc.pdf", *result.DocArtifact.Uri)
+		assert.Equal(t, openapi.ARTIFACTSTATE_LIVE, *result.DocArtifact.State)
+		assert.NotNil(t, result.DocArtifact.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.DocArtifact.LastUpdateTimeSinceEpoch)
+	})
+
+	t.Run("successful update model artifact", func(t *testing.T) {
+		// Create first
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("update-model-artifact"),
+			Uri:  ptr.Of("s3://bucket/original.pkl"),
+		}
+
+		created, err := service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.Id)
+
+		// Update by modifying the created artifact
+		created.Uri = ptr.Of("s3://bucket/updated.pkl")
+		created.Description = ptr.Of("Updated description")
+
+		updated, err := service.UpsertModelArtifact(created)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+		assert.Equal(t, *created.Id, *updated.Id)
+		assert.Equal(t, "s3://bucket/updated.pkl", *updated.Uri)
+		assert.Equal(t, "Updated description", *updated.Description)
+	})
+
+	t.Run("create with custom properties", func(t *testing.T) {
+		customProps := map[string]openapi.MetadataValue{
+			"accuracy": {
+				MetadataDoubleValue: &openapi.MetadataDoubleValue{
+					DoubleValue: 0.95,
+				},
+			},
+			"framework": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: "tensorflow",
+				},
+			},
+		}
+
+		modelArtifact := &openapi.ModelArtifact{
+			Name:             ptr.Of("custom-props-artifact"),
+			CustomProperties: &customProps,
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result.ModelArtifact)
+		assert.NotNil(t, result.ModelArtifact.CustomProperties)
+
+		resultProps := *result.ModelArtifact.CustomProperties
+		assert.Contains(t, resultProps, "accuracy")
+		assert.Contains(t, resultProps, "framework")
+		assert.Equal(t, 0.95, resultProps["accuracy"].MetadataDoubleValue.DoubleValue)
+		assert.Equal(t, "tensorflow", resultProps["framework"].MetadataStringValue.StringValue)
+	})
+
+	t.Run("nil artifact error", func(t *testing.T) {
+		result, err := service.UpsertArtifact(nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid artifact pointer")
+	})
+}
+
+func TestUpsertModelVersionArtifact(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful create with model version", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-artifact",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:        "v1.0",
+			Description: ptr.Of("Version 1.0"),
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create artifact associated with model version
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("version-artifact"),
+			Uri:  ptr.Of("s3://bucket/version-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.NotNil(t, result.ModelArtifact.Id)
+		// Name should be prefixed with model version ID
+		assert.Contains(t, *result.ModelArtifact.Name, "version-artifact")
+		assert.Equal(t, "s3://bucket/version-model.pkl", *result.ModelArtifact.Uri)
+	})
+
+	t.Run("invalid model version id", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("test-artifact"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertModelVersionArtifact(artifact, "invalid")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid model version id")
+	})
+}
+
+func TestGetArtifactById(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful get model artifact", func(t *testing.T) {
+		// Create a model artifact first
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of("get-test-model-artifact"),
+			Description: ptr.Of("Test description"),
+			Uri:         ptr.Of("s3://bucket/test.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.ModelArtifact.Id)
+
+		// Get the artifact by ID
+		result, err := service.GetArtifactById(*created.ModelArtifact.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Equal(t, *created.ModelArtifact.Id, *result.ModelArtifact.Id)
+		assert.Equal(t, "get-test-model-artifact", *result.ModelArtifact.Name)
+		assert.Equal(t, "Test description", *result.ModelArtifact.Description)
+		assert.Equal(t, "s3://bucket/test.pkl", *result.ModelArtifact.Uri)
+	})
+
+	t.Run("successful get doc artifact", func(t *testing.T) {
+		// Create a doc artifact first
+		docArtifact := &openapi.DocArtifact{
+			Name:        ptr.Of("get-test-doc-artifact"),
+			Description: ptr.Of("Test doc description"),
+			Uri:         ptr.Of("s3://bucket/test.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.DocArtifact.Id)
+
+		// Get the artifact by ID
+		result, err := service.GetArtifactById(*created.DocArtifact.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.DocArtifact)
+		assert.Equal(t, *created.DocArtifact.Id, *result.DocArtifact.Id)
+		assert.Equal(t, "get-test-doc-artifact", *result.DocArtifact.Name)
+		assert.Equal(t, "Test doc description", *result.DocArtifact.Description)
+		assert.Equal(t, "s3://bucket/test.pdf", *result.DocArtifact.Uri)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		result, err := service.GetArtifactById("invalid")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid")
+	})
+
+	t.Run("non-existent id", func(t *testing.T) {
+		result, err := service.GetArtifactById("99999")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+}
+
+func TestGetArtifactByParams(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful get by name and model version", func(t *testing.T) {
+		// Create registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-params",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create artifact with model version
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("params-test-artifact"),
+			Uri:  ptr.Of("s3://bucket/params-test.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		created, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		require.NoError(t, err)
+
+		// Get by name and model version ID
+		result, err := service.GetArtifactByParams(ptr.Of("params-test-artifact"), createdVersion.Id, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Equal(t, *created.ModelArtifact.Id, *result.ModelArtifact.Id)
+	})
+
+	t.Run("successful get by external id", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name:       ptr.Of("external-id-artifact"),
+			ExternalId: ptr.Of("ext-params-123"),
+			Uri:        ptr.Of("s3://bucket/external.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+
+		// Get by external ID
+		result, err := service.GetArtifactByParams(nil, nil, ptr.Of("ext-params-123"))
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Equal(t, *created.ModelArtifact.Id, *result.ModelArtifact.Id)
+		assert.Equal(t, "ext-params-123", *result.ModelArtifact.ExternalId)
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		result, err := service.GetArtifactByParams(nil, nil, nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid parameters")
+	})
+
+	t.Run("artifact not found", func(t *testing.T) {
+		result, err := service.GetArtifactByParams(nil, nil, ptr.Of("non-existent"))
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "no artifacts found")
+	})
+}
+
+func TestGetArtifacts(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful list all artifacts", func(t *testing.T) {
+		// Create multiple artifacts
+		artifacts := []*openapi.Artifact{
+			{
+				ModelArtifact: &openapi.ModelArtifact{
+					Name: ptr.Of("list-artifact-1"),
+					Uri:  ptr.Of("s3://bucket/artifact1.pkl"),
+				},
+			},
+			{
+				ModelArtifact: &openapi.ModelArtifact{
+					Name: ptr.Of("list-artifact-2"),
+					Uri:  ptr.Of("s3://bucket/artifact2.pkl"),
+				},
+			},
+			{
+				DocArtifact: &openapi.DocArtifact{
+					Name: ptr.Of("list-doc-artifact"),
+					Uri:  ptr.Of("s3://bucket/doc.pdf"),
+				},
+			},
+		}
+
+		for _, artifact := range artifacts {
+			_, err := service.UpsertArtifact(artifact)
+			require.NoError(t, err)
+		}
+
+		// List all artifacts
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(10)),
+		}
+
+		result, err := service.GetArtifacts(listOptions, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.GreaterOrEqual(t, len(result.Items), 3)
+		assert.NotNil(t, result.Size)
+		assert.Equal(t, int32(10), result.PageSize)
+	})
+
+	t.Run("successful list artifacts by model version", func(t *testing.T) {
+		// Create registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-list",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create artifacts for this model version
+		for i := 0; i < 3; i++ {
+			artifact := &openapi.Artifact{
+				ModelArtifact: &openapi.ModelArtifact{
+					Name: ptr.Of("version-artifact-" + string(rune('1'+i))),
+					Uri:  ptr.Of("s3://bucket/version" + string(rune('1'+i)) + ".pkl"),
+				},
+			}
+			_, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			require.NoError(t, err)
+		}
+
+		// List artifacts for this model version
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(10)),
+		}
+
+		result, err := service.GetArtifacts(listOptions, createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 3, len(result.Items))
+	})
+
+	t.Run("invalid model version id", func(t *testing.T) {
+		listOptions := api.ListOptions{}
+
+		result, err := service.GetArtifacts(listOptions, ptr.Of("invalid"))
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid model version id")
+	})
+}
+
+func TestUpsertModelArtifact(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful create", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of("direct-model-artifact"),
+			Description:        ptr.Of("Direct model artifact"),
+			Uri:                ptr.Of("s3://bucket/direct.pkl"),
+			ModelFormatName:    ptr.Of("tensorflow"),
+			ModelFormatVersion: ptr.Of("2.8"),
+		}
+
+		result, err := service.UpsertModelArtifact(modelArtifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Equal(t, "direct-model-artifact", *result.Name)
+		assert.Equal(t, "Direct model artifact", *result.Description)
+		assert.Equal(t, "s3://bucket/direct.pkl", *result.Uri)
+		assert.Equal(t, "tensorflow", *result.ModelFormatName)
+		assert.Equal(t, "2.8", *result.ModelFormatVersion)
+	})
+
+	t.Run("nil model artifact error", func(t *testing.T) {
+		result, err := service.UpsertModelArtifact(nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid model artifact pointer")
+	})
+}
+
+func TestGetModelArtifactById(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful get", func(t *testing.T) {
+		// Create a model artifact
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("get-model-artifact"),
+			Uri:  ptr.Of("s3://bucket/get-model.pkl"),
+		}
+
+		created, err := service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.Id)
+
+		// Get by ID
+		result, err := service.GetModelArtifactById(*created.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, *created.Id, *result.Id)
+		assert.Equal(t, "get-model-artifact", *result.Name)
+		assert.Equal(t, "s3://bucket/get-model.pkl", *result.Uri)
+	})
+
+	t.Run("artifact is not model artifact", func(t *testing.T) {
+		// Create a doc artifact
+		docArtifact := &openapi.DocArtifact{
+			Name: ptr.Of("doc-not-model"),
+			Uri:  ptr.Of("s3://bucket/doc.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.DocArtifact.Id)
+
+		// Try to get as model artifact
+		result, err := service.GetModelArtifactById(*created.DocArtifact.Id)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "is not a model artifact")
+	})
+
+	t.Run("non-existent id", func(t *testing.T) {
+		result, err := service.GetModelArtifactById("99999")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+}
+
+func TestGetModelArtifactByInferenceService(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful get", func(t *testing.T) {
+		// Create the full chain: RegisteredModel -> ModelVersion -> InferenceService -> ModelArtifact
+		registeredModel := &openapi.RegisteredModel{
+			Name: "inference-artifact-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "inference-artifact-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 ptr.Of("inference-artifact-service"),
+			RegisteredModelId:    *createdModel.Id,
+			ServingEnvironmentId: *createdEnv.Id,
+			ModelVersionId:       createdVersion.Id,
+		}
+		createdInference, err := service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Create model artifact for the model version
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("inference-model-artifact"),
+			Uri:  ptr.Of("s3://bucket/inference-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		_, err = service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		require.NoError(t, err)
+
+		// Get model artifact by inference service
+		result, err := service.GetModelArtifactByInferenceService(*createdInference.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Contains(t, *result.Name, "inference-model-artifact")
+		assert.Equal(t, "s3://bucket/inference-model.pkl", *result.Uri)
+	})
+
+	t.Run("no artifacts found", func(t *testing.T) {
+		// Create inference service without artifacts
+		registeredModel := &openapi.RegisteredModel{
+			Name: "no-artifact-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "no-artifact-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 ptr.Of("no-artifact-service"),
+			RegisteredModelId:    *createdModel.Id,
+			ServingEnvironmentId: *createdEnv.Id,
+			ModelVersionId:       createdVersion.Id,
+		}
+		createdInference, err := service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Try to get model artifact
+		result, err := service.GetModelArtifactByInferenceService(*createdInference.Id)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "no artifacts found")
+	})
+}
+
+func TestGetModelArtifactByParams(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful get by external id", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name:       ptr.Of("params-model-artifact"),
+			ExternalId: ptr.Of("model-params-ext-123"),
+			Uri:        ptr.Of("s3://bucket/params-model.pkl"),
+		}
+
+		created, err := service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+
+		// Get by external ID
+		result, err := service.GetModelArtifactByParams(nil, nil, ptr.Of("model-params-ext-123"))
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, *created.Id, *result.Id)
+		assert.Equal(t, "model-params-ext-123", *result.ExternalId)
+	})
+
+	t.Run("artifact is not model artifact", func(t *testing.T) {
+		// Create a doc artifact
+		docArtifact := &openapi.DocArtifact{
+			Name:       ptr.Of("doc-params-artifact"),
+			ExternalId: ptr.Of("doc-params-ext-123"),
+			Uri:        ptr.Of("s3://bucket/doc-params.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		_, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+
+		// Try to get as model artifact
+		result, err := service.GetModelArtifactByParams(nil, nil, ptr.Of("doc-params-ext-123"))
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "is not a model artifact")
+	})
+}
+
+func TestGetModelArtifacts(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("successful list all model artifacts", func(t *testing.T) {
+		// Create multiple model artifacts
+		for i := 0; i < 3; i++ {
+			modelArtifact := &openapi.ModelArtifact{
+				Name: ptr.Of("list-model-artifact-" + string(rune('1'+i))),
+				Uri:  ptr.Of("s3://bucket/model" + string(rune('1'+i)) + ".pkl"),
+			}
+			_, err := service.UpsertModelArtifact(modelArtifact)
+			require.NoError(t, err)
+		}
+
+		// List all model artifacts
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(10)),
+		}
+
+		result, err := service.GetModelArtifacts(listOptions, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.GreaterOrEqual(t, len(result.Items), 3)
+		assert.NotNil(t, result.Size)
+		assert.Equal(t, int32(10), result.PageSize)
+	})
+
+	t.Run("successful list model artifacts by model version", func(t *testing.T) {
+		// Create registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-model-artifacts",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create model artifacts for this model version
+		for i := 0; i < 2; i++ {
+			modelArtifact := &openapi.ModelArtifact{
+				Name: ptr.Of("version-model-artifact-" + string(rune('1'+i))),
+				Uri:  ptr.Of("s3://bucket/version-model" + string(rune('1'+i)) + ".pkl"),
+			}
+
+			artifact := &openapi.Artifact{
+				ModelArtifact: modelArtifact,
+			}
+
+			_, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			require.NoError(t, err)
+		}
+
+		// List model artifacts for this model version
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(10)),
+		}
+
+		result, err := service.GetModelArtifacts(listOptions, createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items))
+	})
+
+	t.Run("invalid model version id", func(t *testing.T) {
+		listOptions := api.ListOptions{}
+
+		result, err := service.GetModelArtifacts(listOptions, ptr.Of("invalid"))
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid model version id")
+	})
+}
+
+func TestArtifactRoundTrip(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("complete roundtrip", func(t *testing.T) {
+		// Create registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name:        "roundtrip-model",
+			Description: ptr.Of("Model for roundtrip test"),
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:        "v1.0",
+			Description: ptr.Of("Version 1.0"),
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create model artifact
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of("roundtrip-artifact"),
+			Description:        ptr.Of("Roundtrip test artifact"),
+			Uri:                ptr.Of("s3://bucket/roundtrip.pkl"),
+			ModelFormatName:    ptr.Of("sklearn"),
+			ModelFormatVersion: ptr.Of("1.0"),
+			StorageKey:         ptr.Of("roundtrip-key"),
+			StoragePath:        ptr.Of("/models/roundtrip"),
+			ServiceAccountName: ptr.Of("roundtrip-sa"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		// Create
+		created, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, created.ModelArtifact.Id)
+
+		// Get by ID
+		retrieved, err := service.GetArtifactById(*created.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Equal(t, *created.ModelArtifact.Id, *retrieved.ModelArtifact.Id)
+		assert.Contains(t, *retrieved.ModelArtifact.Name, "roundtrip-artifact")
+		assert.Equal(t, "Roundtrip test artifact", *retrieved.ModelArtifact.Description)
+		assert.Equal(t, "s3://bucket/roundtrip.pkl", *retrieved.ModelArtifact.Uri)
+		assert.Equal(t, "sklearn", *retrieved.ModelArtifact.ModelFormatName)
+		assert.Equal(t, "1.0", *retrieved.ModelArtifact.ModelFormatVersion)
+		assert.Equal(t, "roundtrip-key", *retrieved.ModelArtifact.StorageKey)
+		assert.Equal(t, "/models/roundtrip", *retrieved.ModelArtifact.StoragePath)
+		assert.Equal(t, "roundtrip-sa", *retrieved.ModelArtifact.ServiceAccountName)
+
+		// Update
+		retrieved.ModelArtifact.Description = ptr.Of("Updated description")
+		retrieved.ModelArtifact.Uri = ptr.Of("s3://bucket/updated-roundtrip.pkl")
+		retrieved.ModelArtifact.State = ptr.Of(openapi.ARTIFACTSTATE_DELETED)
+
+		updated, err := service.UpsertArtifact(retrieved)
+		require.NoError(t, err)
+		require.NotNil(t, updated.ModelArtifact)
+		assert.Equal(t, *created.ModelArtifact.Id, *updated.ModelArtifact.Id)
+		assert.Equal(t, "Updated description", *updated.ModelArtifact.Description)
+		assert.Equal(t, "s3://bucket/updated-roundtrip.pkl", *updated.ModelArtifact.Uri)
+		assert.Equal(t, openapi.ARTIFACTSTATE_DELETED, *updated.ModelArtifact.State)
+
+		// List artifacts for model version
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(10)),
+		}
+
+		artifacts, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, artifacts)
+		assert.Equal(t, 1, len(artifacts.Items))
+		assert.Equal(t, *updated.ModelArtifact.Id, *artifacts.Items[0].ModelArtifact.Id)
+	})
+
+	t.Run("roundtrip with custom properties", func(t *testing.T) {
+		customProps := map[string]openapi.MetadataValue{
+			"accuracy": {
+				MetadataDoubleValue: &openapi.MetadataDoubleValue{
+					DoubleValue: 0.95,
+				},
+			},
+			"framework": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: "tensorflow",
+				},
+			},
+			"epochs": {
+				MetadataIntValue: &openapi.MetadataIntValue{
+					IntValue: "100",
+				},
+			},
+			"is_production": {
+				MetadataBoolValue: &openapi.MetadataBoolValue{
+					BoolValue: true,
+				},
+			},
+		}
+
+		modelArtifact := &openapi.ModelArtifact{
+			Name:             ptr.Of("custom-props-roundtrip"),
+			Uri:              ptr.Of("s3://bucket/custom-props.pkl"),
+			CustomProperties: &customProps,
+		}
+
+		// Create
+		created, err := service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.Id)
+
+		// Verify custom properties
+		retrieved, err := service.GetModelArtifactById(*created.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.CustomProperties)
+
+		resultProps := *retrieved.CustomProperties
+		assert.Contains(t, resultProps, "accuracy")
+		assert.Contains(t, resultProps, "framework")
+		assert.Contains(t, resultProps, "epochs")
+		assert.Contains(t, resultProps, "is_production")
+
+		assert.Equal(t, 0.95, resultProps["accuracy"].MetadataDoubleValue.DoubleValue)
+		assert.Equal(t, "tensorflow", resultProps["framework"].MetadataStringValue.StringValue)
+		assert.Equal(t, "100", resultProps["epochs"].MetadataIntValue.IntValue)
+		assert.Equal(t, true, resultProps["is_production"].MetadataBoolValue.BoolValue)
+
+		// Update custom properties
+		newProps := map[string]openapi.MetadataValue{
+			"accuracy": {
+				MetadataDoubleValue: &openapi.MetadataDoubleValue{
+					DoubleValue: 0.97,
+				},
+			},
+			"new_prop": {
+				MetadataStringValue: &openapi.MetadataStringValue{
+					StringValue: "new_value",
+				},
+			},
+		}
+
+		retrieved.CustomProperties = &newProps
+
+		updated, err := service.UpsertModelArtifact(retrieved)
+		require.NoError(t, err)
+		require.NotNil(t, updated.CustomProperties)
+
+		updatedProps := *updated.CustomProperties
+		assert.Contains(t, updatedProps, "accuracy")
+		assert.Contains(t, updatedProps, "new_prop")
+		assert.Equal(t, 0.97, updatedProps["accuracy"].MetadataDoubleValue.DoubleValue)
+		assert.Equal(t, "new_value", updatedProps["new_prop"].MetadataStringValue.StringValue)
+	})
+}
