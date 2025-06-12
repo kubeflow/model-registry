@@ -23,11 +23,22 @@ var _ = Describe("TestModelRegistrySettingsRepository", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("verifying the returned group models")
-			expected := []models.GroupModel{
-				{Name: "dora-group-mock"},
-				{Name: "bella-group-mock"},
-			}
-			Expect(groups).To(ConsistOf(expected))
+			Expect(groups).To(HaveLen(2))
+
+			// Verify first group
+			firstGroup := groups[0]
+			Expect(firstGroup.Metadata.Name).To(Equal("dora-group-mock"))
+			Expect(firstGroup.Users).To(ConsistOf("dora-user@example.com", "dora-admin@example.com"))
+			Expect(*firstGroup.APIVersion).To(Equal("user.openshift.io/v1"))
+			Expect(*firstGroup.Kind).To(Equal("Group"))
+			Expect(firstGroup).To(BeAssignableToTypeOf(models.Group{}))
+
+			// Verify second group
+			secondGroup := groups[1]
+			Expect(secondGroup.Metadata.Name).To(Equal("bella-group-mock"))
+			Expect(secondGroup.Users).To(ConsistOf("bella-user@example.com", "bella-maintainer@example.com"))
+			Expect(*secondGroup.APIVersion).To(Equal("user.openshift.io/v1"))
+			Expect(*secondGroup.Kind).To(Equal("Group"))
 		})
 	})
 })

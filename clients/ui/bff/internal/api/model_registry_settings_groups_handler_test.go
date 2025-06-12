@@ -10,7 +10,6 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -51,13 +50,18 @@ var _ = Describe("TestGroupsHandler", func() {
 			err = json.Unmarshal(body, &actual)
 			Expect(err).NotTo(HaveOccurred())
 
-			expected := []models.GroupModel{
-				{Name: "dora-group-mock"},
-				{Name: "bella-group-mock"},
-			}
-
 			Expect(rr.Code).To(Equal(http.StatusOK))
-			Expect(actual.Data).To(ConsistOf(expected))
+			Expect(actual.Data).To(HaveLen(2))
+
+			// Verify first group
+			firstGroup := actual.Data[0]
+			Expect(firstGroup.Metadata.Name).To(Equal("dora-group-mock"))
+			Expect(firstGroup.Users).To(ConsistOf("dora-user@example.com", "dora-admin@example.com"))
+
+			// Verify second group
+			secondGroup := actual.Data[1]
+			Expect(secondGroup.Metadata.Name).To(Equal("bella-group-mock"))
+			Expect(secondGroup.Users).To(ConsistOf("bella-user@example.com", "bella-maintainer@example.com"))
 		})
 	})
 })
