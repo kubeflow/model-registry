@@ -207,6 +207,24 @@ export const createRoleBinding =
       throw new Error('Invalid response format');
     });
 
+export const patchRoleBinding =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, data: RoleBindingKind, roleBindingName: string): Promise<RoleBindingKind> =>
+    handleRestFailures(
+      restPATCH(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/role_bindings/${roleBindingName}`,
+        assembleModArchBody(data),
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<RoleBindingKind>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
 export const deleteRoleBinding =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions, roleBindingName: string): Promise<void> =>
