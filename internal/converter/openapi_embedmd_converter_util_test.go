@@ -190,6 +190,18 @@ func TestMapRegisteredModelPropertiesEmbedMD(t *testing.T) {
 	owner := "test"
 	description := "test"
 	state := openapi.REGISTEREDMODELSTATE_LIVE
+	language := []string{"en", "es", "cz"}
+	tasks := []string{"text-generation"}
+	provider := "test"
+	logo := "test"
+	license := "test"
+	licenseLink := "test"
+	libraryName := "test"
+	maturity := "test"
+	readme := "test"
+
+	expectedLanguage := "mlmd-struct::CiAKCGxhbmd1YWdlEhQyEgoEGgJlbgoEGgJlcwoEGgJjeg=="
+	expectedTasks := "mlmd-struct::Ch4KBXRhc2tzEhUyEwoRGg90ZXh0LWdlbmVyYXRpb24="
 
 	testCases := []struct {
 		name     string
@@ -203,6 +215,15 @@ func TestMapRegisteredModelPropertiesEmbedMD(t *testing.T) {
 				Owner:       &owner,
 				Description: &description,
 				State:       &state,
+				Language:    language,
+				Tasks:       tasks,
+				Provider:    &provider,
+				Logo:        &logo,
+				License:     &license,
+				LicenseLink: &licenseLink,
+				LibraryName: &libraryName,
+				Maturity:    &maturity,
+				Readme:      &readme,
 			},
 			expected: &[]models.Properties{
 				{
@@ -218,6 +239,51 @@ func TestMapRegisteredModelPropertiesEmbedMD(t *testing.T) {
 				{
 					Name:             "state",
 					StringValue:      of(string(state)),
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "language",
+					StringValue:      &expectedLanguage,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "library_name",
+					StringValue:      &libraryName,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "license",
+					StringValue:      &license,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "license_link",
+					StringValue:      &licenseLink,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "maturity",
+					StringValue:      &maturity,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "provider",
+					StringValue:      &provider,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "readme",
+					StringValue:      &readme,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "logo",
+					StringValue:      &logo,
+					IsCustomProperty: false,
+				},
+				{
+					Name:             "tasks",
+					StringValue:      &expectedTasks,
 					IsCustomProperty: false,
 				},
 			},

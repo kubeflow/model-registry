@@ -35,7 +35,7 @@ func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Regis
 
 	model, err := b.registeredModelRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no registered model found for id %s: %w", id, err)
 	}
 
 	return b.mapper.MapToRegisteredModel(model)
@@ -80,6 +80,10 @@ func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceSer
 }
 
 func (b *ModelRegistryService) GetRegisteredModelByParams(name *string, externalId *string) (*openapi.RegisteredModel, error) {
+	if name == nil && externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
+	}
+
 	modelsList, err := b.registeredModelRepository.List(models.RegisteredModelListOptions{
 		Name:       name,
 		ExternalID: externalId,
@@ -89,7 +93,7 @@ func (b *ModelRegistryService) GetRegisteredModelByParams(name *string, external
 	}
 
 	if len(modelsList.Items) == 0 {
-		return nil, fmt.Errorf("no registered model found")
+		return nil, fmt.Errorf("no registered models found")
 	}
 
 	return b.mapper.MapToRegisteredModel(modelsList.Items[0])

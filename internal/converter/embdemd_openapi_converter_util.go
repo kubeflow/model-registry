@@ -5,11 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 )
+
+const mlmdStructPrefix = "mlmd-struct::"
 
 // MapEmbedMDCustomProperties maps EmbedMD custom properties model to OpenAPI one
 func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.MetadataValue, error) {
@@ -67,6 +72,146 @@ func MapEmbedMDAuthor(source *[]models.Properties) *string {
 	for _, v := range *source {
 		if v.Name == "author" {
 			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func decodeStruct(encodedStr string) (*structpb.Struct, error) {
+	if !strings.HasPrefix(encodedStr, mlmdStructPrefix) {
+		return nil, fmt.Errorf("invalid format: missing '%s' prefix", mlmdStructPrefix)
+	}
+
+	base64Str := strings.TrimPrefix(encodedStr, mlmdStructPrefix)
+	binaryData, err := base64.StdEncoding.DecodeString(base64Str)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64 string: %w", err)
+	}
+
+	var structValue structpb.Struct
+	if err := proto.Unmarshal(binaryData, &structValue); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal binary data to proto struct: %w", err)
+	}
+
+	return &structValue, nil
+}
+
+func convertStructToStringSlice(source *structpb.Struct, key string) []string {
+	values := source.Fields[key].GetListValue().Values
+	valuesSlice := []string{}
+	for _, v := range values {
+		valuesSlice = append(valuesSlice, v.GetStringValue())
+	}
+
+	return valuesSlice
+}
+
+func MapEmbedMDPropertyLanguage(source *[]models.Properties) []string {
+	for _, v := range *source {
+		if v.Name == "language" {
+			langs := v.StringValue
+			if langs == nil {
+				return []string{}
+			}
+
+			decodedStruct, err := decodeStruct(*langs)
+			if err != nil {
+				return []string{}
+			}
+
+			return convertStructToStringSlice(decodedStruct, "language")
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "library_name" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyLicenseLink(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "license_link" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyLicense(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "license" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyLogo(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "logo" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyMaturity(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "maturity" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyProvider(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "provider" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyReadme(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "readme" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyTasks(source *[]models.Properties) []string {
+	for _, v := range *source {
+		if v.Name == "tasks" {
+			tasks := v.StringValue
+
+			if tasks == nil {
+				return []string{}
+			}
+
+			decodedStruct, err := decodeStruct(*tasks)
+			if err != nil {
+				return []string{}
+			}
+
+			return convertStructToStringSlice(decodedStruct, "tasks")
 		}
 	}
 

@@ -290,6 +290,310 @@ func TestMapEmbedMDAuthor(t *testing.T) {
 	}
 }
 
+func TestMapEmbedMDPropertyLanguage(t *testing.T) {
+	languages := "mlmd-struct::CiAKCGxhbmd1YWdlEhQyEgoEGgJlbgoEGgJlcwoEGgJjeg=="
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected []string
+	}{
+		{
+			name: "test language",
+			source: &[]models.Properties{
+				{
+					Name:        "language",
+					StringValue: &languages,
+				},
+			},
+			expected: []string{"en", "es", "cz"},
+		},
+		{
+			name: "test language with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "language",
+					StringValue: nil,
+				},
+			},
+			expected: []string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyLanguage(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyLibraryName(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test library name",
+			source: &[]models.Properties{
+				{
+					Name:        "library_name",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test library name with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "library_name",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyLibraryName(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyLicenseLink(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test license link",
+			source: &[]models.Properties{
+				{
+					Name:        "license_link",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test license link with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "license_link",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyLicenseLink(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyLicense(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test license",
+			source: &[]models.Properties{
+				{
+					Name:        "license",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test license with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "license",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyLicense(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyLogo(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test logo",
+			source: &[]models.Properties{
+				{
+					Name:        "logo",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test logo with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "logo",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyLogo(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyMaturity(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test maturity",
+			source: &[]models.Properties{
+				{
+					Name:        "maturity",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test maturity with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "maturity",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyMaturity(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyReadme(t *testing.T) {
+	stringValue := "test"
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected *string
+	}{
+		{
+			name: "test readme",
+			source: &[]models.Properties{
+				{
+					Name:        "readme",
+					StringValue: &stringValue,
+				},
+			},
+			expected: &stringValue,
+		},
+		{
+			name: "test readme with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "readme",
+					StringValue: nil,
+				},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyReadme(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestMapEmbedMDPropertyTasks(t *testing.T) {
+	tasks := "mlmd-struct::Ch4KBXRhc2tzEhUyEwoRGg90ZXh0LWdlbmVyYXRpb24="
+
+	testCases := []struct {
+		name     string
+		source   *[]models.Properties
+		expected []string
+	}{
+		{
+			name: "test tasks",
+			source: &[]models.Properties{
+				{
+					Name:        "tasks",
+					StringValue: &tasks,
+				},
+			},
+			expected: []string{"text-generation"},
+		},
+		{
+			name: "test tasks with nil",
+			source: &[]models.Properties{
+				{
+					Name:        "tasks",
+					StringValue: nil,
+				},
+			},
+			expected: []string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := MapEmbedMDPropertyTasks(tc.source)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestMapEmbedMDStateRegisteredModel(t *testing.T) {
 	stringValue := "test"
 	validState := openapi.REGISTEREDMODELSTATE_LIVE.Ptr()

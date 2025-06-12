@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -94,6 +95,25 @@ func MapRegisteredModelTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Registe
 	return Int64ToInt32(&source.TypeId)
 }
 
+func encodeStruct(structValue *structpb.Struct) (string, error) {
+	binaryData, err := proto.Marshal(structValue)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal proto struct: %w", err)
+	}
+	encodedString := base64.StdEncoding.EncodeToString(binaryData)
+	return mlmdStructPrefix + encodedString, nil
+}
+
+func convertToStruct(source []string, key string) (*structpb.Struct, error) {
+	list := &structpb.ListValue{
+		Values: make([]*structpb.Value, len(source)),
+	}
+	for i, v := range source {
+		list.Values[i] = &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: v}}
+	}
+	return &structpb.Struct{Fields: map[string]*structpb.Value{key: {Kind: &structpb.Value_ListValue{ListValue: list}}}}, nil
+}
+
 // MapRegisteredModelPropertiesEmbedMD maps RegisteredModel fields to specific embedmd properties
 func MapRegisteredModelPropertiesEmbedMD(source *openapi.RegisteredModel) (*[]models.Properties, error) {
 	props := make([]models.Properties, 0)
@@ -119,6 +139,96 @@ func MapRegisteredModelPropertiesEmbedMD(source *openapi.RegisteredModel) (*[]mo
 				Name:             "state",
 				IsCustomProperty: false,
 				StringValue:      of(string(*source.State)),
+			})
+		}
+
+		if source.Language != nil {
+			langStruct, err := convertToStruct(source.Language, "language")
+			if err != nil {
+				return nil, fmt.Errorf("%w: unable to convert to struct %w for key %s", api.ErrBadRequest, err, "language")
+			}
+			encodedString, err := encodeStruct(langStruct)
+			if err != nil {
+				return nil, fmt.Errorf("%w: unable to encode struct %w for key %s", api.ErrBadRequest, err, "language")
+			}
+
+			props = append(props, models.Properties{
+				Name:             "language",
+				IsCustomProperty: false,
+				StringValue:      &encodedString,
+			})
+		}
+
+		if source.LibraryName != nil {
+			props = append(props, models.Properties{
+				Name:             "library_name",
+				IsCustomProperty: false,
+				StringValue:      source.LibraryName,
+			})
+		}
+
+		if source.License != nil {
+			props = append(props, models.Properties{
+				Name:             "license",
+				IsCustomProperty: false,
+				StringValue:      source.License,
+			})
+		}
+
+		if source.LicenseLink != nil {
+			props = append(props, models.Properties{
+				Name:             "license_link",
+				IsCustomProperty: false,
+				StringValue:      source.LicenseLink,
+			})
+		}
+
+		if source.Maturity != nil {
+			props = append(props, models.Properties{
+				Name:             "maturity",
+				IsCustomProperty: false,
+				StringValue:      source.Maturity,
+			})
+		}
+
+		if source.Provider != nil {
+			props = append(props, models.Properties{
+				Name:             "provider",
+				IsCustomProperty: false,
+				StringValue:      source.Provider,
+			})
+		}
+
+		if source.Readme != nil {
+			props = append(props, models.Properties{
+				Name:             "readme",
+				IsCustomProperty: false,
+				StringValue:      source.Readme,
+			})
+		}
+
+		if source.Logo != nil {
+			props = append(props, models.Properties{
+				Name:             "logo",
+				IsCustomProperty: false,
+				StringValue:      source.Logo,
+			})
+		}
+
+		if source.Tasks != nil {
+			tasksStruct, err := convertToStruct(source.Tasks, "tasks")
+			if err != nil {
+				return nil, fmt.Errorf("%w: unable to convert to struct %w for key %s", api.ErrBadRequest, err, "tasks")
+			}
+			encodedString, err := encodeStruct(tasksStruct)
+			if err != nil {
+				return nil, fmt.Errorf("%w: unable to encode struct %w for key %s", api.ErrBadRequest, err, "tasks")
+			}
+
+			props = append(props, models.Properties{
+				Name:             "tasks",
+				IsCustomProperty: false,
+				StringValue:      &encodedString,
 			})
 		}
 	}

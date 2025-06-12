@@ -228,7 +228,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "no serving environment found")
+		assert.Contains(t, err.Error(), "invalid parameters call")
 	})
 
 	t.Run("no environment found", func(t *testing.T) {

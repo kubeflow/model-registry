@@ -17,6 +17,15 @@ import (
 type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties Owner | MapEmbedMDOwner
+	// goverter:map Properties Language | MapEmbedMDPropertyLanguage
+	// goverter:map Properties LibraryName | MapEmbedMDPropertyLibraryName
+	// goverter:map Properties LicenseLink | MapEmbedMDPropertyLicenseLink
+	// goverter:map Properties License | MapEmbedMDPropertyLicense
+	// goverter:map Properties Logo | MapEmbedMDPropertyLogo
+	// goverter:map Properties Maturity | MapEmbedMDPropertyMaturity
+	// goverter:map Properties Provider | MapEmbedMDPropertyProvider
+	// goverter:map Properties Readme | MapEmbedMDPropertyReadme
+	// goverter:map Properties Tasks | MapEmbedMDPropertyTasks
 	// goverter:map Properties State | MapEmbedMDStateRegisteredModel
 	// goverter:map Attributes ExternalId | MapEmbedMDExternalIDRegisteredModel
 	// goverter:map Attributes Name | MapEmbedMDNameRegisteredModel

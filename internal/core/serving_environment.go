@@ -35,13 +35,17 @@ func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.Se
 
 	model, err := b.servingEnvironmentRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, err)
 	}
 
 	return b.mapper.MapToServingEnvironment(model)
 }
 
 func (b *ModelRegistryService) GetServingEnvironmentByParams(name *string, externalId *string) (*openapi.ServingEnvironment, error) {
+	if name == nil && externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
+	}
+
 	servEnvsList, err := b.servingEnvironmentRepository.List(models.ServingEnvironmentListOptions{
 		Name:       name,
 		ExternalID: externalId,
