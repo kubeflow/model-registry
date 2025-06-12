@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/golang/glog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -17,10 +18,12 @@ func NewMySQLDBConnector(dsn string) *MySQLDBConnector {
 }
 
 func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
+	glog.V(2).Infof("Attempting to connect with DSN: %q", c.DSN)
 	db, err := gorm.Open(mysql.Open(c.DSN), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
+	glog.Info("Successfully connected to MySQL database")
 
 	c.db = db
 
