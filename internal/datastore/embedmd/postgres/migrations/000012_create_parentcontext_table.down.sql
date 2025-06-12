@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS ParentContext; 
+DROP TABLE IF EXISTS "ParentContext"; 

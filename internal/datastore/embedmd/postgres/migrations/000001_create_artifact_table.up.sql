@@ -1,6 +1,6 @@
 -- Create Artifact table
-CREATE TABLE IF NOT EXISTS Artifact (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS "Artifact" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY,
     type_id INTEGER NOT NULL,
     uri TEXT,
     state INTEGER DEFAULT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS Artifact (
     UNIQUE (type_id, name)
 );
 
-CREATE INDEX idx_artifact_uri ON Artifact (uri);
-CREATE INDEX idx_artifact_create_time_since_epoch ON Artifact (create_time_since_epoch);
-CREATE INDEX idx_artifact_last_update_time_since_epoch ON Artifact (last_update_time_since_epoch);
-CREATE INDEX idx_artifact_external_id ON Artifact (external_id); 
+CREATE INDEX idx_artifact_uri ON "Artifact" (uri);
+CREATE INDEX idx_artifact_create_time_since_epoch ON "Artifact" (create_time_since_epoch);
+CREATE INDEX idx_artifact_last_update_time_since_epoch ON "Artifact" (last_update_time_since_epoch);
+CREATE INDEX idx_artifact_external_id ON "Artifact" (external_id); 

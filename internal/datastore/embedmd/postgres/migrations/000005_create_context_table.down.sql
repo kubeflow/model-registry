@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS Context; 
+DROP TABLE IF EXISTS "Context"; 
