@@ -10,7 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type GroupsEnvelope Envelope[[]models.GroupModel, None]
+type GroupsEnvelope Envelope[[]models.Group, None]
 
 // STUB IMPLEMENTATION (see kubernetes clients for more details)
 func (app *App) GetGroupsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
