@@ -4,22 +4,22 @@
 
 package schema
 
-const TableNameContextProperty = "ContextProperty"
+const TableNameContextproperty = "contextproperty"
 
-// ContextProperty mapped from table <ContextProperty>
-type ContextProperty struct {
+// Contextproperty mapped from table <contextproperty>
+type Contextproperty struct {
 	ContextID        int32   `gorm:"column:context_id;primaryKey" json:"context_id"`
 	Name             string  `gorm:"column:name;primaryKey" json:"name"`
-	IsCustomProperty bool    `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
+	IsCustomProperty int16   `gorm:"column:is_custom_property;primaryKey" json:"is_custom_property"`
 	IntValue         int32   `gorm:"column:int_value" json:"int_value"`
 	DoubleValue      float64 `gorm:"column:double_value" json:"double_value"`
 	StringValue      string  `gorm:"column:string_value" json:"string_value"`
-	ByteValue        []byte  `gorm:"column:byte_value" json:"byte_value"`
-	ProtoValue       []byte  `gorm:"column:proto_value" json:"proto_value"`
-	BoolValue        bool    `gorm:"column:bool_value" json:"bool_value"`
+	ByteValue        []uint8 `gorm:"column:byte_value" json:"byte_value"`
+	ProtoValue       []uint8 `gorm:"column:proto_value" json:"proto_value"`
+	BoolValue        int16   `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName ContextProperty's table name
-func (*ContextProperty) TableName() string {
-	return TableNameContextProperty
+// TableName Contextproperty's table name
+func (*Contextproperty) TableName() string {
+	return TableNameContextproperty
 }
