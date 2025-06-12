@@ -4,15 +4,15 @@
 
 package schema
 
-const TableNameParentType = "ParentType"
+const TableNameParenttype = "parenttype"
 
-// ParentType mapped from table <ParentType>
-type ParentType struct {
+// Parenttype mapped from table <parenttype>
+type Parenttype struct {
 	TypeID       int32 `gorm:"column:type_id;primaryKey" json:"type_id"`
 	ParentTypeID int32 `gorm:"column:parent_type_id;primaryKey" json:"parent_type_id"`
 }
 
-// TableName ParentType's table name
-func (*ParentType) TableName() string {
-	return TableNameParentType
+// TableName Parenttype's table name
+func (*Parenttype) TableName() string {
+	return TableNameParenttype
 }
