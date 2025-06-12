@@ -147,17 +147,18 @@ stop/postgres:
 
 # generate the gorm structs
 .PHONY: gen/gorm
-gen/gorm: bin/gorm-gen bin/golang-migrate
+gen/gorm: bin/golang-migrate
 ifeq ($(DB_TYPE),postgres)
 	@(trap '$(MAKE) stop/postgres' EXIT; \
 	$(MAKE) start/postgres && \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
-	$(GORM_GEN) --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' --db postgres --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
+	go run ./cmd/gorm-gen/main.go --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' --db postgres && \
+	sed -i 's/;default:NULL//g' internal/db/schema/*.gen.go)
 else
 	@(trap '$(MAKE) stop/mysql' EXIT; \
 	$(MAKE) start/mysql && \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
-	$(GORM_GEN) --dsn 'root:root@tcp(localhost:3306)/model-registry' --db mysql --onlyModel --outPath ./internal/db/schema --modelPkgName schema)
+	go run ./cmd/gorm-gen/main.go --dsn 'root:root@tcp(localhost:3306)/model-registry' --db mysql)
 endif
 
 .PHONY: vet

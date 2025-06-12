@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS Attribution; 
+DROP TABLE IF EXISTS "Attribution"; 
