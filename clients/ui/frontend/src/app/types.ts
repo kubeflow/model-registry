@@ -31,6 +31,30 @@ export enum ModelRegistryMetadataType {
   BOOL = 'MetadataBoolValue',
 }
 
+export interface RoleBinding {
+  apiVersion: string;
+  kind: string;
+  metadata: {
+    name: string;
+    labels?: Record<string, string>;
+  };
+  subjects: Array<{
+    kind: string;
+    name: string;
+    apiGroup: string;
+  }>;
+  roleRef: {
+    kind: string;
+    name: string;
+    apiGroup: string;
+  };
+}
+
+export interface Group {
+  name: string;
+  displayName?: string;
+}
+
 export type ModelRegistryCustomPropertyInt = {
   metadataType: ModelRegistryMetadataType.INT;
   int_value: string; // int64-formatted string
