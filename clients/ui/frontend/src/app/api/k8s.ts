@@ -56,7 +56,7 @@ export const getNamespacesForSettings =
   (hostPath: string) =>
   (opts: APIOptions): Promise<Namespace[]> =>
     handleRestFailures(
-      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/namespace`, {}, opts),
+      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/namespaces`, {}, opts),
     ).then((response) => {
       if (isModArchResponse<Namespace[]>(response)) {
         return response.data;
