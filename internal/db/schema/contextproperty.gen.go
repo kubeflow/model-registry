@@ -4,7 +4,7 @@
 
 package schema
 
-const TableNameContextProperty = "ContextProperty"
+const TableNameContextproperty = "contextproperty"
 
 // ContextProperty mapped from table <ContextProperty>
 type ContextProperty struct {
@@ -19,7 +19,7 @@ type ContextProperty struct {
 	BoolValue        *bool    `gorm:"column:bool_value" json:"bool_value"`
 }
 
-// TableName ContextProperty's table name
-func (*ContextProperty) TableName() string {
-	return TableNameContextProperty
+// TableName Contextproperty's table name
+func (*Contextproperty) TableName() string {
+	return TableNameContextproperty
 }

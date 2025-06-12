@@ -4,9 +4,9 @@
 
 package schema
 
-const TableNameAttribution = "Attribution"
+const TableNameAttribution = "attribution"
 
-// Attribution mapped from table <Attribution>
+// Attribution mapped from table <attribution>
 type Attribution struct {
 	ID         int32 `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	ContextID  int32 `gorm:"column:context_id;not null" json:"context_id"`

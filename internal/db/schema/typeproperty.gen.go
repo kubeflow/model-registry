@@ -4,16 +4,16 @@
 
 package schema
 
-const TableNameTypeProperty = "TypeProperty"
+const TableNameTypeproperty = "typeproperty"
 
-// TypeProperty mapped from table <TypeProperty>
-type TypeProperty struct {
+// Typeproperty mapped from table <typeproperty>
+type Typeproperty struct {
 	TypeID   int32  `gorm:"column:type_id;primaryKey" json:"type_id"`
 	Name     string `gorm:"column:name;primaryKey" json:"name"`
 	DataType *int32 `gorm:"column:data_type" json:"data_type"`
 }
 
-// TableName TypeProperty's table name
-func (*TypeProperty) TableName() string {
-	return TableNameTypeProperty
+// TableName Typeproperty's table name
+func (*Typeproperty) TableName() string {
+	return TableNameTypeproperty
 }
