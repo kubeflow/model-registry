@@ -1,12 +1,20 @@
-import * as React from 'react';
+import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { NotFound, NavDataItem } from 'mod-arch-shared';
-import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
-import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
-import useUser from './hooks/useUser';
+
+import ModelRegistryRoutes from '~/app/pages/modelRegistry/ModelRegistryRoutes';
+import ModelRegistrySettingsRoutes from '~/app/pages/modelRegistrySettings/ModelRegistrySettingsRoutes';
+import useUser from '~/app/hooks/useUser';
+import { NotFound } from '~/app/components/NotFound';
+import { AppLayout } from '~/app/AppLayout';
+
+type NavDataItem = {
+    label: string;
+    path?: string;
+    children?: NavDataItem[];
+};
 
 export const useAdminSettings = (): NavDataItem[] => {
-  const { clusterAdmin } = useUser();
+    const { clusterAdmin } = useUser();
 
   if (!clusterAdmin) {
     return [];
@@ -28,20 +36,21 @@ export const useNavData = (): NavDataItem[] => [
   ...useAdminSettings(),
 ];
 
-const AppRoutes: React.FC = () => {
-  const { clusterAdmin } = useUser();
+export const AppRoutes: React.FC = () => {
+    const { clusterAdmin } = useUser();
 
-  return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/model-registry" replace />} />
-      <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
-      <Route path="*" element={<NotFound />} />
-      {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode*/}
-      {clusterAdmin && (
-        <Route path="/model-registry-settings/*" element={<ModelRegistrySettingsRoutes />} />
-      )}
-    </Routes>
-  );
+    return (
+        <Routes>
+            <Route path="/" element={<AppLayout />}>
+                <Route index element={<Navigate to="/model-registry" replace />} />
+                <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
+                {clusterAdmin && (
+                    <Route path="/model-registry-settings/*" element={<ModelRegistrySettingsRoutes />} />
+                )}
+                <Route path="*" element={<NotFound />} />
+            </Route>
+        </Routes>
+    );
 };
 
 export default AppRoutes;

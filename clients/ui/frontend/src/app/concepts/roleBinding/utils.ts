@@ -2,7 +2,7 @@ import { capitalize } from '@patternfly/react-core';
 import { ProjectKind, RoleBindingKind } from '~/app/k8sTypes';
 import { namespaceToProjectDisplayName } from '~/app/concepts/projects/utils';
 import { patchRoleBindingSubjects } from '~/app/api/k8s/roleBindings';
-import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
+import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 
 export const filterRoleBindingSubjects = (
   roleBindings: RoleBindingKind[],
@@ -93,4 +93,4 @@ export const tryPatchRoleBinding = async (
   } catch {
     return false;
   }
-};
+}; 
