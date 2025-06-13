@@ -12,4 +12,4 @@ func (r *MockUserRepository) GetUser(client kubernetes.KubernetesClientInterface
 		UserID:       "user",
 		ClusterAdmin: true,
 	}, nil
-} 
+}
