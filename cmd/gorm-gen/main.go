@@ -3,51 +3,43 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
+	"log"
 
+	"github.com/kubeflow/model-registry/internal/db/gen"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/kubeflow/model-registry/internal/db/gen"
 )
 
 func main() {
-	var (
-		dsn    string
-		dbType string
-	)
-
-	flag.StringVar(&dsn, "dsn", "", "Database connection string")
-	flag.StringVar(&dbType, "db", "", "Database type (mysql or postgres)")
+	// Parse command line flags
+	dsn := flag.String("dsn", "", "Database connection string")
+	dbType := flag.String("db", "mysql", "Database type (mysql or postgres)")
 	flag.Parse()
 
-	if dsn == "" || dbType == "" {
-		fmt.Println("Error: --dsn and --db flags are required")
-		os.Exit(1)
+	if *dsn == "" {
+		log.Fatal("DSN is required")
 	}
 
-	db, err := connectDB(dsn, dbType)
-	if err != nil {
-		fmt.Printf("Error connecting to database: %v\n", err)
-		os.Exit(1)
-	}
+	// Connect to database
+	var db *gorm.DB
+	var err error
 
-	gen.GenerateModel(db)
-
-	fmt.Println("Successfully generated models")
-}
-
-func connectDB(dsn string, dbType string) (*gorm.DB, error) {
-	var dialector gorm.Dialector
-	switch dbType {
+	switch *dbType {
 	case "mysql":
-		dialector = mysql.Open(dsn)
+		db, err = gorm.Open(mysql.Open(*dsn), &gorm.Config{})
 	case "postgres":
-		dialector = postgres.Open(dsn)
+		db, err = gorm.Open(postgres.Open(*dsn), &gorm.Config{})
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+		log.Fatalf("Unsupported database type: %s", *dbType)
 	}
 
-	return gorm.Open(dialector, &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Call the central generator logic
+	fmt.Println("Generating GORM models...")
+	gen.GenerateModel(db)
+	fmt.Println("GORM models generated successfully!")
 } 
