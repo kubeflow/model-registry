@@ -232,12 +232,8 @@ func mapPropertiesToContextProperty(prop models.Properties, contextID int32, isC
 		DoubleValue:      prop.DoubleValue,
 		StringValue:      prop.StringValue,
 		BoolValue:        prop.BoolValue,
-	}
-
-	if prop.ByteValue != nil {
-		propCtx.ByteValue = *prop.ByteValue
-	} else if prop.ProtoValue != nil {
-		propCtx.ProtoValue = *prop.ProtoValue
+		ByteValue:        prop.ByteValue,
+		ProtoValue:       prop.ProtoValue,
 	}
 
 	return propCtx
@@ -280,12 +276,8 @@ func mapDataLayerToProperties(propCtx schema.ContextProperty) models.Properties 
 		DoubleValue:      propCtx.DoubleValue,
 		StringValue:      propCtx.StringValue,
 		BoolValue:        propCtx.BoolValue,
-	}
-
-	if propCtx.ByteValue != nil {
-		prop.ByteValue = &propCtx.ByteValue
-	} else if propCtx.ProtoValue != nil {
-		prop.ProtoValue = &propCtx.ProtoValue
+		ByteValue:        propCtx.ByteValue,
+		ProtoValue:       propCtx.ProtoValue,
 	}
 
 	return prop

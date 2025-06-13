@@ -28,12 +28,12 @@ func (r *TypeRepositoryImpl) GetAll() ([]models.Type, error) {
 			ID: &t.ID,
 			Attributes: &models.TypeAttributes{
 				Name:        &t.Name,
-				Version:     &t.Version,
+				Version:     t.Version,
 				TypeKind:    &t.TypeKind,
-				Description: &t.Description,
-				InputType:   &t.InputType,
-				OutputType:  &t.OutputType,
-				ExternalID:  &t.ExternalID,
+				Description: t.Description,
+				InputType:   t.InputType,
+				OutputType:  t.OutputType,
+				ExternalID:  t.ExternalID,
 			},
 		}
 	}

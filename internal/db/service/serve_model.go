@@ -241,9 +241,12 @@ func mapServeModelToExecution(serveModel models.ServeModel) schema.Execution {
 	}
 
 	if serveModel.GetAttributes() != nil {
-		serveModelExec.Name = ptr.In(serveModel.GetAttributes().Name)
+		serveModelExec.Name = serveModel.GetAttributes().Name
 		serveModelExec.ExternalID = serveModel.GetAttributes().ExternalID
-		serveModelExec.LastKnownState = models.Execution_State_value[*serveModel.GetAttributes().LastKnownState]
+		if serveModel.GetAttributes().LastKnownState != nil {
+			lastKnownState := models.Execution_State_value[*serveModel.GetAttributes().LastKnownState]
+			serveModelExec.LastKnownState = &lastKnownState
+		}
 		serveModelExec.CreateTimeSinceEpoch = ptr.In(serveModel.GetAttributes().CreateTimeSinceEpoch)
 		serveModelExec.LastUpdateTimeSinceEpoch = ptr.In(serveModel.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
@@ -282,27 +285,27 @@ func mapPropertiesToExecutionProperty(prop models.Properties, executionID int32)
 		DoubleValue:      prop.DoubleValue,
 		StringValue:      prop.StringValue,
 		BoolValue:        prop.BoolValue,
-	}
-
-	if prop.ByteValue != nil {
-		execProp.ByteValue = *prop.ByteValue
-	} else if prop.ProtoValue != nil {
-		execProp.ProtoValue = *prop.ProtoValue
+		ByteValue:        prop.ByteValue,
+		ProtoValue:       prop.ProtoValue,
 	}
 
 	return execProp
 }
 
 func mapDataLayerToServeModel(serveModel schema.Execution, properties []schema.ExecutionProperty) models.ServeModel {
-	lastKnownState := models.Execution_State_name[int32(serveModel.LastKnownState)]
+	var lastKnownState *string
+	if serveModel.LastKnownState != nil {
+		docState := models.Execution_State_name[*serveModel.LastKnownState]
+		lastKnownState = &docState
+	}
 
 	serveModelExec := models.ServeModelImpl{
 		ID:     &serveModel.ID,
 		TypeID: &serveModel.TypeID,
 		Attributes: &models.ServeModelAttributes{
-			Name:                     &serveModel.Name,
+			Name:                     serveModel.Name,
 			ExternalID:               serveModel.ExternalID,
-			LastKnownState:           &lastKnownState,
+			LastKnownState:           lastKnownState,
 			CreateTimeSinceEpoch:     &serveModel.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &serveModel.LastUpdateTimeSinceEpoch,
 		},
@@ -333,12 +336,8 @@ func mapDataLayerToExecutionProperties(prop schema.ExecutionProperty) models.Pro
 		DoubleValue:      prop.DoubleValue,
 		StringValue:      prop.StringValue,
 		BoolValue:        prop.BoolValue,
-	}
-
-	if prop.ByteValue != nil {
-		execProp.ByteValue = &prop.ByteValue
-	} else if prop.ProtoValue != nil {
-		execProp.ProtoValue = &prop.ProtoValue
+		ByteValue:        prop.ByteValue,
+		ProtoValue:       prop.ProtoValue,
 	}
 
 	return execProp

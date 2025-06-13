@@ -229,10 +229,13 @@ func mapDocArtifactToArtifact(docArtifact models.DocArtifact) schema.Artifact {
 	}
 
 	if docArtifact.GetAttributes() != nil {
-		artifact.Name = ptr.In(docArtifact.GetAttributes().Name)
-		artifact.URI = ptr.In(docArtifact.GetAttributes().URI)
+		artifact.Name = docArtifact.GetAttributes().Name
+		artifact.URI = docArtifact.GetAttributes().URI
 		artifact.ExternalID = docArtifact.GetAttributes().ExternalID
-		artifact.State = models.Artifact_State_value[*docArtifact.GetAttributes().State]
+		if docArtifact.GetAttributes().State != nil {
+			stateValue := models.Artifact_State_value[*docArtifact.GetAttributes().State]
+			artifact.State = &stateValue
+		}
 		artifact.CreateTimeSinceEpoch = ptr.In(docArtifact.GetAttributes().CreateTimeSinceEpoch)
 		artifact.LastUpdateTimeSinceEpoch = ptr.In(docArtifact.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
@@ -263,17 +266,22 @@ func mapDocArtifactToArtifactProperties(docArtifact models.DocArtifact, artifact
 }
 
 func mapDataLayerToDocArtifact(docArtifact schema.Artifact, artProperties []schema.ArtifactProperty) models.DocArtifact {
+	var state *string
+
 	docArtifactType := models.DocArtifactType
 
-	state := models.Artifact_State_name[int32(docArtifact.State)]
+	if docArtifact.State != nil {
+		docState := models.Artifact_State_name[*docArtifact.State]
+		state = &docState
+	}
 
 	docArtifactArt := models.DocArtifactImpl{
 		ID:     &docArtifact.ID,
 		TypeID: &docArtifact.TypeID,
 		Attributes: &models.DocArtifactAttributes{
-			Name:                     &docArtifact.Name,
-			URI:                      &docArtifact.URI,
-			State:                    &state,
+			Name:                     docArtifact.Name,
+			URI:                      docArtifact.URI,
+			State:                    state,
 			ArtifactType:             &docArtifactType,
 			ExternalID:               docArtifact.ExternalID,
 			CreateTimeSinceEpoch:     &docArtifact.CreateTimeSinceEpoch,

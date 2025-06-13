@@ -231,10 +231,13 @@ func mapModelArtifactToArtifact(modelArtifact models.ModelArtifact) schema.Artif
 	}
 
 	if modelArtifact.GetAttributes() != nil {
-		artifact.Name = ptr.In(modelArtifact.GetAttributes().Name)
-		artifact.URI = ptr.In(modelArtifact.GetAttributes().URI)
+		artifact.Name = modelArtifact.GetAttributes().Name
+		artifact.URI = modelArtifact.GetAttributes().URI
 		artifact.ExternalID = modelArtifact.GetAttributes().ExternalID
-		artifact.State = models.Artifact_State_value[*modelArtifact.GetAttributes().State]
+		if modelArtifact.GetAttributes().State != nil {
+			stateValue := models.Artifact_State_value[*modelArtifact.GetAttributes().State]
+			artifact.State = &stateValue
+		}
 		artifact.CreateTimeSinceEpoch = ptr.In(modelArtifact.GetAttributes().CreateTimeSinceEpoch)
 		artifact.LastUpdateTimeSinceEpoch = ptr.In(modelArtifact.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
@@ -265,17 +268,21 @@ func mapModelArtifactToArtifactProperties(modelArtifact models.ModelArtifact, ar
 }
 
 func mapDataLayerToModelArtifact(modelArtifact schema.Artifact, artProperties []schema.ArtifactProperty) models.ModelArtifact {
+	var state *string
 	modelArtifactType := models.ModelArtifactType
 
-	state := models.Artifact_State_name[int32(modelArtifact.State)]
+	if modelArtifact.State != nil {
+		docState := models.Artifact_State_name[*modelArtifact.State]
+		state = &docState
+	}
 
 	modelArtifactArt := models.ModelArtifactImpl{
 		ID:     &modelArtifact.ID,
 		TypeID: &modelArtifact.TypeID,
 		Attributes: &models.ModelArtifactAttributes{
-			Name:                     &modelArtifact.Name,
-			URI:                      &modelArtifact.URI,
-			State:                    &state,
+			Name:                     modelArtifact.Name,
+			URI:                      modelArtifact.URI,
+			State:                    state,
 			ArtifactType:             &modelArtifactType,
 			ExternalID:               modelArtifact.ExternalID,
 			CreateTimeSinceEpoch:     &modelArtifact.CreateTimeSinceEpoch,
@@ -309,12 +316,8 @@ func mapPropertiesToArtifactProperty(prop models.Properties, artifactID int32, i
 		DoubleValue:      prop.DoubleValue,
 		StringValue:      prop.StringValue,
 		BoolValue:        prop.BoolValue,
-	}
-
-	if prop.ByteValue != nil {
-		artProp.ByteValue = *prop.ByteValue
-	} else if prop.ProtoValue != nil {
-		artProp.ProtoValue = *prop.ProtoValue
+		ByteValue:        prop.ByteValue,
+		ProtoValue:       prop.ProtoValue,
 	}
 
 	return artProp
@@ -328,12 +331,8 @@ func mapDataLayerToArtifactProperties(artProperty schema.ArtifactProperty) model
 		DoubleValue:      artProperty.DoubleValue,
 		StringValue:      artProperty.StringValue,
 		BoolValue:        artProperty.BoolValue,
-	}
-
-	if artProperty.ByteValue != nil {
-		prop.ByteValue = &artProperty.ByteValue
-	} else if artProperty.ProtoValue != nil {
-		prop.ProtoValue = &artProperty.ProtoValue
+		ByteValue:        artProperty.ByteValue,
+		ProtoValue:       artProperty.ProtoValue,
 	}
 
 	return prop
