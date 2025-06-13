@@ -3,16 +3,11 @@ package catalog
 import (
 	"context"
 	"fmt"
-	"github.com/kubeflow/model-registry/pkg/openapi"
-	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
-)
 
-type YamlBaseModel struct {
-	Catalog    string `yaml:"catalog"`
-	Repository string `yaml:"repository"`
-	Model      string `yaml:"model"`
-}
+	"github.com/kubeflow/model-registry/pkg/openapi/catalog"
+	"k8s.io/apimachinery/pkg/util/yaml"
+)
 
 type YamlArtifacts struct {
 	Protocol string `yaml:"protocol"`
@@ -20,22 +15,21 @@ type YamlArtifacts struct {
 }
 
 type YamlModel struct {
-	Name                     string          `yaml:"name"`
-	Provider                 string          `yaml:"provider"`
-	Description              string          `yaml:"description"`
-	LongDescription          string          `yaml:"longDescription"`
-	ReadmeLink               string          `yaml:"readmeLink"`
-	Language                 []string        `yaml:"language"`
-	License                  string          `yaml:"license"`
-	LicenseLink              string          `yaml:"licenseLink"`
-	Maturity                 string          `yaml:"maturity"`
-	LibraryName              string          `yaml:"libraryName"`
-	Tags                     []string        `yaml:"tags"`
-	Tasks                    []string        `yaml:"tasks"`
-	CreateTimeSinceEpoch     int64           `yaml:"createTimeSinceEpoch"`
-	LastUpdateTimeSinceEpoch int64           `yaml:"lastUpdateTimeSinceEpoch"`
-	BaseModel                []YamlBaseModel `yaml:"baseModel,omitempty"`
-	Artifacts                []YamlArtifacts `yaml:"artifacts"`
+	Name                     string                           `yaml:"name"`
+	Description              string                           `yaml:"description"`
+	Readme                   string                           `yaml:"readme"`
+	Maturity                 string                           `yaml:"maturity"`
+	Language                 []string                         `yaml:"language"`
+	Tasks                    []string                         `yaml:"tasks"`
+	Provider                 string                           `yaml:"provider"`
+	Logo                     string                           `yaml:"logo"`
+	License                  string                           `yaml:"license"`
+	LicenseLink              string                           `yaml:"licenseLink"`
+	LibraryName              string                           `yaml:"libraryName"`
+	CustomProperties         map[string]catalog.MetadataValue `yaml:"customProperties"`
+	CreateTimeSinceEpoch     int64                            `yaml:"createTimeSinceEpoch"`
+	LastUpdateTimeSinceEpoch int64                            `yaml:"lastUpdateTimeSinceEpoch"`
+	Artifacts                []YamlArtifacts                  `yaml:"artifacts"`
 }
 
 type YamlCatalog struct {
@@ -45,40 +39,30 @@ type YamlCatalog struct {
 
 type yamlCatalogImpl struct {
 	contents *YamlCatalog
-	source   *CatalogSource
+	source   *CatalogSourceConfig
 }
 
-func (y yamlCatalogImpl) GetCatalogModel(ctx context.Context, modelId string) (openapi.CatalogModel, error) {
+func (y yamlCatalogImpl) GetModel(ctx context.Context, name string) (catalog.CatalogModel, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (y yamlCatalogImpl) GetCatalogModelVersion(ctx context.Context, modelId string, versionId string) (openapi.CatalogModelVersion, error) {
+func (y yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (catalog.CatalogModelList, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (y yamlCatalogImpl) GetCatalogModelVersions(ctx context.Context, modelId string, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelVersionList, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (y yamlCatalogImpl) GetCatalogModels(ctx context.Context, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelList, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (y yamlCatalogImpl) GetCatalogSource() (openapi.CatalogSource, error) {
+func (y yamlCatalogImpl) GetCatalogSource() (catalog.CatalogSource, error) {
 	return y.source.CatalogSource, nil
 }
 
 // TODO start background thread to watch file
 
-var _ ModelCatalogApi = &yamlCatalogImpl{}
+var _ ModelProvider = &yamlCatalogImpl{}
 
 const yamlCatalogPath = "yamlCatalogPath"
 
-func NewYamlCatalog(source *CatalogSource) (ModelCatalogApi, error) {
+func NewYamlCatalog(source *CatalogSourceConfig) (ModelProvider, error) {
 	var contents YamlCatalog
 	privateProps := source.PrivateProperties
 	if len(privateProps) == 0 {

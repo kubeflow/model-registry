@@ -18,7 +18,6 @@ COPY api/ api/
 COPY internal/ internal/
 COPY scripts/ scripts/
 COPY pkg/ pkg/
-COPY patches/ patches/
 COPY templates/ templates/
 
 ###### Dev stage - start ######

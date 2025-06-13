@@ -3,36 +3,58 @@ package catalog
 import (
 	"context"
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/pkg/openapi"
-	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
+	"path/filepath"
+
+	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/pkg/openapi/catalog"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// ModelCatalogApi is implemented by catalog types, e.g. YamlCatalog
-type ModelCatalogApi interface {
-	GetCatalogModel(ctx context.Context, modelId string) (openapi.CatalogModel, error)
-	GetCatalogModelVersion(ctx context.Context, modelId string, versionId string) (openapi.CatalogModelVersion, error)
-	GetCatalogModelVersions(ctx context.Context, modelId string, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelVersionList, error)
-	GetCatalogModels(ctx context.Context, nameParam string, externalIdParam string, pageSizeParam string, orderByParam openapi.OrderByField, sortOrderParam openapi.SortOrder, offsetParam string) (openapi.CatalogModelList, error)
-	GetCatalogSource() (openapi.CatalogSource, error)
+type SortDirection int
+
+const (
+	SortDirectionAscending SortDirection = iota
+	SortDirectionDescending
+)
+
+type SortField int
+
+const (
+	SortByUnspecified SortField = iota
+	SortByName
+	SortByPublished
+)
+
+type ListModelsParams struct {
+	Query         string
+	SortBy        SortField
+	SortDirection SortDirection
 }
 
-type CatalogSource struct {
-	openapi.CatalogSource `json:",inline"`
+// ModelProvider is implemented by catalog types, e.g. YamlCatalog
+type ModelProvider interface {
+	GetModel(ctx context.Context, name string) (catalog.CatalogModel, error)
+	ListModels(ctx context.Context, params ListModelsParams) (catalog.CatalogModelList, error)
+}
+
+// CatalogSourceConfig is a single entry from the catalog sources YAML file.
+type CatalogSourceConfig struct {
+	catalog.CatalogSource `json:",inline"`
 
 	// Catalog type to use, must match one of the registered types
 	Type string `json:"type"`
 
 	// private properties used for configuring the catalog connection based on catalog implementation
-	PrivateProperties map[string]interface{} `json:"privateProperties,omitempty"`
+	PrivateProperties map[string]any `json:"privateProperties,omitempty"`
 }
 
-type CatalogsConfig struct {
-	Catalogs []CatalogSource `json:"catalogs"`
+// sourceConfig is the structure for the catalog sources YAML file.
+type sourceConfig struct {
+	Catalogs []CatalogSourceConfig `json:"catalogs"`
 }
 
-type CatalogTypeRegisterFunc func (source *CatalogSource) (ModelCatalogApi, error)
+type CatalogTypeRegisterFunc func(source *CatalogSourceConfig) (ModelProvider, error)
 
 var registeredCatalogTypes = make(map[string]CatalogTypeRegisterFunc, 0)
 
@@ -44,9 +66,41 @@ func RegisterCatalogType(catalogType string, callback CatalogTypeRegisterFunc) e
 	return nil
 }
 
-func LoadCatalogSources(catalogsPath string) (map[string]ModelCatalogApi, error) {
-	config := CatalogsConfig{}
-	bytes, err := os.ReadFile(catalogsPath)
+type CatalogSource struct {
+	ModelProvider ModelProvider
+	Metadata      catalog.CatalogSource
+}
+
+func LoadCatalogSources(catalogsPath string) (map[string]CatalogSource, error) {
+	// Get absolute path of the catalog config file
+	absConfigPath, err := filepath.Abs(catalogsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for %s: %v", catalogsPath, err)
+	}
+
+	// Get the directory of the config file to resolve relative paths
+	configDir := filepath.Dir(absConfigPath)
+
+	// Save current working directory
+	originalWd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current working directory: %v", err)
+	}
+
+	// Change to the config directory to make relative paths work
+	if err := os.Chdir(configDir); err != nil {
+		return nil, fmt.Errorf("failed to change to config directory %s: %v", configDir, err)
+	}
+
+	// Ensure we restore the original working directory when we're done
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			glog.Errorf("failed to restore original working directory %s: %v", originalWd, err)
+		}
+	}()
+
+	config := sourceConfig{}
+	bytes, err := os.ReadFile(absConfigPath)
 	if err != nil {
 		return nil, err
 	}
@@ -55,27 +109,33 @@ func LoadCatalogSources(catalogsPath string) (map[string]ModelCatalogApi, error)
 		return nil, err
 	}
 
-	catalogs := make(map[string]ModelCatalogApi)
-	for _, catalog := range config.Catalogs {
-		catalogType := catalog.Type
+	catalogs := make(map[string]CatalogSource, len(config.Catalogs))
+	for _, catalogConfig := range config.Catalogs {
+		catalogType := catalogConfig.Type
 		glog.Infof("reading config type %s...", catalogType)
 		registerFunc, ok := registeredCatalogTypes[catalogType]
 		if !ok {
 			return nil, fmt.Errorf("catalog type %s not registered", catalogType)
 		}
-		id := catalog.GetId()
+		id := catalogConfig.GetId()
 		if len(id) == 0 {
 			return nil, fmt.Errorf("invalid catalog id %s", id)
 		}
 		if _, exists := catalogs[id]; exists {
 			return nil, fmt.Errorf("duplicate catalog id %s", id)
 		}
-		api, err := registerFunc(&catalog)
+		provider, err := registerFunc(&catalogConfig)
 		if err != nil {
 			return nil, fmt.Errorf("error reading catalog type %s with id %s: %v", catalogType, id, err)
 		}
-		catalogs[id] = api
+
+		catalogs[id] = CatalogSource{
+			ModelProvider: provider,
+			Metadata:      catalogConfig.CatalogSource,
+		}
+
 		glog.Infof("loaded config %s of type %s", id, catalogType)
 	}
+
 	return catalogs, nil
 }

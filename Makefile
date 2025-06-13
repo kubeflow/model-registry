@@ -110,20 +110,29 @@ openapi/validate: bin/openapi-generator-cli bin/yq
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go internal/server/openapi/api_model_catalog_service.go
+gen/openapi-server: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate internal/server/openapi/registry/api_model_registry_service.go internal/server/openapi/catalog/api_model_catalog_service.go
 
-internal/server/openapi/api_model_%_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
-	ROOT_FOLDER=${PROJECT_PATH} ./scripts/gen_openapi_server.sh
+internal/server/openapi/registry/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+	./scripts/gen_openapi_server.sh api/openapi/model-registry.yaml internal/server/openapi/registry
+
+internal/server/openapi/catalog/api_model_catalog_service.go: bin/openapi-generator-cli api/openapi/catalog.yaml
+	./scripts/gen_openapi_server.sh api/openapi/catalog.yaml internal/server/openapi/catalog
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
-gen/openapi: api/openapi/model-registry.yaml bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
+gen/openapi: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate pkg/openapi/client.go pkg/openapi/catalog/client.go
 
 pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi
 	${OPENAPI_GENERATOR} generate \
 		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
 		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
 	gofmt -w pkg/openapi
+
+pkg/openapi/catalog/client.go: bin/openapi-generator-cli api/openapi/catalog.yaml clean-pkg-openapi
+	${OPENAPI_GENERATOR} generate \
+		-i api/openapi/catalog.yaml -g go -o pkg/openapi/catalog --package-name catalog \
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
+	gofmt -w pkg/openapi/catalog
 
 # Start the MySQL database
 .PHONY: start/mysql
@@ -153,10 +162,12 @@ clean/csi:
 .PHONY: clean-pkg-openapi
 clean-pkg-openapi:
 	while IFS= read -r file; do rm -f "pkg/openapi/$$file"; done < pkg/openapi/.openapi-generator/FILES
+	while IFS= read -r file; do rm -f "pkg/openapi/catalog/$$file"; done < pkg/openapi/catalog/.openapi-generator/FILES
 
 .PHONY: clean-internal-server-openapi
 clean-internal-server-openapi:
-	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
+	while IFS= read -r file; do rm -f "internal/server/openapi/registry/$$file"; done < internal/server/openapi/registry/.openapi-generator/FILES
+	while IFS= read -r file; do rm -f "internal/server/openapi/catalog/$$file"; done < internal/server/openapi/catalog/.openapi-generator/FILES
 
 .PHONY: clean
 clean: clean-pkg-openapi clean-internal-server-openapi clean/csi

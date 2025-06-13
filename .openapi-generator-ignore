@@ -29,7 +29,6 @@ pkg/openapi/git_push.sh
 pkg/openapi/.gitignore
 pkg/openapi/.travis.yml
 pkg/openapi/.openapi-generator-ignore
-
 pkg/openapi/README.md
 pkg/openapi/docs/**.md
 pkg/openapi/test
@@ -38,10 +37,29 @@ pkg/openapi/**all_of.go
 pkg/openapi/go.mod
 pkg/openapi/go.sum
 
+pkg/openapi/catalog/api
+pkg/openapi/catalog/api/**
+pkg/openapi/catalog/git_push.sh
+pkg/openapi/catalog/.gitignore
+pkg/openapi/catalog/.travis.yml
+pkg/openapi/catalog/.openapi-generator-ignore
+pkg/openapi/catalog/README.md
+pkg/openapi/catalog/docs/**.md
+pkg/openapi/catalog/test
+pkg/openapi/catalog/test/**
+pkg/openapi/catalog/**all_of.go
+pkg/openapi/catalog/go.mod
+pkg/openapi/catalog/go.sum
+
 # server files to ignore
-internal/server/openapi/api
-internal/server/openapi/api/**
-internal/server/openapi/.openapi-generator-ignore
-internal/server/openapi/api_model_registry_service_service.go
-internal/server/openapi/README.md
-internal/server/openapi/main.go
+internal/server/openapi/registry/api
+internal/server/openapi/registry/api/**
+internal/server/openapi/registry/.openapi-generator-ignore
+internal/server/openapi/registry/api_model_registry_service_service.go
+internal/server/openapi/registry/README.md
+internal/server/openapi/registry/main.go
+
+internal/server/openapi/catalog/api
+internal/server/openapi/catalog/api/**
+internal/server/openapi/catalog/.openapi-generator-ignore
+internal/server/openapi/catalog/README.md

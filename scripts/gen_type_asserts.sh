@@ -2,13 +2,14 @@
 
 set -e
 
-PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
+ASSERT_FILE_PATH="$1/type_asserts.go"
 
-ASSERT_FILE_PATH="${PROJECT_ROOT}/internal/server/openapi/type_asserts.go"
+PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
 PATCH="${PROJECT_ROOT}/patches/type_asserts.patch"
 
-python3 "${PROJECT_ROOT}/scripts/gen_type_asserts.py" >"$ASSERT_FILE_PATH"
+# AssertMetadataValueRequired from this file generates with the incorrect logic.
+rm -f $1/model_metadata_value.go
+
+python3 "${PROJECT_ROOT}/scripts/gen_type_asserts.py" $1 >"$ASSERT_FILE_PATH"
 
 gofmt -w "$ASSERT_FILE_PATH"
-
-git apply "$PATCH"
