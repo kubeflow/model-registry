@@ -29,7 +29,6 @@ pkg/openapi/git_push.sh
 pkg/openapi/.gitignore
 pkg/openapi/.travis.yml
 pkg/openapi/.openapi-generator-ignore
-
 pkg/openapi/README.md
 pkg/openapi/docs/**.md
 pkg/openapi/test

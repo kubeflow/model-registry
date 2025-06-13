@@ -214,6 +214,7 @@ components:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
+        - NAME
       type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.

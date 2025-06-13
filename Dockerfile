@@ -18,8 +18,9 @@ COPY api/ api/
 COPY internal/ internal/
 COPY scripts/ scripts/
 COPY pkg/ pkg/
-COPY patches/ patches/
 COPY templates/ templates/
+COPY patches/ patches/
+COPY catalog/ catalog/
 
 ###### Dev stage - start ######
 # see: https://github.com/kubeflow/model-registry/pull/984#discussion_r2048732415

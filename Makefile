@@ -110,14 +110,16 @@ openapi/validate: bin/openapi-generator-cli bin/yq
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli openapi/validate internal/server/openapi/api_model_registry_service.go internal/server/openapi/api_model_catalog_service.go
+gen/openapi-server: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate internal/server/openapi/api_model_registry_service.go
+	make -C catalog $@
 
-internal/server/openapi/api_model_%_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
-	ROOT_FOLDER=${PROJECT_PATH} ./scripts/gen_openapi_server.sh
+internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
+	./scripts/gen_openapi_server.sh
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
-gen/openapi: api/openapi/model-registry.yaml bin/openapi-generator-cli openapi/validate pkg/openapi/client.go
+gen/openapi: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate pkg/openapi/client.go
+	make -C catalog $@
 
 pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi
 	${OPENAPI_GENERATOR} generate \
@@ -153,10 +155,12 @@ clean/csi:
 .PHONY: clean-pkg-openapi
 clean-pkg-openapi:
 	while IFS= read -r file; do rm -f "pkg/openapi/$$file"; done < pkg/openapi/.openapi-generator/FILES
+	make -C catalog $@
 
 .PHONY: clean-internal-server-openapi
 clean-internal-server-openapi:
 	while IFS= read -r file; do rm -f "internal/server/openapi/$$file"; done < internal/server/openapi/.openapi-generator/FILES
+	make -C catalog $@
 
 .PHONY: clean
 clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
