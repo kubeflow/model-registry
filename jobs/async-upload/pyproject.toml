@@ -1,17 +1,19 @@
-[project]
+[tool.poetry]
 name = "async-upload"
 version = "0.0.1"
 description = "Model Registry Job to upload a Model from a source to a destination"
-authors = [
-    {name = "Your Name",email = "you@example.com"}
-]
+authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-    "pytest (>=8.3.5,<9.0.0)",
-    "configargparse (>=1.7.1,<2.0.0)"
-]
+packages = [{include = "job"}]
 
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+configargparse = ">=1.7.1,<2.0.0"
+model-registry = ">=0.2.19,<0.3.0"
+aiohttp = "^3.12.12"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3.5,<9.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -20,6 +22,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = [
+    "e2e: marks tests as end-to-end tests"
+]
 
 [tool.poetry.scripts]
 debug-test = "debugpy:main --listen 5678 --wait-for-client -m pytest jobs/async-upload/tests/test_config.py -v"
