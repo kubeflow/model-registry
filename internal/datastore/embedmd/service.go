@@ -4,11 +4,8 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/db"
+	"github.com/kubeflow/model-registry/internal/db/types"
 	"github.com/kubeflow/model-registry/pkg/api"
-)
-
-const (
-	DatabaseTypeMySQL = "mysql"
 )
 
 type EmbedMDConfig struct {
@@ -17,8 +14,8 @@ type EmbedMDConfig struct {
 }
 
 func (c *EmbedMDConfig) Validate() error {
-	if c.DatabaseType != DatabaseTypeMySQL {
-		return fmt.Errorf("unsupported database type: %s", c.DatabaseType)
+	if c.DatabaseType != types.DatabaseTypeMySQL && c.DatabaseType != types.DatabaseTypePostgres {
+		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", c.DatabaseType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 	}
 
 	return nil
