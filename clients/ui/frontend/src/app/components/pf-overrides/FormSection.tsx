@@ -1,19 +1,35 @@
 import * as React from 'react';
-import { Box, Typography, Divider } from '@mui/material';
+import { FormSection as PFFormSection, FormSectionProps, Content } from '@patternfly/react-core';
 
-type FormSectionProps = {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
+import './FormSection.scss';
+
+type Props = FormSectionProps & {
+  description?: React.ReactNode;
 };
 
-const FormSection: React.FC<FormSectionProps> = ({ title, description, children }) => (
-  <Box sx={{ my: 2 }}>
-    <Typography variant="h6">{title}</Typography>
-    {description && <Typography variant="body2" color="text.secondary">{description}</Typography>}
-    <Box sx={{ mt: 2 }}>{children}</Box>
-    <Divider sx={{ mt: 2 }} />
-  </Box>
+// Remove once https://github.com/patternfly/patternfly/issues/6663 is fixed
+const FormSection: React.FC<Props> = ({
+  description,
+  title,
+  titleElement: TitleElement = 'div',
+  ...props
+}) => (
+  <PFFormSection
+    {...props}
+    titleElement={description ? 'div' : TitleElement}
+    title={
+      description ? (
+        <>
+          <TitleElement className="pf-v6-c-form__section-title">{title}</TitleElement>
+          <Content component="p" className="odh-form-section__desc">
+            {description}
+          </Content>
+        </>
+      ) : (
+        title
+      )
+    }
+  />
 );
 
-export default FormSection; 
+export default FormSection;

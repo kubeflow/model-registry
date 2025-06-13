@@ -10,11 +10,11 @@ import React from 'react';
 import {
   RoleBindingPermissionsRBType,
   RoleBindingPermissionsRoleType,
-} from '~/app/concepts/roleBinding/types';
-import { filterRoleBindingSubjects, removePrefix } from '~/app/concepts/roleBinding/utils';
+} from '~/app/pages/settings/roleBinding/types';
+import { filterRoleBindingSubjects, removePrefix, tryPatchRoleBinding } from '~/app/pages/settings/roleBinding/utils';
 import { RoleBindingKind, RoleBindingRoleRef } from '~/app/k8sTypes';
 import { ProjectsContext } from '~/app/concepts/projects/ProjectsContext';
-import RoleBindingPermissionsTableSection from '~/app/concepts/roleBinding/RoleBindingPermissionsTableSection';
+import RoleBindingPermissionsTableSection from '~/app/pages/settings/roleBinding/RoleBindingPermissionsTableSection';
 import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
@@ -101,9 +101,9 @@ const ProjectsSettingsTab: React.FC<RoleBindingProjectPermissionsProps> = ({
         }
         refresh={refreshRB}
         typeModifier="project"
-        isProjectSubject={isProjectSubject}
         createRoleBinding={createModelRegistryRoleBinding}
         deleteRoleBinding={deleteModelRegistryRoleBinding}
+        tryPatchRoleBinding={tryPatchRoleBinding}
         />
     </Stack>
   );

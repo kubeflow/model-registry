@@ -3,9 +3,7 @@ import {
   Alert,
   Box,
   Checkbox,
-  FormControl,
   FormGroup,
-  FormHelperText,
   CircularProgress,
   TextField,
   Dialog,
@@ -40,10 +38,10 @@ import {
 import { RecursivePartial } from '~/typeHelpers';
 import { fireFormTrackingEvent } from '~/app/concepts/analyticsTracking/segmentIOUtils';
 import { TrackingOutcome } from '~/app/concepts/analyticsTracking/trackingProperties';
-import ApplicationsPage from '~/app/pages/ApplicationsPage';
-import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
+import ApplicationsPage from '~/app/pages/ApplicationPage';
+import RedirectErrorState from '../external/RedirectErrorState';
 import { CreateMRSecureDBSection, SecureDBInfo } from './CreateMRSecureDBSection';
-import ModelRegistryDatabasePassword from './ModelRegistryDatabasePassword';
+import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import { ResourceType, SecureDBRType } from './const';
 
 type CreateModalProps = {
@@ -338,7 +336,6 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
               isPasswordTouched={isPasswordTouched}
               setIsPasswordTouched={setIsPasswordTouched}
               showPassword={showPassword}
-              editRegistry={!!mr}
             />
           </FormGroup>
           <FormGroup>

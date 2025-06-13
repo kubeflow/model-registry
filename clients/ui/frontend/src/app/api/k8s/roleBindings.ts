@@ -17,8 +17,7 @@ import {
 } from '../../k8sTypes';
 import { RoleBindingModel } from '../models';
 import { genRandomChars } from '../../utils/string';
-import { applyK8sAPIOptions } from '../apiMergeUtils';
-import { RoleBindingPermissionsRoleType } from '../../concepts/roleBinding/types';
+import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 import { addOwnerReference } from '../k8sUtils';
 
 export const generateRoleBindingServiceAccount = (

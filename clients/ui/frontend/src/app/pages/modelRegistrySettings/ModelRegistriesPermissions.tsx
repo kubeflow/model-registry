@@ -10,15 +10,15 @@ import {
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { useGroups } from '~/app/api/k8s/groups';
-import RoleBindingPermissions from '~/app/concepts/roleBinding/RoleBindingPermissions';
-import ApplicationsPage from '~/app/pages/ApplicationsPage';
+import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
+import ApplicationsPage from '~/app/pages/ApplicationPage';  
 import { useModelRegistryNamespaceCR } from '~/app/concepts/modelRegistry/context/useModelRegistryNamespaceCR';
 import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
-import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
+import RedirectErrorState from '../external/RedirectErrorState';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import ProjectsSettingsTab from '~/app/pages/modelRegistrySettings/ProjectsTab/ProjectsSettingsTab';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import ModelRegistryRoutes from '~/app/pages/modelRegistry/ModelRegistryRoutes';
-import ModelRegistrySettingsRoutes from '~/app/pages/modelRegistrySettings/ModelRegistrySettingsRoutes';
+import ModelRegistrySettingsRoutes from '~/app/pages/settings/ModelRegistrySettingsRoutes';
 import useUser from '~/app/hooks/useUser';
 import { NotFound } from '~/app/components/NotFound';
 import { AppLayout } from '~/app/AppLayout';
