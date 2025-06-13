@@ -9,7 +9,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/proxy"
-	"github.com/kubeflow/model-registry/internal/server/openapi"
+	"github.com/kubeflow/model-registry/internal/server/openapi/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -84,10 +84,10 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 			return
 		}
 
-		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(conn)
-		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
+		ModelRegistryServiceAPIService := registry.NewModelRegistryServiceAPIService(conn)
+		ModelRegistryServiceAPIController := registry.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 
-		router.SetRouter(openapi.NewRouter(ModelRegistryServiceAPIController))
+		router.SetRouter(registry.NewRouter(ModelRegistryServiceAPIController))
 	}()
 
 	// Start the proxy server in a separate goroutine so that we can handle
