@@ -564,3 +564,186 @@ func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Co
 	}
 	return Response(http.StatusOK, result), nil
 }
+
+// CreateExperiment - Create an Experiment
+func (s *ModelRegistryServiceAPIService) CreateExperiment(ctx context.Context, experimentCreate model.ExperimentCreate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentCreate(&experimentCreate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	result, err := s.coreApi.UpsertExperiment(entity)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// CreateExperimentExperimentRun - Create an ExperimentRun in Experiment
+func (s *ModelRegistryServiceAPIService) CreateExperimentExperimentRun(ctx context.Context, experimentId string, experimentRun model.ExperimentRun) (ImplResponse, error) {
+	result, err := s.coreApi.UpsertExperimentRun(&experimentRun, apiutils.StrPtr(experimentId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// CreateExperimentRun - Create an ExperimentRun
+func (s *ModelRegistryServiceAPIService) CreateExperimentRun(ctx context.Context, experimentRunCreate model.ExperimentRunCreate) (ImplResponse, error) {
+	experimentRun, err := s.converter.ConvertExperimentRunCreate(&experimentRunCreate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	result, err := s.coreApi.UpsertExperimentRun(experimentRun, &experimentRunCreate.ExperimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// FindExperiment - Get an Experiment that matches search parameters
+func (s *ModelRegistryServiceAPIService) FindExperiment(ctx context.Context, name string, externalId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// FindExperimentRun - Get an ExperimentRun that matches search parameters
+func (s *ModelRegistryServiceAPIService) FindExperimentRun(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentRunByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperiment - Get an Experiment
+func (s *ModelRegistryServiceAPIService) GetExperiment(ctx context.Context, experimentId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentById(experimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentExperimentRuns - List All Experiment's ExperimentRuns
+func (s *ModelRegistryServiceAPIService) GetExperimentExperimentRuns(ctx context.Context, experimentId string, name string, externalId string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRuns(listOpts, apiutils.StrPtr(experimentId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRun - Get an ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRun(ctx context.Context, experimentrunId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentRunById(experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRunArtifacts - List all artifacts associated with the ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.Context, experimentrunId string, name string, externalId string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRunArtifacts(listOpts, apiutils.StrPtr(experimentrunId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRuns - List All ExperimentRuns
+func (s *ModelRegistryServiceAPIService) GetExperimentRuns(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRuns(listOpts, nil)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperiments - List All Experiments
+func (s *ModelRegistryServiceAPIService) GetExperiments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperiments(listOpts)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpdateExperiment - Update an Experiment
+func (s *ModelRegistryServiceAPIService) UpdateExperiment(ctx context.Context, experimentId string, experimentUpdate model.ExperimentUpdate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentUpdate(&experimentUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	entity.Id = &experimentId
+	existing, err := s.coreApi.GetExperimentById(experimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := s.reconciler.UpdateExistingExperiment(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	result, err := s.coreApi.UpsertExperiment(&update)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpdateExperimentRun - Update an ExperimentRun
+func (s *ModelRegistryServiceAPIService) UpdateExperimentRun(ctx context.Context, experimentrunId string, experimentRunUpdate model.ExperimentRunUpdate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentRunUpdate(&experimentRunUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	entity.Id = &experimentrunId
+	existing, err := s.coreApi.GetExperimentRunById(experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := s.reconciler.UpdateExistingExperimentRun(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	result, err := s.coreApi.UpsertExperimentRun(&update, nil)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpsertExperimentRunArtifact - Upsert an Artifact in an ExperimentRun
+func (s *ModelRegistryServiceAPIService) UpsertExperimentRunArtifact(ctx context.Context, experimentrunId string, artifact model.Artifact) (ImplResponse, error) {
+	creating := (artifact.DocArtifact != nil && artifact.DocArtifact.Id == nil) || (artifact.ModelArtifact != nil && artifact.ModelArtifact.Id == nil)
+
+	result, err := s.coreApi.UpsertExperimentRunArtifact(&artifact, experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	if creating {
+		return Response(http.StatusCreated, result), nil
+	}
+	return Response(http.StatusOK, result), nil
+}

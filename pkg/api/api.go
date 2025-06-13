@@ -58,7 +58,7 @@ type ModelRegistryApi interface {
 
 	GetArtifactById(id string) (*openapi.Artifact, error)
 
-	GetArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.Artifact, error)
+	GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error)
 
 	GetArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
 
@@ -74,11 +74,11 @@ type ModelRegistryApi interface {
 	GetModelArtifactByInferenceService(inferenceServiceId string) (*openapi.ModelArtifact, error)
 
 	// GetModelArtifactByParams find ModelArtifact instances that match the provided optional params
-	GetModelArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.ModelArtifact, error)
+	GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error)
 
 	// GetModelArtifacts return all ModelArtifact properly ordered and sized based on listOptions param.
-	// if modelVersionId is provided, return all ModelArtifact instances belonging to a specific ModelVersion
-	GetModelArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ModelArtifactList, error)
+	// if parentResourceId is provided, return all ModelArtifact instances belonging to a specific parent resource
+	GetModelArtifacts(listOptions ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error)
 
 	// SERVING ENVIRONMENT
 
@@ -127,4 +127,20 @@ type ModelRegistryApi interface {
 	// GetServeModels get all ServeModel objects properly ordered and sized based on listOptions param.
 	// if inferenceServiceId is provided, return all ServeModel instances belonging to a specific InferenceService
 	GetServeModels(listOptions ListOptions, inferenceServiceId *string) (*openapi.ServeModelList, error)
+
+	// EXPERIMENT
+	UpsertExperiment(experiment *openapi.Experiment) (*openapi.Experiment, error)
+	GetExperimentById(id string) (*openapi.Experiment, error)
+	GetExperimentByParams(name *string, externalId *string) (*openapi.Experiment, error)
+	GetExperiments(listOptions ListOptions) (*openapi.ExperimentList, error)
+
+	// EXPERIMENT RUN
+	UpsertExperimentRun(experimentRun *openapi.ExperimentRun, experimentId *string) (*openapi.ExperimentRun, error)
+	GetExperimentRunById(id string) (*openapi.ExperimentRun, error)
+	GetExperimentRunByParams(name *string, experimentId *string, externalId *string) (*openapi.ExperimentRun, error)
+	GetExperimentRuns(listOptions ListOptions, experimentId *string) (*openapi.ExperimentRunList, error)
+
+	// EXPERIMENT RUN ARTIFACTS
+	UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error)
+	GetExperimentRunArtifacts(listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
 }

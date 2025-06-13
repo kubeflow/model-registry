@@ -9,4 +9,6 @@ const (
 	ServingEnvironmentTypeName = "kf.ServingEnvironment"
 	InferenceServiceTypeName   = "kf.InferenceService"
 	ServeModelTypeName         = "kf.ServeModel"
+	ExperimentTypeName         = "kf.Experiment"
+	ExperimentRunTypeName      = "kf.ExperimentRun"
 )

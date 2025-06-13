@@ -64,6 +64,139 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.Opena
 	}
 	return openapiDocArtifact, nil
 }
+func (c *OpenAPIReconcilerImpl) UpdateExistingExperiment(source converter.OpenapiUpdateWrapper[openapi.Experiment]) (openapi.Experiment, error) {
+	openapiExperiment := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiExperiment.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiExperiment.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.Owner
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiExperiment.Owner = &xstring3
+	}
+	var pOpenapiExperimentState *openapi.ExperimentState
+	if source.Update != nil {
+		pOpenapiExperimentState = source.Update.State
+	}
+	if pOpenapiExperimentState != nil {
+		openapiExperimentState, err := c.openapiExperimentStateToOpenapiExperimentState(*pOpenapiExperimentState)
+		if err != nil {
+			return openapiExperiment, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperiment.State = &openapiExperimentState
+	}
+	return openapiExperiment, nil
+}
+func (c *OpenAPIReconcilerImpl) UpdateExistingExperimentRun(source converter.OpenapiUpdateWrapper[openapi.ExperimentRun]) (openapi.ExperimentRun, error) {
+	openapiExperimentRun := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiExperimentRun.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiExperimentRun.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.EndTimeSinceEpoch
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiExperimentRun.EndTimeSinceEpoch = &xstring3
+	}
+	var pOpenapiExperimentRunStatus *openapi.ExperimentRunStatus
+	if source.Update != nil {
+		pOpenapiExperimentRunStatus = source.Update.Status
+	}
+	if pOpenapiExperimentRunStatus != nil {
+		openapiExperimentRunStatus, err := c.openapiExperimentRunStatusToOpenapiExperimentRunStatus(*pOpenapiExperimentRunStatus)
+		if err != nil {
+			return openapiExperimentRun, fmt.Errorf("error setting field Status: %w", err)
+		}
+		openapiExperimentRun.Status = &openapiExperimentRunStatus
+	}
+	var pOpenapiExperimentRunState *openapi.ExperimentRunState
+	if source.Update != nil {
+		pOpenapiExperimentRunState = source.Update.State
+	}
+	if pOpenapiExperimentRunState != nil {
+		openapiExperimentRunState, err := c.openapiExperimentRunStateToOpenapiExperimentRunState(*pOpenapiExperimentRunState)
+		if err != nil {
+			return openapiExperimentRun, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperimentRun.State = &openapiExperimentRunState
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.Owner
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiExperimentRun.Owner = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.StartTimeSinceEpoch
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiExperimentRun.StartTimeSinceEpoch = &xstring5
+	}
+	return openapiExperimentRun, nil
+}
 func (c *OpenAPIReconcilerImpl) UpdateExistingInferenceService(source converter.OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error) {
 	openapiInferenceService := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
@@ -570,6 +703,48 @@ func (c *OpenAPIReconcilerImpl) openapiExecutionStateToOpenapiExecutionState(sou
 		return openapiExecutionState, fmt.Errorf("unexpected enum element: %v", source)
 	}
 	return openapiExecutionState, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiExperimentRunStateToOpenapiExperimentRunState(source openapi.ExperimentRunState) (openapi.ExperimentRunState, error) {
+	var openapiExperimentRunState openapi.ExperimentRunState
+	switch source {
+	case openapi.EXPERIMENTRUNSTATE_ARCHIVED:
+		openapiExperimentRunState = openapi.EXPERIMENTRUNSTATE_ARCHIVED
+	case openapi.EXPERIMENTRUNSTATE_LIVE:
+		openapiExperimentRunState = openapi.EXPERIMENTRUNSTATE_LIVE
+	default:
+		return openapiExperimentRunState, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentRunState, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiExperimentRunStatusToOpenapiExperimentRunStatus(source openapi.ExperimentRunStatus) (openapi.ExperimentRunStatus, error) {
+	var openapiExperimentRunStatus openapi.ExperimentRunStatus
+	switch source {
+	case openapi.EXPERIMENTRUNSTATUS_FAILED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_FAILED
+	case openapi.EXPERIMENTRUNSTATUS_FINISHED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_FINISHED
+	case openapi.EXPERIMENTRUNSTATUS_KILLED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_KILLED
+	case openapi.EXPERIMENTRUNSTATUS_RUNNING:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_RUNNING
+	case openapi.EXPERIMENTRUNSTATUS_SCHEDULED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_SCHEDULED
+	default:
+		return openapiExperimentRunStatus, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentRunStatus, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiExperimentStateToOpenapiExperimentState(source openapi.ExperimentState) (openapi.ExperimentState, error) {
+	var openapiExperimentState openapi.ExperimentState
+	switch source {
+	case openapi.EXPERIMENTSTATE_ARCHIVED:
+		openapiExperimentState = openapi.EXPERIMENTSTATE_ARCHIVED
+	case openapi.EXPERIMENTSTATE_LIVE:
+		openapiExperimentState = openapi.EXPERIMENTSTATE_LIVE
+	default:
+		return openapiExperimentState, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentState, nil
 }
 func (c *OpenAPIReconcilerImpl) openapiInferenceServiceStateToOpenapiInferenceServiceState(source openapi.InferenceServiceState) (openapi.InferenceServiceState, error) {
 	var openapiInferenceServiceState openapi.InferenceServiceState

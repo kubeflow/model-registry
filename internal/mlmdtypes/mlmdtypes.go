@@ -17,6 +17,8 @@ type MLMDTypeNamesConfig struct {
 	ServingEnvironmentTypeName string
 	InferenceServiceTypeName   string
 	ServeModelTypeName         string
+	ExperimentTypeName         string
+	ExperimentRunTypeName      string
 	CanAddFields               bool
 }
 
@@ -29,6 +31,8 @@ func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
 		ServingEnvironmentTypeName: defaults.ServingEnvironmentTypeName,
 		InferenceServiceTypeName:   defaults.InferenceServiceTypeName,
 		ServeModelTypeName:         defaults.ServeModelTypeName,
+		ExperimentTypeName:         defaults.ExperimentTypeName,
+		ExperimentRunTypeName:      defaults.ExperimentRunTypeName,
 		CanAddFields:               true,
 	}
 }
@@ -140,6 +144,33 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		},
 	}
 
+	experimentReq := proto.PutContextTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ContextType: &proto.ContextType{
+			Name: &nameConfig.ExperimentTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"owner":       proto.PropertyType_STRING,
+				"state":       proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	experimentRunReq := proto.PutContextTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ContextType: &proto.ContextType{
+			Name: &nameConfig.ExperimentRunTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description":            proto.PropertyType_STRING,
+				"owner":                  proto.PropertyType_STRING,
+				"state":                  proto.PropertyType_STRING,
+				"status":                 proto.PropertyType_STRING,
+				"start_time_since_epoch": proto.PropertyType_INT,
+				"end_time_since_epoch":   proto.PropertyType_INT,
+			},
+		},
+	}
+
 	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.RegisteredModelTypeName, err)
@@ -175,6 +206,16 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		return nil, fmt.Errorf("error setting up execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
+	experimentResp, err := client.PutContextType(context.Background(), &experimentReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ExperimentTypeName, err)
+	}
+
+	experimentRunResp, err := client.PutContextType(context.Background(), &experimentRunReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ExperimentRunTypeName, err)
+	}
+
 	typesMap := map[string]int64{
 		defaults.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
 		defaults.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
@@ -183,6 +224,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		defaults.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
 		defaults.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
 		defaults.ServeModelTypeName:         serveModelResp.GetTypeId(),
+		defaults.ExperimentTypeName:         experimentResp.GetTypeId(),
+		defaults.ExperimentRunTypeName:      experimentRunResp.GetTypeId(),
 	}
 	return typesMap, nil
 }

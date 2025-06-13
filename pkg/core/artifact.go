@@ -14,18 +14,18 @@ import (
 
 // ARTIFACTS
 
-// UpsertModelVersionArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
+// upsertContextArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
 // ID is provided.
-// Upon creation, new artifacts will be associated with their corresponding model version.
-func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error) {
+// Upon creation, new artifacts will be associated with their corresponding parent context.
+func (serv *ModelRegistryService) upsertContextArtifact(artifact *openapi.Artifact, parentContextID string) (*openapi.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
 	}
-	art, err := serv.upsertArtifact(artifact, &modelVersionId)
+	art, err := serv.upsertArtifact(artifact, &parentContextID)
 	if err != nil {
 		return nil, err
 	}
-	// upsertArtifact already validates modelVersion
+	// upsertArtifact already validates parentContextID
 
 	var id *string
 	if art.ModelArtifact != nil {
@@ -36,22 +36,35 @@ func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.A
 		return nil, fmt.Errorf("unexpected artifact type: %v", art)
 	}
 
-	mv, _ := serv.getModelVersionByArtifactId(*id)
+	// get all contexts that the artifact is attributed to of the given type
+	contexts, err := serv.getContextsByArtifactId(*id)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
 
-	if mv == nil {
-		// add explicit Attribution between Artifact and ModelVersion
-		modelVersionId, err := converter.StringToInt64(&modelVersionId)
-		if err != nil {
-			// unreachable
-			return nil, fmt.Errorf("%v", err)
+	contextId, err := converter.StringToInt64(&parentContextID)
+	if err != nil {
+		// unreachable
+		return nil, fmt.Errorf("%v", err)
+	}
+	// find parent context in contexts
+	var parentContext *proto.Context
+	for _, c := range contexts {
+		if c.Id == contextId {
+			parentContext = c
+			break
 		}
+	}
+
+	if parentContext == nil {
+		// add explicit Attribution between Artifact and Context
 		artifactId, err := converter.StringToInt64(id)
 		if err != nil {
 			return nil, fmt.Errorf("%v", err)
 		}
 		attributions := []*proto.Attribution{}
 		attributions = append(attributions, &proto.Attribution{
-			ContextId:  modelVersionId,
+			ContextId:  contextId,
 			ArtifactId: artifactId,
 		})
 		_, err = serv.mlmdClient.PutAttributionsAndAssociations(context.Background(), &proto.PutAttributionsAndAssociationsRequest{
@@ -61,13 +74,11 @@ func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.A
 		if err != nil {
 			return nil, err
 		}
-	} else if *mv.Id != modelVersionId {
-		return nil, fmt.Errorf("artifact %s is already associated with a different model version %s: %w", *id, *mv.Id, api.ErrBadRequest)
 	}
 	return art, nil
 }
 
-func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error) {
+func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parentContextId *string) (*openapi.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
 	}
@@ -109,12 +120,12 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, mod
 	} else {
 		return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact: %w", api.ErrBadRequest)
 	}
-	if modelVersionId != nil {
-		if _, err := serv.GetModelVersionById(*modelVersionId); err != nil {
-			return nil, fmt.Errorf("no model version found for id %s: %w", *modelVersionId, api.ErrNotFound)
+	if parentContextId != nil {
+		if _, err := serv.GetContextByID(*parentContextId); err != nil {
+			return nil, fmt.Errorf("no parent context found for id %s: %w", *parentContextId, api.ErrNotFound)
 		}
 	}
-	pa, err := serv.mapper.MapFromArtifact(artifact, modelVersionId)
+	pa, err := serv.mapper.MapFromArtifact(artifact, parentContextId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
@@ -156,16 +167,16 @@ func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact,
 	return serv.mapper.MapToArtifact(artifactsResp.Artifacts[0])
 }
 
-// GetArtifactByParams retrieves an artifact based on specified parameters, such as (artifact name and model version ID), or external ID.
+// GetArtifactByParams retrieves an artifact based on specified parameters, such as (artifact name and parent resource ID), or external ID.
 // If multiple or no model artifacts are found, an error is returned.
-func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.Artifact, error) {
+func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error) {
 	var artifact0 *proto.Artifact
 
 	filterQuery := ""
 	if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
-	} else if artifactName != nil && modelVersionId != nil {
-		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(modelVersionId, *artifactName))
+	} else if artifactName != nil && parentResourceId != nil {
+		filterQuery = fmt.Sprintf("name = \"%s\"", converter.PrefixWhenOwned(parentResourceId, *artifactName))
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
 	}
@@ -181,11 +192,11 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, mode
 	}
 
 	if len(artifactsResponse.Artifacts) > 1 {
-		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("multiple model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(artifactsResponse.Artifacts) == 0 {
-		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("no model artifacts found for artifactName=%v, modelVersionId=%v, externalId=%v: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	artifact0 = artifactsResponse.Artifacts[0]
@@ -198,8 +209,8 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, mode
 	return result, nil
 }
 
-// GetArtifacts retrieves a list of artifacts based on the provided list options and optional model version ID.
-func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ArtifactList, error) {
+// GetArtifacts retrieves a list of artifacts based on the provided list options and optional parent context ID.
+func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, parentContextId *string) (*openapi.ArtifactList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
@@ -207,8 +218,8 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, mode
 
 	var artifacts []*proto.Artifact
 	var nextPageToken *string
-	if modelVersionId != nil {
-		ctxId, err := converter.StringToInt64(modelVersionId)
+	if parentContextId != nil {
+		ctxId, err := converter.StringToInt64(parentContextId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -395,4 +406,48 @@ func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 		Items:         results,
 	}
 	return &toReturn, nil
+}
+
+// GetContextByID retrieves a context by its unique identifier (ID).
+func (serv *ModelRegistryService) GetContextByID(id string) (*proto.Context, error) {
+	idAsInt, err := converter.StringToInt64(&id)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	getByIdResp, err := serv.mlmdClient.GetContextsByID(context.Background(), &proto.GetContextsByIDRequest{
+		ContextIds: []int64{int64(*idAsInt)},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(getByIdResp.Contexts) > 1 {
+		return nil, fmt.Errorf("multiple contexts found for id %s: %w", id, api.ErrNotFound)
+	}
+
+	if len(getByIdResp.Contexts) == 0 {
+		return nil, fmt.Errorf("no context found for id %s: %w", id, api.ErrNotFound)
+	}
+
+	return getByIdResp.Contexts[0], nil
+}
+
+func (serv *ModelRegistryService) getContextsByArtifactId(id string) ([]*proto.Context, error) {
+	if id == "" {
+		return nil, fmt.Errorf("invalid artifact id: %w", api.ErrBadRequest)
+	}
+
+	idAsInt, err := converter.StringToInt64(&id)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	response, err := serv.mlmdClient.GetContextsByArtifact(context.Background(), &proto.GetContextsByArtifactRequest{
+		ArtifactId: idAsInt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+	return response.Contexts, nil
 }

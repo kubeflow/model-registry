@@ -95,6 +95,23 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		return nil, fmt.Errorf("error getting execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
+	// Add experiment type retrieval
+	experimentContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: &nameConfig.ExperimentTypeName,
+	}
+	experimentResp, err := client.GetContextType(context.Background(), &experimentContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ExperimentTypeName, err)
+	}
+
+	experimentRunContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: &nameConfig.ExperimentRunTypeName,
+	}
+	experimentRunResp, err := client.GetContextType(context.Background(), &experimentRunContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ExperimentRunTypeName, err)
+	}
+
 	typesMap := map[string]int64{
 		nameConfig.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
 		nameConfig.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
@@ -103,6 +120,8 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		nameConfig.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
 		nameConfig.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
 		nameConfig.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),
+		nameConfig.ExperimentTypeName:         experimentResp.ContextType.GetId(),
+		nameConfig.ExperimentRunTypeName:      experimentRunResp.ContextType.GetId(),
 	}
 	return typesMap, nil
 }

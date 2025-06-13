@@ -358,3 +358,54 @@ func MapMLMDServeModelLastKnownState(source *proto.Execution_State) *openapi.Exe
 	state := source.String()
 	return (*openapi.ExecutionState)(&state)
 }
+
+// EXPERIMENT
+
+func MapExperimentState(properties map[string]*proto.Value) *openapi.ExperimentState {
+	state, ok := properties["state"]
+	if !ok {
+		return nil
+	}
+	str := state.GetStringValue()
+	return (*openapi.ExperimentState)(&str)
+}
+
+// EXPERIMENT RUN
+
+func MapExperimentIdFromOwned(source *string) (string, error) {
+	if source == nil {
+		return "", nil
+	}
+
+	exploded := strings.Split(*source, ":")
+	if len(exploded) < 2 {
+		return "", fmt.Errorf("wrong owned format")
+	}
+	return exploded[0], nil
+}
+
+func MapExperimentRunState(properties map[string]*proto.Value) *openapi.ExperimentRunState {
+	state, ok := properties["state"]
+	if !ok {
+		return nil
+	}
+	str := state.GetStringValue()
+	return (*openapi.ExperimentRunState)(&str)
+}
+
+func MapExperimentRunStatus(properties map[string]*proto.Value) *openapi.ExperimentRunStatus {
+	status, ok := properties["status"]
+	if !ok {
+		return nil
+	}
+	str := status.GetStringValue()
+	return (*openapi.ExperimentRunStatus)(&str)
+}
+
+func MapPropertyStartTimeSinceEpoch(properties map[string]*proto.Value) *string {
+	return MapIntProperty(properties, "start_time_since_epoch")
+}
+
+func MapPropertyEndTimeSinceEpoch(properties map[string]*proto.Value) *string {
+	return MapIntProperty(properties, "end_time_since_epoch")
+}

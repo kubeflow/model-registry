@@ -64,6 +64,18 @@ type OpenAPIConverter interface {
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ModelVersionId
 	ConvertServeModelUpdate(source *openapi.ServeModelUpdate) (*openapi.ServeModel, error)
 
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperimentCreate(source *openapi.ExperimentCreate) (*openapi.Experiment, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
+	ConvertExperimentUpdate(source *openapi.ExperimentUpdate) (*openapi.Experiment, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperimentRunCreate(source *openapi.ExperimentRunCreate) (*openapi.ExperimentRun, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ExperimentId StartTimeSinceEpoch
+	ConvertExperimentRunUpdate(source *openapi.ExperimentRunUpdate) (*openapi.ExperimentRun, error)
+
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
@@ -111,4 +123,16 @@ type OpenAPIConverter interface {
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties LastKnownState
 	OverrideNotEditableForServeModel(source OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error)
+
+	// Ignore all fields that ARE editable for Experiment
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Owner
+	OverrideNotEditableForExperiment(source OpenapiUpdateWrapper[openapi.Experiment]) (openapi.Experiment, error)
+
+	// Ignore all fields that ARE editable for ExperimentRun
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Owner Status StartTimeSinceEpoch EndTimeSinceEpoch
+	OverrideNotEditableForExperimentRun(source OpenapiUpdateWrapper[openapi.ExperimentRun]) (openapi.ExperimentRun, error)
 }

@@ -10,7 +10,9 @@ type OpenAPIModel interface {
 		openapi.DocArtifact |
 		openapi.ServingEnvironment |
 		openapi.InferenceService |
-		openapi.ServeModel
+		openapi.ServeModel |
+		openapi.Experiment |
+		openapi.ExperimentRun
 }
 
 type OpenapiUpdateWrapper[

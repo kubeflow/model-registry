@@ -636,6 +636,125 @@ func MapLastKnownState(source *openapi.ExecutionState) (*proto.Execution_State, 
 	return (*proto.Execution_State)(&val), nil
 }
 
+// EXPERIMENT
+
+func MapExperimentType(_ *openapi.Experiment) *string {
+	return of(defaults.ExperimentTypeName)
+}
+
+func MapExperimentProperties(source *openapi.Experiment) (map[string]*proto.Value, error) {
+	props := make(map[string]*proto.Value)
+	if source != nil {
+		if source.Owner != nil {
+			props["owner"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Owner,
+				},
+			}
+		}
+
+		if source.Description != nil {
+			props["description"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Description,
+				},
+			}
+		}
+
+		if source.State != nil {
+			props["state"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*source.State),
+				},
+			}
+		}
+	}
+	return props, nil
+}
+
+// EXPERIMENT RUN
+
+func MapExperimentRunType(_ *openapi.ExperimentRun) *string {
+	return of(defaults.ExperimentRunTypeName)
+}
+
+// MapExperimentRunName maps the user-provided name into MLMD one, i.e., prefixing it with
+// either the parent resource id or a generated uuid. If not provided, autogenerate the name
+// itself
+func MapExperimentRunName(source *OpenAPIModelWrapper[openapi.ExperimentRun]) *string {
+	// openapi.ExperimentRun is defined with optional name, so build arbitrary name for this artifact if missing
+	var experimentRunName string
+	if (*source).Model.Name != nil {
+		experimentRunName = *(*source).Model.Name
+	} else {
+		experimentRunName = uuid.New().String()
+	}
+	return of(PrefixWhenOwned(source.ParentResourceId, experimentRunName))
+}
+
+func MapExperimentRunProperties(source *openapi.ExperimentRun) (map[string]*proto.Value, error) {
+
+	props := make(map[string]*proto.Value)
+	if source != nil {
+		if source.Owner != nil {
+			props["owner"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Owner,
+				},
+			}
+		}
+
+		if source.Description != nil {
+			props["description"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Description,
+				},
+			}
+		}
+
+		if source.State != nil {
+			props["state"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*source.State),
+				},
+			}
+		}
+
+		if source.Status != nil {
+			props["status"] = &proto.Value{
+				Value: &proto.Value_StringValue{
+					StringValue: string(*source.Status),
+				},
+			}
+		}
+
+		if source.StartTimeSinceEpoch != nil {
+			value, err := strconv.ParseInt(*source.StartTimeSinceEpoch, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid start time since epoch: %w", err)
+			}
+			props["start_time_since_epoch"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: value,
+				},
+			}
+		}
+
+		if source.EndTimeSinceEpoch != nil {
+			value, err := strconv.ParseInt(*source.EndTimeSinceEpoch, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid end time since epoch: %w", err)
+			}
+			props["end_time_since_epoch"] = &proto.Value{
+				Value: &proto.Value_IntValue{
+					IntValue: value,
+				},
+			}
+		}
+	}
+	return props, nil
+}
+
 // of returns a pointer to the provided literal/const input
 func of[E any](e E) *E {
 	return &e

@@ -185,8 +185,8 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifactFailure() {
 	modelVersion2Id := suite.registerModelVersion(service, &rmName, &rmName, &mvName, &mvName)
 
 	_, err = service.UpsertModelVersionArtifact(createdArtifact, modelVersion2Id)
-	suite.NotNil(err)
-	suite.Equal(fmt.Sprintf("artifact %s is already associated with a different model version %s: bad request", *createdArtifact.DocArtifact.Id, modelVersionId), err.Error())
+	suite.Nilf(err, "error associating artifact %s to model version %s: %v",
+		*createdArtifact.DocArtifact.Id, modelVersion2Id, err)
 }
 
 func (suite *CoreTestSuite) TestUpsertModelVersionStandaloneArtifact() {

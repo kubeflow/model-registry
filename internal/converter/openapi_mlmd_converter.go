@@ -72,4 +72,19 @@ type OpenAPIToMLMDConverter interface {
 	// goverter:map Model.LastKnownState LastKnownState | MapLastKnownState
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertServeModel(source *OpenAPIModelWrapper[openapi.ServeModel]) (*proto.Execution, error)
+
+	// ADD EXPERIMENT CONVERTER FUNCTIONS
+
+	// goverter:autoMap Model
+	// goverter:map Model Type | MapExperimentType
+	// goverter:map Model Properties | MapExperimentProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperiment(source *OpenAPIModelWrapper[openapi.Experiment]) (*proto.Context, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapExperimentRunName
+	// goverter:map Model Type | MapExperimentRunType
+	// goverter:map Model Properties | MapExperimentRunProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperimentRun(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*proto.Context, error)
 }

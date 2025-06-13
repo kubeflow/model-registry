@@ -20,6 +20,17 @@ model_doc_artifact_create.go
 model_doc_artifact_update.go
 model_error.go
 model_execution_state.go
+model_experiment.go
+model_experiment_create.go
+model_experiment_list.go
+model_experiment_run.go
+model_experiment_run_create.go
+model_experiment_run_list.go
+model_experiment_run_state.go
+model_experiment_run_status.go
+model_experiment_run_update.go
+model_experiment_state.go
+model_experiment_update.go
 model_inference_service.go
 model_inference_service_create.go
 model_inference_service_list.go

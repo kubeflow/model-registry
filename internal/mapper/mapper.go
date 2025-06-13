@@ -115,6 +115,21 @@ func (m *Mapper) MapFromServeModel(serveModel *openapi.ServeModel, inferenceServ
 	})
 }
 
+func (m *Mapper) MapFromExperiment(experiment *openapi.Experiment) (*proto.Context, error) {
+	return m.OpenAPIConverter.ConvertExperiment(&converter.OpenAPIModelWrapper[openapi.Experiment]{
+		TypeId: m.MLMDTypes[defaults.ExperimentTypeName],
+		Model:  experiment,
+	})
+}
+
+func (m *Mapper) MapFromExperimentRun(experimentRun *openapi.ExperimentRun, experimentId *string) (*proto.Context, error) {
+	return m.OpenAPIConverter.ConvertExperimentRun(&converter.OpenAPIModelWrapper[openapi.ExperimentRun]{
+		TypeId:           m.MLMDTypes[defaults.ExperimentRunTypeName],
+		Model:            experimentRun,
+		ParentResourceId: experimentId,
+	})
+}
+
 // Utilities for MLMD --> OpenAPI mapping, make use of generated Converters
 
 func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredModel, error) {
@@ -166,6 +181,14 @@ func (m *Mapper) MapToInferenceService(ctx *proto.Context) (*openapi.InferenceSe
 
 func (m *Mapper) MapToServeModel(ex *proto.Execution) (*openapi.ServeModel, error) {
 	return mapTo(ex, m.MLMDTypes, defaults.ServeModelTypeName, m.MLMDConverter.ConvertServeModel)
+}
+
+func (m *Mapper) MapToExperiment(ctx *proto.Context) (*openapi.Experiment, error) {
+	return mapTo(ctx, m.MLMDTypes, defaults.ExperimentTypeName, m.MLMDConverter.ConvertExperiment)
+}
+
+func (m *Mapper) MapToExperimentRun(ctx *proto.Context) (*openapi.ExperimentRun, error) {
+	return mapTo(ctx, m.MLMDTypes, defaults.ExperimentRunTypeName, m.MLMDConverter.ConvertExperimentRun)
 }
 
 type getTypeIder interface {

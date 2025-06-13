@@ -75,4 +75,21 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties ModelVersionId | MapPropertyModelVersionIdAsValue
 	// goverter:map LastKnownState | MapMLMDServeModelLastKnownState
 	ConvertServeModel(source *proto.Execution) (*openapi.ServeModel, error)
+
+	// ADD EXPERIMENT CONVERTER FUNCTIONS
+
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Owner | MapOwner
+	// goverter:map Properties State | MapExperimentState
+	ConvertExperiment(source *proto.Context) (*openapi.Experiment, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map Name ExperimentId | MapExperimentIdFromOwned
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Owner | MapOwner
+	// goverter:map Properties State | MapExperimentRunState
+	// goverter:map Properties Status | MapExperimentRunStatus
+	// goverter:map Properties StartTimeSinceEpoch | MapPropertyStartTimeSinceEpoch
+	// goverter:map Properties EndTimeSinceEpoch | MapPropertyEndTimeSinceEpoch
+	ConvertExperimentRun(source *proto.Context) (*openapi.ExperimentRun, error)
 }

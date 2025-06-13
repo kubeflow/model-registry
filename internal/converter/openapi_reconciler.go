@@ -53,4 +53,16 @@ type OpenAPIReconciler interface {
 	// goverter:autoMap Update
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ModelVersionId
 	UpdateExistingServeModel(source OpenapiUpdateWrapper[openapi.ServeModel]) (openapi.ServeModel, error)
+
+	// Ignore all fields that can't be updated
+	// goverter:default InitWithExisting
+	// goverter:autoMap Update
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
+	UpdateExistingExperiment(source OpenapiUpdateWrapper[openapi.Experiment]) (openapi.Experiment, error)
+
+	// Ignore all fields that can't be updated
+	// goverter:default InitWithExisting
+	// goverter:autoMap Update
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ExperimentId
+	UpdateExistingExperimentRun(source OpenapiUpdateWrapper[openapi.ExperimentRun]) (openapi.ExperimentRun, error)
 }
