@@ -1,16 +1,20 @@
 import { capitalize } from '@patternfly/react-core';
-import { RoleBindingKind } from 'mod-arch-shared';
-import { patchRoleBinding } from '~/app/api/k8s';
-import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
+import { ProjectKind, RoleBindingKind } from '~/app/k8sTypes';
+import { namespaceToProjectDisplayName } from '~/app/concepts/projects/utils';
+import { patchRoleBindingSubjects } from '~/app/api/k8s/roleBindings';
+import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 
 export const filterRoleBindingSubjects = (
   roleBindings: RoleBindingKind[],
   type: RoleBindingPermissionsRBType,
+  isProjectSubject?: boolean,
 ): RoleBindingKind[] =>
   roleBindings.filter(
     (roles) =>
       roles.subjects[0]?.kind === type &&
-      !(roles.metadata.labels?.['opendatahub.io/rb-project-subject'] === 'true'),
+      (isProjectSubject
+        ? roles.metadata.labels?.['opendatahub.io/rb-project-subject'] === 'true'
+        : !(roles.metadata.labels?.['opendatahub.io/rb-project-subject'] === 'true')),
   );
 
 export const castRoleBindingPermissionsRoleType = (
@@ -28,8 +32,17 @@ export const castRoleBindingPermissionsRoleType = (
   return RoleBindingPermissionsRoleType.CUSTOM;
 };
 
-export const firstSubject = (roleBinding: RoleBindingKind): string =>
-  roleBinding.subjects[0]?.name || '';
+export const firstSubject = (
+  roleBinding: RoleBindingKind,
+  isProjectSubject?: boolean,
+  project?: ProjectKind[],
+): string =>
+  (isProjectSubject && project
+    ? namespaceToProjectDisplayName(
+        roleBinding.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''),
+        project,
+      )
+    : roleBinding.subjects[0]?.name) || '';
 
 export const roleLabel = (value: RoleBindingPermissionsRoleType): string => {
   if (value === RoleBindingPermissionsRoleType.EDIT) {
@@ -37,6 +50,9 @@ export const roleLabel = (value: RoleBindingPermissionsRoleType): string => {
   }
   return capitalize(value);
 };
+
+export const removePrefix = (roleBindings: RoleBindingKind[]): string[] =>
+  roleBindings.map((rb) => rb.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''));
 
 export const isCurrentUserChanging = (
   roleBinding: RoleBindingKind | undefined,
@@ -57,23 +73,24 @@ export const tryPatchRoleBinding = async (
     return false;
   }
   try {
-    await patchRoleBinding('', { namespace: oldRBObject.metadata.namespace, dryRun: true })(
-      {},
-      newRBObject,
+    await patchRoleBindingSubjects(
       oldRBObject.metadata.name,
+      oldRBObject.metadata.namespace,
+      newRBObject.subjects,
+      { dryRun: true },
     );
-  } catch {
+  } catch (e) {
     return false;
   }
   try {
-    // Actual patch
-    await patchRoleBinding('', { namespace: oldRBObject.metadata.namespace, dryRun: false })(
-      {},
-      newRBObject,
+    await patchRoleBindingSubjects(
       oldRBObject.metadata.name,
+      oldRBObject.metadata.namespace,
+      newRBObject.subjects,
+      { dryRun: false },
     );
     return true;
   } catch {
     return false;
   }
-};
+}; 

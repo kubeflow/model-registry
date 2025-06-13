@@ -31,7 +31,7 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
       </Label>
     ));
 
-  const getLabelComponent = (labels: JSX.Element[]) => {
+  const getLabelComponent = (labels: React.ReactElement[]) => {
     const labelCount = labels.length;
     if (labelCount) {
       return labelCount > MODAL_THRESHOLD
@@ -41,7 +41,7 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
     return null;
   };
 
-  const getLabelPopover = (labelCount: number, labels: JSX.Element[]) => (
+  const getLabelPopover = (labelCount: number, labels: React.ReactElement[]) => (
     <Popover
       bodyContent={
         <LabelGroup data-testid="popover-label-group" numLabels={labelCount}>

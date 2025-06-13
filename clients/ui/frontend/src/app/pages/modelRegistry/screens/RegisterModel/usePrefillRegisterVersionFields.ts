@@ -37,7 +37,7 @@ export const usePrefillRegisterVersionFields = ({
   const errorLoadingVersionOrArtifact = loadModelVersionsError || loadModelArtifactsError;
 
   // Prefill fields from latest artifact if present. Repeat if selected model changes.
-  const prefilledForModelId = React.useRef<string | undefined>();
+  const prefilledForModelId = React.useRef<string | undefined>(undefined);
   React.useEffect(() => {
     if (
       registeredModel &&

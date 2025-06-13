@@ -6,6 +6,10 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
+type UserRepositoryInterface interface {
+	GetUser(client k8s.KubernetesClientInterface, identity *k8s.RequestIdentity) (*models.User, error)
+}
+
 type UserRepository struct{}
 
 func NewUserRepository() *UserRepository {
