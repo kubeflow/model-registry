@@ -61,24 +61,21 @@ func MapOpenAPICustomPropertiesEmbedMD(source *map[string]openapi.MetadataValue)
 				value.StringValue = &v.MetadataStringValue.StringValue
 			// struct value
 			case v.MetadataStructValue != nil:
-				data, err := base64.StdEncoding.DecodeString(v.MetadataStructValue.StructValue)
+				base64Decoded, err := base64.StdEncoding.DecodeString(v.MetadataStructValue.StructValue)
 				if err != nil {
 					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
 				}
-				var asMap map[string]interface{}
-				err = json.Unmarshal(data, &asMap)
+
+				var structValue structpb.Struct
+				err = json.Unmarshal(base64Decoded, &structValue)
 				if err != nil {
 					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
 				}
-				asStruct, err := structpb.NewStruct(asMap)
+				encodedStruct, err := encodeStruct(&structValue)
 				if err != nil {
-					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
+					return nil, fmt.Errorf("%w: unable to encode %w for key %s", api.ErrBadRequest, err, key)
 				}
-				asStructBytes, err := asStruct.MarshalJSON()
-				if err != nil {
-					return nil, fmt.Errorf("%w: unable to decode %w for key %s", api.ErrBadRequest, err, key)
-				}
-				value.ByteValue = &asStructBytes
+				value.StringValue = &encodedStruct
 			default:
 				return nil, fmt.Errorf("%w: metadataType not found for %s: %v", api.ErrBadRequest, key, v)
 			}

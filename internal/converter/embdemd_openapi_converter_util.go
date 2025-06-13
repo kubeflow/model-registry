@@ -26,7 +26,21 @@ func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.
 		if v.IntValue != nil {
 			customValue.MetadataIntValue = NewMetadataIntValue(strconv.FormatInt(int64(*v.IntValue), 10))
 		} else if v.StringValue != nil {
-			customValue.MetadataStringValue = NewMetadataStringValue(*v.StringValue)
+			if strings.HasPrefix(*v.StringValue, mlmdStructPrefix) {
+				decodedStruct, err := decodeStruct(*v.StringValue)
+				if err != nil {
+					return nil, err
+				}
+
+				asJSON, err := json.Marshal(decodedStruct.AsMap())
+				if err != nil {
+					return nil, err
+				}
+
+				customValue.MetadataStructValue = NewMetadataStructValue(string(asJSON))
+			} else {
+				customValue.MetadataStringValue = NewMetadataStringValue(*v.StringValue)
+			}
 		} else if v.BoolValue != nil {
 			customValue.MetadataBoolValue = NewMetadataBoolValue(*v.BoolValue)
 		} else if v.DoubleValue != nil {

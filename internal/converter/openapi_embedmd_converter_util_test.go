@@ -18,12 +18,14 @@ func TestMapOpenAPICustomPropertiesEmbedMD(t *testing.T) {
 	doubleValue := 1.0
 	stringValue := "test"
 	structValue := map[string]interface{}{
-		"test": "test",
+		"language": []string{"en", "es", "cz"},
 	}
 	structValueBytes, err := json.Marshal(structValue)
 	if err != nil {
 		t.Fatalf("failed to marshal struct value: %v", err)
 	}
+
+	expectedStructValue := "mlmd-struct::CiAKCGxhbmd1YWdlEhQyEgoEGgJlbgoEGgJlcwoEGgJjeg=="
 
 	invalidIntValue := "invalid"
 	invalidStructValue := "invalid"
@@ -85,7 +87,7 @@ func TestMapOpenAPICustomPropertiesEmbedMD(t *testing.T) {
 				},
 				{
 					Name:             "struct",
-					ByteValue:        &structValueBytes,
+					StringValue:      &expectedStructValue,
 					IsCustomProperty: true,
 				},
 			},

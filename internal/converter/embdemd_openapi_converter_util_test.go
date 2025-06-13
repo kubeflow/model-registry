@@ -24,6 +24,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 	}
 
 	expectedByteValue := base64.StdEncoding.EncodeToString(jsonMarshaled)
+	mlmdStructString := "mlmd-struct::CiAKCGxhbmd1YWdlEhQyEgoEGgJlbgoEGgJlcwoEGgJjeg=="
+	mlmdStructExpected := "{\"language\":[\"en\",\"es\",\"cz\"]}"
 
 	testCases := []struct {
 		name     string
@@ -82,6 +84,21 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 			},
 			expected: nil,
 			wantErr:  true,
+		},
+		{
+			name: "test string value with mlmd struct prefix",
+			source: []models.Properties{
+				{
+					Name:        "test",
+					StringValue: &mlmdStructString,
+				},
+			},
+			expected: map[string]openapi.MetadataValue{
+				"test": {
+					MetadataStructValue: NewMetadataStructValue(mlmdStructExpected),
+				},
+			},
+			wantErr: false,
 		},
 		{
 			name: "test bool value",
