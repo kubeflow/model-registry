@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"log"
 	"strings"
 
 	"gorm.io/gen"
@@ -39,7 +40,18 @@ func GenerateModel(db *gorm.DB) {
 		}),
 	)
 
-	g.GenerateAllTable()
+	tables, err := db.Migrator().GetTables()
+	if err != nil {
+		log.Fatalf("Failed to get tables: %v", err)
+	}
+
+	for _, tableName := range tables {
+		if strings.EqualFold(tableName, "Type") {
+			g.GenerateModel(tableName, gen.FieldType("type_kind", "int32"))
+		} else {
+			g.GenerateModel(tableName)
+		}
+	}
 
 	g.Execute()
 } 
