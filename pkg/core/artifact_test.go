@@ -761,7 +761,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 
 	_, err = service.GetModelArtifactByParams(nil, nil, nil)
 	suite.NotNil(err)
-	suite.Equal("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: bad request", err.Error())
+	suite.Equal("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: bad request", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
@@ -772,7 +772,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 
 	_, err := service.GetModelArtifactByParams(apiutils.Of("not-present"), &modelVersionId, nil)
 	suite.NotNil(err)
-	suite.Equal("no model artifacts found for artifactName=not-present, modelVersionId=2, externalId=: not found", err.Error())
+	suite.Equal("no model artifacts found for artifactName=not-present, parentResourceId=2, externalId=: not found", err.Error())
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifacts() {

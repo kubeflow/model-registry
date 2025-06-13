@@ -171,7 +171,7 @@ func (serv *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions,
 
 	// Add experiment ID filter if provided
 	if experimentId != nil {
-		filterQuery := fmt.Sprintf("parent_contexts_a.id = \"%s\"", *experimentId)
+		filterQuery := fmt.Sprintf("parent_contexts_a.id = %s", *experimentId)
 		if listOperationOptions.FilterQuery != nil {
 			existingFilter := *listOperationOptions.FilterQuery
 			filterQuery = fmt.Sprintf("(%s) AND (%s)", existingFilter, filterQuery)
@@ -208,7 +208,7 @@ func (serv *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions,
 
 // UpsertExperimentRunArtifact creates or updates an artifact associated with an experiment run
 func (serv *ModelRegistryService) UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error) {
-	return serv.upsertContextArtifact(artifact, experimentRunId)
+	return serv.upsertContextArtifact(artifact, experimentRunId, "experiment run")
 }
 
 // GetExperimentRunArtifacts retrieves all artifacts associated with an experiment run

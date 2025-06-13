@@ -20,13 +20,11 @@ func StringToInt64(id *string) (*int64, error) {
 		return nil, nil
 	}
 
-	idAsInt, err := strconv.Atoi(*id)
+	idAsInt, err := strconv.ParseInt(*id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid numeric string: %v", err)
 	}
-
-	idInt64 := int64(idAsInt)
-	return &idInt64, nil
+	return &idAsInt, nil
 }
 
 // Int64ToString converts numeric id to string-based one
@@ -41,13 +39,12 @@ func Int64ToString(id *int64) *string {
 
 // StringToInt32 converts string-based numeric value (a OpenAPI string literal consisting only of digits) to int32 if numeric, otherwise return error
 func StringToInt32(idString string) (int32, error) {
-	idInt, err := strconv.Atoi(idString)
+	idInt, err := strconv.ParseInt(idString, 10, 32)
 	if err != nil {
 		return 0, err
 	}
 
-	idInt32 := int32(idInt)
-	return idInt32, nil
+	return int32(idInt), nil
 }
 
 // MapOpenAPICustomProperties maps OpenAPI custom properties model to MLMD one

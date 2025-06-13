@@ -841,7 +841,7 @@ func TestMapInferenceServiceProperties(t *testing.T) {
 	// invalid int
 	_, err = MapInferenceServiceProperties(&openapi.InferenceService{RegisteredModelId: "aa"})
 	assertion.NotNil(err)
-	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"aa\": invalid syntax", err.Error())
+	assertion.Equal("invalid numeric string: strconv.ParseInt: parsing \"aa\": invalid syntax", err.Error())
 }
 
 func TestMapServeModelType(t *testing.T) {
@@ -872,7 +872,7 @@ func TestMapServeModelProperties(t *testing.T) {
 	// model version id must be a valid numeric
 	_, err = MapServeModelProperties(&openapi.ServeModel{ModelVersionId: "bb"})
 	assertion.NotNil(err)
-	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"bb\": invalid syntax", err.Error())
+	assertion.Equal("invalid numeric string: strconv.ParseInt: parsing \"bb\": invalid syntax", err.Error())
 }
 
 func TestMapServingEnvironmentProperties(t *testing.T) {
