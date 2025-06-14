@@ -17,6 +17,19 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 		return nil, fmt.Errorf("invalid model version pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
 
+	if modelVersion.Id != nil {
+		existing, err := b.GetModelVersionById(*modelVersion.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		modelVersion = &withNotEditable
+	}
+
 	if registeredModelId != nil {
 		modelVersion.RegisteredModelId = *registeredModelId
 	}

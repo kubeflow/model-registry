@@ -3,11 +3,13 @@ package models
 const (
 	SortOrderAsc  = "ASC"
 	SortOrderDesc = "DESC"
+	OrderByID     = "id"
 )
 
 var (
 	DefaultSortOrder = SortOrderAsc
 	DefaultPageSize  = int32(0)
+	DefaultOrderBy   = OrderByID
 )
 
 type Pagination struct {
@@ -27,7 +29,7 @@ func (p *Pagination) GetNextPageToken() *string {
 
 func (p *Pagination) GetOrderBy() *string {
 	if p.OrderBy == nil {
-		return nil
+		return &DefaultOrderBy
 	}
 
 	return p.OrderBy

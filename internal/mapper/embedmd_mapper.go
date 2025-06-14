@@ -13,14 +13,16 @@ import (
 type EmbedMDMapper struct {
 	openAPIConverter converter.OpenAPIToEmbedMDConverter
 	embedMDConverter converter.EmbedMDToOpenAPIConverter
-	typesMap         map[string]int64
+	*generated.OpenAPIConverterImpl
+	typesMap map[string]int64
 }
 
 func NewEmbedMDMapper(typesMap map[string]int64) *EmbedMDMapper {
 	return &EmbedMDMapper{
-		openAPIConverter: &generated.OpenAPIToEmbedMDConverterImpl{},
-		embedMDConverter: &generated.EmbedMDToOpenAPIConverterImpl{},
-		typesMap:         typesMap,
+		openAPIConverter:     &generated.OpenAPIToEmbedMDConverterImpl{},
+		embedMDConverter:     &generated.EmbedMDToOpenAPIConverterImpl{},
+		OpenAPIConverterImpl: &generated.OpenAPIConverterImpl{},
+		typesMap:             typesMap,
 	}
 }
 

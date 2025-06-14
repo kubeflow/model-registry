@@ -145,6 +145,16 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid artifact pointer")
 	})
+
+	t.Run("invalid artifact type", func(t *testing.T) {
+		artifact := &openapi.Artifact{}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid artifact type, must be either ModelArtifact or DocArtifact")
+	})
 }
 
 func TestUpsertModelVersionArtifact(t *testing.T) {

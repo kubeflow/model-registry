@@ -66,10 +66,13 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 
 	if listOptions.ModelVersionID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ModelVersionID)
+			Where("Attribution.context_id = ?", listOptions.ModelVersionID).
+			Select("Artifact.*") // Explicitly select from Artifact table to avoid ambiguity
+		// Use table-prefixed pagination to avoid column ambiguity
+		query = query.Scopes(scopes.PaginateWithTablePrefix(artifacts, &listOptions.Pagination, r.db, "Artifact"))
+	} else {
+		query = query.Scopes(scopes.Paginate(artifacts, &listOptions.Pagination, r.db))
 	}
-
-	query = query.Scopes(scopes.Paginate(artifacts, &listOptions.Pagination, r.db))
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
 		return nil, fmt.Errorf("error listing artifacts: %w", err)

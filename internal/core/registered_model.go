@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -12,6 +14,19 @@ import (
 func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.RegisteredModel) (*openapi.RegisteredModel, error) {
 	if registeredModel == nil {
 		return nil, fmt.Errorf("invalid registered model pointer, cannot be nil: %w", api.ErrBadRequest)
+	}
+
+	if registeredModel.Id != nil {
+		existing, err := b.GetRegisteredModelById(*registeredModel.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		registeredModel = &withNotEditable
 	}
 
 	model, err := b.mapper.MapFromRegisteredModel(registeredModel)
@@ -35,7 +50,7 @@ func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Regis
 
 	model, err := b.registeredModelRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, fmt.Errorf("no registered model found for id %s: %w", id, err)
+		return nil, fmt.Errorf("no registered model found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	return b.mapper.MapToRegisteredModel(model)
@@ -55,7 +70,7 @@ func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceSer
 	infSvcProps := infSvc.GetProperties()
 
 	if infSvcProps == nil {
-		return nil, fmt.Errorf("no registered model found for inference service")
+		return nil, fmt.Errorf("no registered model found for inference service: %w", api.ErrNotFound)
 	}
 
 	var registeredModelId *int32
@@ -68,7 +83,7 @@ func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceSer
 	}
 
 	if registeredModelId == nil {
-		return nil, fmt.Errorf("no registered model id found for inference service")
+		return nil, fmt.Errorf("no registered model id found for inference service: %w", api.ErrNotFound)
 	}
 
 	model, err := b.registeredModelRepository.GetByID(*registeredModelId)
@@ -93,7 +108,11 @@ func (b *ModelRegistryService) GetRegisteredModelByParams(name *string, external
 	}
 
 	if len(modelsList.Items) == 0 {
-		return nil, fmt.Errorf("no registered models found")
+		return nil, fmt.Errorf("no registered models found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	if len(modelsList.Items) > 1 {
+		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	return b.mapper.MapToRegisteredModel(modelsList.Items[0])

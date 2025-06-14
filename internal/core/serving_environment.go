@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -12,6 +14,19 @@ import (
 func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
 	if servingEnvironment == nil {
 		return nil, fmt.Errorf("invalid serving environment pointer, cannot be nil: %w", api.ErrBadRequest)
+	}
+
+	if servingEnvironment.Id != nil {
+		existing, err := b.GetServingEnvironmentById(*servingEnvironment.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		servingEnvironment = &withNotEditable
 	}
 
 	servEnv, err := b.mapper.MapFromServingEnvironment(servingEnvironment)
@@ -35,7 +50,7 @@ func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.Se
 
 	model, err := b.servingEnvironmentRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, err)
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	return b.mapper.MapToServingEnvironment(model)
@@ -55,7 +70,11 @@ func (b *ModelRegistryService) GetServingEnvironmentByParams(name *string, exter
 	}
 
 	if len(servEnvsList.Items) == 0 {
-		return nil, fmt.Errorf("no serving environment found")
+		return nil, fmt.Errorf("no serving environment found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	if len(servEnvsList.Items) > 1 {
+		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	return b.mapper.MapToServingEnvironment(servEnvsList.Items[0])

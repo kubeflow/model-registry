@@ -16,6 +16,10 @@ type cursor struct {
 }
 
 func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+	return PaginateWithTablePrefix(value, pagination, db, "")
+}
+
+func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.DB, tablePrefix string) func(db *gorm.DB) *gorm.DB {
 	pageSize := pagination.GetPageSize()
 	orderBy := pagination.GetOrderBy()
 	sortOrder := pagination.GetSortOrder()
@@ -45,7 +49,7 @@ func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *go
 		if nextPageToken != nil && *nextPageToken != "" {
 			decodedCursor, err := decodeCursor(*nextPageToken)
 			if err == nil {
-				whereClause := buildWhereClause(decodedCursor, orderBy, sortOrder)
+				whereClause := buildWhereClause(decodedCursor, orderBy, sortOrder, tablePrefix)
 				if whereClause != "" {
 					db = db.Where(whereClause)
 				}
@@ -78,24 +82,34 @@ func decodeCursor(token string) (*cursor, error) {
 	}, nil
 }
 
-func buildWhereClause(cursor *cursor, orderBy *string, sortOrder *string) string {
+func buildWhereClause(cursor *cursor, orderBy *string, sortOrder *string, tablePrefix string) string {
 	if orderBy == nil || sortOrder == nil {
 		return ""
 	}
 
+	// Add table prefix to column names if provided
+	idColumn := "id"
+	orderByColumn := *orderBy
+	if tablePrefix != "" {
+		idColumn = tablePrefix + ".id"
+		if *orderBy != "" {
+			orderByColumn = tablePrefix + "." + *orderBy
+		}
+	}
+
 	if *orderBy == "" {
 		if *sortOrder == "ASC" {
-			return fmt.Sprintf("id > %d", cursor.ID)
+			return fmt.Sprintf("%s > %d", idColumn, cursor.ID)
 		}
-		return fmt.Sprintf("id < %d", cursor.ID)
+		return fmt.Sprintf("%s < %d", idColumn, cursor.ID)
 	}
 
 	if *sortOrder == "ASC" {
-		return fmt.Sprintf("(%s > '%s' OR (%s = '%s' AND id > %d))",
-			*orderBy, cursor.Value, *orderBy, cursor.Value, cursor.ID)
+		return fmt.Sprintf("(%s > '%s' OR (%s = '%s' AND %s > %d))",
+			orderByColumn, cursor.Value, orderByColumn, cursor.Value, idColumn, cursor.ID)
 	}
-	return fmt.Sprintf("(%s < '%s' OR (%s = '%s' AND id < %d))",
-		*orderBy, cursor.Value, *orderBy, cursor.Value, cursor.ID)
+	return fmt.Sprintf("(%s < '%s' OR (%s = '%s' AND %s < %d))",
+		orderByColumn, cursor.Value, orderByColumn, cursor.Value, idColumn, cursor.ID)
 }
 
 func CreateNextPageToken(id int32, value string) string {

@@ -74,14 +74,38 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 		modelVersionIDPtr = &convertedIdInt32
 	}
 
-	if artifact.ModelArtifact != nil {
-		modelArtifact, err := b.mapper.MapFromModelArtifact(artifact.ModelArtifact)
+	if ma := artifact.ModelArtifact; ma != nil {
+		if ma.Id != nil {
+			existing, err := b.getArtifact(*ma.Id, true)
+			if err != nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
+			}
+
+			if existing.ModelArtifact == nil {
+				return nil, fmt.Errorf("artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
+			}
+
+			withNotEditable, err := b.mapper.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing.ModelArtifact, ma))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			ma = &withNotEditable
+		} else {
+			name := ""
+
+			if ma.Name != nil {
+				name = *ma.Name
+			}
+
+			prefixedName := converter.PrefixWhenOwned(modelVersionId, name)
+			ma.Name = &prefixedName
+		}
+
+		modelArtifact, err := b.mapper.MapFromModelArtifact(ma)
 		if err != nil {
 			return nil, err
 		}
-
-		prefixedName := converter.PrefixWhenOwned(modelVersionId, *modelArtifact.GetAttributes().Name)
-		modelArtifact.GetAttributes().Name = &prefixedName
 
 		modelArtifact, err = b.modelArtifactRepository.Save(modelArtifact, modelVersionIDPtr)
 		if err != nil {
@@ -96,29 +120,55 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 		artToReturn.ModelArtifact = toReturn
 
 		return artToReturn, nil
+	} else if da := artifact.DocArtifact; da != nil {
+		if da.Id != nil {
+			existing, err := b.getArtifact(*da.Id, true)
+			if err != nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
+			}
+
+			if existing.DocArtifact == nil {
+				return nil, fmt.Errorf("artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
+			}
+
+			withNotEditable, err := b.mapper.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			da = &withNotEditable
+		} else {
+			name := ""
+
+			if da.Name != nil {
+				name = *da.Name
+			}
+
+			prefixedName := converter.PrefixWhenOwned(modelVersionId, name)
+			da.Name = &prefixedName
+		}
+
+		docArtifact, err := b.mapper.MapFromDocArtifact(da)
+		if err != nil {
+			return nil, err
+		}
+
+		docArtifact, err = b.docArtifactRepository.Save(docArtifact, modelVersionIDPtr)
+		if err != nil {
+			return nil, err
+		}
+
+		toReturn, err := b.mapper.MapToDocArtifact(docArtifact)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		artToReturn.DocArtifact = toReturn
+
+		return artToReturn, nil
 	}
 
-	docArtifact, err := b.mapper.MapFromDocArtifact(artifact.DocArtifact)
-	if err != nil {
-		return nil, err
-	}
-
-	prefixedName := converter.PrefixWhenOwned(modelVersionId, *docArtifact.GetAttributes().Name)
-	docArtifact.GetAttributes().Name = &prefixedName
-
-	docArtifact, err = b.docArtifactRepository.Save(docArtifact, modelVersionIDPtr)
-	if err != nil {
-		return nil, err
-	}
-
-	toReturn, err := b.mapper.MapToDocArtifact(docArtifact)
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-	}
-
-	artToReturn.DocArtifact = toReturn
-
-	return artToReturn, nil
+	return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact: %w", api.ErrBadRequest)
 }
 
 func (b *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error) {
@@ -129,7 +179,7 @@ func (b *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*open
 	return b.upsertArtifact(artifact, nil)
 }
 
-func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
+func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*openapi.Artifact, error) {
 	artToReturn := &openapi.Artifact{}
 	convertedId, err := strconv.Atoi(id)
 	if err != nil {
@@ -155,7 +205,20 @@ func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, er
 		artToReturn.DocArtifact = toReturn
 	}
 
+	if preserveName {
+		if artifact.ModelArtifact != nil {
+			artToReturn.ModelArtifact.Name = (*artifact.ModelArtifact).GetAttributes().Name
+		}
+		if artifact.DocArtifact != nil {
+			artToReturn.DocArtifact.Name = (*artifact.DocArtifact).GetAttributes().Name
+		}
+	}
+
 	return artToReturn, nil
+}
+
+func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
+	return b.getArtifact(id, false)
 }
 
 func (b *ModelRegistryService) getArtifactsByParams(artifactName *string, modelVersionId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {

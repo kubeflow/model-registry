@@ -293,6 +293,22 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "no registered models found")
 	})
+
+	t.Run("no external id", func(t *testing.T) {
+		modelName := "params-test-model-no-external-id"
+		input := &openapi.RegisteredModel{
+			Name: modelName,
+		}
+		created, err := service.UpsertRegisteredModel(input)
+		require.NoError(t, err)
+
+		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, *created.Id, *result.Id)
+		assert.Equal(t, modelName, result.Name)
+	})
 }
 
 func TestGetRegisteredModels(t *testing.T) {

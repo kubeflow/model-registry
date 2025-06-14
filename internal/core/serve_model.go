@@ -16,6 +16,19 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 		return nil, fmt.Errorf("invalid serve model pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
 
+	if serveModel.Id != nil {
+		existing, err := b.GetServeModelById(*serveModel.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		serveModel = &withNotEditable
+	}
+
 	srvModel, err := b.mapper.MapFromServeModel(serveModel)
 	if err != nil {
 		return nil, err

@@ -17,6 +17,19 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 		return nil, fmt.Errorf("invalid inference service pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
 
+	if inferenceService.Id != nil {
+		existing, err := b.GetInferenceServiceById(*inferenceService.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		inferenceService = &withNotEditable
+	}
+
 	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
 	if err != nil {
 		return nil, err
