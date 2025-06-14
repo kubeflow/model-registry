@@ -936,3 +936,113 @@ func TestArtifactRoundTrip(t *testing.T) {
 		assert.Equal(t, "new_value", updatedProps["new_prop"].MetadataStringValue.StringValue)
 	})
 }
+
+func TestModelArtifactNilFieldsPreservation(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("nil fields preserved during model artifact upsert", func(t *testing.T) {
+		// Create model artifact with only required fields, leaving optional fields as nil
+		modelArtifact := &openapi.ModelArtifact{
+			Name: ptr.Of("nil-fields-test"),
+			Uri:  ptr.Of("s3://bucket/test.pkl"),
+			// Explicitly leaving these fields as nil:
+			// Description: nil,
+			// ExternalId: nil,
+			// ModelFormatName: nil,
+			// ModelFormatVersion: nil,
+			// StorageKey: nil,
+			// StoragePath: nil,
+			// ServiceAccountName: nil,
+			// ModelSourceKind: nil,
+			// ModelSourceClass: nil,
+			// ModelSourceGroup: nil,
+			// ModelSourceId: nil,
+			// ModelSourceName: nil,
+			// State: nil (will get default),
+		}
+
+		// Create the artifact
+		created, err := service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.Id)
+
+		// Verify nil fields are preserved (not set to default values)
+		assert.Nil(t, created.Description)
+		assert.Nil(t, created.ExternalId)
+		assert.Nil(t, created.ModelFormatName)
+		assert.Nil(t, created.ModelFormatVersion)
+		assert.Nil(t, created.StorageKey)
+		assert.Nil(t, created.StoragePath)
+		assert.Nil(t, created.ServiceAccountName)
+		assert.Nil(t, created.ModelSourceKind)
+		assert.Nil(t, created.ModelSourceClass)
+		assert.Nil(t, created.ModelSourceGroup)
+		assert.Nil(t, created.ModelSourceId)
+		assert.Nil(t, created.ModelSourceName)
+
+		// Update the artifact while keeping nil fields as nil
+		created.Uri = ptr.Of("s3://bucket/updated.pkl")
+		// Keep all other optional fields as nil
+
+		updated, err := service.UpsertModelArtifact(created)
+		require.NoError(t, err)
+
+		// Verify nil fields are still preserved after update
+		assert.Equal(t, "s3://bucket/updated.pkl", *updated.Uri)
+		assert.Nil(t, updated.Description)
+		assert.Nil(t, updated.ExternalId)
+		assert.Nil(t, updated.ModelFormatName)
+		assert.Nil(t, updated.ModelFormatVersion)
+		assert.Nil(t, updated.StorageKey)
+		assert.Nil(t, updated.StoragePath)
+		assert.Nil(t, updated.ServiceAccountName)
+		assert.Nil(t, updated.ModelSourceKind)
+		assert.Nil(t, updated.ModelSourceClass)
+		assert.Nil(t, updated.ModelSourceGroup)
+		assert.Nil(t, updated.ModelSourceId)
+		assert.Nil(t, updated.ModelSourceName)
+	})
+}
+
+func TestDocArtifactNilFieldsPreservation(t *testing.T) {
+	service, cleanup := core.SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("nil fields preserved during doc artifact upsert", func(t *testing.T) {
+		// Create doc artifact with only required fields, leaving optional fields as nil
+		docArtifact := &openapi.DocArtifact{
+			Name: ptr.Of("nil-fields-doc-test"),
+			Uri:  ptr.Of("s3://bucket/doc.pdf"),
+			// Explicitly leaving these fields as nil:
+			// Description: nil,
+			// ExternalId: nil,
+			// State: nil (will get default),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		// Create the artifact
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.DocArtifact.Id)
+
+		// Verify nil fields are preserved (not set to default values)
+		assert.Nil(t, created.DocArtifact.Description)
+		assert.Nil(t, created.DocArtifact.ExternalId)
+
+		// Update the artifact while keeping nil fields as nil
+		created.DocArtifact.Uri = ptr.Of("s3://bucket/updated-doc.pdf")
+		// Keep all other optional fields as nil
+
+		updated, err := service.UpsertArtifact(created)
+		require.NoError(t, err)
+
+		// Verify nil fields are still preserved after update
+		assert.Equal(t, "s3://bucket/updated-doc.pdf", *updated.DocArtifact.Uri)
+		assert.Nil(t, updated.DocArtifact.Description)
+		assert.Nil(t, updated.DocArtifact.ExternalId)
+	})
+}

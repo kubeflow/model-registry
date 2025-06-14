@@ -953,7 +953,7 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &nowStr,
 				LastUpdateTimeSinceEpoch: &nowStr,
 				ExternalId:               &externalId,
-				State:                    nil, // nil state should default to UNKNOWN
+				State:                    nil, // nil state should remain nil
 				Uri:                      &uri,
 			},
 			expected: &models.ModelArtifactAttributes{
@@ -961,7 +961,7 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(openapi.ARTIFACTSTATE_UNKNOWN)),
+				State:                    nil,
 				URI:                      &uri,
 			},
 			wantErr: false,
@@ -1093,7 +1093,7 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &nowStr,
 				LastUpdateTimeSinceEpoch: &nowStr,
 				ExternalId:               &externalId,
-				State:                    nil, // nil state should default to UNKNOWN
+				State:                    nil, // nil state should remain nil
 				Uri:                      &uri,
 			},
 			expected: &models.DocArtifactAttributes{
@@ -1101,7 +1101,7 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(openapi.ARTIFACTSTATE_UNKNOWN)),
+				State:                    nil,
 				URI:                      &uri,
 			},
 			wantErr: false,
@@ -1245,14 +1245,14 @@ func TestMapServeModelAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &nowStr,
 				LastUpdateTimeSinceEpoch: &nowStr,
 				ExternalId:               &externalId,
-				LastKnownState:           nil, // nil state should default to UNKNOWN
+				LastKnownState:           nil, // nil state should remain nil
 			},
 			expected: &models.ServeModelAttributes{
 				Name:                     &name,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				LastKnownState:           of("UNKNOWN"),
+				LastKnownState:           nil,
 			},
 			wantErr: false,
 		},

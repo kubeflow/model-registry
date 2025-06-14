@@ -136,6 +136,30 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid registered model pointer")
 	})
+
+	t.Run("nil fields preserved", func(t *testing.T) {
+		// Create registered model with nil optional fields
+		input := &openapi.RegisteredModel{
+			Name:        "nil-fields-model",
+			Description: nil, // Explicitly set to nil
+			Owner:       nil, // Explicitly set to nil
+			ExternalId:  nil, // Explicitly set to nil
+			State:       nil, // Explicitly set to nil
+		}
+
+		result, err := service.UpsertRegisteredModel(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Equal(t, "nil-fields-model", result.Name)
+		assert.Nil(t, result.Description) // Verify description remains nil
+		assert.Nil(t, result.Owner)       // Verify owner remains nil
+		assert.Nil(t, result.ExternalId)  // Verify external ID remains nil
+		assert.Nil(t, result.State)       // Verify state remains nil
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
 }
 
 func TestGetRegisteredModelById(t *testing.T) {

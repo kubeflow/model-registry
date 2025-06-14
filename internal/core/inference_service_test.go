@@ -201,6 +201,47 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid inference service pointer")
 	})
+
+	t.Run("nil desired state preserved", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "nil-state-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "nil-state-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		// Create inference service with nil DesiredState and other optional fields
+		input := &openapi.InferenceService{
+			Name:                 ptr.Of("nil-state-inference-service"),
+			Description:          ptr.Of("Test inference service with nil desired state"),
+			ExternalId:           ptr.Of("nil-state-ext-123"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Runtime:              ptr.Of("tensorflow"),
+			DesiredState:         nil, // Explicitly set to nil
+		}
+
+		result, err := service.UpsertInferenceService(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Equal(t, "nil-state-inference-service", *result.Name)
+		assert.Equal(t, "nil-state-ext-123", *result.ExternalId)
+		assert.Equal(t, "Test inference service with nil desired state", *result.Description)
+		assert.Equal(t, *createdEnv.Id, result.ServingEnvironmentId)
+		assert.Equal(t, *createdModel.Id, result.RegisteredModelId)
+		assert.Equal(t, "tensorflow", *result.Runtime)
+		assert.Nil(t, result.DesiredState) // Verify desired state remains nil
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
 }
 
 func TestGetInferenceServiceById(t *testing.T) {

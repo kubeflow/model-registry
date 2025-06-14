@@ -1754,7 +1754,6 @@ func TestMapEmbedMDLastUpdateTimeSinceEpochModelArtifact(t *testing.T) {
 }
 
 func TestMapEmbedMDStateModelArtifact(t *testing.T) {
-	defaultState := openapi.ARTIFACTSTATE_UNKNOWN
 	invalidState := "invalid"
 	validState := openapi.ARTIFACTSTATE_LIVE
 
@@ -1785,7 +1784,7 @@ func TestMapEmbedMDStateModelArtifact(t *testing.T) {
 			source: &models.ModelArtifactAttributes{
 				State: nil,
 			},
-			expected: &defaultState,
+			expected: nil,
 			wantErr:  false,
 		},
 	}
@@ -1955,7 +1954,6 @@ func TestMapEmbedMDLastUpdateTimeSinceEpochDocArtifact(t *testing.T) {
 }
 
 func TestMapEmbedMDStateDocArtifact(t *testing.T) {
-	defaultState := openapi.ARTIFACTSTATE_UNKNOWN
 	invalidState := "invalid"
 	validState := openapi.ARTIFACTSTATE_LIVE
 
@@ -1986,7 +1984,7 @@ func TestMapEmbedMDStateDocArtifact(t *testing.T) {
 			source: &models.DocArtifactAttributes{
 				State: nil,
 			},
-			expected: &defaultState,
+			expected: nil,
 			wantErr:  false,
 		},
 	}
@@ -2055,7 +2053,6 @@ func TestMapEmbedMDNameServeModel(t *testing.T) {
 }
 
 func TestMapEmbedMDLastKnownStateServeModel(t *testing.T) {
-	defaultState := openapi.EXECUTIONSTATE_UNKNOWN
 	validState := openapi.EXECUTIONSTATE_RUNNING
 
 	testCases := []struct {
@@ -2077,7 +2074,7 @@ func TestMapEmbedMDLastKnownStateServeModel(t *testing.T) {
 			source: &models.ServeModelAttributes{
 				LastKnownState: nil,
 			},
-			expected: &defaultState,
+			expected: nil,
 			wantErr:  false,
 		},
 	}

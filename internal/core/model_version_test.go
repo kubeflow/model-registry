@@ -174,6 +174,39 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid model version pointer")
 	})
+
+	t.Run("nil fields preserved", func(t *testing.T) {
+		// Create a registered model first
+		registeredModel := &openapi.RegisteredModel{
+			Name: "nil-fields-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Create model version with nil optional fields
+		inputVersion := &openapi.ModelVersion{
+			Name:              "nil-fields-version",
+			Description:       nil, // Explicitly set to nil
+			Author:            nil, // Explicitly set to nil
+			ExternalId:        nil, // Explicitly set to nil
+			State:             nil, // Explicitly set to nil
+			RegisteredModelId: *createdModel.Id,
+		}
+
+		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Equal(t, "nil-fields-version", result.Name)
+		assert.Equal(t, *createdModel.Id, result.RegisteredModelId)
+		assert.Nil(t, result.Description) // Verify description remains nil
+		assert.Nil(t, result.Author)      // Verify author remains nil
+		assert.Nil(t, result.ExternalId)  // Verify external ID remains nil
+		assert.Nil(t, result.State)       // Verify state remains nil
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
 }
 
 func TestGetModelVersionById(t *testing.T) {

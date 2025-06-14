@@ -258,6 +258,58 @@ func TestUpsertServeModel(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid serve model pointer")
 	})
+
+	t.Run("nil state preserved", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "nil-state-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "nil-state-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:              "nil-state-model-version",
+			RegisteredModelId: *createdModel.Id,
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 ptr.Of("nil-state-inference-service"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+		}
+		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Create serve model with nil LastKnownState
+		input := &openapi.ServeModel{
+			Name:           ptr.Of("nil-state-serve-model"),
+			Description:    ptr.Of("Test serve model with nil state"),
+			ExternalId:     ptr.Of("nil-state-ext-123"),
+			ModelVersionId: *createdVersion.Id,
+			LastKnownState: nil, // Explicitly set to nil
+		}
+
+		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Id)
+		assert.Equal(t, "nil-state-serve-model", *result.Name)
+		assert.Equal(t, "nil-state-ext-123", *result.ExternalId)
+		assert.Equal(t, "Test serve model with nil state", *result.Description)
+		assert.Equal(t, *createdVersion.Id, result.ModelVersionId)
+		assert.Nil(t, result.LastKnownState) // Verify state remains nil
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
 }
 
 func TestGetServeModelById(t *testing.T) {
