@@ -581,19 +581,13 @@ func MapModelArtifactAttributesEmbedMD(source *openapi.ModelArtifact) (*models.M
 
 		attributes.URI = source.Uri
 
-		// Handle State field with default value if nil
-		var stateValue string
 		if source.State != nil {
-			stateValue = string(*source.State)
-		} else {
-			stateValue = string(openapi.ARTIFACTSTATE_UNKNOWN)
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+			}
+			attributes.State = &state
 		}
-
-		state, ok := models.Artifact_State_name[models.Artifact_State_value[stateValue]]
-		if !ok {
-			return nil, fmt.Errorf("invalid state: %s", stateValue)
-		}
-		attributes.State = &state
 
 		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
 		if err != nil {
@@ -642,19 +636,13 @@ func MapDocArtifactAttributesEmbedMD(source *openapi.DocArtifact) (*models.DocAr
 
 		attributes.URI = source.Uri
 
-		// Handle State field with default value if nil
-		var stateValue string
 		if source.State != nil {
-			stateValue = string(*source.State)
-		} else {
-			stateValue = string(openapi.ARTIFACTSTATE_UNKNOWN)
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+			}
+			attributes.State = &state
 		}
-
-		state, ok := models.Artifact_State_name[models.Artifact_State_value[stateValue]]
-		if !ok {
-			return nil, fmt.Errorf("invalid state: %s", stateValue)
-		}
-		attributes.State = &state
 
 		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
 		if err != nil {
@@ -716,20 +704,13 @@ func MapServeModelAttributesEmbedMD(source *openapi.ServeModel) (*models.ServeMo
 	if source != nil {
 		attributes.Name = source.Name
 
-		// Handle LastKnownState field with default value if nil
-		var lastKnownStateValue string
 		if source.LastKnownState != nil {
-			lastKnownStateValue = string(*source.LastKnownState)
-		} else {
-			// Use a reasonable default for execution state
-			lastKnownStateValue = "UNKNOWN"
+			lastKnownState, ok := models.Execution_State_name[models.Execution_State_value[string(*source.LastKnownState)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid last known state: %s", string(*source.LastKnownState))
+			}
+			attributes.LastKnownState = &lastKnownState
 		}
-
-		lastKnownState, ok := models.Execution_State_name[models.Execution_State_value[lastKnownStateValue]]
-		if !ok {
-			return nil, fmt.Errorf("invalid last known state: %s", lastKnownStateValue)
-		}
-		attributes.LastKnownState = &lastKnownState
 
 		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
 		if err != nil {

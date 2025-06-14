@@ -532,10 +532,8 @@ func MapEmbedMDLastUpdateTimeSinceEpochModelArtifact(source *models.ModelArtifac
 }
 
 func MapEmbedMDStateModelArtifact(source *models.ModelArtifactAttributes) (*openapi.ArtifactState, error) {
-	defaultState := openapi.ARTIFACTSTATE_UNKNOWN
-
 	if source.State == nil {
-		return &defaultState, nil
+		return nil, nil
 	}
 
 	return openapi.NewArtifactStateFromValue(*source.State)
@@ -566,10 +564,8 @@ func MapEmbedMDLastUpdateTimeSinceEpochDocArtifact(source *models.DocArtifactAtt
 }
 
 func MapEmbedMDStateDocArtifact(source *models.DocArtifactAttributes) (*openapi.ArtifactState, error) {
-	defaultState := openapi.ARTIFACTSTATE_UNKNOWN
-
 	if source.State == nil {
-		return &defaultState, nil
+		return nil, nil
 	}
 
 	return openapi.NewArtifactStateFromValue(*source.State)
@@ -584,10 +580,8 @@ func MapEmbedMDNameServeModel(source *models.ServeModelAttributes) *string {
 }
 
 func MapEmbedMDLastKnownStateServeModel(source *models.ServeModelAttributes) (*openapi.ExecutionState, error) {
-	defaultState := openapi.EXECUTIONSTATE_UNKNOWN
-
 	if source.LastKnownState == nil {
-		return &defaultState, nil
+		return nil, nil
 	}
 
 	return openapi.NewExecutionStateFromValue(*source.LastKnownState)
