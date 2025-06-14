@@ -8,14 +8,14 @@ const TableNameType = "Type"
 
 // Type mapped from table <Type>
 type Type struct {
-	ID          int32  `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Name        string `gorm:"column:name;not null" json:"name"`
-	Version     string `gorm:"column:version" json:"version"`
-	TypeKind    bool   `gorm:"column:type_kind;not null" json:"type_kind"`
-	Description string `gorm:"column:description" json:"description"`
-	InputType   string `gorm:"column:input_type" json:"input_type"`
-	OutputType  string `gorm:"column:output_type" json:"output_type"`
-	ExternalID  string `gorm:"column:external_id" json:"external_id"`
+	ID          int32   `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Name        string  `gorm:"column:name;not null" json:"name"`
+	Version     *string `gorm:"column:version" json:"version"`
+	TypeKind    int32   `gorm:"column:type_kind;not null" json:"type_kind"`
+	Description *string `gorm:"column:description" json:"description"`
+	InputType   *string `gorm:"column:input_type" json:"input_type"`
+	OutputType  *string `gorm:"column:output_type" json:"output_type"`
+	ExternalID  *string `gorm:"column:external_id" json:"external_id"`
 }
 
 // TableName Type's table name

@@ -114,8 +114,12 @@ func PrefixWhenOwned(ownerId *string, entityName string) string {
 	} else {
 		prefix = uuid.New().String()
 	}
-	prefixedName := fmt.Sprintf("%s:%s", prefix, entityName)
-	return prefixedName
+
+	if entityName == "" {
+		return prefix
+	}
+
+	return fmt.Sprintf("%s:%s", prefix, entityName)
 }
 
 // REGISTERED MODEL

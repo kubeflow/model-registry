@@ -10,7 +10,7 @@ const TableNameTypeProperty = "TypeProperty"
 type TypeProperty struct {
 	TypeID   int32  `gorm:"column:type_id;primaryKey" json:"type_id"`
 	Name     string `gorm:"column:name;primaryKey" json:"name"`
-	DataType int32  `gorm:"column:data_type" json:"data_type"`
+	DataType *int32 `gorm:"column:data_type" json:"data_type"`
 }
 
 // TableName TypeProperty's table name
