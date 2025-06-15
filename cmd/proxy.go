@@ -3,10 +3,14 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
+
+	"database/sql"
 
 	"github.com/golang/glog"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
@@ -53,6 +57,60 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
+	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
+	readinessHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		dsn := proxyCfg.Datastore.EmbedMD.DatabaseDSN
+		if dsn == "" {
+			http.Error(w, "database DSN not configured", http.StatusServiceUnavailable)
+			return
+		}
+
+		db, err := sql.Open("mysql", dsn)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
+			return
+		}
+		defer func() {
+			if err := db.Close(); err != nil {
+				glog.Errorf("error closing database: %v", err)
+			}
+		}()
+
+		var dirty int
+		var version int64
+		query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
+		if err := db.QueryRow(query).Scan(&version, &dirty); err != nil {
+			http.Error(w, fmt.Sprintf("schema_migrations query error: %v", err), http.StatusServiceUnavailable)
+			return
+		}
+
+		glog.Infof("schema_migrations dirty = %d for version %d", dirty, version)
+
+		if dirty != 0 {
+			http.Error(w, "database schema is in dirty state", http.StatusServiceUnavailable)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	// route /readyz/isDirty to readinessHandler, all other paths to the dynamic router
+	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if strings.HasSuffix(r.URL.Path, "/readyz/isDirty") {
+			readinessHandler.ServeHTTP(w, r)
+			return
+		}
+
+		router.ServeHTTP(w, r)
+	})
+
 	errChan := make(chan error, 1)
 
 	wg.Add(2)
@@ -97,7 +155,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		glog.Infof("Proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
-		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), mainHandler)
 		if err != nil {
 			errChan <- fmt.Errorf("error starting proxy server: %w", err)
 		}
@@ -114,6 +172,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	// or for both to finish successfully.
 	return <-errChan
 }
+
 func init() {
 	rootCmd.AddCommand(proxyCmd)
 

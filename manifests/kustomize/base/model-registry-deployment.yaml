@@ -44,7 +44,8 @@ spec:
           readinessProbe:
             initialDelaySeconds: 3
             periodSeconds: 5
-            tcpSocket:
+            httpGet:
+              path: /readyz/isDirty
               port: http-api
             timeoutSeconds: 2
           securityContext:
