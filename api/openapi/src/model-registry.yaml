@@ -1509,22 +1509,34 @@ components:
       oneOf:
         - $ref: "#/components/schemas/ModelArtifact"
         - $ref: "#/components/schemas/DocArtifact"
+        - $ref: "#/components/schemas/DataSet"
+        - $ref: "#/components/schemas/Metric"
+        - $ref: "#/components/schemas/Parameter"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifact"
           doc-artifact: "#/components/schemas/DocArtifact"
+          dataset-artifact: "#/components/schemas/DataSet"
+          metric: "#/components/schemas/Metric"
+          parameter: "#/components/schemas/Parameter"
       description: A metadata Artifact Entity.
     ArtifactCreate:
       description: An Artifact to be created.
       oneOf:
         - $ref: "#/components/schemas/ModelArtifactCreate"
         - $ref: "#/components/schemas/DocArtifactCreate"
+        - $ref: "#/components/schemas/DataSetCreate"
+        - $ref: "#/components/schemas/MetricCreate"
+        - $ref: "#/components/schemas/ParameterCreate"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactCreate"
           doc-artifact: "#/components/schemas/DocArtifactCreate"
+          dataset-artifact: "#/components/schemas/DataSetCreate"
+          metric: "#/components/schemas/MetricCreate"
+          parameter: "#/components/schemas/ParameterCreate"
     ArtifactList:
       description: A list of Artifact entities.
       allOf:
@@ -1571,11 +1583,17 @@ components:
       oneOf:
         - $ref: "#/components/schemas/ModelArtifactUpdate"
         - $ref: "#/components/schemas/DocArtifactUpdate"
+        - $ref: "#/components/schemas/DataSetUpdate"
+        - $ref: "#/components/schemas/MetricUpdate"
+        - $ref: "#/components/schemas/ParameterUpdate"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactUpdate"
           doc-artifact: "#/components/schemas/DocArtifactUpdate"
+          dataset-artifact: "#/components/schemas/DataSetUpdate"
+          metric: "#/components/schemas/MetricUpdate"
+          parameter: "#/components/schemas/ParameterUpdate"
     BaseResource:
       allOf:
         - type: object
@@ -1679,6 +1697,150 @@ components:
                 The uniform resource identifier of the physical artifact.
                 May be empty if there is no physical artifact.
               type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    DataSet:
+      description: A dataset artifact representing training or test data.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/DataSetCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+    DataSetCreate:
+      description: A dataset artifact to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/DataSetUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+    DataSetUpdate:
+      description: A dataset artifact to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+            digest:
+              description: A unique hash or identifier for the dataset content.
+              type: string
+            sourceType:
+              description: The type of data source (e.g., "s3", "hdfs", "local", "database").
+              type: string
+            source:
+              description: The location or connection string for the dataset source.
+              type: string
+            schema:
+              description: JSON schema or description of the dataset structure.
+              type: string
+            profile:
+              description: Statistical profile or summary of the dataset.
+              type: string
+            uri:
+              description: |-
+                The uniform resource identifier of the physical dataset.
+                May be empty if there is no physical dataset.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    Metric:
+      description: A metric representing a numerical measurement from model training or evaluation.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/MetricCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+    MetricCreate:
+      description: A metric to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/MetricUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+            name:
+              description: The name/key of the metric (e.g., "accuracy", "loss", "f1_score").
+              type: string
+    MetricUpdate:
+      description: A metric to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+            value:
+              description: The numeric value of the metric.
+              type: number
+              format: double
+            timestamp:
+              description: Unix timestamp in milliseconds when the metric was recorded.
+              type: string
+              format: int64
+            step:
+              description: The step number for multi-step metrics (e.g., training epochs).
+              type: integer
+              format: int64
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    Parameter:
+      description: A parameter representing a configuration parameter used in model training or execution.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ParameterCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+    ParameterCreate:
+      description: A parameter to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ParameterUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+            name:
+              description: The name/key of the parameter (e.g., "learning_rate", "batch_size", "epochs").
+              type: string
+    ParameterType:
+      description: The data type of the parameter (e.g., "string", "number", "boolean", "object").
+      enum:
+        - string
+        - number
+        - boolean
+        - object
+    ParameterUpdate:
+      description: A parameter to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+            value:
+              description: The value of the parameter.
+              type: string
+            parameterType:
+              $ref: "#/components/schemas/ParameterType"
+              default: "string"
             state:
               $ref: "#/components/schemas/ArtifactState"
     ExecutionState:
