@@ -14,7 +14,7 @@ import (
 // EXPERIMENT RUNS
 
 func (suite *CoreTestSuite) TestCreateExperimentRun() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -61,7 +61,7 @@ func (suite *CoreTestSuite) TestCreateExperimentRun() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateExperimentRunFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -89,7 +89,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateExperimentRunFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateExperimentRunFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertExperimentRun(nil, nil)
@@ -114,7 +114,7 @@ func (suite *CoreTestSuite) TestCreateExperimentRunFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateExperimentRun() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -195,7 +195,7 @@ func (suite *CoreTestSuite) TestUpdateExperimentRun() {
 }
 
 func (suite *CoreTestSuite) TestUpdateExperimentRunFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -227,7 +227,7 @@ func (suite *CoreTestSuite) TestUpdateExperimentRunFailure() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -268,7 +268,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunById() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -279,7 +279,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -315,7 +315,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunByParamsName() {
 
 func (suite *CoreTestSuite) TestGetExperimentRunByParamsInvalid() {
 	// trigger a 400 bad request to test unallowed query params
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -339,7 +339,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -374,7 +374,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -395,7 +395,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRuns() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -492,7 +492,7 @@ func (suite *CoreTestSuite) TestGetExperimentRuns() {
 }
 
 func (suite *CoreTestSuite) TestCreateExperimentRunWithCustomPropFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentId := suite.registerExperiment(service, nil, nil)
@@ -517,7 +517,7 @@ func (suite *CoreTestSuite) TestCreateExperimentRunWithCustomPropFailure() {
 // EXPERIMENT RUN ARTIFACTS
 
 func (suite *CoreTestSuite) TestUpsertExperimentRunArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentRunId := suite.registerExperimentRun(service, nil, nil, nil, nil)
@@ -549,7 +549,7 @@ func (suite *CoreTestSuite) TestUpsertExperimentRunArtifact() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunArtifacts() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experimentRunId := suite.registerExperimentRun(service, nil, nil, nil, nil)

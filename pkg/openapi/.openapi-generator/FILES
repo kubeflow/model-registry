@@ -12,6 +12,9 @@ model_base_resource_create.go
 model_base_resource_dates.go
 model_base_resource_list.go
 model_base_resource_update.go
+model_data_set.go
+model_data_set_create.go
+model_data_set_update.go
 model_doc_artifact.go
 model_doc_artifact_create.go
 model_doc_artifact_update.go
@@ -40,6 +43,9 @@ model_metadata_proto_value.go
 model_metadata_string_value.go
 model_metadata_struct_value.go
 model_metadata_value.go
+model_metric.go
+model_metric_create.go
+model_metric_update.go
 model_model_artifact.go
 model_model_artifact_create.go
 model_model_artifact_list.go
@@ -50,6 +56,10 @@ model_model_version_list.go
 model_model_version_state.go
 model_model_version_update.go
 model_order_by_field.go
+model_parameter.go
+model_parameter_create.go
+model_parameter_type.go
+model_parameter_update.go
 model_registered_model.go
 model_registered_model_create.go
 model_registered_model_list.go

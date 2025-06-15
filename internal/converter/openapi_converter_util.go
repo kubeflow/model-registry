@@ -8,6 +8,9 @@ type OpenAPIModel interface {
 		openapi.ModelVersion |
 		openapi.ModelArtifact |
 		openapi.DocArtifact |
+		openapi.DataSet |
+		openapi.Metric |
+		openapi.Parameter |
 		openapi.ServingEnvironment |
 		openapi.InferenceService |
 		openapi.ServeModel |

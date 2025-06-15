@@ -259,5 +259,5 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 // ID is provided.
 // Upon creation, new artifacts will be associated with their corresponding model version.
 func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionID string) (*openapi.Artifact, error) {
-	return serv.upsertContextArtifact(artifact, modelVersionID, "model version")
+	return serv.upsertArtifactWithAssociation(artifact, modelVersionID, "model version")
 }

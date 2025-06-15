@@ -13,7 +13,7 @@ import (
 // EXPERIMENTS
 
 func (suite *CoreTestSuite) TestCreateExperiment() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.EXPERIMENTSTATE_LIVE
@@ -69,7 +69,7 @@ func (suite *CoreTestSuite) TestCreateExperiment() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateExperimentFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.EXPERIMENTSTATE_LIVE
@@ -99,7 +99,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateExperimentFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateExperiment() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// create a new experiment
@@ -193,7 +193,7 @@ func (suite *CoreTestSuite) TestUpdateExperiment() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.EXPERIMENTSTATE_LIVE
@@ -226,7 +226,7 @@ func (suite *CoreTestSuite) TestGetExperimentById() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.GetExperimentByParams(apiutils.Of("not-present"), nil)
@@ -235,7 +235,7 @@ func (suite *CoreTestSuite) TestGetExperimentByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// create a new experiment
@@ -255,7 +255,7 @@ func (suite *CoreTestSuite) TestGetExperimentByParamsName() {
 
 func (suite *CoreTestSuite) TestGetExperimentByParamsInvalid() {
 	// trigger a 400 bad request to test unallowed query params
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	experiment := &openapi.Experiment{
@@ -276,7 +276,7 @@ func (suite *CoreTestSuite) TestGetExperimentByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// create a new experiment
@@ -295,7 +295,7 @@ func (suite *CoreTestSuite) TestGetExperimentByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// create a new experiment
@@ -313,7 +313,7 @@ func (suite *CoreTestSuite) TestGetExperimentByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentsOrderedById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "ID"
@@ -365,7 +365,7 @@ func (suite *CoreTestSuite) TestGetExperimentsOrderedById() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentsOrderedByLastUpdate() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "LAST_UPDATE_TIME"
@@ -422,7 +422,7 @@ func (suite *CoreTestSuite) TestGetExperimentsOrderedByLastUpdate() {
 }
 
 func (suite *CoreTestSuite) TestGetExperimentsWithPageSize() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	pageSize := int32(1)
@@ -475,7 +475,7 @@ func (suite *CoreTestSuite) TestGetExperimentsWithPageSize() {
 }
 
 func (suite *CoreTestSuite) TestCreateExperimentWithCustomPropFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// create a new experiment with incomplete customProperty fields

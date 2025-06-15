@@ -154,6 +154,36 @@ func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
 	return nil
 }
 
+// AssertDataSetConstraints checks if the values respects the defined constraints
+func AssertDataSetConstraints(obj model.DataSet) error {
+	return nil
+}
+
+// AssertDataSetCreateConstraints checks if the values respects the defined constraints
+func AssertDataSetCreateConstraints(obj model.DataSetCreate) error {
+	return nil
+}
+
+// AssertDataSetCreateRequired checks if the required fields are not zero-ed
+func AssertDataSetCreateRequired(obj model.DataSetCreate) error {
+	return nil
+}
+
+// AssertDataSetRequired checks if the required fields are not zero-ed
+func AssertDataSetRequired(obj model.DataSet) error {
+	return nil
+}
+
+// AssertDataSetUpdateConstraints checks if the values respects the defined constraints
+func AssertDataSetUpdateConstraints(obj model.DataSetUpdate) error {
+	return nil
+}
+
+// AssertDataSetUpdateRequired checks if the required fields are not zero-ed
+func AssertDataSetUpdateRequired(obj model.DataSetUpdate) error {
+	return nil
+}
+
 // AssertDocArtifactConstraints checks if the values respects the defined constraints
 func AssertDocArtifactConstraints(obj model.DocArtifact) error {
 	return nil
@@ -629,6 +659,36 @@ func AssertMetadataValueRequired(obj model.MetadataValue) error {
 	return nil
 }
 
+// AssertMetricConstraints checks if the values respects the defined constraints
+func AssertMetricConstraints(obj model.Metric) error {
+	return nil
+}
+
+// AssertMetricCreateConstraints checks if the values respects the defined constraints
+func AssertMetricCreateConstraints(obj model.MetricCreate) error {
+	return nil
+}
+
+// AssertMetricCreateRequired checks if the required fields are not zero-ed
+func AssertMetricCreateRequired(obj model.MetricCreate) error {
+	return nil
+}
+
+// AssertMetricRequired checks if the required fields are not zero-ed
+func AssertMetricRequired(obj model.Metric) error {
+	return nil
+}
+
+// AssertMetricUpdateConstraints checks if the values respects the defined constraints
+func AssertMetricUpdateConstraints(obj model.MetricUpdate) error {
+	return nil
+}
+
+// AssertMetricUpdateRequired checks if the required fields are not zero-ed
+func AssertMetricUpdateRequired(obj model.MetricUpdate) error {
+	return nil
+}
+
 // AssertModelArtifactConstraints checks if the values respects the defined constraints
 func AssertModelArtifactConstraints(obj model.ModelArtifact) error {
 	return nil
@@ -780,6 +840,46 @@ func AssertOrderByFieldConstraints(obj model.OrderByField) error {
 
 // AssertOrderByFieldRequired checks if the required fields are not zero-ed
 func AssertOrderByFieldRequired(obj model.OrderByField) error {
+	return nil
+}
+
+// AssertParameterConstraints checks if the values respects the defined constraints
+func AssertParameterConstraints(obj model.Parameter) error {
+	return nil
+}
+
+// AssertParameterCreateConstraints checks if the values respects the defined constraints
+func AssertParameterCreateConstraints(obj model.ParameterCreate) error {
+	return nil
+}
+
+// AssertParameterCreateRequired checks if the required fields are not zero-ed
+func AssertParameterCreateRequired(obj model.ParameterCreate) error {
+	return nil
+}
+
+// AssertParameterRequired checks if the required fields are not zero-ed
+func AssertParameterRequired(obj model.Parameter) error {
+	return nil
+}
+
+// AssertParameterTypeConstraints checks if the values respects the defined constraints
+func AssertParameterTypeConstraints(obj model.ParameterType) error {
+	return nil
+}
+
+// AssertParameterTypeRequired checks if the required fields are not zero-ed
+func AssertParameterTypeRequired(obj model.ParameterType) error {
+	return nil
+}
+
+// AssertParameterUpdateConstraints checks if the values respects the defined constraints
+func AssertParameterUpdateConstraints(obj model.ParameterUpdate) error {
+	return nil
+}
+
+// AssertParameterUpdateRequired checks if the required fields are not zero-ed
+func AssertParameterUpdateRequired(obj model.ParameterUpdate) error {
 	return nil
 }
 

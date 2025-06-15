@@ -19,6 +19,7 @@ type ModelRegistryService struct {
 	mapper      *mapper.Mapper
 	openapiConv *generated.OpenAPIConverterImpl
 	nameConfig  mlmdtypes.MLMDTypeNamesConfig
+	reconciler  *generated.OpenAPIReconcilerImpl
 }
 
 // NewModelRegistryService creates a new instance of the ModelRegistryService, initializing it with the provided gRPC client connection.
@@ -40,6 +41,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface, nameConfig mlmdtypes.M
 		typesMap:    typesMap,
 		openapiConv: &generated.OpenAPIConverterImpl{},
 		mapper:      mapper.NewMapper(typesMap),
+		reconciler:  &generated.OpenAPIReconcilerImpl{},
 	}, nil
 }
 
@@ -72,6 +74,27 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 	modelArtifactResp, err := client.GetArtifactType(context.Background(), &modelArtifactArtifactTypeReq)
 	if err != nil {
 		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.ModelArtifactTypeName, err)
+	}
+
+	dataSetResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.DataSetTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.DataSetTypeName, err)
+	}
+
+	metricResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.MetricTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.MetricTypeName, err)
+	}
+
+	parameterResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.ParameterTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.ParameterTypeName, err)
 	}
 	servingEnvironmentContextTypeReq := proto.GetContextTypeRequest{
 		TypeName: &nameConfig.ServingEnvironmentTypeName,
@@ -117,6 +140,9 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		nameConfig.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
 		nameConfig.DocArtifactTypeName:        docArtifactResp.ArtifactType.GetId(),
 		nameConfig.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
+		nameConfig.DataSetTypeName:            dataSetResp.ArtifactType.GetId(),
+		nameConfig.MetricTypeName:             metricResp.ArtifactType.GetId(),
+		nameConfig.ParameterTypeName:          parameterResp.ArtifactType.GetId(),
 		nameConfig.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
 		nameConfig.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
 		nameConfig.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),

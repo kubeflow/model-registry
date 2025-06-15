@@ -180,6 +180,12 @@ func MapArtifactType(source *proto.Artifact) (*string, error) {
 		return of("model-artifact"), nil
 	case defaults.DocArtifactTypeName:
 		return of("doc-artifact"), nil
+	case defaults.DataSetTypeName:
+		return of("dataset-artifact"), nil
+	case defaults.MetricTypeName:
+		return of("metric"), nil
+	case defaults.ParameterTypeName:
+		return of("parameter"), nil
 	default:
 		return nil, fmt.Errorf("invalid artifact type found: %v", source.Type)
 	}
@@ -408,4 +414,79 @@ func MapPropertyStartTimeSinceEpoch(properties map[string]*proto.Value) *string 
 
 func MapPropertyEndTimeSinceEpoch(properties map[string]*proto.Value) *string {
 	return MapIntProperty(properties, "end_time_since_epoch")
+}
+
+// DATA SET
+
+func MapPropertyDigest(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "digest")
+}
+
+func MapPropertySourceType(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "source_type")
+}
+
+func MapPropertySource(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "source")
+}
+
+func MapPropertySchema(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "schema")
+}
+
+func MapPropertyProfile(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "profile")
+}
+
+func MapPropertyUri(properties map[string]*proto.Value) *string {
+	return MapStringProperty(properties, "uri")
+}
+
+// METRIC
+
+func MapMetricPropertyValue(properties map[string]*proto.Value) *float64 {
+	val, ok := properties["value"]
+	if !ok {
+		return nil
+	}
+	value := val.GetDoubleValue()
+	return &value
+}
+
+func MapPropertyTimestamp(properties map[string]*proto.Value) *string {
+	val, ok := properties["timestamp"]
+	if !ok {
+		return nil
+	}
+	ts := val.GetIntValue()
+	return Int64ToString(&ts)
+}
+
+func MapPropertyStep(properties map[string]*proto.Value) *int64 {
+	val, ok := properties["step"]
+	if !ok {
+		return nil
+	}
+	step := val.GetIntValue()
+	return &step
+}
+
+// PARAMETER
+
+func MapPropertyParameterType(properties map[string]*proto.Value) *openapi.ParameterType {
+	val, ok := properties["parameter_type"]
+	if !ok {
+		return nil
+	}
+	pt := openapi.ParameterType(val.GetStringValue())
+	return &pt
+}
+
+func MapParameterPropertyValue(properties map[string]*proto.Value) *string {
+	val, ok := properties["value"]
+	if !ok {
+		return nil
+	}
+	value := val.GetStringValue()
+	return &value
 }

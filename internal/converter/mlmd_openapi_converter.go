@@ -57,6 +57,34 @@ type MLMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapDescription
 	ConvertDocArtifact(source *proto.Artifact) (*openapi.DocArtifact, error)
 
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map . ArtifactType | MapArtifactType
+	// goverter:map State | MapMLMDArtifactState
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Digest | MapPropertyDigest
+	// goverter:map Properties SourceType | MapPropertySourceType
+	// goverter:map Properties Source | MapPropertySource
+	// goverter:map Properties Schema | MapPropertySchema
+	// goverter:map Properties Profile | MapPropertyProfile
+	ConvertDataSet(source *proto.Artifact) (*openapi.DataSet, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map . ArtifactType | MapArtifactType
+	// goverter:map State | MapMLMDArtifactState
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Value | MapMetricPropertyValue
+	// goverter:map Properties Timestamp | MapPropertyTimestamp
+	// goverter:map Properties Step | MapPropertyStep
+	ConvertMetric(source *proto.Artifact) (*openapi.Metric, error)
+
+	// goverter:map Name | MapNameFromOwned
+	// goverter:map . ArtifactType | MapArtifactType
+	// goverter:map State | MapMLMDArtifactState
+	// goverter:map Properties Description | MapDescription
+	// goverter:map Properties Value | MapParameterPropertyValue
+	// goverter:map Properties ParameterType | MapPropertyParameterType
+	ConvertParameter(source *proto.Artifact) (*openapi.Parameter, error)
+
 	// goverter:map Name | MapName
 	// goverter:map Properties Description | MapDescription
 	ConvertServingEnvironment(source *proto.Context) (*openapi.ServingEnvironment, error)

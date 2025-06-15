@@ -63,6 +63,30 @@ func (m *Mapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact, modelVersi
 	})
 }
 
+func (m *Mapper) MapFromDataSet(dataSet *openapi.DataSet, modelVersionId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertDataSet(&converter.OpenAPIModelWrapper[openapi.DataSet]{
+		TypeId:           m.MLMDTypes[defaults.DataSetTypeName],
+		Model:            dataSet,
+		ParentResourceId: modelVersionId,
+	})
+}
+
+func (m *Mapper) MapFromMetricArtifact(metric *openapi.Metric, modelVersionId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertMetric(&converter.OpenAPIModelWrapper[openapi.Metric]{
+		TypeId:           m.MLMDTypes[defaults.MetricTypeName],
+		Model:            metric,
+		ParentResourceId: modelVersionId,
+	})
+}
+
+func (m *Mapper) MapFromParameter(parameter *openapi.Parameter, modelVersionId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertParameter(&converter.OpenAPIModelWrapper[openapi.Parameter]{
+		TypeId:           m.MLMDTypes[defaults.ParameterTypeName],
+		Model:            parameter,
+		ParentResourceId: modelVersionId,
+	})
+}
+
 func (m *Mapper) MapFromArtifact(artifact *openapi.Artifact, modelVersionId *string) (*proto.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't map from nil")
@@ -72,6 +96,15 @@ func (m *Mapper) MapFromArtifact(artifact *openapi.Artifact, modelVersionId *str
 	}
 	if artifact.DocArtifact != nil {
 		return m.MapFromDocArtifact(artifact.DocArtifact, modelVersionId)
+	}
+	if artifact.DataSet != nil {
+		return m.MapFromDataSet(artifact.DataSet, modelVersionId)
+	}
+	if artifact.Metric != nil {
+		return m.MapFromMetricArtifact(artifact.Metric, modelVersionId)
+	}
+	if artifact.Parameter != nil {
+		return m.MapFromParameter(artifact.Parameter, modelVersionId)
 	}
 	// TODO: print type on error
 	return nil, fmt.Errorf("unknown artifact type")
@@ -148,6 +181,18 @@ func (m *Mapper) MapToDocArtifact(art *proto.Artifact) (*openapi.DocArtifact, er
 	return mapTo(art, m.MLMDTypes, defaults.DocArtifactTypeName, m.MLMDConverter.ConvertDocArtifact)
 }
 
+func (m *Mapper) MapToDataSet(art *proto.Artifact) (*openapi.DataSet, error) {
+	return mapTo(art, m.MLMDTypes, defaults.DataSetTypeName, m.MLMDConverter.ConvertDataSet)
+}
+
+func (m *Mapper) MapToMetricArtifact(art *proto.Artifact) (*openapi.Metric, error) {
+	return mapTo(art, m.MLMDTypes, defaults.MetricTypeName, m.MLMDConverter.ConvertMetric)
+}
+
+func (m *Mapper) MapToParameter(art *proto.Artifact) (*openapi.Parameter, error) {
+	return mapTo(art, m.MLMDTypes, defaults.ParameterTypeName, m.MLMDConverter.ConvertParameter)
+}
+
 func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 	if art == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't map from nil")
@@ -165,6 +210,21 @@ func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 		da, err := m.MapToDocArtifact(art)
 		return &openapi.Artifact{
 			DocArtifact: da,
+		}, err
+	case defaults.DataSetTypeName:
+		ds, err := m.MapToDataSet(art)
+		return &openapi.Artifact{
+			DataSet: ds,
+		}, err
+	case defaults.MetricTypeName:
+		mt, err := m.MapToMetricArtifact(art)
+		return &openapi.Artifact{
+			Metric: mt,
+		}, err
+	case defaults.ParameterTypeName:
+		pm, err := m.MapToParameter(art)
+		return &openapi.Artifact{
+			Parameter: pm,
 		}, err
 	default:
 		return nil, fmt.Errorf("unknown artifact type: %s", art.GetType())

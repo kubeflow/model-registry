@@ -15,16 +15,31 @@ func (c *OpenAPIConverterImpl) ConvertArtifactCreate(source *openapi.ArtifactCre
 	var pOpenapiArtifact *openapi.Artifact
 	if source != nil {
 		var openapiArtifact openapi.Artifact
+		pOpenapiDataSet, err := c.ConvertDataSetCreate((*source).DataSetCreate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field DataSet: %w", err)
+		}
+		openapiArtifact.DataSet = pOpenapiDataSet
 		pOpenapiDocArtifact, err := c.ConvertDocArtifactCreate((*source).DocArtifactCreate)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field DocArtifact: %w", err)
 		}
 		openapiArtifact.DocArtifact = pOpenapiDocArtifact
+		pOpenapiMetric, err := c.ConvertMetricCreate((*source).MetricCreate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Metric: %w", err)
+		}
+		openapiArtifact.Metric = pOpenapiMetric
 		pOpenapiModelArtifact, err := c.ConvertModelArtifactCreate((*source).ModelArtifactCreate)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field ModelArtifact: %w", err)
 		}
 		openapiArtifact.ModelArtifact = pOpenapiModelArtifact
+		pOpenapiParameter, err := c.ConvertParameterCreate((*source).ParameterCreate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Parameter: %w", err)
+		}
+		openapiArtifact.Parameter = pOpenapiParameter
 		pOpenapiArtifact = &openapiArtifact
 	}
 	return pOpenapiArtifact, nil
@@ -33,19 +48,152 @@ func (c *OpenAPIConverterImpl) ConvertArtifactUpdate(source *openapi.ArtifactUpd
 	var pOpenapiArtifact *openapi.Artifact
 	if source != nil {
 		var openapiArtifact openapi.Artifact
+		pOpenapiDataSet, err := c.ConvertDataSetUpdate((*source).DataSetUpdate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field DataSet: %w", err)
+		}
+		openapiArtifact.DataSet = pOpenapiDataSet
 		pOpenapiDocArtifact, err := c.ConvertDocArtifactUpdate((*source).DocArtifactUpdate)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field DocArtifact: %w", err)
 		}
 		openapiArtifact.DocArtifact = pOpenapiDocArtifact
+		pOpenapiMetric, err := c.ConvertMetricUpdate((*source).MetricUpdate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Metric: %w", err)
+		}
+		openapiArtifact.Metric = pOpenapiMetric
 		pOpenapiModelArtifact, err := c.ConvertModelArtifactUpdate((*source).ModelArtifactUpdate)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field ModelArtifact: %w", err)
 		}
 		openapiArtifact.ModelArtifact = pOpenapiModelArtifact
+		pOpenapiParameter, err := c.ConvertParameterUpdate((*source).ParameterUpdate)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Parameter: %w", err)
+		}
+		openapiArtifact.Parameter = pOpenapiParameter
 		pOpenapiArtifact = &openapiArtifact
 	}
 	return pOpenapiArtifact, nil
+}
+func (c *OpenAPIConverterImpl) ConvertDataSetCreate(source *openapi.DataSetCreate) (*openapi.DataSet, error) {
+	var pOpenapiDataSet *openapi.DataSet
+	if source != nil {
+		var openapiDataSet openapi.DataSet
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiDataSet.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiDataSet.ExternalId = &xstring2
+		}
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			openapiDataSet.Name = &xstring3
+		}
+		if (*source).Digest != nil {
+			xstring4 := *(*source).Digest
+			openapiDataSet.Digest = &xstring4
+		}
+		if (*source).SourceType != nil {
+			xstring5 := *(*source).SourceType
+			openapiDataSet.SourceType = &xstring5
+		}
+		if (*source).Source != nil {
+			xstring6 := *(*source).Source
+			openapiDataSet.Source = &xstring6
+		}
+		if (*source).Schema != nil {
+			xstring7 := *(*source).Schema
+			openapiDataSet.Schema = &xstring7
+		}
+		if (*source).Profile != nil {
+			xstring8 := *(*source).Profile
+			openapiDataSet.Profile = &xstring8
+		}
+		if (*source).Uri != nil {
+			xstring9 := *(*source).Uri
+			openapiDataSet.Uri = &xstring9
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiDataSet.State = &openapiArtifactState
+		}
+		pOpenapiDataSet = &openapiDataSet
+	}
+	return pOpenapiDataSet, nil
+}
+func (c *OpenAPIConverterImpl) ConvertDataSetUpdate(source *openapi.DataSetUpdate) (*openapi.DataSet, error) {
+	var pOpenapiDataSet *openapi.DataSet
+	if source != nil {
+		var openapiDataSet openapi.DataSet
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiDataSet.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiDataSet.ExternalId = &xstring2
+		}
+		if (*source).Digest != nil {
+			xstring3 := *(*source).Digest
+			openapiDataSet.Digest = &xstring3
+		}
+		if (*source).SourceType != nil {
+			xstring4 := *(*source).SourceType
+			openapiDataSet.SourceType = &xstring4
+		}
+		if (*source).Source != nil {
+			xstring5 := *(*source).Source
+			openapiDataSet.Source = &xstring5
+		}
+		if (*source).Schema != nil {
+			xstring6 := *(*source).Schema
+			openapiDataSet.Schema = &xstring6
+		}
+		if (*source).Profile != nil {
+			xstring7 := *(*source).Profile
+			openapiDataSet.Profile = &xstring7
+		}
+		if (*source).Uri != nil {
+			xstring8 := *(*source).Uri
+			openapiDataSet.Uri = &xstring8
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiDataSet.State = &openapiArtifactState
+		}
+		pOpenapiDataSet = &openapiDataSet
+	}
+	return pOpenapiDataSet, nil
 }
 func (c *OpenAPIConverterImpl) ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error) {
 	var pOpenapiDocArtifact *openapi.DocArtifact
@@ -393,6 +541,100 @@ func (c *OpenAPIConverterImpl) ConvertInferenceServiceUpdate(source *openapi.Inf
 	}
 	return pOpenapiInferenceService, nil
 }
+func (c *OpenAPIConverterImpl) ConvertMetricCreate(source *openapi.MetricCreate) (*openapi.Metric, error) {
+	var pOpenapiMetric *openapi.Metric
+	if source != nil {
+		var openapiMetric openapi.Metric
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiMetric.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiMetric.ExternalId = &xstring2
+		}
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			openapiMetric.Name = &xstring3
+		}
+		if (*source).Value != nil {
+			xfloat64 := *(*source).Value
+			openapiMetric.Value = &xfloat64
+		}
+		if (*source).Timestamp != nil {
+			xstring4 := *(*source).Timestamp
+			openapiMetric.Timestamp = &xstring4
+		}
+		if (*source).Step != nil {
+			xint64 := *(*source).Step
+			openapiMetric.Step = &xint64
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiMetric.State = &openapiArtifactState
+		}
+		pOpenapiMetric = &openapiMetric
+	}
+	return pOpenapiMetric, nil
+}
+func (c *OpenAPIConverterImpl) ConvertMetricUpdate(source *openapi.MetricUpdate) (*openapi.Metric, error) {
+	var pOpenapiMetric *openapi.Metric
+	if source != nil {
+		var openapiMetric openapi.Metric
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiMetric.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiMetric.ExternalId = &xstring2
+		}
+		if (*source).Value != nil {
+			xfloat64 := *(*source).Value
+			openapiMetric.Value = &xfloat64
+		}
+		if (*source).Timestamp != nil {
+			xstring3 := *(*source).Timestamp
+			openapiMetric.Timestamp = &xstring3
+		}
+		if (*source).Step != nil {
+			xint64 := *(*source).Step
+			openapiMetric.Step = &xint64
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiMetric.State = &openapiArtifactState
+		}
+		pOpenapiMetric = &openapiMetric
+	}
+	return pOpenapiMetric, nil
+}
 func (c *OpenAPIConverterImpl) ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
@@ -626,6 +868,98 @@ func (c *OpenAPIConverterImpl) ConvertModelVersionUpdate(source *openapi.ModelVe
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
+}
+func (c *OpenAPIConverterImpl) ConvertParameterCreate(source *openapi.ParameterCreate) (*openapi.Parameter, error) {
+	var pOpenapiParameter *openapi.Parameter
+	if source != nil {
+		var openapiParameter openapi.Parameter
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiParameter.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiParameter.ExternalId = &xstring2
+		}
+		if (*source).Name != nil {
+			xstring3 := *(*source).Name
+			openapiParameter.Name = &xstring3
+		}
+		if (*source).Value != nil {
+			xstring4 := *(*source).Value
+			openapiParameter.Value = &xstring4
+		}
+		if (*source).ParameterType != nil {
+			openapiParameterType, err := c.openapiParameterTypeToOpenapiParameterType(*(*source).ParameterType)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field ParameterType: %w", err)
+			}
+			openapiParameter.ParameterType = &openapiParameterType
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiParameter.State = &openapiArtifactState
+		}
+		pOpenapiParameter = &openapiParameter
+	}
+	return pOpenapiParameter, nil
+}
+func (c *OpenAPIConverterImpl) ConvertParameterUpdate(source *openapi.ParameterUpdate) (*openapi.Parameter, error) {
+	var pOpenapiParameter *openapi.Parameter
+	if source != nil {
+		var openapiParameter openapi.Parameter
+		if (*source).CustomProperties != nil {
+			var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+			if (*(*source).CustomProperties) != nil {
+				mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*(*source).CustomProperties)))
+				for key, value := range *(*source).CustomProperties {
+					mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				}
+			}
+			openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		if (*source).Description != nil {
+			xstring := *(*source).Description
+			openapiParameter.Description = &xstring
+		}
+		if (*source).ExternalId != nil {
+			xstring2 := *(*source).ExternalId
+			openapiParameter.ExternalId = &xstring2
+		}
+		if (*source).Value != nil {
+			xstring3 := *(*source).Value
+			openapiParameter.Value = &xstring3
+		}
+		if (*source).ParameterType != nil {
+			openapiParameterType, err := c.openapiParameterTypeToOpenapiParameterType(*(*source).ParameterType)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field ParameterType: %w", err)
+			}
+			openapiParameter.ParameterType = &openapiParameterType
+		}
+		if (*source).State != nil {
+			openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*(*source).State)
+			if err != nil {
+				return nil, fmt.Errorf("error setting field State: %w", err)
+			}
+			openapiParameter.State = &openapiArtifactState
+		}
+		pOpenapiParameter = &openapiParameter
+	}
+	return pOpenapiParameter, nil
 }
 func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.RegisteredModelCreate) (*openapi.RegisteredModel, error) {
 	var pOpenapiRegisteredModel *openapi.RegisteredModel
@@ -911,6 +1245,26 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForArtifact(source converter.O
 	_ = source
 	return openapiArtifact, nil
 }
+func (c *OpenAPIConverterImpl) OverrideNotEditableForDataSet(source converter.OpenapiUpdateWrapper[openapi.DataSet]) (openapi.DataSet, error) {
+	openapiDataSet := converter.InitWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiDataSet.Name = &xstring
+	}
+	var pString2 *string
+	if source.Existing != nil {
+		pString2 = source.Existing.ArtifactType
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiDataSet.ArtifactType = &xstring2
+	}
+	return openapiDataSet, nil
+}
 func (c *OpenAPIConverterImpl) OverrideNotEditableForDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
 	openapiDocArtifact := converter.InitWithUpdate(source)
 	_ = source
@@ -972,6 +1326,26 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForInferenceService(source con
 	}
 	return openapiInferenceService, nil
 }
+func (c *OpenAPIConverterImpl) OverrideNotEditableForMetric(source converter.OpenapiUpdateWrapper[openapi.Metric]) (openapi.Metric, error) {
+	openapiMetric := converter.InitWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiMetric.Name = &xstring
+	}
+	var pString2 *string
+	if source.Existing != nil {
+		pString2 = source.Existing.ArtifactType
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiMetric.ArtifactType = &xstring2
+	}
+	return openapiMetric, nil
+}
 func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source converter.OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error) {
 	openapiModelArtifact := converter.InitWithUpdate(source)
 	var pString *string
@@ -1009,6 +1383,26 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelVersion(source convert
 		openapiModelVersion.RegisteredModelId = *pString2
 	}
 	return openapiModelVersion, nil
+}
+func (c *OpenAPIConverterImpl) OverrideNotEditableForParameter(source converter.OpenapiUpdateWrapper[openapi.Parameter]) (openapi.Parameter, error) {
+	openapiParameter := converter.InitWithUpdate(source)
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.Name
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiParameter.Name = &xstring
+	}
+	var pString2 *string
+	if source.Existing != nil {
+		pString2 = source.Existing.ArtifactType
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiParameter.ArtifactType = &xstring2
+	}
+	return openapiParameter, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForRegisteredModel(source converter.OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error) {
 	openapiRegisteredModel := converter.InitWithUpdate(source)
@@ -1170,6 +1564,22 @@ func (c *OpenAPIConverterImpl) openapiModelVersionStateToOpenapiModelVersionStat
 		return openapiModelVersionState, fmt.Errorf("unexpected enum element: %v", source)
 	}
 	return openapiModelVersionState, nil
+}
+func (c *OpenAPIConverterImpl) openapiParameterTypeToOpenapiParameterType(source openapi.ParameterType) (openapi.ParameterType, error) {
+	var openapiParameterType openapi.ParameterType
+	switch source {
+	case openapi.PARAMETERTYPE_BOOLEAN:
+		openapiParameterType = openapi.PARAMETERTYPE_BOOLEAN
+	case openapi.PARAMETERTYPE_NUMBER:
+		openapiParameterType = openapi.PARAMETERTYPE_NUMBER
+	case openapi.PARAMETERTYPE_OBJECT:
+		openapiParameterType = openapi.PARAMETERTYPE_OBJECT
+	case openapi.PARAMETERTYPE_STRING:
+		openapiParameterType = openapi.PARAMETERTYPE_STRING
+	default:
+		return openapiParameterType, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiParameterType, nil
 }
 func (c *OpenAPIConverterImpl) openapiRegisteredModelStateToOpenapiRegisteredModelState(source openapi.RegisteredModelState) (openapi.RegisteredModelState, error) {
 	var openapiRegisteredModelState openapi.RegisteredModelState

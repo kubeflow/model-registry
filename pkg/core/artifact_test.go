@@ -15,7 +15,7 @@ import (
 // MODEL VERSION ARTIFACTS
 
 func (suite *CoreTestSuite) TestCreateModelVersionArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -47,7 +47,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionArtifact() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateModelVersionArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
 
@@ -76,7 +76,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateModelVersionArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateModelVersionArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertModelVersionArtifact(nil, "")
@@ -108,7 +108,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersionArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -149,7 +149,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifact() {
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersionArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -190,7 +190,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpsertModelVersionStandaloneArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -219,7 +219,7 @@ func (suite *CoreTestSuite) TestUpsertModelVersionStandaloneArtifact() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -282,7 +282,7 @@ func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
 // ARTIFACTS
 
 func (suite *CoreTestSuite) TestCreateArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	createdArt, err := service.UpsertArtifact(&openapi.Artifact{
@@ -312,7 +312,7 @@ func (suite *CoreTestSuite) TestCreateArtifact() {
 }
 
 func (suite *CoreTestSuite) TestCreateArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertArtifact(nil)
@@ -327,7 +327,7 @@ func (suite *CoreTestSuite) TestCreateArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	createdArtifact, err := service.UpsertArtifact(&openapi.Artifact{
@@ -369,7 +369,7 @@ func (suite *CoreTestSuite) TestUpdateArtifact() {
 }
 
 func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	createdArtifact, err := service.UpsertArtifact(&openapi.Artifact{
@@ -409,7 +409,7 @@ func (suite *CoreTestSuite) TestUpdateArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestGetArtifactById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	createdArtifact, err := service.UpsertArtifact(&openapi.Artifact{
@@ -442,7 +442,7 @@ func (suite *CoreTestSuite) TestGetArtifactById() {
 }
 
 func (suite *CoreTestSuite) TestGetArtifactByParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -496,7 +496,7 @@ func (suite *CoreTestSuite) TestGetArtifactByParams() {
 
 func (suite *CoreTestSuite) TestGetArtifactByParamsInvalid() {
 	// trigger a 400 bad request to test unallowed query params
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -510,7 +510,7 @@ func (suite *CoreTestSuite) TestGetArtifactByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetArtifacts() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	secondArtifactName := "second-name"
@@ -571,7 +571,7 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 // MODEL ARTIFACTS
 
 func (suite *CoreTestSuite) TestCreateModelArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelArtifact, err := service.UpsertModelArtifact(&openapi.ModelArtifact{
@@ -605,7 +605,7 @@ func (suite *CoreTestSuite) TestCreateModelArtifact() {
 }
 
 func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertModelArtifact(nil)
@@ -614,7 +614,7 @@ func (suite *CoreTestSuite) TestCreateModelArtifactFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateModelArtifact() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelArtifact := &openapi.ModelArtifact{
@@ -655,7 +655,7 @@ func (suite *CoreTestSuite) TestUpdateModelArtifact() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelArtifact := &openapi.ModelArtifact{
@@ -688,7 +688,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactById() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -739,7 +739,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParams() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -765,7 +765,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -776,7 +776,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifacts() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
@@ -856,4 +856,262 @@ func (suite *CoreTestSuite) TestGetModelArtifacts() {
 	suite.Equal(*converter.Int64ToString(createdArtifactId1), *getAllByModelVersion.Items[2].Id)
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAllByModelVersion.Items[1].Id)
 	suite.Equal(*converter.Int64ToString(createdArtifactId3), *getAllByModelVersion.Items[0].Id)
+}
+
+// DATASET ARTIFACTS
+
+func (suite *CoreTestSuite) TestCreateDataSet() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+
+	createdArt, err := service.UpsertArtifact(&openapi.Artifact{
+		DataSet: &openapi.DataSet{
+			Name:        &artifactName,
+			State:       (*openapi.ArtifactState)(&artifactState),
+			Uri:         &artifactUri,
+			Description: &artifactDescription,
+			Digest:      apiutils.Of("test-digest"),
+			SourceType:  apiutils.Of("test-source-type"),
+			Source:      apiutils.Of("test-source"),
+			Schema:      apiutils.Of("test-schema"),
+			Profile:     apiutils.Of("test-profile"),
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	})
+	suite.Nilf(err, "error creating new dataset: %v", err)
+
+	dataset := createdArt.DataSet
+	suite.NotNil(dataset, "error creating new dataset")
+	state, _ := openapi.NewArtifactStateFromValue(artifactState)
+	suite.NotNil(dataset.Id, "created dataset id should not be nil")
+	suite.Equal(artifactName, *dataset.Name)
+	suite.Equal(*state, *dataset.State)
+	suite.Equal(artifactUri, *dataset.Uri)
+	suite.Equal(artifactDescription, *dataset.Description)
+	suite.Equal("test-digest", *dataset.Digest)
+	suite.Equal("test-source-type", *dataset.SourceType)
+	suite.Equal("test-source", *dataset.Source)
+	suite.Equal("test-schema", *dataset.Schema)
+	suite.Equal("test-profile", *dataset.Profile)
+	suite.Equal(customString, (*dataset.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+}
+
+func (suite *CoreTestSuite) TestUpdateDataSet() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArtifact, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		DataSet: &openapi.DataSet{
+			Name:  &artifactName,
+			State: (*openapi.ArtifactState)(&artifactState),
+			Uri:   &artifactUri,
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new dataset: %v", err)
+
+	// update with only id and updated state
+	createdArtifact = &openapi.Artifact{
+		DataSet: &openapi.DataSet{
+			Id:    createdArtifact.DataSet.Id,
+			State: apiutils.Of(openapi.ARTIFACTSTATE_MARKED_FOR_DELETION),
+		},
+	}
+	updatedArtifact, err := service.UpsertArtifact(createdArtifact)
+	suite.Nilf(err, "error updating dataset: %v", err)
+
+	createdArtifactId, _ := converter.StringToInt64(createdArtifact.DataSet.Id)
+	updatedArtifactId, _ := converter.StringToInt64(updatedArtifact.DataSet.Id)
+	suite.Equal(createdArtifactId, updatedArtifactId)
+	suite.Equal(artifactName, *updatedArtifact.DataSet.Name)
+	suite.Equal(*createdArtifact.DataSet.State, *updatedArtifact.DataSet.State)
+
+	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
+		ArtifactIds: []int64{*createdArtifactId},
+	})
+	suite.Nilf(err, "error getting dataset by id %s: %v", *createdArtifactId, err)
+
+	suite.Equal(*createdArtifactId, *getById.Artifacts[0].Id)
+	exploded := strings.Split(*getById.Artifacts[0].Name, ":")
+	suite.NotZero(exploded[0], "prefix should not be empty")
+	suite.Equal(exploded[1], *createdArtifact.DataSet.Name)
+	suite.Equal(*updatedArtifact.DataSet.Uri, *getById.Artifacts[0].Uri)
+	suite.Equal((*updatedArtifact.DataSet.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
+}
+
+// METRIC ARTIFACTS
+
+func (suite *CoreTestSuite) TestCreateMetric() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArt, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        &artifactName,
+			State:       (*openapi.ArtifactState)(&artifactState),
+			Description: &artifactDescription,
+			Value:       apiutils.Of(42.5),
+			Timestamp:   apiutils.Of("1234567890"),
+			Step:        apiutils.Of(int64(1)),
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new metric: %v", err)
+
+	metric := createdArt.Metric
+	suite.NotNil(metric, "error creating new metric")
+	state, _ := openapi.NewArtifactStateFromValue(artifactState)
+	suite.NotNil(metric.Id, "created metric id should not be nil")
+	suite.Equal(artifactName, *metric.Name)
+	suite.Equal(*state, *metric.State)
+	suite.Equal(artifactDescription, *metric.Description)
+	suite.Equal(42.5, *metric.Value)
+	suite.Equal("1234567890", *metric.Timestamp)
+	suite.Equal(int64(1), *metric.Step)
+	suite.Equal(customString, (*metric.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+}
+
+func (suite *CoreTestSuite) TestUpdateMetric() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArtifact, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:  &artifactName,
+			State: (*openapi.ArtifactState)(&artifactState),
+			Value: apiutils.Of(42.5),
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new metric: %v", err)
+
+	newValue := 52.4
+	// update with only id and updated value
+	createdArtifact = &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Id:    createdArtifact.Metric.Id,
+			Value: &newValue,
+		},
+	}
+	updatedArtifact, err := service.UpsertArtifact(createdArtifact)
+	suite.Nilf(err, "error updating metric: %v", err)
+
+	createdArtifactId, _ := converter.StringToInt64(createdArtifact.Metric.Id)
+	updatedArtifactId, _ := converter.StringToInt64(updatedArtifact.Metric.Id)
+	suite.Equal(createdArtifactId, updatedArtifactId)
+	suite.Equal(artifactName, *updatedArtifact.Metric.Name)
+	suite.Equal(newValue, *updatedArtifact.Metric.Value)
+
+	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
+		ArtifactIds: []int64{*createdArtifactId},
+	})
+	suite.Nilf(err, "error getting metric by id %s: %v", *createdArtifactId, err)
+
+	suite.Equal(*createdArtifactId, *getById.Artifacts[0].Id)
+	exploded := strings.Split(*getById.Artifacts[0].Name, ":")
+	suite.NotZero(exploded[0], "prefix should not be empty")
+	suite.Equal(exploded[1], *createdArtifact.Metric.Name)
+}
+
+// PARAMETER ARTIFACTS
+
+func (suite *CoreTestSuite) TestCreateParameter() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArt, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:          &artifactName,
+			State:         (*openapi.ArtifactState)(&artifactState),
+			Description:   &artifactDescription,
+			Value:         apiutils.Of("test-value"),
+			ParameterType: apiutils.Of(openapi.PARAMETERTYPE_STRING),
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new parameter: %v", err)
+
+	parameter := createdArt.Parameter
+	suite.NotNil(parameter, "error creating new parameter")
+	state, _ := openapi.NewArtifactStateFromValue(artifactState)
+	suite.NotNil(parameter.Id, "created parameter id should not be nil")
+	suite.Equal(artifactName, *parameter.Name)
+	suite.Equal(*state, *parameter.State)
+	suite.Equal(artifactDescription, *parameter.Description)
+	suite.Equal("test-value", *parameter.Value)
+	suite.Equal(openapi.PARAMETERTYPE_STRING, *parameter.ParameterType)
+	suite.Equal(customString, (*parameter.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue)
+}
+
+func (suite *CoreTestSuite) TestUpdateParameter() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArtifact, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:          &artifactName,
+			State:         (*openapi.ArtifactState)(&artifactState),
+			Value:         apiutils.Of("test-value"),
+			ParameterType: apiutils.Of(openapi.PARAMETERTYPE_STRING),
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"custom_string_prop": {
+					MetadataStringValue: converter.NewMetadataStringValue(customString),
+				},
+			},
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new parameter: %v", err)
+
+	// update with only id and updated value
+	newValue := "new-test-value"
+	createdArtifact = &openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Id:    createdArtifact.Parameter.Id,
+			Value: apiutils.Of(newValue),
+		},
+	}
+	updatedArtifact, err := service.UpsertArtifact(createdArtifact)
+	suite.Nilf(err, "error updating parameter: %v", err)
+
+	createdArtifactId, _ := converter.StringToInt64(createdArtifact.Parameter.Id)
+	updatedArtifactId, _ := converter.StringToInt64(updatedArtifact.Parameter.Id)
+	suite.Equal(createdArtifactId, updatedArtifactId)
+	suite.Equal(artifactName, *updatedArtifact.Parameter.Name)
+	suite.Equal(newValue, *updatedArtifact.Parameter.Value)
+
+	getById, err := suite.mlmdClient.GetArtifactsByID(context.Background(), &proto.GetArtifactsByIDRequest{
+		ArtifactIds: []int64{*createdArtifactId},
+	})
+	suite.Nilf(err, "error getting parameter by id %s: %v", *createdArtifactId, err)
+
+	suite.Equal(*updatedArtifactId, *getById.Artifacts[0].Id)
+	exploded := strings.Split(*getById.Artifacts[0].Name, ":")
+	suite.NotZero(exploded[0], "prefix should not be empty")
+	suite.Equal(exploded[1], *updatedArtifact.Parameter.Name)
+	suite.Equal((*updatedArtifact.Parameter.CustomProperties)["custom_string_prop"].MetadataStringValue.StringValue, getById.Artifacts[0].CustomProperties["custom_string_prop"].GetStringValue())
 }

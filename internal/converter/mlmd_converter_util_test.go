@@ -346,8 +346,7 @@ func TestMapModelArtifactName(t *testing.T) {
 			Name: nil,
 		},
 	})
-	assertion.NotNil(name)
-	assertion.Regexp("parent:.*", *name)
+	assertion.Nil(name) // should return nil to support patch requests without name
 
 	name = MapModelArtifactName(&OpenAPIModelWrapper[openapi.ModelArtifact]{
 		TypeId: 123,
@@ -405,8 +404,7 @@ func TestMapDocArtifactName(t *testing.T) {
 			Name: nil,
 		},
 	})
-	assertion.NotNil(name)
-	assertion.Regexp("parent:.*", *name)
+	assertion.Nil(name) // support nil name for updates
 
 	name = MapDocArtifactName(&OpenAPIModelWrapper[openapi.DocArtifact]{
 		TypeId: 123,

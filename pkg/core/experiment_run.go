@@ -208,7 +208,7 @@ func (serv *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions,
 
 // UpsertExperimentRunArtifact creates or updates an artifact associated with an experiment run
 func (serv *ModelRegistryService) UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error) {
-	return serv.upsertContextArtifact(artifact, experimentRunId, "experiment run")
+	return serv.upsertArtifactWithAssociation(artifact, experimentRunId, "experiment run")
 }
 
 // GetExperimentRunArtifacts retrieves all artifacts associated with an experiment run

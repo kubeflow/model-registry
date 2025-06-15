@@ -28,10 +28,16 @@ type OpenAPIConverter interface {
 
 	// goverter:map DocArtifactCreate DocArtifact
 	// goverter:map ModelArtifactCreate ModelArtifact
+	// goverter:map DataSetCreate DataSet
+	// goverter:map MetricCreate Metric
+	// goverter:map ParameterCreate Parameter
 	ConvertArtifactCreate(source *openapi.ArtifactCreate) (*openapi.Artifact, error)
 
 	// goverter:map DocArtifactUpdate DocArtifact
 	// goverter:map ModelArtifactUpdate ModelArtifact
+	// goverter:map DataSetUpdate DataSet
+	// goverter:map MetricUpdate Metric
+	// goverter:map ParameterUpdate Parameter
 	ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
@@ -45,6 +51,24 @@ type OpenAPIConverter interface {
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
 	ConvertModelArtifactUpdate(source *openapi.ModelArtifactUpdate) (*openapi.ModelArtifact, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	ConvertDataSetCreate(source *openapi.DataSetCreate) (*openapi.DataSet, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	ConvertDataSetUpdate(source *openapi.DataSetUpdate) (*openapi.DataSet, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	ConvertMetricCreate(source *openapi.MetricCreate) (*openapi.Metric, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	ConvertMetricUpdate(source *openapi.MetricUpdate) (*openapi.Metric, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	ConvertParameterCreate(source *openapi.ParameterCreate) (*openapi.Parameter, error)
+
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	ConvertParameterUpdate(source *openapi.ParameterUpdate) (*openapi.Parameter, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertServingEnvironmentCreate(source *openapi.ServingEnvironmentCreate) (*openapi.ServingEnvironment, error)
@@ -91,7 +115,7 @@ type OpenAPIConverter interface {
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore DocArtifact ModelArtifact
+	// goverter:ignore DocArtifact ModelArtifact DataSet Metric Parameter
 	OverrideNotEditableForArtifact(source OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error)
 
 	// Ignore all fields that ARE editable
@@ -105,6 +129,24 @@ type OpenAPIConverter interface {
 	// goverter:autoMap Existing
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath ModelSourceKind ModelSourceClass ModelSourceGroup ModelSourceId ModelSourceName
 	OverrideNotEditableForModelArtifact(source OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error)
+
+	// Ignore all fields that ARE editable
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State Digest SourceType Source Schema Profile
+	OverrideNotEditableForDataSet(source OpenapiUpdateWrapper[openapi.DataSet]) (openapi.DataSet, error)
+
+	// Ignore all fields that ARE editable
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value Timestamp Step
+	OverrideNotEditableForMetric(source OpenapiUpdateWrapper[openapi.Metric]) (openapi.Metric, error)
+
+	// Ignore all fields that ARE editable
+	// goverter:default InitWithUpdate
+	// goverter:autoMap Existing
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value ParameterType
+	OverrideNotEditableForParameter(source OpenapiUpdateWrapper[openapi.Parameter]) (openapi.Parameter, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate

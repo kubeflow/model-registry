@@ -14,24 +14,30 @@ import (
 
 // ARTIFACTS
 
-// upsertContextArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
+// upsertArtifactWithAssociation creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
 // ID is provided.
 // Upon creation, new artifacts will be associated with their corresponding parent context.
-func (serv *ModelRegistryService) upsertContextArtifact(artifact *openapi.Artifact, parentContextID string, parentTypeName string) (*openapi.Artifact, error) {
+func (serv *ModelRegistryService) upsertArtifactWithAssociation(artifact *openapi.Artifact, parentContextID string, parentTypeName string) (*openapi.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
 	}
-	art, err := serv.upsertArtifact(artifact, &parentContextID, parentTypeName)
+	art, err := serv.upsertArtifactWithParentContext(artifact, &parentContextID, parentTypeName)
 	if err != nil {
 		return nil, err
 	}
-	// upsertArtifact already validates parentContextID
+	// upsertArtifactWithParentContext already validates parentContextID
 
 	var id *string
 	if art.ModelArtifact != nil {
 		id = art.ModelArtifact.Id
 	} else if art.DocArtifact != nil {
 		id = art.DocArtifact.Id
+	} else if art.DataSet != nil {
+		id = art.DataSet.Id
+	} else if art.Metric != nil {
+		id = art.Metric.Id
+	} else if art.Parameter != nil {
+		id = art.Parameter.Id
 	} else {
 		return nil, fmt.Errorf("unexpected artifact type: %v", art)
 	}
@@ -78,19 +84,25 @@ func (serv *ModelRegistryService) upsertContextArtifact(artifact *openapi.Artifa
 	return art, nil
 }
 
-func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parentContextId *string, parentTypeName string) (*openapi.Artifact, error) {
+func (serv *ModelRegistryService) upsertArtifactWithParentContext(artifact *openapi.Artifact, parentContextId *string, parentTypeName string) (*openapi.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't upsert nil: %w", api.ErrBadRequest)
 	}
+
+	var existingArtifact *openapi.Artifact
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id == nil {
 			glog.Info("Creating model artifact")
+			if ma.Name == nil {
+				ma.Name = converter.GenerateNewName() // uuid name
+			}
 		} else {
 			glog.Info("Updating model artifact")
 			existing, err := serv.GetModelArtifactById(*ma.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
 			}
+			existingArtifact = &openapi.Artifact{ModelArtifact: existing}
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing, ma))
 			if err != nil {
@@ -101,6 +113,9 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, par
 	} else if da := artifact.DocArtifact; da != nil {
 		if da.Id == nil {
 			glog.Info("Creating doc artifact")
+			if da.Name == nil {
+				da.Name = converter.GenerateNewName() // uuid name
+			}
 		} else {
 			glog.Info("Updating doc artifact")
 			existing, err := serv.GetArtifactById(*da.Id)
@@ -110,6 +125,7 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, par
 			if existing.DocArtifact == nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
 			}
+			existingArtifact = existing
 
 			withNotEditable, err := serv.openapiConv.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
 			if err != nil {
@@ -117,14 +133,101 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, par
 			}
 			artifact.DocArtifact = &withNotEditable
 		}
+	} else if ds := artifact.DataSet; ds != nil {
+		if ds.Id == nil {
+			glog.Info("Creating dataset artifact")
+			if ds.Name == nil {
+				ds.Name = converter.GenerateNewName() // uuid name
+			}
+		} else {
+			glog.Info("Updating dataset artifact")
+			existing, err := serv.GetArtifactById(*ds.Id)
+			if err != nil {
+				return nil, err
+			}
+			if existing.DataSet == nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a dataset artifact: %w", *ds.Id, api.ErrBadRequest)
+			}
+			existingArtifact = existing
+
+			withNotEditable, err := serv.openapiConv.OverrideNotEditableForDataSet(converter.NewOpenapiUpdateWrapper(existing.DataSet, ds))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+			artifact.DataSet = &withNotEditable
+		}
+	} else if m := artifact.Metric; m != nil {
+		if m.Id == nil {
+			// parentContextId and name is required for creation
+			if parentContextId == nil {
+				return nil, fmt.Errorf("missing parent context id for metric artifact: %w", api.ErrBadRequest)
+			}
+			if m.Name == nil {
+				return nil, fmt.Errorf("missing name for metric artifact: %w", api.ErrBadRequest)
+			}
+			glog.Info("Creating metric artifact")
+		} else {
+			glog.Info("Updating metric artifact")
+			existing, err := serv.GetArtifactById(*m.Id)
+			if err != nil {
+				return nil, err
+			}
+			if existing.Metric == nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a metric artifact: %w", *m.Id, api.ErrBadRequest)
+			}
+			existingArtifact = existing
+
+			withNotEditable, err := serv.openapiConv.OverrideNotEditableForMetric(converter.NewOpenapiUpdateWrapper(existing.Metric, m))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+			artifact.Metric = &withNotEditable
+		}
+	} else if p := artifact.Parameter; p != nil {
+		if p.Id == nil {
+			// parentContextId is required for creation
+			if parentContextId == nil {
+				return nil, fmt.Errorf("missing parent context id for parameter artifact: %w", api.ErrBadRequest)
+			}
+			if p.Name == nil {
+				return nil, fmt.Errorf("missing name for parameter artifact: %w", api.ErrBadRequest)
+			}
+			glog.Info("Creating parameter artifact")
+		} else {
+			glog.Info("Updating parameter artifact")
+			existing, err := serv.GetArtifactById(*p.Id)
+			if err != nil {
+				return nil, err
+			}
+			if existing.Parameter == nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a parameter artifact: %w", *p.Id, api.ErrBadRequest)
+			}
+			existingArtifact = existing
+
+			withNotEditable, err := serv.openapiConv.OverrideNotEditableForParameter(converter.NewOpenapiUpdateWrapper(existing.Parameter, p))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+			artifact.Parameter = &withNotEditable
+		}
 	} else {
 		return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact: %w", api.ErrBadRequest)
 	}
+
 	if parentContextId != nil {
 		if _, err := serv.GetContextByID(*parentContextId); err != nil {
 			return nil, fmt.Errorf("no %s found for id %s: %w", parentTypeName, *parentContextId, api.ErrNotFound)
 		}
 	}
+
+	if existingArtifact != nil {
+		newArtifact, err := converter.UpdateExistingArtifact(serv.reconciler, converter.NewOpenapiUpdateWrapper(existingArtifact, artifact))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		artifact = &newArtifact
+	}
+
 	pa, err := serv.mapper.MapFromArtifact(artifact, parentContextId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
@@ -140,10 +243,10 @@ func (serv *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, par
 	return serv.GetArtifactById(*idAsString)
 }
 
-// UpsertArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
+// UpsertArtifact creates a new standalone artifact if the provided artifact's ID is nil, or updates an existing artifact if the
 // ID is provided.
 func (serv *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*openapi.Artifact, error) {
-	return serv.upsertArtifact(artifact, nil, "")
+	return serv.upsertArtifactWithParentContext(artifact, nil, "")
 }
 
 func (serv *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
