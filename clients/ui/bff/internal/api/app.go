@@ -62,7 +62,6 @@ type App struct {
 	logger                  *slog.Logger
 	kubernetesClientFactory k8s.KubernetesClientFactory
 	repositories            *repositories.Repositories
-	userRepository          repositories.UserRepositoryInterface
 	//used only on mocked k8s client
 	testEnv *envtest.Environment
 }
@@ -111,19 +110,11 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("failed to create ModelRegistryListPath client: %w", err)
 	}
 
-	var userRepo repositories.UserRepositoryInterface
-	if cfg.MockK8Client {
-		userRepo = &mocks.MockUserRepository{}
-	} else {
-		userRepo = repositories.NewUserRepository()
-	}
-
 	app := &App{
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
 		repositories:            repositories.NewRepositories(mrClient),
-		userRepository:          userRepo,
 		testEnv:                 testEnv,
 	}
 	return app, nil
@@ -240,22 +231,4 @@ func (app *App) Routes() http.Handler {
 	combinedMux.Handle("/", app.RecoverPanic(app.EnableTelemetry(app.EnableCORS(app.InjectRequestIdentity(appMux)))))
 
 	return combinedMux
-}
-
-func (app *App) UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	client, err := app.kubernetesClientFactory.GetClient()
-	if err != nil {
-		http.Error(w, "Failed to get Kubernetes client", http.StatusInternalServerError)
-		return
-	}
-
-	identity := helper.GetIdentityFromRequest(r)
-	user, err := app.userRepository.GetUser(client, identity)
-	if err != nil {
-		http.Error(w, "Failed to get user", http.StatusInternalServerError)
-		return
-	}
-
-	// Implement the logic to return the user information in the response
-	w.Write([]byte(fmt.Sprintf("User: %s", user)))
 }
