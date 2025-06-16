@@ -40,6 +40,7 @@ const ModelRegistrySettings: React.FC = () => {
   //   [refreshModelRegistries, refreshRulesReview],
   // );
 
+  
   return (
     <>
       <ApplicationsPage
