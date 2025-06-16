@@ -89,11 +89,11 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 			return
 		}
 
-		glog.Infof("schema_migrations dirty = %d for version %d", dirty, version)
-
 		if dirty != 0 {
 			http.Error(w, "database schema is in dirty state", http.StatusServiceUnavailable)
 			return
+		} else {
+			glog.Infof("schema_migrations table is in clean state for version %d", version)
 		}
 
 		w.WriteHeader(http.StatusOK)
