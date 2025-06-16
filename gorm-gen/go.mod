@@ -7,7 +7,6 @@ require (
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/driver/sqlite v1.4.3
-	gorm.io/driver/sqlserver v1.4.1
 	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.26.0
 )
@@ -17,8 +16,6 @@ exclude gorm.io/plugin/dbresolver v1.5.0
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
-	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
-	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
@@ -26,7 +23,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.15 // indirect
-	github.com/microsoft/go-mssqldb v0.17.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect

@@ -9,7 +9,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
-	"gorm.io/driver/sqlserver"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -50,8 +49,6 @@ func getDialector(dbType, dsn string) (gorm.Dialector, error) {
 		return postgres.Open(dsn), nil
 	case "sqlite":
 		return sqlite.Open(dsn), nil
-	case "sqlserver", "mssql":
-		return sqlserver.Open(dsn), nil
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: mysql, postgres, sqlite, sqlserver", dbType)
 	}
@@ -88,7 +85,6 @@ func runGenerate() error {
 	}
 
 	fmt.Printf("Connecting to %s database...\n", dbType)
-	fmt.Printf("DSN: %s\n", dsn)
 
 	// Get the appropriate dialector
 	dialector, err := getDialector(dbType, dsn)
@@ -147,9 +143,6 @@ func init() {
 
   # Generate models for SQLite
   gorm-gen --db-type=sqlite --dsn="./database.db"
-
-  # Generate models for SQL Server
-  gorm-gen --db-type=sqlserver --dsn="sqlserver://user:pass@localhost:1433?database=mydb"
 
   # Use environment variables
   export GORM_GEN_DB_TYPE=postgres
