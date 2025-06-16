@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { ModelRegistryKind, Table } from 'mod-arch-shared';
-import { modelRegistryColumns } from './columns';
+import { Table, Thead, Tbody, Tr, Th, Td } from '@patternfly/react-table';
+import { ModelRegistryKind } from '~/app/k8sTypes';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
+import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
 
 type ModelRegistriesTableProps = {
   modelRegistries: ModelRegistryKind[];
@@ -19,52 +20,62 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
   // TODO: [Midstream] Complete once we have permissions
 
   const [deleteRegistry, setDeleteRegistry] = React.useState<ModelRegistryKind>();
+  const [editRegistry, setEditRegistry] = React.useState<ModelRegistryKind>();
+
+  const columns = ['Name', 'Owner', 'Created', ''];
 
   return (
     <>
-      <Table
-        data-testid="model-registries-table"
-        data={modelRegistries}
-        columns={modelRegistryColumns}
-        toolbarContent={
-          <Toolbar>
-            <ToolbarContent>
-              <ToolbarItem>
-                <Button
-                  data-testid="create-model-registry-button"
-                  variant="primary"
-                  onClick={onCreateModelRegistryClick}
-                >
-                  Create model registry
-                </Button>
-              </ToolbarItem>
-            </ToolbarContent>
-          </Toolbar>
-        }
-        rowRenderer={(mr: ModelRegistryKind) => (
-          <ModelRegistriesTableRow
-            key={mr.metadata.name}
-            modelRegistry={mr}
-            onDeleteRegistry={(i) => setDeleteRegistry(i)}
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            onEditRegistry={() => {}}
-          />
-        )}
-        variant="compact"
-      />
-      {/* TODO: implement when CRD endpoint is ready */}
-      {/* {editRegistry ? (
+      <Toolbar>
+        <ToolbarContent>
+          <ToolbarItem>
+            <Button
+              data-testid="create-model-registry-button"
+              variant="primary"
+              onClick={onCreateModelRegistryClick}
+            >
+              Create model registry
+            </Button>
+          </ToolbarItem>
+        </ToolbarContent>
+      </Toolbar>
+      <Table aria-label="Model Registries Table" variant="compact">
+        <Thead>
+          <Tr>
+            {columns.map((column, index) => (
+              <Th key={index}>{column}</Th>
+            ))}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {modelRegistries.map((mr) => (
+            <ModelRegistriesTableRow
+                key={mr.metadata.name}
+                modelRegistry={mr}
+                onDeleteRegistry={setDeleteRegistry}
+                onEditRegistry={setEditRegistry}
+                roleBindings={{
+                    data: [],
+                    loaded: true,
+                    error: undefined,
+                    refresh: () => Promise.resolve([]),
+                }}
+            />
+          ))}
+        </Tbody>
+      </Table>
+      {editRegistry ? (
         <CreateModal
           modelRegistry={editRegistry}
           onClose={() => setEditRegistry(undefined)}
-          refresh={refresh}
+          refresh={() => Promise.resolve(undefined)}
         />
-      ) : null} */}
+      ) : null}
       {deleteRegistry ? (
         <DeleteModelRegistryModal
-          modelRegistry={deleteRegistry}
+          modelRegistry={deleteRegistry as unknown as ModelRegistryKind}
           onClose={() => setDeleteRegistry(undefined)}
-          refresh={refresh}
+          refresh={() => Promise.resolve(undefined)}
         />
       ) : null}
     </>

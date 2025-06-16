@@ -17,7 +17,8 @@ import {
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
 import ModelRegistriesTable from './ModelRegistriesTable';
-import CreateModal from './ModelRegistryCreateModal';
+import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
+import { ModelRegistryKind } from '~/app/k8sTypes';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
@@ -78,7 +79,7 @@ const ModelRegistrySettings: React.FC = () => {
         provideChildrenPadding
       >
         <ModelRegistriesTable
-          modelRegistries={modelRegistries}
+          modelRegistries={modelRegistries as unknown as ModelRegistryKind[]}
           onCreateModelRegistryClick={() => {
             setCreateModalOpen(true);
           }}
@@ -89,7 +90,7 @@ const ModelRegistrySettings: React.FC = () => {
       {createModalOpen ? (
         <CreateModal
           onClose={() => setCreateModalOpen(false)}
-          // refresh={refreshAll}
+          refresh={() => Promise.resolve(undefined)}
         />
       ) : null}
     </>

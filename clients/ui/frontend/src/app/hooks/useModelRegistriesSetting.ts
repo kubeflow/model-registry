@@ -7,6 +7,7 @@ import {
   ModelRegistryKind,
 } from 'mod-arch-shared';
 import { listModelRegistrySettings } from '~/app/api/k8s';
+import { ModelRegistryKind as K8sModelRegistryKind } from '~/app/k8sTypes';
 
 const useModelRegistriesSettings = (
   queryParams: Record<string, unknown>,

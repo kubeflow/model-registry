@@ -1,94 +1,81 @@
 import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
+import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
-import { useNavigate } from 'react-router';
-import {
-  ModelRegistryKind,
-  PlatformMode,
-  ResourceNameTooltip,
-  useModularArchContext,
-} from 'mod-arch-shared';
+import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
+import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
+import ResourceNameTooltip from '~/app/concepts/dashboard/DashboardPopupIconButton';
 
 type ModelRegistriesTableRowProps = {
   modelRegistry: ModelRegistryKind;
-  // roleBindings: ContextResourceData<RoleBindingKind>; // TODO: [Midstream] Filter role bindings for this model registry
+  roleBindings: FetchStateObject<RoleBindingKind[]>;
   onEditRegistry: (obj: ModelRegistryKind) => void;
   onDeleteRegistry: (obj: ModelRegistryKind) => void;
 };
 
 const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   modelRegistry: mr,
-  // roleBindings, // TODO: [Midstream] Filter role bindings for this model registry
+  roleBindings,
   onEditRegistry,
   onDeleteRegistry,
 }) => {
   const navigate = useNavigate();
-  const { platformMode } = useModularArchContext();
-  const isPlatformKubeflow = platformMode === PlatformMode.Kubeflow;
-  const filteredRoleBindings = []; // TODO: [Midstream] Filter role bindings for this model registry
+  const filteredRoleBindings = roleBindings.data.filter(
+    (rb) =>
+      rb.metadata.labels?.['app.kubernetes.io/name'] ===
+      (mr.metadata.name || mr.metadata.annotations?.['openshift.io/display-name']),
+  );
 
   return (
     <Tr>
       <Td dataLabel="Model registry name">
-        <ResourceNameTooltip resource={mr}>
-          <strong>{mr.metadata.displayName || mr.metadata.name}</strong>
+        <ResourceNameTooltip resource={mr.metadata.name}>
+          <strong>
+            {mr.metadata.annotations?.['openshift.io/display-name'] || mr.metadata.name}
+          </strong>
         </ResourceNameTooltip>
-        {mr.metadata.description && <p>{mr.metadata.description}</p>}
+        {mr.metadata.annotations?.['openshift.io/description'] && (
+          <p>{mr.metadata.annotations['openshift.io/description']}</p>
+        )}
       </Td>
       <Td dataLabel="Status">
-        <ModelRegistryTableRowStatus
-          conditions={[
+        <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
+      </Td>
+      <Td modifier="fitContent">
+        {filteredRoleBindings.length === 0 ? (
+          <Tooltip content="You can manage permissions when the model registry becomes available.">
+            <Button isAriaDisabled variant="link">
+              Manage permissions
+            </Button>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="link"
+            onClick={() => navigate(`/modelRegistrySettings/permissions/${mr.metadata.name}`)}
+          >
+            Manage permissions
+          </Button>
+        )}
+      </Td>
+      <Td isActionCell>
+        <ActionsColumn
+          items={[
             {
-              type: 'Available',
-              status: 'True',
-              reason: 'Ready',
-              message: 'Model registry is ready.',
+              title: 'Edit model registry',
+              onClick: () => {
+                onEditRegistry(mr);
+              },
+            },
+            {
+              title: 'Delete model registry',
+              onClick: () => {
+                onDeleteRegistry(mr);
+              },
             },
           ]}
         />
       </Td>
-      {!isPlatformKubeflow && (
-        <Td modifier="fitContent">
-          {filteredRoleBindings.length === 0 ? (
-            <Tooltip content="You can manage permissions when the model registry becomes available.">
-              <Button isAriaDisabled variant="link">
-                Manage permissions
-              </Button>
-            </Tooltip>
-          ) : (
-            <Button
-              variant="link"
-              onClick={() => navigate(`/model-registry-settings/permissions/${mr.metadata.name}`)}
-            >
-              Manage permissions
-            </Button>
-          )}
-        </Td>
-      )}
-      {!isPlatformKubeflow && (
-        <Td isActionCell>
-          <ActionsColumn
-            disabled={isPlatformKubeflow}
-            items={[
-              {
-                title: 'Edit model registry',
-                disabled: isPlatformKubeflow,
-                onClick: () => {
-                  onEditRegistry(mr);
-                },
-              },
-              {
-                title: 'Delete model registry',
-                disabled: isPlatformKubeflow,
-                onClick: () => {
-                  onDeleteRegistry(mr);
-                },
-              },
-            ]}
-          />
-        </Td>
-      )}
     </Tr>
   );
 };
