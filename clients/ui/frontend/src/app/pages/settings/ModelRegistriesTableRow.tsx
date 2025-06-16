@@ -43,7 +43,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
         <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
       </Td>
       <Td modifier="fitContent">
-        {filteredRoleBindings.length !== 0 ? (
+        {filteredRoleBindings.length === 0 ? (
           <Tooltip content="You can manage permissions when the model registry becomes available.">
             <Button isAriaDisabled variant="link">
               Manage permissions
