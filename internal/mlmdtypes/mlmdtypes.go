@@ -135,7 +135,7 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 				"value":       proto.PropertyType_DOUBLE,
-				"timestamp":   proto.PropertyType_INT,
+				"timestamp":   proto.PropertyType_STRING,
 				"step":        proto.PropertyType_INT,
 			},
 		},
@@ -211,8 +211,8 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 				"owner":                  proto.PropertyType_STRING,
 				"state":                  proto.PropertyType_STRING,
 				"status":                 proto.PropertyType_STRING,
-				"start_time_since_epoch": proto.PropertyType_INT,
-				"end_time_since_epoch":   proto.PropertyType_INT,
+				"start_time_since_epoch": proto.PropertyType_STRING,
+				"end_time_since_epoch":   proto.PropertyType_STRING,
 			},
 		},
 	}

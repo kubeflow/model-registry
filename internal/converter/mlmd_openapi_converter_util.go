@@ -409,11 +409,11 @@ func MapExperimentRunStatus(properties map[string]*proto.Value) *openapi.Experim
 }
 
 func MapPropertyStartTimeSinceEpoch(properties map[string]*proto.Value) *string {
-	return MapIntProperty(properties, "start_time_since_epoch")
+	return MapStringProperty(properties, "start_time_since_epoch")
 }
 
 func MapPropertyEndTimeSinceEpoch(properties map[string]*proto.Value) *string {
-	return MapIntProperty(properties, "end_time_since_epoch")
+	return MapStringProperty(properties, "end_time_since_epoch")
 }
 
 // DATA SET
@@ -454,12 +454,7 @@ func MapMetricPropertyValue(properties map[string]*proto.Value) *float64 {
 }
 
 func MapPropertyTimestamp(properties map[string]*proto.Value) *string {
-	val, ok := properties["timestamp"]
-	if !ok {
-		return nil
-	}
-	ts := val.GetIntValue()
-	return Int64ToString(&ts)
+	return MapStringProperty(properties, "timestamp")
 }
 
 func MapPropertyStep(properties map[string]*proto.Value) *int64 {

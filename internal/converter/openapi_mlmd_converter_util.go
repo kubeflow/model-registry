@@ -566,13 +566,9 @@ func MapMetricProperties(source *openapi.Metric) (map[string]*proto.Value, error
 			},
 		}
 		if source.Timestamp != nil {
-			timestamp, err := strconv.ParseInt(*source.Timestamp, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("invalid timestamp: %w", err)
-			}
 			props["timestamp"] = &proto.Value{
-				Value: &proto.Value_IntValue{
-					IntValue: timestamp,
+				Value: &proto.Value_StringValue{
+					StringValue: *source.Timestamp,
 				},
 			}
 		}
@@ -901,25 +897,17 @@ func MapExperimentRunProperties(source *openapi.ExperimentRun) (map[string]*prot
 		}
 
 		if source.StartTimeSinceEpoch != nil {
-			value, err := strconv.ParseInt(*source.StartTimeSinceEpoch, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("invalid start time since epoch: %w", err)
-			}
 			props["start_time_since_epoch"] = &proto.Value{
-				Value: &proto.Value_IntValue{
-					IntValue: value,
+				Value: &proto.Value_StringValue{
+					StringValue: *source.StartTimeSinceEpoch,
 				},
 			}
 		}
 
 		if source.EndTimeSinceEpoch != nil {
-			value, err := strconv.ParseInt(*source.EndTimeSinceEpoch, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("invalid end time since epoch: %w", err)
-			}
 			props["end_time_since_epoch"] = &proto.Value{
-				Value: &proto.Value_IntValue{
-					IntValue: value,
+				Value: &proto.Value_StringValue{
+					StringValue: *source.EndTimeSinceEpoch,
 				},
 			}
 		}
