@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -120,8 +120,8 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	}
 
 	list.Items = artifacts
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(artifacts))
 
 	return &list, nil

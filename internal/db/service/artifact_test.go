@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -86,18 +86,18 @@ func TestArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrievedModelArtifact.ModelArtifact)
 		require.Nil(t, retrievedModelArtifact.DocArtifact)
-		assert.Equal(t, *savedModelArtifact.GetID(), *ptr.In(retrievedModelArtifact.ModelArtifact).GetID())
-		assert.Equal(t, "test-model-artifact-for-getbyid", *ptr.In(retrievedModelArtifact.ModelArtifact).GetAttributes().Name)
-		assert.Equal(t, "s3://bucket/model.pkl", *ptr.In(retrievedModelArtifact.ModelArtifact).GetAttributes().URI)
+		assert.Equal(t, *savedModelArtifact.GetID(), *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetID())
+		assert.Equal(t, "test-model-artifact-for-getbyid", *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetAttributes().Name)
+		assert.Equal(t, "s3://bucket/model.pkl", *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetAttributes().URI)
 
 		// Test retrieving doc artifact by ID
 		retrievedDocArtifact, err := repo.GetByID(*savedDocArtifact.GetID())
 		require.NoError(t, err)
 		require.NotNil(t, retrievedDocArtifact.DocArtifact)
 		require.Nil(t, retrievedDocArtifact.ModelArtifact)
-		assert.Equal(t, *savedDocArtifact.GetID(), *ptr.In(retrievedDocArtifact.DocArtifact).GetID())
-		assert.Equal(t, "test-doc-artifact-for-getbyid", *ptr.In(retrievedDocArtifact.DocArtifact).GetAttributes().Name)
-		assert.Equal(t, "s3://bucket/doc.pdf", *ptr.In(retrievedDocArtifact.DocArtifact).GetAttributes().URI)
+		assert.Equal(t, *savedDocArtifact.GetID(), *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetID())
+		assert.Equal(t, "test-doc-artifact-for-getbyid", *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetAttributes().Name)
+		assert.Equal(t, "s3://bucket/doc.pdf", *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetAttributes().URI)
 
 		// Test retrieving non-existent ID
 		_, err = repo.GetByID(99999)
@@ -202,7 +202,7 @@ func TestArtifactRepository(t *testing.T) {
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
 			assert.NotNil(t, result.Items[0].ModelArtifact)
-			assert.Equal(t, "list-model-artifact-1", *ptr.In(result.Items[0].ModelArtifact).GetAttributes().Name)
+			assert.Equal(t, "list-model-artifact-1", *apiutils.ZeroIfNil(result.Items[0].ModelArtifact).GetAttributes().Name)
 		}
 
 		// Test listing by name (doc artifact)
@@ -217,7 +217,7 @@ func TestArtifactRepository(t *testing.T) {
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
 			assert.NotNil(t, result.Items[0].DocArtifact)
-			assert.Equal(t, "list-doc-artifact-1", *ptr.In(result.Items[0].DocArtifact).GetAttributes().Name)
+			assert.Equal(t, "list-doc-artifact-1", *apiutils.ZeroIfNil(result.Items[0].DocArtifact).GetAttributes().Name)
 		}
 
 		// Test listing by external ID
@@ -232,7 +232,7 @@ func TestArtifactRepository(t *testing.T) {
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
 			assert.NotNil(t, result.Items[0].ModelArtifact)
-			assert.Equal(t, "list-model-ext-2", *ptr.In(result.Items[0].ModelArtifact).GetAttributes().ExternalID)
+			assert.Equal(t, "list-model-ext-2", *apiutils.ZeroIfNil(result.Items[0].ModelArtifact).GetAttributes().ExternalID)
 		}
 
 		// Test listing by model version ID
@@ -263,14 +263,14 @@ func TestArtifactRepository(t *testing.T) {
 			// Verify ascending ID order
 			var firstID, secondID int32
 			if result.Items[0].ModelArtifact != nil {
-				firstID = *ptr.In(result.Items[0].ModelArtifact).GetID()
+				firstID = *apiutils.ZeroIfNil(result.Items[0].ModelArtifact).GetID()
 			} else {
-				firstID = *ptr.In(result.Items[0].DocArtifact).GetID()
+				firstID = *apiutils.ZeroIfNil(result.Items[0].DocArtifact).GetID()
 			}
 			if result.Items[1].ModelArtifact != nil {
-				secondID = *ptr.In(result.Items[1].ModelArtifact).GetID()
+				secondID = *apiutils.ZeroIfNil(result.Items[1].ModelArtifact).GetID()
 			} else {
-				secondID = *ptr.In(result.Items[1].DocArtifact).GetID()
+				secondID = *apiutils.ZeroIfNil(result.Items[1].DocArtifact).GetID()
 			}
 			assert.Less(t, firstID, secondID, "Results should be ordered by ID ascending")
 		}
@@ -328,11 +328,11 @@ func TestArtifactRepository(t *testing.T) {
 		var index1, index2 = -1, -1
 
 		for i, item := range result.Items {
-			if item.ModelArtifact != nil && *ptr.In(item.ModelArtifact).GetID() == *saved1.GetID() {
+			if item.ModelArtifact != nil && *apiutils.ZeroIfNil(item.ModelArtifact).GetID() == *saved1.GetID() {
 				foundArtifact1 = item
 				index1 = i
 			}
-			if item.DocArtifact != nil && *ptr.In(item.DocArtifact).GetID() == *saved2.GetID() {
+			if item.DocArtifact != nil && *apiutils.ZeroIfNil(item.DocArtifact).GetID() == *saved2.GetID() {
 				foundArtifact2 = item
 				index2 = i
 			}
@@ -346,14 +346,14 @@ func TestArtifactRepository(t *testing.T) {
 		// Verify timestamps
 		var createTime1, createTime2 int64
 		if foundArtifact1.ModelArtifact != nil {
-			createTime1 = *ptr.In(foundArtifact1.ModelArtifact).GetAttributes().CreateTimeSinceEpoch
+			createTime1 = *apiutils.ZeroIfNil(foundArtifact1.ModelArtifact).GetAttributes().CreateTimeSinceEpoch
 		} else {
-			createTime1 = *ptr.In(foundArtifact1.DocArtifact).GetAttributes().CreateTimeSinceEpoch
+			createTime1 = *apiutils.ZeroIfNil(foundArtifact1.DocArtifact).GetAttributes().CreateTimeSinceEpoch
 		}
 		if foundArtifact2.ModelArtifact != nil {
-			createTime2 = *ptr.In(foundArtifact2.ModelArtifact).GetAttributes().CreateTimeSinceEpoch
+			createTime2 = *apiutils.ZeroIfNil(foundArtifact2.ModelArtifact).GetAttributes().CreateTimeSinceEpoch
 		} else {
-			createTime2 = *ptr.In(foundArtifact2.DocArtifact).GetAttributes().CreateTimeSinceEpoch
+			createTime2 = *apiutils.ZeroIfNil(foundArtifact2.DocArtifact).GetAttributes().CreateTimeSinceEpoch
 		}
 		assert.Less(t, createTime1, createTime2, "Artifact 1 should have earlier create time")
 	})
@@ -400,15 +400,15 @@ func TestArtifactRepository(t *testing.T) {
 		// Find our mixed artifacts
 		var foundModelArtifact, foundDocArtifact bool
 		for _, item := range result.Items {
-			if item.ModelArtifact != nil && *ptr.In(item.ModelArtifact).GetID() == *savedModelArtifact.GetID() {
+			if item.ModelArtifact != nil && *apiutils.ZeroIfNil(item.ModelArtifact).GetID() == *savedModelArtifact.GetID() {
 				foundModelArtifact = true
-				assert.Equal(t, "mixed-test-artifact", *ptr.In(item.ModelArtifact).GetAttributes().Name)
-				assert.Equal(t, "s3://bucket/mixed-model.pkl", *ptr.In(item.ModelArtifact).GetAttributes().URI)
+				assert.Equal(t, "mixed-test-artifact", *apiutils.ZeroIfNil(item.ModelArtifact).GetAttributes().Name)
+				assert.Equal(t, "s3://bucket/mixed-model.pkl", *apiutils.ZeroIfNil(item.ModelArtifact).GetAttributes().URI)
 			}
-			if item.DocArtifact != nil && *ptr.In(item.DocArtifact).GetID() == *savedDocArtifact.GetID() {
+			if item.DocArtifact != nil && *apiutils.ZeroIfNil(item.DocArtifact).GetID() == *savedDocArtifact.GetID() {
 				foundDocArtifact = true
-				assert.Equal(t, "mixed-test-doc", *ptr.In(item.DocArtifact).GetAttributes().Name)
-				assert.Equal(t, "s3://bucket/mixed-doc.pdf", *ptr.In(item.DocArtifact).GetAttributes().URI)
+				assert.Equal(t, "mixed-test-doc", *apiutils.ZeroIfNil(item.DocArtifact).GetAttributes().Name)
+				assert.Equal(t, "s3://bucket/mixed-doc.pdf", *apiutils.ZeroIfNil(item.DocArtifact).GetAttributes().URI)
 			}
 		}
 
@@ -458,13 +458,13 @@ func TestArtifactRepository(t *testing.T) {
 		// Find our standalone artifacts
 		var foundStandaloneModel, foundStandaloneDoc bool
 		for _, item := range result.Items {
-			if item.ModelArtifact != nil && *ptr.In(item.ModelArtifact).GetID() == *savedStandaloneModel.GetID() {
+			if item.ModelArtifact != nil && *apiutils.ZeroIfNil(item.ModelArtifact).GetID() == *savedStandaloneModel.GetID() {
 				foundStandaloneModel = true
-				assert.Equal(t, "standalone-model-artifact", *ptr.In(item.ModelArtifact).GetAttributes().Name)
+				assert.Equal(t, "standalone-model-artifact", *apiutils.ZeroIfNil(item.ModelArtifact).GetAttributes().Name)
 			}
-			if item.DocArtifact != nil && *ptr.In(item.DocArtifact).GetID() == *savedStandaloneDoc.GetID() {
+			if item.DocArtifact != nil && *apiutils.ZeroIfNil(item.DocArtifact).GetID() == *savedStandaloneDoc.GetID() {
 				foundStandaloneDoc = true
-				assert.Equal(t, "standalone-doc-artifact", *ptr.In(item.DocArtifact).GetAttributes().Name)
+				assert.Equal(t, "standalone-doc-artifact", *apiutils.ZeroIfNil(item.DocArtifact).GetAttributes().Name)
 			}
 		}
 
@@ -485,10 +485,10 @@ func TestArtifactRepository(t *testing.T) {
 		foundStandaloneModel = false
 		foundStandaloneDoc = false
 		for _, item := range result.Items {
-			if item.ModelArtifact != nil && *ptr.In(item.ModelArtifact).GetID() == *savedStandaloneModel.GetID() {
+			if item.ModelArtifact != nil && *apiutils.ZeroIfNil(item.ModelArtifact).GetID() == *savedStandaloneModel.GetID() {
 				foundStandaloneModel = true
 			}
-			if item.DocArtifact != nil && *ptr.In(item.DocArtifact).GetID() == *savedStandaloneDoc.GetID() {
+			if item.DocArtifact != nil && *apiutils.ZeroIfNil(item.DocArtifact).GetID() == *savedStandaloneDoc.GetID() {
 				foundStandaloneDoc = true
 			}
 		}

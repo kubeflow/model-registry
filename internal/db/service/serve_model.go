@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -222,8 +222,8 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	}
 
 	list.Items = serveModels
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(serveModels))
 
 	return &list, nil
@@ -237,8 +237,8 @@ func mapServeModelToExecution(serveModel models.ServeModel) schema.Execution {
 	glog.Infof("Mapping ServeModel to Execution: %+v", serveModel)
 
 	serveModelExec := schema.Execution{
-		ID:     ptr.In(serveModel.GetID()),
-		TypeID: ptr.In(serveModel.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(serveModel.GetID()),
+		TypeID: apiutils.ZeroIfNil(serveModel.GetTypeID()),
 	}
 
 	if serveModel.GetAttributes() != nil {
@@ -248,8 +248,8 @@ func mapServeModelToExecution(serveModel models.ServeModel) schema.Execution {
 			lastKnownState := models.Execution_State_value[*serveModel.GetAttributes().LastKnownState]
 			serveModelExec.LastKnownState = &lastKnownState
 		}
-		serveModelExec.CreateTimeSinceEpoch = ptr.In(serveModel.GetAttributes().CreateTimeSinceEpoch)
-		serveModelExec.LastUpdateTimeSinceEpoch = ptr.In(serveModel.GetAttributes().LastUpdateTimeSinceEpoch)
+		serveModelExec.CreateTimeSinceEpoch = apiutils.ZeroIfNil(serveModel.GetAttributes().CreateTimeSinceEpoch)
+		serveModelExec.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(serveModel.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return serveModelExec

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -33,12 +33,12 @@ func TestUpsertInferenceService(t *testing.T) {
 
 		// Create inference service
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("test-inference-service"),
-			Description:          ptr.Of("Test inference service description"),
-			ExternalId:           ptr.Of("inference-ext-123"),
+			Name:                 apiutils.Of("test-inference-service"),
+			Description:          apiutils.Of("Test inference service description"),
+			ExternalId:           apiutils.Of("inference-ext-123"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 		}
 
 		result, err := service.UpsertInferenceService(input)
@@ -72,8 +72,8 @@ func TestUpsertInferenceService(t *testing.T) {
 
 		// Create first
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("update-test-inference-service"),
-			Description:          ptr.Of("Original description"),
+			Name:                 apiutils.Of("update-test-inference-service"),
+			Description:          apiutils.Of("Original description"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -85,12 +85,12 @@ func TestUpsertInferenceService(t *testing.T) {
 		// Update
 		update := &openapi.InferenceService{
 			Id:                   created.Id,
-			Name:                 ptr.Of("update-test-inference-service"), // Name should remain the same
-			Description:          ptr.Of("Updated description"),
-			ExternalId:           ptr.Of("updated-ext-456"),
+			Name:                 apiutils.Of("update-test-inference-service"), // Name should remain the same
+			Description:          apiutils.Of("Updated description"),
+			ExternalId:           apiutils.Of("updated-ext-456"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("pytorch"),
+			Runtime:              apiutils.Of("pytorch"),
 		}
 
 		updated, err := service.UpsertInferenceService(update)
@@ -141,7 +141,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		}
 
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("custom-props-inference-service"),
+			Name:                 apiutils.Of("custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 			CustomProperties:     &customProps,
@@ -181,7 +181,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("minimal-inference-service"),
+			Name:                 apiutils.Of("minimal-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -220,12 +220,12 @@ func TestUpsertInferenceService(t *testing.T) {
 
 		// Create inference service with nil DesiredState and other optional fields
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("nil-state-inference-service"),
-			Description:          ptr.Of("Test inference service with nil desired state"),
-			ExternalId:           ptr.Of("nil-state-ext-123"),
+			Name:                 apiutils.Of("nil-state-inference-service"),
+			Description:          apiutils.Of("Test inference service with nil desired state"),
+			ExternalId:           apiutils.Of("nil-state-ext-123"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 			DesiredState:         nil, // Explicitly set to nil
 		}
 
@@ -262,11 +262,11 @@ func TestUpsertInferenceService(t *testing.T) {
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
 		unicodeName := "推理服务-тест-推論サービス-🚀"
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of(unicodeName),
-			Description:          ptr.Of("Test inference service with unicode characters"),
+			Name:                 apiutils.Of(unicodeName),
+			Description:          apiutils.Of("Test inference service with unicode characters"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 		}
 
 		result, err := service.UpsertInferenceService(input)
@@ -302,11 +302,11 @@ func TestUpsertInferenceService(t *testing.T) {
 		// Test with various special characters
 		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of(specialName),
-			Description:          ptr.Of("Test inference service with special characters"),
+			Name:                 apiutils.Of(specialName),
+			Description:          apiutils.Of("Test inference service with special characters"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("pytorch"),
+			Runtime:              apiutils.Of("pytorch"),
 		}
 
 		result, err := service.UpsertInferenceService(input)
@@ -340,11 +340,11 @@ func TestUpsertInferenceService(t *testing.T) {
 		// Test with mixed unicode and special characters
 		mixedName := "推理@#$%服务-тест!@#-推論()サービス-🚀[]"
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of(mixedName),
-			Description:          ptr.Of("Test inference service with mixed unicode and special characters"),
+			Name:                 apiutils.Of(mixedName),
+			Description:          apiutils.Of("Test inference service with mixed unicode and special characters"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("onnx"),
+			Runtime:              apiutils.Of("onnx"),
 		}
 
 		result, err := service.UpsertInferenceService(input)
@@ -380,11 +380,11 @@ func TestUpsertInferenceService(t *testing.T) {
 		for i := 0; i < 15; i++ {
 			serviceName := "paging-test-inference-service-" + fmt.Sprintf("%02d", i)
 			input := &openapi.InferenceService{
-				Name:                 ptr.Of(serviceName),
-				Description:          ptr.Of("Pagination test inference service " + fmt.Sprintf("%02d", i)),
+				Name:                 apiutils.Of(serviceName),
+				Description:          apiutils.Of("Pagination test inference service " + fmt.Sprintf("%02d", i)),
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
-				Runtime:              ptr.Of("tensorflow"),
+				Runtime:              apiutils.Of("tensorflow"),
 			}
 
 			result, err := service.UpsertInferenceService(input)
@@ -506,12 +506,12 @@ func TestGetInferenceServiceById(t *testing.T) {
 
 		// First create an inference service to retrieve
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("get-test-inference-service"),
-			Description:          ptr.Of("Test description"),
-			ExternalId:           ptr.Of("get-ext-123"),
+			Name:                 apiutils.Of("get-test-inference-service"),
+			Description:          apiutils.Of("Test description"),
+			ExternalId:           apiutils.Of("get-ext-123"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 		}
 
 		created, err := service.UpsertInferenceService(input)
@@ -566,8 +566,8 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("params-test-inference-service"),
-			ExternalId:           ptr.Of("params-ext-123"),
+			Name:                 apiutils.Of("params-test-inference-service"),
+			ExternalId:           apiutils.Of("params-ext-123"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -599,8 +599,8 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
-			Name:                 ptr.Of("params-ext-test-inference-service"),
-			ExternalId:           ptr.Of("params-unique-ext-456"),
+			Name:                 apiutils.Of("params-ext-test-inference-service"),
+			ExternalId:           apiutils.Of("params-unique-ext-456"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -657,25 +657,25 @@ func TestGetInferenceServices(t *testing.T) {
 		// Create multiple inference services for listing
 		testInferenceServices := []*openapi.InferenceService{
 			{
-				Name:                 ptr.Of("list-inference-service-1"),
-				ExternalId:           ptr.Of("list-ext-1"),
+				Name:                 apiutils.Of("list-inference-service-1"),
+				ExternalId:           apiutils.Of("list-ext-1"),
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
-				Runtime:              ptr.Of("tensorflow"),
+				Runtime:              apiutils.Of("tensorflow"),
 			},
 			{
-				Name:                 ptr.Of("list-inference-service-2"),
-				ExternalId:           ptr.Of("list-ext-2"),
+				Name:                 apiutils.Of("list-inference-service-2"),
+				ExternalId:           apiutils.Of("list-ext-2"),
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
-				Runtime:              ptr.Of("pytorch"),
+				Runtime:              apiutils.Of("pytorch"),
 			},
 			{
-				Name:                 ptr.Of("list-inference-service-3"),
-				ExternalId:           ptr.Of("list-ext-3"),
+				Name:                 apiutils.Of("list-inference-service-3"),
+				ExternalId:           apiutils.Of("list-ext-3"),
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
-				Runtime:              ptr.Of("onnx"),
+				Runtime:              apiutils.Of("onnx"),
 			},
 		}
 
@@ -734,7 +734,7 @@ func TestGetInferenceServices(t *testing.T) {
 
 		// Create inference services in different serving environments
 		infSvc1 := &openapi.InferenceService{
-			Name:                 ptr.Of("filter-inference-service-1"),
+			Name:                 apiutils.Of("filter-inference-service-1"),
 			ServingEnvironmentId: *createdEnv1.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -742,7 +742,7 @@ func TestGetInferenceServices(t *testing.T) {
 		require.NoError(t, err)
 
 		infSvc2 := &openapi.InferenceService{
-			Name:                 ptr.Of("filter-inference-service-2"),
+			Name:                 apiutils.Of("filter-inference-service-2"),
 			ServingEnvironmentId: *createdEnv2.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -788,19 +788,19 @@ func TestGetInferenceServices(t *testing.T) {
 
 		// Create inference services with different runtimes
 		infSvcTensorflow := &openapi.InferenceService{
-			Name:                 ptr.Of("runtime-tensorflow-service"),
+			Name:                 apiutils.Of("runtime-tensorflow-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 		}
 		createdTensorflow, err := service.UpsertInferenceService(infSvcTensorflow)
 		require.NoError(t, err)
 
 		infSvcPytorch := &openapi.InferenceService{
-			Name:                 ptr.Of("runtime-pytorch-service"),
+			Name:                 apiutils.Of("runtime-pytorch-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("pytorch"),
+			Runtime:              apiutils.Of("pytorch"),
 		}
 		_, err = service.UpsertInferenceService(infSvcPytorch)
 		require.NoError(t, err)
@@ -846,8 +846,8 @@ func TestGetInferenceServices(t *testing.T) {
 		// Create several inference services for pagination testing
 		for i := 0; i < 5; i++ {
 			infSvc := &openapi.InferenceService{
-				Name:                 ptr.Of("pagination-inference-service-" + string(rune('A'+i))),
-				ExternalId:           ptr.Of("pagination-ext-" + string(rune('A'+i))),
+				Name:                 apiutils.Of("pagination-inference-service-" + string(rune('A'+i))),
+				ExternalId:           apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
 			}
@@ -893,26 +893,26 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "roundtrip-registered-model",
-			Description: ptr.Of("Roundtrip test registered model"),
+			Description: apiutils.Of("Roundtrip test registered model"),
 		}
 		createdModel, err := service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name:        "roundtrip-serving-env",
-			Description: ptr.Of("Roundtrip test serving environment"),
+			Description: apiutils.Of("Roundtrip test serving environment"),
 		}
 		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service with all fields
 		original := &openapi.InferenceService{
-			Name:                 ptr.Of("roundtrip-inference-service"),
-			Description:          ptr.Of("Roundtrip test description"),
-			ExternalId:           ptr.Of("roundtrip-ext-123"),
+			Name:                 apiutils.Of("roundtrip-inference-service"),
+			Description:          apiutils.Of("Roundtrip test description"),
+			ExternalId:           apiutils.Of("roundtrip-ext-123"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			Runtime:              ptr.Of("tensorflow"),
+			Runtime:              apiutils.Of("tensorflow"),
 		}
 
 		// Create
@@ -934,8 +934,8 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		assert.Equal(t, *original.Runtime, *retrieved.Runtime)
 
 		// Update
-		retrieved.Description = ptr.Of("Updated description")
-		retrieved.Runtime = ptr.Of("pytorch")
+		retrieved.Description = apiutils.Of("Updated description")
+		retrieved.Runtime = apiutils.Of("pytorch")
 
 		updated, err := service.UpsertInferenceService(retrieved)
 		require.NoError(t, err)
@@ -980,7 +980,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		}
 
 		original := &openapi.InferenceService{
-			Name:                 ptr.Of("roundtrip-custom-props-inference-service"),
+			Name:                 apiutils.Of("roundtrip-custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 			CustomProperties:     &customProps,

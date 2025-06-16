@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -172,8 +172,8 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 	}
 
 	list.Items = servEnvs
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(servEnvs))
 
 	return &list, nil
@@ -185,15 +185,15 @@ func mapServingEnvironmentToContext(servEnv models.ServingEnvironment) schema.Co
 	}
 
 	servEnvCtx := schema.Context{
-		ID:     ptr.In(servEnv.GetID()),
-		TypeID: ptr.In(servEnv.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(servEnv.GetID()),
+		TypeID: apiutils.ZeroIfNil(servEnv.GetTypeID()),
 	}
 
 	if servEnv.GetAttributes() != nil {
-		servEnvCtx.Name = ptr.In(servEnv.GetAttributes().Name)
+		servEnvCtx.Name = apiutils.ZeroIfNil(servEnv.GetAttributes().Name)
 		servEnvCtx.ExternalID = servEnv.GetAttributes().ExternalID
-		servEnvCtx.CreateTimeSinceEpoch = ptr.In(servEnv.GetAttributes().CreateTimeSinceEpoch)
-		servEnvCtx.LastUpdateTimeSinceEpoch = ptr.In(servEnv.GetAttributes().LastUpdateTimeSinceEpoch)
+		servEnvCtx.CreateTimeSinceEpoch = apiutils.ZeroIfNil(servEnv.GetAttributes().CreateTimeSinceEpoch)
+		servEnvCtx.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(servEnv.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return servEnvCtx

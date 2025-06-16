@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -172,8 +172,8 @@ func (r *RegisteredModelRepositoryImpl) List(listOptions models.RegisteredModelL
 	}
 
 	list.Items = models
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(models))
 
 	return &list, nil
@@ -185,15 +185,15 @@ func mapRegisteredModelToContext(model models.RegisteredModel) schema.Context {
 	}
 
 	modelCtx := schema.Context{
-		ID:     ptr.In(model.GetID()),
-		TypeID: ptr.In(model.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(model.GetID()),
+		TypeID: apiutils.ZeroIfNil(model.GetTypeID()),
 	}
 
 	if model.GetAttributes() != nil {
-		modelCtx.Name = ptr.In(model.GetAttributes().Name)
+		modelCtx.Name = apiutils.ZeroIfNil(model.GetAttributes().Name)
 		modelCtx.ExternalID = model.GetAttributes().ExternalID
-		modelCtx.CreateTimeSinceEpoch = ptr.In(model.GetAttributes().CreateTimeSinceEpoch)
-		modelCtx.LastUpdateTimeSinceEpoch = ptr.In(model.GetAttributes().LastUpdateTimeSinceEpoch)
+		modelCtx.CreateTimeSinceEpoch = apiutils.ZeroIfNil(model.GetAttributes().CreateTimeSinceEpoch)
+		modelCtx.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(model.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return modelCtx

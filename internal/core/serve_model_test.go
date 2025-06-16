@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("test-inference-service"),
+			Name:                 apiutils.Of("test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -47,11 +47,11 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Create serve model
 		input := &openapi.ServeModel{
-			Name:           ptr.Of("test-serve-model"),
-			Description:    ptr.Of("Test serve model description"),
-			ExternalId:     ptr.Of("serve-ext-123"),
+			Name:           apiutils.Of("test-serve-model"),
+			Description:    apiutils.Of("Test serve model description"),
+			ExternalId:     apiutils.Of("serve-ext-123"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_RUNNING),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
 		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -90,7 +90,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("update-test-inference-service"),
+			Name:                 apiutils.Of("update-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -99,10 +99,10 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Create first
 		input := &openapi.ServeModel{
-			Name:           ptr.Of("update-test-serve-model"),
-			Description:    ptr.Of("Original description"),
+			Name:           apiutils.Of("update-test-serve-model"),
+			Description:    apiutils.Of("Original description"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_NEW),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_NEW),
 		}
 
 		created, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -112,11 +112,11 @@ func TestUpsertServeModel(t *testing.T) {
 		// Update
 		update := &openapi.ServeModel{
 			Id:             created.Id,
-			Name:           ptr.Of("update-test-serve-model"), // Name should remain the same
-			Description:    ptr.Of("Updated description"),
-			ExternalId:     ptr.Of("updated-ext-456"),
+			Name:           apiutils.Of("update-test-serve-model"), // Name should remain the same
+			Description:    apiutils.Of("Updated description"),
+			ExternalId:     apiutils.Of("updated-ext-456"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_COMPLETE),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE),
 		}
 
 		updated, err := service.UpsertServeModel(update, createdInfSvc.Id)
@@ -151,7 +151,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("custom-props-inference-service"),
+			Name:                 apiutils.Of("custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -182,9 +182,9 @@ func TestUpsertServeModel(t *testing.T) {
 		}
 
 		input := &openapi.ServeModel{
-			Name:             ptr.Of("custom-props-serve-model"),
+			Name:             apiutils.Of("custom-props-serve-model"),
 			ModelVersionId:   *createdVersion.Id,
-			LastKnownState:   ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+			LastKnownState:   apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			CustomProperties: &customProps,
 		}
 
@@ -229,7 +229,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("minimal-inference-service"),
+			Name:                 apiutils.Of("minimal-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -237,9 +237,9 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		input := &openapi.ServeModel{
-			Name:           ptr.Of("minimal-serve-model"),
+			Name:           apiutils.Of("minimal-serve-model"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
 
 		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -282,7 +282,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("unicode-test-inference-service"),
+			Name:                 apiutils.Of("unicode-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -291,11 +291,11 @@ func TestUpsertServeModel(t *testing.T) {
 
 		unicodeName := "服务模型-тест-サービス-🚀"
 		input := &openapi.ServeModel{
-			Name:           ptr.Of(unicodeName),
-			Description:    ptr.Of("Unicode test serve model with 中文, русский, 日本語, and emoji 🎯"),
-			ExternalId:     ptr.Of("unicode-ext-测试_123"),
+			Name:           apiutils.Of(unicodeName),
+			Description:    apiutils.Of("Unicode test serve model with 中文, русский, 日本語, and emoji 🎯"),
+			ExternalId:     apiutils.Of("unicode-ext-测试_123"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_RUNNING),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
 		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -330,7 +330,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("special-chars-test-inference-service"),
+			Name:                 apiutils.Of("special-chars-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -339,11 +339,11 @@ func TestUpsertServeModel(t *testing.T) {
 
 		specialName := "test-serve-model!@#$%^&*()_+-=[]{}|;':\",./<>?"
 		input := &openapi.ServeModel{
-			Name:           ptr.Of(specialName),
-			Description:    ptr.Of("Serve model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
-			ExternalId:     ptr.Of("ext-id-with-special-chars_123!@#"),
+			Name:           apiutils.Of(specialName),
+			Description:    apiutils.Of("Serve model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			ExternalId:     apiutils.Of("ext-id-with-special-chars_123!@#"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_NEW),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_NEW),
 		}
 
 		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -378,7 +378,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("mixed-chars-test-inference-service"),
+			Name:                 apiutils.Of("mixed-chars-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -387,11 +387,11 @@ func TestUpsertServeModel(t *testing.T) {
 
 		mixedName := "服务-test!@#-тест_123-🚀"
 		input := &openapi.ServeModel{
-			Name:           ptr.Of(mixedName),
-			Description:    ptr.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
-			ExternalId:     ptr.Of("ext-混合_test!@#-123"),
+			Name:           apiutils.Of(mixedName),
+			Description:    apiutils.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			ExternalId:     apiutils.Of("ext-混合_test!@#-123"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_COMPLETE),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE),
 		}
 
 		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -426,7 +426,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("nil-state-inference-service"),
+			Name:                 apiutils.Of("nil-state-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -435,9 +435,9 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Create serve model with nil LastKnownState
 		input := &openapi.ServeModel{
-			Name:           ptr.Of("nil-state-serve-model"),
-			Description:    ptr.Of("Test serve model with nil state"),
-			ExternalId:     ptr.Of("nil-state-ext-123"),
+			Name:           apiutils.Of("nil-state-serve-model"),
+			Description:    apiutils.Of("Test serve model with nil state"),
+			ExternalId:     apiutils.Of("nil-state-ext-123"),
 			ModelVersionId: *createdVersion.Id,
 			LastKnownState: nil, // Explicitly set to nil
 		}
@@ -478,7 +478,7 @@ func TestUpsertServeModel(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("pagination-isolated-inference-service"),
+			Name:                 apiutils.Of("pagination-isolated-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -489,11 +489,11 @@ func TestUpsertServeModel(t *testing.T) {
 		var createdServeModels []string
 		for i := 0; i < 15; i++ {
 			input := &openapi.ServeModel{
-				Name:           ptr.Of(fmt.Sprintf("paging-test-serve-model-%02d", i)),
-				Description:    ptr.Of(fmt.Sprintf("Test serve model %d for pagination", i)),
-				ExternalId:     ptr.Of(fmt.Sprintf("paging-ext-%02d", i)),
+				Name:           apiutils.Of(fmt.Sprintf("paging-test-serve-model-%02d", i)),
+				Description:    apiutils.Of(fmt.Sprintf("Test serve model %d for pagination", i)),
+				ExternalId:     apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 				ModelVersionId: *createdVersion.Id,
-				LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			}
 
 			result, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -621,7 +621,7 @@ func TestGetServeModelById(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("get-test-inference-service"),
+			Name:                 apiutils.Of("get-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -630,11 +630,11 @@ func TestGetServeModelById(t *testing.T) {
 
 		// First create a serve model to retrieve
 		input := &openapi.ServeModel{
-			Name:           ptr.Of("get-test-serve-model"),
-			Description:    ptr.Of("Test description"),
-			ExternalId:     ptr.Of("get-ext-123"),
+			Name:           apiutils.Of("get-test-serve-model"),
+			Description:    apiutils.Of("Test description"),
+			ExternalId:     apiutils.Of("get-ext-123"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_RUNNING),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
 		created, err := service.UpsertServeModel(input, createdInfSvc.Id)
@@ -696,7 +696,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("list-test-inference-service"),
+			Name:                 apiutils.Of("list-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -706,22 +706,22 @@ func TestGetServeModels(t *testing.T) {
 		// Create multiple serve models for listing
 		testServeModels := []*openapi.ServeModel{
 			{
-				Name:           ptr.Of("list-serve-model-1"),
-				ExternalId:     ptr.Of("list-ext-1"),
+				Name:           apiutils.Of("list-serve-model-1"),
+				ExternalId:     apiutils.Of("list-ext-1"),
 				ModelVersionId: *createdVersion.Id,
-				LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_RUNNING),
+				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 			},
 			{
-				Name:           ptr.Of("list-serve-model-2"),
-				ExternalId:     ptr.Of("list-ext-2"),
+				Name:           apiutils.Of("list-serve-model-2"),
+				ExternalId:     apiutils.Of("list-ext-2"),
 				ModelVersionId: *createdVersion.Id,
-				LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_NEW),
+				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_NEW),
 			},
 			{
-				Name:           ptr.Of("list-serve-model-3"),
-				ExternalId:     ptr.Of("list-ext-3"),
+				Name:           apiutils.Of("list-serve-model-3"),
+				ExternalId:     apiutils.Of("list-ext-3"),
 				ModelVersionId: *createdVersion.Id,
-				LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_COMPLETE),
+				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE),
 			},
 		}
 
@@ -780,7 +780,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService1 := &openapi.InferenceService{
-			Name:                 ptr.Of("filter-test-inference-service-1"),
+			Name:                 apiutils.Of("filter-test-inference-service-1"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -788,7 +788,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService2 := &openapi.InferenceService{
-			Name:                 ptr.Of("filter-test-inference-service-2"),
+			Name:                 apiutils.Of("filter-test-inference-service-2"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -797,17 +797,17 @@ func TestGetServeModels(t *testing.T) {
 
 		// Create serve models in different inference services
 		srvModel1 := &openapi.ServeModel{
-			Name:           ptr.Of("filter-serve-model-1"),
+			Name:           apiutils.Of("filter-serve-model-1"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
 		created1, err := service.UpsertServeModel(srvModel1, createdInfSvc1.Id)
 		require.NoError(t, err)
 
 		srvModel2 := &openapi.ServeModel{
-			Name:           ptr.Of("filter-serve-model-2"),
+			Name:           apiutils.Of("filter-serve-model-2"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
 		_, err = service.UpsertServeModel(srvModel2, createdInfSvc2.Id)
 		require.NoError(t, err)
@@ -857,7 +857,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("pagination-test-inference-service"),
+			Name:                 apiutils.Of("pagination-test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -867,10 +867,10 @@ func TestGetServeModels(t *testing.T) {
 		// Create several serve models for pagination testing
 		for i := 0; i < 5; i++ {
 			srvModel := &openapi.ServeModel{
-				Name:           ptr.Of("pagination-serve-model-" + string(rune('A'+i))),
-				ExternalId:     ptr.Of("pagination-ext-" + string(rune('A'+i))),
+				Name:           apiutils.Of("pagination-serve-model-" + string(rune('A'+i))),
+				ExternalId:     apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 				ModelVersionId: *createdVersion.Id,
-				LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			}
 			_, err := service.UpsertServeModel(srvModel, createdInfSvc.Id)
 			require.NoError(t, err)
@@ -914,29 +914,29 @@ func TestServeModelRoundTrip(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "roundtrip-registered-model",
-			Description: ptr.Of("Roundtrip test registered model"),
+			Description: apiutils.Of("Roundtrip test registered model"),
 		}
 		createdModel, err := service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name:        "roundtrip-serving-env",
-			Description: ptr.Of("Roundtrip test serving environment"),
+			Description: apiutils.Of("Roundtrip test serving environment"),
 		}
 		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "roundtrip-model-version",
-			Description:       ptr.Of("Roundtrip test model version"),
+			Description:       apiutils.Of("Roundtrip test model version"),
 			RegisteredModelId: *createdModel.Id,
 		}
 		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("roundtrip-inference-service"),
-			Description:          ptr.Of("Roundtrip test inference service"),
+			Name:                 apiutils.Of("roundtrip-inference-service"),
+			Description:          apiutils.Of("Roundtrip test inference service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -945,11 +945,11 @@ func TestServeModelRoundTrip(t *testing.T) {
 
 		// Create a serve model with all fields
 		original := &openapi.ServeModel{
-			Name:           ptr.Of("roundtrip-serve-model"),
-			Description:    ptr.Of("Roundtrip test description"),
-			ExternalId:     ptr.Of("roundtrip-ext-123"),
+			Name:           apiutils.Of("roundtrip-serve-model"),
+			Description:    apiutils.Of("Roundtrip test description"),
+			ExternalId:     apiutils.Of("roundtrip-ext-123"),
 			ModelVersionId: *createdVersion.Id,
-			LastKnownState: ptr.Of(openapi.EXECUTIONSTATE_RUNNING),
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
 		// Create
@@ -970,8 +970,8 @@ func TestServeModelRoundTrip(t *testing.T) {
 		assert.Equal(t, *original.LastKnownState, *retrieved.LastKnownState)
 
 		// Update
-		retrieved.Description = ptr.Of("Updated description")
-		retrieved.LastKnownState = ptr.Of(openapi.EXECUTIONSTATE_COMPLETE)
+		retrieved.Description = apiutils.Of("Updated description")
+		retrieved.LastKnownState = apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE)
 
 		updated, err := service.UpsertServeModel(retrieved, createdInfSvc.Id)
 		require.NoError(t, err)
@@ -1010,7 +1010,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("roundtrip-custom-props-inference-service"),
+			Name:                 apiutils.Of("roundtrip-custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -1031,9 +1031,9 @@ func TestServeModelRoundTrip(t *testing.T) {
 		}
 
 		original := &openapi.ServeModel{
-			Name:             ptr.Of("roundtrip-custom-props-serve-model"),
+			Name:             apiutils.Of("roundtrip-custom-props-serve-model"),
 			ModelVersionId:   *createdVersion.Id,
-			LastKnownState:   ptr.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+			LastKnownState:   apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			CustomProperties: &customProps,
 		}
 

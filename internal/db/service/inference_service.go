@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -212,8 +212,8 @@ func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServic
 	}
 
 	list.Items = infSvcs
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(infSvcs))
 
 	return &list, nil
@@ -225,15 +225,15 @@ func mapInferenceServiceToContext(inferenceService models.InferenceService) sche
 	}
 
 	infSvcCtx := schema.Context{
-		ID:     ptr.In(inferenceService.GetID()),
-		TypeID: ptr.In(inferenceService.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(inferenceService.GetID()),
+		TypeID: apiutils.ZeroIfNil(inferenceService.GetTypeID()),
 	}
 
 	if inferenceService.GetAttributes() != nil {
-		infSvcCtx.Name = ptr.In(inferenceService.GetAttributes().Name)
+		infSvcCtx.Name = apiutils.ZeroIfNil(inferenceService.GetAttributes().Name)
 		infSvcCtx.ExternalID = inferenceService.GetAttributes().ExternalID
-		infSvcCtx.CreateTimeSinceEpoch = ptr.In(inferenceService.GetAttributes().CreateTimeSinceEpoch)
-		infSvcCtx.LastUpdateTimeSinceEpoch = ptr.In(inferenceService.GetAttributes().LastUpdateTimeSinceEpoch)
+		infSvcCtx.CreateTimeSinceEpoch = apiutils.ZeroIfNil(inferenceService.GetAttributes().CreateTimeSinceEpoch)
+		infSvcCtx.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(inferenceService.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return infSvcCtx

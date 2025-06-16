@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +19,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
 			Name:        "test-serving-env",
-			Description: ptr.Of("Test serving environment description"),
-			ExternalId:  ptr.Of("serving-ext-123"),
+			Description: apiutils.Of("Test serving environment description"),
+			ExternalId:  apiutils.Of("serving-ext-123"),
 		}
 
 		result, err := service.UpsertServingEnvironment(input)
@@ -39,7 +39,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		// Create first
 		input := &openapi.ServingEnvironment{
 			Name:        "update-test-serving-env",
-			Description: ptr.Of("Original description"),
+			Description: apiutils.Of("Original description"),
 		}
 
 		created, err := service.UpsertServingEnvironment(input)
@@ -50,8 +50,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		update := &openapi.ServingEnvironment{
 			Id:          created.Id,
 			Name:        "update-test-serving-env", // Name should remain the same
-			Description: ptr.Of("Updated description"),
-			ExternalId:  ptr.Of("updated-ext-456"),
+			Description: apiutils.Of("Updated description"),
+			ExternalId:  apiutils.Of("updated-ext-456"),
 		}
 
 		updated, err := service.UpsertServingEnvironment(update)
@@ -143,7 +143,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		unicodeName := "测试环境-тест-環境-🚀"
 		input := &openapi.ServingEnvironment{
 			Name:        unicodeName,
-			Description: ptr.Of("Unicode test environment with 中文, русский, 日本語, and emoji 🎯"),
+			Description: apiutils.Of("Unicode test environment with 中文, русский, 日本語, and emoji 🎯"),
 		}
 
 		result, err := service.UpsertServingEnvironment(input)
@@ -159,8 +159,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		specialName := "test-env!@#$%^&*()_+-=[]{}|;':\",./<>?"
 		input := &openapi.ServingEnvironment{
 			Name:        specialName,
-			Description: ptr.Of("Environment with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
-			ExternalId:  ptr.Of("ext-id-with-special-chars_123!@#"),
+			Description: apiutils.Of("Environment with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
 		result, err := service.UpsertServingEnvironment(input)
@@ -177,8 +177,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		mixedName := "环境-test!@#-тест_123-🚀"
 		input := &openapi.ServingEnvironment{
 			Name:        mixedName,
-			Description: ptr.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
-			ExternalId:  ptr.Of("ext-混合_test!@#-123"),
+			Description: apiutils.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
 
 		result, err := service.UpsertServingEnvironment(input)
@@ -197,8 +197,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		for i := 0; i < 15; i++ {
 			input := &openapi.ServingEnvironment{
 				Name:        fmt.Sprintf("paging-test-env-%02d", i),
-				Description: ptr.Of(fmt.Sprintf("Test environment %d for pagination", i)),
-				ExternalId:  ptr.Of(fmt.Sprintf("paging-ext-%02d", i)),
+				Description: apiutils.Of(fmt.Sprintf("Test environment %d for pagination", i)),
+				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
 			result, err := service.UpsertServingEnvironment(input)
@@ -303,8 +303,8 @@ func TestGetServingEnvironmentById(t *testing.T) {
 		// First create a serving environment to retrieve
 		input := &openapi.ServingEnvironment{
 			Name:        "get-test-serving-env",
-			Description: ptr.Of("Test description"),
-			ExternalId:  ptr.Of("get-ext-123"),
+			Description: apiutils.Of("Test description"),
+			ExternalId:  apiutils.Of("get-ext-123"),
 		}
 
 		created, err := service.UpsertServingEnvironment(input)
@@ -346,7 +346,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
 			Name:       "params-test-serving-env",
-			ExternalId: ptr.Of("params-ext-123"),
+			ExternalId: apiutils.Of("params-ext-123"),
 		}
 		created, err := service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
@@ -364,7 +364,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 	t.Run("successful get by external id", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
 			Name:       "params-ext-test-serving-env",
-			ExternalId: ptr.Of("params-unique-ext-456"),
+			ExternalId: apiutils.Of("params-unique-ext-456"),
 		}
 		created, err := service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
@@ -404,9 +404,9 @@ func TestGetServingEnvironments(t *testing.T) {
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple serving environments for listing
 		testEnvironments := []*openapi.ServingEnvironment{
-			{Name: "list-serving-env-1", ExternalId: ptr.Of("list-ext-1")},
-			{Name: "list-serving-env-2", ExternalId: ptr.Of("list-ext-2")},
-			{Name: "list-serving-env-3", ExternalId: ptr.Of("list-ext-3")},
+			{Name: "list-serving-env-1", ExternalId: apiutils.Of("list-ext-1")},
+			{Name: "list-serving-env-2", ExternalId: apiutils.Of("list-ext-2")},
+			{Name: "list-serving-env-3", ExternalId: apiutils.Of("list-ext-3")},
 		}
 
 		var createdIds []string
@@ -447,7 +447,7 @@ func TestGetServingEnvironments(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			env := &openapi.ServingEnvironment{
 				Name:       "pagination-serving-env-" + string(rune('A'+i)),
-				ExternalId: ptr.Of("pagination-ext-" + string(rune('A'+i))),
+				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 			}
 			_, err := service.UpsertServingEnvironment(env)
 			require.NoError(t, err)
@@ -480,8 +480,8 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		// Create a serving environment with all fields
 		original := &openapi.ServingEnvironment{
 			Name:        "roundtrip-serving-env",
-			Description: ptr.Of("Roundtrip test description"),
-			ExternalId:  ptr.Of("roundtrip-ext-123"),
+			Description: apiutils.Of("Roundtrip test description"),
+			ExternalId:  apiutils.Of("roundtrip-ext-123"),
 		}
 
 		// Create
@@ -500,8 +500,8 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		assert.Equal(t, *original.ExternalId, *retrieved.ExternalId)
 
 		// Update
-		retrieved.Description = ptr.Of("Updated description")
-		retrieved.ExternalId = ptr.Of("updated-ext-456")
+		retrieved.Description = apiutils.Of("Updated description")
+		retrieved.ExternalId = apiutils.Of("updated-ext-456")
 
 		updated, err := service.UpsertServingEnvironment(retrieved)
 		require.NoError(t, err)

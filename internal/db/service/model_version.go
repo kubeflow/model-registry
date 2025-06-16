@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -204,8 +204,8 @@ func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOpt
 	}
 
 	list.Items = modelVersions
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(modelVersions))
 
 	return &list, nil
@@ -217,15 +217,15 @@ func mapModelVersionToContext(modelVersion models.ModelVersion) schema.Context {
 	}
 
 	modelVersionCtx := schema.Context{
-		ID:     ptr.In(modelVersion.GetID()),
-		TypeID: ptr.In(modelVersion.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(modelVersion.GetID()),
+		TypeID: apiutils.ZeroIfNil(modelVersion.GetTypeID()),
 	}
 
 	if modelVersion.GetAttributes() != nil {
-		modelVersionCtx.Name = ptr.In(modelVersion.GetAttributes().Name)
+		modelVersionCtx.Name = apiutils.ZeroIfNil(modelVersion.GetAttributes().Name)
 		modelVersionCtx.ExternalID = modelVersion.GetAttributes().ExternalID
-		modelVersionCtx.CreateTimeSinceEpoch = ptr.In(modelVersion.GetAttributes().CreateTimeSinceEpoch)
-		modelVersionCtx.LastUpdateTimeSinceEpoch = ptr.In(modelVersion.GetAttributes().LastUpdateTimeSinceEpoch)
+		modelVersionCtx.CreateTimeSinceEpoch = apiutils.ZeroIfNil(modelVersion.GetAttributes().CreateTimeSinceEpoch)
+		modelVersionCtx.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(modelVersion.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return modelVersionCtx

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -19,10 +19,10 @@ func TestUpsertRegisteredModel(t *testing.T) {
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name:        "test-model",
-			Description: ptr.Of("Test model description"),
-			Owner:       ptr.Of("test-owner"),
-			ExternalId:  ptr.Of("ext-123"),
-			State:       ptr.Of(openapi.REGISTEREDMODELSTATE_LIVE),
+			Description: apiutils.Of("Test model description"),
+			Owner:       apiutils.Of("test-owner"),
+			ExternalId:  apiutils.Of("ext-123"),
+			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
 		result, err := service.UpsertRegisteredModel(input)
@@ -43,7 +43,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		// Create first
 		input := &openapi.RegisteredModel{
 			Name:        "update-test-model",
-			Description: ptr.Of("Original description"),
+			Description: apiutils.Of("Original description"),
 		}
 
 		created, err := service.UpsertRegisteredModel(input)
@@ -54,9 +54,9 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		update := &openapi.RegisteredModel{
 			Id:          created.Id,
 			Name:        "update-test-model", // Name should remain the same
-			Description: ptr.Of("Updated description"),
-			Owner:       ptr.Of("new-owner"),
-			State:       ptr.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED),
+			Description: apiutils.Of("Updated description"),
+			Owner:       apiutils.Of("new-owner"),
+			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED),
 		}
 
 		updated, err := service.UpsertRegisteredModel(update)
@@ -166,8 +166,8 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		unicodeName := "测试模型-тест-モデル-🚀"
 		input := &openapi.RegisteredModel{
 			Name:        unicodeName,
-			Description: ptr.Of("Unicode test model with 中文, русский, 日本語, and emoji 🎯"),
-			Owner:       ptr.Of("用户-пользователь-ユーザー"),
+			Description: apiutils.Of("Unicode test model with 中文, русский, 日本語, and emoji 🎯"),
+			Owner:       apiutils.Of("用户-пользователь-ユーザー"),
 		}
 
 		result, err := service.UpsertRegisteredModel(input)
@@ -184,8 +184,8 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		specialName := "test-model!@#$%^&*()_+-=[]{}|;':\",./<>?"
 		input := &openapi.RegisteredModel{
 			Name:        specialName,
-			Description: ptr.Of("Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
-			ExternalId:  ptr.Of("ext-id-with-special-chars_123!@#"),
+			Description: apiutils.Of("Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
 		result, err := service.UpsertRegisteredModel(input)
@@ -202,9 +202,9 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		mixedName := "模型-test!@#-тест_123-🚀"
 		input := &openapi.RegisteredModel{
 			Name:        mixedName,
-			Description: ptr.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
-			Owner:       ptr.Of("owner@domain.com-用户_123"),
-			ExternalId:  ptr.Of("ext-混合_test!@#-123"),
+			Description: apiutils.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			Owner:       apiutils.Of("owner@domain.com-用户_123"),
+			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
 
 		result, err := service.UpsertRegisteredModel(input)
@@ -224,8 +224,8 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		for i := 0; i < 15; i++ {
 			input := &openapi.RegisteredModel{
 				Name:        fmt.Sprintf("paging-test-model-%02d", i),
-				Description: ptr.Of(fmt.Sprintf("Test model %d for pagination", i)),
-				ExternalId:  ptr.Of(fmt.Sprintf("paging-ext-%02d", i)),
+				Description: apiutils.Of(fmt.Sprintf("Test model %d for pagination", i)),
+				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
 			result, err := service.UpsertRegisteredModel(input)
@@ -330,9 +330,9 @@ func TestGetRegisteredModelById(t *testing.T) {
 		// First create a model to retrieve
 		input := &openapi.RegisteredModel{
 			Name:        "get-test-model",
-			Description: ptr.Of("Test description"),
-			ExternalId:  ptr.Of("get-ext-123"),
-			State:       ptr.Of(openapi.REGISTEREDMODELSTATE_LIVE),
+			Description: apiutils.Of("Test description"),
+			ExternalId:  apiutils.Of("get-ext-123"),
+			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
 		created, err := service.UpsertRegisteredModel(input)
@@ -389,7 +389,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 
 		// Create an inference service
 		inferenceService := &openapi.InferenceService{
-			Name:                 ptr.Of("test-inference-service"),
+			Name:                 apiutils.Of("test-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
@@ -428,7 +428,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name:       "params-test-model",
-			ExternalId: ptr.Of("params-ext-123"),
+			ExternalId: apiutils.Of("params-ext-123"),
 		}
 		created, err := service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
@@ -446,7 +446,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 	t.Run("successful get by external id", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name:       "params-ext-test-model",
-			ExternalId: ptr.Of("params-unique-ext-456"),
+			ExternalId: apiutils.Of("params-unique-ext-456"),
 		}
 		created, err := service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
@@ -502,9 +502,9 @@ func TestGetRegisteredModels(t *testing.T) {
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple models for listing
 		testModels := []*openapi.RegisteredModel{
-			{Name: "list-model-1", ExternalId: ptr.Of("list-ext-1")},
-			{Name: "list-model-2", ExternalId: ptr.Of("list-ext-2")},
-			{Name: "list-model-3", ExternalId: ptr.Of("list-ext-3")},
+			{Name: "list-model-1", ExternalId: apiutils.Of("list-ext-1")},
+			{Name: "list-model-2", ExternalId: apiutils.Of("list-ext-2")},
+			{Name: "list-model-3", ExternalId: apiutils.Of("list-ext-3")},
 		}
 
 		var createdIds []string
@@ -545,7 +545,7 @@ func TestGetRegisteredModels(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			model := &openapi.RegisteredModel{
 				Name:       "pagination-model-" + string(rune('A'+i)),
-				ExternalId: ptr.Of("pagination-ext-" + string(rune('A'+i))),
+				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 			}
 			_, err := service.UpsertRegisteredModel(model)
 			require.NoError(t, err)
@@ -578,10 +578,10 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		// Create a model with all fields
 		original := &openapi.RegisteredModel{
 			Name:        "roundtrip-model",
-			Description: ptr.Of("Roundtrip test description"),
-			Owner:       ptr.Of("roundtrip-owner"),
-			ExternalId:  ptr.Of("roundtrip-ext-123"),
-			State:       ptr.Of(openapi.REGISTEREDMODELSTATE_LIVE),
+			Description: apiutils.Of("Roundtrip test description"),
+			Owner:       apiutils.Of("roundtrip-owner"),
+			ExternalId:  apiutils.Of("roundtrip-ext-123"),
+			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
 		// Create
@@ -602,8 +602,8 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		assert.Equal(t, *original.State, *retrieved.State)
 
 		// Update
-		retrieved.Description = ptr.Of("Updated description")
-		retrieved.State = ptr.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED)
+		retrieved.Description = apiutils.Of("Updated description")
+		retrieved.State = apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED)
 
 		updated, err := service.UpsertRegisteredModel(retrieved)
 		require.NoError(t, err)

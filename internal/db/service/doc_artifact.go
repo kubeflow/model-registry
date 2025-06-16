@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/ptr"
 	"gorm.io/gorm"
 )
 
@@ -213,8 +213,8 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 	}
 
 	list.Items = docArtifacts
-	list.NextPageToken = ptr.In(listOptions.GetNextPageToken())
-	list.PageSize = ptr.In(listOptions.GetPageSize())
+	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
+	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
 	list.Size = int32(len(docArtifacts))
 
 	return &list, nil
@@ -226,8 +226,8 @@ func mapDocArtifactToArtifact(docArtifact models.DocArtifact) schema.Artifact {
 	}
 
 	artifact := schema.Artifact{
-		ID:     ptr.In(docArtifact.GetID()),
-		TypeID: ptr.In(docArtifact.GetTypeID()),
+		ID:     apiutils.ZeroIfNil(docArtifact.GetID()),
+		TypeID: apiutils.ZeroIfNil(docArtifact.GetTypeID()),
 	}
 
 	if docArtifact.GetAttributes() != nil {
@@ -238,8 +238,8 @@ func mapDocArtifactToArtifact(docArtifact models.DocArtifact) schema.Artifact {
 			stateValue := models.Artifact_State_value[*docArtifact.GetAttributes().State]
 			artifact.State = &stateValue
 		}
-		artifact.CreateTimeSinceEpoch = ptr.In(docArtifact.GetAttributes().CreateTimeSinceEpoch)
-		artifact.LastUpdateTimeSinceEpoch = ptr.In(docArtifact.GetAttributes().LastUpdateTimeSinceEpoch)
+		artifact.CreateTimeSinceEpoch = apiutils.ZeroIfNil(docArtifact.GetAttributes().CreateTimeSinceEpoch)
+		artifact.LastUpdateTimeSinceEpoch = apiutils.ZeroIfNil(docArtifact.GetAttributes().LastUpdateTimeSinceEpoch)
 	}
 
 	return artifact
