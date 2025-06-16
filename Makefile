@@ -138,7 +138,7 @@ stop/mysql:
 # generate the gorm structs
 .PHONY: gen/gorm
 gen/gorm: bin/golang-migrate start/mysql
-	@(trap 'cd $(PWD) && $(MAKE) stop/mysql' EXIT; \
+	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
 	cd gorm-gen && go run main.go)
 
