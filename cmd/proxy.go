@@ -59,6 +59,13 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
 	readinessHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// skip embedmd check for mlmd datastore
+		if proxyCfg.Datastore.Type != "embedmd" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+			return
+		}
+
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return

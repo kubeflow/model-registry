@@ -19,9 +19,10 @@ spec:
               name: model-registry-configmap
           args:
             - --hostname=0.0.0.0
-            - --port=8080
-            - --embedmd-database-dsn=root:test@tcp(model-registry-db:3306)/metadb?charset=utf8mb4
-            - --datastore-type=embedmd
+            - --port=$(MODEL_REGISTRY_REST_SERVICE_PORT)
+            - --mlmd-hostname=localhost
+            - --mlmd-port=$(MODEL_REGISTRY_GRPC_SERVICE_PORT)
+            - --datastore-type=$(MODEL_REGISTRY_DATA_STORE_TYPE)
         - name: grpc-container
           # Remove existing environment variables
           env:

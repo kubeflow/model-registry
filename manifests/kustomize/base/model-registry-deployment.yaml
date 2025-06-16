@@ -24,8 +24,9 @@ spec:
           args:
             - --hostname=0.0.0.0
             - --port=8080
-            - --embedmd-database-dsn=root:test@tcp(model-registry-db:3306)/metadb?charset=utf8mb4
-            - --datastore-type=embedmd
+            - --mlmd-hostname=localhost
+            - --mlmd-port=9090
+            - --datastore-type=mlmd
           command:
             - /model-registry
             - proxy
