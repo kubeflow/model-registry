@@ -1,6 +1,8 @@
 package core_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
@@ -206,6 +208,224 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.Nil(t, result.State)       // Verify state remains nil
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
+
+	t.Run("unicode characters in name", func(t *testing.T) {
+		// Create a registered model first
+		registeredModel := &openapi.RegisteredModel{
+			Name: "unicode-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
+		unicodeName := "模型版本-тест-モデルバージョン-🚀"
+		inputVersion := &openapi.ModelVersion{
+			Name:              unicodeName,
+			Description:       ptr.Of("Test model version with unicode characters"),
+			Author:            ptr.Of("测试作者-тестовый автор-テスト作者"),
+			RegisteredModelId: *createdModel.Id,
+		}
+
+		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, unicodeName, result.Name)
+		assert.Equal(t, "Test model version with unicode characters", *result.Description)
+		assert.Equal(t, "测试作者-тестовый автор-テスト作者", *result.Author)
+		assert.NotNil(t, result.Id)
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelVersionById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, unicodeName, retrieved.Name)
+		assert.Equal(t, "测试作者-тестовый автор-テスト作者", *retrieved.Author)
+	})
+
+	t.Run("special characters in name", func(t *testing.T) {
+		// Create a registered model first
+		registeredModel := &openapi.RegisteredModel{
+			Name: "special-chars-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Test with various special characters
+		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		inputVersion := &openapi.ModelVersion{
+			Name:              specialName,
+			Description:       ptr.Of("Test model version with special characters"),
+			Author:            ptr.Of("author@#$%^&*()"),
+			RegisteredModelId: *createdModel.Id,
+		}
+
+		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, specialName, result.Name)
+		assert.Equal(t, "Test model version with special characters", *result.Description)
+		assert.Equal(t, "author@#$%^&*()", *result.Author)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelVersionById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, specialName, retrieved.Name)
+		assert.Equal(t, "author@#$%^&*()", *retrieved.Author)
+	})
+
+	t.Run("mixed unicode and special characters", func(t *testing.T) {
+		// Create a registered model first
+		registeredModel := &openapi.RegisteredModel{
+			Name: "mixed-chars-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Test with mixed unicode and special characters
+		mixedName := "模型@#$%版本-тест!@#-モデル()バージョン-🚀[]"
+		inputVersion := &openapi.ModelVersion{
+			Name:              mixedName,
+			Description:       ptr.Of("Test model version with mixed unicode and special characters"),
+			Author:            ptr.Of("作者@#$%-автор!@#-作者()🚀"),
+			RegisteredModelId: *createdModel.Id,
+		}
+
+		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, mixedName, result.Name)
+		assert.Equal(t, "Test model version with mixed unicode and special characters", *result.Description)
+		assert.Equal(t, "作者@#$%-автор!@#-作者()🚀", *result.Author)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelVersionById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, mixedName, retrieved.Name)
+		assert.Equal(t, "作者@#$%-автор!@#-作者()🚀", *retrieved.Author)
+	})
+
+	t.Run("pagination with 10+ model versions", func(t *testing.T) {
+		// Create a registered model first
+		registeredModel := &openapi.RegisteredModel{
+			Name: "paging-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Create 15 model versions for pagination testing
+		var createdVersions []string
+		for i := 0; i < 15; i++ {
+			versionName := "paging-test-model-version-" + fmt.Sprintf("%02d", i)
+			inputVersion := &openapi.ModelVersion{
+				Name:              versionName,
+				Description:       ptr.Of("Pagination test model version " + fmt.Sprintf("%02d", i)),
+				Author:            ptr.Of("test-author-" + fmt.Sprintf("%02d", i)),
+				RegisteredModelId: *createdModel.Id,
+			}
+
+			result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+			require.NoError(t, err)
+			createdVersions = append(createdVersions, *result.Id)
+		}
+
+		// Test pagination with page size 5
+		pageSize := int32(5)
+		orderBy := "name"
+		sortOrder := "ASC"
+		listOptions := api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		// Get first page
+		firstPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		require.NotNil(t, firstPage)
+		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
+		assert.Equal(t, int32(5), firstPage.PageSize)
+
+		// Filter to only our test model versions in first page
+		var firstPageTestVersions []openapi.ModelVersion
+		firstPageIds := make(map[string]bool)
+		for _, item := range firstPage.Items {
+			// Only include our test versions (those with the specific prefix)
+			if strings.HasPrefix(item.Name, "paging-test-model-version-") {
+				assert.False(t, firstPageIds[*item.Id], "Should not have duplicate IDs in first page")
+				firstPageIds[*item.Id] = true
+				firstPageTestVersions = append(firstPageTestVersions, item)
+			}
+		}
+
+		// Only proceed with second page test if we have a next page token and found test versions
+		if firstPage.NextPageToken != "" && len(firstPageTestVersions) > 0 {
+			// Get second page using next page token
+			listOptions.NextPageToken = &firstPage.NextPageToken
+			secondPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+			require.NoError(t, err)
+			require.NotNil(t, secondPage)
+			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
+
+			// Verify no duplicates between pages (only check our test versions)
+			for _, item := range secondPage.Items {
+				if strings.HasPrefix(item.Name, "paging-test-model-version-") {
+					assert.False(t, firstPageIds[*item.Id], "Should not have duplicate IDs between pages")
+				}
+			}
+		}
+
+		// Test with larger page size
+		largePage := int32(100)
+		listOptions = api.ListOptions{
+			PageSize:  &largePage,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		allItems, err := service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		require.NotNil(t, allItems)
+		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test model versions")
+
+		// Count our test versions in the results
+		foundCount := 0
+		for _, item := range allItems.Items {
+			for _, createdId := range createdVersions {
+				if *item.Id == createdId {
+					foundCount++
+					break
+				}
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created model versions")
+
+		// Test descending order
+		descOrder := "DESC"
+		listOptions = api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &descOrder,
+		}
+
+		descPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		require.NotNil(t, descPage)
+		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
+
+		// Verify ordering (names should be in descending order)
+		if len(descPage.Items) > 1 {
+			for i := 1; i < len(descPage.Items); i++ {
+				assert.GreaterOrEqual(t, descPage.Items[i-1].Name, descPage.Items[i].Name,
+					"Items should be in descending order by name")
+			}
+		}
 	})
 }
 

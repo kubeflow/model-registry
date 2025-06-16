@@ -170,9 +170,10 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	if listOptions.InferenceServiceID != nil {
 		query = query.Joins("JOIN Association ON Association.execution_id = Execution.id").
 			Where("Association.context_id = ?", listOptions.InferenceServiceID)
+		query = query.Scopes(scopes.PaginateWithTablePrefix(serveModels, &listOptions.Pagination, r.db, "Execution"))
+	} else {
+		query = query.Scopes(scopes.Paginate(serveModels, &listOptions.Pagination, r.db))
 	}
-
-	query = query.Scopes(scopes.Paginate(serveModels, &listOptions.Pagination, r.db))
 
 	if err := query.Find(&serveModelsExec).Error; err != nil {
 		return nil, fmt.Errorf("error listing serve models: %w", err)
@@ -181,9 +182,9 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
 	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(serveModels) > int(*pageSize)
+		hasMore = len(serveModelsExec) > int(*pageSize)
 		if hasMore {
-			serveModels = serveModels[:len(serveModels)-1]
+			serveModelsExec = serveModelsExec[:len(serveModelsExec)-1]
 		}
 	}
 

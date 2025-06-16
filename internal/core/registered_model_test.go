@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
@@ -159,6 +160,165 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		assert.Nil(t, result.State)       // Verify state remains nil
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
+
+	t.Run("unicode characters in name", func(t *testing.T) {
+		unicodeName := "测试模型-тест-モデル-🚀"
+		input := &openapi.RegisteredModel{
+			Name:        unicodeName,
+			Description: ptr.Of("Unicode test model with 中文, русский, 日本語, and emoji 🎯"),
+			Owner:       ptr.Of("用户-пользователь-ユーザー"),
+		}
+
+		result, err := service.UpsertRegisteredModel(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, unicodeName, result.Name)
+		assert.Equal(t, "Unicode test model with 中文, русский, 日本語, and emoji 🎯", *result.Description)
+		assert.Equal(t, "用户-пользователь-ユーザー", *result.Owner)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("special characters in name", func(t *testing.T) {
+		specialName := "test-model!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		input := &openapi.RegisteredModel{
+			Name:        specialName,
+			Description: ptr.Of("Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			ExternalId:  ptr.Of("ext-id-with-special-chars_123!@#"),
+		}
+
+		result, err := service.UpsertRegisteredModel(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, specialName, result.Name)
+		assert.Equal(t, "Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?", *result.Description)
+		assert.Equal(t, "ext-id-with-special-chars_123!@#", *result.ExternalId)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("mixed unicode and special characters", func(t *testing.T) {
+		mixedName := "模型-test!@#-тест_123-🚀"
+		input := &openapi.RegisteredModel{
+			Name:        mixedName,
+			Description: ptr.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			Owner:       ptr.Of("owner@domain.com-用户_123"),
+			ExternalId:  ptr.Of("ext-混合_test!@#-123"),
+		}
+
+		result, err := service.UpsertRegisteredModel(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, mixedName, result.Name)
+		assert.Equal(t, "Mixed: 测试!@# русский_test 日本語-123 🎯", *result.Description)
+		assert.Equal(t, "owner@domain.com-用户_123", *result.Owner)
+		assert.Equal(t, "ext-混合_test!@#-123", *result.ExternalId)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("pagination with 10+ models", func(t *testing.T) {
+		// Create 15 models to test pagination
+		var createdModels []string
+		for i := 0; i < 15; i++ {
+			input := &openapi.RegisteredModel{
+				Name:        fmt.Sprintf("paging-test-model-%02d", i),
+				Description: ptr.Of(fmt.Sprintf("Test model %d for pagination", i)),
+				ExternalId:  ptr.Of(fmt.Sprintf("paging-ext-%02d", i)),
+			}
+
+			result, err := service.UpsertRegisteredModel(input)
+			require.NoError(t, err)
+			require.NotNil(t, result.Id)
+			createdModels = append(createdModels, *result.Id)
+		}
+
+		// Test first page with page size 5
+		pageSize := int32(5)
+		firstPageResult, err := service.GetRegisteredModels(api.ListOptions{
+			PageSize: &pageSize,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, firstPageResult)
+		assert.LessOrEqual(t, len(firstPageResult.Items), int(pageSize))
+		assert.Equal(t, pageSize, firstPageResult.PageSize)
+
+		// Test second page if there's a next page token
+		if firstPageResult.NextPageToken != "" {
+			secondPageResult, err := service.GetRegisteredModels(api.ListOptions{
+				PageSize:      &pageSize,
+				NextPageToken: &firstPageResult.NextPageToken,
+			})
+
+			require.NoError(t, err)
+			require.NotNil(t, secondPageResult)
+			assert.LessOrEqual(t, len(secondPageResult.Items), int(pageSize))
+			assert.Equal(t, pageSize, secondPageResult.PageSize)
+
+			// Verify no duplicate models between pages
+			firstPageIds := make(map[string]bool)
+			for _, model := range firstPageResult.Items {
+				firstPageIds[*model.Id] = true
+			}
+
+			for _, model := range secondPageResult.Items {
+				assert.False(t, firstPageIds[*model.Id], "Model %s appears in both pages", *model.Id)
+			}
+		}
+
+		// Test larger page size to get more models
+		largePageSize := int32(100)
+		largePageResult, err := service.GetRegisteredModels(api.ListOptions{
+			PageSize: &largePageSize,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, largePageResult)
+		assert.GreaterOrEqual(t, len(largePageResult.Items), 15) // Should include our 15 models
+		assert.Equal(t, largePageSize, largePageResult.PageSize)
+
+		// Verify our created models are in the results
+		resultIds := make(map[string]bool)
+		for _, model := range largePageResult.Items {
+			resultIds[*model.Id] = true
+		}
+
+		foundCount := 0
+		for _, createdId := range createdModels {
+			if resultIds[createdId] {
+				foundCount++
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created models in the results")
+
+		// Test ordering by name
+		orderBy := "name"
+		sortOrder := "ASC"
+		orderedResult, err := service.GetRegisteredModels(api.ListOptions{
+			PageSize:  &largePageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, orderedResult)
+
+		// Verify ordering (at least check that we have results)
+		assert.Greater(t, len(orderedResult.Items), 0)
+
+		// Test descending order
+		sortOrderDesc := "DESC"
+		orderedDescResult, err := service.GetRegisteredModels(api.ListOptions{
+			PageSize:  &largePageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrderDesc,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, orderedDescResult)
+		assert.Greater(t, len(orderedDescResult.Items), 0)
 	})
 }
 

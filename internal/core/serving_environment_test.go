@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
@@ -136,6 +137,161 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid serving environment pointer")
+	})
+
+	t.Run("unicode characters in name", func(t *testing.T) {
+		unicodeName := "测试环境-тест-環境-🚀"
+		input := &openapi.ServingEnvironment{
+			Name:        unicodeName,
+			Description: ptr.Of("Unicode test environment with 中文, русский, 日本語, and emoji 🎯"),
+		}
+
+		result, err := service.UpsertServingEnvironment(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, unicodeName, result.Name)
+		assert.Equal(t, "Unicode test environment with 中文, русский, 日本語, and emoji 🎯", *result.Description)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("special characters in name", func(t *testing.T) {
+		specialName := "test-env!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		input := &openapi.ServingEnvironment{
+			Name:        specialName,
+			Description: ptr.Of("Environment with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			ExternalId:  ptr.Of("ext-id-with-special-chars_123!@#"),
+		}
+
+		result, err := service.UpsertServingEnvironment(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, specialName, result.Name)
+		assert.Equal(t, "Environment with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?", *result.Description)
+		assert.Equal(t, "ext-id-with-special-chars_123!@#", *result.ExternalId)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("mixed unicode and special characters", func(t *testing.T) {
+		mixedName := "环境-test!@#-тест_123-🚀"
+		input := &openapi.ServingEnvironment{
+			Name:        mixedName,
+			Description: ptr.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			ExternalId:  ptr.Of("ext-混合_test!@#-123"),
+		}
+
+		result, err := service.UpsertServingEnvironment(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, mixedName, result.Name)
+		assert.Equal(t, "Mixed: 测试!@# русский_test 日本語-123 🎯", *result.Description)
+		assert.Equal(t, "ext-混合_test!@#-123", *result.ExternalId)
+		assert.NotNil(t, result.Id)
+	})
+
+	t.Run("pagination with 10+ environments", func(t *testing.T) {
+		// Create 15 environments to test pagination
+		var createdEnvironments []string
+		for i := 0; i < 15; i++ {
+			input := &openapi.ServingEnvironment{
+				Name:        fmt.Sprintf("paging-test-env-%02d", i),
+				Description: ptr.Of(fmt.Sprintf("Test environment %d for pagination", i)),
+				ExternalId:  ptr.Of(fmt.Sprintf("paging-ext-%02d", i)),
+			}
+
+			result, err := service.UpsertServingEnvironment(input)
+			require.NoError(t, err)
+			require.NotNil(t, result.Id)
+			createdEnvironments = append(createdEnvironments, *result.Id)
+		}
+
+		// Test first page with page size 5
+		pageSize := int32(5)
+		firstPageResult, err := service.GetServingEnvironments(api.ListOptions{
+			PageSize: &pageSize,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, firstPageResult)
+		assert.LessOrEqual(t, len(firstPageResult.Items), int(pageSize))
+		assert.Equal(t, pageSize, firstPageResult.PageSize)
+
+		// Test second page if there's a next page token
+		if firstPageResult.NextPageToken != "" {
+			secondPageResult, err := service.GetServingEnvironments(api.ListOptions{
+				PageSize:      &pageSize,
+				NextPageToken: &firstPageResult.NextPageToken,
+			})
+
+			require.NoError(t, err)
+			require.NotNil(t, secondPageResult)
+			assert.LessOrEqual(t, len(secondPageResult.Items), int(pageSize))
+			assert.Equal(t, pageSize, secondPageResult.PageSize)
+
+			// Verify no duplicate environments between pages
+			firstPageIds := make(map[string]bool)
+			for _, env := range firstPageResult.Items {
+				firstPageIds[*env.Id] = true
+			}
+
+			for _, env := range secondPageResult.Items {
+				assert.False(t, firstPageIds[*env.Id], "Environment %s appears in both pages", *env.Id)
+			}
+		}
+
+		// Test larger page size to get more environments
+		largePageSize := int32(100)
+		largePageResult, err := service.GetServingEnvironments(api.ListOptions{
+			PageSize: &largePageSize,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, largePageResult)
+		assert.GreaterOrEqual(t, len(largePageResult.Items), 15) // Should include our 15 environments
+		assert.Equal(t, largePageSize, largePageResult.PageSize)
+
+		// Verify our created environments are in the results
+		resultIds := make(map[string]bool)
+		for _, env := range largePageResult.Items {
+			resultIds[*env.Id] = true
+		}
+
+		foundCount := 0
+		for _, createdId := range createdEnvironments {
+			if resultIds[createdId] {
+				foundCount++
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created environments in the results")
+
+		// Test ordering by name
+		orderBy := "name"
+		sortOrder := "ASC"
+		orderedResult, err := service.GetServingEnvironments(api.ListOptions{
+			PageSize:  &largePageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, orderedResult)
+
+		// Verify ordering (at least check that we have results)
+		assert.Greater(t, len(orderedResult.Items), 0)
+
+		// Test descending order
+		sortOrderDesc := "DESC"
+		orderedDescResult, err := service.GetServingEnvironments(api.ListOptions{
+			PageSize:  &largePageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrderDesc,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, orderedDescResult)
+		assert.Greater(t, len(orderedDescResult.Items), 0)
 	})
 }
 

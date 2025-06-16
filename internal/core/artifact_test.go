@@ -1,6 +1,8 @@
 package core_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
@@ -155,6 +157,247 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid artifact type, must be either ModelArtifact or DocArtifact")
 	})
+
+	t.Run("unicode characters in model artifact name", func(t *testing.T) {
+		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
+		unicodeName := "模型工件-тест-モデルアーティファクト-🚀"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of(unicodeName),
+			Description: ptr.Of("Test model artifact with unicode characters"),
+			Uri:         ptr.Of("s3://bucket/unicode-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Equal(t, unicodeName, *result.ModelArtifact.Name)
+		assert.Equal(t, "Test model artifact with unicode characters", *result.ModelArtifact.Description)
+		assert.Equal(t, "s3://bucket/unicode-model.pkl", *result.ModelArtifact.Uri)
+		assert.NotNil(t, result.ModelArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Equal(t, unicodeName, *retrieved.ModelArtifact.Name)
+	})
+
+	t.Run("special characters in model artifact name", func(t *testing.T) {
+		// Test with various special characters
+		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of(specialName),
+			Description: ptr.Of("Test model artifact with special characters"),
+			Uri:         ptr.Of("s3://bucket/special-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Equal(t, specialName, *result.ModelArtifact.Name)
+		assert.Equal(t, "Test model artifact with special characters", *result.ModelArtifact.Description)
+		assert.NotNil(t, result.ModelArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Equal(t, specialName, *retrieved.ModelArtifact.Name)
+	})
+
+	t.Run("mixed unicode and special characters in doc artifact", func(t *testing.T) {
+		// Test with mixed unicode and special characters
+		mixedName := "文档@#$%工件-тест!@#-ドキュメント()アーティファクト-🚀[]"
+		docArtifact := &openapi.DocArtifact{
+			Name:        ptr.Of(mixedName),
+			Description: ptr.Of("Test doc artifact with mixed unicode and special characters"),
+			Uri:         ptr.Of("s3://bucket/mixed-doc.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		result, err := service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.DocArtifact)
+		assert.Equal(t, mixedName, *result.DocArtifact.Name)
+		assert.Equal(t, "Test doc artifact with mixed unicode and special characters", *result.DocArtifact.Description)
+		assert.NotNil(t, result.DocArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.DocArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.DocArtifact)
+		assert.Equal(t, mixedName, *retrieved.DocArtifact.Name)
+	})
+
+	t.Run("pagination with 10+ artifacts", func(t *testing.T) {
+		// Create 15 artifacts for pagination testing
+		var createdArtifacts []string
+		for i := 0; i < 15; i++ {
+			artifactName := "paging-test-artifact-" + fmt.Sprintf("%02d", i)
+			modelArtifact := &openapi.ModelArtifact{
+				Name:        ptr.Of(artifactName),
+				Description: ptr.Of("Pagination test artifact " + fmt.Sprintf("%02d", i)),
+				Uri:         ptr.Of("s3://bucket/paging-test-" + fmt.Sprintf("%02d", i) + ".pkl"),
+			}
+
+			artifact := &openapi.Artifact{
+				ModelArtifact: modelArtifact,
+			}
+
+			result, err := service.UpsertArtifact(artifact)
+			require.NoError(t, err)
+			createdArtifacts = append(createdArtifacts, *result.ModelArtifact.Id)
+		}
+
+		// Test pagination with page size 5
+		pageSize := int32(5)
+		orderBy := "name"
+		sortOrder := "ASC"
+		listOptions := api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		// Get first page
+		firstPage, err := service.GetArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, firstPage)
+		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
+		assert.Equal(t, int32(5), firstPage.PageSize)
+
+		// Filter to only our test artifacts in first page
+		var firstPageTestArtifacts []openapi.Artifact
+		firstPageIds := make(map[string]bool)
+		for _, item := range firstPage.Items {
+			// Only include our test artifacts (those with the specific prefix)
+			var artifactName string
+			if item.ModelArtifact != nil {
+				artifactName = *item.ModelArtifact.Name
+			} else if item.DocArtifact != nil {
+				artifactName = *item.DocArtifact.Name
+			}
+
+			if strings.HasPrefix(artifactName, "paging-test-artifact-") {
+				var artifactId string
+				if item.ModelArtifact != nil {
+					artifactId = *item.ModelArtifact.Id
+				} else if item.DocArtifact != nil {
+					artifactId = *item.DocArtifact.Id
+				}
+				assert.False(t, firstPageIds[artifactId], "Should not have duplicate IDs in first page")
+				firstPageIds[artifactId] = true
+				firstPageTestArtifacts = append(firstPageTestArtifacts, item)
+			}
+		}
+
+		// Only proceed with second page test if we have a next page token and found test artifacts
+		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
+			// Get second page using next page token
+			listOptions.NextPageToken = &firstPage.NextPageToken
+			secondPage, err := service.GetArtifacts(listOptions, nil)
+			require.NoError(t, err)
+			require.NotNil(t, secondPage)
+			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
+
+			// Verify no duplicates between pages (only check our test artifacts)
+			for _, item := range secondPage.Items {
+				var artifactName, artifactId string
+				if item.ModelArtifact != nil {
+					artifactName = *item.ModelArtifact.Name
+					artifactId = *item.ModelArtifact.Id
+				} else if item.DocArtifact != nil {
+					artifactName = *item.DocArtifact.Name
+					artifactId = *item.DocArtifact.Id
+				}
+
+				if strings.HasPrefix(artifactName, "paging-test-artifact-") {
+					assert.False(t, firstPageIds[artifactId], "Should not have duplicate IDs between pages")
+				}
+			}
+		}
+
+		// Test with larger page size
+		largePage := int32(100)
+		listOptions = api.ListOptions{
+			PageSize:  &largePage,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		allItems, err := service.GetArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, allItems)
+		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
+
+		// Count our test artifacts in the results
+		foundCount := 0
+		for _, item := range allItems.Items {
+			var artifactId string
+			if item.ModelArtifact != nil {
+				artifactId = *item.ModelArtifact.Id
+			} else if item.DocArtifact != nil {
+				artifactId = *item.DocArtifact.Id
+			}
+
+			for _, createdId := range createdArtifacts {
+				if artifactId == createdId {
+					foundCount++
+					break
+				}
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created artifacts")
+
+		// Test descending order
+		descOrder := "DESC"
+		listOptions = api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &descOrder,
+		}
+
+		descPage, err := service.GetArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, descPage)
+		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
+
+		// Verify ordering (names should be in descending order)
+		if len(descPage.Items) > 1 {
+			for i := 1; i < len(descPage.Items); i++ {
+				var prevName, currName string
+				if descPage.Items[i-1].ModelArtifact != nil {
+					prevName = *descPage.Items[i-1].ModelArtifact.Name
+				} else if descPage.Items[i-1].DocArtifact != nil {
+					prevName = *descPage.Items[i-1].DocArtifact.Name
+				}
+				if descPage.Items[i].ModelArtifact != nil {
+					currName = *descPage.Items[i].ModelArtifact.Name
+				} else if descPage.Items[i].DocArtifact != nil {
+					currName = *descPage.Items[i].DocArtifact.Name
+				}
+				assert.GreaterOrEqual(t, prevName, currName,
+					"Items should be in descending order by name")
+			}
+		}
+	})
 }
 
 func TestUpsertModelVersionArtifact(t *testing.T) {
@@ -211,6 +454,276 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid model version id")
+	})
+
+	t.Run("unicode characters in model version artifact name", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "unicode-test-model-for-artifact",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0-unicode",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
+		unicodeName := "版本工件-тест-バージョンアーティファクト-🚀"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of(unicodeName),
+			Description: ptr.Of("Test model version artifact with unicode characters"),
+			Uri:         ptr.Of("s3://bucket/unicode-version-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Contains(t, *result.ModelArtifact.Name, unicodeName)
+		assert.Equal(t, "Test model version artifact with unicode characters", *result.ModelArtifact.Description)
+		assert.Equal(t, "s3://bucket/unicode-version-model.pkl", *result.ModelArtifact.Uri)
+		assert.NotNil(t, result.ModelArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Contains(t, *retrieved.ModelArtifact.Name, unicodeName)
+	})
+
+	t.Run("special characters in model version artifact name", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "special-chars-test-model-for-artifact",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0-special",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Test with various special characters
+		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of(specialName),
+			Description: ptr.Of("Test model version artifact with special characters"),
+			Uri:         ptr.Of("s3://bucket/special-version-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Contains(t, *result.ModelArtifact.Name, specialName)
+		assert.Equal(t, "Test model version artifact with special characters", *result.ModelArtifact.Description)
+		assert.NotNil(t, result.ModelArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Contains(t, *retrieved.ModelArtifact.Name, specialName)
+	})
+
+	t.Run("mixed unicode and special characters in model version artifact", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "mixed-chars-test-model-for-artifact",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0-mixed",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Test with mixed unicode and special characters
+		mixedName := "版本@#$%工件-тест!@#-バージョン()アーティファクト-🚀[]"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        ptr.Of(mixedName),
+			Description: ptr.Of("Test model version artifact with mixed unicode and special characters"),
+			Uri:         ptr.Of("s3://bucket/mixed-version-model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.Contains(t, *result.ModelArtifact.Name, mixedName)
+		assert.Equal(t, "Test model version artifact with mixed unicode and special characters", *result.ModelArtifact.Description)
+		assert.NotNil(t, result.ModelArtifact.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.ModelArtifact)
+		assert.Contains(t, *retrieved.ModelArtifact.Name, mixedName)
+	})
+
+	t.Run("pagination with 10+ model version artifacts", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "paging-test-model-for-artifacts",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0-paging",
+		}
+		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create 15 model version artifacts for pagination testing
+		var createdArtifacts []string
+		for i := 0; i < 15; i++ {
+			artifactName := "paging-test-version-artifact-" + fmt.Sprintf("%02d", i)
+			modelArtifact := &openapi.ModelArtifact{
+				Name:        ptr.Of(artifactName),
+				Description: ptr.Of("Pagination test model version artifact " + fmt.Sprintf("%02d", i)),
+				Uri:         ptr.Of("s3://bucket/paging-version-test-" + fmt.Sprintf("%02d", i) + ".pkl"),
+			}
+
+			artifact := &openapi.Artifact{
+				ModelArtifact: modelArtifact,
+			}
+
+			result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			require.NoError(t, err)
+			createdArtifacts = append(createdArtifacts, *result.ModelArtifact.Id)
+		}
+
+		// Test pagination with page size 5
+		pageSize := int32(5)
+		orderBy := "name"
+		sortOrder := "ASC"
+		listOptions := api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		// Get first page
+		firstPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, firstPage)
+		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
+		assert.Equal(t, int32(5), firstPage.PageSize)
+
+		// Filter to only our test artifacts in first page
+		var firstPageTestArtifacts []openapi.Artifact
+		firstPageIds := make(map[string]bool)
+		for _, item := range firstPage.Items {
+			// Only include our test artifacts (those with the specific prefix)
+			var artifactName string
+			if item.ModelArtifact != nil {
+				artifactName = *item.ModelArtifact.Name
+			}
+
+			if strings.Contains(artifactName, "paging-test-version-artifact-") {
+				artifactId := *item.ModelArtifact.Id
+				assert.False(t, firstPageIds[artifactId], "Should not have duplicate IDs in first page")
+				firstPageIds[artifactId] = true
+				firstPageTestArtifacts = append(firstPageTestArtifacts, item)
+			}
+		}
+
+		// Only proceed with second page test if we have a next page token and found test artifacts
+		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
+			// Get second page using next page token
+			listOptions.NextPageToken = &firstPage.NextPageToken
+			secondPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+			require.NoError(t, err)
+			require.NotNil(t, secondPage)
+			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
+
+			// Verify no duplicates between pages (only check our test artifacts)
+			for _, item := range secondPage.Items {
+				if item.ModelArtifact != nil && strings.Contains(*item.ModelArtifact.Name, "paging-test-version-artifact-") {
+					assert.False(t, firstPageIds[*item.ModelArtifact.Id], "Should not have duplicate IDs between pages")
+				}
+			}
+		}
+
+		// Test with larger page size
+		largePage := int32(100)
+		listOptions = api.ListOptions{
+			PageSize:  &largePage,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		allItems, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, allItems)
+		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
+
+		// Count our test artifacts in the results
+		foundCount := 0
+		for _, item := range allItems.Items {
+			if item.ModelArtifact != nil {
+				for _, createdId := range createdArtifacts {
+					if *item.ModelArtifact.Id == createdId {
+						foundCount++
+						break
+					}
+				}
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created model version artifacts")
+
+		// Test descending order
+		descOrder := "DESC"
+		listOptions = api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &descOrder,
+		}
+
+		descPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, descPage)
+		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
+
+		// Verify ordering (names should be in descending order)
+		if len(descPage.Items) > 1 {
+			for i := 1; i < len(descPage.Items); i++ {
+				var prevName, currName string
+				if descPage.Items[i-1].ModelArtifact != nil {
+					prevName = *descPage.Items[i-1].ModelArtifact.Name
+				}
+				if descPage.Items[i].ModelArtifact != nil {
+					currName = *descPage.Items[i].ModelArtifact.Name
+				}
+				if prevName != "" && currName != "" {
+					assert.GreaterOrEqual(t, prevName, currName,
+						"Items should be in descending order by name")
+				}
+			}
+		}
 	})
 }
 
@@ -497,6 +1010,138 @@ func TestUpsertModelArtifact(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "invalid model artifact pointer")
+	})
+
+	t.Run("unicode characters in model artifact name", func(t *testing.T) {
+		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
+		unicodeName := "直接模型工件-тест-ダイレクトモデルアーティファクト-🚀"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of(unicodeName),
+			Description:        ptr.Of("Direct model artifact with unicode characters"),
+			Uri:                ptr.Of("s3://bucket/unicode-direct.pkl"),
+			ModelFormatName:    ptr.Of("tensorflow-unicode"),
+			ModelFormatVersion: ptr.Of("2.8-测试"),
+		}
+
+		result, err := service.UpsertModelArtifact(modelArtifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, unicodeName, *result.Name)
+		assert.Equal(t, "Direct model artifact with unicode characters", *result.Description)
+		assert.Equal(t, "s3://bucket/unicode-direct.pkl", *result.Uri)
+		assert.Equal(t, "tensorflow-unicode", *result.ModelFormatName)
+		assert.Equal(t, "2.8-测试", *result.ModelFormatVersion)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelArtifactById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, unicodeName, *retrieved.Name)
+		assert.Equal(t, "2.8-测试", *retrieved.ModelFormatVersion)
+	})
+
+	t.Run("special characters in model artifact name", func(t *testing.T) {
+		// Test with various special characters
+		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of(specialName),
+			Description:        ptr.Of("Direct model artifact with special characters"),
+			Uri:                ptr.Of("s3://bucket/special-direct.pkl"),
+			ModelFormatName:    ptr.Of("format@#$%"),
+			ModelFormatVersion: ptr.Of("1.0!@#"),
+		}
+
+		result, err := service.UpsertModelArtifact(modelArtifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, specialName, *result.Name)
+		assert.Equal(t, "Direct model artifact with special characters", *result.Description)
+		assert.Equal(t, "s3://bucket/special-direct.pkl", *result.Uri)
+		assert.Equal(t, "format@#$%", *result.ModelFormatName)
+		assert.Equal(t, "1.0!@#", *result.ModelFormatVersion)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelArtifactById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, specialName, *retrieved.Name)
+		assert.Equal(t, "format@#$%", *retrieved.ModelFormatName)
+	})
+
+	t.Run("mixed unicode and special characters in model artifact", func(t *testing.T) {
+		// Test with mixed unicode and special characters
+		mixedName := "直接@#$%模型-тест!@#-ダイレクト()モデル-🚀[]"
+		modelArtifact := &openapi.ModelArtifact{
+			Name:               ptr.Of(mixedName),
+			Description:        ptr.Of("Direct model artifact with mixed unicode and special characters"),
+			Uri:                ptr.Of("s3://bucket/mixed-direct.pkl"),
+			ModelFormatName:    ptr.Of("tensorflow@#$%-测试"),
+			ModelFormatVersion: ptr.Of("2.8!@#-тест"),
+		}
+
+		result, err := service.UpsertModelArtifact(modelArtifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, mixedName, *result.Name)
+		assert.Equal(t, "Direct model artifact with mixed unicode and special characters", *result.Description)
+		assert.Equal(t, "s3://bucket/mixed-direct.pkl", *result.Uri)
+		assert.Equal(t, "tensorflow@#$%-测试", *result.ModelFormatName)
+		assert.Equal(t, "2.8!@#-тест", *result.ModelFormatVersion)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetModelArtifactById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, mixedName, *retrieved.Name)
+		assert.Equal(t, "tensorflow@#$%-测试", *retrieved.ModelFormatName)
+	})
+
+	t.Run("pagination test", func(t *testing.T) {
+		// Create multiple model artifacts for pagination testing
+		for i := 0; i < 15; i++ {
+			modelArtifact := &openapi.ModelArtifact{
+				Name: ptr.Of(fmt.Sprintf("paging-test-direct-model-artifact-%d", i+1)),
+				Uri:  ptr.Of(fmt.Sprintf("s3://bucket/paging-direct-model-%d.pkl", i+1)),
+			}
+
+			result, err := service.UpsertModelArtifact(modelArtifact)
+			require.NoError(t, err)
+			require.NotNil(t, result.Id)
+		}
+
+		// Test pagination with page size 5
+		listOptions := api.ListOptions{
+			PageSize: ptr.Of(int32(5)),
+		}
+
+		// Get first page
+		firstPage, err := service.GetModelArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, firstPage)
+		assert.Equal(t, 5, len(firstPage.Items))
+		assert.NotNil(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = ptr.Of(firstPage.NextPageToken)
+		secondPage, err := service.GetModelArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, secondPage)
+		assert.GreaterOrEqual(t, len(secondPage.Items), 5)
+
+		// Verify no duplicate IDs between pages
+		firstPageIds := make(map[string]bool)
+		for _, item := range firstPage.Items {
+			firstPageIds[*item.Id] = true
+		}
+
+		for _, item := range secondPage.Items {
+			if firstPageIds[*item.Id] {
+				t.Errorf("Found duplicate ID %s between pages", *item.Id)
+			}
+		}
 	})
 }
 

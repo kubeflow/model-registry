@@ -148,17 +148,24 @@ func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServic
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
 
+	needsTablePrefix := false
 	if listOptions.ParentResourceID != nil {
 		query = query.Joins("JOIN ParentContext ON ParentContext.context_id = Context.id").
 			Where("ParentContext.parent_context_id = ?", listOptions.ParentResourceID)
+		needsTablePrefix = true
 	}
 
 	if listOptions.Runtime != nil {
 		query = query.Joins("JOIN ContextProperty ON ContextProperty.context_id = Context.id AND ContextProperty.name = 'runtime'").
 			Where("ContextProperty.string_value = ?", listOptions.Runtime)
+		needsTablePrefix = true
 	}
 
-	query = query.Scopes(scopes.Paginate(infSvcs, &listOptions.Pagination, r.db))
+	if needsTablePrefix {
+		query = query.Scopes(scopes.PaginateWithTablePrefix(infSvcs, &listOptions.Pagination, r.db, "Context"))
+	} else {
+		query = query.Scopes(scopes.Paginate(infSvcs, &listOptions.Pagination, r.db))
+	}
 
 	if err := query.Find(&infSvcCtx).Error; err != nil {
 		return nil, fmt.Errorf("error listing inference services: %w", err)

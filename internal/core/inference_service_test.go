@@ -1,6 +1,8 @@
 package core_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
@@ -241,6 +243,246 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.Nil(t, result.DesiredState) // Verify desired state remains nil
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+	})
+
+	t.Run("unicode characters in name", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "unicode-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "unicode-test-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
+		unicodeName := "推理服务-тест-推論サービス-🚀"
+		input := &openapi.InferenceService{
+			Name:                 ptr.Of(unicodeName),
+			Description:          ptr.Of("Test inference service with unicode characters"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Runtime:              ptr.Of("tensorflow"),
+		}
+
+		result, err := service.UpsertInferenceService(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, unicodeName, *result.Name)
+		assert.Equal(t, "Test inference service with unicode characters", *result.Description)
+		assert.NotNil(t, result.Id)
+		assert.NotNil(t, result.CreateTimeSinceEpoch)
+		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, unicodeName, *retrieved.Name)
+	})
+
+	t.Run("special characters in name", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "special-chars-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "special-chars-test-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		// Test with various special characters
+		specialName := "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+		input := &openapi.InferenceService{
+			Name:                 ptr.Of(specialName),
+			Description:          ptr.Of("Test inference service with special characters"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Runtime:              ptr.Of("pytorch"),
+		}
+
+		result, err := service.UpsertInferenceService(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, specialName, *result.Name)
+		assert.Equal(t, "Test inference service with special characters", *result.Description)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, specialName, *retrieved.Name)
+	})
+
+	t.Run("mixed unicode and special characters", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "mixed-chars-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "mixed-chars-test-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		// Test with mixed unicode and special characters
+		mixedName := "推理@#$%服务-тест!@#-推論()サービス-🚀[]"
+		input := &openapi.InferenceService{
+			Name:                 ptr.Of(mixedName),
+			Description:          ptr.Of("Test inference service with mixed unicode and special characters"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Runtime:              ptr.Of("onnx"),
+		}
+
+		result, err := service.UpsertInferenceService(input)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, mixedName, *result.Name)
+		assert.Equal(t, "Test inference service with mixed unicode and special characters", *result.Description)
+		assert.NotNil(t, result.Id)
+
+		// Verify we can retrieve it by ID
+		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		require.NoError(t, err)
+		assert.Equal(t, mixedName, *retrieved.Name)
+	})
+
+	t.Run("pagination with 10+ inference services", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "paging-test-registered-model",
+		}
+		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "paging-test-serving-env",
+		}
+		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		// Create 15 inference services for pagination testing
+		var createdServices []string
+		for i := 0; i < 15; i++ {
+			serviceName := "paging-test-inference-service-" + fmt.Sprintf("%02d", i)
+			input := &openapi.InferenceService{
+				Name:                 ptr.Of(serviceName),
+				Description:          ptr.Of("Pagination test inference service " + fmt.Sprintf("%02d", i)),
+				ServingEnvironmentId: *createdEnv.Id,
+				RegisteredModelId:    *createdModel.Id,
+				Runtime:              ptr.Of("tensorflow"),
+			}
+
+			result, err := service.UpsertInferenceService(input)
+			require.NoError(t, err)
+			createdServices = append(createdServices, *result.Id)
+		}
+
+		// Test pagination with page size 5
+		pageSize := int32(5)
+		orderBy := "name"
+		sortOrder := "ASC"
+		listOptions := api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		// Get first page
+		firstPage, err := service.GetInferenceServices(listOptions, nil, nil)
+		require.NoError(t, err)
+		require.NotNil(t, firstPage)
+		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
+		assert.Equal(t, int32(5), firstPage.PageSize)
+
+		// Filter to only our test inference services in first page
+		var firstPageTestServices []openapi.InferenceService
+		firstPageIds := make(map[string]bool)
+		for _, item := range firstPage.Items {
+			// Only include our test services (those with the specific prefix)
+			if strings.HasPrefix(*item.Name, "paging-test-inference-service-") {
+				assert.False(t, firstPageIds[*item.Id], "Should not have duplicate IDs in first page")
+				firstPageIds[*item.Id] = true
+				firstPageTestServices = append(firstPageTestServices, item)
+			}
+		}
+
+		// Only proceed with second page test if we have a next page token and found test services
+		if firstPage.NextPageToken != "" && len(firstPageTestServices) > 0 {
+			// Get second page using next page token
+			listOptions.NextPageToken = &firstPage.NextPageToken
+			secondPage, err := service.GetInferenceServices(listOptions, nil, nil)
+			require.NoError(t, err)
+			require.NotNil(t, secondPage)
+			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
+
+			// Verify no duplicates between pages (only check our test services)
+			for _, item := range secondPage.Items {
+				if strings.HasPrefix(*item.Name, "paging-test-inference-service-") {
+					assert.False(t, firstPageIds[*item.Id], "Should not have duplicate IDs between pages")
+				}
+			}
+		}
+
+		// Test with larger page size
+		largePage := int32(100)
+		listOptions = api.ListOptions{
+			PageSize:  &largePage,
+			OrderBy:   &orderBy,
+			SortOrder: &sortOrder,
+		}
+
+		allItems, err := service.GetInferenceServices(listOptions, nil, nil)
+		require.NoError(t, err)
+		require.NotNil(t, allItems)
+		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test inference services")
+
+		// Count our test services in the results
+		foundCount := 0
+		for _, item := range allItems.Items {
+			for _, createdId := range createdServices {
+				if *item.Id == createdId {
+					foundCount++
+					break
+				}
+			}
+		}
+		assert.Equal(t, 15, foundCount, "Should find all 15 created inference services")
+
+		// Test descending order
+		descOrder := "DESC"
+		listOptions = api.ListOptions{
+			PageSize:  &pageSize,
+			OrderBy:   &orderBy,
+			SortOrder: &descOrder,
+		}
+
+		descPage, err := service.GetInferenceServices(listOptions, nil, nil)
+		require.NoError(t, err)
+		require.NotNil(t, descPage)
+		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
+
+		// Verify ordering (names should be in descending order)
+		if len(descPage.Items) > 1 {
+			for i := 1; i < len(descPage.Items); i++ {
+				assert.GreaterOrEqual(t, *descPage.Items[i-1].Name, *descPage.Items[i].Name,
+					"Items should be in descending order by name")
+			}
+		}
 	})
 }
 
