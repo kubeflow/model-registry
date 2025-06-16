@@ -43,7 +43,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
         <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
       </Td>
       <Td modifier="fitContent">
-        {filteredRoleBindings.length === 0 ? (
+        {filteredRoleBindings.length !== 0 ? (
           <Tooltip content="You can manage permissions when the model registry becomes available.">
             <Button isAriaDisabled variant="link">
               Manage permissions
@@ -52,7 +52,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
         ) : (
           <Button
             variant="link"
-            onClick={() => navigate(`/modelRegistrySettings/permissions/${mr.metadata.name}`)}
+            onClick={() => navigate(`/model-registry-settings/permissions/${mr.metadata.name}`)}
           >
             Manage permissions
           </Button>

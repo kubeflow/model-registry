@@ -292,7 +292,11 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
     <Dialog open onClose={onCancelClose}>
       <DialogTitle>{`${mr ? 'Edit' : 'Create'} model registry`}</DialogTitle>
       <DialogContent>
-        <K8sNameDescriptionField dataTestId="mr" data={nameDesc} onDataChange={setNameDesc} />
+        <K8sNameDescriptionField 
+          dataTestId="mr" 
+          data={nameDesc.name} 
+          onDataChange={(key, value) => setNameDesc({ ...nameDesc, [key]: value })} 
+        />
         <FormSection
           title="Connect to external MySQL database"
           description="This external database is where model data is stored."

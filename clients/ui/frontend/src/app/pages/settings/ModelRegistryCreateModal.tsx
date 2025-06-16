@@ -40,6 +40,8 @@ const CreateModal: React.FC<CreateModalProps> = ({
   const [isPasswordTouched, setIsPasswordTouched] = React.useState(false);
   const [isDatabaseTouched, setIsDatabaseTouched] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [name, setName] = React.useState('');
+  const [description, setDescription] = React.useState('');
 
   const navigate = useNavigate();
 
@@ -199,8 +201,11 @@ const CreateModal: React.FC<CreateModalProps> = ({
       <Form>
         <K8sNameDescriptionField
           dataTestId="mr"
-          // data={nameDesc}
-          //  onDataChange={setNameDesc}
+          data={name}
+          onDataChange={(key, value) => {
+            if (key === 'name') setName(value);
+            if (key === 'description') setDescription(value);
+          }}
         />
         <FormSection
           title="Connect to external MySQL database"
