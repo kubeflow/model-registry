@@ -24,9 +24,8 @@ import FormSection from '~/app/components/pf-overrides/FormSection';
 import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import useIsAreaAvailable from '~/app/concepts/areas/useIsAreaAvailable';
 import { SupportedArea } from '~/app/concepts/areas/types';
-import K8sNameDescriptionField, {
-  useK8sNameDescriptionFieldData,
-} from '~/app/concepts/k8s/K8sNameDescriptionField';
+import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
+import { useK8sNameDescriptionFieldData } from '~/app/concepts/k8s/K8sNameDescriptionField/useK8sNameDescriptionField';
 import useModelRegistryCertificateNames from '~/app/concepts/modelRegistrySettings/useModelRegistryCertificateNames';
 import {
   constructRequestBody,
@@ -43,6 +42,8 @@ import RedirectErrorState from '../external/RedirectErrorState';
 import { CreateMRSecureDBSection, SecureDBInfo } from './CreateMRSecureDBSection';
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import { ResourceType, SecureDBRType } from './const';
+import ThemeAwareFormGroupWrapper from '../settings/components/ThemeAwareFormGroupWrapper';
+import { HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
 
 type CreateModalProps = {
   onClose: () => void;
@@ -296,40 +297,50 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
           title="Connect to external MySQL database"
           description="This external database is where model data is stored."
         >
-          <FormGroup>
-            <TextField
-              label="Host"
-              required
-              value={host}
-              onBlur={() => setIsHostTouched(true)}
-              onChange={(e) => setHost(e.target.value)}
-              error={isHostTouched && !hasContent(host)}
-              helperText={isHostTouched && !hasContent(host) && "Host cannot be empty"}
+          <ThemeAwareFormGroupWrapper label="Host" fieldId="host">
+            <TextInput
+                isRequired
+                type="text"
+                id="mr-host"
+                name="mr-host"
+                value={host}
+                onBlur={() => setIsHostTouched(true)}
+                onChange={(_e, value) => setHost(value)}
+                validated={isHostTouched && !hasContent(host) ? 'error' : 'default'}
             />
-          </FormGroup>
-          <FormGroup>
-            <TextField
-              label="Port"
-              required
-              value={port}
-              onBlur={() => setIsPortTouched(true)}
-              onChange={(e) => setPort(e.target.value)}
-              error={isPortTouched && !hasContent(port)}
-              helperText={isPortTouched && !hasContent(port) && "Port cannot be empty"}
+          </ThemeAwareFormGroupWrapper>
+          <ThemeAwareFormGroupWrapper label="Port" fieldId="port">
+            <TextInput
+                isRequired
+                type="text"
+                id="mr-port"
+                name="mr-port"
+                value={port}
+                onBlur={() => setIsPortTouched(true)}
+                onChange={(_e, value) => setPort(value)}
+                validated={isPortTouched && !hasContent(port) ? 'error' : 'default'}
             />
-          </FormGroup>
-          <FormGroup>
-            <TextField
-              label="Username"
-              required
-              value={username}
-              onBlur={() => setIsUsernameTouched(true)}
-              onChange={(e) => setUsername(e.target.value)}
-              error={isUsernameTouched && !hasContent(username)}
-              helperText={isUsernameTouched && !hasContent(username) && "Username cannot be empty"}
+              {isPortTouched && !hasContent(port) && (
+                <HelperText>
+                  <HelperTextItem variant="error" data-testid="mr-port-error">
+                    Port cannot be empty
+                  </HelperTextItem>
+                </HelperText>
+              )}
+          </ThemeAwareFormGroupWrapper>
+          <ThemeAwareFormGroupWrapper label="Username" fieldId="username">
+            <TextInput
+                isRequired
+                type="text"
+                id="mr-username"
+                name="mr-username"
+                value={username}
+                onBlur={() => setIsUsernameTouched(true)}
+              onChange={(_e, value) => setUsername(value)}
+                validated={isUsernameTouched && !hasContent(username) ? 'error' : 'default'}
             />
-          </FormGroup>
-          <FormGroup>
+          </ThemeAwareFormGroupWrapper>
+          <ThemeAwareFormGroupWrapper label="Password" fieldId="password">
             <ModelRegistryDatabasePassword
               password={password || ''}
               setPassword={setPassword}
@@ -337,26 +348,24 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
               setIsPasswordTouched={setIsPasswordTouched}
               showPassword={showPassword}
             />
-          </FormGroup>
-          <FormGroup>
-            <TextField
-              label="Database"
+          </ThemeAwareFormGroupWrapper>
+          <ThemeAwareFormGroupWrapper label="Database" fieldId="database">
+            <TextInput
               required
               value={database}
               onBlur={() => setIsDatabaseTouched(true)}
-              onChange={(e) => setDatabase(e.target.value)}
-              error={isDatabaseTouched && !hasContent(database)}
-              helperText={isDatabaseTouched && !hasContent(database) && "Database cannot be empty"}
+              onChange={(_e, value) => setDatabase(value)}
+              validated={isDatabaseTouched && !hasContent(database) ? 'error' : 'default'}
             />
-          </FormGroup>
+          </ThemeAwareFormGroupWrapper>
           {secureDbEnabled && (
             <>
-              <FormGroup>
+              <ThemeAwareFormGroupWrapper label="Add CA certificate to secure database connection" fieldId="addSecureDB">
                 <FormControlLabel control={<Checkbox
                   checked={addSecureDB}
                   onChange={(e) => setAddSecureDB(e.target.checked)}
                 />} label="Add CA certificate to secure database connection" />
-              </FormGroup>
+              </ThemeAwareFormGroupWrapper>
               {addSecureDB &&
                 (!configSecretsLoaded && !configSecretsError ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
