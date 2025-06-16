@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -27,6 +28,10 @@ func Int64ToInt32(id *int64) (*int32, error) {
 	if id == nil {
 		return nil, nil
 	}
+	if *id > math.MaxInt32 || *id < math.MinInt32 {
+		return nil, fmt.Errorf("id is out of range of int32: %d", *id)
+	}
+
 	idInt32 := int32(*id)
 	return &idInt32, nil
 }

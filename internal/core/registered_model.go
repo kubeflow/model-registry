@@ -43,7 +43,7 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 }
 
 func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.RegisteredModel, error) {
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id: %w", err)
 	}
@@ -57,7 +57,7 @@ func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Regis
 }
 
 func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceServiceId string) (*openapi.RegisteredModel, error) {
-	convertedId, err := strconv.Atoi(inferenceServiceId)
+	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid inference service id: %w", err)
 	}

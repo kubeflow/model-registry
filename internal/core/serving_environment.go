@@ -43,7 +43,7 @@ func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *open
 }
 
 func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id: %w", err)
 	}

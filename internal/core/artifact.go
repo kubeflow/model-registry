@@ -64,7 +64,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 
 		modelVersionId = &uuid
 	} else {
-		convertedId, err := strconv.Atoi(*modelVersionId)
+		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid model version id: %w", err)
 		}
@@ -181,7 +181,7 @@ func (b *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*open
 
 func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*openapi.Artifact, error) {
 	artToReturn := &openapi.Artifact{}
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
@@ -278,7 +278,7 @@ func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVe
 	var modelVersionIDPtr *int32
 
 	if modelVersionId != nil {
-		convertedId, err := strconv.Atoi(*modelVersionId)
+		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid model version id: %w", err)
 		}
@@ -395,7 +395,7 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, mo
 	var modelVersionIDPtr *int32
 
 	if modelVersionId != nil {
-		convertedId, err := strconv.Atoi(*modelVersionId)
+		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid model version id: %w", err)
 		}

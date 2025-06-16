@@ -54,7 +54,7 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
 	glog.Infof("Getting InferenceService by id %s", id)
 
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
@@ -112,7 +112,7 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	var parentResourceID *int32
 
 	if servingEnvironmentId != nil {
-		convertedId, err := strconv.Atoi(*servingEnvironmentId)
+		convertedId, err := strconv.ParseInt(*servingEnvironmentId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid serving environment id: %w", err)
 		}

@@ -44,7 +44,7 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 	var inferenceServiceID *int32
 
 	if inferenceServiceId != nil {
-		convertedId, err := strconv.Atoi(*inferenceServiceId)
+		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid inference service id: %w", err)
 		}
@@ -70,7 +70,7 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 func (b *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeModel, error) {
 	glog.Infof("Getting ServeModel by id %s", id)
 
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
@@ -91,7 +91,7 @@ func (b *ModelRegistryService) GetServeModels(listOptions api.ListOptions, infer
 	var inferenceServiceID *int32
 
 	if inferenceServiceId != nil {
-		convertedId, err := strconv.Atoi(*inferenceServiceId)
+		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid inference service id: %w", err)
 		}

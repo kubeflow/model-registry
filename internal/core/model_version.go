@@ -57,7 +57,7 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
 	glog.Infof("Getting ModelVersion by id %s", id)
 
-	convertedId, err := strconv.Atoi(id)
+	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
@@ -76,7 +76,7 @@ func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVer
 }
 
 func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
-	convertedId, err := strconv.Atoi(inferenceServiceId)
+	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid inference service id: %w", err)
 	}
@@ -166,7 +166,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	var parentResourceID *int32
 
 	if registeredModelId != nil {
-		convertedId, err := strconv.Atoi(*registeredModelId)
+		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid registered model id: %w", err)
 		}
