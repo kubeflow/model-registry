@@ -1,17 +1,16 @@
 import * as React from 'react';
 import {
   Alert,
-  Box,
+  Bullseye,
   Checkbox,
-  FormGroup,
-  CircularProgress,
-  TextField,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
-  FormControlLabel,
-} from '@mui/material';
+  HelperText,
+  HelperTextItem,
+  Spinner,
+  TextInput,
+  Modal,
+  ModalBody,
+  ModalFooter,
+} from '@patternfly/react-core';
 import DashboardModalFooter from '~/app/concepts/dashboard/DashboardModalFooter';
 import { ModelRegistryKind } from '~/app/k8sTypes';
 import { ModelRegistryModel } from '~/app/api/models';
@@ -43,7 +42,6 @@ import { CreateMRSecureDBSection, SecureDBInfo } from './CreateMRSecureDBSection
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import { ResourceType, SecureDBRType } from './const';
 import ThemeAwareFormGroupWrapper from '../settings/components/ThemeAwareFormGroupWrapper';
-import { HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
 
 type CreateModalProps = {
   onClose: () => void;
@@ -289,9 +287,13 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
     (!addSecureDB || (secureDBInfo.isValid && !configSecretsError));
 
   return (
-    <Dialog open onClose={onCancelClose}>
-      <DialogTitle>{`${mr ? 'Edit' : 'Create'} model registry`}</DialogTitle>
-      <DialogContent>
+    <Modal
+      isOpen
+      title={`${mr ? 'Edit' : 'Create'} model registry`}
+      onClose={onCancelClose}
+      variant="small"
+    >
+      <ModalBody>
         <K8sNameDescriptionField 
           dataTestId="mr" 
           data={nameDesc.name} 
@@ -365,16 +367,18 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
           {secureDbEnabled && (
             <>
               <ThemeAwareFormGroupWrapper label="Add CA certificate to secure database connection" fieldId="addSecureDB">
-                <FormControlLabel control={<Checkbox
-                  checked={addSecureDB}
-                  onChange={(e) => setAddSecureDB(e.target.checked)}
-                />} label="Add CA certificate to secure database connection" />
+                <Checkbox
+                  id="add-secure-db-checkbox"
+                  isChecked={addSecureDB}
+                  onChange={(event, checked) => setAddSecureDB(checked)}
+                  label="Add CA certificate to secure database connection"
+                />
               </ThemeAwareFormGroupWrapper>
               {addSecureDB &&
                 (!configSecretsLoaded && !configSecretsError ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <CircularProgress />
-                  </Box>
+                  <Bullseye>
+                    <Spinner />
+                  </Bullseye>
                 ) : configSecretsLoaded ? (
                   <CreateMRSecureDBSection
                     secureDBInfo={secureDBInfo}
@@ -386,7 +390,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
                   />
                 ) : (
                   <Alert
-                    severity="error"
+                    variant="danger"
                     title="Error fetching config maps and secrets"
                   >
                     {configSecretsError?.message}
@@ -395,8 +399,8 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
             </>
           )}
         </FormSection>
-      </DialogContent>
-      <DialogActions>
+      </ModalBody>
+      <ModalFooter>
         <DashboardModalFooter
           onCancel={onCancelClose}
           onSubmit={onSubmit}
@@ -406,8 +410,8 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
           error={error}
           alertTitle={`Error ${mr ? 'updating' : 'creating'} model registry`}
         />
-      </DialogActions>
-    </Dialog>
+      </ModalFooter>
+    </Modal>
   );
 };
 
