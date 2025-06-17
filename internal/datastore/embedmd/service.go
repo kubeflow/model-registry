@@ -18,6 +18,7 @@ const (
 type EmbedMDConfig struct {
 	DatabaseType string
 	DatabaseDSN  string
+	db.SSLConfig
 }
 
 func (c *EmbedMDConfig) Validate() error {
@@ -34,7 +35,16 @@ type EmbedMDService struct {
 }
 
 func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
-	dbConnector, err := db.NewConnector(cfg.DatabaseType, cfg.DatabaseDSN)
+	sslConfig := &db.SSLConfig{
+		SSLCert:             cfg.SSLCert,
+		SSLKey:              cfg.SSLKey,
+		SSLRootCert:         cfg.SSLRootCert,
+		SSLCA:               cfg.SSLCA,
+		SSLCipher:           cfg.SSLCipher,
+		SSLVerifyServerCert: cfg.SSLVerifyServerCert,
+	}
+
+	dbConnector, err := db.NewConnector(cfg.DatabaseType, cfg.DatabaseDSN, sslConfig)
 	if err != nil {
 		return nil, err
 	}

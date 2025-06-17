@@ -24,9 +24,23 @@ type MySQLDBConnector struct {
 	db                  *gorm.DB
 }
 
-func NewMySQLDBConnector(dsn string) *MySQLDBConnector {
+func NewMySQLDBConnector(
+	dsn,
+	sslCertPath,
+	sslKeyPath,
+	sslRootCertPath,
+	sslCAPath,
+	sslCipher string,
+	sslVerifyServerCert bool,
+) *MySQLDBConnector {
 	return &MySQLDBConnector{
-		DSN: dsn,
+		DSN:                 dsn,
+		SSLCertPath:         sslCertPath,
+		SSLKeyPath:          sslKeyPath,
+		SSLRootCertPath:     sslRootCertPath,
+		SSLCAPath:           sslCAPath,
+		SSLCipher:           sslCipher,
+		SSLVerifyServerCert: sslVerifyServerCert,
 	}
 }
 

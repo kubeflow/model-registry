@@ -32,7 +32,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 	)
 	require.NoError(t, err)
 
-	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx))
+	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx), "", "", "", "", "", false)
 	require.NoError(t, err)
 
 	db, err := dbConnector.Connect()
