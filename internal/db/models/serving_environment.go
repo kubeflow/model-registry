@@ -14,40 +14,10 @@ type ServingEnvironmentAttributes struct {
 }
 
 type ServingEnvironment interface {
-	GetID() *int32
-	GetTypeID() *int32
-	GetAttributes() *ServingEnvironmentAttributes
-	GetProperties() *[]Properties
-	GetCustomProperties() *[]Properties
+	Entity[ServingEnvironmentAttributes]
 }
 
-type ServingEnvironmentImpl struct {
-	ID               *int32
-	TypeID           *int32
-	Attributes       *ServingEnvironmentAttributes
-	Properties       *[]Properties
-	CustomProperties *[]Properties
-}
-
-func (r *ServingEnvironmentImpl) GetID() *int32 {
-	return r.ID
-}
-
-func (r *ServingEnvironmentImpl) GetTypeID() *int32 {
-	return r.TypeID
-}
-
-func (r *ServingEnvironmentImpl) GetAttributes() *ServingEnvironmentAttributes {
-	return r.Attributes
-}
-
-func (r *ServingEnvironmentImpl) GetProperties() *[]Properties {
-	return r.Properties
-}
-
-func (r *ServingEnvironmentImpl) GetCustomProperties() *[]Properties {
-	return r.CustomProperties
-}
+type ServingEnvironmentImpl = BaseEntity[ServingEnvironmentAttributes]
 
 type ServingEnvironmentRepository interface {
 	GetByID(id int32) (ServingEnvironment, error)

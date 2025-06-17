@@ -15,40 +15,10 @@ type ModelVersionAttributes struct {
 }
 
 type ModelVersion interface {
-	GetID() *int32
-	GetTypeID() *int32
-	GetAttributes() *ModelVersionAttributes
-	GetProperties() *[]Properties
-	GetCustomProperties() *[]Properties
+	Entity[ModelVersionAttributes]
 }
 
-type ModelVersionImpl struct {
-	ID               *int32
-	TypeID           *int32
-	Attributes       *ModelVersionAttributes
-	Properties       *[]Properties
-	CustomProperties *[]Properties
-}
-
-func (r *ModelVersionImpl) GetID() *int32 {
-	return r.ID
-}
-
-func (r *ModelVersionImpl) GetTypeID() *int32 {
-	return r.TypeID
-}
-
-func (r *ModelVersionImpl) GetAttributes() *ModelVersionAttributes {
-	return r.Attributes
-}
-
-func (r *ModelVersionImpl) GetProperties() *[]Properties {
-	return r.Properties
-}
-
-func (r *ModelVersionImpl) GetCustomProperties() *[]Properties {
-	return r.CustomProperties
-}
+type ModelVersionImpl = BaseEntity[ModelVersionAttributes]
 
 type ModelVersionRepository interface {
 	GetByID(id int32) (ModelVersion, error)

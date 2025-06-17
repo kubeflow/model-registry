@@ -20,40 +20,10 @@ type DocArtifactAttributes struct {
 }
 
 type DocArtifact interface {
-	GetID() *int32
-	GetTypeID() *int32
-	GetAttributes() *DocArtifactAttributes
-	GetProperties() *[]Properties
-	GetCustomProperties() *[]Properties
+	Entity[DocArtifactAttributes]
 }
 
-type DocArtifactImpl struct {
-	ID               *int32
-	TypeID           *int32
-	Attributes       *DocArtifactAttributes
-	Properties       *[]Properties
-	CustomProperties *[]Properties
-}
-
-func (r *DocArtifactImpl) GetID() *int32 {
-	return r.ID
-}
-
-func (r *DocArtifactImpl) GetTypeID() *int32 {
-	return r.TypeID
-}
-
-func (r *DocArtifactImpl) GetAttributes() *DocArtifactAttributes {
-	return r.Attributes
-}
-
-func (r *DocArtifactImpl) GetProperties() *[]Properties {
-	return r.Properties
-}
-
-func (r *DocArtifactImpl) GetCustomProperties() *[]Properties {
-	return r.CustomProperties
-}
+type DocArtifactImpl = BaseEntity[DocArtifactAttributes]
 
 type DocArtifactRepository interface {
 	GetByID(id int32) (DocArtifact, error)

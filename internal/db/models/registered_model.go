@@ -25,40 +25,10 @@ type RegisteredModelAttributes struct {
 }
 
 type RegisteredModel interface {
-	GetID() *int32
-	GetTypeID() *int32
-	GetAttributes() *RegisteredModelAttributes
-	GetProperties() *[]Properties
-	GetCustomProperties() *[]Properties
+	Entity[RegisteredModelAttributes]
 }
 
-type RegisteredModelImpl struct {
-	ID               *int32
-	TypeID           *int32
-	Attributes       *RegisteredModelAttributes
-	Properties       *[]Properties
-	CustomProperties *[]Properties
-}
-
-func (r *RegisteredModelImpl) GetID() *int32 {
-	return r.ID
-}
-
-func (r *RegisteredModelImpl) GetTypeID() *int32 {
-	return r.TypeID
-}
-
-func (r *RegisteredModelImpl) GetAttributes() *RegisteredModelAttributes {
-	return r.Attributes
-}
-
-func (r *RegisteredModelImpl) GetProperties() *[]Properties {
-	return r.Properties
-}
-
-func (r *RegisteredModelImpl) GetCustomProperties() *[]Properties {
-	return r.CustomProperties
-}
+type RegisteredModelImpl = BaseEntity[RegisteredModelAttributes]
 
 type RegisteredModelRepository interface {
 	GetByID(id int32) (RegisteredModel, error)

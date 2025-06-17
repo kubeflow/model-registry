@@ -12,7 +12,7 @@ import (
 
 type EmbedMDToOpenAPIConverterImpl struct{}
 
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.DocArtifactImpl) (*openapi.DocArtifact, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.BaseEntity[models.DocArtifactAttributes]) (*openapi.DocArtifact, error) {
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
 		var openapiDocArtifact openapi.DocArtifact
@@ -40,7 +40,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.DocArt
 	}
 	return pOpenapiDocArtifact, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.InferenceServiceImpl) (*openapi.InferenceService, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.BaseEntity[models.InferenceServiceAttributes]) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
 	if source != nil {
 		var openapiInferenceService openapi.InferenceService
@@ -70,7 +70,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.I
 	}
 	return pOpenapiInferenceService, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelArtifact(source *models.ModelArtifactImpl) (*openapi.ModelArtifact, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelArtifact(source *models.BaseEntity[models.ModelArtifactAttributes]) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
 	if source != nil {
 		var openapiModelArtifact openapi.ModelArtifact
@@ -108,7 +108,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelArtifact(source *models.Mode
 	}
 	return pOpenapiModelArtifact, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelVersion(source *models.ModelVersionImpl) (*openapi.ModelVersion, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelVersion(source *models.BaseEntity[models.ModelVersionAttributes]) (*openapi.ModelVersion, error) {
 	var pOpenapiModelVersion *openapi.ModelVersion
 	if source != nil {
 		var openapiModelVersion openapi.ModelVersion
@@ -136,7 +136,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelVersion(source *models.Model
 	}
 	return pOpenapiModelVersion, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.RegisteredModelImpl) (*openapi.RegisteredModel, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.BaseEntity[models.RegisteredModelAttributes]) (*openapi.RegisteredModel, error) {
 	var pOpenapiRegisteredModel *openapi.RegisteredModel
 	if source != nil {
 		var openapiRegisteredModel openapi.RegisteredModel
@@ -172,7 +172,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.Re
 	}
 	return pOpenapiRegisteredModel, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertServeModel(source *models.ServeModelImpl) (*openapi.ServeModel, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertServeModel(source *models.BaseEntity[models.ServeModelAttributes]) (*openapi.ServeModel, error) {
 	var pOpenapiServeModel *openapi.ServeModel
 	if source != nil {
 		var openapiServeModel openapi.ServeModel
@@ -203,7 +203,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertServeModel(source *models.ServeMo
 	}
 	return pOpenapiServeModel, nil
 }
-func (c *EmbedMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *models.ServingEnvironmentImpl) (*openapi.ServingEnvironment, error) {
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *models.BaseEntity[models.ServingEnvironmentAttributes]) (*openapi.ServingEnvironment, error) {
 	var pOpenapiServingEnvironment *openapi.ServingEnvironment
 	if source != nil {
 		var openapiServingEnvironment openapi.ServingEnvironment
