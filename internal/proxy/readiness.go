@@ -6,8 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/datastore"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	"gorm.io/gorm"
+	"github.com/kubeflow/model-registry/internal/db"
 )
 
 // ReadinessHandler is a readiness probe that requires schema_migrations.dirty to be false before allowing traffic.
@@ -31,22 +30,15 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 			return
 		}
 
-		var (
-			db  *gorm.DB
-			err error
-		)
-		dbType := datastore.EmbedMD.DatabaseType
-		switch dbType {
-		case "mysql":
-			connector := mysql.NewMySQLDBConnector(dsn)
-			db, err = connector.Connect()
-		default:
-			http.Error(w, fmt.Sprintf("unsupported database type: %s", dbType), http.StatusServiceUnavailable)
+		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("database conneciton error: %s", err), http.StatusServiceUnavailable)
 			return
 		}
 
+		db, err := dbConnector.Connect()
 		if err != nil {
-			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("database error connecting: %v", err), http.StatusServiceUnavailable)
 			return
 		}
 
