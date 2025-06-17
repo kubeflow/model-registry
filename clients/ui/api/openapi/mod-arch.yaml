@@ -300,6 +300,35 @@ paths:
       description: Deletes an existing Role Binding associated with Model Registries.
     parameters: # Add parameters at the path level
       - $ref: '#/components/parameters/roleBindingName' # Ensure this path parameter is defined
+  /api/v1/settings/groups:
+    summary: Path used to get available groups.
+    description: >-
+      The REST endpoint/path used to get a list of all available OpenShift/Kubernetes groups in the cluster.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/namespace"
+      responses:
+        "200":
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Group"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getGroups
+      summary: Get Available Groups
+      description: Returns available OpenShift/Kubernetes groups in the cluster.
   /api/v1/model_registry/{modelRegistryName}/model_versions/{modelversionId}:
     summary: Path used to manage a single ModelVersion.
     description: >-
@@ -1469,6 +1498,56 @@ components:
             -----BEGIN CERTIFICATE-----
             MIID...
             -----END CERTIFICATE-----
+    Group:
+      description: OpenShift/Kubernetes Group object
+      type: object
+      required:
+        - metadata
+        - users
+      properties:
+        apiVersion:
+          type: string
+          example: "user.openshift.io/v1"
+        kind:
+          type: string
+          example: "Group"
+        metadata:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              example: "dora-group"
+            namespace:
+              type: string
+              nullable: true
+            annotations:
+              type: object
+              additionalProperties:
+                type: string
+              nullable: true
+            labels:
+              type: object
+              additionalProperties:
+                type: string
+              nullable: true
+            creationTimestamp:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2023-01-15T10:30:00Z"
+            resourceVersion:
+              type: string
+              nullable: true
+            uid:
+              type: string
+              nullable: true
+        users:
+          type: array
+          items:
+            type: string
+          example: ["dora-user@example.com", "dora-admin@example.com"]
   responses:
     NotFound:
       content:
@@ -1887,6 +1966,13 @@ components:
         type: string
       in: path
       required: true
+    namespace:
+      name: namespace
+      description: The namespace to filter resources by.
+      schema:
+        type: string
+      in: query
+      required: false
   securitySchemes:
     Bearer:
       scheme: bearer

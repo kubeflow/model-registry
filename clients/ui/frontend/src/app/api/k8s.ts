@@ -10,6 +10,8 @@ import {
   restDELETE,
   restGET,
   restPATCH,
+  GroupKind,
+  RoleBindingKind,
 } from 'mod-arch-shared';
 import { ModelRegistry } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
@@ -45,6 +47,47 @@ export const getNamespaces =
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/namespaces`, {}, opts),
     ).then((response) => {
       if (isModArchResponse<Namespace[]>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const getNamespacesForSettings =
+  (hostPath: string) =>
+  (opts: APIOptions): Promise<Namespace[]> =>
+    handleRestFailures(
+      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/namespaces`, {}, opts),
+    ).then((response) => {
+      if (isModArchResponse<Namespace[]>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const getGroups =
+  (hostPath: string) =>
+  (opts: APIOptions): Promise<GroupKind[]> =>
+    handleRestFailures(
+      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/groups`, {}, opts),
+    ).then((response) => {
+      if (isModArchResponse<GroupKind[]>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const getRoleBindings =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions): Promise<RoleBindingKind[]> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/role_bindings`,
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<RoleBindingKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -141,6 +184,60 @@ export const patchModelRegistrySettings =
       ),
     ).then((response) => {
       if (isModArchResponse<ModelRegistryKind[]>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const createRoleBinding =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, data: RoleBindingKind): Promise<RoleBindingKind> =>
+    handleRestFailures(
+      restCREATE(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/role_bindings`,
+        assembleModArchBody(data),
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<RoleBindingKind>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const patchRoleBinding =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, data: RoleBindingKind, roleBindingName: string): Promise<RoleBindingKind> =>
+    handleRestFailures(
+      restPATCH(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/role_bindings/${roleBindingName}`,
+        assembleModArchBody(data),
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<RoleBindingKind>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const deleteRoleBinding =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, roleBindingName: string): Promise<void> =>
+    handleRestFailures(
+      restDELETE(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/role_bindings/${roleBindingName}`,
+        {},
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<void>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
