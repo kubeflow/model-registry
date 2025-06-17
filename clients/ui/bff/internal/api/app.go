@@ -182,6 +182,7 @@ func (app *App) Routes() http.Handler {
 		//SettingsPath: Role Binding endpoints
 		apiRouter.GET(RoleBindingListPath, app.AttachNamespace(app.GetRoleBindingsHandler))
 		apiRouter.POST(RoleBindingListPath, app.AttachNamespace(app.CreateRoleBindingHandler))
+		apiRouter.PATCH(RoleBindingPath, app.AttachNamespace(app.PatchRoleBindingHandler))
 		apiRouter.DELETE(RoleBindingPath, app.AttachNamespace(app.DeleteRoleBindingHandler))
 
 		//SettingsPath Groups endpoints

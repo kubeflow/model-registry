@@ -67,7 +67,7 @@ func (app *App) GetRoleBindingsHandler(w http.ResponseWriter, r *http.Request, p
 // STUB IMPLEMENTATION
 func (app *App) CreateRoleBindingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// TODO: Implement actual logic: parse payload, use K8s client to create RoleBinding
-	var input models.RoleBinding // Assuming input is the direct RoleBinding structure
+	var input RoleBindingEnvelope
 	err := app.ReadJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
@@ -77,7 +77,7 @@ func (app *App) CreateRoleBindingHandler(w http.ResponseWriter, r *http.Request,
 	// For now, return the created object representation
 	dummyCreated := RoleBindingEnvelope{
 		Metadata: nil,
-		Data:     input, // Return the input for now
+		Data:     input.Data, // Return the input data for now
 	}
 
 	err = app.WriteJSON(w, http.StatusCreated, dummyCreated, nil)
@@ -95,4 +95,36 @@ func (app *App) DeleteRoleBindingHandler(w http.ResponseWriter, r *http.Request,
 	app.logger.Info("STUB: Deleting Role Binding", "name", roleBindingName)
 
 	w.WriteHeader(http.StatusNoContent) // Standard response for successful DELETE
+}
+
+// PatchRoleBindingHandler handles PATCH /api/v1/settings/role_bindings/{roleBindingName}
+// STUB IMPLEMENTATION
+func (app *App) PatchRoleBindingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	roleBindingName := ps.ByName(RoleBindingNameParam)
+
+	// TODO: Implement actual logic: parse payload, use K8s client to update RoleBinding
+	var input RoleBindingEnvelope
+	err := app.ReadJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// For stub implementation, set the name from the path parameter
+	if input.Data.Name == "" {
+		input.Data.Name = roleBindingName
+	}
+
+	app.logger.Info("STUB: Patching Role Binding", "name", roleBindingName)
+
+	// For now, return the patched object representation
+	patchedResponse := RoleBindingEnvelope{
+		Metadata: nil,
+		Data:     input.Data, // Return the input data for now
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, patchedResponse, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
