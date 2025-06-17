@@ -153,7 +153,7 @@ func (r *ServeModelRepositoryImpl) Save(serveModel models.ServeModel, inferenceS
 
 func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions) (*models.ListWrapper[models.ServeModel], error) {
 	list := models.ListWrapper[models.ServeModel]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	serveModels := []models.ServeModel{}
@@ -181,8 +181,8 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(serveModelsExec) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(serveModelsExec) > int(pageSize)
 		if hasMore {
 			serveModelsExec = serveModelsExec[:len(serveModelsExec)-1]
 		}
@@ -202,8 +202,8 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 		lastModel := serveModelsExec[len(serveModelsExec)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -222,8 +222,8 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	}
 
 	list.Items = serveModels
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(serveModels))
 
 	return &list, nil

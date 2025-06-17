@@ -134,7 +134,7 @@ func (r *InferenceServiceRepositoryImpl) Save(inferenceService models.InferenceS
 
 func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServiceListOptions) (*models.ListWrapper[models.InferenceService], error) {
 	list := models.ListWrapper[models.InferenceService]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	infSvcs := []models.InferenceService{}
@@ -173,8 +173,8 @@ func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServic
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(infSvcCtx) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(infSvcCtx) > int(pageSize)
 		if hasMore {
 			infSvcCtx = infSvcCtx[:len(infSvcCtx)-1]
 		}
@@ -193,8 +193,8 @@ func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServic
 		lastModel := infSvcCtx[len(infSvcCtx)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -212,8 +212,8 @@ func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServic
 	}
 
 	list.Items = infSvcs
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(infSvcs))
 
 	return &list, nil

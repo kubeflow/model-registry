@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -35,9 +36,9 @@ func TestModelVersionRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a parent registered model
 		parentModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("parent-model-for-version"),
+				Name: apiutils.Of("parent-model-for-version"),
 			},
 		}
 		savedParent, err := registeredModelRepo.Save(parentModel)
@@ -45,15 +46,15 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Test creating a new model version
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name:       stringPtr("test-version"),
-				ExternalID: stringPtr("version-ext-123"),
+				Name:       apiutils.Of("test-version"),
+				ExternalID: apiutils.Of("version-ext-123"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Test version description"),
+					StringValue: apiutils.Of("Test version description"),
 				},
 				{
 					Name:     "registered_model_id",
@@ -63,7 +64,7 @@ func TestModelVersionRepository(t *testing.T) {
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "custom-version-prop",
-					StringValue: stringPtr("custom-version-value"),
+					StringValue: apiutils.Of("custom-version-value"),
 				},
 			},
 		}
@@ -77,7 +78,7 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Test updating the same model version
 		modelVersion.ID = saved.GetID()
-		modelVersion.GetAttributes().Name = stringPtr("updated-version")
+		modelVersion.GetAttributes().Name = apiutils.Of("updated-version")
 
 		updated, err := repo.Save(modelVersion)
 		require.NoError(t, err)
@@ -89,9 +90,9 @@ func TestModelVersionRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a parent registered model
 		parentModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("parent-model-for-getbyid"),
+				Name: apiutils.Of("parent-model-for-getbyid"),
 			},
 		}
 		savedParent, err := registeredModelRepo.Save(parentModel)
@@ -99,10 +100,10 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// First create a model version to retrieve
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name:       stringPtr("get-test-version"),
-				ExternalID: stringPtr("get-version-ext-123"),
+				Name:       apiutils.Of("get-test-version"),
+				ExternalID: apiutils.Of("get-version-ext-123"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -132,9 +133,9 @@ func TestModelVersionRepository(t *testing.T) {
 	t.Run("TestList", func(t *testing.T) {
 		// Create a parent registered model for the versions
 		parentModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("parent-model-for-list"),
+				Name: apiutils.Of("parent-model-for-list"),
 			},
 		}
 		savedParent, err := registeredModelRepo.Save(parentModel)
@@ -143,10 +144,10 @@ func TestModelVersionRepository(t *testing.T) {
 		// Create multiple model versions for listing
 		testVersions := []*models.ModelVersionImpl{
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       stringPtr("list-version-1"),
-					ExternalID: stringPtr("list-version-ext-1"),
+					Name:       apiutils.Of("list-version-1"),
+					ExternalID: apiutils.Of("list-version-ext-1"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -156,10 +157,10 @@ func TestModelVersionRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       stringPtr("list-version-2"),
-					ExternalID: stringPtr("list-version-ext-2"),
+					Name:       apiutils.Of("list-version-2"),
+					ExternalID: apiutils.Of("list-version-ext-2"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -169,10 +170,10 @@ func TestModelVersionRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       stringPtr("list-version-3"),
-					ExternalID: stringPtr("list-version-ext-3"),
+					Name:       apiutils.Of("list-version-3"),
+					ExternalID: apiutils.Of("list-version-ext-3"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -200,7 +201,7 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Test listing by name
 		listOptions = models.ModelVersionListOptions{
-			Name: stringPtr("list-version-1"),
+			Name: apiutils.Of("list-version-1"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -214,7 +215,7 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Test listing by external ID
 		listOptions = models.ModelVersionListOptions{
-			ExternalID: stringPtr("list-version-ext-2"),
+			ExternalID: apiutils.Of("list-version-ext-2"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -239,7 +240,7 @@ func TestModelVersionRepository(t *testing.T) {
 		// Test ordering by ID (deterministic)
 		listOptions = models.ModelVersionListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("ID"),
+				OrderBy: apiutils.Of("ID"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -260,9 +261,9 @@ func TestModelVersionRepository(t *testing.T) {
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// First create a parent registered model
 		parentModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("parent-model-for-ordering"),
+				Name: apiutils.Of("parent-model-for-ordering"),
 			},
 		}
 		savedParent, err := registeredModelRepo.Save(parentModel)
@@ -270,9 +271,9 @@ func TestModelVersionRepository(t *testing.T) {
 
 		// Create versions sequentially with time delays to ensure deterministic ordering
 		version1 := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("time-test-version-1"),
+				Name: apiutils.Of("time-test-version-1"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -288,9 +289,9 @@ func TestModelVersionRepository(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		version2 := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("time-test-version-2"),
+				Name: apiutils.Of("time-test-version-2"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -306,7 +307,7 @@ func TestModelVersionRepository(t *testing.T) {
 		pageSize := int32(10)
 		listOptions := models.ModelVersionListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("CREATE_TIME"),
+				OrderBy: apiutils.Of("CREATE_TIME"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -340,27 +341,27 @@ func TestModelVersionRepository(t *testing.T) {
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
 		// First create a parent registered model
 		parentModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("parent-model-for-props"),
+				Name: apiutils.Of("parent-model-for-props"),
 			},
 		}
 		savedParent, err := registeredModelRepo.Save(parentModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("props-test-version"),
+				Name: apiutils.Of("props-test-version"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Version with properties"),
+					StringValue: apiutils.Of("Version with properties"),
 				},
 				{
 					Name:     "version_number",
-					IntValue: int32Ptr(1),
+					IntValue: apiutils.Of(int32(1)),
 				},
 				{
 					Name:     "registered_model_id",
@@ -370,11 +371,11 @@ func TestModelVersionRepository(t *testing.T) {
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "team",
-					StringValue: stringPtr("ml-team"),
+					StringValue: apiutils.Of("ml-team"),
 				},
 				{
 					Name:     "priority",
-					IntValue: int32Ptr(5),
+					IntValue: apiutils.Of(int32(5)),
 				},
 			},
 		}

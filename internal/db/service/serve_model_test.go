@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -44,9 +45,9 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-serve"),
+				Name: apiutils.Of("test-registered-model-for-serve"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -54,9 +55,9 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create a model version
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-serve"),
+				Name: apiutils.Of("test-model-version-for-serve"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -70,18 +71,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service for the serve model
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-save"),
+				Name: apiutils.Of("test-serving-env-for-save"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
 		require.NoError(t, err)
 
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-save"),
+				Name: apiutils.Of("test-inference-service-for-save"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -99,16 +100,16 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Test creating a new serve model
 		serveModel := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("test-serve-model"),
-				ExternalID:     stringPtr("serve-ext-123"),
-				LastKnownState: stringPtr("RUNNING"),
+				Name:           apiutils.Of("test-serve-model"),
+				ExternalID:     apiutils.Of("serve-ext-123"),
+				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Test serve model description"),
+					StringValue: apiutils.Of("Test serve model description"),
 				},
 				{
 					Name:     "model_version_id",
@@ -118,7 +119,7 @@ func TestServeModelRepository(t *testing.T) {
 			CustomProperties: &[]models.Properties{
 				{
 					Name:             "custom-serve-prop",
-					StringValue:      stringPtr("custom-serve-value"),
+					StringValue:      apiutils.Of("custom-serve-value"),
 					IsCustomProperty: true,
 				},
 			},
@@ -134,8 +135,8 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Test updating the same serve model
 		serveModel.ID = saved.GetID()
-		serveModel.GetAttributes().Name = stringPtr("updated-serve-model")
-		serveModel.GetAttributes().LastKnownState = stringPtr("COMPLETE")
+		serveModel.GetAttributes().Name = apiutils.Of("updated-serve-model")
+		serveModel.GetAttributes().LastKnownState = apiutils.Of("COMPLETE")
 
 		updated, err := repo.Save(serveModel, nil)
 		require.NoError(t, err)
@@ -148,18 +149,18 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-getbyid"),
+				Name: apiutils.Of("test-registered-model-for-getbyid"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-getbyid"),
+				Name: apiutils.Of("test-model-version-for-getbyid"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -173,18 +174,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service for the serve model
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-getbyid"),
+				Name: apiutils.Of("test-serving-env-for-getbyid"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
 		require.NoError(t, err)
 
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-getbyid"),
+				Name: apiutils.Of("test-inference-service-for-getbyid"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -202,11 +203,11 @@ func TestServeModelRepository(t *testing.T) {
 
 		// First create a serve model to retrieve
 		serveModel := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("get-test-serve-model"),
-				ExternalID:     stringPtr("get-serve-ext-123"),
-				LastKnownState: stringPtr("NEW"),
+				Name:           apiutils.Of("get-test-serve-model"),
+				ExternalID:     apiutils.Of("get-serve-ext-123"),
+				LastKnownState: apiutils.Of("NEW"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -237,18 +238,18 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestList", func(t *testing.T) {
 		// Create a registered model and model version for the serve models
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-list"),
+				Name: apiutils.Of("test-registered-model-for-list"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-list"),
+				Name: apiutils.Of("test-model-version-for-list"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -262,18 +263,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service for the serve models
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-list"),
+				Name: apiutils.Of("test-serving-env-for-list"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
 		require.NoError(t, err)
 
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-list"),
+				Name: apiutils.Of("test-inference-service-for-list"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -292,11 +293,11 @@ func TestServeModelRepository(t *testing.T) {
 		// Create multiple serve models for listing
 		testServeModels := []*models.ServeModelImpl{
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           stringPtr("list-serve-model-1"),
-					ExternalID:     stringPtr("list-serve-ext-1"),
-					LastKnownState: stringPtr("RUNNING"),
+					Name:           apiutils.Of("list-serve-model-1"),
+					ExternalID:     apiutils.Of("list-serve-ext-1"),
+					LastKnownState: apiutils.Of("RUNNING"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -306,11 +307,11 @@ func TestServeModelRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           stringPtr("list-serve-model-2"),
-					ExternalID:     stringPtr("list-serve-ext-2"),
-					LastKnownState: stringPtr("COMPLETE"),
+					Name:           apiutils.Of("list-serve-model-2"),
+					ExternalID:     apiutils.Of("list-serve-ext-2"),
+					LastKnownState: apiutils.Of("COMPLETE"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -320,11 +321,11 @@ func TestServeModelRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           stringPtr("list-serve-model-3"),
-					ExternalID:     stringPtr("list-serve-ext-3"),
-					LastKnownState: stringPtr("FAILED"),
+					Name:           apiutils.Of("list-serve-model-3"),
+					ExternalID:     apiutils.Of("list-serve-ext-3"),
+					LastKnownState: apiutils.Of("FAILED"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -352,7 +353,7 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Test listing by name
 		listOptions = models.ServeModelListOptions{
-			Name: stringPtr("list-serve-model-1"),
+			Name: apiutils.Of("list-serve-model-1"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -366,7 +367,7 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Test listing by external ID
 		listOptions = models.ServeModelListOptions{
-			ExternalID: stringPtr("list-serve-ext-2"),
+			ExternalID: apiutils.Of("list-serve-ext-2"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -381,7 +382,7 @@ func TestServeModelRepository(t *testing.T) {
 		// Test ordering by ID (deterministic)
 		listOptions = models.ServeModelListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("ID"),
+				OrderBy: apiutils.Of("ID"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -402,18 +403,18 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-ordering"),
+				Name: apiutils.Of("test-registered-model-for-ordering"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-ordering"),
+				Name: apiutils.Of("test-model-version-for-ordering"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -427,18 +428,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service for the serve models
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-ordering"),
+				Name: apiutils.Of("test-serving-env-for-ordering"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
 		require.NoError(t, err)
 
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-ordering"),
+				Name: apiutils.Of("test-inference-service-for-ordering"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -456,10 +457,10 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create serve models sequentially with time delays to ensure deterministic ordering
 		serveModel1 := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("time-test-serve-model-1"),
-				LastKnownState: stringPtr("RUNNING"),
+				Name:           apiutils.Of("time-test-serve-model-1"),
+				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -475,10 +476,10 @@ func TestServeModelRepository(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		serveModel2 := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("time-test-serve-model-2"),
-				LastKnownState: stringPtr("COMPLETE"),
+				Name:           apiutils.Of("time-test-serve-model-2"),
+				LastKnownState: apiutils.Of("COMPLETE"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -494,7 +495,7 @@ func TestServeModelRepository(t *testing.T) {
 		pageSize := int32(10)
 		listOptions := models.ServeModelListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("CREATE_TIME"),
+				OrderBy: apiutils.Of("CREATE_TIME"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -528,9 +529,9 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestListByInferenceService", func(t *testing.T) {
 		// First create a serving environment
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-inference"),
+				Name: apiutils.Of("test-serving-env-for-inference"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
@@ -538,18 +539,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-inference"),
+				Name: apiutils.Of("test-registered-model-for-inference"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-inference"),
+				Name: apiutils.Of("test-model-version-for-inference"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -563,9 +564,9 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-serve"),
+				Name: apiutils.Of("test-inference-service-for-serve"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -583,9 +584,9 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create another inference service for comparison
 		inferenceService2 := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-2-for-serve"),
+				Name: apiutils.Of("test-inference-service-2-for-serve"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -603,10 +604,10 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create serve models - some associated with the first inference service, some with the second
 		serveModel1 := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("serve-model-with-inference-1"),
-				LastKnownState: stringPtr("RUNNING"),
+				Name:           apiutils.Of("serve-model-with-inference-1"),
+				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -619,10 +620,10 @@ func TestServeModelRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		serveModel2 := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("serve-model-with-inference-2"),
-				LastKnownState: stringPtr("COMPLETE"),
+				Name:           apiutils.Of("serve-model-with-inference-2"),
+				LastKnownState: apiutils.Of("COMPLETE"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -636,10 +637,10 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create a serve model with the second inference service
 		serveModel3 := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("serve-model-with-inference-3"),
-				LastKnownState: stringPtr("NEW"),
+				Name:           apiutils.Of("serve-model-with-inference-3"),
+				LastKnownState: apiutils.Of("NEW"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -690,18 +691,18 @@ func TestServeModelRepository(t *testing.T) {
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-props"),
+				Name: apiutils.Of("test-registered-model-for-props"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-props"),
+				Name: apiutils.Of("test-model-version-for-props"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -715,18 +716,18 @@ func TestServeModelRepository(t *testing.T) {
 
 		// Create an inference service for the serve model
 		servingEnvironment := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("test-serving-env-for-props"),
+				Name: apiutils.Of("test-serving-env-for-props"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
 		require.NoError(t, err)
 
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(inferenceServiceTypeID)),
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("test-inference-service-for-props"),
+				Name: apiutils.Of("test-inference-service-for-props"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -743,15 +744,15 @@ func TestServeModelRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		serveModel := &models.ServeModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           stringPtr("props-test-serve-model"),
-				LastKnownState: stringPtr("RUNNING"),
+				Name:           apiutils.Of("props-test-serve-model"),
+				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Serve model with properties"),
+					StringValue: apiutils.Of("Serve model with properties"),
 				},
 				{
 					Name:     "model_version_id",
@@ -761,12 +762,12 @@ func TestServeModelRepository(t *testing.T) {
 			CustomProperties: &[]models.Properties{
 				{
 					Name:             "team",
-					StringValue:      stringPtr("ml-team"),
+					StringValue:      apiutils.Of("ml-team"),
 					IsCustomProperty: true,
 				},
 				{
 					Name:             "priority",
-					IntValue:         int32Ptr(5),
+					IntValue:         apiutils.Of(int32(5)),
 					IsCustomProperty: true,
 				},
 			},

@@ -137,7 +137,7 @@ func (r *ModelVersionRepositoryImpl) Save(modelVersion models.ModelVersion) (mod
 
 func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOptions) (*models.ListWrapper[models.ModelVersion], error) {
 	list := models.ListWrapper[models.ModelVersion]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	modelVersions := []models.ModelVersion{}
@@ -164,8 +164,8 @@ func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOpt
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(modelVersionsCtx) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(modelVersionsCtx) > int(pageSize)
 		if hasMore {
 			modelVersionsCtx = modelVersionsCtx[:len(modelVersionsCtx)-1]
 		}
@@ -184,8 +184,8 @@ func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOpt
 		lastModel := modelVersionsCtx[len(modelVersionsCtx)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -204,8 +204,8 @@ func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOpt
 	}
 
 	list.Items = modelVersions
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(modelVersions))
 
 	return &list, nil

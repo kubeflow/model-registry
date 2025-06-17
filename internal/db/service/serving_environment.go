@@ -112,7 +112,7 @@ func (r *ServingEnvironmentRepositoryImpl) Save(servEnv models.ServingEnvironmen
 
 func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnvironmentListOptions) (*models.ListWrapper[models.ServingEnvironment], error) {
 	list := models.ListWrapper[models.ServingEnvironment]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	servEnvs := []models.ServingEnvironment{}
@@ -133,8 +133,8 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(servEnvsCtx) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(servEnvsCtx) > int(pageSize)
 		if hasMore {
 			servEnvsCtx = servEnvsCtx[:len(servEnvsCtx)-1]
 		}
@@ -153,8 +153,8 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 		lastModel := servEnvsCtx[len(servEnvsCtx)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -172,8 +172,8 @@ func (r *ServingEnvironmentRepositoryImpl) List(listOptions models.ServingEnviro
 	}
 
 	list.Items = servEnvs
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(servEnvs))
 
 	return &list, nil

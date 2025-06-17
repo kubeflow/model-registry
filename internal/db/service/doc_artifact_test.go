@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -38,18 +39,18 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a registered model and model version for attribution
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-doc-artifact"),
+				Name: apiutils.Of("test-registered-model-for-doc-artifact"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-doc-artifact"),
+				Name: apiutils.Of("test-model-version-for-doc-artifact"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -63,24 +64,24 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Test creating a new doc artifact
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("test-doc-artifact"),
-				ExternalID:   stringPtr("doc-artifact-ext-123"),
-				URI:          stringPtr("s3://bucket/documentation.pdf"),
-				State:        stringPtr("LIVE"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("test-doc-artifact"),
+				ExternalID:   apiutils.Of("doc-artifact-ext-123"),
+				URI:          apiutils.Of("s3://bucket/documentation.pdf"),
+				State:        apiutils.Of("LIVE"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Test doc artifact description"),
+					StringValue: apiutils.Of("Test doc artifact description"),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:             "custom-doc-prop",
-					StringValue:      stringPtr("custom-doc-value"),
+					StringValue:      apiutils.Of("custom-doc-value"),
 					IsCustomProperty: true,
 				},
 			},
@@ -97,8 +98,8 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Test updating the same doc artifact
 		docArtifact.ID = saved.GetID()
-		docArtifact.GetAttributes().Name = stringPtr("updated-doc-artifact")
-		docArtifact.GetAttributes().State = stringPtr("PENDING")
+		docArtifact.GetAttributes().Name = apiutils.Of("updated-doc-artifact")
+		docArtifact.GetAttributes().State = apiutils.Of("PENDING")
 
 		updated, err := repo.Save(docArtifact, savedModelVersion.GetID())
 		require.NoError(t, err)
@@ -111,18 +112,18 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-getbyid"),
+				Name: apiutils.Of("test-registered-model-for-getbyid"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-getbyid"),
+				Name: apiutils.Of("test-model-version-for-getbyid"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -136,13 +137,13 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// First create a doc artifact to retrieve
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("get-test-doc-artifact"),
-				ExternalID:   stringPtr("get-doc-artifact-ext-123"),
-				URI:          stringPtr("s3://bucket/get-documentation.pdf"),
-				State:        stringPtr("LIVE"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("get-test-doc-artifact"),
+				ExternalID:   apiutils.Of("get-doc-artifact-ext-123"),
+				URI:          apiutils.Of("s3://bucket/get-documentation.pdf"),
+				State:        apiutils.Of("LIVE"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 		}
 
@@ -168,18 +169,18 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestList", func(t *testing.T) {
 		// Create a registered model and model version for the artifacts
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-list"),
+				Name: apiutils.Of("test-registered-model-for-list"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-list"),
+				Name: apiutils.Of("test-model-version-for-list"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -194,33 +195,33 @@ func TestDocArtifactRepository(t *testing.T) {
 		// Create multiple doc artifacts for listing
 		testArtifacts := []*models.DocArtifactImpl{
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         stringPtr("list-doc-artifact-1"),
-					ExternalID:   stringPtr("list-doc-artifact-ext-1"),
-					URI:          stringPtr("s3://bucket/list-doc-1.pdf"),
-					State:        stringPtr("LIVE"),
-					ArtifactType: stringPtr("doc-artifact"),
+					Name:         apiutils.Of("list-doc-artifact-1"),
+					ExternalID:   apiutils.Of("list-doc-artifact-ext-1"),
+					URI:          apiutils.Of("s3://bucket/list-doc-1.pdf"),
+					State:        apiutils.Of("LIVE"),
+					ArtifactType: apiutils.Of("doc-artifact"),
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         stringPtr("list-doc-artifact-2"),
-					ExternalID:   stringPtr("list-doc-artifact-ext-2"),
-					URI:          stringPtr("s3://bucket/list-doc-2.pdf"),
-					State:        stringPtr("PENDING"),
-					ArtifactType: stringPtr("doc-artifact"),
+					Name:         apiutils.Of("list-doc-artifact-2"),
+					ExternalID:   apiutils.Of("list-doc-artifact-ext-2"),
+					URI:          apiutils.Of("s3://bucket/list-doc-2.pdf"),
+					State:        apiutils.Of("PENDING"),
+					ArtifactType: apiutils.Of("doc-artifact"),
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         stringPtr("list-doc-artifact-3"),
-					ExternalID:   stringPtr("list-doc-artifact-ext-3"),
-					URI:          stringPtr("s3://bucket/list-doc-3.pdf"),
-					State:        stringPtr("LIVE"),
-					ArtifactType: stringPtr("doc-artifact"),
+					Name:         apiutils.Of("list-doc-artifact-3"),
+					ExternalID:   apiutils.Of("list-doc-artifact-ext-3"),
+					URI:          apiutils.Of("s3://bucket/list-doc-3.pdf"),
+					State:        apiutils.Of("LIVE"),
+					ArtifactType: apiutils.Of("doc-artifact"),
 				},
 			},
 		}
@@ -242,7 +243,7 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Test listing by name
 		listOptions = models.DocArtifactListOptions{
-			Name: stringPtr("list-doc-artifact-1"),
+			Name: apiutils.Of("list-doc-artifact-1"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -256,7 +257,7 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Test listing by external ID
 		listOptions = models.DocArtifactListOptions{
-			ExternalID: stringPtr("list-doc-artifact-ext-2"),
+			ExternalID: apiutils.Of("list-doc-artifact-ext-2"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -282,7 +283,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		// Test ordering by ID (deterministic)
 		listOptions = models.DocArtifactListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("ID"),
+				OrderBy: apiutils.Of("ID"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -303,18 +304,18 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-ordering"),
+				Name: apiutils.Of("test-registered-model-for-ordering"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-ordering"),
+				Name: apiutils.Of("test-model-version-for-ordering"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -328,12 +329,12 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Create artifacts sequentially with time delays to ensure deterministic ordering
 		artifact1 := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("time-test-doc-artifact-1"),
-				URI:          stringPtr("s3://bucket/time-doc-1.pdf"),
-				State:        stringPtr("LIVE"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("time-test-doc-artifact-1"),
+				URI:          apiutils.Of("s3://bucket/time-doc-1.pdf"),
+				State:        apiutils.Of("LIVE"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 		}
 		saved1, err := repo.Save(artifact1, savedModelVersion.GetID())
@@ -343,12 +344,12 @@ func TestDocArtifactRepository(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		artifact2 := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("time-test-doc-artifact-2"),
-				URI:          stringPtr("s3://bucket/time-doc-2.pdf"),
-				State:        stringPtr("PENDING"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("time-test-doc-artifact-2"),
+				URI:          apiutils.Of("s3://bucket/time-doc-2.pdf"),
+				State:        apiutils.Of("PENDING"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 		}
 		saved2, err := repo.Save(artifact2, savedModelVersion.GetID())
@@ -358,7 +359,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		pageSize := int32(10)
 		listOptions := models.DocArtifactListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("CREATE_TIME"),
+				OrderBy: apiutils.Of("CREATE_TIME"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -392,17 +393,17 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestSaveWithoutModelVersion", func(t *testing.T) {
 		// Test creating a doc artifact without model version attribution
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("standalone-doc-artifact"),
-				URI:          stringPtr("s3://bucket/standalone-doc.pdf"),
-				State:        stringPtr("LIVE"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("standalone-doc-artifact"),
+				URI:          apiutils.Of("s3://bucket/standalone-doc.pdf"),
+				State:        apiutils.Of("LIVE"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Standalone doc artifact without model version"),
+					StringValue: apiutils.Of("Standalone doc artifact without model version"),
 				},
 			},
 		}
@@ -423,18 +424,18 @@ func TestDocArtifactRepository(t *testing.T) {
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-for-props"),
+				Name: apiutils.Of("test-registered-model-for-props"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version-for-props"),
+				Name: apiutils.Of("test-model-version-for-props"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -447,36 +448,36 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         stringPtr("props-test-doc-artifact"),
-				URI:          stringPtr("s3://bucket/props-doc.pdf"),
-				State:        stringPtr("LIVE"),
-				ArtifactType: stringPtr("doc-artifact"),
+				Name:         apiutils.Of("props-test-doc-artifact"),
+				URI:          apiutils.Of("s3://bucket/props-doc.pdf"),
+				State:        apiutils.Of("LIVE"),
+				ArtifactType: apiutils.Of("doc-artifact"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Doc artifact with properties"),
+					StringValue: apiutils.Of("Doc artifact with properties"),
 				},
 				{
 					Name:        "document_type",
-					StringValue: stringPtr("user_manual"),
+					StringValue: apiutils.Of("user_manual"),
 				},
 				{
 					Name:     "page_count",
-					IntValue: int32Ptr(42),
+					IntValue: apiutils.Of(int32(42)),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:             "team",
-					StringValue:      stringPtr("ml-team"),
+					StringValue:      apiutils.Of("ml-team"),
 					IsCustomProperty: true,
 				},
 				{
 					Name:             "priority",
-					IntValue:         int32Ptr(5),
+					IntValue:         apiutils.Of(int32(5)),
 					IsCustomProperty: true,
 				},
 			},

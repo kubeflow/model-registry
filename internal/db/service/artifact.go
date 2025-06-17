@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
@@ -50,7 +49,7 @@ func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
 
 func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*models.ListWrapper[models.Artifact], error) {
 	list := models.ListWrapper[models.Artifact]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	artifacts := []models.Artifact{}
@@ -80,8 +79,8 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(artifactsArt) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(artifactsArt) > int(pageSize)
 		if hasMore {
 			artifactsArt = artifactsArt[:len(artifactsArt)-1]
 		}
@@ -101,8 +100,8 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		lastArtifact := artifactsArt[len(artifactsArt)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastArtifact.ID)
 			case "CREATE_TIME":
@@ -120,8 +119,8 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	}
 
 	list.Items = artifacts
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(artifacts))
 
 	return &list, nil

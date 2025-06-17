@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -41,9 +42,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a parent serving environment
 		parentServingEnv := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("parent-serving-env-for-inference"),
+				Name: apiutils.Of("parent-serving-env-for-inference"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(parentServingEnv)
@@ -51,9 +52,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model"),
+				Name: apiutils.Of("test-registered-model"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -61,15 +62,15 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Test creating a new inference service
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name:       stringPtr("test-inference-service"),
-				ExternalID: stringPtr("inference-ext-123"),
+				Name:       apiutils.Of("test-inference-service"),
+				ExternalID: apiutils.Of("inference-ext-123"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Test inference service description"),
+					StringValue: apiutils.Of("Test inference service description"),
 				},
 				{
 					Name:     "serving_environment_id",
@@ -81,13 +82,13 @@ func TestInferenceServiceRepository(t *testing.T) {
 				},
 				{
 					Name:        "runtime",
-					StringValue: stringPtr("tensorflow"),
+					StringValue: apiutils.Of("tensorflow"),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "custom-inference-prop",
-					StringValue: stringPtr("custom-inference-value"),
+					StringValue: apiutils.Of("custom-inference-value"),
 				},
 			},
 		}
@@ -101,7 +102,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Test updating the same inference service
 		inferenceService.ID = saved.GetID()
-		inferenceService.GetAttributes().Name = stringPtr("updated-inference-service")
+		inferenceService.GetAttributes().Name = apiutils.Of("updated-inference-service")
 
 		updated, err := repo.Save(inferenceService)
 		require.NoError(t, err)
@@ -113,9 +114,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a parent serving environment
 		parentServingEnv := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("parent-serving-env-for-getbyid"),
+				Name: apiutils.Of("parent-serving-env-for-getbyid"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(parentServingEnv)
@@ -123,9 +124,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-getbyid"),
+				Name: apiutils.Of("test-registered-model-getbyid"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -133,10 +134,10 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// First create an inference service to retrieve
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name:       stringPtr("get-test-inference-service"),
-				ExternalID: stringPtr("get-inference-ext-123"),
+				Name:       apiutils.Of("get-test-inference-service"),
+				ExternalID: apiutils.Of("get-inference-ext-123"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -170,9 +171,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 	t.Run("TestList", func(t *testing.T) {
 		// Create a parent serving environment for the inference services
 		parentServingEnv := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("parent-serving-env-for-list"),
+				Name: apiutils.Of("parent-serving-env-for-list"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(parentServingEnv)
@@ -180,9 +181,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-list"),
+				Name: apiutils.Of("test-registered-model-list"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -191,10 +192,10 @@ func TestInferenceServiceRepository(t *testing.T) {
 		// Create multiple inference services for listing
 		testInferenceServices := []*models.InferenceServiceImpl{
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.InferenceServiceAttributes{
-					Name:       stringPtr("list-inference-service-1"),
-					ExternalID: stringPtr("list-inference-ext-1"),
+					Name:       apiutils.Of("list-inference-service-1"),
+					ExternalID: apiutils.Of("list-inference-ext-1"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -207,15 +208,15 @@ func TestInferenceServiceRepository(t *testing.T) {
 					},
 					{
 						Name:        "runtime",
-						StringValue: stringPtr("tensorflow"),
+						StringValue: apiutils.Of("tensorflow"),
 					},
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.InferenceServiceAttributes{
-					Name:       stringPtr("list-inference-service-2"),
-					ExternalID: stringPtr("list-inference-ext-2"),
+					Name:       apiutils.Of("list-inference-service-2"),
+					ExternalID: apiutils.Of("list-inference-ext-2"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -228,15 +229,15 @@ func TestInferenceServiceRepository(t *testing.T) {
 					},
 					{
 						Name:        "runtime",
-						StringValue: stringPtr("pytorch"),
+						StringValue: apiutils.Of("pytorch"),
 					},
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.InferenceServiceAttributes{
-					Name:       stringPtr("list-inference-service-3"),
-					ExternalID: stringPtr("list-inference-ext-3"),
+					Name:       apiutils.Of("list-inference-service-3"),
+					ExternalID: apiutils.Of("list-inference-ext-3"),
 				},
 				Properties: &[]models.Properties{
 					{
@@ -249,7 +250,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 					},
 					{
 						Name:        "runtime",
-						StringValue: stringPtr("tensorflow"),
+						StringValue: apiutils.Of("tensorflow"),
 					},
 				},
 			},
@@ -272,7 +273,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Test listing by name
 		listOptions = models.InferenceServiceListOptions{
-			Name: stringPtr("list-inference-service-1"),
+			Name: apiutils.Of("list-inference-service-1"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -286,7 +287,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Test listing by external ID
 		listOptions = models.InferenceServiceListOptions{
-			ExternalID: stringPtr("list-inference-ext-2"),
+			ExternalID: apiutils.Of("list-inference-ext-2"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -311,7 +312,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Test listing by runtime
 		listOptions = models.InferenceServiceListOptions{
-			Runtime: stringPtr("tensorflow"),
+			Runtime: apiutils.Of("tensorflow"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -323,7 +324,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 		// Test ordering by ID (deterministic)
 		listOptions = models.InferenceServiceListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("ID"),
+				OrderBy: apiutils.Of("ID"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -344,9 +345,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// First create a parent serving environment
 		parentServingEnv := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("parent-serving-env-for-ordering"),
+				Name: apiutils.Of("parent-serving-env-for-ordering"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(parentServingEnv)
@@ -354,9 +355,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-ordering"),
+				Name: apiutils.Of("test-registered-model-ordering"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -364,9 +365,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create inference services sequentially with time delays to ensure deterministic ordering
 		infSvc1 := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("time-test-inference-service-1"),
+				Name: apiutils.Of("time-test-inference-service-1"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -386,9 +387,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		infSvc2 := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("time-test-inference-service-2"),
+				Name: apiutils.Of("time-test-inference-service-2"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -408,7 +409,7 @@ func TestInferenceServiceRepository(t *testing.T) {
 		pageSize := int32(10)
 		listOptions := models.InferenceServiceListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("CREATE_TIME"),
+				OrderBy: apiutils.Of("CREATE_TIME"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -442,9 +443,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 	t.Run("TestSaveWithModelVersion", func(t *testing.T) {
 		// First create a parent serving environment
 		parentServingEnv := &models.ServingEnvironmentImpl{
-			TypeID: int32Ptr(int32(servingEnvironmentTypeID)),
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
 			Attributes: &models.ServingEnvironmentAttributes{
-				Name: stringPtr("parent-serving-env-for-model-version"),
+				Name: apiutils.Of("parent-serving-env-for-model-version"),
 			},
 		}
 		savedServingEnv, err := servingEnvironmentRepo.Save(parentServingEnv)
@@ -452,9 +453,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(registeredModelTypeID)),
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("test-registered-model-with-version"),
+				Name: apiutils.Of("test-registered-model-with-version"),
 			},
 		}
 		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
@@ -462,9 +463,9 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create a model version
 		modelVersion := &models.ModelVersionImpl{
-			TypeID: int32Ptr(int32(modelVersionTypeID)),
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: stringPtr("test-model-version"),
+				Name: apiutils.Of("test-model-version"),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -478,14 +479,14 @@ func TestInferenceServiceRepository(t *testing.T) {
 
 		// Create inference service with both registered model and model version
 		inferenceService := &models.InferenceServiceImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.InferenceServiceAttributes{
-				Name: stringPtr("inference-service-with-model-version"),
+				Name: apiutils.Of("inference-service-with-model-version"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Inference service with model version"),
+					StringValue: apiutils.Of("Inference service with model version"),
 				},
 				{
 					Name:     "serving_environment_id",
@@ -501,17 +502,17 @@ func TestInferenceServiceRepository(t *testing.T) {
 				},
 				{
 					Name:        "runtime",
-					StringValue: stringPtr("onnx"),
+					StringValue: apiutils.Of("onnx"),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "team",
-					StringValue: stringPtr("ml-team"),
+					StringValue: apiutils.Of("ml-team"),
 				},
 				{
 					Name:     "priority",
-					IntValue: int32Ptr(5),
+					IntValue: apiutils.Of(int32(5)),
 				},
 			},
 		}

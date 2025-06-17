@@ -26,14 +26,14 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 	nextPageToken := pagination.GetNextPageToken()
 
 	return func(db *gorm.DB) *gorm.DB {
-		if pageSize != nil && *pageSize > 0 {
-			db = db.Limit(int(*pageSize) + 1)
+		if pageSize > 0 {
+			db = db.Limit(int(pageSize) + 1)
 		}
 
-		if orderBy != nil && sortOrder != nil {
+		if orderBy != "" && sortOrder != "" {
 			orderByStr := ""
 
-			switch *orderBy {
+			switch orderBy {
 			case "CREATE_TIME":
 				orderByStr = "create_time_since_epoch"
 			case "LAST_UPDATE_TIME":
@@ -42,12 +42,12 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 				orderByStr = "id"
 			}
 
-			orderClause := fmt.Sprintf("%s %s", orderByStr, *sortOrder)
+			orderClause := fmt.Sprintf("%s %s", orderByStr, sortOrder)
 			db = db.Order(orderClause)
 		}
 
-		if nextPageToken != nil && *nextPageToken != "" {
-			decodedCursor, err := decodeCursor(*nextPageToken)
+		if nextPageToken != "" {
+			decodedCursor, err := decodeCursor(nextPageToken)
 			if err == nil {
 				whereClause := buildWhereClause(decodedCursor, orderBy, sortOrder, tablePrefix)
 				if whereClause != "" {
@@ -82,29 +82,25 @@ func decodeCursor(token string) (*cursor, error) {
 	}, nil
 }
 
-func buildWhereClause(cursor *cursor, orderBy *string, sortOrder *string, tablePrefix string) string {
-	if orderBy == nil || sortOrder == nil {
-		return ""
-	}
-
+func buildWhereClause(cursor *cursor, orderBy string, sortOrder string, tablePrefix string) string {
 	// Add table prefix to column names if provided
 	idColumn := "id"
-	orderByColumn := *orderBy
+	orderByColumn := orderBy
 	if tablePrefix != "" {
 		idColumn = tablePrefix + ".id"
-		if *orderBy != "" {
-			orderByColumn = tablePrefix + "." + *orderBy
+		if orderBy != "" {
+			orderByColumn = tablePrefix + "." + orderBy
 		}
 	}
 
-	if *orderBy == "" {
-		if *sortOrder == "ASC" {
+	if orderBy == "" {
+		if sortOrder == "ASC" {
 			return fmt.Sprintf("%s > %d", idColumn, cursor.ID)
 		}
 		return fmt.Sprintf("%s < %d", idColumn, cursor.ID)
 	}
 
-	if *sortOrder == "ASC" {
+	if sortOrder == "ASC" {
 		return fmt.Sprintf("(%s > '%s' OR (%s = '%s' AND %s > %d))",
 			orderByColumn, cursor.Value, orderByColumn, cursor.Value, idColumn, cursor.ID)
 	}

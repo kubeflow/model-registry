@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -73,21 +74,21 @@ func TestRegisteredModelRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// Test creating a new registered model
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name:       stringPtr("test-model"),
-				ExternalID: stringPtr("ext-123"),
+				Name:       apiutils.Of("test-model"),
+				ExternalID: apiutils.Of("ext-123"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Test model description"),
+					StringValue: apiutils.Of("Test model description"),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "custom-prop",
-					StringValue: stringPtr("custom-value"),
+					StringValue: apiutils.Of("custom-value"),
 				},
 			},
 		}
@@ -101,7 +102,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 		// Test updating the same model
 		registeredModel.ID = saved.GetID()
-		registeredModel.GetAttributes().Name = stringPtr("updated-model")
+		registeredModel.GetAttributes().Name = apiutils.Of("updated-model")
 
 		updated, err := repo.Save(registeredModel)
 		require.NoError(t, err)
@@ -113,10 +114,10 @@ func TestRegisteredModelRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a model to retrieve
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name:       stringPtr("get-test-model"),
-				ExternalID: stringPtr("get-ext-123"),
+				Name:       apiutils.Of("get-test-model"),
+				ExternalID: apiutils.Of("get-ext-123"),
 			},
 		}
 
@@ -141,24 +142,24 @@ func TestRegisteredModelRepository(t *testing.T) {
 		// Create multiple models for listing
 		testModels := []*models.RegisteredModelImpl{
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.RegisteredModelAttributes{
-					Name:       stringPtr("list-model-1"),
-					ExternalID: stringPtr("list-ext-1"),
+					Name:       apiutils.Of("list-model-1"),
+					ExternalID: apiutils.Of("list-ext-1"),
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.RegisteredModelAttributes{
-					Name:       stringPtr("list-model-2"),
-					ExternalID: stringPtr("list-ext-2"),
+					Name:       apiutils.Of("list-model-2"),
+					ExternalID: apiutils.Of("list-ext-2"),
 				},
 			},
 			{
-				TypeID: int32Ptr(int32(typeID)),
+				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.RegisteredModelAttributes{
-					Name:       stringPtr("list-model-3"),
-					ExternalID: stringPtr("list-ext-3"),
+					Name:       apiutils.Of("list-model-3"),
+					ExternalID: apiutils.Of("list-ext-3"),
 				},
 			},
 		}
@@ -180,7 +181,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 		// Test listing by name
 		listOptions = models.RegisteredModelListOptions{
-			Name: stringPtr("list-model-1"),
+			Name: apiutils.Of("list-model-1"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -194,7 +195,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 		// Test listing by external ID
 		listOptions = models.RegisteredModelListOptions{
-			ExternalID: stringPtr("list-ext-2"),
+			ExternalID: apiutils.Of("list-ext-2"),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -209,7 +210,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 		// Test ordering by ID (deterministic)
 		listOptions = models.RegisteredModelListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("ID"),
+				OrderBy: apiutils.Of("ID"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -230,9 +231,9 @@ func TestRegisteredModelRepository(t *testing.T) {
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// Create models sequentially with time delays to ensure deterministic ordering
 		model1 := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("time-test-model-1"),
+				Name: apiutils.Of("time-test-model-1"),
 			},
 		}
 		saved1, err := repo.Save(model1)
@@ -242,9 +243,9 @@ func TestRegisteredModelRepository(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		model2 := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("time-test-model-2"),
+				Name: apiutils.Of("time-test-model-2"),
 			},
 		}
 		saved2, err := repo.Save(model2)
@@ -254,7 +255,7 @@ func TestRegisteredModelRepository(t *testing.T) {
 		pageSize := int32(10)
 		listOptions := models.RegisteredModelListOptions{
 			Pagination: models.Pagination{
-				OrderBy: stringPtr("CREATE_TIME"),
+				OrderBy: apiutils.Of("CREATE_TIME"),
 			},
 		}
 		listOptions.PageSize = &pageSize
@@ -287,28 +288,28 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
 		registeredModel := &models.RegisteredModelImpl{
-			TypeID: int32Ptr(int32(typeID)),
+			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.RegisteredModelAttributes{
-				Name: stringPtr("props-test-model"),
+				Name: apiutils.Of("props-test-model"),
 			},
 			Properties: &[]models.Properties{
 				{
 					Name:        "description",
-					StringValue: stringPtr("Model with properties"),
+					StringValue: apiutils.Of("Model with properties"),
 				},
 				{
 					Name:     "version",
-					IntValue: int32Ptr(1),
+					IntValue: apiutils.Of(int32(1)),
 				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
 					Name:        "team",
-					StringValue: stringPtr("ml-team"),
+					StringValue: apiutils.Of("ml-team"),
 				},
 				{
 					Name:     "priority",
-					IntValue: int32Ptr(5),
+					IntValue: apiutils.Of(int32(5)),
 				},
 			},
 		}
@@ -327,13 +328,4 @@ func TestRegisteredModelRepository(t *testing.T) {
 		assert.NotNil(t, retrieved.GetCustomProperties())
 		assert.Len(t, *retrieved.GetCustomProperties(), 2)
 	})
-}
-
-// Helper functions
-func stringPtr(s string) *string {
-	return &s
-}
-
-func int32Ptr(i int32) *int32 {
-	return &i
 }

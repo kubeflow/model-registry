@@ -144,7 +144,7 @@ func (r *DocArtifactRepositoryImpl) Save(docArtifact models.DocArtifact, modelVe
 
 func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptions) (*models.ListWrapper[models.DocArtifact], error) {
 	list := models.ListWrapper[models.DocArtifact]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	docArtifacts := []models.DocArtifact{}
@@ -173,8 +173,8 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(docArtifactsArt) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(docArtifactsArt) > int(pageSize)
 		if hasMore {
 			docArtifactsArt = docArtifactsArt[:len(docArtifactsArt)-1]
 		}
@@ -194,8 +194,8 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 		lastModel := docArtifactsArt[len(docArtifactsArt)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -213,8 +213,8 @@ func (r *DocArtifactRepositoryImpl) List(listOptions models.DocArtifactListOptio
 	}
 
 	list.Items = docArtifacts
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(docArtifacts))
 
 	return &list, nil

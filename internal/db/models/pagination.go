@@ -19,34 +19,34 @@ type Pagination struct {
 	NextPageToken *string `json:"nextPageToken,omitempty"`
 }
 
-func (p *Pagination) GetNextPageToken() *string {
+func (p *Pagination) GetNextPageToken() string {
 	if p.NextPageToken == nil {
-		return nil
+		return ""
 	}
 
-	return p.NextPageToken
+	return *p.NextPageToken
 }
 
-func (p *Pagination) GetOrderBy() *string {
+func (p *Pagination) GetOrderBy() string {
 	if p.OrderBy == nil {
-		return &DefaultOrderBy
+		return DefaultOrderBy
 	}
 
-	return p.OrderBy
+	return *p.OrderBy
 }
 
-func (p *Pagination) GetSortOrder() *string {
+func (p *Pagination) GetSortOrder() string {
 	if p.SortOrder == nil {
-		return &DefaultSortOrder
+		return DefaultSortOrder
 	}
 
-	return p.SortOrder
+	return *p.SortOrder
 }
 
-func (p *Pagination) GetPageSize() *int32 {
+func (p *Pagination) GetPageSize() int32 {
 	if p.PageSize == nil {
-		return &DefaultPageSize
+		return DefaultPageSize
 	}
 
-	return p.PageSize
+	return *p.PageSize
 }

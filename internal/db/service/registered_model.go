@@ -112,7 +112,7 @@ func (r *RegisteredModelRepositoryImpl) Save(model models.RegisteredModel) (mode
 
 func (r *RegisteredModelRepositoryImpl) List(listOptions models.RegisteredModelListOptions) (*models.ListWrapper[models.RegisteredModel], error) {
 	list := models.ListWrapper[models.RegisteredModel]{
-		PageSize: *listOptions.GetPageSize(),
+		PageSize: listOptions.GetPageSize(),
 	}
 
 	models := []models.RegisteredModel{}
@@ -133,8 +133,8 @@ func (r *RegisteredModelRepositoryImpl) List(listOptions models.RegisteredModelL
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
-	if pageSize != nil && *pageSize > 0 {
-		hasMore = len(modelsCtx) > int(*pageSize)
+	if pageSize > 0 {
+		hasMore = len(modelsCtx) > int(pageSize)
 		if hasMore {
 			modelsCtx = modelsCtx[:len(modelsCtx)-1]
 		}
@@ -153,8 +153,8 @@ func (r *RegisteredModelRepositoryImpl) List(listOptions models.RegisteredModelL
 		lastModel := modelsCtx[len(modelsCtx)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
-		if orderBy != nil && *orderBy != "" {
-			switch *orderBy {
+		if orderBy != "" {
+			switch orderBy {
 			case "ID":
 				value = fmt.Sprintf("%d", lastModel.ID)
 			case "CREATE_TIME":
@@ -172,8 +172,8 @@ func (r *RegisteredModelRepositoryImpl) List(listOptions models.RegisteredModelL
 	}
 
 	list.Items = models
-	list.NextPageToken = apiutils.ZeroIfNil(listOptions.GetNextPageToken())
-	list.PageSize = apiutils.ZeroIfNil(listOptions.GetPageSize())
+	list.NextPageToken = listOptions.GetNextPageToken()
+	list.PageSize = listOptions.GetPageSize()
 	list.Size = int32(len(models))
 
 	return &list, nil
