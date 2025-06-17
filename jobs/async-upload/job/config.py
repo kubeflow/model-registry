@@ -1,6 +1,7 @@
 from __future__ import annotations
 import base64
 import json
+import logging
 import configargparse as cap
 from typing import Any, Dict, Mapping
 from pathlib import Path
@@ -42,11 +43,21 @@ def _parser() -> cap.ArgumentParser:
     p.add("--destination-oci-username")
     p.add("--destination-oci-password")
 
-    # --- model-registry --- TODO: use IDs https://github.com/kubeflow/model-registry/issues/1108#issuecomment-2880448765
+    # --- model-registry model data --- TODO: use IDs https://github.com/kubeflow/model-registry/issues/1108#issuecomment-2880448765
     p.add("--model-name")
     p.add("--model-version")
     p.add("--model-format")
-    p.add("--registry-url")
+
+    # --- model-registry client ---
+    p.add("--registry-server-address")
+    p.add("--registry-port", default=443)
+    p.add("--registry-is-secure", default=True)
+    p.add("--registry-author")
+    p.add("--registry-user-token", default=None)
+    p.add("--registry-user-token-envvar", default=None)
+    p.add("--registry-custom-ca", default=None)
+    p.add("--registry-custom-ca-envvar", default=None)
+    p.add("--registry-log-level", default=logging.WARNING)
 
     p.add(
         "--source-s3-credentials-path",
@@ -166,7 +177,7 @@ def _validate_model_config(cfg: Dict[str, Any]) -> None:
 
 def _validate_registry_config(cfg: Dict[str, Any]) -> None:
     """Validates the registry config is valid"""
-    if cfg["url"] is None:
+    if cfg["server_address"] is None:
         raise ValueError("Registry URL must be set")
 
 
@@ -247,8 +258,16 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             # TODO: Add the rest of the needed values
         },
         "registry": {
-            "url": args.registry_url,
-            # TODO: Add the rest of the needed values
+            # These are the values required to instantiate a ModelRegistry client
+            "server_address": args.registry_server_address,
+            "port": args.registry_port,
+            "is_secure": args.registry_is_secure,
+            "author": args.registry_author,
+            "user_token": args.registry_user_token,
+            "user_token_envvar": args.registry_user_token_envvar,
+            "custom_ca": args.registry_custom_ca,
+            "custom_ca_envvar": args.registry_custom_ca_envvar,
+            "log_level": args.registry_log_level,
         },
     }
 
