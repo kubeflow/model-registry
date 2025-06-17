@@ -6,11 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"database/sql"
-
 	"github.com/golang/glog"
-
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
@@ -58,54 +54,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	}))
 
 	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
-	readinessHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// skip embedmd check for mlmd datastore
-		if proxyCfg.Datastore.Type != "embedmd" {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("ok"))
-			return
-		}
-
-		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		dsn := proxyCfg.Datastore.EmbedMD.DatabaseDSN
-		if dsn == "" {
-			http.Error(w, "database DSN not configured", http.StatusServiceUnavailable)
-			return
-		}
-
-		db, err := sql.Open("mysql", dsn)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
-			return
-		}
-		defer func() {
-			if err := db.Close(); err != nil {
-				glog.Errorf("error closing database: %v", err)
-			}
-		}()
-
-		var dirty int
-		var version int64
-		query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
-		if err := db.QueryRow(query).Scan(&version, &dirty); err != nil {
-			http.Error(w, fmt.Sprintf("schema_migrations query error: %v", err), http.StatusServiceUnavailable)
-			return
-		}
-
-		if dirty != 0 {
-			http.Error(w, "database schema is in dirty state", http.StatusServiceUnavailable)
-			return
-		} else {
-			glog.Infof("schema_migrations table is in clean state for version %d", version)
-		}
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
-	})
+	readinessHandler := proxy.ReadinessHandler(proxyCfg.Datastore)
 
 	// route /readyz/isDirty to readinessHandler, all other paths to the dynamic router
 	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
