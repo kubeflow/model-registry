@@ -41,7 +41,7 @@ func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
 	// Test basic connection without SSL
 	t.Run("BasicConnection", func(t *testing.T) {
 		dsn := mysqlContainer.MustConnectionString(ctx)
-		connector := mysql.NewMySQLDBConnector(dsn)
+		connector := mysql.NewMySQLDBConnector(dsn, "", "", "", "", "", false)
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("EmptySSLConfig", func(t *testing.T) {
@@ -78,7 +78,7 @@ func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 }
 
@@ -86,7 +86,7 @@ func TestMySQLDBConnector_Connect_SSL(t *testing.T) {
 	// Create temporary directory for certificates
 	tempDir, err := os.MkdirTemp("", "mysql_ssl_test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(tempDir) //nolint:errcheck
 
 	// Generate test certificates
 	caCertPath, _, _, _, clientCertPath, clientKeyPath := generateTestCertificates(t, tempDir)
@@ -171,7 +171,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		} else {
 			dsn += "?tls=skip-verify"
 		}
-		connector := mysql.NewMySQLDBConnector(dsn)
+		connector := mysql.NewMySQLDBConnector(dsn, "", "", "", "", "", false)
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("SSLConnectionWithPreferredMode", func(t *testing.T) {
@@ -204,7 +204,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		} else {
 			dsn += "?tls=preferred"
 		}
-		connector := mysql.NewMySQLDBConnector(dsn)
+		connector := mysql.NewMySQLDBConnector(dsn, "", "", "", "", "", false)
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -219,7 +219,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("CustomSSLConfigWithInsecureSkipVerify", func(t *testing.T) {
@@ -260,7 +260,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("CustomSSLConfigWithCipherSuites", func(t *testing.T) {
@@ -290,13 +290,13 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		// Clean up
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		sqlDB.Close()
+		sqlDB.Close() //nolint:errcheck
 	})
 }
 
 func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidDSN", func(t *testing.T) {
-		connector := mysql.NewMySQLDBConnector("invalid-dsn")
+		connector := mysql.NewMySQLDBConnector("invalid-dsn", "", "", "", "", "", false)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -319,7 +319,7 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		// Create temporary files with invalid content
 		tempDir, err := os.MkdirTemp("", "invalid_cert_test")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer os.RemoveAll(tempDir) //nolint:errcheck
 
 		invalidCertPath := filepath.Join(tempDir, "invalid.crt")
 		invalidKeyPath := filepath.Join(tempDir, "invalid.key")
@@ -344,7 +344,7 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidRootCert", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "invalid_root_cert_test")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer os.RemoveAll(tempDir) //nolint:errcheck
 
 		invalidRootCertPath := filepath.Join(tempDir, "invalid_root.crt")
 		err = os.WriteFile(invalidRootCertPath, []byte("invalid root cert"), 0600)
@@ -395,7 +395,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	caCertPath = filepath.Join(tempDir, "ca-cert.pem")
 	caCertFile, err := os.Create(caCertPath)
 	require.NoError(t, err)
-	defer caCertFile.Close()
+	defer caCertFile.Close() //nolint:errcheck
 	err = pem.Encode(caCertFile, &pem.Block{Type: "CERTIFICATE", Bytes: caCertDER})
 	require.NoError(t, err)
 
@@ -403,7 +403,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	caKeyPath = filepath.Join(tempDir, "ca-key.pem")
 	caKeyFile, err := os.Create(caKeyPath)
 	require.NoError(t, err)
-	defer caKeyFile.Close()
+	defer caKeyFile.Close() //nolint:errcheck
 	caKeyDER, err := x509.MarshalPKCS8PrivateKey(caKey)
 	require.NoError(t, err)
 	err = pem.Encode(caKeyFile, &pem.Block{Type: "PRIVATE KEY", Bytes: caKeyDER})
@@ -442,7 +442,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	serverCertPath = filepath.Join(tempDir, "server-cert.pem")
 	serverCertFile, err := os.Create(serverCertPath)
 	require.NoError(t, err)
-	defer serverCertFile.Close()
+	defer serverCertFile.Close() //nolint:errcheck
 	err = pem.Encode(serverCertFile, &pem.Block{Type: "CERTIFICATE", Bytes: serverCertDER})
 	require.NoError(t, err)
 
@@ -450,7 +450,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	serverKeyPath = filepath.Join(tempDir, "server-key.pem")
 	serverKeyFile, err := os.Create(serverKeyPath)
 	require.NoError(t, err)
-	defer serverKeyFile.Close()
+	defer serverKeyFile.Close() //nolint:errcheck
 	serverKeyDER, err := x509.MarshalPKCS8PrivateKey(serverKey)
 	require.NoError(t, err)
 	err = pem.Encode(serverKeyFile, &pem.Block{Type: "PRIVATE KEY", Bytes: serverKeyDER})
@@ -484,7 +484,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	clientCertPath = filepath.Join(tempDir, "client-cert.pem")
 	clientCertFile, err := os.Create(clientCertPath)
 	require.NoError(t, err)
-	defer clientCertFile.Close()
+	defer clientCertFile.Close() //nolint:errcheck
 	err = pem.Encode(clientCertFile, &pem.Block{Type: "CERTIFICATE", Bytes: clientCertDER})
 	require.NoError(t, err)
 
@@ -492,7 +492,7 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	clientKeyPath = filepath.Join(tempDir, "client-key.pem")
 	clientKeyFile, err := os.Create(clientKeyPath)
 	require.NoError(t, err)
-	defer clientKeyFile.Close()
+	defer clientKeyFile.Close() //nolint:errcheck
 	clientKeyDER, err := x509.MarshalPKCS8PrivateKey(clientKey)
 	require.NoError(t, err)
 	err = pem.Encode(clientKeyFile, &pem.Block{Type: "PRIVATE KEY", Bytes: clientKeyDER})
