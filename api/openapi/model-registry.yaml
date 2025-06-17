@@ -45,6 +45,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -314,6 +315,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -1067,6 +1069,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -1577,6 +1580,15 @@ components:
         - DELETED
         - ABANDONED
         - REFERENCE
+      type: string
+    ArtifactTypeQueryParam:
+      description: Supported artifact types for querying.
+      enum:
+        - model-artifact
+        - doc-artifact
+        - dataset-artifact
+        - metric
+        - parameter
       type: string
     ArtifactUpdate:
       description: An Artifact to be updated.
@@ -2937,6 +2949,18 @@ components:
       description: "Specifies the sort order for listing entities, defaults to ASC."
       schema:
         $ref: "#/components/schemas/SortOrder"
+      in: query
+      required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing entities."
+      schema:
+        $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
   securitySchemes:

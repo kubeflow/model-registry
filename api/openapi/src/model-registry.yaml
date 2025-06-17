@@ -45,6 +45,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -679,6 +680,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -1449,6 +1451,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"

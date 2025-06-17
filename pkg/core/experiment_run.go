@@ -212,6 +212,6 @@ func (serv *ModelRegistryService) UpsertExperimentRunArtifact(artifact *openapi.
 }
 
 // GetExperimentRunArtifacts retrieves all artifacts associated with an experiment run
-func (serv *ModelRegistryService) GetExperimentRunArtifacts(listOptions api.ListOptions, experimentRunId *string) (*openapi.ArtifactList, error) {
-	return serv.GetArtifacts(listOptions, experimentRunId)
+func (serv *ModelRegistryService) GetExperimentRunArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions api.ListOptions, experimentRunId *string) (*openapi.ArtifactList, error) {
+	return serv.GetArtifacts(artifactType, listOptions, experimentRunId)
 }

@@ -298,12 +298,12 @@ func (s *ModelRegistryServiceAPIService) GetArtifact(ctx context.Context, artifa
 }
 
 // GetArtifacts - List All Artifacts
-func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	result, err := s.coreApi.GetArtifacts(listOpts, nil)
+	result, err := s.coreApi.GetArtifacts(artifactType, listOpts, nil)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -342,14 +342,16 @@ func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, mo
 }
 
 // GetModelVersionArtifacts - List All ModelVersion&#39;s artifacts
-func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string,
+	name string, externalID string, artifactType model.ArtifactTypeQueryParam, pageSize string,
+	orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// TODO name unused
 	// TODO externalID unused
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	result, err := s.coreApi.GetArtifacts(listOpts, apiutils.StrPtr(modelversionId))
+	result, err := s.coreApi.GetArtifacts(artifactType, listOpts, apiutils.StrPtr(modelversionId))
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -652,12 +654,13 @@ func (s *ModelRegistryServiceAPIService) GetExperimentRun(ctx context.Context, e
 }
 
 // GetExperimentRunArtifacts - List all artifacts associated with the ExperimentRun
-func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.Context, experimentrunId string, name string, externalId string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.Context, experimentrunId string,
+	name string, externalId string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	result, err := s.coreApi.GetExperimentRunArtifacts(listOpts, apiutils.StrPtr(experimentrunId))
+	result, err := s.coreApi.GetExperimentRunArtifacts(artifactType, listOpts, apiutils.StrPtr(experimentrunId))
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}

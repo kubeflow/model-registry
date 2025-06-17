@@ -590,7 +590,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunArtifacts() {
 	createdArtifactId1, _ := converter.StringToInt64(createdArtifact1.ModelArtifact.Id)
 	createdArtifactId2, _ := converter.StringToInt64(createdArtifact2.DocArtifact.Id)
 
-	getAll, err := service.GetExperimentRunArtifacts(api.ListOptions{}, &experimentRunId)
+	getAll, err := service.GetExperimentRunArtifacts("", api.ListOptions{}, &experimentRunId)
 	suite.Nilf(err, "error getting all experiment run artifacts")
 	suite.Equalf(int32(2), getAll.Size, "expected two artifacts")
 
@@ -598,7 +598,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunArtifacts() {
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAll.Items[1].DocArtifact.Id)
 
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByExperimentRun, err := service.GetExperimentRunArtifacts(api.ListOptions{
+	getAllByExperimentRun, err := service.GetExperimentRunArtifacts("", api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &experimentRunId)
@@ -607,4 +607,15 @@ func (suite *CoreTestSuite) TestGetExperimentRunArtifacts() {
 
 	suite.Equal(*converter.Int64ToString(createdArtifactId1), *getAllByExperimentRun.Items[1].ModelArtifact.Id)
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAllByExperimentRun.Items[0].DocArtifact.Id)
+
+	// filter artifacts by type
+	getModels, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, api.ListOptions{}, &experimentRunId)
+	suite.Nilf(err, "error getting all model artifacts")
+	suite.Equalf(int32(1), getModels.Size, "expected one model artifact")
+	suite.Equalf(*converter.Int64ToString(createdArtifactId1), *getModels.Items[0].ModelArtifact.Id, "expected model artifact id")
+
+	getDocs, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, api.ListOptions{}, &experimentRunId)
+	suite.Nilf(err, "error getting all doc artifacts")
+	suite.Equalf(int32(1), getDocs.Size, "expected one doc artifact")
+	suite.Equalf(*converter.Int64ToString(createdArtifactId2), *getDocs.Items[0].DocArtifact.Id, "expected doc artifact id")
 }

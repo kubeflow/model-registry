@@ -60,7 +60,7 @@ type ModelRegistryApi interface {
 
 	GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error)
 
-	GetArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
+	GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
 
 	// MODEL ARTIFACT
 
@@ -142,5 +142,5 @@ type ModelRegistryApi interface {
 
 	// EXPERIMENT RUN ARTIFACTS
 	UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error)
-	GetExperimentRunArtifacts(listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
+	GetExperimentRunArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
 }

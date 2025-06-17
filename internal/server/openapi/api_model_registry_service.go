@@ -795,11 +795,13 @@ func (c *ModelRegistryServiceAPIController) GetArtifact(w http.ResponseWriter, r
 // GetArtifacts - List All Artifacts
 func (c *ModelRegistryServiceAPIController) GetArtifacts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	artifactTypeParam := query.Get("artifactType")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetArtifacts(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetArtifacts(r.Context(), model.ArtifactTypeQueryParam(artifactTypeParam),
+		pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -881,11 +883,13 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRunArtifacts(w http.Res
 	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	artifactTypeParam := query.Get("artifactType")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetExperimentRunArtifacts(r.Context(), experimentrunIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRunArtifacts(r.Context(), experimentrunIdParam, nameParam, externalIdParam,
+		model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1054,11 +1058,13 @@ func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.Resp
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	artifactTypeParam := query.Get("artifactType")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, nameParam, externalIdParam,
+		model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

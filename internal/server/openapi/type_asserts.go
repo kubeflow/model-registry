@@ -73,6 +73,16 @@ func AssertArtifactStateRequired(obj model.ArtifactState) error {
 	return nil
 }
 
+// AssertArtifactTypeQueryParamConstraints checks if the values respects the defined constraints
+func AssertArtifactTypeQueryParamConstraints(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
+// AssertArtifactTypeQueryParamRequired checks if the required fields are not zero-ed
+func AssertArtifactTypeQueryParamRequired(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
 // AssertArtifactUpdateConstraints checks if the values respects the defined constraints
 func AssertArtifactUpdateConstraints(obj model.ArtifactUpdate) error {
 	return nil

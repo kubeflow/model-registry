@@ -260,7 +260,7 @@ func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
 	createdArtifactId1, _ := converter.StringToInt64(createdArtifact1.ModelArtifact.Id)
 	createdArtifactId2, _ := converter.StringToInt64(createdArtifact2.DocArtifact.Id)
 
-	getAll, err := service.GetArtifacts(api.ListOptions{}, &modelVersionId)
+	getAll, err := service.GetArtifacts("", api.ListOptions{}, &modelVersionId)
 	suite.Nilf(err, "error getting all model artifacts")
 	suite.Equalf(int32(2), getAll.Size, "expected two artifacts")
 
@@ -268,7 +268,7 @@ func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAll.Items[1].DocArtifact.Id)
 
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByModelVersion, err := service.GetArtifacts(api.ListOptions{
+	getAllByModelVersion, err := service.GetArtifacts("", api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, &modelVersionId)
@@ -277,6 +277,17 @@ func (suite *CoreTestSuite) TestGetModelVersionArtifacts() {
 
 	suite.Equal(*converter.Int64ToString(createdArtifactId1), *getAllByModelVersion.Items[1].ModelArtifact.Id)
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAllByModelVersion.Items[0].DocArtifact.Id)
+
+	// filter artifacts by type
+	getModels, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all model artifacts")
+	suite.Equalf(int32(1), getModels.Size, "expected one model artifact")
+	suite.Equalf(*converter.Int64ToString(createdArtifactId1), *getModels.Items[0].ModelArtifact.Id, "expected model artifact id")
+
+	getDocs, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all doc artifacts")
+	suite.Equalf(int32(1), getDocs.Size, "expected one doc artifact")
+	suite.Equalf(*converter.Int64ToString(createdArtifactId2), *getDocs.Items[0].DocArtifact.Id, "expected doc artifact id")
 }
 
 // ARTIFACTS
@@ -549,7 +560,7 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 	createdArtifactId1, _ := converter.StringToInt64(createdArtifact1.ModelArtifact.Id)
 	createdArtifactId2, _ := converter.StringToInt64(createdArtifact2.DocArtifact.Id)
 
-	getAll, err := service.GetArtifacts(api.ListOptions{}, nil)
+	getAll, err := service.GetArtifacts("", api.ListOptions{}, nil)
 	suite.Nilf(err, "error getting all model artifacts")
 	suite.Equalf(int32(2), getAll.Size, "expected two artifacts")
 
@@ -557,7 +568,7 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAll.Items[1].DocArtifact.Id)
 
 	orderByLastUpdate := "LAST_UPDATE_TIME"
-	getAllByModelVersion, err := service.GetArtifacts(api.ListOptions{
+	getAllByModelVersion, err := service.GetArtifacts("", api.ListOptions{
 		OrderBy:   &orderByLastUpdate,
 		SortOrder: &descOrderDirection,
 	}, nil)
@@ -566,6 +577,114 @@ func (suite *CoreTestSuite) TestGetArtifacts() {
 
 	suite.Equal(*converter.Int64ToString(createdArtifactId1), *getAllByModelVersion.Items[1].ModelArtifact.Id)
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *getAllByModelVersion.Items[0].DocArtifact.Id)
+}
+
+func (suite *CoreTestSuite) TestGetArtifactsByType() {
+	// create model registry service
+	service := suite.setupModelRegistryService()
+
+	modelVersionId := suite.registerModelVersion(service, nil, nil, nil, nil)
+
+	createdArtifact1, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		ModelArtifact: &openapi.ModelArtifact{
+			Name:       &artifactName,
+			State:      (*openapi.ArtifactState)(&artifactState),
+			Uri:        &artifactUri,
+			ExternalId: &artifactExtId,
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	secondArtifactName := "second-name"
+	secondArtifactExtId := "second-ext-id"
+	secondArtifactUri := "second-uri"
+
+	createdArtifact2, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{
+			Name:       &secondArtifactName,
+			State:      (*openapi.ArtifactState)(&artifactState),
+			Uri:        &secondArtifactUri,
+			ExternalId: &secondArtifactExtId,
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	thirdArtifactName := "third-name"
+	thirdArtifactExtId := "third-ext-id"
+	thirdArtifactUri := "third-uri"
+
+	createdArtifact3, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		DataSet: &openapi.DataSet{
+			Name:       &thirdArtifactName,
+			State:      (*openapi.ArtifactState)(&artifactState),
+			Uri:        &thirdArtifactUri,
+			ExternalId: &thirdArtifactExtId,
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	fourthArtifactName := "fourth-name"
+	fourthArtifactExtId := "fourth-ext-id"
+
+	createdArtifact4, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:       &fourthArtifactName,
+			State:      (*openapi.ArtifactState)(&artifactState),
+			ExternalId: &fourthArtifactExtId,
+			Value:      apiutils.Of(float64(42.0)),
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	fifthArtifactName := "fifth-name"
+	fifthArtifactExtId := "fifth-ext-id"
+
+	createdArtifact5, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:       &fifthArtifactName,
+			State:      (*openapi.ArtifactState)(&artifactState),
+			ExternalId: &fifthArtifactExtId,
+			Value:      apiutils.Of("parameter-value"),
+			ParameterType: apiutils.Of(openapi.PARAMETERTYPE_STRING),
+		},
+	}, modelVersionId)
+	suite.Nilf(err, "error creating new artifact: %v", err)
+
+	createdArtifactId1, _ := converter.StringToInt64(createdArtifact1.ModelArtifact.Id)
+	createdArtifactId2, _ := converter.StringToInt64(createdArtifact2.DocArtifact.Id)
+	createdArtifactId3, _ := converter.StringToInt64(createdArtifact3.DataSet.Id)
+	createdArtifactId4, _ := converter.StringToInt64(createdArtifact4.Metric.Id)
+	createdArtifactId5, _ := converter.StringToInt64(createdArtifact5.Parameter.Id)
+
+	getAll, err := service.GetArtifacts("", api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all model version artifacts")
+	suite.Equalf(int32(5), getAll.Size, "expected five artifacts: %v", err)
+
+	allModels, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all model type artifacts: %v", err)
+	suite.Equalf(int32(1), allModels.Size, "expected 1 artifacts: %v", err)
+
+	allDocs, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all doc type artifacts: %v", err)
+	suite.Equalf(int32(1), allDocs.Size, "expected 1 artifacts: %v", err)
+
+	allDatasets, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all dataset type artifacts: %v", err)
+	suite.Equalf(int32(1), allDatasets.Size, "expected 1 artifacts: %v", err)
+
+	allMetrics, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_METRIC, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all metric type artifacts: %v", err)
+	suite.Equalf(int32(1), allMetrics.Size, "expected 1 artifacts: %v", err)
+
+	allParameters, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, api.ListOptions{}, &modelVersionId)
+	suite.Nilf(err, "error getting all parameter type artifacts: %v", err)
+	suite.Equalf(int32(1), allParameters.Size, "expected 1 artifacts: %v", err)
+
+	suite.Equal(*converter.Int64ToString(createdArtifactId1), *allModels.Items[0].ModelArtifact.Id)
+	suite.Equal(*converter.Int64ToString(createdArtifactId2), *allDocs.Items[0].DocArtifact.Id)
+	suite.Equal(*converter.Int64ToString(createdArtifactId3), *allDatasets.Items[0].DataSet.Id)
+	suite.Equal(*converter.Int64ToString(createdArtifactId4), *allMetrics.Items[0].Metric.Id)
+	suite.Equal(*converter.Int64ToString(createdArtifactId5), *allParameters.Items[0].Parameter.Id)
 }
 
 // MODEL ARTIFACTS

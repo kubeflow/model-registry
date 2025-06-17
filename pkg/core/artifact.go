@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/internal/defaults"
+
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -316,10 +318,18 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, pare
 }
 
 // GetArtifacts retrieves a list of artifacts based on the provided list options and optional parent context ID.
-func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, parentContextId *string) (*openapi.ArtifactList, error) {
+func (serv *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions api.ListOptions, parentContextId *string) (*openapi.ArtifactList, error) {
 	listOperationOptions, err := apiutils.BuildListOperationOptions(listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+	// handle artifactType filter
+	if artifactType != "" {
+		mlmdType, err := toMlmdArtifactType(artifactType)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		listOperationOptions.FilterQuery = apiutils.Of(fmt.Sprintf("type = '%v'", mlmdType))
 	}
 
 	var artifacts []*proto.Artifact
@@ -365,6 +375,22 @@ func (serv *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, pare
 		Items:         results,
 	}
 	return &toReturn, nil
+}
+
+var artifactTypeNameMap = map[openapi.ArtifactTypeQueryParam]string{
+	openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT:   defaults.ModelArtifactTypeName,
+	openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT:     defaults.DocArtifactTypeName,
+	openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT: defaults.DataSetTypeName,
+	openapi.ARTIFACTTYPEQUERYPARAM_METRIC:           defaults.MetricTypeName,
+	openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER:        defaults.ParameterTypeName,
+}
+
+func toMlmdArtifactType(artifactType openapi.ArtifactTypeQueryParam) (string, error) {
+	t, ok := artifactTypeNameMap[artifactType]
+	if !ok {
+		return "", fmt.Errorf("unknown artifact type: %v", artifactType)
+	}
+	return t, nil
 }
 
 // MODEL ARTIFACTS

@@ -3666,10 +3666,17 @@ func (a *ModelRegistryServiceAPIService) GetArtifactExecute(r ApiGetArtifactRequ
 type ApiGetArtifactsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	artifactType  *ArtifactTypeQueryParam
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// Specifies the artifact type for listing entities.
+func (r ApiGetArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetArtifactsRequest {
+	r.artifactType = &artifactType
+	return r
 }
 
 // Number of entities in each page.
@@ -3737,6 +3744,9 @@ func (a *ModelRegistryServiceAPIService) GetArtifactsExecute(r ApiGetArtifactsRe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.artifactType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -4571,6 +4581,7 @@ type ApiGetExperimentRunArtifactsRequest struct {
 	experimentrunId string
 	name            *string
 	externalId      *string
+	artifactType    *ArtifactTypeQueryParam
 	pageSize        *string
 	orderBy         *OrderByField
 	sortOrder       *SortOrder
@@ -4586,6 +4597,12 @@ func (r ApiGetExperimentRunArtifactsRequest) Name(name string) ApiGetExperimentR
 // External ID of entity to search.
 func (r ApiGetExperimentRunArtifactsRequest) ExternalId(externalId string) ApiGetExperimentRunArtifactsRequest {
 	r.externalId = &externalId
+	return r
+}
+
+// Specifies the artifact type for listing entities.
+func (r ApiGetExperimentRunArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetExperimentRunArtifactsRequest {
+	r.artifactType = &artifactType
 	return r
 }
 
@@ -4660,6 +4677,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunArtifactsExecute(r ApiG
 	}
 	if r.externalId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+	}
+	if r.artifactType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -6450,6 +6470,7 @@ type ApiGetModelVersionArtifactsRequest struct {
 	modelversionId string
 	name           *string
 	externalId     *string
+	artifactType   *ArtifactTypeQueryParam
 	pageSize       *string
 	orderBy        *OrderByField
 	sortOrder      *SortOrder
@@ -6465,6 +6486,12 @@ func (r ApiGetModelVersionArtifactsRequest) Name(name string) ApiGetModelVersion
 // External ID of entity to search.
 func (r ApiGetModelVersionArtifactsRequest) ExternalId(externalId string) ApiGetModelVersionArtifactsRequest {
 	r.externalId = &externalId
+	return r
+}
+
+// Specifies the artifact type for listing entities.
+func (r ApiGetModelVersionArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetModelVersionArtifactsRequest {
+	r.artifactType = &artifactType
 	return r
 }
 
@@ -6539,6 +6566,9 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionArtifactsExecute(r ApiGe
 	}
 	if r.externalId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+	}
+	if r.artifactType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
