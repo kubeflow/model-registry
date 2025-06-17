@@ -105,8 +105,8 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	err = migrator.Migrate()
 	require.NoError(t, err)
 
-	// manually set dirty flag
-	err = db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES (1, 1)").Error
+	// manually set latest migration to dirty
+	err = db.Exec("UPDATE schema_migrations SET dirty = 1").Error
 	require.NoError(t, err)
 
 	ds := datastore.Datastore{
