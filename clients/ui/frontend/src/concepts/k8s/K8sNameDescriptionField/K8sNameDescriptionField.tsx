@@ -10,33 +10,34 @@ import {
 import { useThemeContext } from 'mod-arch-shared';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import { K8sNameDescriptionFieldType } from '~/app/concepts/k8s/K8sNameDescriptionField/useK8sNameDescriptionField';
 import ResourceNameField from './ResourceNameField';
 
 // TODO: replace with the actual call once we have the endpoint
 
 /** Companion data hook */
- //export const useK8sNameDescriptionFieldData = (
- //  configuration: UseK8sNameDescriptionDataConfiguration = {},
- //): UseK8sNameDescriptionFieldData => {
- //  const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
- //    setupDefaults(configuration),
- // );
+//export const useK8sNameDescriptionFieldData = (
+//  configuration: UseK8sNameDescriptionDataConfiguration = {},
+//): UseK8sNameDescriptionFieldData => {
+//  const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
+//    setupDefaults(configuration),
+// );
 
- // const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
- //   setData((currentData) => handleUpdateLogic(currentData)(key, value));
- // }, []);
+// const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
+//   setData((currentData) => handleUpdateLogic(currentData)(key, value));
+// }, []);
 
- // return { data, onDataChange };
+// return { data, onDataChange };
 //};
 
 type K8sNameDescriptionFieldProps = {
   autoFocusName?: boolean;
-    data: string;
+  data: K8sNameDescriptionFieldType;
+  onDataChange: (data: K8sNameDescriptionFieldType) => void;
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
-     onDataChange?: (key: string, value: string) => void;
   hideDescription?: boolean;
 };
 
@@ -46,10 +47,8 @@ type K8sNameDescriptionFieldProps = {
  */
 const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   autoFocusName,
-    data,
   dataTestId,
   descriptionLabel = 'Description',
-    onDataChange,
   nameLabel = 'Name',
   nameHelperText,
   hideDescription,

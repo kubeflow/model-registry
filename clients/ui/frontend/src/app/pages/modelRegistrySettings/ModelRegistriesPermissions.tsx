@@ -1,27 +1,20 @@
 import React from 'react';
-import {
-  Breadcrumbs,
-  Link as MUILink,
-  Tabs,
-  Tab,
-  Box,
-  Typography,
-} from '@mui/material';
+import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { useGroups } from '~/app/api/k8s/groups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
-import ApplicationsPage from '~/app/pages/ApplicationPage';  
+import ApplicationsPage from '~/app/pages/ApplicationPage';
 import { useModelRegistryNamespaceCR } from '~/app/concepts/modelRegistry/context/useModelRegistryNamespaceCR';
 import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
-import RedirectErrorState from '../external/RedirectErrorState';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import ProjectsSettingsTab from '~/app/pages/modelRegistrySettings/ProjectsTab/ProjectsSettingsTab';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
 
 const ModelRegistriesManagePermissions: React.FC = () => {
   const { dscStatus } = React.useContext(AreaContext);
@@ -95,31 +88,35 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             createRoleBinding={createModelRegistryRoleBinding}
             deleteRoleBinding={deleteModelRegistryRoleBinding}
             projectName={modelRegistryNamespace}
-            permissionOptions={[{
+            permissionOptions={[
+              {
                 type: RoleBindingPermissionsRoleType.DEFAULT,
                 description: 'Default role for all users',
-            }]}
+              },
+            ]}
             description="To enable access for all cluster users, add system:authenticated to the group list."
             roleRefKind="Role"
             roleRefName={`registry-user-${mrName ?? ''}`}
           />
         )}
         {activeTabKey === 1 && (
-            <ProjectsSettingsTab
-                ownerReference={ownerReference}
-                projectName={modelRegistryNamespace}
-                roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
-                permissionOptions={[{
-                    type: RoleBindingPermissionsRoleType.DEFAULT,
-                    description: 'Default role for all projects',
-                }]}
-                description="To enable access for all service accounts in a project, add the project name to the projects list."
-                roleRefName={`registry-user-${mrName ?? ''}`}
-            />
+          <ProjectsSettingsTab
+            ownerReference={ownerReference}
+            projectName={modelRegistryNamespace}
+            roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
+            permissionOptions={[
+              {
+                type: RoleBindingPermissionsRoleType.DEFAULT,
+                description: 'Default role for all projects',
+              },
+            ]}
+            description="To enable access for all service accounts in a project, add the project name to the projects list."
+            roleRefName={`registry-user-${mrName ?? ''}`}
+          />
         )}
       </Box>
     </ApplicationsPage>
   );
 };
 
-export default ModelRegistriesManagePermissions; 
+export default ModelRegistriesManagePermissions;

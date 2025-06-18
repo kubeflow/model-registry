@@ -1,29 +1,14 @@
 import * as React from 'react';
-import {
-  FormGroup,
-  TextField,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-} from '@mui/material';
+import { Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { ResourceType, SecureDBRType } from './const';
 
 type CreateMRSecureDBSectionProps = {
   secureDBInfo: SecureDBInfo;
-  modelRegistryNamespace: string;
-  k8sName: string;
-  existingCertConfigMaps: { name: string; keys: string[] }[];
-  existingCertSecrets: { name: string; keys: string[] }[];
   setSecureDBInfo: (info: SecureDBInfo) => void;
 };
 
 export const CreateMRSecureDBSection: React.FC<CreateMRSecureDBSectionProps> = ({
   secureDBInfo,
-  modelRegistryNamespace,
-  k8sName,
-  existingCertConfigMaps,
-  existingCertSecrets,
   setSecureDBInfo,
 }) => (
   <>
@@ -33,7 +18,7 @@ export const CreateMRSecureDBSection: React.FC<CreateMRSecureDBSectionProps> = (
         labelId="db-type-label"
         value={secureDBInfo.type}
         label="Database Type"
-        onChange={(e) => setSecureDBInfo({ ...secureDBInfo, type: e.target.value as SecureDBRType })}
+        onChange={(e) => setSecureDBInfo({ ...secureDBInfo, type: e.target.value })}
       >
         <MenuItem value={SecureDBRType.EXISTING}>Existing</MenuItem>
         <MenuItem value={SecureDBRType.NEW}>New</MenuItem>
@@ -45,13 +30,13 @@ export const CreateMRSecureDBSection: React.FC<CreateMRSecureDBSectionProps> = (
       <FormControl fullWidth>
         <InputLabel id="resource-type-label">Resource Type</InputLabel>
         <Select
-            labelId="resource-type-label"
-            value={secureDBInfo.resourceType}
-            label="Resource Type"
-            onChange={(e) => setSecureDBInfo({ ...secureDBInfo, resourceType: e.target.value as ResourceType })}
+          labelId="resource-type-label"
+          value={secureDBInfo.resourceType}
+          label="Resource Type"
+          onChange={(e) => setSecureDBInfo({ ...secureDBInfo, resourceType: e.target.value })}
         >
-            <MenuItem value={ResourceType.Secret}>Secret</MenuItem>
-            <MenuItem value={ResourceType.ConfigMap}>ConfigMap</MenuItem>
+          <MenuItem value={ResourceType.Secret}>Secret</MenuItem>
+          <MenuItem value={ResourceType.ConfigMap}>ConfigMap</MenuItem>
         </Select>
       </FormControl>
     )}
@@ -59,4 +44,12 @@ export const CreateMRSecureDBSection: React.FC<CreateMRSecureDBSectionProps> = (
   </>
 );
 
-export type SecureDBInfo = any; 
+// Define a proper SecureDBInfo type for use in this component
+export interface SecureDBInfo {
+  type: string;
+  resourceType?: string;
+  resourceName: string;
+  key: string;
+  certificate?: string;
+  // Add other fields as needed
+}

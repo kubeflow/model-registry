@@ -1,12 +1,12 @@
-import { applyOverrides } from '@openshift/dynamic-plugin-sdk';
 import {
+  applyOverrides,
   commonFetchJSON,
   getK8sResourceURL,
   K8sGroupVersionKind,
   K8sModelCommon,
   K8sResourceCommon,
   K8sResourceUpdateOptions,
-} from '@openshift/dynamic-plugin-sdk-utils';
+} from 'mod-arch-shared';
 
 export const addOwnerReference = <R extends K8sResourceCommon>(
   resource: R,
@@ -70,4 +70,4 @@ export const k8sMergePatchResource = <
     fetchOptions.timeout,
     true,
   );
-}; 
+};

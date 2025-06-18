@@ -190,4 +190,4 @@ export type SupportedComponentFlagValue = {
  */
 export type SupportedAreasState = {
   [key in SupportedAreaType]: SupportedComponentFlagValue;
-}; 
+};

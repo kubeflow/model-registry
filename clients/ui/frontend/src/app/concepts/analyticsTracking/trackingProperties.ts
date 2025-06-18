@@ -1,5 +1,5 @@
 export enum TrackingOutcome {
-    submit = 'submit',
-    cancel = 'cancel',
-    close = 'close',
-  } 
+  submit = 'submit',
+  cancel = 'cancel',
+  close = 'close',
+}

@@ -1,3 +1,3 @@
 const useModelRegistryEnabled = (): boolean => true;
 
-export default useModelRegistryEnabled; 
+export default useModelRegistryEnabled;

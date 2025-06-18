@@ -1,1 +1,1 @@
-export * from './useK8sNameDescriptionField'; 
+export * from './useK8sNameDescriptionField';

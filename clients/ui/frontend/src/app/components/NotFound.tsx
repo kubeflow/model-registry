@@ -1,5 +1,3 @@
 import * as React from 'react';
 
-export const NotFound: React.FC = () => {
-    return <div>Not Found</div>;
-}; 
+export const NotFound: React.FC = () => <div>Not Found</div>;

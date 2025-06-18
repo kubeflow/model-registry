@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { K8sStatus } from '@openshift/dynamic-plugin-sdk-utils';
+import { K8sStatus } from 'mod-arch-shared';
 import axios from '~/app/utils/axios';
 import { ListConfigSecretsResponse, ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { RecursivePartial } from '~/typeHelpers';
@@ -94,4 +94,4 @@ export const listModelRegistryCertificateNames = (): Promise<ListConfigSecretsRe
     .then((response) => response.data)
     .catch((e) => {
       throw new Error(e.response.data.message);
-    }); 
+    });

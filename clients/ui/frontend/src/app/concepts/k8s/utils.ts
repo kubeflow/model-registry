@@ -1,4 +1,4 @@
-import { K8sModelCommon, K8sResourceCommon } from '@openshift/dynamic-plugin-sdk-utils';
+import { K8sModelCommon, K8sResourceCommon } from 'mod-arch-shared';
 import { K8sCondition, K8sDSGResource } from '~/app/k8sTypes';
 import { genRandomChars } from '~/app/utils/string';
 

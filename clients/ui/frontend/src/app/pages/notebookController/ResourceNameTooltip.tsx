@@ -1,12 +1,7 @@
 import * as React from 'react';
-import {
-  Box,
-  Tooltip,
-  Typography,
-  IconButton,
-} from '@mui/material';
+import { Box, Tooltip, Typography } from '@mui/material';
 import { HelpOutline } from '@mui/icons-material';
-import { K8sResourceCommon } from '@openshift/dynamic-plugin-sdk-utils';
+import { K8sResourceCommon } from 'mod-arch-shared';
 import DashboardPopupIconButton from '~/app/concepts/dashboard/DashboardPopupIconButton';
 
 type ResourceNameTooltipProps = {
@@ -14,10 +9,7 @@ type ResourceNameTooltipProps = {
   children: React.ReactNode;
 };
 
-const ResourceNameTooltip: React.FC<ResourceNameTooltipProps> = ({
-  children,
-  resource,
-}) => (
+const ResourceNameTooltip: React.FC<ResourceNameTooltipProps> = ({ children, resource }) => (
   <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
     {children}
     {resource.metadata?.name && (
@@ -36,15 +28,12 @@ const ResourceNameTooltip: React.FC<ResourceNameTooltipProps> = ({
           </Box>
         }
       >
-        <DashboardPopupIconButton
-          data-testid="resource-name-icon-button"
-          aria-label="More info"
-        >
-            <HelpOutline />
+        <DashboardPopupIconButton data-testid="resource-name-icon-button" aria-label="More info">
+          <HelpOutline />
         </DashboardPopupIconButton>
       </Tooltip>
     )}
   </Box>
 );
 
-export default ResourceNameTooltip; 
+export default ResourceNameTooltip;

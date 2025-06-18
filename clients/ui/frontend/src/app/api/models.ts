@@ -34,14 +34,14 @@ export const SelfSubjectAccessReviewModel: K8sModel = {
 };
 
 export const GroupModel: K8sModel = {
-    apiGroup: 'user.openshift.io',
-    apiVersion: 'v1',
-    kind: 'Group',
-    plural: 'groups',
-    abbr: 'g',
-    label: 'Group',
-    labelPlural: 'Groups',
-    crd: false,
+  apiGroup: 'user.openshift.io',
+  apiVersion: 'v1',
+  kind: 'Group',
+  plural: 'groups',
+  abbr: 'g',
+  label: 'Group',
+  labelPlural: 'Groups',
+  crd: false,
 };
 
 export const ModelRegistryModel: K8sModel = {
@@ -56,12 +56,12 @@ export const ModelRegistryModel: K8sModel = {
 };
 
 export const DataScienceClusterModel: K8sModel = {
-    apiGroup: 'datasciencecluster.opendatahub.io',
-    apiVersion: 'v1',
-    kind: 'DataScienceCluster',
-    plural: 'datascienceclusters',
-    abbr: 'dsc',
-    label: 'DataScienceCluster',
-    labelPlural: 'DataScienceClusters',
-    crd: true,
-}; 
+  apiGroup: 'datasciencecluster.opendatahub.io',
+  apiVersion: 'v1',
+  kind: 'DataScienceCluster',
+  plural: 'datascienceclusters',
+  abbr: 'dsc',
+  label: 'DataScienceCluster',
+  labelPlural: 'DataScienceClusters',
+  crd: true,
+};

@@ -1,11 +1,11 @@
+import * as React from 'react';
 import { DataScienceClusterInitializationKindStatus } from '~/app/k8sTypes';
 import useFetch, { FetchState } from '~/app/utils/useFetch';
 import { POLL_INTERVAL } from '~/app/utils/const';
-import * as React from 'react';
 
 const useFetchDsciStatus = (): FetchState<DataScienceClusterInitializationKindStatus | null> => {
-    const getDsci = React.useCallback(
-        () => Promise.resolve(null), // This is a mock, replace with actual implementation
+  const getDsci = React.useCallback(
+    () => Promise.resolve(null), // This is a mock, replace with actual implementation
     [],
   );
 
@@ -14,4 +14,4 @@ const useFetchDsciStatus = (): FetchState<DataScienceClusterInitializationKindSt
   });
 };
 
-export default useFetchDsciStatus; 
+export default useFetchDsciStatus;

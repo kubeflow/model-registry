@@ -8,4 +8,4 @@ export const AppLayout: React.FC = () => (
       <Outlet />
     </Box>
   </Box>
-); 
+);

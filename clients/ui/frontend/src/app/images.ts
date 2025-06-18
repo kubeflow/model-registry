@@ -20,4 +20,4 @@ export const modelRegistryEmptyStateImg = '';
 export const storageClassesEmptyStateImg = '';
 export const modelRegistryMissingModelImg = '';
 export const modelRegistryMissingVersionImg = '';
-export const modelRegistrySelectImg = ''; 
+export const modelRegistrySelectImg = '';

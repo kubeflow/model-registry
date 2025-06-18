@@ -1,5 +1,3 @@
-
-
 export const isEnumMember = <T extends object>(
   member: T[keyof T] | string | number | undefined | unknown | null,
   e: T,
@@ -11,4 +9,4 @@ export const isEnumMember = <T extends object>(
       .includes(member);
   }
   return false;
-}; 
+};

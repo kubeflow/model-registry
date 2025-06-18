@@ -1,5 +1,5 @@
-import { K8sResourceCommon, K8sModelCommon, MatchExpression } from '@openshift/dynamic-plugin-sdk-utils';
-import { EitherNotBoth } from '../typeHelpers';
+import { K8sResourceCommon } from 'mod-arch-shared';
+import { EitherNotBoth } from '~/typeHelpers';
 
 export type K8sModel = {
   apiGroup: string;
@@ -60,11 +60,11 @@ export type K8sCondition = {
 };
 
 export type DashboardLabels = {
-    [KnownLabels.DASHBOARD_RESOURCE]: 'true';
+  [KnownLabels.DASHBOARD_RESOURCE]: 'true';
 };
 
 export type ModelServingProjectLabels = {
-    [KnownLabels.MODEL_SERVING_PROJECT]: 'true' | 'false';
+  [KnownLabels.MODEL_SERVING_PROJECT]: 'true' | 'false';
 };
 
 export type ProjectKind = K8sResourceCommon & {
@@ -116,7 +116,7 @@ export type ModelRegistryKind = K8sResourceCommon & {
     annotations?: DisplayNameAnnotations;
   };
   spec: {
-    grpc: Record<string, never>; 
+    grpc: Record<string, never>;
     rest: Record<string, never>;
     oauthProxy: Record<string, never>;
   } & EitherNotBoth<
@@ -306,13 +306,13 @@ export type ListConfigSecretsResponse = {
 };
 
 export type ConfigSecretItem = {
-    name: string;
-    keys: string[];
+  name: string;
+  keys: string[];
 };
 
 export type OdhDocumentType = {
-  [key: string]: any;
-}
+  [key: string]: unknown;
+};
 
 export type CustomWatchK8sResult<T> = [data: T, loaded: boolean, error: Error | undefined];
 
@@ -320,4 +320,4 @@ export type K8sAPIOptions = {
   dryRun?: boolean;
   signal?: AbortSignal;
   parseJSON?: boolean;
-}; 
+};

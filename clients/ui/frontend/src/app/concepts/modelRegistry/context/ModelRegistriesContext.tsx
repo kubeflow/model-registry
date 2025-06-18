@@ -89,4 +89,4 @@ const EnabledModelRegistriesContextProvider: React.FC<React.PropsWithChildren> =
       {children}
     </ModelRegistriesContext.Provider>
   );
-}; 
+};

@@ -39,4 +39,4 @@ export const useK8sNameDescriptionFieldData = ({
       setData({ ...newData, k8sName: { value: k8sName, error: '' } });
     },
   };
-}; 
+};

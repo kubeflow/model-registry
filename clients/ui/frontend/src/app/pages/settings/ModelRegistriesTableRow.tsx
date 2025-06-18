@@ -2,10 +2,11 @@ import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
-import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
-import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
+import { ModelRegistryKind } from 'mod-arch-shared';
+import { RoleBindingKind } from '~/app/k8sTypes';
 import ResourceNameTooltip from '~/app/concepts/dashboard/DashboardPopupIconButton';
+import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {
   modelRegistry: ModelRegistryKind;

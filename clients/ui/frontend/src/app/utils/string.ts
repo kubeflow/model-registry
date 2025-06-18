@@ -6,4 +6,4 @@ export const genRandomChars = (length = 8): string => {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
-}; 
+};

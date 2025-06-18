@@ -44,4 +44,4 @@ const HeaderIcon: React.FC<HeaderIconProps> = ({
   </div>
 );
 
-export default HeaderIcon; 
+export default HeaderIcon;

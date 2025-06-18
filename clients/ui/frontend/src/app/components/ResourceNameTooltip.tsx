@@ -1,7 +1,5 @@
 import * as React from 'react';
 
-const ResourceNameTooltip: React.FC<any> = ({ children }) => {
-    return <>{children}</>;
-};
+const ResourceNameTooltip: React.FC<unknown> = ({ children }) => <>{children}</>;
 
-export default ResourceNameTooltip; 
+export default ResourceNameTooltip;

@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { Box, Typography } from '@mui/material';
-import {
-  ProjectObjectType,
-  typedBackgroundColor,
-  typedObjectImage,
-} from './utils';
+import { ProjectObjectType, typedBackgroundColor, typedObjectImage } from './utils';
 import TypedObjectIcon from './TypedObjectIcon';
 
 interface TitleWithIconProps {
@@ -43,4 +39,4 @@ const TitleWithIcon: React.FC<TitleWithIconProps> = ({
   </Box>
 );
 
-export default TitleWithIcon; 
+export default TitleWithIcon;

@@ -1,5 +1,5 @@
-import { ProjectKind } from '../../k8sTypes';
-import { getDisplayNameFromK8sResource, isOOTB } from '../k8s/utils';
+import { ProjectKind } from '~/app/k8sTypes';
+import { getDisplayNameFromK8sResource, isOOTB } from '~/app/concepts/k8s/utils';
 
 export const namespaceToProjectDisplayName = (namespace: string, projects: ProjectKind[]): string =>
   projects.find((p) => p.metadata.name === namespace)?.metadata.annotations?.[
@@ -34,4 +34,4 @@ export const sortProjectsByDisplayName = (p1: ProjectKind, p2: ProjectKind): num
  * The data-science-cluster project and the dashboard's namespace are not considered OOTB projects.
  */
 export const isOotbProject = (project: ProjectKind, dashboardNamespace: string): boolean =>
-  isOOTB(project) && isAvailableProject(project.metadata.name, dashboardNamespace); 
+  isOOTB(project) && isAvailableProject(project.metadata.name, dashboardNamespace);

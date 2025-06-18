@@ -7,18 +7,18 @@ import {
   k8sPatchResource,
   K8sStatus,
   K8sResourceCommon,
-} from '@openshift/dynamic-plugin-sdk-utils';
+} from 'mod-arch-shared';
+import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+import { addOwnerReference } from '~/app/api/k8sUtils';
 import {
   K8sAPIOptions,
   KnownLabels,
   RoleBindingKind,
   RoleBindingRoleRef,
   RoleBindingSubject,
-} from '../../k8sTypes';
-import { RoleBindingModel } from '../models';
-import { genRandomChars } from '../../utils/string';
-import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
-import { addOwnerReference } from '../k8sUtils';
+} from '~/app/k8sTypes';
+import { RoleBindingModel } from '~/app/api/models';
+import { genRandomChars } from '~/app/utils/string';
 
 export const generateRoleBindingServiceAccount = (
   name: string,
@@ -120,7 +120,7 @@ export const deleteRoleBinding = (
   k8sDeleteResource<RoleBindingKind, K8sStatus>({
     model: RoleBindingModel,
     queryOptions: { name: rbName, ns: namespace },
-    ...opts
+    ...opts,
   });
 
 export const patchRoleBindingOwnerRef = (
@@ -139,7 +139,7 @@ export const patchRoleBindingOwnerRef = (
         value: ownerReferences,
       },
     ],
-    ...opts
+    ...opts,
   });
 
 export const patchRoleBindingSubjects = (
@@ -158,5 +158,5 @@ export const patchRoleBindingSubjects = (
         value: subjects,
       },
     ],
-    ...opts
+    ...opts,
   });

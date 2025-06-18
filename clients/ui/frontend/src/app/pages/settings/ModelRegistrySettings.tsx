@@ -13,12 +13,12 @@ import {
   TitleWithIcon,
   ApplicationsPage,
   useQueryParamNamespaces,
+  ModelRegistryKind,
 } from 'mod-arch-shared';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
-import ModelRegistriesTable from './ModelRegistriesTable';
 import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
-import { ModelRegistryKind } from '~/app/k8sTypes';
+import ModelRegistriesTable from './ModelRegistriesTable';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
@@ -40,7 +40,6 @@ const ModelRegistrySettings: React.FC = () => {
   //   [refreshModelRegistries, refreshRulesReview],
   // );
 
-  
   return (
     <>
       <ApplicationsPage
@@ -80,7 +79,7 @@ const ModelRegistrySettings: React.FC = () => {
         provideChildrenPadding
       >
         <ModelRegistriesTable
-          modelRegistries={modelRegistries as unknown as ModelRegistryKind[]}
+          modelRegistries={modelRegistries}
           onCreateModelRegistryClick={() => {
             setCreateModalOpen(true);
           }}

@@ -10,7 +10,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { K8sResourceCommon, K8sStatus } from '@openshift/dynamic-plugin-sdk-utils';
+import { K8sResourceCommon, K8sStatus } from 'mod-arch-shared';
 import { GroupKind, RoleBindingKind, RoleBindingRoleRef } from '~/app/k8sTypes';
 import { FetchState } from '~/app/utils/useFetch';
 import RoleBindingPermissionsTableSection from './RoleBindingPermissionsTableSection';

@@ -43,4 +43,4 @@ const TitleWithIcon: React.FC<TitleWithIconProps> = ({
   </Box>
 );
 
-export default TitleWithIcon; 
+export default TitleWithIcon;

@@ -9,4 +9,4 @@ export const useDeepCompareMemoize = <T>(value: T): T => {
   }
 
   return ref.current;
-}; 
+};

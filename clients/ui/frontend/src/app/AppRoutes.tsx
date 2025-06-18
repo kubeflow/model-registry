@@ -8,13 +8,13 @@ import { NotFound } from '~/app/components/NotFound';
 import { AppLayout } from '~/app/AppLayout';
 
 type NavDataItem = {
-    label: string;
-    path?: string;
-    children?: NavDataItem[];
+  label: string;
+  path?: string;
+  children?: NavDataItem[];
 };
 
 export const useAdminSettings = (): NavDataItem[] => {
-    const { clusterAdmin } = useUser();
+  const { clusterAdmin } = useUser();
 
   if (!clusterAdmin) {
     return [];
@@ -37,20 +37,20 @@ export const useNavData = (): NavDataItem[] => [
 ];
 
 export const AppRoutes: React.FC = () => {
-    const { clusterAdmin } = useUser();
+  const { clusterAdmin } = useUser();
 
-    return (
-        <Routes>
-            <Route path="/" element={<AppLayout />}>
-                <Route index element={<Navigate to="/model-registry" replace />} />
-                <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
-                {clusterAdmin && (
-                    <Route path="/model-registry-settings/*" element={<ModelRegistrySettingsRoutes />} />
-                )}
-                <Route path="*" element={<NotFound />} />
-            </Route>
-        </Routes>
-    );
+  return (
+    <Routes>
+      <Route path="/" element={<AppLayout />}>
+        <Route index element={<Navigate to="/model-registry" replace />} />
+        <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
+        {clusterAdmin && (
+          <Route path="/model-registry-settings/*" element={<ModelRegistrySettingsRoutes />} />
+        )}
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
 };
 
 export default AppRoutes;

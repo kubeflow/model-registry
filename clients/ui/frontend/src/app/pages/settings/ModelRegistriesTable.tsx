@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { Table, Thead, Tbody, Tr, Th, Td } from '@patternfly/react-table';
-import { ModelRegistryKind } from '~/app/k8sTypes';
+import { Table, Thead, Tbody, Tr, Th } from '@patternfly/react-table';
+import { ModelRegistryKind } from 'mod-arch-shared';
+import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
-import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
 
 type ModelRegistriesTableProps = {
   modelRegistries: ModelRegistryKind[];
@@ -15,7 +15,6 @@ type ModelRegistriesTableProps = {
 const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
   modelRegistries,
   onCreateModelRegistryClick,
-  refresh,
 }) => {
   // TODO: [Midstream] Complete once we have permissions
 
@@ -50,16 +49,16 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
         <Tbody>
           {modelRegistries.map((mr) => (
             <ModelRegistriesTableRow
-                key={mr.metadata.name}
-                modelRegistry={mr}
-                onDeleteRegistry={setDeleteRegistry}
-                onEditRegistry={setEditRegistry}
-                roleBindings={{
-                    data: [],
-                    loaded: true,
-                    error: undefined,
-                    refresh: () => Promise.resolve([]),
-                }}
+              key={mr.metadata.name}
+              modelRegistry={mr}
+              onDeleteRegistry={setDeleteRegistry}
+              onEditRegistry={setEditRegistry}
+              roleBindings={{
+                data: [],
+                loaded: true,
+                error: undefined,
+                refresh: () => Promise.resolve([]),
+              }}
             />
           ))}
         </Tbody>
@@ -73,7 +72,7 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
       ) : null}
       {deleteRegistry ? (
         <DeleteModelRegistryModal
-          modelRegistry={deleteRegistry as unknown as ModelRegistryKind}
+          modelRegistry={deleteRegistry}
           onClose={() => setDeleteRegistry(undefined)}
           refresh={() => Promise.resolve(undefined)}
         />

@@ -25,9 +25,7 @@ export const findSecureDBType = (resourceName: string, key: string): SecureDBRTy
   return SecureDBRType.EXISTING;
 };
 
-export const findConfigMap = (
-  secureDBInfo: SecureDBInfo,
-): { name: string; key: string } | null => {
+export const findConfigMap = (secureDBInfo: SecureDBInfo): { name: string; key: string } | null => {
   if (secureDBInfo.type === SecureDBRType.CLUSTER_WIDE) {
     return { name: 'odh-trusted-ca-bundle', key: 'odh-ca-bundle.crt' };
   }
@@ -35,4 +33,4 @@ export const findConfigMap = (
     return { name: 'openshift-service-ca.crt', key: 'service-ca.crt' };
   }
   return { name: secureDBInfo.resourceName, key: secureDBInfo.key };
-}; 
+};

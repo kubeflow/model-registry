@@ -275,4 +275,4 @@ const useFetch = <Type>(
   return returnState;
 };
 
-export default useFetch; 
+export default useFetch;

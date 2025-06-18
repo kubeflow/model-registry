@@ -22,7 +22,7 @@ import {
   modelRegistryMissingModelImg,
   modelRegistryMissingVersionImg,
   modelRegistrySelectImg,
-} from '../../images';
+} from '~/app/images';
 
 // import './vars.scss'; // This file does not exist
 

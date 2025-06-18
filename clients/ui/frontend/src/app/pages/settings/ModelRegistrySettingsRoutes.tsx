@@ -11,4 +11,4 @@ const ModelRegistrySettingsRoutes: React.FC = () => (
   </Routes>
 );
 
-export default ModelRegistrySettingsRoutes; 
+export default ModelRegistrySettingsRoutes;

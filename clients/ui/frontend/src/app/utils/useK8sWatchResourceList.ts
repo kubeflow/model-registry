@@ -2,9 +2,9 @@ import {
   K8sModelCommon,
   K8sResourceCommon,
   WatchK8sResource,
-  WebSocketOptions,
   useK8sWatchResource,
-} from '@openshift/dynamic-plugin-sdk-utils';
+  WebSocketOptions,
+} from 'mod-arch-shared';
 import React from 'react';
 import { CustomWatchK8sResult } from '~/app/k8sTypes';
 
@@ -37,4 +37,4 @@ const useK8sWatchResourceList = <T extends K8sResourceCommon[]>(
   return [React.useMemo(() => data ?? [], [data]), loaded, loadError];
 };
 
-export default useK8sWatchResourceList; 
+export default useK8sWatchResourceList;

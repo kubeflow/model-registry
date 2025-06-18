@@ -59,4 +59,4 @@ export const mockRoleBindingK8sResource = ({
       name: roleRefName,
     },
   };
-}; 
+};

@@ -14,4 +14,4 @@ const TypedObjectIcon: React.FC<TypedObjectIconProps> = ({ resourceType, style, 
   </SvgIcon>
 );
 
-export default TypedObjectIcon; 
+export default TypedObjectIcon;

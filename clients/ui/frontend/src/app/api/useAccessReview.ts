@@ -1,5 +1,4 @@
-import { k8sCreateResource } from '@openshift/dynamic-plugin-sdk-utils';
-import * as React from 'react';
+import { k8sCreateResource } from 'mod-arch-shared';
 import { ProjectModel, SelfSubjectAccessReviewModel } from '~/app/api/models';
 import { AccessReviewResourceAttributes, SelfSubjectAccessReviewKind } from '~/app/k8sTypes';
 
@@ -50,8 +49,5 @@ export const checkAccess = ({
  * @see verbModelAccess - Helper util for resourceAttributes
  */
 export const useAccessReview = (
-  resourceAttributes: AccessReviewResourceAttributes,
-  shouldRunCheck = true,
-): [boolean, boolean] => {
-  return [true, true];
-}; 
+  _resourceAttributes: AccessReviewResourceAttributes,
+): [boolean, boolean] => [true, true];

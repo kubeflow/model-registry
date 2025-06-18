@@ -1,6 +1,6 @@
+import * as React from 'react';
 import useFetch, { FetchState } from '~/app/utils/useFetch';
 import { listModelRegistryCertificateNames } from '~/app/services/modelRegistrySettingsService';
-import * as React from 'react';
 import { ListConfigSecretsResponse } from '~/app/k8sTypes';
 
 const useModelRegistryCertificateNames = (
@@ -20,4 +20,4 @@ const useModelRegistryCertificateNames = (
   );
 };
 
-export default useModelRegistryCertificateNames; 
+export default useModelRegistryCertificateNames;
