@@ -10,21 +10,16 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import {
-  FetchStateObject,
-  GroupKind,
-  K8sResourceCommon,
-  K8sStatus,
-  RoleBindingKind,
-  RoleBindingRoleRef,
-} from 'mod-arch-shared';
+import { K8sResourceCommon, K8sStatus } from 'mod-arch-shared';
+import { GroupKind, RoleBindingKind, RoleBindingRoleRef } from '~/app/k8sTypes';
+import { FetchState } from '~/app/utils/useFetch';
 import RoleBindingPermissionsTableSection from './RoleBindingPermissionsTableSection';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
-import { filterRoleBindingSubjects } from './utils';
+import { filterRoleBindingSubjects, tryPatchRoleBinding } from './utils';
 
 type RoleBindingPermissionsProps = {
   ownerReference?: K8sResourceCommon;
-  roleBindingPermissionsRB: FetchStateObject<RoleBindingKind[]>;
+  roleBindingPermissionsRB: FetchState<RoleBindingKind[]>;
   defaultRoleBindingName?: string;
   permissionOptions: {
     type: RoleBindingPermissionsRoleType;
@@ -32,7 +27,6 @@ type RoleBindingPermissionsProps = {
   }[];
   createRoleBinding: (roleBinding: RoleBindingKind) => Promise<RoleBindingKind>;
   deleteRoleBinding: (name: string, namespace: string) => Promise<K8sStatus>;
-
   projectName: string;
   roleRefKind: RoleBindingRoleRef['kind'];
   roleRefName?: RoleBindingRoleRef['name'];
@@ -71,7 +65,6 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
         titleText="There was an issue loading permissions."
         variant={EmptyStateVariant.lg}
         data-id="error-empty-state"
-        id="permissions"
       >
         <EmptyStateBody>{loadError.message}</EmptyStateBody>
       </EmptyState>
@@ -85,7 +78,6 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
         titleText="Loading"
         variant={EmptyStateVariant.lg}
         data-id="loading-empty-state"
-        id="permissions"
       >
         <Spinner size="xl" />
       </EmptyState>
@@ -107,6 +99,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="user"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 
@@ -128,6 +121,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="group"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 

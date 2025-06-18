@@ -1,4 +1,4 @@
-import { mockRoleBindingK8sResource } from '~/__mocks__/mockRoleBindingK8sResource';
+import { mockRoleBindingK8sResource } from '~/app/__mocks__/mockRoleBindingK8sResource';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 import {
   castRoleBindingPermissionsRoleType,

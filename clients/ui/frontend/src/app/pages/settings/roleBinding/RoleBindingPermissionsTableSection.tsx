@@ -36,6 +36,10 @@ export type RoleBindingPermissionsTableSectionAltProps = {
   typeAhead?: string[];
   createRoleBinding: (roleBinding: RoleBindingKind) => Promise<RoleBindingKind>;
   deleteRoleBinding: (name: string, namespace: string) => Promise<K8sStatus>;
+  tryPatchRoleBinding: (
+    oldRBObject: RoleBindingKind,
+    newRBObject: RoleBindingKind,
+  ) => Promise<boolean>;
   refresh: () => void;
   typeModifier: string;
   defaultRoleBindingName?: string;
@@ -53,6 +57,7 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
   typeAhead,
   createRoleBinding,
   deleteRoleBinding,
+  tryPatchRoleBinding,
   refresh,
   typeModifier,
   defaultRoleBindingName,
@@ -109,6 +114,7 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
           }}
           createRoleBinding={createRoleBinding}
           deleteRoleBinding={deleteRoleBinding}
+          tryPatchRoleBinding={tryPatchRoleBinding}
         />
       </StackItem>
       {error && (

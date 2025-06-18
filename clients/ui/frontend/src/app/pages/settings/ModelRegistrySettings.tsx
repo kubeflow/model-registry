@@ -13,11 +13,12 @@ import {
   TitleWithIcon,
   ApplicationsPage,
   useQueryParamNamespaces,
+  ModelRegistryKind,
 } from 'mod-arch-shared';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
+import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
 import ModelRegistriesTable from './ModelRegistriesTable';
-import CreateModal from './ModelRegistryCreateModal';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
@@ -89,7 +90,7 @@ const ModelRegistrySettings: React.FC = () => {
       {createModalOpen ? (
         <CreateModal
           onClose={() => setCreateModalOpen(false)}
-          // refresh={refreshAll}
+          refresh={() => Promise.resolve(undefined)}
         />
       ) : null}
     </>
