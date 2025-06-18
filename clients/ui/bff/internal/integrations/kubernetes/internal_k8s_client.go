@@ -3,13 +3,14 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
+
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
-	"time"
 )
 
 type InternalKubernetesClient struct {
@@ -117,37 +118,88 @@ func (kc *InternalKubernetesClient) GetNamespaces(ctx context.Context, identity 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	//list namespaces
+	// Optimization 1: Early exit for cluster admins
+	// Check if user is cluster-admin first to avoid individual SAR checks
+	isAdmin, err := kc.IsClusterAdmin(identity)
+	if err != nil {
+		kc.Logger.Warn("failed to check cluster admin status", "user", identity.UserID, "error", err)
+		// Continue with individual checks if cluster admin check fails
+	} else if isAdmin {
+		kc.Logger.Debug("user is cluster-admin, returning all namespaces", "user", identity.UserID)
+		namespaceList, err := kc.Client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list namespaces: %w", err)
+		}
+		return namespaceList.Items, nil
+	}
+
+	// List namespaces
 	namespaceList, err := kc.Client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	//check access for each namespace
-	var allowed []corev1.Namespace
-	for _, ns := range namespaceList.Items {
-		sar := &authv1.SubjectAccessReview{
-			Spec: authv1.SubjectAccessReviewSpec{
-				User:   identity.UserID,
-				Groups: identity.Groups,
-				ResourceAttributes: &authv1.ResourceAttributes{
-					Verb:      "get",
-					Resource:  "namespaces",
-					Namespace: ns.Name,
-				},
-			},
-		}
+	// Optimization 2: Parallel SAR processing with controlled concurrency
+	// Use goroutines to parallelize the SAR checks while limiting concurrent requests
+	const maxConcurrency = 10 // Limit concurrent SAR requests to avoid overwhelming the API server
+	semaphore := make(chan struct{}, maxConcurrency)
 
-		response, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
-		if err != nil {
-			kc.Logger.Error("failed SAR for namespace", "namespace", ns.Name, "error", err)
+	type sarResult struct {
+		namespace corev1.Namespace
+		allowed   bool
+		err       error
+	}
+
+	results := make(chan sarResult, len(namespaceList.Items))
+
+	// Launch goroutines for each namespace SAR check
+	for _, ns := range namespaceList.Items {
+		go func(namespace corev1.Namespace) {
+			semaphore <- struct{}{}        // Acquire semaphore
+			defer func() { <-semaphore }() // Release semaphore
+
+			sar := &authv1.SubjectAccessReview{
+				Spec: authv1.SubjectAccessReviewSpec{
+					User:   identity.UserID,
+					Groups: identity.Groups,
+					ResourceAttributes: &authv1.ResourceAttributes{
+						Verb:      "get",
+						Resource:  "namespaces",
+						Namespace: namespace.Name,
+					},
+				},
+			}
+
+			response, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+			results <- sarResult{
+				namespace: namespace,
+				allowed:   err == nil && response.Status.Allowed,
+				err:       err,
+			}
+		}(ns)
+	}
+
+	// Collect results
+	var allowed []corev1.Namespace
+	errorCount := 0
+
+	for i := 0; i < len(namespaceList.Items); i++ {
+		result := <-results
+		if result.err != nil {
+			kc.Logger.Error("failed SAR for namespace", "namespace", result.namespace.Name, "error", result.err)
+			errorCount++
 			continue
 		}
-
-		if response.Status.Allowed {
-			allowed = append(allowed, ns)
+		if result.allowed {
+			allowed = append(allowed, result.namespace)
 		}
 	}
+
+	kc.Logger.Debug("namespace access check completed",
+		"user", identity.UserID,
+		"total_namespaces", len(namespaceList.Items),
+		"accessible_namespaces", len(allowed),
+		"errors", errorCount)
 
 	return allowed, nil
 }

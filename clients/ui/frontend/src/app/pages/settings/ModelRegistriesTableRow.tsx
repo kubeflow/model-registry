@@ -24,7 +24,8 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   onDeleteRegistry,
 }) => {
   const navigate = useNavigate();
-  const { platformMode } = useModularArchContext();
+  const { config } = useModularArchContext();
+  const { platformMode } = config;
   const isPlatformKubeflow = platformMode === PlatformMode.Kubeflow;
   const filteredRoleBindings = []; // TODO: [Midstream] Filter role bindings for this model registry
 

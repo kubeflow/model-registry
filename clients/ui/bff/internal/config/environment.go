@@ -27,6 +27,7 @@ type EnvConfig struct {
 	MockMRClient    bool
 	DevMode         bool
 	StandaloneMode  bool
+	DefaultPlatform bool
 	DevModePort     int
 	StaticAssetsDir string
 	LogLevel        slog.Level

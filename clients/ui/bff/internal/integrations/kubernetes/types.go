@@ -6,6 +6,7 @@ type ServiceDetails struct {
 	Description string
 	ClusterIP   string
 	HTTPPort    int32
+	IsHTTPS     bool
 }
 
 type RequestIdentity struct {

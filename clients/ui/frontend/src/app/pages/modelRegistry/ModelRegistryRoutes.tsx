@@ -17,7 +17,8 @@ import RegisterModel from './screens/RegisterModel/RegisterModel';
 import RegisterVersion from './screens/RegisterModel/RegisterVersion';
 
 const ModelRegistryRoutes: React.FC = () => {
-  const { deploymentMode } = useModularArchContext();
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
   const isIntegrated = deploymentMode === DeploymentMode.Integrated;
   return (
     <Routes>
