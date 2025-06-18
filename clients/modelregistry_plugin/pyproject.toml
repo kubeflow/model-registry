@@ -1,0 +1,19 @@
+[project]
+name = "modelregistry_plugin"
+version = "0.1.0"
+description = "Kubeflow Model Registry MLFlow Integration Plugin"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "mlflow>=2.0.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.1",
+    "requests>=2.25.0",
+]
+
+[project.entry-points."mlflow.tracking_store"]
+modelregistry = "modelregistry_plugin.store:ModelRegistryStore"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
