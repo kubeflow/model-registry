@@ -8,14 +8,14 @@ const TableNameArtifact = "Artifact"
 
 // Artifact mapped from table <Artifact>
 type Artifact struct {
-	ID                       int32  `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	TypeID                   int32  `gorm:"column:type_id;not null" json:"type_id"`
-	URI                      string `gorm:"column:uri" json:"uri"`
-	State                    int32  `gorm:"column:state" json:"state"`
-	Name                     string `gorm:"column:name" json:"name"`
-	ExternalID               string `gorm:"column:external_id" json:"external_id"`
-	CreateTimeSinceEpoch     int64  `gorm:"column:create_time_since_epoch;not null" json:"create_time_since_epoch"`
-	LastUpdateTimeSinceEpoch int64  `gorm:"column:last_update_time_since_epoch;not null" json:"last_update_time_since_epoch"`
+	ID                       int32   `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	TypeID                   int32   `gorm:"column:type_id;not null" json:"type_id"`
+	URI                      *string `gorm:"column:uri" json:"uri"`
+	State                    *int32  `gorm:"column:state" json:"state"`
+	Name                     *string `gorm:"column:name" json:"name"`
+	ExternalID               *string `gorm:"column:external_id" json:"external_id"`
+	CreateTimeSinceEpoch     int64   `gorm:"column:create_time_since_epoch;not null" json:"create_time_since_epoch"`
+	LastUpdateTimeSinceEpoch int64   `gorm:"column:last_update_time_since_epoch;not null" json:"last_update_time_since_epoch"`
 }
 
 // TableName Artifact's table name
