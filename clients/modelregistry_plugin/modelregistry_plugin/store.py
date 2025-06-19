@@ -184,6 +184,66 @@ class ModelRegistryStore(AbstractStore):
         
         return experiments
 
+    def search_experiments(
+        self,
+        view_type=ViewType.ACTIVE_ONLY,
+        max_results=1000,  # Default value since SEARCH_MAX_RESULTS_DEFAULT is not imported
+        filter_string=None,
+        order_by=None,
+        page_token=None,
+    ):
+        """
+        Search for experiments that match the specified search query.
+        
+        Args:
+            view_type: One of enum values ACTIVE_ONLY, DELETED_ONLY, or ALL
+            max_results: Maximum number of experiments desired
+            filter_string: Filter query string (not supported in Model Registry yet)
+            order_by: List of columns to order by (not supported in Model Registry yet)
+            page_token: Token specifying the next page of results
+            
+        Returns:
+            A PagedList of Experiment objects
+        """
+        # TODO: Add support for filter_string and order_by in Model Registry API
+        if filter_string:
+            # For now, we'll ignore filter_string as Model Registry doesn't support it yet
+            pass
+            
+        if order_by:
+            # For now, we'll ignore order_by as Model Registry doesn't support it yet
+            pass
+            
+        params = {}
+        if max_results:
+            params["pageSize"] = max_results
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = self._request("GET", "/experiments", params=params)
+        response_data = response.json()
+        items = response_data.get("items", [])
+        
+        experiments = []
+        for exp_data in items:
+            lifecycle_stage = convert_modelregistry_state(exp_data)
+
+            # Filter by view_type
+            if view_type == ViewType.ACTIVE_ONLY and lifecycle_stage == LifecycleStage.DELETED:
+                continue
+            elif view_type == ViewType.DELETED_ONLY and lifecycle_stage == LifecycleStage.ACTIVE:
+                continue
+                
+            experiments.append(Experiment(
+                experiment_id=str(exp_data["id"]),
+                name=exp_data["name"],
+                artifact_location=self._get_artifact_location(exp_data),
+                lifecycle_stage=lifecycle_stage,
+                tags=[ExperimentTag(k, v) for k, v in exp_data.get("customProperties", {}).items()]
+            ))
+        
+        return PagedList(experiments, response_data.get("nextPageToken"))
+
     # Run operations
     def create_run(self, experiment_id: str, user_id: str = None, start_time: int = None, tags: List[RunTag] = None, run_name: str = None) -> Run:
         """Create a new run."""
@@ -291,6 +351,38 @@ class ModelRegistryStore(AbstractStore):
                 step=int(metric_data.get("step", "0")),
             ))
         return metrics
+    
+    def get_metric_history(self, run_id, metric_key, max_results=None, page_token=None):
+        """
+        Return a list of metric objects corresponding to all values logged for a given metric
+        within a run.
+        
+        Args:
+            run_id: Unique identifier for run
+            metric_key: Metric name within the run
+            max_results: Maximum number of metric history events to return per paged query
+            page_token: Token specifying the next paginated set of results
+            
+        Returns:
+            A list of Metric entities if logged, else empty list
+        """
+        # Get all metrics for the run
+        # TODO use metric history API instead
+        all_metrics = self._get_run_metrics(run_id)
+        
+        # Filter by metric key
+        filtered_metrics = [metric for metric in all_metrics if metric.key == metric_key]
+        
+        # Sort by timestamp and step for consistent ordering
+        filtered_metrics.sort(key=lambda m: (m.timestamp, m.step))
+        
+        # Apply pagination if max_results is specified
+        if max_results is not None:
+            # TODO: Implement proper pagination with page_token
+            # For now, just limit the results
+            filtered_metrics = filtered_metrics[:max_results]
+        
+        return filtered_metrics
     
     # Parameter operations  
     def log_param(self, run_id: str, param: Param) -> None:
