@@ -13,8 +13,20 @@ This plugin allows you to use MLflow's tracking API to log experiments, runs, me
 - **Run Tracking**: Log runs, metrics, parameters, and tags
 - **Artifact Storage**: Store and retrieve model artifacts
 - **Authentication**: Built-in support for Kubeflow authentication
+- **Full MLflow Compatibility**: Implements all required AbstractStore methods
 
 ## Installation
+
+### Using uv (Recommended)
+
+```bash
+# Build from source
+cd clients/modelregistry_plugin
+uv build
+uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl
+```
+
+### Using pip
 
 ```bash
 pip install modelregistry_plugin
@@ -41,7 +53,7 @@ The plugin supports various authentication methods:
 # Token-based auth
 export MODEL_REGISTRY_TOKEN="your-token"
 
-# Kubernetes service account token from`/var/run/secrets/kubernetes.io/serviceaccount/token`
+# Kubernetes service account token from `/var/run/secrets/kubernetes.io/serviceaccount/token`
 ```
 
 ## Usage
@@ -79,13 +91,12 @@ from modelregistry_plugin import ModelRegistryStore
 
 # Configure with custom settings
 store = ModelRegistryStore(
-    host="model-registry.kubeflow.svc.cluster.local",
-    port=8080,
-    secure=True,
-    token="your-auth-token"
+    store_uri="modelregistry://model-registry.kubeflow.svc.cluster.local:8080",
+    artifact_uri="s3://my-bucket/artifacts"
 )
 
-mlflow.set_tracking_uri(store.get_tracking_uri())
+# The store is automatically registered with MLflow
+mlflow.set_tracking_uri("modelregistry://model-registry.kubeflow.svc.cluster.local:8080")
 ```
 
 ## Plugin Architecture
@@ -96,15 +107,58 @@ The plugin implements MLflow's tracking store interface by:
 2. **API Translation**: Converts MLflow API calls to Model Registry API requests
 3. **Authentication**: Handles Kubeflow authentication mechanisms
 4. **Artifact Management**: Manages artifact storage and retrieval
+5. **Circular Import Prevention**: Uses lazy imports to avoid circular dependencies during MLflow initialization
 
 ## Supported Operations
 
-- ✅ Create/list/get experiments
-- ✅ Create/update/delete runs
-- ✅ Log parameters, metrics, and tags
-- ✅ Log and retrieve artifacts
-- ✅ Search experiments and runs
-- ✅ Model registration and versioning
+### Experiment Operations
+- ✅ Create experiments
+- ✅ Get experiments by ID or name
+- ✅ List experiments with filtering (ACTIVE_ONLY, DELETED_ONLY, ALL)
+- ✅ Search experiments with pagination
+- ✅ Delete/restore experiments
+- ✅ Rename experiments
+
+### Run Operations
+- ✅ Create runs
+- ✅ Get runs by ID
+- ✅ Update run information
+- ✅ Delete/restore runs
+- ✅ Search runs with filtering and pagination
+
+### Metrics and Parameters
+- ✅ Log metrics with timestamps and steps
+- ✅ Get metric history for specific metrics
+- ✅ Log parameters
+- ✅ Batch logging of metrics, parameters, and tags
+
+### Artifacts and Models
+- ✅ Log inputs (datasets and models)
+- ✅ Log outputs (models)
+- ✅ Record logged models
+- ✅ Create and manage logged models
+- ✅ Search logged models
+- ✅ Set and delete model tags
+
+## Unsupported Features
+
+### Trace Operations
+The following MLflow trace-related methods are **not supported** in the ModelRegistryStore implementation:
+
+- `start_trace()` - Start a trace
+- `end_trace()` - End a trace
+- `delete_traces()` - Delete traces
+- `get_trace_info()` - Get trace information
+- `search_traces()` - Search traces
+- `set_trace_tag()` - Set trace tags
+- `delete_trace_tag()` - Delete trace tags
+
+These methods are not required for basic MLflow tracking functionality and are typically used for advanced inference monitoring and debugging. The ModelRegistryStore focuses on core experiment tracking and model management features.
+
+### Advanced Features
+- **Filter String Support**: Some search methods don't fully support MLflow's filter string syntax (marked as TODO in the implementation)
+- **Order By Support**: Advanced ordering options are not fully implemented
+- **Batch Operations**: Some batch operations may not be optimized for the Model Registry backend
 
 ## Development
 
@@ -119,7 +173,7 @@ cd clients/modelregistry_plugin
 uv sync
 
 # Install in development mode
-pip install -e .
+uv pip install -e .
 ```
 
 ### Running Tests
@@ -130,6 +184,22 @@ uv run pytest
 
 # Run with coverage
 uv run pytest --cov=modelregistry_plugin
+
+# Run specific test categories
+uv run pytest tests/test_store.py -k "test_search_runs"
+```
+
+### Building and Testing
+
+```bash
+# Build the package
+uv build
+
+# Install the built package
+uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl --force-reinstall
+
+# Verify entry point registration
+python -c "import mlflow; print('Available tracking stores:', list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()))"
 ```
 
 ### Testing with Model Registry
@@ -146,6 +216,27 @@ export MLFLOW_TRACKING_URI="modelregistry://localhost:8080"
 uv run pytest tests/integration/
 ```
 
+## Technical Details
+
+### Circular Import Resolution
+
+The plugin uses lazy imports to prevent circular dependencies during MLflow's entry point registration:
+
+- MLflow imports are moved inside methods where they're needed
+- Type annotations are simplified to avoid referencing MLflow types at module level
+- This ensures the entry point can be registered without conflicts
+
+### Entry Point Registration
+
+The plugin registers itself as an MLflow tracking store via the entry point:
+
+```toml
+[project.entry-points."mlflow.tracking_store"]
+modelregistry = "modelregistry_plugin.store:ModelRegistryStore"
+```
+
+This allows MLflow to automatically discover and use the plugin when the `modelregistry://` URI scheme is specified.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -153,6 +244,7 @@ uv run pytest tests/integration/
 1. **Connection Refused**: Ensure Model Registry is running and accessible
 2. **Authentication Failed**: Verify tokens and credentials are correct
 3. **SSL/TLS Errors**: Check certificate configuration for secure connections
+4. **Entry Point Not Found**: Ensure the package is properly installed and the entry point is registered
 
 ### Debug Logging
 
@@ -163,14 +255,27 @@ import logging
 logging.getLogger("modelregistry_plugin").setLevel(logging.DEBUG)
 ```
 
+### Verification Commands
+
+```python
+# Check if the plugin is registered
+import mlflow
+print('Available tracking stores:', list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()))
+
+# Test store creation
+store = mlflow.tracking._tracking_service.utils._get_store('modelregistry://localhost:8080')
+print('Store type:', type(store).__name__)
+```
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+5. Run the test suite: `uv run pytest`
+6. Build and test the package: `uv build && uv pip install dist/*.whl --force-reinstall`
+7. Submit a pull request
 
 ## License
 
