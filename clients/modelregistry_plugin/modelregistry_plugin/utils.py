@@ -3,11 +3,16 @@ Utility functions for Model Registry plugin
 """
 
 import os
-from typing import Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any
 from urllib.parse import urlparse
-
+from enum import Enum
+from mlflow.entities import LoggedModelStatus
 from mlflow.entities import LifecycleStage
 
+class ModelIOType(Enum):
+    INPUT = "input"
+    OUTPUT = "output"
+    UNKNOWN = "unknown"
 
 def parse_tracking_uri(tracking_uri: str) -> Tuple[str, int, bool]:
     """
@@ -74,3 +79,66 @@ def convert_modelregistry_state(response: Dict):
         Corresponding MLflow lifecycle stage
     """
     return LifecycleStage.ACTIVE if response.get("state") != "ARCHIVED" else LifecycleStage.DELETED
+
+
+def convert_to_model_artifact_state(state: Optional[LoggedModelStatus]) -> str:
+    """
+    Convert MLflow LoggedModelStatus to Model Artifact State.
+    """
+    if state is None:
+        return "UNKNOWN"
+    
+    # map to values from openapi/model_artifact_state.go
+    if state == LoggedModelStatus.UNSPECIFIED:
+        return "UNKNOWN"
+    elif state == LoggedModelStatus.PENDING:
+        return "PENDING"
+    elif state == LoggedModelStatus.READY:
+        return "LIVE"
+    elif state == LoggedModelStatus.FAILED:
+        return "ABANDONED"
+
+
+def convert_to_mlflow_logged_model_status(state: Optional[str]) -> LoggedModelStatus:
+    """
+    Convert Model Artifact State to MLflow LoggedModelStatus.
+    """
+    if state is None:
+        return LoggedModelStatus.UNSPECIFIED
+    
+    # map to values from openapi/model_artifact_state.go
+    if state == "PENDING":
+        return LoggedModelStatus.PENDING
+    elif state == "READY":
+        return LoggedModelStatus.READY
+    elif state == "ABANDONED":
+        return LoggedModelStatus.FAILED
+    else:
+        return LoggedModelStatus.UNSPECIFIED
+
+def toModelRegistryCustomProperties(json):
+    if json.get("customProperties"):
+        # wrap each custom property with MetadataStringVal
+        custom_props = {}
+        for k, v in json["customProperties"].items():
+            if v is not None:
+                # TODO: handle other types of custom properties
+                custom_props[k] = {"string_value": str(v), "metadataType": "MetadataStringValue"}
+        json["customProperties"] = custom_props
+
+
+def fromModelRegistryCustomProperties(response_json):
+    if response_json.get("customProperties"):
+        custom_props = {}
+        for k, v in response_json["customProperties"].items():
+            if v["metadataType"] == "MetadataStringValue":
+                custom_props[k] = v["string_value"]
+            elif v["metadataType"] == "MetadataIntValue":
+                custom_props[k] = int(v["int_value"])
+            elif v["metadataType"] == "MetadataFloatValue":
+                custom_props[k] = float(v["float_value"])
+            elif v["metadataType"] == "MetadataBoolValue":
+                custom_props[k] = bool(v["bool_value"])
+            else:
+                custom_props[k] = v["string_value"]
+        response_json["customProperties"] = custom_props
