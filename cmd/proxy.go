@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/golang/glog"
-
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
@@ -53,6 +53,20 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
+	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
+	readinessHandler := proxy.ReadinessHandler(proxyCfg.Datastore)
+
+	// route /readyz/isDirty to readinessHandler, all other paths to the dynamic router
+	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if strings.HasSuffix(r.URL.Path, "/readyz/isDirty") {
+			readinessHandler.ServeHTTP(w, r)
+			return
+		}
+
+		router.ServeHTTP(w, r)
+	})
+
 	errChan := make(chan error, 1)
 
 	wg.Add(2)
@@ -97,7 +111,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		glog.Infof("Proxy server started at %s:%v", cfg.Hostname, cfg.Port)
 
-		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), router)
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Hostname, cfg.Port), mainHandler)
 		if err != nil {
 			errChan <- fmt.Errorf("error starting proxy server: %w", err)
 		}
@@ -114,6 +128,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	// or for both to finish successfully.
 	return <-errChan
 }
+
 func init() {
 	rootCmd.AddCommand(proxyCmd)
 

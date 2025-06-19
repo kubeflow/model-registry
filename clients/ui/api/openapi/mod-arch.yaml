@@ -279,7 +279,34 @@ paths:
   /api/v1/settings/role_bindings/{roleBindingName}:
     summary: Path used to manage a single Role Binding for Model Registries.
     description: >-
-      The REST endpoint/path used to delete a specific Role Binding associated with Model Registries.
+      The REST endpoint/path used to update or delete a specific Role Binding associated with Model Registries.
+    patch:
+      requestBody:
+        description: Updated Role Binding data.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleBinding"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: '#/components/parameters/roleBindingName'
+      responses:
+        "200":
+          $ref: "#/components/responses/RoleBindingResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: patchRoleBinding
+      summary: Update Model Registry Role Binding
+      description: Updates an existing Role Binding associated with Model Registries.
     delete:
       tags:
         - K8SOperation

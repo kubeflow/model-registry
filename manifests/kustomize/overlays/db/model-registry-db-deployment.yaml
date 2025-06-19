@@ -60,3 +60,4 @@ spec:
       - name: metadata-mysql
         persistentVolumeClaim:
           claimName: metadata-mysql
+          
