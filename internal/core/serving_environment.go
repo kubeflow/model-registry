@@ -1,0 +1,113 @@
+package core
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/converter"
+	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/model-registry/pkg/openapi"
+)
+
+func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
+	if servingEnvironment == nil {
+		return nil, fmt.Errorf("invalid serving environment pointer, cannot be nil: %w", api.ErrBadRequest)
+	}
+
+	if servingEnvironment.Id != nil {
+		existing, err := b.GetServingEnvironmentById(*servingEnvironment.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		withNotEditable, err := b.mapper.OverrideNotEditableForServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		servingEnvironment = &withNotEditable
+	}
+
+	servEnv, err := b.mapper.MapFromServingEnvironment(servingEnvironment)
+	if err != nil {
+		return nil, err
+	}
+
+	savedServEnv, err := b.servingEnvironmentRepository.Save(servEnv)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.mapper.MapToServingEnvironment(savedServEnv)
+}
+
+func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
+	convertedId, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid id: %w", err)
+	}
+
+	model, err := b.servingEnvironmentRepository.GetByID(int32(convertedId))
+	if err != nil {
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, api.ErrNotFound)
+	}
+
+	return b.mapper.MapToServingEnvironment(model)
+}
+
+func (b *ModelRegistryService) GetServingEnvironmentByParams(name *string, externalId *string) (*openapi.ServingEnvironment, error) {
+	if name == nil && externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either name or externalId: %w", api.ErrBadRequest)
+	}
+
+	servEnvsList, err := b.servingEnvironmentRepository.List(models.ServingEnvironmentListOptions{
+		Name:       name,
+		ExternalID: externalId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(servEnvsList.Items) == 0 {
+		return nil, fmt.Errorf("no serving environment found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	if len(servEnvsList.Items) > 1 {
+		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+	}
+
+	return b.mapper.MapToServingEnvironment(servEnvsList.Items[0])
+}
+
+func (b *ModelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
+	servEnvsList, err := b.servingEnvironmentRepository.List(models.ServingEnvironmentListOptions{
+		Pagination: models.Pagination{
+			PageSize:      listOptions.PageSize,
+			OrderBy:       listOptions.OrderBy,
+			SortOrder:     listOptions.SortOrder,
+			NextPageToken: listOptions.NextPageToken,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	servingEnvironmentList := &openapi.ServingEnvironmentList{
+		Items: []openapi.ServingEnvironment{},
+	}
+
+	for _, servEnv := range servEnvsList.Items {
+		servingEnvironment, err := b.mapper.MapToServingEnvironment(servEnv)
+		if err != nil {
+			return nil, err
+		}
+		servingEnvironmentList.Items = append(servingEnvironmentList.Items, *servingEnvironment)
+	}
+
+	servingEnvironmentList.NextPageToken = servEnvsList.NextPageToken
+	servingEnvironmentList.PageSize = servEnvsList.PageSize
+	servingEnvironmentList.Size = int32(servEnvsList.Size)
+
+	return servingEnvironmentList, nil
+}
