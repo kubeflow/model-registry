@@ -2,24 +2,29 @@
 Model Registry MLflow Tracking Store Implementation
 """
 
-import os
 import json
+import os
+from typing import List, Optional, Dict, Sequence, Any
+import uuid
 
-import mlflow
+from mlflow.models import Model
 import requests
-from typing import List, Optional, Dict, Any, Sequence
-
-from mlflow.store.tracking.abstract_store import AbstractStore
 from mlflow.entities import (
     Experiment, Run, RunInfo, RunData, RunStatus, RunTag, Param, Metric,
-    ViewType, LifecycleStage, ExperimentTag, DatasetInput, LoggedModelInput, LoggedModelOutput
+    ViewType, LifecycleStage, ExperimentTag, DatasetInput, LoggedModelInput, LoggedModelOutput,
+    LoggedModel, LoggedModelTag, LoggedModelParameter, LoggedModelStatus
 )
-from mlflow.exceptions import MlflowException
-from mlflow.protos.databricks_pb2 import INVALID_PARAMETER_VALUE, RESOURCE_DOES_NOT_EXIST
+from mlflow.exceptions import MlflowException, HTTP_STATUS_TO_ERROR_CODE, get_error_code
+from mlflow.protos.databricks_pb2 import INVALID_PARAMETER_VALUE
+from mlflow.store.tracking.abstract_store import AbstractStore
+from mlflow.store.entities.paged_list import PagedList
 from mlflow.utils import time
 
 from .auth import get_auth_headers
-from .utils import parse_tracking_uri, convert_timestamp, convert_modelregistry_state
+from .utils import convert_to_mlflow_logged_model_status, convert_to_model_artifact_state, parse_tracking_uri, \
+    convert_timestamp, convert_modelregistry_state, ModelIOType, toModelRegistryCustomProperties, \
+    fromModelRegistryCustomProperties
+
 
 class ModelRegistryStore(AbstractStore):
     """
@@ -48,28 +53,40 @@ class ModelRegistryStore(AbstractStore):
         self.artifact_uri = artifact_uri
 
     def _get_artifact_location(self, response: Dict) -> str:
-        return response["externalId"] or self.artifact_uri
+        return response.get("externalId") or self.artifact_uri
 
     def _request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make authenticated request to Model Registry API."""
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         headers = get_auth_headers()
         headers.update(kwargs.pop("headers", {}))
-        
+
+        # convert customProperties to ModelRegistry customProperties format
+        json = kwargs.get("json", None)
+        if json is not None:
+            toModelRegistryCustomProperties(json)
+
         response = requests.request(method, url, headers=headers, **kwargs)
-        
+
+        response_json = response.json()
         if not response.ok:
             try:
-                error_detail = response.json().get("message", response.text)
+                error_detail = response_json.get("message", response.text)
             except:
                 error_detail = response.text
             raise MlflowException(
                 f"Model Registry API error: {error_detail}",
-                error_code=INVALID_PARAMETER_VALUE # TODO: map HTTP status code to MLflow error code
+                error_code=get_error_code(response.status_code)
             )
         
+        # convert ModelRegistry customProperties format back to MLflow customProperties format
+        if response_json.get("items"):
+            for item in response_json.get("items"):
+                fromModelRegistryCustomProperties(item)
+        else:
+            fromModelRegistryCustomProperties(response_json)
         return response
-    
+
     # Experiment operations
     def create_experiment(self, name: str, artifact_location: str = None, tags: List[ExperimentTag] = None) -> str:
         """Create a new experiment in Model Registry."""
@@ -104,18 +121,19 @@ class ModelRegistryStore(AbstractStore):
     
     def get_experiment_by_name(self, experiment_name: str) -> Optional[Experiment]:
         """Get experiment by name."""
-        response = self._request("GET", "/experiments", params={"name": experiment_name})
-        experiments = response.json().get("experiments", [])
-        
-        for exp_data in experiments:
-            if exp_data["name"] == experiment_name:
-                return Experiment(
-                    experiment_id=str(exp_data["id"]),
-                    name=exp_data["name"],
-                    artifact_location=self._get_artifact_location(exp_data),
-                    lifecycle_stage=convert_modelregistry_state(exp_data),
-                    tags=[ExperimentTag(k, v) for k, v in exp_data.get("customProperties", {}).items()]
-                )
+        try:
+            response = self._request("GET", "/experiment", params={"name": experiment_name})
+            exp_data = response.json()
+            return Experiment(
+                experiment_id=str(exp_data["id"]),
+                name=exp_data["name"],
+                artifact_location=self._get_artifact_location(exp_data),
+                lifecycle_stage=convert_modelregistry_state(exp_data),
+                tags=[ExperimentTag(k, v) for k, v in exp_data.get("customProperties", {}).items()]
+            )
+        except:
+            # TODO look for not found error
+            pass
         return None
     
     def delete_experiment(self, experiment_id: str) -> None:
@@ -304,7 +322,7 @@ class ModelRegistryStore(AbstractStore):
         """Set a tag on an experiment."""
         # Get current experiment to preserve other properties
         experiment = self.get_experiment(experiment_id)
-        custom_props = {t.key: t.value for t in experiment.tags}
+        custom_props = {k: v for k, v in experiment.tags.items()}
         custom_props[tag.key] = tag.value
         
         payload = {"customProperties": custom_props}
@@ -314,7 +332,7 @@ class ModelRegistryStore(AbstractStore):
         """Set a tag on a run."""
         # Get current run to preserve other properties
         run = self.get_run(run_id)
-        custom_props = {t.key: t.value for t in run.data.tags}
+        custom_props = {k: v for k, v in run.data.tags.items()}
         custom_props[tag.key] = tag.value
         
         payload = {"customProperties": custom_props}
@@ -323,7 +341,9 @@ class ModelRegistryStore(AbstractStore):
     def delete_tag(self, run_id: str, key: str) -> None:
         """Delete a tag from a run."""
         run = self.get_run(run_id)
-        custom_props = {t.key: t.value for t in run.data.tags if t.key != key}
+        custom_props = {k: v for k, v in run.data.tags.items()}
+        if key in custom_props:
+            del custom_props[key]
         
         payload = {"customProperties": custom_props}
         self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
@@ -331,24 +351,21 @@ class ModelRegistryStore(AbstractStore):
     # Search operations (simplified implementation)
     def search_runs(self, experiment_ids: List[str], filter_string: str = "", 
                    run_view_type: ViewType = ViewType.ACTIVE_ONLY, max_results: int = 1000, 
-                   order_by: List[str] = None, page_token: str = None) -> List[Run]:
+                   order_by: List[str] = None, page_token: str = None) -> PagedList[Run]:
         """Search for runs."""
         all_runs = []
 
         # TODO add support for filter_string in ModelRegistry API
         for experiment_id in experiment_ids:
-            params = {"parentResourceId": experiment_id}
-            if max_results:
-                params["pageSize"] = str(min(max_results, 1000))
-                
-            response = self._request("GET", "/experiment_runs", params=params)
+            response = self._request("GET", f"/experiments/{experiment_id}/experiment_runs", 
+                                     params={"pageSize": str(min(max_results, 1000))})
             runs_data = response.json().get("items", [])
             
             for run_data in runs_data:
                 run = self._getMLflowRun(run_data)
                 all_runs.append(run)
                 
-        return all_runs[:max_results] if max_results else all_runs
+        return PagedList(all_runs, response.json().get("nextPageToken"))
 
     def _getMLflowRun(self, run_data):
         run_id = run_data["id"]
@@ -375,8 +392,9 @@ class ModelRegistryStore(AbstractStore):
                  params: Sequence[Param] = (), tags: Sequence[RunTag] = ()) -> None:
         """Log a batch of metrics, parameters, and tags."""
         # Get current run to preserve other properties
-        run = self.get_run(run_id)
-        custom_props = {t.key: t.value for t in run.data.tags}
+        response = self._request("GET", f"/experiment_runs/{run_id}")
+        run_data = response.json()
+        custom_props = run_data["customProperties"] or {}
         for tag in tags:
             custom_props[tag.key] = tag.value
         payload = {"customProperties": custom_props}
@@ -389,45 +407,366 @@ class ModelRegistryStore(AbstractStore):
             self.log_param(run_id, param)
 
     def log_inputs(self, run_id: str, datasets: Optional[list[DatasetInput]] = None,
-                   models: Optional[list[LoggedModelInput]] = None,) -> None:
+                   models: Optional[list[LoggedModelInput]] = None) -> None:
         """Log inputs for a run.
         
         Args:
             run_id: The ID of the run to log inputs for
-            inputs: Dictionary of input names to their values
+            datasets: List of dataset inputs
+            models: List of logged model inputs
         """
-        for input_name, input_value in inputs.items():
-            payload = {
-                "artifactType": "input",
-                "name": input_name,
-                "value": str(input_value),
-                "customProperties": {
-                    "input_type": type(input_value).__name__
+        if datasets:
+            for datasetInput in datasets:
+                payload = {
+                    "artifactType": "dataset-artifact",
+                    "name": datasetInput.dataset.name,
+                    "digest": datasetInput.dataset.digest,
+                    "sourceType": datasetInput.dataset.source_type,
+                    "source": datasetInput.dataset.source,
+                    "schema": datasetInput.dataset.schema,
+                    "profile": datasetInput.dataset.profile,
+                    "customProperties": {}
                 }
-            }
-            self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
+                if datasetInput.tags:
+                    for tag in datasetInput.tags:
+                        payload["customProperties"][tag.key] = tag.value
+                self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
+
+        if models:
+            for model in models:
+                # Get current model to preserve other properties
+                response = self._request("GET", f"/artifacts/{model.model_id}")
+                model_data = response.json()
+                custom_props = model_data.get("customProperties", {})
+                custom_props["mlflow.model_io_type"] = ModelIOType.INPUT.value
+                
+                payload = {
+                    "artifactType": "model-artifact",
+                    "id": model.model_id,
+                    "customProperties": custom_props
+                }
+                self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
 
     def log_outputs(self, run_id: str, models: list[LoggedModelOutput]) -> None:
         """Log outputs for a run.
         
         Args:
             run_id: The ID of the run to log outputs for
-            outputs: Dictionary of output names to their values
+            models: List of logged model outputs
         """
-        for output_name, output_value in outputs.items():
+        for model in models:
+            # Get current model to preserve other properties
+            response = self._request("GET", f"/artifacts/{model.model_id}")
+            model_data = response.json()
+            custom_props = model_data.get("customProperties", {})
+            custom_props["mlflow.model_io_type"] = ModelIOType.OUTPUT.value
+            
             payload = {
-                "artifactType": "output",
-                "name": output_name,
-                "value": str(output_value),
-                "customProperties": {
-                    "output_type": type(output_value).__name__
-                }
+                "artifactType": "model-artifact",
+                "id": model.model_id,
+                "customProperties": custom_props
             }
             self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
 
-    def record_logged_model(self, run_id: str, mlflow_model) -> None:
-        """Record a logged model."""
-        # This would integrate with Model Registry's model versioning
-        # For now, we'll store it as a tag
-        model_tag = RunTag("mlflow.logged_model", json.dumps(mlflow_model.to_dict()))
-        self.set_tag(run_id, model_tag)
+    def record_logged_model(self, run_id: str, mlflow_model: Model) -> None:
+        """Record a logged model.
+        
+        Args:
+            run_id: The ID of the run to record the model for
+            mlflow_model: The MLflow model to record
+        """
+        model_dict = mlflow_model.to_dict()
+        model_info = mlflow_model.get_model_info()
+        
+        # Create a model artifact in Model Registry
+        payload = {
+            "artifactType": "model-artifact",
+            "name": model_dict.get("model_uuid") or str(uuid.uuid4()), # generate a unique name if not provided
+            "uri": model_info.model_uri,
+            "customProperties": {
+                "artifactPath": model_info.artifact_path,
+                "model_uuid": model_info.model_uuid,
+                "utc_time_created": model_info.utc_time_created,
+                "mlflow_version": model_info.mlflow_version,
+                "flavor": str(model_info.flavors),
+                "source_run_id": run_id,
+            }
+        }
+        
+        # Store the full model dict as a tag for backward compatibility
+        payload["customProperties"]["mlflow.logged_model"] = json.dumps(model_dict)
+        
+        # Create the model artifact
+        self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
+
+    def create_logged_model(
+        self,
+        experiment_id: str,
+        name: Optional[str] = None,
+        source_run_id: Optional[str] = None,
+        tags: Optional[list[LoggedModelTag]] = None,
+        params: Optional[list[LoggedModelParameter]] = None,
+        model_type: Optional[str] = None,
+    ) -> LoggedModel:
+        """Create a new logged model.
+        
+        Args:
+            experiment_id: ID of the experiment to which the model belongs
+            name: Name of the model. If not specified, a random name will be generated
+            source_run_id: ID of the run that produced the model
+            tags: Tags to set on the model
+            params: Parameters to set on the model
+            model_type: Type of the model
+            
+        Returns:
+            The created LoggedModel object
+        """
+        payload = {
+            "artifactType": "model-artifact",
+            "name": name or str(uuid.uuid4()),
+            "customProperties": {
+                "model_type": model_type or "unknown",
+                "experiment_id": experiment_id,
+                "source_run_id": source_run_id,
+            }
+        }
+        
+        if tags:
+            for tag in tags:
+                payload["customProperties"][tag.key] = tag.value
+            
+        if params:
+            for param in params:
+                payload["customProperties"][f"param_{param.key}"] = param.value
+
+        # TODO source_run_id is optional, but we need to handle it
+        response = self._request("POST", f"/experiment_runs/{source_run_id}/artifacts", json=payload)
+        model_data = response.json()
+        
+        return LoggedModel(
+            model_id=str(model_data["id"]),
+            experiment_id=experiment_id,
+            name=model_data["name"],
+            source_run_id=source_run_id,
+            artifact_location=model_data["uri"],
+            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            model_type=model_type,
+            status=LoggedModelStatus.READY,
+            tags=tags or [],
+            params=params or []
+        )
+
+    def search_logged_models(
+        self,
+        experiment_ids: list[str],
+        filter_string: Optional[str] = None,
+        datasets: Optional[list[dict[str, Any]]] = None,
+        max_results: Optional[int] = None,
+        order_by: Optional[list[dict[str, Any]]] = None,
+        page_token: Optional[str] = None,
+    ) -> PagedList[LoggedModel]:
+        """Search for logged models that match the specified search criteria.
+        
+        Args:
+            experiment_ids: List of experiment ids to scope the search
+            filter_string: A search filter string
+            datasets: List of dictionaries specifying datasets for metric filters
+            max_results: Maximum number of logged models desired
+            order_by: List of dictionaries specifying result ordering
+            page_token: Token specifying the next page of results
+            
+        Returns:
+            A PagedList of LoggedModel objects
+        """
+        params = {
+            "artifactType": "model-artifact",
+            "experimentIds": experiment_ids
+        }
+        
+        # TODO add support for filter_string in ModelRegistry API
+        # TODO add support for datasets filtering in ModelRegistry API
+        # TODO add support for mlflow order_by mapping to ModelRegistry API
+        # TODO add support for pagination in ModelRegistry API across list of experiments
+        if max_results:
+            params["pageSize"] = str(max_results)
+        if page_token:
+            params["pageToken"] = page_token
+
+        # iterate over experiment_ids and get all runs, and get all model-artifacts for each run
+        models = []
+        for experiment_id in experiment_ids:
+            response = self._request("GET", f"/experiments/{experiment_id}/experiment_runs", params=params)
+            runs_data = response.json().get("items", [])
+            for run_data in runs_data:
+                response = self._request("GET", f"/experiment_runs/{run_data['id']}/artifacts", 
+                                         params={"artifactType": "model-artifact"})
+                items = response.json().get("items", [])
+                for item in items:
+                    models.append(self.get_logged_model(item["id"]))
+        
+        for model in models:
+            # Extract tags and params from customProperties
+            custom_props = model.get("customProperties", {})
+            tags = []
+            params = []
+
+            for key, value in custom_props.items():
+                if key.startswith("param_"):
+                    params.append(LoggedModelParameter(key=key[6:], value=value))
+                else:
+                    tags.append(LoggedModelTag(key=key, value=value))
+                
+            models.append(LoggedModel(
+                model_id=str(model["id"]),
+                experiment_id=str(custom_props["experiment_id"]),
+                name=model["name"],
+                artifact_location=model["uri"],
+                creation_timestamp=convert_timestamp(model["createTimeSinceEpoch"]),
+                last_updated_timestamp=convert_timestamp(model["updateTimeSinceEpoch"]),
+                model_type=custom_props.get("model_type"),
+                source_run_id=custom_props.get("source_run_id"),
+                status=LoggedModelStatus.from_string(custom_props.get("status", "READY")),
+                tags=tags,
+                params=params
+            ))
+        
+        return PagedList(models, None)
+
+    def finalize_logged_model(self, model_id: str, status: LoggedModelStatus) -> LoggedModel:
+        """Finalize a model by updating its status.
+        
+        Args:
+            model_id: ID of the model to finalize
+            status: Final status to set on the model
+            
+        Returns:
+            The updated LoggedModel
+        """
+        payload = {
+            "state": convert_to_model_artifact_state(status)
+        }
+        
+        response = self._request("PATCH", f"/artifacts/{model_id}", json=payload)
+        model_data = response.json()
+        
+        # Extract tags and params from customProperties
+        custom_props = model_data.get("customProperties", {})
+        tags = []
+        params = []
+        
+        for key, value in custom_props.items():
+            if key.startswith("param_"):
+                params.append(LoggedModelParameter(key=key[6:], value=value))
+            else:
+                tags.append(LoggedModelTag(key=key, value=value))
+            
+        return LoggedModel(
+            model_id=str(model_data["id"]),
+            experiment_id=custom_props.get("experiment_id"),
+            name=model_data["name"],
+            source_run_id=custom_props.get("source_run_id"),
+            artifact_location=model_data["uri"],
+            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            model_type=custom_props.get("model_type"),
+            status=status,
+            tags=tags,
+            params=params
+        )
+
+    def set_logged_model_tags(self, model_id: str, tags: list[LoggedModelTag]) -> None:
+        """Set tags on the specified logged model.
+        
+        Args:
+            model_id: ID of the model
+            tags: Tags to set on the model
+        """
+        # Get current model to preserve other properties
+        response = self._request("GET", f"/artifacts/{model_id}")
+        model_data = response.json()
+        custom_props = model_data.get("customProperties", {})
+        
+        # Update custom properties with new tags
+        for tag in tags:
+            custom_props[tag.key] = tag.value
+        
+        payload = {
+            "artifactType": "model-artifact",
+            "customProperties": custom_props
+        }
+        self._request("PATCH", f"/artifacts/{model_id}", json=payload)
+
+    def delete_logged_model_tag(self, model_id: str, key: str) -> None:
+        """Delete a tag from the specified logged model.
+        
+        Args:
+            model_id: ID of the model
+            key: Key of the tag to delete
+        """
+        # Get current model to preserve other properties
+        response = self._request("GET", f"/artifacts/{model_id}")
+        model_data = response.json()
+        custom_props = model_data.get("customProperties", {})
+        
+        # Remove the specified tag
+        if key in custom_props:
+            del custom_props[key]
+        
+        payload = {
+            "artifactType": "model-artifact",
+            "customProperties": custom_props
+        }
+        self._request("PATCH", f"/artifacts/{model_id}", json=payload)
+
+    def get_logged_model(self, model_id: str) -> LoggedModel:
+        """Fetch the logged model with the specified ID.
+        
+        Args:
+            model_id: ID of the model to fetch
+            
+        Returns:
+            The fetched LoggedModel
+        """
+        response = self._request("GET", f"/artifacts/{model_id}")
+        model_data = response.json()
+        
+        # Extract tags and params from customProperties
+        custom_props = model_data.get("customProperties", {})
+        tags = []
+        params = []
+        
+        for key, value in custom_props.items():
+            if key.startswith("param_"):
+                params.append(LoggedModelParameter(key=key[6:], value=value))
+            else:
+                tags.append(LoggedModelTag(key=key, value=value))
+            
+        return LoggedModel(
+            model_id=str(model_data["id"]),
+            experiment_id=custom_props.get("experiment_id"),
+            name=model_data["name"],
+            source_run_id=custom_props.get("source_run_id"),
+            artifact_location=model_data["uri"],
+            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            model_type=custom_props.get("model_type"),
+            status=convert_to_mlflow_logged_model_status(custom_props.get("state")),
+            tags=tags,
+            params=params
+        )
+
+    def delete_logged_model(self, model_id: str) -> None:
+        """Delete the logged model with the specified ID.
+        
+        Args:
+            model_id: ID of the model to delete
+        """
+        # Model Registry doesn't support deletion, so we mark as archived
+        payload = {
+            "artifactType": "model-artifact",
+            "customProperties": {
+                "state": "MARKED_FOR_DELETION" # TODO: handle ModelArtifactState.MARKED_FOR_DELETION in ModelRegistry
+            }
+        }
+        self._request("PATCH", f"/artifacts/{model_id}", json=payload)
