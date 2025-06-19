@@ -1255,30 +1255,35 @@ class TestModelRegistryStore:
     @patch('modelregistry_plugin.store.requests.request')
     def test_search_logged_models(self, mock_request, store):
         """Test searching logged models."""
-        # Mock the raw response from Model Registry API for search request
-        mock_response_search = Mock(spec=requests.Response)
-        mock_response_search.ok = True
-        mock_response_search.json.return_value = {
+        # Mock the raw response from Model Registry API for getting runs request
+        mock_response_runs = Mock(spec=requests.Response)
+        mock_response_runs.ok = True
+        mock_response_runs.json.return_value = {
+            "items": [
+                {
+                    "id": "run-123",
+                    "experimentId": "exp-123",
+                    "name": "test-run"
+                }
+            ]
+        }
+        
+        # Mock the raw response from Model Registry API for getting artifacts request
+        mock_response_artifacts = Mock(spec=requests.Response)
+        mock_response_artifacts.ok = True
+        mock_response_artifacts.json.return_value = {
             "items": [
                 {
                     "id": "model-123",
-                    "name": "test-model",
-                    "experimentId": "exp-123",
-                    "uri": "s3://bucket/model",
-                    "createTimeSinceEpoch": "1234567890",
-                    "updateTimeSinceEpoch": "1234567890",
-                    "customProperties": {
-                        "model_type": {"string_value": "sklearn", "metadataType": "MetadataStringValue"},
-                        "source_run_id": {"string_value": "run-123", "metadataType": "MetadataStringValue"}
-                    }
+                    "name": "test-model"
                 }
-            ],
-            "nextPageToken": "token123"
+            ]
         }
-        # Mock the raw response from Model Registry API for get_logged_model request
-        mock_response_get = Mock(spec=requests.Response)
-        mock_response_get.ok = True
-        mock_response_get.json.return_value = {
+        
+        # Mock the raw response from Model Registry API for getting individual logged model request
+        mock_response_model = Mock(spec=requests.Response)
+        mock_response_model.ok = True
+        mock_response_model.json.return_value = {
             "id": "model-123",
             "name": "test-model",
             "experimentId": "exp-123",
@@ -1287,11 +1292,16 @@ class TestModelRegistryStore:
             "updateTimeSinceEpoch": "1234567890",
             "customProperties": {
                 "model_type": {"string_value": "sklearn", "metadataType": "MetadataStringValue"},
-                "source_run_id": {"string_value": "run-123", "metadataType": "MetadataStringValue"}
+                "source_run_id": {"string_value": "run-123", "metadataType": "MetadataStringValue"},
+                "experiment_id": {"string_value": "exp-123", "metadataType": "MetadataStringValue"}
             }
         }
         
-        mock_request.side_effect = [mock_response_search, mock_response_get]
+        mock_request.side_effect = [
+            mock_response_runs,      # GET /experiments/exp-123/experiment_runs
+            mock_response_artifacts, # GET /experiment_runs/run-123/artifacts
+            mock_response_model      # GET /artifacts/model-123
+        ]
         
         result = store.search_logged_models(
             ["exp-123"],
@@ -1303,8 +1313,36 @@ class TestModelRegistryStore:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].model_id == "model-123"
-        assert result.token == "token123"
-    
+        assert result[0].name == "test-model"
+        assert result[0].experiment_id == "exp-123"
+        assert result[0].model_type == "sklearn"
+        assert result[0].source_run_id == "run-123"
+        
+        # Verify API calls were made correctly
+        assert mock_request.call_count == 3
+        
+        # Check first call: GET /experiments/exp-123/experiment_runs
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "GET"  # method
+        assert "/experiments/exp-123/experiment_runs" in call_args[0][1]  # endpoint
+        params = call_args[1]['params']
+        assert params['artifactType'] == "model-artifact"
+        assert params['experimentIds'] == ["exp-123"]
+        assert params['pageSize'] == "10"
+        assert params['pageToken'] == "token123"
+        
+        # Check second call: GET /experiment_runs/run-123/artifacts
+        call_args = mock_request.call_args_list[1]
+        assert call_args[0][0] == "GET"  # method
+        assert "/experiment_runs/run-123/artifacts" in call_args[0][1]  # endpoint
+        params = call_args[1]['params']
+        assert params['artifactType'] == "model-artifact"
+        
+        # Check third call: GET /artifacts/model-123
+        call_args = mock_request.call_args_list[2]
+        assert call_args[0][0] == "GET"  # method
+        assert "/artifacts/model-123" in call_args[0][1]  # endpoint
+
     @patch('modelregistry_plugin.store.requests.request')
     def test_finalize_logged_model(self, mock_request, store):
         """Test finalizing a logged model."""
@@ -1521,7 +1559,8 @@ class TestModelRegistryStore:
                     "id": "run-123",
                     "experimentId": "exp-123",
                     "name": "active-run",
-                    "state": "LIVE",  # Active run
+                    "status": "RUNNING",  # MLflow RunStatus
+                    "state": "LIVE",      # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
                     "customProperties": {}
@@ -1530,7 +1569,8 @@ class TestModelRegistryStore:
                     "id": "run-456",
                     "experimentId": "exp-123",
                     "name": "deleted-run",
-                    "state": "ARCHIVED",  # Deleted run
+                    "status": "FINISHED",  # MLflow RunStatus
+                    "state": "ARCHIVED",   # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
                     "customProperties": {}
@@ -1585,7 +1625,8 @@ class TestModelRegistryStore:
                     "id": "run-123",
                     "experimentId": "exp-123",
                     "name": "active-run",
-                    "state": "LIVE",  # Active run
+                    "status": "RUNNING",  # MLflow RunStatus
+                    "state": "LIVE",      # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
                     "customProperties": {}
@@ -1594,7 +1635,8 @@ class TestModelRegistryStore:
                     "id": "run-456",
                     "experimentId": "exp-123",
                     "name": "deleted-run",
-                    "state": "ARCHIVED",  # Deleted run
+                    "status": "FINISHED",  # MLflow RunStatus
+                    "state": "ARCHIVED",   # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
                     "customProperties": {}

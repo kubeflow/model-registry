@@ -455,11 +455,16 @@ class ModelRegistryStore(AbstractStore):
             
             for run_data in runs_data:
                 run = self._getMLflowRun(run_data)
+                # compare run.info.lifecycle_stage with run_view_type
+                if run_view_type == ViewType.ACTIVE_ONLY and run.info.lifecycle_stage == LifecycleStage.DELETED:
+                    continue
+                elif run_view_type == ViewType.DELETED_ONLY and run.info.lifecycle_stage == LifecycleStage.ACTIVE:
+                    continue
                 all_runs.append(run)
                 
         return PagedList(all_runs, response.json().get("nextPageToken"))
 
-    def _getMLflowRun(self, run_data):
+    def _getMLflowRun(self, run_data) -> Run:
         run_id = run_data["id"]
         metrics = self._get_run_metrics(run_id)
         params = self._get_run_params(run_id)
@@ -468,7 +473,7 @@ class ModelRegistryStore(AbstractStore):
             run_id=str(run_data["id"]),
             experiment_id=str(run_data["experimentId"]),
             user_id=run_data["owner"] or "unknown",
-            status=RunStatus.from_string(run_data.get("state", "RUNNING")),
+            status=RunStatus.from_string(run_data.get("status", "RUNNING")),
             start_time=convert_timestamp(run_data.get("startTimeSinceEpoch") or run_data.get("createTimeSinceEpoch")),
             end_time=convert_timestamp(run_data.get("endTimeSinceEpoch")) if run_data.get(
                 "state") == "TERMINATED" else None,
@@ -696,32 +701,6 @@ class ModelRegistryStore(AbstractStore):
                 items = response.json().get("items", [])
                 for item in items:
                     models.append(self.get_logged_model(item["id"]))
-        
-        for model in models:
-            # Extract tags and params from customProperties
-            custom_props = model.get("customProperties", {})
-            tags = []
-            params = []
-
-            for key, value in custom_props.items():
-                if key.startswith("param_"):
-                    params.append(LoggedModelParameter(key=key[6:], value=value))
-                else:
-                    tags.append(LoggedModelTag(key=key, value=value))
-                
-            models.append(LoggedModel(
-                model_id=str(model["id"]),
-                experiment_id=str(custom_props["experiment_id"]),
-                name=model["name"],
-                artifact_location=model["uri"],
-                creation_timestamp=convert_timestamp(model["createTimeSinceEpoch"]),
-                last_updated_timestamp=convert_timestamp(model["updateTimeSinceEpoch"]),
-                model_type=custom_props.get("model_type"),
-                source_run_id=custom_props.get("source_run_id"),
-                status=LoggedModelStatus.from_string(custom_props.get("status", "READY")),
-                tags=tags,
-                params=params
-            ))
         
         return PagedList(models, None)
 
