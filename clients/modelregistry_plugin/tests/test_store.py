@@ -353,6 +353,162 @@ class TestModelRegistryStore:
         assert params['pageSize'] == 10
         assert params['pageToken'] == "token123"
 
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_experiments(self, mock_request, store):
+        """Test searching experiments."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "id": "1", 
+                    "name": "exp1", 
+                    "state": "LIVE",
+                    "externalId": "s3://bucket/artifacts1",
+                    "customProperties": {
+                        "tag1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
+                    }
+                },
+                {
+                    "id": "2", 
+                    "name": "exp2", 
+                    "state": "ARCHIVED",
+                    "externalId": "s3://bucket/artifacts2",
+                    "customProperties": {
+                        "tag2": {"string_value": "value2", "metadataType": "MetadataStringValue"}
+                    }
+                }
+            ],
+            "nextPageToken": "token123"
+        }
+        mock_request.return_value = mock_response
+        
+        result = store.search_experiments(
+            view_type=ViewType.ALL,
+            max_results=10,
+            filter_string="name='exp1'",
+            order_by=["name"],
+            page_token="token123"
+        )
+        
+        assert isinstance(result, PagedList)
+        assert len(result) == 2
+        assert result[0].experiment_id == "1"
+        assert result[0].name == "exp1"
+        assert len(result[0].tags) == 1
+        assert result[0].tags["tag1"] == "value1"
+        assert result[1].experiment_id == "2"
+        assert result[1].name == "exp2"
+        assert len(result[1].tags) == 1
+        assert result[1].tags["tag2"] == "value2"
+        assert result.token == "token123"
+        
+        # Verify API call parameters
+        mock_request.assert_called_once()
+        call_args = mock_request.call_args
+        assert call_args[0][0] == "GET"  # method
+        assert "/experiments" in call_args[0][1]  # endpoint
+        params = call_args[1]['params']
+        assert params['pageSize'] == 10
+        assert params['pageToken'] == "token123"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_experiments_active_only(self, mock_request, store):
+        """Test searching experiments with ACTIVE_ONLY view type."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "id": "1", 
+                    "name": "exp1", 
+                    "state": "LIVE",
+                    "externalId": "s3://bucket/artifacts1",
+                    "customProperties": {}
+                },
+                {
+                    "id": "2", 
+                    "name": "exp2", 
+                    "state": "ARCHIVED",
+                    "externalId": "s3://bucket/artifacts2",
+                    "customProperties": {}
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        result = store.search_experiments(view_type=ViewType.ACTIVE_ONLY)
+        
+        # Should only return active experiments
+        assert len(result) == 1
+        assert result[0].experiment_id == "1"
+        assert result[0].name == "exp1"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_experiments_deleted_only(self, mock_request, store):
+        """Test searching experiments with DELETED_ONLY view type."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "id": "1", 
+                    "name": "exp1", 
+                    "state": "LIVE",
+                    "externalId": "s3://bucket/artifacts1",
+                    "customProperties": {}
+                },
+                {
+                    "id": "2", 
+                    "name": "exp2", 
+                    "state": "ARCHIVED",
+                    "externalId": "s3://bucket/artifacts2",
+                    "customProperties": {}
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        result = store.search_experiments(view_type=ViewType.DELETED_ONLY)
+        
+        # Should only return deleted experiments
+        assert len(result) == 1
+        assert result[0].experiment_id == "2"
+        assert result[0].name == "exp2"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_experiments_with_filter_string(self, mock_request, store):
+        """Test searching experiments with filter string (should be ignored for now)."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {"items": []}
+        mock_request.return_value = mock_response
+        
+        # This should not raise an error even though filter_string is not supported yet
+        result = store.search_experiments(filter_string="name='test'")
+        
+        assert isinstance(result, PagedList)
+        assert len(result) == 0
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_experiments_with_order_by(self, mock_request, store):
+        """Test searching experiments with order_by (should be ignored for now)."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {"items": []}
+        mock_request.return_value = mock_response
+        
+        # This should not raise an error even though order_by is not supported yet
+        result = store.search_experiments(order_by=["name"])
+        
+        assert isinstance(result, PagedList)
+        assert len(result) == 0
+
     # Run operations tests
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_run(self, mock_request, store):
@@ -545,7 +701,174 @@ class TestModelRegistryStore:
         assert metrics[0].key == "accuracy"
         assert metrics[0].value == 0.95
         assert metrics[0].step == 1
-    
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history(self, mock_request, store):
+        """Test getting metric history for a specific metric key."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": "0.95",
+                    "timestamp": "1234567890",
+                    "step": "1",
+                    "createTimeSinceEpoch": "1234567890"
+                },
+                {
+                    "name": "accuracy",
+                    "value": "0.97",
+                    "timestamp": "1234567891",
+                    "step": "2",
+                    "createTimeSinceEpoch": "1234567891"
+                },
+                {
+                    "name": "loss",
+                    "value": "0.1",
+                    "timestamp": "1234567892",
+                    "step": "1",
+                    "createTimeSinceEpoch": "1234567892"
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        # Get metric history for "accuracy"
+        metrics = store.get_metric_history("run-123", "accuracy")
+        
+        assert len(metrics) == 2
+        assert all(metric.key == "accuracy" for metric in metrics)
+        assert metrics[0].value == 0.95
+        assert metrics[0].step == 1
+        assert metrics[1].value == 0.97
+        assert metrics[1].step == 2
+        
+        # Verify metrics are sorted by timestamp and step
+        assert metrics[0].timestamp <= metrics[1].timestamp
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history_empty(self, mock_request, store):
+        """Test getting metric history when no metrics exist."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {"items": []}
+        mock_request.return_value = mock_response
+        
+        metrics = store.get_metric_history("run-123", "nonexistent")
+        
+        assert len(metrics) == 0
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history_with_max_results(self, mock_request, store):
+        """Test getting metric history with max_results limit."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": "0.95",
+                    "timestamp": "1234567890",
+                    "step": "1",
+                    "createTimeSinceEpoch": "1234567890"
+                },
+                {
+                    "name": "accuracy",
+                    "value": "0.97",
+                    "timestamp": "1234567891",
+                    "step": "2",
+                    "createTimeSinceEpoch": "1234567891"
+                },
+                {
+                    "name": "accuracy",
+                    "value": "0.98",
+                    "timestamp": "1234567892",
+                    "step": "3",
+                    "createTimeSinceEpoch": "1234567892"
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        # Get metric history with max_results=2
+        metrics = store.get_metric_history("run-123", "accuracy", max_results=2)
+        
+        assert len(metrics) == 2
+        assert all(metric.key == "accuracy" for metric in metrics)
+        # Should return the first 2 metrics (sorted by timestamp and step)
+        assert metrics[0].step == 1
+        assert metrics[1].step == 2
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history_with_page_token(self, mock_request, store):
+        """Test getting metric history with page_token (should be ignored for now)."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": "0.95",
+                    "timestamp": "1234567890",
+                    "step": "1",
+                    "createTimeSinceEpoch": "1234567890"
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        # This should not raise an error even though page_token is not fully implemented yet
+        metrics = store.get_metric_history("run-123", "accuracy", page_token="token123")
+        
+        assert len(metrics) == 1
+        assert metrics[0].key == "accuracy"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history_sorting(self, mock_request, store):
+        """Test that metric history is properly sorted by timestamp and step."""
+        # Mock the raw response from Model Registry API with unsorted data
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": "0.97",
+                    "timestamp": "1234567891",
+                    "step": "2",
+                    "createTimeSinceEpoch": "1234567891"
+                },
+                {
+                    "name": "accuracy",
+                    "value": "0.95",
+                    "timestamp": "1234567890",
+                    "step": "1",
+                    "createTimeSinceEpoch": "1234567890"
+                },
+                {
+                    "name": "accuracy",
+                    "value": "0.98",
+                    "timestamp": "1234567890",
+                    "step": "3",
+                    "createTimeSinceEpoch": "1234567890"
+                }
+            ]
+        }
+        mock_request.return_value = mock_response
+        
+        metrics = store.get_metric_history("run-123", "accuracy")
+        
+        assert len(metrics) == 3
+        # Should be sorted by timestamp first, then step
+        assert metrics[0].timestamp == 1234567890 and metrics[0].step == 1
+        assert metrics[1].timestamp == 1234567890 and metrics[1].step == 3
+        assert metrics[2].timestamp == 1234567891 and metrics[2].step == 2
+
     @patch('modelregistry_plugin.store.requests.request')
     def test_log_param(self, mock_request, store):
         """Test logging a parameter."""
@@ -1138,7 +1461,7 @@ class TestModelRegistryStore:
 
     # Search runs test
     @patch('modelregistry_plugin.store.requests.request')
-    def test_search_runs(self, mock_request, store):
+    def test_search_runs_all(self, mock_request, store):
         """Test searching runs."""
         # Mock the raw response from Model Registry API for search request
         mock_response_search = Mock(spec=requests.Response)
@@ -1185,6 +1508,134 @@ class TestModelRegistryStore:
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
         assert result.token == "token123"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_runs_active_only(self, mock_request, store):
+        """Test searching runs with ACTIVE_ONLY view type."""
+        # Mock the raw response from Model Registry API for search request
+        mock_response_search = Mock(spec=requests.Response)
+        mock_response_search.ok = True
+        mock_response_search.json.return_value = {
+            "items": [
+                {
+                    "id": "run-123",
+                    "experimentId": "exp-123",
+                    "name": "active-run",
+                    "state": "LIVE",  # Active run
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "customProperties": {}
+                },
+                {
+                    "id": "run-456",
+                    "experimentId": "exp-123",
+                    "name": "deleted-run",
+                    "state": "ARCHIVED",  # Deleted run
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "customProperties": {}
+                }
+            ],
+            "nextPageToken": "token123"
+        }
+        # Mock the raw response from Model Registry API for metrics request (for active run)
+        mock_response_metrics_active = Mock(spec=requests.Response)
+        mock_response_metrics_active.ok = True
+        mock_response_metrics_active.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for params request (for active run)
+        mock_response_params_active = Mock(spec=requests.Response)
+        mock_response_params_active.ok = True
+        mock_response_params_active.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for metrics request (for deleted run)
+        mock_response_metrics_deleted = Mock(spec=requests.Response)
+        mock_response_metrics_deleted.ok = True
+        mock_response_metrics_deleted.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for params request (for deleted run)
+        mock_response_params_deleted = Mock(spec=requests.Response)
+        mock_response_params_deleted.ok = True
+        mock_response_params_deleted.json.return_value = {"items": []}
+        
+        mock_request.side_effect = [
+            mock_response_search,      # search request
+            mock_response_metrics_active,   # metrics request for active run
+            mock_response_params_active,    # params request for active run
+            mock_response_metrics_deleted,  # metrics request for deleted run
+            mock_response_params_deleted    # params request for deleted run
+        ]
+        
+        result = store.search_runs(
+            ["exp-123"],
+            run_view_type=ViewType.ACTIVE_ONLY
+        )
+        
+        # Should return all runs since filtering is not implemented yet
+        assert isinstance(result, PagedList)
+        assert len(result) == 1
+        assert result[0].info.run_id == "run-123"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_search_runs_deleted_only(self, mock_request, store):
+        """Test searching runs with DELETED_ONLY view type."""
+        # Mock the raw response from Model Registry API for search request
+        mock_response_search = Mock(spec=requests.Response)
+        mock_response_search.ok = True
+        mock_response_search.json.return_value = {
+            "items": [
+                {
+                    "id": "run-123",
+                    "experimentId": "exp-123",
+                    "name": "active-run",
+                    "state": "LIVE",  # Active run
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "customProperties": {}
+                },
+                {
+                    "id": "run-456",
+                    "experimentId": "exp-123",
+                    "name": "deleted-run",
+                    "state": "ARCHIVED",  # Deleted run
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "customProperties": {}
+                }
+            ],
+            "nextPageToken": "token123"
+        }
+        # Mock the raw response from Model Registry API for metrics request (for active run)
+        mock_response_metrics_active = Mock(spec=requests.Response)
+        mock_response_metrics_active.ok = True
+        mock_response_metrics_active.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for params request (for active run)
+        mock_response_params_active = Mock(spec=requests.Response)
+        mock_response_params_active.ok = True
+        mock_response_params_active.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for metrics request (for deleted run)
+        mock_response_metrics_deleted = Mock(spec=requests.Response)
+        mock_response_metrics_deleted.ok = True
+        mock_response_metrics_deleted.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for params request (for deleted run)
+        mock_response_params_deleted = Mock(spec=requests.Response)
+        mock_response_params_deleted.ok = True
+        mock_response_params_deleted.json.return_value = {"items": []}
+        
+        mock_request.side_effect = [
+            mock_response_search,      # search request
+            mock_response_metrics_active,   # metrics request for active run
+            mock_response_params_active,    # params request for active run
+            mock_response_metrics_deleted,  # metrics request for deleted run
+            mock_response_params_deleted    # params request for deleted run
+        ]
+        
+        result = store.search_runs(
+            ["exp-123"],
+            run_view_type=ViewType.DELETED_ONLY
+        )
+        
+        # Should return all runs since filtering is not implemented yet
+        assert isinstance(result, PagedList)
+        assert len(result) == 1
+        assert result[0].info.run_id == "run-456"
 
     # Error handling tests
     @patch('modelregistry_plugin.store.requests.request')
