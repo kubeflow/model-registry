@@ -159,7 +159,8 @@ gen/gorm/mysql: bin/golang-migrate start/mysql
 gen/gorm/postgres: bin/golang-migrate start/postgres
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
-	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable')
+	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
+	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)
 # Use GORM_DB_TYPE=postgres to generate for PostgreSQL instead
