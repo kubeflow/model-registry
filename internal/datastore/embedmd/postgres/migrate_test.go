@@ -24,7 +24,7 @@ type Type struct {
 }
 
 func (Type) TableName() string {
-	return "type"
+	return "Type"
 }
 
 // TypeProperty represents the TypeProperty table structure
@@ -37,7 +37,7 @@ type TypeProperty struct {
 }
 
 func (TypeProperty) TableName() string {
-	return "typeproperty"
+	return "TypeProperty"
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, func()) {
@@ -97,7 +97,7 @@ func TestMigrations(t *testing.T) {
 
 	// Verify MLMDEnv table
 	var schemaVersion int
-	err = db.Raw("SELECT schema_version FROM MLMDEnv LIMIT 1").Scan(&schemaVersion).Error
+	err = db.Raw("SELECT schema_version FROM \"MLMDEnv\" LIMIT 1").Scan(&schemaVersion).Error
 	require.NoError(t, err)
 	assert.Equal(t, 10, schemaVersion)
 
