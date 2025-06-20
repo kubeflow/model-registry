@@ -19,7 +19,7 @@ import { ModelRegistryKind } from 'mod-arch-shared';
 
 type CreateModalProps = {
   onClose: () => void;
-  refresh: () => Promise<unknown>;
+  refresh: () => void;
   modelRegistry?: ModelRegistryKind;
 };
 

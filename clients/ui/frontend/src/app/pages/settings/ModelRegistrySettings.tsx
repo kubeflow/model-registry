@@ -89,7 +89,8 @@ const ModelRegistrySettings: React.FC = () => {
       {createModalOpen ? (
         <CreateModal
           onClose={() => setCreateModalOpen(false)}
-          refresh={() => Promise.resolve(undefined)}
+          refresh={() => {}}
+          //  refresh={refreshAll}
         />
       ) : null}
     </>

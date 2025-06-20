@@ -13,8 +13,6 @@ export const filterRoleBindingSubjects = (
       !(roles.metadata.labels?.['opendatahub.io/rb-project-subject'] === 'true'),
   );
 
-export const removePrefix = (roleBindings: RoleBindingKind[]): string[] =>
-  roleBindings.map((rb) => rb.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''));
 
 export const castRoleBindingPermissionsRoleType = (
   role: string,

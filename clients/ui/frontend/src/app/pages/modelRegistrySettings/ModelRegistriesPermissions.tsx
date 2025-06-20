@@ -1,5 +1,11 @@
 import React from 'react';
-import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  PageSection,
+  Tab,
+  Tabs,
+} from '@patternfly/react-core';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
@@ -12,7 +18,6 @@ import {
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
-import ProjectsSettingsTab from '~/app/pages/modelRegistrySettings/ProjectsTab/ProjectsSettingsTab';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
 
@@ -63,24 +68,21 @@ const ModelRegistriesManagePermissions: React.FC = () => {
       title={`Manage ${mrName ?? ''} permissions`}
       description="Manage access to this model registry for individual users and user groups, and for service accounts in a project."
       breadcrumb={
-        <Breadcrumbs>
-          <MUILink component={Link} to="/modelRegistrySettings">
-            Model registry settings
-          </MUILink>
-          <Typography color="text.primary">Manage Permissions</Typography>
-        </Breadcrumbs>
+        <Breadcrumb>
+          <BreadcrumbItem>
+            <Link to="/modelRegistrySettings">Model registry settings</Link>
+          </BreadcrumbItem>
+          <BreadcrumbItem isActive>Manage Permissions</BreadcrumbItem>
+        </Breadcrumb>
       }
       loaded
       empty={false}
-      provideChildrenPadding
     >
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTabKey} onChange={(e, newValue) => setActiveTabKey(newValue)}>
-          <Tab label="Users" />
-          <Tab label="Projects" />
-        </Tabs>
-      </Box>
-      <Box sx={{ pt: 2 }}>
+      <Tabs activeKey={activeTabKey} onSelect={(_e, tabIndex) => setActiveTabKey(tabIndex as number)}>
+        <Tab eventKey={0} title="Users" />
+        <Tab eventKey={1} title="Projects" />
+      </Tabs>
+      <PageSection isFilled>
         {activeTabKey === 0 && (
           <RoleBindingPermissions
             ownerReference={ownerReference}
@@ -100,22 +102,8 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             roleRefName={`registry-user-${mrName ?? ''}`}
           />
         )}
-        {activeTabKey === 1 && (
-          <ProjectsSettingsTab
-            ownerReference={ownerReference}
-            projectName={modelRegistryNamespace}
-            roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
-            permissionOptions={[
-              {
-                type: RoleBindingPermissionsRoleType.DEFAULT,
-                description: 'Default role for all projects',
-              },
-            ]}
-            description="To enable access for all service accounts in a project, add the project name to the projects list."
-            roleRefName={`registry-user-${mrName ?? ''}`}
-          />
-        )}
-      </Box>
+        {/* TODO: Projects tab */}
+      </PageSection>
     </ApplicationsPage>
   );
 };

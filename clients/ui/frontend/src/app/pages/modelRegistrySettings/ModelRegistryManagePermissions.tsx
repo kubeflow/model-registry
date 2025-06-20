@@ -12,7 +12,6 @@ import {
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
-import ProjectsSettingsTab from '~/app/pages/modelRegistrySettings/ProjectsTab/ProjectsSettingsTab';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
 
@@ -100,21 +99,7 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             roleRefName={`registry-user-${mrName ?? ''}`}
           />
         )}
-        {activeTabKey === 1 && (
-          <ProjectsSettingsTab
-            ownerReference={ownerReference}
-            projectName={modelRegistryNamespace}
-            roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
-            permissionOptions={[
-              {
-                type: RoleBindingPermissionsRoleType.DEFAULT,
-                description: 'Default role for all projects',
-              },
-            ]}
-            description="To enable access for all service accounts in a project, add the project name to the projects list."
-            roleRefName={`registry-user-${mrName ?? ''}`}
-          />
-        )}
+        {/* TODO: Projects tab */}
       </Box>
     </ApplicationsPage>
   );
