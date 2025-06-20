@@ -76,7 +76,11 @@ func (c *TLSConfig) BuildTLSConfig() (*tls.Config, error) {
 	}
 
 	if c.Cipher != "" {
-		cipherSuites := parseCipherSuites(c.Cipher)
+		cipherSuites, err := parseCipherSuites(c.Cipher)
+		if err != nil {
+			return nil, err
+		}
+
 		if len(cipherSuites) > 0 {
 			tlsConfig.CipherSuites = cipherSuites
 		}
@@ -87,9 +91,9 @@ func (c *TLSConfig) BuildTLSConfig() (*tls.Config, error) {
 
 // parseCipherSuites parses a colon-separated list of cipher suite names
 // and returns the corresponding cipher suite IDs
-func parseCipherSuites(cipherStr string) []uint16 {
+func parseCipherSuites(cipherStr string) ([]uint16, error) {
 	if cipherStr == "" {
-		return nil
+		return nil, nil
 	}
 
 	cipherMap := map[string]uint16{
@@ -127,8 +131,10 @@ func parseCipherSuites(cipherStr string) []uint16 {
 		cipher = strings.TrimSpace(cipher)
 		if cipherID, exists := cipherMap[cipher]; exists {
 			cipherSuites = append(cipherSuites, cipherID)
+		} else {
+			return nil, fmt.Errorf("invalid cipher suite: %s", cipher)
 		}
 	}
 
-	return cipherSuites
+	return cipherSuites, nil
 }

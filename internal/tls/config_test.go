@@ -281,6 +281,13 @@ func TestBuildTLSConfig_ErrorCases(t *testing.T) {
 			},
 			wantErrorMsg: "failed to parse SSL root certificate",
 		},
+		{
+			name: "invalid cipher suites",
+			setupConfig: func(t *testing.T) *tlsconfig.TLSConfig {
+				return tlsconfig.NewTLSConfig("", "", "", "", "INVALID_CIPHER_SUITE:ANOTHER_INVALID_CIPHER", false)
+			},
+			wantErrorMsg: "invalid cipher suite",
+		},
 	}
 
 	for _, tt := range tests {
@@ -332,15 +339,15 @@ func TestParseCipherSuites(t *testing.T) {
 			expected:    []uint16{tls.TLS_AES_256_GCM_SHA384, tls.TLS_AES_128_GCM_SHA256},
 		},
 		{
-			name:        "unknown cipher ignored",
+			name:        "mixed valid and invalid ciphers should error",
 			cipherStr:   "TLS_AES_256_GCM_SHA384:UNKNOWN_CIPHER:TLS_AES_128_GCM_SHA256",
-			expectedLen: 2,
-			expected:    []uint16{tls.TLS_AES_256_GCM_SHA384, tls.TLS_AES_128_GCM_SHA256},
+			expectedLen: -1, // Should error on first invalid cipher
+			expected:    nil,
 		},
 		{
-			name:        "all unknown ciphers",
+			name:        "all unknown ciphers should error",
 			cipherStr:   "UNKNOWN_CIPHER1:UNKNOWN_CIPHER2",
-			expectedLen: 0,
+			expectedLen: -1, // Special value to indicate we expect an error
 			expected:    nil,
 		},
 		{
@@ -361,6 +368,18 @@ func TestParseCipherSuites(t *testing.T) {
 			// Since we can't access unexported functions directly, we'll test through BuildTLSConfig
 			config := tlsconfig.NewTLSConfig("", "", "", "", tt.cipherStr, false)
 			tlsConf, err := config.BuildTLSConfig()
+
+			if tt.expectedLen == -1 {
+				// We expect an error for invalid ciphers
+				if err == nil {
+					t.Errorf("Expected error for invalid cipher suite, got nil")
+					return
+				}
+				if !strings.Contains(err.Error(), "invalid cipher suite") {
+					t.Errorf("Expected error to contain 'invalid cipher suite', got: %v", err)
+				}
+				return
+			}
 
 			if err != nil {
 				t.Fatalf("BuildTLSConfig() error = %v", err)
