@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/tls"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
@@ -18,6 +19,7 @@ const (
 type EmbedMDConfig struct {
 	DatabaseType string
 	DatabaseDSN  string
+	TLSConfig    *tls.TLSConfig
 }
 
 func (c *EmbedMDConfig) Validate() error {
@@ -34,7 +36,7 @@ type EmbedMDService struct {
 }
 
 func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
-	dbConnector, err := db.NewConnector(cfg.DatabaseType, cfg.DatabaseDSN)
+	dbConnector, err := db.NewConnector(cfg.DatabaseType, cfg.DatabaseDSN, cfg.TLSConfig)
 	if err != nil {
 		return nil, err
 	}
