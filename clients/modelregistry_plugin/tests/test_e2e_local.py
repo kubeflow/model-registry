@@ -15,6 +15,7 @@ import tempfile
 import shutil
 import signal
 import threading
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -48,7 +49,7 @@ class LocalModelRegistryServer:
         db_path = self.temp_dir / "metadata.sqlite.db"
         conn_config_content = f"""connection_config {{
   sqlite {{
-    filename_uri: '{db_path}'
+    filename_uri: '/tmp/shared/metadata.sqlite.db'
     connection_mode: READWRITE_OPENCREATE
   }}
 }}
@@ -101,36 +102,18 @@ class LocalModelRegistryServer:
             # Get the project root (two levels up from the plugin directory)
             project_root = Path(__file__).parent.parent.parent.parent
             
-            # Build the Model Registry server
-            print("🔨 Building Model Registry server...")
-            build_result = subprocess.run(
-                ['make', 'build'],
-                cwd=project_root,
-                capture_output=True,
-                text=True
-            )
+            print(f"🚀 Starting Model Registry server with Go, connecting to MLMD on localhost:{self.mlmd_port}")
             
-            if build_result.returncode != 0:
-                print(f"Build stdout: {build_result.stdout}")
-                print(f"Build stderr: {build_result.stderr}")
-                raise RuntimeError(f"Failed to build Model Registry: {build_result.stderr}")
-            
-            # Start Model Registry server
-            model_registry_bin = project_root / "model-registry"
-            if not model_registry_bin.exists():
-                raise RuntimeError("Model Registry binary not found after build")
-            
-            print(f"🚀 Starting Model Registry server, connecting to MLMD on localhost:{self.mlmd_port}")
-            
+            # Start Model Registry server using Go command
             self.model_registry_process = subprocess.Popen([
-                str(model_registry_bin),
-                'proxy',
+                'go', 'run', 'main.go',
+                'proxy', '0.0.0.0',
                 '--hostname', '0.0.0.0',
                 '--port', str(self.model_registry_port),
                 '--mlmd-hostname', 'localhost',
                 '--mlmd-port', str(self.mlmd_port),  # Use the MLMD port (9090)
                 '--datastore-type', 'mlmd'
-            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ], cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             
             # Wait for Model Registry server to start
             time.sleep(10)
@@ -168,28 +151,77 @@ class LocalModelRegistryServer:
         """Stop both servers and clean up."""
         print("🛑 Stopping local Model Registry test environment...")
         
+        # Stop Model Registry server
         if self.model_registry_process:
-            self.model_registry_process.terminate()
             try:
-                self.model_registry_process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                self.model_registry_process.kill()
+                print("  🛑 Stopping Model Registry server...")
+                self.model_registry_process.terminate()
+                try:
+                    self.model_registry_process.wait(timeout=10)
+                    print("  ✅ Model Registry server stopped gracefully")
+                except subprocess.TimeoutExpired:
+                    print("  ⚠️  Model Registry server didn't stop gracefully, killing...")
+                    self.model_registry_process.kill()
+                    try:
+                        self.model_registry_process.wait(timeout=5)
+                        print("  ✅ Model Registry server killed")
+                    except subprocess.TimeoutExpired:
+                        print("  ❌ Failed to kill Model Registry server")
+            except Exception as e:
+                print(f"  ❌ Error stopping Model Registry server: {e}")
         
+        # Stop MLMD server
         if self.mlmd_server_process:
-            self.mlmd_server_process.terminate()
             try:
-                self.mlmd_server_process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                self.mlmd_server_process.kill()
+                print("  🛑 Stopping MLMD server...")
+                self.mlmd_server_process.terminate()
+                try:
+                    self.mlmd_server_process.wait(timeout=10)
+                    print("  ✅ MLMD server stopped gracefully")
+                except subprocess.TimeoutExpired:
+                    print("  ⚠️  MLMD server didn't stop gracefully, killing...")
+                    self.mlmd_server_process.kill()
+                    try:
+                        self.mlmd_server_process.wait(timeout=5)
+                        print("  ✅ MLMD server killed")
+                    except subprocess.TimeoutExpired:
+                        print("  ❌ Failed to kill MLMD server")
+            except Exception as e:
+                print(f"  ❌ Error stopping MLMD server: {e}")
         
-        # Clean up Docker containers
+        # Clean up Docker containers (MLMD server)
         try:
-            subprocess.run(['docker', 'ps', '-q', '--filter', 'ancestor=gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0'], 
-                         capture_output=True, text=True, check=True)
-            subprocess.run(['docker', 'stop', '$(docker ps -q --filter ancestor=gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0)'], 
-                         shell=True, capture_output=True)
-        except:
-            pass  # Ignore cleanup errors
+            print("  🐳 Cleaning up Docker containers...")
+            # Find running MLMD containers
+            result = subprocess.run(
+                ['docker', 'ps', '-q', '--filter', 'ancestor=gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0'], 
+                capture_output=True, text=True, check=False
+            )
+            
+            if result.returncode == 0 and result.stdout.strip():
+                container_ids = result.stdout.strip().split('\n')
+                for container_id in container_ids:
+                    if container_id.strip():
+                        print(f"    🛑 Stopping Docker container: {container_id}")
+                        subprocess.run(
+                            ['docker', 'stop', container_id], 
+                            capture_output=True, text=True, check=False
+                        )
+                        print(f"    🗑️  Removing Docker container: {container_id}")
+                        subprocess.run(
+                            ['docker', 'rm', container_id], 
+                            capture_output=True, text=True, check=False
+                        )
+                print("  ✅ Docker containers cleaned up")
+            else:
+                print("  ℹ️  No running MLMD Docker containers found")
+                
+        except Exception as e:
+            print(f"  ❌ Error cleaning up Docker containers: {e}")
+        
+        # Reset process references
+        self.model_registry_process = None
+        self.mlmd_server_process = None
         
         print("✅ Local Model Registry test environment stopped.")
 
@@ -197,21 +229,69 @@ class LocalModelRegistryServer:
 class TestModelRegistryStoreE2ELocal:
     """End-to-end tests for ModelRegistryStore with local Model Registry server."""
     
+    # Class-level storage for cleanup
+    _local_server = None
+    
+    @classmethod
+    def setup_class(cls):
+        """Setup signal handlers for graceful cleanup."""
+        def signal_handler(signum, frame):
+            print(f"\n🛑 Received signal {signum}, cleaning up...")
+            if cls._local_server:
+                try:
+                    cls._local_server.stop()
+                except Exception as e:
+                    print(f"❌ Error during signal cleanup: {e}")
+            sys.exit(1)
+        
+        # Register signal handlers for graceful cleanup
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+    
+    @classmethod
+    def teardown_class(cls):
+        """Ensure cleanup happens at class teardown."""
+        if cls._local_server:
+            try:
+                cls._local_server.stop()
+            except Exception as e:
+                print(f"❌ Error during class teardown cleanup: {e}")
+    
     @pytest.fixture(scope="class")
     def local_server(self):
         """Start and manage a local Model Registry server."""
         # Create temporary directory for test data under /tmp for Docker compatibility
+        # TODO switch to a temp directory in the module directory
         temp_dir = Path(tempfile.mkdtemp(dir='/tmp', prefix="model_registry_e2e_"))
         
         server = LocalModelRegistryServer(temp_dir)
         
         try:
             server.start()
+            # Store reference for class-level cleanup
+            TestModelRegistryStoreE2ELocal._local_server = server
             yield server
+        except Exception as e:
+            print(f"❌ Failed to start local server: {e}")
+            # Ensure cleanup happens even if startup fails
+            try:
+                server.stop()
+            except Exception as cleanup_error:
+                print(f"❌ Error during cleanup after startup failure: {cleanup_error}")
+            raise  # Re-raise the original error
         finally:
-            server.stop()
+            # Always ensure cleanup happens
+            try:
+                server.stop()
+            except Exception as e:
+                print(f"❌ Error during final cleanup: {e}")
             # Clean up temporary directory
-            shutil.rmtree(temp_dir, ignore_errors=True)
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception as e:
+                print(f"❌ Error cleaning up temp directory: {e}")
+            # Clear class reference
+            TestModelRegistryStoreE2ELocal._local_server = None
     
     @pytest.fixture(scope="class")
     def store(self, local_server):
