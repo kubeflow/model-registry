@@ -1731,6 +1731,7 @@ components:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
+        - NAME
       type: string
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.

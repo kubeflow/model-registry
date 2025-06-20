@@ -27,8 +27,9 @@ COPY api/ api/
 COPY internal/ internal/
 COPY scripts/ scripts/
 COPY pkg/ pkg/
-COPY patches/ patches/
 COPY templates/ templates/
+COPY catalog/ catalog/
+COPY patches/ patches/
 
 # Download tools
 RUN make deps
