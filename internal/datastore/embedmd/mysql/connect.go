@@ -52,7 +52,7 @@ func (c *MySQLDBConnector) DB() *gorm.DB {
 }
 
 func (c *MySQLDBConnector) needsTLSConfig() bool {
-	return c.TLSConfig.CertPath != "" || c.TLSConfig.KeyPath != "" || c.TLSConfig.RootCertPath != "" || c.TLSConfig.CAPath != "" || c.TLSConfig.Cipher != "" || c.TLSConfig.VerifyServerCert
+	return c.TLSConfig != nil && (c.TLSConfig.CertPath != "" || c.TLSConfig.KeyPath != "" || c.TLSConfig.RootCertPath != "" || c.TLSConfig.CAPath != "" || c.TLSConfig.Cipher != "" || c.TLSConfig.VerifyServerCert)
 }
 
 func (c *MySQLDBConnector) registerTLSConfig() error {
