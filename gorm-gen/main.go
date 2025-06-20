@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 )
 
@@ -28,13 +30,26 @@ func genModels(g *gen.Generator, db *gorm.DB, tables []string) (err error) {
 		}
 	}
 
+	// Custom ModelOpt to remove default tag for nullable fields
+	modelOpt := gen.FieldGORMTag("*", func(tag field.GormTag) field.GormTag {
+		if vals, ok := tag["default"]; ok {
+			if len(vals) > 0 {
+				val := strings.Trim(strings.TrimSpace(vals[0]), `"'`)
+				if strings.ToUpper(val) == "NULL" || val == "0" || val == "" {
+					tag.Remove("default")
+				}
+			}
+		}
+		return tag
+	})
+
 	// Execute some data table tasks
 	for _, tableName := range tables {
 		if tableName == "Type" {
 			// Special handling for Type table to set TypeKind as int32
-			g.GenerateModel(tableName, gen.FieldType("type_kind", "int32"))
+			g.GenerateModel(tableName, gen.FieldType("type_kind", "int32"), modelOpt)
 		} else {
-			g.GenerateModel(tableName)
+			g.GenerateModel(tableName, modelOpt)
 		}
 	}
 	return nil
@@ -101,7 +116,7 @@ func runGenerate() error {
 	fmt.Println("Database connection successful!")
 
 	// Initialize the generator with configuration for models only
-	g := gen.NewGenerator(gen.Config{
+	config := gen.Config{
 		OutPath:           "../internal/db/schema",
 		ModelPkgPath:      "schema",
 		Mode:              0,
@@ -110,7 +125,17 @@ func runGenerate() error {
 		FieldSignable:     true,
 		FieldWithIndexTag: false,
 		FieldWithTypeTag:  false,
-	})
+	}
+
+	if dbType == "postgres" || dbType == "postgresql" {
+		dataTypeMap := map[string]func(gorm.ColumnType) string{
+			"bytea": func(columnType gorm.ColumnType) string {
+				return "[]byte"
+			},
+		}
+		config.WithDataTypeMap(dataTypeMap)
+	}
+	g := gen.NewGenerator(config)
 
 	// Use the database connection
 	g.UseDB(db)
