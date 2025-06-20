@@ -355,7 +355,7 @@ class ModelRegistryStore:
             "artifactType": "metric",
             "name": metric.key,
             "value": metric.value,
-            "step": str(metric.step or 0),
+            "step": metric.step or 0,
             "timestamp": str(metric.timestamp or time.get_current_time_millis()),
             "customProperties": {},
         }
@@ -376,7 +376,7 @@ class ModelRegistryStore:
                 key=metric_data["name"],
                 value=float(metric_data["value"]),
                 timestamp=int(metric_data.get("timestamp") or metric_data.get("createTimeSinceEpoch")),
-                step=int(metric_data.get("step", "0")),
+                step=metric_data.get("step") or 0,
             ))
         return metrics
     
@@ -472,7 +472,7 @@ class ModelRegistryStore:
         self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
     
     # Search operations (simplified implementation)
-    def _search_runs(self, experiment_ids: List[str], filter_string: str = "", 
+    def search_runs(self, experiment_ids: List[str], filter_string: str = "",
                    run_view_type=None, max_results: int = 1000, 
                    order_by: List[str] = None, page_token: str = None):
         """Search for runs."""
@@ -500,7 +500,7 @@ class ModelRegistryStore:
                     continue
                 all_runs.append(run)
                 
-        return (all_runs, response.json().get("nextPageToken"))
+        return PagedList(all_runs, response.json().get("nextPageToken"))
 
     def _getMLflowRun(self, run_data):
         # Import MLflow entities locally to avoid circular imports
