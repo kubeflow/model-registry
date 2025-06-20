@@ -147,12 +147,29 @@ start/postgres:
 stop/postgres:
 	./scripts/teardown_postgres_db.sh
 
-# generate the gorm structs
-.PHONY: gen/gorm
-gen/gorm: bin/golang-migrate start/mysql
+# generate the gorm structs for MySQL
+.PHONY: gen/gorm/mysql
+gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
 	cd gorm-gen && go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
+
+# generate the gorm structs for PostgreSQL
+.PHONY: gen/gorm/postgres
+gen/gorm/postgres: bin/golang-migrate start/postgres
+	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
+	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable')
+
+# generate the gorm structs (defaults to MySQL for backward compatibility)
+# Use GORM_DB_TYPE=postgres to generate for PostgreSQL instead
+.PHONY: gen/gorm
+gen/gorm: bin/golang-migrate
+ifeq ($(GORM_DB_TYPE),postgres)
+	$(MAKE) gen/gorm/postgres
+else
+	$(MAKE) gen/gorm/mysql
+endif
 
 .PHONY: vet
 vet:
