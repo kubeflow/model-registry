@@ -30,7 +30,7 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 			return
 		}
 
-		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn)
+		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn, nil)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("database new connector error: %s", err), http.StatusServiceUnavailable)
 			return
