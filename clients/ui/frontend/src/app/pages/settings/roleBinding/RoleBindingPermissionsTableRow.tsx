@@ -29,7 +29,7 @@ import {
   firstSubject,
   roleLabel,
   isCurrentUserChanging,
-} from './utils';
+} from '~/app/pages/settings/roleBinding/utils';
 import { RoleBindingPermissionsRoleType } from './types';
 import RoleBindingPermissionsNameInput from './RoleBindingPermissionsNameInput';
 import RoleBindingPermissionsPermissionSelection from './RoleBindingPermissionsPermissionSelection';
@@ -69,6 +69,7 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
   onEdit,
   onDelete,
 }) => {
+  // TODO: We don't have project context yet and need to add logic to show projects permission tab under manage permissions of MR - might need to move the project-context part to shared library
   const currentUser = useUser();
   const isCurrentUserBeingChanged = isCurrentUserChanging(obj, currentUser.userId);
   const [roleBindingName, setRoleBindingName] = React.useState(() => {

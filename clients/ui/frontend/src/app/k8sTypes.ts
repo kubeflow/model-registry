@@ -1,5 +1,4 @@
-import { K8sResourceCommon } from 'mod-arch-shared';
-import { EitherNotBoth } from '~/typeHelpers';
+import { K8sResourceCommon, EitherNotBoth } from 'mod-arch-shared';
 
 export type K8sModel = {
   apiGroup: string;

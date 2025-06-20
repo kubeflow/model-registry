@@ -1,8 +1,11 @@
 import React from 'react';
 import { SimpleSelect } from 'mod-arch-shared';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
-import { RoleBindingPermissionsRoleType } from './types';
-import { castRoleBindingPermissionsRoleType, roleLabel } from './utils';
+import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+import {
+  castRoleBindingPermissionsRoleType,
+  roleLabel,
+} from '~/app/pages/settings/roleBinding/utils';
 
 type RoleBindingPermissionsPermissionSelectionProps = {
   selection: RoleBindingPermissionsRoleType;

@@ -1,4 +1,4 @@
-import { EitherOrBoth } from '~/typeHelpers';
+import { EitherOrBoth } from 'mod-arch-shared';
 import {
   DashboardCommonConfig,
   DataScienceClusterInitializationKindStatus,

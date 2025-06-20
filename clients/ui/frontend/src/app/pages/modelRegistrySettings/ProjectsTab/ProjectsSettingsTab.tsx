@@ -9,7 +9,6 @@ import {
 import {
   filterRoleBindingSubjects,
   removePrefix,
-  tryPatchRoleBinding,
 } from '~/app/pages/settings/roleBinding/utils';
 import { RoleBindingKind, RoleBindingRoleRef, ProjectKind } from '~/app/k8sTypes';
 import { ProjectsContext } from '~/app/concepts/projects/ProjectsContext';
@@ -18,7 +17,7 @@ import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
-import { FetchState } from '~/app/utils/useFetch';
+import { FetchState } from '~/app/utilities/useFetchState';
 
 type RoleBindingProjectPermissionsProps = {
   ownerReference?: K8sResourceCommon;
@@ -96,7 +95,6 @@ const ProjectsSettingsTab: React.FC<RoleBindingProjectPermissionsProps> = ({
         typeModifier="project"
         createRoleBinding={createModelRegistryRoleBinding}
         deleteRoleBinding={deleteModelRegistryRoleBinding}
-        tryPatchRoleBinding={tryPatchRoleBinding}
       />
     </Stack>
   );

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { AreaContext } from '~/app/concepts/areas/AreaContext';
-import { IsAreaAvailableStatus, SupportedArea } from './types';
+import { IsAreaAvailableStatus, SupportedArea } from '~/app/concepts/areas/types';
 
 const useIsAreaAvailable = (area: SupportedArea): IsAreaAvailableStatus =>
-  React.useContext(AreaContext).dscStatus.components[area] ?? {
+  (React.useContext(AreaContext).dscStatus.components[area] as IsAreaAvailableStatus) ?? {
     status: false,
     devFlags: null,
     featureFlags: null,

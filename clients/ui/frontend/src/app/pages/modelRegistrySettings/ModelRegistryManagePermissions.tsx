@@ -4,9 +4,9 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { useGroups } from '~/app/api/k8s/groups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
-import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import ApplicationsPage from 'mod-arch-shared';
 import { useModelRegistryNamespaceCR } from '~/app/concepts/modelRegistry/context/useModelRegistryNamespaceCR';
+import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
@@ -73,7 +73,7 @@ const ModelRegistriesManagePermissions: React.FC = () => {
       empty={false}
       provideChildrenPadding
     >
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>ß
         <Tabs value={activeTabKey} onChange={(e, newValue) => setActiveTabKey(newValue)}>
           <Tab label="Users" />
           <Tab label="Projects" />

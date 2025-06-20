@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { Table, Thead, Tbody, Tr, Th } from '@patternfly/react-table';
-import { ModelRegistryKind } from 'mod-arch-shared';
+import { Thead, Tbody, Tr, Th } from '@patternfly/react-table';
+import { ModelRegistryKind, Table } from 'mod-arch-shared';
 import CreateModal from '~/app/pages/modelRegistrySettings/CreateModal';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
@@ -38,7 +38,27 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
           </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
-      <Table aria-label="Model Registries Table" variant="compact">
+      <Table 
+      data-testid="model-registries-table"
+      data={modelRegistries.map((mr) => ({
+        modelRegistry: mr,
+        roleBindings: {
+          data: [],
+          loaded: true,
+          error: undefined,
+          refresh: () => Promise.resolve([]),
+        },
+        onEditRegistry: () => setEditRegistry(mr),
+        onDeleteRegistry: () => setDeleteRegistry(mr),
+      }))}
+      columns={columns.map((column) => ({
+        label: column,
+        field: column,
+        sortable: true,
+      }))}
+      aria-label="Model Registries Table" variant="compact"
+      rowRenderer={ModelRegistriesTableRow}
+      >
         <Thead>
           <Tr>
             {columns.map((column, index) => (

@@ -11,7 +11,7 @@ import {
   ModalBody,
   ModalFooter,
 } from '@patternfly/react-core';
-import DashboardModalFooter from '~/app/concepts/dashboard/DashboardModalFooter';
+import  ModelRegistryCreateModalFooter from '~/app/pages/settings/ModelRegistryCreateModalFooter';
 import { ModelRegistryKind } from '~/app/k8sTypes';
 import { ModelRegistryModel } from '~/app/api/models';
 import {
@@ -23,21 +23,19 @@ import {
   kindApiVersion,
   translateDisplayNameForK8s,
 } from '~/app/concepts/k8s/utils';
-import FormSection from '~/app/components/pf-overrides/FormSection';
+import FormSection from 'mod-arch-shared';
 import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import useIsAreaAvailable from '~/app/concepts/areas/useIsAreaAvailable';
 import { SupportedArea } from '~/app/concepts/areas/types';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
-import { useK8sNameDescriptionFieldData } from '~/app/concepts/k8s/K8sNameDescriptionField/useK8sNameDescriptionField';
-import useModelRegistryCertificateNames from '~/app/concepts/modelRegistrySettings/useModelRegistryCertificateNames';
-import { RecursivePartial } from '~/typeHelpers';
-import { fireFormTrackingEvent } from '~/app/concepts/analyticsTracking/segmentIOUtils';
-import { TrackingOutcome } from '~/app/concepts/analyticsTracking/trackingProperties';
-import ApplicationsPage from '~/app/pages/ApplicationPage';
+import { useK8sNameDescriptionFieldData } from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
+import useModelRegistryCertificateNames from 'mod-arch-shared';
+import { RecursivePartial } from 'mod-arch-shared';
+import ApplicationsPage from 'mod-arch-shared';
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
-import { CreateMRSecureDBSection, SecureDBInfo } from './CreateMRSecureDBSection';
+import { CreateMRSecureDBSection, SecureDBInfo } from '~/app/pages/modelRegistrySettings/CreateMRSecureDBSection';
 import {
   constructRequestBody,
   findConfigMap,
@@ -161,9 +159,6 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
   }
 
   const onCancelClose = () => {
-    fireFormTrackingEvent(mr ? updateEventName : createEventName, {
-      outcome: TrackingOutcome.cancel,
-    });
     onBeforeClose();
   };
 
@@ -218,19 +213,10 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
           newDatabaseCACertificate,
         });
         await refresh();
-        fireFormTrackingEvent(updateEventName, {
-          outcome: TrackingOutcome.submit,
-          success: true,
-        });
         onBeforeClose();
       } catch (e) {
         if (e instanceof Error) {
           setError(e);
-          fireFormTrackingEvent(updateEventName, {
-            outcome: TrackingOutcome.submit,
-            success: false,
-            error: e.message,
-          });
         }
         setIsSubmitting(false);
       }
@@ -275,20 +261,11 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
           databasePassword: password,
           newDatabaseCACertificate,
         });
-        fireFormTrackingEvent(createEventName, {
-          outcome: TrackingOutcome.submit,
-          success: true,
-        });
         await refresh();
         onBeforeClose();
       } catch (e) {
         if (e instanceof Error) {
           setError(e);
-          fireFormTrackingEvent(createEventName, {
-            outcome: TrackingOutcome.submit,
-            success: false,
-            error: e.message,
-          });
         }
         setIsSubmitting(false);
       }
@@ -414,7 +391,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegist
         </FormSection>
       </ModalBody>
       <ModalFooter>
-        <DashboardModalFooter
+        <ModelRegistryCreateModalFooter
           onCancel={onCancelClose}
           onSubmit={onSubmit}
           submitLabel={mr ? 'Update' : 'Create'}

@@ -9,10 +9,15 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
+import {
+  GroupKind,
+  K8sResourceCommon,
+  K8sStatus,
+  RoleBindingKind,
+  RoleBindingRoleRef,
+} from 'mod-arch-shared';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { K8sResourceCommon, K8sStatus } from 'mod-arch-shared';
-import { GroupKind, RoleBindingKind, RoleBindingRoleRef } from '~/app/k8sTypes';
-import { FetchState } from '~/app/utils/useFetch';
+import { FetchState } from 'mod-arch-shared';
 import RoleBindingPermissionsTableSection from './RoleBindingPermissionsTableSection';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 import { filterRoleBindingSubjects, tryPatchRoleBinding } from './utils';
@@ -99,7 +104,6 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="user"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
-      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 
@@ -121,7 +125,6 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="group"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
-      tryPatchRoleBinding={tryPatchRoleBinding}
     />
   );
 

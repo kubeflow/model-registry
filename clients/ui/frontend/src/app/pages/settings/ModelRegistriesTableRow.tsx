@@ -2,10 +2,9 @@ import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
-import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
-import { ModelRegistryKind } from 'mod-arch-shared';
+import { FetchStateObject, K8sResourceCommon } from 'mod-arch-shared/dist/types/common';
+import { ModelRegistryKind, PlatformMode, ResourceNameTooltip, useModularArchContext } from 'mod-arch-shared';
 import { RoleBindingKind } from '~/app/k8sTypes';
-import ResourceNameTooltip from '~/app/concepts/dashboard/DashboardPopupIconButton';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {
@@ -22,6 +21,8 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   onDeleteRegistry,
 }) => {
   const navigate = useNavigate();
+  const { platformMode } = useModularArchContext();
+  const isPlatformKubeflow = platformMode === PlatformMode.Kubeflow;
   const filteredRoleBindings = roleBindings.data.filter(
     (rb) =>
       rb.metadata.labels?.['app.kubernetes.io/name'] ===
@@ -31,7 +32,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   return (
     <Tr>
       <Td dataLabel="Model registry name">
-        <ResourceNameTooltip resource={mr.metadata.name}>
+        <ResourceNameTooltip resource={mr as K8sResourceCommon}>
           <strong>
             {mr.metadata.annotations?.['openshift.io/display-name'] || mr.metadata.name}
           </strong>
@@ -43,6 +44,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
       <Td dataLabel="Status">
         <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
       </Td>
+      {!isPlatformKubeflow && (
       <Td modifier="fitContent">
         {filteredRoleBindings.length === 0 ? (
           <Tooltip content="You can manage permissions when the model registry becomes available.">
@@ -59,6 +61,8 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           </Button>
         )}
       </Td>
+      )}
+      {!isPlatformKubeflow && (
       <Td isActionCell>
         <ActionsColumn
           items={[
@@ -70,6 +74,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
             },
             {
               title: 'Delete model registry',
+              disabled: isPlatformKubeflow,
               onClick: () => {
                 onDeleteRegistry(mr);
               },
@@ -77,6 +82,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           ]}
         />
       </Td>
+      )}
     </Tr>
   );
 };

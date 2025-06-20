@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Content, TextInput, Stack, StackItem } from '@patternfly/react-core';
 import { Modal } from '@patternfly/react-core/deprecated';
-import { DashboardModalFooter } from 'mod-arch-shared';
-import { ModelRegistryKind as K8sModelRegistryKind } from '~/app/k8sTypes';
+import { DashboardModalFooter, ModelRegistryKind } from 'mod-arch-shared';
 
 type DeleteModelRegistryModalProps = {
-  modelRegistry: K8sModelRegistryKind;
+  modelRegistry: ModelRegistryKind;
   onClose: () => void;
   refresh: () => void;
 };

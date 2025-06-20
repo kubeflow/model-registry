@@ -10,45 +10,86 @@ import {
 import { useThemeContext } from 'mod-arch-shared';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { K8sNameDescriptionFieldType } from '~/app/concepts/k8s/K8sNameDescriptionField/useK8sNameDescriptionField';
 import ResourceNameField from './ResourceNameField';
+import { K8sDSGResource } from '~/app/k8sTypes';
+import { translateDisplayNameForK8s } from '~/app/concepts/k8s/utils';
 
 // TODO: replace with the actual call once we have the endpoint
 
 /** Companion data hook */
-//export const useK8sNameDescriptionFieldData = (
-//  configuration: UseK8sNameDescriptionDataConfiguration = {},
-//): UseK8sNameDescriptionFieldData => {
-//  const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
-//    setupDefaults(configuration),
-// );
+// export const useK8sNameDescriptionFieldData = (
+//   configuration: UseK8sNameDescriptionDataConfiguration = {},
+// ): UseK8sNameDescriptionFieldData => {
+//   const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
+//     setupDefaults(configuration),
+//   );
 
-// const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
-//   setData((currentData) => handleUpdateLogic(currentData)(key, value));
-// }, []);
+//   const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
+//     setData((currentData) => handleUpdateLogic(currentData)(key, value));
+//   }, []);
 
-// return { data, onDataChange };
-//};
+//   return { data, onDataChange };
+// };
+
+export type K8sNameDescriptionFieldType = {
+  name: string;
+  k8sName: {
+    value: string;
+    error: string;
+  };
+  description: string;
+};
 
 type K8sNameDescriptionFieldProps = {
   autoFocusName?: boolean;
-  data: K8sNameDescriptionFieldType;
-  onDataChange: (data: K8sNameDescriptionFieldType) => void;
+  //   data: UseK8sNameDescriptionFieldData['data'];
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
+  //   onDataChange?: UseK8sNameDescriptionFieldData['onDataChange'];
   hideDescription?: boolean;
 };
 
+export const useK8sNameDescriptionFieldData = ({
+  initialData,
+  k8sNameIsEditable,
+}: {
+  initialData?: K8sDSGResource;
+  k8sNameIsEditable?: boolean;
+} = {}): {
+  data: K8sNameDescriptionFieldType;
+  onDataChange: (data: K8sNameDescriptionFieldType) => void;
+} => {
+  const [data, setData] = React.useState<K8sNameDescriptionFieldType>({
+    name: initialData?.metadata.annotations?.['openshift.io/display-name'] || '',
+    k8sName: {
+      value: initialData?.metadata.name || '',
+      error: '',
+    },
+    description: initialData?.metadata.annotations?.['openshift.io/description'] || '',
+  });
+
+  return {
+    data,
+    onDataChange: (newData) => {
+      const k8sName = k8sNameIsEditable
+        ? newData.k8sName.value
+        : translateDisplayNameForK8s(newData.name);
+      setData({ ...newData, k8sName: { value: k8sName, error: '' } });
+    },
+  };
+};
 /**
  * Use in place of any K8s Resource creation / edit.
  * @see useK8sNameDescriptionFieldData
  */
 const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   autoFocusName,
+  //   data,
   dataTestId,
   descriptionLabel = 'Description',
+  //   onDataChange,
   nameLabel = 'Name',
   nameHelperText,
   hideDescription,
