@@ -13,7 +13,6 @@ import {
   TitleWithIcon,
   ApplicationsPage,
   useQueryParamNamespaces,
-  ModelRegistryKind,
 } from 'mod-arch-shared';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';

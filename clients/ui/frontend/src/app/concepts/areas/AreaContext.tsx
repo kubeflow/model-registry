@@ -1,29 +1,15 @@
 import * as React from 'react';
 
 type AreaContextState = {
-  dscStatus: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // placeholder for future context values
 };
 
 export const AreaContext = React.createContext<AreaContextState>({
-  dscStatus: {
-    components: {
-      modelregistry: {
-        registriesNamespace: 'opendatahub',
-      },
-    },
-  },
+  // TODO: Add default values here
 });
 
 const AreaContextProvider: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <AreaContext.Provider
-    value={React.useMemo(
-      () => ({
-        dscStatus: { components: { modelregistry: { registriesNamespace: 'opendatahub' } } },
-      }),
-      [],
-    )}
-  >
-    {children}
-  </AreaContext.Provider>
+  <AreaContext.Provider value={React.useMemo(() => ({}), [])}>{children}</AreaContext.Provider>
 );
 export default AreaContextProvider;

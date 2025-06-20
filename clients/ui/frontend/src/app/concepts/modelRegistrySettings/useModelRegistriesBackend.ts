@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { ModelRegistryKind } from '~/app/k8sTypes';
-import useFetch, { FetchState } from '~/app/utils/useFetch';
+import { useFetchState, FetchStateObject } from 'mod-arch-shared';
 import { listModelRegistriesBackend } from '~/app/services/modelRegistrySettingsService';
-import { POLL_INTERVAL } from '~/app/utils/const';
+import { POLL_INTERVAL } from 'mod-arch-shared';
 
-const useModelRegistriesBackend = (): FetchState<ModelRegistryKind[]> => {
+const useModelRegistriesBackend = (): FetchStateObject<ModelRegistryKind[]> => {
   const getModelRegistries = React.useCallback(() => listModelRegistriesBackend(), []);
-  return useFetch<ModelRegistryKind[]>(getModelRegistries, [], { refreshRate: POLL_INTERVAL });
+  const [data, loaded, error, refresh] = useFetchState<ModelRegistryKind[]>(getModelRegistries, [], {
+    refreshRate: POLL_INTERVAL,
+  });
+  return { data, loaded, error, refresh };
 };
 
 export default useModelRegistriesBackend;

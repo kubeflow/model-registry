@@ -1,74 +1,85 @@
-import { Button, Stack, Alert, DialogActions, DialogActionsProps, IconButton } from '@mui/material';
-import { Close } from '@mui/icons-material';
 import * as React from 'react';
+import {
+  ActionList,
+  ActionListItem,
+  ActionListGroup,
+  Alert,
+  Button,
+  ButtonProps,
+  Stack,
+  StackItem,
+} from '@patternfly/react-core';
 
-type DashboardModalFooterProps = Pick<DialogActionsProps, 'children'> & {
-  onCancel: () => void;
+type DashboardModalFooterProps = {
+  submitLabel: string;
+  submitButtonVariant?: ButtonProps['variant'];
   onSubmit: () => void;
-  onReset?: () => void;
-  isSubmitLoading?: boolean;
+  onCancel: () => void;
   isSubmitDisabled?: boolean;
-  isResetDisabled?: boolean;
-  submitLabel?: React.ReactNode;
-  resetLabel?: string;
-  cancelLabel?: string;
-  error?: Error | null;
+  isSubmitLoading?: boolean;
+  isCancelDisabled?: boolean;
   alertTitle?: string;
-  hideCancel?: boolean;
+  error?: Error | React.ReactNode;
+  alertLinks?: React.ReactNode;
 };
 
 const DashboardModalFooter: React.FC<DashboardModalFooterProps> = ({
-  onCancel,
-  onSubmit,
-  onReset,
-  isSubmitLoading,
-  isSubmitDisabled,
-  isResetDisabled,
   submitLabel,
-  resetLabel = 'Reset',
-  cancelLabel = 'Cancel',
+  submitButtonVariant = 'primary',
+  onSubmit,
+  onCancel,
+  isSubmitDisabled,
+  isSubmitLoading,
+  isCancelDisabled,
   error,
   alertTitle,
-  hideCancel,
-  children,
+  alertLinks,
 }) => (
-  <DialogActions>
-    <Stack spacing={2}>
-      {error && (
+  // make sure alert uses the full width
+  <Stack hasGutter style={{ flex: 'auto' }}>
+    {error && (
+      <StackItem>
         <Alert
-          severity="error"
-          action={
-            <IconButton size="small" aria-label="close" color="inherit" onClick={onReset}>
-              <Close fontSize="small" />
-            </IconButton>
-          }
+          data-testid="error-message-alert"
+          isInline
+          variant="danger"
+          title={alertTitle}
+          actionLinks={alertLinks}
         >
-          {alertTitle && <b>{alertTitle}</b>}
-          {error.message}
+          {error instanceof Error ? error.message : error}
         </Alert>
-      )}
-      <Stack direction="row" spacing={1}>
-        <Button
-          variant="contained"
-          onClick={onSubmit}
-          disabled={isSubmitDisabled || isSubmitLoading}
-        >
-          {isSubmitLoading ? 'Loading...' : submitLabel}
-        </Button>
-        {onReset && (
-          <Button variant="text" onClick={onReset} disabled={isResetDisabled}>
-            {resetLabel}
-          </Button>
-        )}
-        {!hideCancel && (
-          <Button variant="outlined" onClick={onCancel}>
-            {cancelLabel}
-          </Button>
-        )}
-      </Stack>
-      {children}
-    </Stack>
-  </DialogActions>
+      </StackItem>
+    )}
+    <StackItem>
+      <ActionList>
+        <ActionListGroup>
+          <ActionListItem>
+            <Button
+              key="submit"
+              variant={submitButtonVariant}
+              isDisabled={isSubmitDisabled}
+              onClick={onSubmit}
+              isLoading={isSubmitLoading}
+              data-testid="modal-submit-button"
+            >
+              {submitLabel}
+            </Button>
+          </ActionListItem>
+          <ActionListItem>
+            <Button
+              key="cancel"
+              variant="link"
+              isDisabled={isCancelDisabled}
+              onClick={onCancel}
+              data-testid="modal-cancel-button"
+            >
+              Cancel
+            </Button>
+          </ActionListItem>
+        </ActionListGroup>
+      </ActionList>
+    </StackItem>
+  </Stack>
 );
 
 export default DashboardModalFooter;

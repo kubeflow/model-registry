@@ -1,12 +1,12 @@
 import React from 'react';
 import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
 import { useGroups } from '~/app/api/k8s/groups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
-import ApplicationsPage from 'mod-arch-shared';
 import { useModelRegistryNamespaceCR } from '~/app/concepts/modelRegistry/context/useModelRegistryNamespaceCR';
-import { AreaContext } from '~/app/concepts/areas/AreaContext';
+// import { AreaContext } from '~/app/concepts/areas/AreaContext';
 import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
@@ -17,8 +17,9 @@ import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding
 import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
 
 const ModelRegistriesManagePermissions: React.FC = () => {
-  const { dscStatus } = React.useContext(AreaContext);
-  const modelRegistryNamespace = dscStatus?.components?.modelregistry?.registriesNamespace;
+  // const { dscStatus } = React.useContext(AreaContext);
+  // const modelRegistryNamespace = dscStatus?.components?.modelregistry?.registriesNamespace;
+  const modelRegistryNamespace = 'model-registry'; // TODO: This is a placeholder
   const [activeTabKey, setActiveTabKey] = React.useState(0);
   const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
   const [groups] = useGroups();
@@ -73,7 +74,7 @@ const ModelRegistriesManagePermissions: React.FC = () => {
       empty={false}
       provideChildrenPadding
     >
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>ß
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTabKey} onChange={(e, newValue) => setActiveTabKey(newValue)}>
           <Tab label="Users" />
           <Tab label="Projects" />

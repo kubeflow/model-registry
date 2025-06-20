@@ -3,7 +3,12 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { FetchStateObject, K8sResourceCommon } from 'mod-arch-shared/dist/types/common';
-import { ModelRegistryKind, PlatformMode, ResourceNameTooltip, useModularArchContext } from 'mod-arch-shared';
+import {
+  ModelRegistryKind,
+  PlatformMode,
+  ResourceNameTooltip,
+  useModularArchContext,
+} from 'mod-arch-shared';
 import { RoleBindingKind } from '~/app/k8sTypes';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
@@ -44,9 +49,8 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
       <Td dataLabel="Status">
         <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
       </Td>
-      {!isPlatformKubeflow && (
       <Td modifier="fitContent">
-        {filteredRoleBindings.length === 0 ? (
+        {filteredRoleBindings.length == 0 ? (
           <Tooltip content="You can manage permissions when the model registry becomes available.">
             <Button isAriaDisabled variant="link">
               Manage permissions
@@ -61,8 +65,6 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           </Button>
         )}
       </Td>
-      )}
-      {!isPlatformKubeflow && (
       <Td isActionCell>
         <ActionsColumn
           items={[
@@ -82,7 +84,6 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           ]}
         />
       </Td>
-      )}
     </Tr>
   );
 };

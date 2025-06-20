@@ -15,16 +15,16 @@ import {
   K8sStatus,
   RoleBindingKind,
   RoleBindingRoleRef,
+  FetchStateObject,
 } from 'mod-arch-shared';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
-import { FetchState } from 'mod-arch-shared';
 import RoleBindingPermissionsTableSection from './RoleBindingPermissionsTableSection';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 import { filterRoleBindingSubjects, tryPatchRoleBinding } from './utils';
 
 type RoleBindingPermissionsProps = {
   ownerReference?: K8sResourceCommon;
-  roleBindingPermissionsRB: FetchState<RoleBindingKind[]>;
+  roleBindingPermissionsRB: FetchStateObject<RoleBindingKind[]>;
   defaultRoleBindingName?: string;
   permissionOptions: {
     type: RoleBindingPermissionsRoleType;

@@ -38,26 +38,27 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
           </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
-      <Table 
-      data-testid="model-registries-table"
-      data={modelRegistries.map((mr) => ({
-        modelRegistry: mr,
-        roleBindings: {
-          data: [],
-          loaded: true,
-          error: undefined,
-          refresh: () => Promise.resolve([]),
-        },
-        onEditRegistry: () => setEditRegistry(mr),
-        onDeleteRegistry: () => setDeleteRegistry(mr),
-      }))}
-      columns={columns.map((column) => ({
-        label: column,
-        field: column,
-        sortable: true,
-      }))}
-      aria-label="Model Registries Table" variant="compact"
-      rowRenderer={ModelRegistriesTableRow}
+      <Table
+        data-testid="model-registries-table"
+        data={modelRegistries.map((mr) => ({
+          modelRegistry: mr,
+          roleBindings: {
+            data: [],
+            loaded: true,
+            error: undefined,
+            refresh: () => Promise.resolve([]),
+          },
+          onEditRegistry: () => setEditRegistry(mr),
+          onDeleteRegistry: () => setDeleteRegistry(mr),
+        }))}
+        columns={columns.map((column) => ({
+          label: column,
+          field: column,
+          sortable: true,
+        }))}
+        aria-label="Model Registries Table"
+        variant="compact"
+        rowRenderer={ModelRegistriesTableRow}
       >
         <Thead>
           <Tr>

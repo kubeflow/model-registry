@@ -1,4 +1,4 @@
-import { K8sResourceCommon } from 'mod-arch-shared';
+import { K8sResourceCommon, FetchStateObject } from 'mod-arch-shared';
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
 import { Error } from '@mui/icons-material';
 import React from 'react';
@@ -6,10 +6,7 @@ import {
   RoleBindingPermissionsRBType,
   RoleBindingPermissionsRoleType,
 } from '~/app/pages/settings/roleBinding/types';
-import {
-  filterRoleBindingSubjects,
-  removePrefix,
-} from '~/app/pages/settings/roleBinding/utils';
+import { filterRoleBindingSubjects, removePrefix } from '~/app/pages/settings/roleBinding/utils';
 import { RoleBindingKind, RoleBindingRoleRef, ProjectKind } from '~/app/k8sTypes';
 import { ProjectsContext } from '~/app/concepts/projects/ProjectsContext';
 import RoleBindingPermissionsTableSection from '~/app/pages/settings/roleBinding/RoleBindingPermissionsTableSection';
@@ -17,11 +14,10 @@ import {
   createModelRegistryRoleBinding,
   deleteModelRegistryRoleBinding,
 } from '~/app/services/modelRegistrySettingsService';
-import { FetchState } from '~/app/utilities/useFetchState';
 
 type RoleBindingProjectPermissionsProps = {
   ownerReference?: K8sResourceCommon;
-  roleBindingPermissionsRB: FetchState<RoleBindingKind[]>;
+  roleBindingPermissionsRB: FetchStateObject<RoleBindingKind[]>;
   permissionOptions: {
     type: RoleBindingPermissionsRoleType;
     description: string;
@@ -29,7 +25,6 @@ type RoleBindingProjectPermissionsProps = {
   projectName: string;
   roleRefName?: RoleBindingRoleRef['name'];
   labels?: { [key: string]: string };
-  isProjectSubject?: boolean;
   description: string;
 };
 

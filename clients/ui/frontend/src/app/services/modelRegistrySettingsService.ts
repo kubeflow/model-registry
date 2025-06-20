@@ -1,8 +1,7 @@
 import * as _ from 'lodash-es';
-import { K8sStatus } from 'mod-arch-shared';
+import { K8sStatus, RecursivePartial } from 'mod-arch-shared';
 import axios from '~/app/utils/axios';
 import { ListConfigSecretsResponse, ModelRegistryKind, RoleBindingKind } from '~/app/k8sTypes';
-import { RecursivePartial } from 'mod-arch-shared';
 
 const registriesUrl = '/api/modelRegistries';
 const mrRoleBindingsUrl = '/api/modelRegistryRoleBindings';

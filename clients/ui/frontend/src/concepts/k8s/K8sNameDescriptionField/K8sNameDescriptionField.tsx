@@ -10,9 +10,9 @@ import {
 import { useThemeContext } from 'mod-arch-shared';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import ResourceNameField from './ResourceNameField';
 import { K8sDSGResource } from '~/app/k8sTypes';
 import { translateDisplayNameForK8s } from '~/app/concepts/k8s/utils';
+import ResourceNameField from './ResourceNameField';
 
 // TODO: replace with the actual call once we have the endpoint
 
