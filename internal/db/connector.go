@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/model-registry/internal/tls"
 	"gorm.io/gorm"
 )
 
@@ -12,31 +13,17 @@ type Connector interface {
 	DB() *gorm.DB
 }
 
-type SSLConfig struct {
-	SSLCert             string
-	SSLKey              string
-	SSLRootCert         string
-	SSLCA               string
-	SSLCipher           string
-	SSLVerifyServerCert bool
-}
-
-func NewConnector(dbType string, dsn string, sslConfig *SSLConfig) (Connector, error) {
+func NewConnector(dbType string, dsn string, tlsConfig *tls.TLSConfig) (Connector, error) {
 	switch dbType {
 	case "mysql":
-		if sslConfig != nil {
+		if tlsConfig != nil {
 			return mysql.NewMySQLDBConnector(
 				dsn,
-				sslConfig.SSLCert,
-				sslConfig.SSLKey,
-				sslConfig.SSLRootCert,
-				sslConfig.SSLCA,
-				sslConfig.SSLCipher,
-				sslConfig.SSLVerifyServerCert,
+				tlsConfig,
 			), nil
 		}
 
-		return mysql.NewMySQLDBConnector(dsn, "", "", "", "", "", false), nil
+		return mysql.NewMySQLDBConnector(dsn, &tls.TLSConfig{}), nil
 	}
 
 	return nil, fmt.Errorf("unsupported database type: %s", dbType)
