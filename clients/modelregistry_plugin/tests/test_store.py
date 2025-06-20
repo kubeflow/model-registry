@@ -657,7 +657,15 @@ class TestModelRegistryStore:
         # Mock the raw response from Model Registry API
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
-        mock_response.json.return_value = {}
+        mock_response.json.return_value = { 
+            "id": "metric-123", 
+            "name": "accuracy", 
+            "value": 0.95, 
+            "step": 1, 
+            "timestamp": 1234567890, 
+            "createTimeSinceEpoch": 1234567890, 
+            "lastModifiedTimeSinceEpoch": 1234567890 
+        }
         mock_request.return_value = mock_response
         
         metric = Metric("accuracy", 0.95, 1234567890, 1)
@@ -672,7 +680,7 @@ class TestModelRegistryStore:
         assert json_data["artifactType"] == "metric"
         assert json_data["name"] == "accuracy"
         assert json_data["value"] == 0.95
-        assert json_data["step"] == "1"
+        assert json_data["step"] == 1
         assert json_data["timestamp"] == "1234567890"
         assert json_data["customProperties"] == {}
     
@@ -686,9 +694,9 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": "0.95",
+                    "value": 0.95,
                     "timestamp": "1234567890",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 }
             ]
@@ -712,23 +720,23 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": "0.95",
+                    "value": 0.95,
                     "timestamp": "1234567890",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 },
                 {
                     "name": "accuracy",
-                    "value": "0.97",
+                    "value": 0.97,
                     "timestamp": "1234567891",
-                    "step": "2",
+                    "step": 2,
                     "createTimeSinceEpoch": "1234567891"
                 },
                 {
                     "name": "loss",
-                    "value": "0.1",
+                    "value": 0.1,
                     "timestamp": "1234567892",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567892"
                 }
             ]
@@ -771,23 +779,23 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": "0.95",
+                    "value": 0.95,
                     "timestamp": "1234567890",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 },
                 {
                     "name": "accuracy",
-                    "value": "0.97",
+                    "value": 0.97,
                     "timestamp": "1234567891",
-                    "step": "2",
+                    "step": 2,
                     "createTimeSinceEpoch": "1234567891"
                 },
                 {
                     "name": "accuracy",
-                    "value": "0.98",
+                    "value": 0.98,
                     "timestamp": "1234567892",
-                    "step": "3",
+                    "step": 3,
                     "createTimeSinceEpoch": "1234567892"
                 }
             ]
@@ -813,9 +821,9 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": "0.95",
+                    "value": 0.95,
                     "timestamp": "1234567890",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 }
             ]
@@ -838,23 +846,23 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": "0.97",
+                    "value": 0.97,
                     "timestamp": "1234567891",
-                    "step": "2",
+                    "step": 2,
                     "createTimeSinceEpoch": "1234567891"
                 },
                 {
                     "name": "accuracy",
-                    "value": "0.95",
+                    "value": 0.95,
                     "timestamp": "1234567890",
-                    "step": "1",
+                    "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 },
                 {
                     "name": "accuracy",
-                    "value": "0.98",
+                    "value": 0.98,
                     "timestamp": "1234567890",
-                    "step": "3",
+                    "step": 3,
                     "createTimeSinceEpoch": "1234567890"
                 }
             ]
@@ -875,7 +883,14 @@ class TestModelRegistryStore:
         # Mock the raw response from Model Registry API
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
-        mock_response.json.return_value = {}
+        mock_response.json.return_value = {
+            "id": "param-123", 
+            "name": "learning_rate", 
+            "value": "0.01", 
+            "parameterType": "string", 
+            "createTimeSinceEpoch": 1234567890, 
+            "lastModifiedTimeSinceEpoch": 1234567890 
+        }
         mock_request.return_value = mock_response
         
         param = Param("learning_rate", "0.01")
