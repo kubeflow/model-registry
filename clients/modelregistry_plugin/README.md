@@ -162,59 +162,31 @@ These methods are not required for basic MLflow tracking functionality and are t
 
 ## Development
 
-### Setup Development Environment
+For developers who want to contribute to the plugin, see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup, testing, and contribution guidelines.
+
+### Quick Development Setup
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd clients/modelregistry_plugin
-
 # Install dependencies
 uv sync
 
 # Install in development mode
 uv pip install -e .
+
+# Run tests
+make test-e2e-local  # Local e2e tests (recommended)
+make test            # Unit tests
 ```
 
-### Running Tests
+### Testing
 
-```bash
-# Run all tests
-uv run pytest
+The plugin includes comprehensive testing:
 
-# Run with coverage
-uv run pytest --cov=modelregistry_plugin
+- **Unit Tests**: Fast, isolated tests for individual components
+- **Local E2E Tests**: Self-contained tests with local Model Registry server
+- **Remote E2E Tests**: Tests against real remote servers (optional)
 
-# Run specific test categories
-uv run pytest tests/test_store.py -k "test_search_runs"
-```
-
-### Building and Testing
-
-```bash
-# Build the package
-uv build
-
-# Install the built package
-uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl --force-reinstall
-
-# Verify entry point registration
-python -c "import mlflow; print('Available tracking stores:', list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()))"
-```
-
-### Testing with Model Registry
-
-```bash
-# Start Model Registry locally
-make start/mysql
-make run/proxy
-
-# Set test environment
-export MLFLOW_TRACKING_URI="modelregistry://localhost:8080"
-
-# Run integration tests
-uv run pytest tests/integration/
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed testing information.
 
 ## Technical Details
 
