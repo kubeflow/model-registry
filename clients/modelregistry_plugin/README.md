@@ -32,8 +32,6 @@ uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl
 pip install modelregistry_plugin
 ```
 
-For development and testing, install with test dependencies: `pip install .[test]` or use `requirements-test.txt`.
-
 ## Configuration
 
 ### Environment Variables
@@ -188,7 +186,7 @@ The plugin includes comprehensive testing:
 - **Local E2E Tests**: Self-contained tests with local Model Registry server
 - **Remote E2E Tests**: Tests against real remote servers (optional)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed testing information.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed testing information and setup instructions.
 
 ## Technical Details
 
