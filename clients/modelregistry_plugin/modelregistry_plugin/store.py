@@ -386,24 +386,62 @@ class ModelRegistryStore:
         Returns:
             A list of Metric entities if logged, else empty list
         """
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import Metric
+        
+        params = {"name": metric_key}
+        if max_results:
+            params["pageSize"] = max_results
+        if page_token:
+            params["pageToken"] = page_token
+            
         # Get all metrics for the run
-        # TODO use metric history API instead
-        all_metrics = self._get_run_metrics(run_id)
-        
-        # Filter by metric key
-        filtered_metrics = [metric for metric in all_metrics if metric.key == metric_key]
-        
-        # Sort by timestamp and step for consistent ordering
-        filtered_metrics.sort(key=lambda m: (m.timestamp, m.step))
-        
-        # Apply pagination if max_results is specified
-        if max_results is not None:
-            # TODO: Implement proper pagination with page_token
-            # For now, just limit the results
-            filtered_metrics = filtered_metrics[:max_results]
-        
-        return filtered_metrics
-    
+        items = self._request("GET", f"/experiment_runs/{run_id}/metric_history",
+                                 params=params).get("items", [])
+        metrics = []
+        for metric_data in items:
+            metrics.append(Metric(
+                key=metric_data["name"],
+                value=float(metric_data["value"]),
+                timestamp=int(metric_data.get("timestamp") or metric_data.get("createTimeSinceEpoch")),
+                step=metric_data.get("step") or 0,
+            ))
+        return metrics
+
+    # NOTE: Copied from mlflow.store.tracking.abstract_store.py
+    def get_metric_history_bulk_interval_from_steps(self, run_id, metric_key, steps, max_results):
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import MetricWithRunId
+        """
+        Return a list of metric objects corresponding to all values logged
+        for a given metric within a run for the specified steps.
+
+        Args:
+            run_id: Unique identifier for run.
+            metric_key: Metric name within the run.
+            steps: List of steps for which to return metrics.
+            max_results: Maximum number of metric history events (steps) to return.
+
+        Returns:
+            A list of MetricWithRunId objects:
+                - key: Metric name within the run.
+                - value: Metric value.
+                - timestamp: Metric timestamp.
+                - step: Metric step.
+                - run_id: Unique identifier for run.
+        """
+        metrics_for_run = sorted(
+            [m for m in self.get_metric_history(run_id, metric_key) if m.step in steps],
+            key=lambda metric: (metric.step, metric.timestamp),
+        )[:max_results]
+        return [
+            MetricWithRunId(
+                run_id=run_id,
+                metric=metric,
+            )
+            for metric in metrics_for_run
+        ]
+
     # Parameter operations  
     def log_param(self, run_id: str, param) -> None:
         """Log a parameter for a run."""

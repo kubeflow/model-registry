@@ -601,30 +601,105 @@ class TestModelRegistryStoreE2ELocal:
             store.log_param(run_id, param1)
             store.log_param(run_id, param2)
             
-            # Log metrics
-            metric1 = Metric(key="accuracy", value=0.95, timestamp=int(time.time() * 1000), step=1)
+            # Log metrics - log multiple values for the same metric to test history
+            metric1 = Metric(key="accuracy", value=0.85, timestamp=int(time.time() * 1000), step=1)
             metric2 = Metric(key="loss", value=0.05, timestamp=int(time.time() * 1000), step=1)
             store.log_metric(run_id, metric1)
             store.log_metric(run_id, metric2)
             
+            # Log additional accuracy values using for loops and value ranges
+            base_timestamp = int(time.time() * 1000)
+            accuracy_values = [0.85, 0.90, 0.95, 0.98]  # Range of accuracy values to test
+            
+            for i, accuracy_value in enumerate(accuracy_values[1:], start=2):  # Start from step 2, skip first value (already logged)
+                metric = Metric(
+                    key="accuracy", 
+                    value=accuracy_value, 
+                    timestamp=base_timestamp + (i * 1000), 
+                    step=i
+                )
+                store.log_metric(run_id, metric)
+            
+            # Log additional loss values using a range
+            loss_values = [0.05, 0.03, 0.02, 0.01]  # Decreasing loss values
+            
+            for i, loss_value in enumerate(loss_values[1:], start=2):  # Start from step 2, skip first value (already logged)
+                metric = Metric(
+                    key="loss", 
+                    value=loss_value, 
+                    timestamp=base_timestamp + (i * 1000) + 500,  # Offset timestamps slightly
+                    step=i
+                )
+                store.log_metric(run_id, metric)
+            
             # Get run and verify data
             retrieved_run = store.get_run(run_id)
             assert len(retrieved_run.data.params) == 2
-            assert len(retrieved_run.data.metrics) == 2
+            assert len(retrieved_run.data.metrics) == 2  # Still 2 unique metric keys
             
             # Verify parameters
             assert retrieved_run.data.params["learning_rate"] == "0.01"
             assert retrieved_run.data.params["epochs"] == "100"
             
-            # Verify metrics
-            assert retrieved_run.data.metrics["accuracy"] == 0.95
-            assert retrieved_run.data.metrics["loss"] == 0.05
+            # Verify metrics (should show the latest value for each metric key)
+            assert retrieved_run.data.metrics["accuracy"] == 0.98  # Latest accuracy value
+            assert retrieved_run.data.metrics["loss"] == 0.01  # Latest loss value
             
-            # Test metric history
+            # Test metric history - should return all logged values for accuracy
             accuracy_history = store.get_metric_history(run_id, "accuracy")
-            assert len(accuracy_history) == 1
-            assert accuracy_history[0].key == "accuracy"
-            assert accuracy_history[0].value == 0.95
+            assert len(accuracy_history) == 4  # Should have 4 accuracy values
+            for i, metric in enumerate(accuracy_history):
+                assert metric.key == "accuracy"
+                assert metric.value == accuracy_values[i]
+                assert metric.step == i + 1
+            
+            # Test metric history for loss as well
+            loss_history = store.get_metric_history(run_id, "loss")
+            assert len(loss_history) == 4  # Should have 4 loss values
+            for i, metric in enumerate(loss_history):
+                assert metric.key == "loss"
+                assert metric.value == loss_values[i]
+                assert metric.step == i + 1
+            
+            print(f"✅ Successfully logged multiple metric values using loops and verified history contains all values in correct order")
+            print(f"   Accuracy history: {len(accuracy_history)} values, Loss history: {len(loss_history)} values")
+            print(f"   Both metrics are sorted by (timestamp, step) as per MLMD specification")
+            
+            # Test bulk metric history API for specific steps
+            # Test accuracy metrics for steps 2 and 3
+            accuracy_bulk_history = store.get_metric_history_bulk_interval_from_steps(
+                run_id, "accuracy", steps=[2, 3], max_results=10
+            )
+            assert len(accuracy_bulk_history) == 2  # Should have 2 metrics for steps 2 and 3
+            
+            # Verify the bulk results
+            for metric in accuracy_bulk_history:
+                assert metric.key == "accuracy"
+                assert metric.step in [2, 3]
+                assert metric.value in [0.90, 0.95]  # Values for steps 2 and 3
+            
+            # Test loss metrics for steps 1 and 4
+            loss_bulk_history = store.get_metric_history_bulk_interval_from_steps(
+                run_id, "loss", steps=[1, 4], max_results=10
+            )
+            assert len(loss_bulk_history) == 2  # Should have 2 metrics for steps 1 and 4
+            
+            # Verify the bulk results
+            for metric in loss_bulk_history:
+                assert metric.key == "loss"
+                assert metric.step in [1, 4]
+                assert metric.value in [0.05, 0.01]  # Values for steps 1 and 4
+            
+            # Test with max_results limit
+            accuracy_bulk_limited = store.get_metric_history_bulk_interval_from_steps(
+                run_id, "accuracy", steps=[1, 2, 3, 4], max_results=2
+            )
+            assert len(accuracy_bulk_limited) == 2  # Should be limited to 2 results
+            
+            print(f"✅ Successfully tested bulk metric history API for specific steps")
+            print(f"   Accuracy bulk (steps 2,3): {len(accuracy_bulk_history)} values")
+            print(f"   Loss bulk (steps 1,4): {len(loss_bulk_history)} values")
+            print(f"   Limited results: {len(accuracy_bulk_limited)} values (max_results=2)")
             
         finally:
             # Cleanup
