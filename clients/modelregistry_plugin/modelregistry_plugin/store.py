@@ -439,7 +439,7 @@ class ModelRegistryStore:
     # NOTE: Copied from mlflow.store.tracking.abstract_store.py
     def get_metric_history_bulk_interval_from_steps(self, run_id, metric_key, steps, max_results):
         # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import MetricWithRunId
+        from mlflow.entities.metric import MetricWithRunId
         """
         Return a list of metric objects corresponding to all values logged
         for a given metric within a run for the specified steps.
