@@ -16,6 +16,7 @@ import shutil
 import signal
 import threading
 import sys
+import psutil
 from pathlib import Path
 from unittest.mock import patch
 
@@ -164,6 +165,30 @@ class LocalModelRegistryServer:
         if self.model_registry_process and self.model_registry_pid:
             try:
                 print(f"  🛑 Stopping Model Registry server (PID: {self.model_registry_pid})...")
+                # Terminate child process if it exists
+                try:
+                    parent = psutil.Process(self.model_registry_pid)
+                    children = parent.children()
+                    if children:
+                        child = children[0]  # Get the first (and likely only) child
+                        print(f"    🛑 Terminating child process: {child.pid} ({child.name()})")
+                        child.terminate()
+                        try:
+                            child.wait(timeout=5)
+                            print(f"    ✅ Child process {child.pid} terminated gracefully")
+                        except psutil.TimeoutExpired:
+                            print(f"    ⚠️  Child process {child.pid} didn't terminate gracefully, killing...")
+                            child.kill()
+                            child.wait(timeout=2)
+                            print(f"    ✅ Child process {child.pid} killed")
+                        except psutil.NoSuchProcess:
+                            print(f"    ✅ Child process {child.pid} already terminated")
+                except psutil.NoSuchProcess:
+                    print(f"    ℹ️  Parent process {self.model_registry_pid} not found")
+                except Exception as e:
+                    print(f"    ⚠️  Error terminating child process: {e}")
+                
+                # Terminate parent process
                 self.model_registry_process.terminate()
                 try:
                     self.model_registry_process.wait(timeout=10)
@@ -431,14 +456,12 @@ class TestModelRegistryStoreE2ELocal:
         assert len(retrieved_run.data.metrics) >= 2
         
         # Verify parameters
-        param_dict = {p.key: p.value for p in retrieved_run.data.params}
-        assert param_dict["learning_rate"] == "0.001"
-        assert param_dict["epochs"] == "50"
+        assert retrieved_run.data.params["learning_rate"] == "0.001"
+        assert retrieved_run.data.params["epochs"] == "50"
         
         # Verify metrics
-        metric_dict = {m.key: m.value for m in retrieved_run.data.metrics}
-        assert metric_dict["accuracy"] == 0.98
-        assert metric_dict["loss"] == 0.02
+        assert retrieved_run.data.metrics["accuracy"] == 0.98
+        assert retrieved_run.data.metrics["loss"] == 0.02
         
         print(f"✅ Successfully logged data to run: {run_id}")
     
@@ -477,17 +500,14 @@ class TestModelRegistryStoreE2ELocal:
         
         # Get run and verify tag
         retrieved_run = store.get_run(run_id)
-        tag_dict = {t.key: t.value for t in retrieved_run.data.tags}
-        assert "test_tag" in tag_dict
-        assert tag_dict["test_tag"] == "test_value"
+        assert retrieved_run.data.tags.get("test_tag") == "test_value"
         
         # Delete tag
         store.delete_tag(run_id, "test_tag")
         
         # Verify tag is deleted
         retrieved_run = store.get_run(run_id)
-        tag_dict = {t.key: t.value for t in retrieved_run.data.tags}
-        assert "test_tag" not in tag_dict
+        assert retrieved_run.data.tags.get("test_tag") is None
         
         print(f"✅ Successfully managed tags on run: {run_id}")
     
@@ -593,14 +613,12 @@ class TestModelRegistryStoreE2ELocal:
             assert len(retrieved_run.data.metrics) == 2
             
             # Verify parameters
-            param_dict = {p.key: p.value for p in retrieved_run.data.params}
-            assert param_dict["learning_rate"] == "0.01"
-            assert param_dict["epochs"] == "100"
+            assert retrieved_run.data.params["learning_rate"] == "0.01"
+            assert retrieved_run.data.params["epochs"] == "100"
             
             # Verify metrics
-            metric_dict = {m.key: m.value for m in retrieved_run.data.metrics}
-            assert metric_dict["accuracy"] == 0.95
-            assert metric_dict["loss"] == 0.05
+            assert retrieved_run.data.metrics["accuracy"] == 0.95
+            assert retrieved_run.data.metrics["loss"] == 0.05
             
             # Test metric history
             accuracy_history = store.get_metric_history(run_id, "accuracy")
@@ -692,9 +710,7 @@ class TestModelRegistryStoreE2ELocal:
         
         # Get experiment and verify tag
         experiment = store.get_experiment(experiment_id)
-        tag_dict = {t.key: t.value for t in experiment.tags}
-        assert "test_tag" in tag_dict
-        assert tag_dict["test_tag"] == "test_value"
+        assert experiment.tags.get("test_tag") == "test_value"
     
     def test_run_tags(self, store, experiment_id):
         """Test setting and managing run tags."""
@@ -709,17 +725,14 @@ class TestModelRegistryStoreE2ELocal:
             
             # Get run and verify tag
             retrieved_run = store.get_run(run_id)
-            tag_dict = {t.key: t.value for t in retrieved_run.data.tags}
-            assert "run_test_tag" in tag_dict
-            assert tag_dict["run_test_tag"] == "run_test_value"
+            assert retrieved_run.data.tags.get("run_test_tag") == "run_test_value"
             
             # Delete tag
             store.delete_tag(run_id, "run_test_tag")
             
             # Verify tag is deleted
             retrieved_run = store.get_run(run_id)
-            tag_dict = {t.key: t.value for t in retrieved_run.data.tags}
-            assert "run_test_tag" not in tag_dict
+            assert retrieved_run.data.tags.get("run_test_tag") is None
             
         finally:
             # Cleanup
