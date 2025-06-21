@@ -6,9 +6,14 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "mlflow>=2.0.0",
+    "requests>=2.25.0",
+]
+
+[project.optional-dependencies]
+test = [
     "pytest>=8.4.0",
     "pytest-cov>=6.2.1",
-    "requests>=2.25.0",
+    "psutil>=5.8.0",
 ]
 
 [project.entry-points."mlflow.tracking_store"]
