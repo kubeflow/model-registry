@@ -32,6 +32,8 @@ uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl
 pip install modelregistry_plugin
 ```
 
+For development and testing, install with test dependencies: `pip install .[test]` or use `requirements-test.txt`.
+
 ## Configuration
 
 ### Environment Variables
