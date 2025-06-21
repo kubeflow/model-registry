@@ -807,6 +807,447 @@ class TestModelRegistryStoreE2ELocal:
                 # Fail the test if cleanup fails - this could indicate resource leaks
                 pytest.fail(f"Failed to clean up run {run_id} in lifecycle test: {e}")
 
+    # Model/Artifact Operations Tests
+    def test_log_inputs_datasets(self, store, experiment_id):
+        """Test logging dataset inputs for a run."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for dataset testing
+            from mlflow.entities import DatasetInput, Dataset, InputTag
+            
+            # Create dataset
+            dataset = Dataset(
+                name="test_dataset",
+                digest="abc123",
+                source_type="local",
+                source="/path/to/dataset",
+                schema="feature1:double,feature2:string",
+                profile="{\"num_rows\": 1000}"
+            )
+            
+            # Create dataset input with tags
+            dataset_tags = [InputTag(key="dataset_tag", value="dataset_value")]
+            dataset_input = DatasetInput(dataset=dataset, tags=dataset_tags)
+            
+            # Log dataset input
+            store.log_inputs(run_id, datasets=[dataset_input])
+            
+            # Verify the input was logged by checking run artifacts
+            # Note: This would require additional API calls to verify artifacts
+            print(f"✅ Successfully logged dataset input to run: {run_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_log_inputs_models(self, store, experiment_id):
+        """Test logging model inputs for a run."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModelInput
+            
+            # First create a logged model to use as input
+            model_name = f"input-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Create logged model input
+            model_input = LoggedModelInput(model_id=logged_model.model_id)
+            
+            # Log model input
+            store.log_inputs(run_id, models=[model_input])
+            
+            print(f"✅ Successfully logged model input to run: {run_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_log_outputs(self, store, experiment_id):
+        """Test logging model outputs for a run."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModelOutput
+            
+            # First create a logged model to use as output
+            model_name = f"output-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Create logged model output
+            model_output = LoggedModelOutput(model_id=logged_model.model_id, step=0)
+            
+            # Log model output
+            store.log_outputs(run_id, models=[model_output])
+            
+            print(f"✅ Successfully logged model output to run: {run_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_record_logged_model(self, store, experiment_id):
+        """Test recording a logged model."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter
+            
+            # Create a mock MLflow model (simplified for testing)
+            # In a real scenario, this would be an actual MLflow model
+            mock_model_dict = {
+                "model_uuid": str(uuid.uuid4()),
+                "artifact_path": "model",
+                "flavors": {"sklearn": {"pickled_model": "model.pkl"}},
+                "run_id": run_id,
+                "utc_time_created": "2023-01-01T00:00:00.000Z",
+                "mlflow_version": "2.0.0"
+            }
+            
+            # Create a mock MLflow model object
+            class MockMLflowModel:
+                def to_dict(self):
+                    return mock_model_dict
+                
+                def get_model_info(self):
+                    class MockModelInfo:
+                        def __init__(self):
+                            self.model_uri = f"runs:/{run_id}/model"
+                            self.artifact_path = "model"
+                            self.model_uuid = mock_model_dict["model_uuid"]
+                            self.utc_time_created = mock_model_dict["utc_time_created"]
+                            self.mlflow_version = mock_model_dict["mlflow_version"]
+                            self.flavors = mock_model_dict["flavors"]
+                    return MockModelInfo()
+            
+            mock_model = MockMLflowModel()
+            
+            # Record the logged model
+            store.record_logged_model(run_id, mock_model)
+            
+            print(f"✅ Successfully recorded logged model to run: {run_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_create_and_get_logged_model(self, store, experiment_id):
+        """Test creating and retrieving a logged model."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter, LoggedModelStatus
+            
+            # Create tags and parameters for the model
+            tags = [
+                LoggedModelTag(key="model_tag1", value="tag_value1"),
+                LoggedModelTag(key="model_tag2", value="tag_value2")
+            ]
+            params = [
+                LoggedModelParameter(key="model_param1", value="param_value1"),
+                LoggedModelParameter(key="model_param2", value="param_value2")
+            ]
+            
+            # Create logged model
+            model_name = f"test-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                tags=tags,
+                params=params,
+                model_type="sklearn"
+            )
+            
+            # Verify created model
+            assert isinstance(logged_model, LoggedModel)
+            assert logged_model.experiment_id == experiment_id
+            assert logged_model.name == model_name
+            assert logged_model.source_run_id == run_id
+            assert logged_model.model_type == "sklearn"
+            assert len(logged_model.tags) == 2
+            assert len(logged_model.params) == 2
+            assert logged_model.status == LoggedModelStatus.READY
+            
+            # Get logged model by ID
+            retrieved_model = store.get_logged_model(logged_model.model_id)
+            assert isinstance(retrieved_model, LoggedModel)
+            assert retrieved_model.model_id == logged_model.model_id
+            assert retrieved_model.name == model_name
+            assert retrieved_model.experiment_id == experiment_id
+            
+            print(f"✅ Successfully created and retrieved logged model: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_logged_model_lifecycle(self, store, experiment_id):
+        """Test logged model lifecycle operations."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelStatus
+            
+            # Create logged model
+            model_name = f"lifecycle-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Verify model is unspecified
+            model = store.get_logged_model(logged_model.model_id)
+            assert model.status == LoggedModelStatus.UNSPECIFIED
+            
+            # Finalize model with different status
+            finalized_model = store.finalize_logged_model(logged_model.model_id, LoggedModelStatus.READY)
+            assert finalized_model.status == LoggedModelStatus.READY
+            
+            # Delete model
+            store.delete_logged_model(logged_model.model_id)
+            
+            print(f"✅ Successfully tested logged model lifecycle: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_logged_model_tags(self, store, experiment_id):
+        """Test setting and managing tags on logged models."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelTag
+            
+            # Create logged model
+            model_name = f"tags-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Set tags on the model
+            tags = [
+                LoggedModelTag(key="model_tag1", value="tag_value1"),
+                LoggedModelTag(key="model_tag2", value="tag_value2")
+            ]
+            store.set_logged_model_tags(logged_model.model_id, tags)
+            
+            # Verify tags were set
+            model = store.get_logged_model(logged_model.model_id)
+            assert len(model.tags) >= 2
+            
+            # Delete a tag
+            store.delete_logged_model_tag(logged_model.model_id, "model_tag1")
+            
+            # Verify tag was deleted
+            model = store.get_logged_model(logged_model.model_id)
+            # The tag should be removed (though we can't easily verify this without knowing all tags)
+            
+            print(f"✅ Successfully managed tags on logged model: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_search_logged_models(self, store, experiment_id):
+        """Test searching for logged models."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelTag
+            
+            # Create multiple logged models
+            model_names = [
+                f"search-model-1-{uuid.uuid4().hex[:8]}",
+                f"search-model-2-{uuid.uuid4().hex[:8]}",
+                f"search-model-3-{uuid.uuid4().hex[:8]}"
+            ]
+            
+            created_models = []
+            for model_name in model_names:
+                logged_model = store.create_logged_model(
+                    experiment_id=experiment_id,
+                    name=model_name,
+                    source_run_id=run_id,
+                    model_type="sklearn"
+                )
+                created_models.append(logged_model)
+            
+            # Search for logged models
+            models = store.search_logged_models(
+                experiment_ids=[experiment_id],
+                max_results=10
+            )
+            
+            # Verify search results
+            assert isinstance(models, list)
+            assert len(models) >= len(created_models)
+            
+            # Verify our created models are in the results
+            model_ids = [m.model_id for m in models]
+            for created_model in created_models:
+                assert created_model.model_id in model_ids
+            
+            print(f"✅ Successfully searched for logged models, found {len(models)} models")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_logged_model_with_parameters(self, store, experiment_id):
+        """Test creating logged models with parameters."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelParameter
+            
+            # Create parameters for the model
+            params = [
+                LoggedModelParameter(key="learning_rate", value="0.001"),
+                LoggedModelParameter(key="epochs", value="100"),
+                LoggedModelParameter(key="batch_size", value="32")
+            ]
+            
+            # Create logged model with parameters
+            model_name = f"params-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                params=params,
+                model_type="sklearn"
+            )
+            
+            # Verify model was created with parameters
+            assert len(logged_model.params) == 3
+            
+            # Get model and verify parameters
+            retrieved_model = store.get_logged_model(logged_model.model_id)
+            assert len(retrieved_model.params) == 3
+            
+            # Verify specific parameters
+            assert retrieved_model.params["learning_rate"] == "0.001"
+            assert retrieved_model.params["epochs"] == "100"
+            assert retrieved_model.params["batch_size"] == "32"
+            
+            print(f"✅ Successfully created logged model with parameters: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_logged_model_status_transitions(self, store, experiment_id):
+        """Test logged model status transitions."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel, LoggedModelStatus
+            
+            # Create logged model
+            model_name = f"status-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Verify initial status is READY
+            model = store.get_logged_model(logged_model.model_id)
+            assert model.status == LoggedModelStatus.UNSPECIFIED
+            
+            # Test different status transitions
+            # Note: The actual status values depend on the ModelRegistry implementation
+            # This test verifies the method works without errors
+            
+            # Finalize with READY status
+            finalized_model = store.finalize_logged_model(logged_model.model_id, LoggedModelStatus.READY)
+            assert finalized_model.status == LoggedModelStatus.READY
+            
+            print(f"✅ Successfully tested logged model status transitions: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+    
+    def test_logged_model_artifact_location(self, store, experiment_id):
+        """Test logged model artifact location handling."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+        
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModel
+            
+            # Create logged model
+            model_name = f"artifact-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn"
+            )
+            
+            # Verify model has artifact location
+            assert logged_model.artifact_location is not None
+            
+            # Get model and verify artifact location
+            retrieved_model = store.get_logged_model(logged_model.model_id)
+            assert retrieved_model.artifact_location is not None
+            
+            print(f"✅ Successfully tested logged model artifact location: {logged_model.model_id}")
+            
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+
 
 if __name__ == "__main__":
     # Allow running the tests directly

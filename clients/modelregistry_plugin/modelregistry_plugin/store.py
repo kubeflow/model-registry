@@ -4,6 +4,7 @@ Model Registry MLflow Tracking Store Implementation
 
 import json
 import os
+import time
 from typing import List, Optional, Dict, Sequence, Any
 import uuid
 
@@ -683,7 +684,7 @@ class ModelRegistryStore:
             source_run_id=source_run_id,
             artifact_location=model_data["uri"],
             creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["lastUpdateTimeSinceEpoch"]),
             model_type=model_type,
             status=LoggedModelStatus.READY,
             tags=tags or [],
@@ -780,7 +781,7 @@ class ModelRegistryStore:
             source_run_id=custom_props.get("source_run_id"),
             artifact_location=model_data["uri"],
             creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["lastUpdateTimeSinceEpoch"]),
             model_type=custom_props.get("model_type"),
             status=status,
             tags=tags,
@@ -861,7 +862,7 @@ class ModelRegistryStore:
             source_run_id=custom_props.get("source_run_id"),
             artifact_location=model_data["uri"],
             creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(model_data["updateTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(model_data["lastUpdateTimeSinceEpoch"]),
             model_type=custom_props.get("model_type"),
             status=convert_to_mlflow_logged_model_status(custom_props.get("state")),
             tags=tags,
