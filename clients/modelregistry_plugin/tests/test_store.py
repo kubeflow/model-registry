@@ -24,7 +24,7 @@ class TestModelRegistryStore:
     @pytest.fixture
     def store(self):
         """Create a ModelRegistryStore instance for testing."""
-        return ModelRegistryStore("modelregistry://localhost:8080")
+        return ModelRegistryStore("modelregistry://localhost:8080", "s3://bucket/artifacts")
     
     @pytest.fixture
     def mock_response(self):
@@ -143,8 +143,11 @@ class TestModelRegistryStore:
         experiment_id = store.create_experiment("test-experiment")
         
         assert experiment_id == "exp-123"
-        mock_request.assert_called_once()
-        call_args = mock_request.call_args
+        # Should make 2 calls: POST to create, then PATCH to set default artifact location
+        assert mock_request.call_count == 2
+        
+        # Check first call (POST to create experiment)
+        call_args = mock_request.call_args_list[0]
         assert call_args[0][0] == "POST"  # method
         assert "/experiments" in call_args[0][1]  # endpoint
         json_data = call_args[1]['json']
@@ -152,6 +155,61 @@ class TestModelRegistryStore:
         assert json_data["description"] == "MLflow experiment: test-experiment"
         assert json_data["state"] == "LIVE"
         assert json_data["customProperties"] == {}
+        assert json_data["externalId"] is None  # Initially None, will be updated
+        
+        # Check second call (PATCH to set default artifact location)
+        call_args = mock_request.call_args_list[1]
+        assert call_args[0][0] == "PATCH"  # method
+        assert "/experiments/exp-123" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["externalId"] == "s3://bucket/artifacts/experiments/exp-123"
+    
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_create_experiment_with_artifact_location(self, mock_request, store):
+        """Test experiment creation with explicit artifact_location."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {"id": "exp-123"}
+        mock_request.return_value = mock_response
+        
+        experiment_id = store.create_experiment("test-experiment", artifact_location="s3://custom/location")
+        
+        assert experiment_id == "exp-123"
+        # Should make only 1 call since artifact_location was provided
+        assert mock_request.call_count == 1
+        
+        call_args = mock_request.call_args
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiments" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["name"] == "test-experiment"
+        assert json_data["externalId"] == "s3://custom/location"
+    
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_create_experiment_without_artifact_uri(self, mock_request):
+        """Test experiment creation when store has no artifact_uri."""
+        # Create store without artifact_uri
+        store = ModelRegistryStore("modelregistry://localhost:8080")
+        
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {"id": "exp-123"}
+        mock_request.return_value = mock_response
+        
+        experiment_id = store.create_experiment("test-experiment")
+        
+        assert experiment_id == "exp-123"
+        # Should make only 1 call since no artifact_uri available
+        assert mock_request.call_count == 1
+        
+        call_args = mock_request.call_args
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiments" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["name"] == "test-experiment"
+        assert json_data.get("externalId") is None
     
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_experiment_with_tags(self, mock_request, store):
@@ -182,7 +240,7 @@ class TestModelRegistryStore:
         mock_response.json.return_value = {
             "id": "exp-123",
             "name": "test-experiment",
-            "externalId": "s3://bucket/artifacts",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123",
             "customProperties": {
                 "key1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
             }
@@ -194,7 +252,7 @@ class TestModelRegistryStore:
         assert isinstance(experiment, Experiment)
         assert experiment.experiment_id == "exp-123"
         assert experiment.name == "test-experiment"
-        assert experiment.artifact_location == "s3://bucket/artifacts"
+        assert experiment.artifact_location == "s3://bucket/artifacts/experiments/exp-123"
         assert len(experiment.tags) == 1
         assert experiment.tags["key1"] == "value1"
     
@@ -207,7 +265,7 @@ class TestModelRegistryStore:
         mock_response.json.return_value = {
             "id": "exp-123",
             "name": "test-experiment",
-            "externalId": "s3://bucket/artifacts",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123",
             "customProperties": {
                 "key1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
             }
@@ -226,6 +284,7 @@ class TestModelRegistryStore:
         assert isinstance(experiment, Experiment)
         assert experiment.experiment_id == "exp-123"
         assert experiment.name == "test-experiment"
+        assert experiment.artifact_location == "s3://bucket/artifacts/experiments/exp-123"
         assert len(experiment.tags) == 1
         assert experiment.tags["key1"] == "value1"
     
@@ -308,7 +367,7 @@ class TestModelRegistryStore:
                     "id": "1", 
                     "name": "exp1", 
                     "state": "LIVE",
-                    "externalId": "s3://bucket/artifacts1",
+                    "externalId": "s3://bucket/artifacts/experiments/1",
                     "customProperties": {
                         "tag1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
                     }
@@ -317,7 +376,7 @@ class TestModelRegistryStore:
                     "id": "2", 
                     "name": "exp2", 
                     "state": "ARCHIVED",
-                    "externalId": "s3://bucket/artifacts2",
+                    "externalId": "s3://bucket/artifacts/experiments/2",
                     "customProperties": {
                         "tag2": {"string_value": "value2", "metadataType": "MetadataStringValue"}
                     }
@@ -331,10 +390,12 @@ class TestModelRegistryStore:
         assert len(experiments) == 2
         assert experiments[0].experiment_id == "1"
         assert experiments[0].name == "exp1"
+        assert experiments[0].artifact_location == "s3://bucket/artifacts/experiments/1"
         assert len(experiments[0].tags) == 1
         assert experiments[0].tags["tag1"] == "value1"
         assert experiments[1].experiment_id == "2"
         assert experiments[1].name == "exp2"
+        assert experiments[1].artifact_location == "s3://bucket/artifacts/experiments/2"
         assert len(experiments[1].tags) == 1
         assert experiments[1].tags["tag2"] == "value2"
     
@@ -367,7 +428,7 @@ class TestModelRegistryStore:
                     "id": "1", 
                     "name": "exp1", 
                     "state": "LIVE",
-                    "externalId": "s3://bucket/artifacts1",
+                    "externalId": "s3://bucket/artifacts/experiments/1",
                     "customProperties": {
                         "tag1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
                     }
@@ -376,7 +437,7 @@ class TestModelRegistryStore:
                     "id": "2", 
                     "name": "exp2", 
                     "state": "ARCHIVED",
-                    "externalId": "s3://bucket/artifacts2",
+                    "externalId": "s3://bucket/artifacts/experiments/2",
                     "customProperties": {
                         "tag2": {"string_value": "value2", "metadataType": "MetadataStringValue"}
                     }
@@ -398,10 +459,12 @@ class TestModelRegistryStore:
         assert len(result) == 2
         assert result[0].experiment_id == "1"
         assert result[0].name == "exp1"
+        assert result[0].artifact_location == "s3://bucket/artifacts/experiments/1"
         assert len(result[0].tags) == 1
         assert result[0].tags["tag1"] == "value1"
         assert result[1].experiment_id == "2"
         assert result[1].name == "exp2"
+        assert result[1].artifact_location == "s3://bucket/artifacts/experiments/2"
         assert len(result[1].tags) == 1
         assert result[1].tags["tag2"] == "value2"
         assert result.token == "token123"
@@ -427,14 +490,14 @@ class TestModelRegistryStore:
                     "id": "1", 
                     "name": "exp1", 
                     "state": "LIVE",
-                    "externalId": "s3://bucket/artifacts1",
+                    "externalId": "s3://bucket/artifacts/experiments/1",
                     "customProperties": {}
                 },
                 {
                     "id": "2", 
                     "name": "exp2", 
                     "state": "ARCHIVED",
-                    "externalId": "s3://bucket/artifacts2",
+                    "externalId": "s3://bucket/artifacts/experiments/2",
                     "customProperties": {}
                 }
             ]
@@ -447,6 +510,7 @@ class TestModelRegistryStore:
         assert len(result) == 1
         assert result[0].experiment_id == "1"
         assert result[0].name == "exp1"
+        assert result[0].artifact_location == "s3://bucket/artifacts/experiments/1"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_search_experiments_deleted_only(self, mock_request, store):
@@ -460,14 +524,14 @@ class TestModelRegistryStore:
                     "id": "1", 
                     "name": "exp1", 
                     "state": "LIVE",
-                    "externalId": "s3://bucket/artifacts1",
+                    "externalId": "s3://bucket/artifacts/experiments/1",
                     "customProperties": {}
                 },
                 {
                     "id": "2", 
                     "name": "exp2", 
                     "state": "ARCHIVED",
-                    "externalId": "s3://bucket/artifacts2",
+                    "externalId": "s3://bucket/artifacts/experiments/2",
                     "customProperties": {}
                 }
             ]
@@ -480,6 +544,7 @@ class TestModelRegistryStore:
         assert len(result) == 1
         assert result[0].experiment_id == "2"
         assert result[0].name == "exp2"
+        assert result[0].artifact_location == "s3://bucket/artifacts/experiments/2"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_search_experiments_with_filter_string(self, mock_request, store):
