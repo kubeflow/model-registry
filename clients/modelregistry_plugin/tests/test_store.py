@@ -1247,7 +1247,7 @@ class TestModelRegistryStore:
             "experimentId": "exp-123",
             "uri": "s3://bucket/model",
             "createTimeSinceEpoch": "1234567890",
-            "updateTimeSinceEpoch": "1234567890"
+            "lastUpdateTimeSinceEpoch": "1234567890"
         }
         mock_request.return_value = mock_response
         
@@ -1307,7 +1307,7 @@ class TestModelRegistryStore:
             "experimentId": "exp-123",
             "uri": "s3://bucket/model",
             "createTimeSinceEpoch": "1234567890",
-            "updateTimeSinceEpoch": "1234567890",
+            "lastUpdateTimeSinceEpoch": "1234567890",
             "customProperties": {
                 "model_type": {"string_value": "sklearn", "metadataType": "MetadataStringValue"},
                 "source_run_id": {"string_value": "run-123", "metadataType": "MetadataStringValue"},
@@ -1373,7 +1373,7 @@ class TestModelRegistryStore:
             "experimentId": "exp-123",
             "uri": "s3://bucket/model",
             "createTimeSinceEpoch": "1234567890",
-            "updateTimeSinceEpoch": "1234567890",
+            "lastUpdateTimeSinceEpoch": "1234567890",
             "customProperties": {
                 "status": {"string_value": "READY", "metadataType": "MetadataStringValue"},
                 "model_type": {"string_value": "sklearn", "metadataType": "MetadataStringValue"}
@@ -1463,7 +1463,7 @@ class TestModelRegistryStore:
             "name": "test-model",
             "uri": "s3://bucket/model",
             "createTimeSinceEpoch": "1234567890",
-            "updateTimeSinceEpoch": "1234567890",
+            "lastUpdateTimeSinceEpoch": "1234567890",
             "customProperties": {
                 "experiment_id": {"string_value": "exp-123", "metadataType": "MetadataStringValue"},
                 "model_type": {"string_value": "sklearn", "metadataType": "MetadataStringValue"},
