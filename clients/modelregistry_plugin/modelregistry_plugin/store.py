@@ -93,17 +93,34 @@ class ModelRegistryStore:
         payload = {
             "name": name,
             "description": f"MLflow experiment: {name}",
-            "externalId": artifact_location or self.artifact_uri,
             "state": "LIVE",
             "customProperties": {}
         }
+        
+        # Set externalId based on artifact_location or default pattern
+        if artifact_location:
+            payload["externalId"] = artifact_location
+        elif self.artifact_uri:
+            # We'll set this after getting the experiment ID
+            pass
+        else:
+            # No artifact_uri available, set to None
+            payload["externalId"] = None
         
         if tags:
             for tag in tags:
                 payload["customProperties"][tag.key] = tag.value
                 
         experiment_data = self._request("POST", "/experiments", json=payload)
-        return str(experiment_data["id"])
+        experiment_id = str(experiment_data["id"])
+        
+        # If no artifact_location was provided but we have artifact_uri, update with the default pattern
+        if not artifact_location and self.artifact_uri:
+            default_artifact_location = f"{self.artifact_uri}/experiments/{experiment_id}"
+            update_payload = {"externalId": default_artifact_location}
+            self._request("PATCH", f"/experiments/{experiment_id}", json=update_payload)
+        
+        return experiment_id
     
     def get_experiment(self, experiment_id: str):
         """Get experiment by ID."""
@@ -697,6 +714,8 @@ class ModelRegistryStore:
         payload = {
             "artifactType": "model-artifact",
             "name": name or str(uuid.uuid4()),
+            # TODO: check whether this is correct for mlflow
+            "uri": f"{self._get_experiment_artifact_location(experiment_id)}/models/{name}",
             "customProperties": {
                 "model_type": model_type or "unknown",
                 "experiment_id": experiment_id,
