@@ -9,16 +9,16 @@ dependencies = [
     "requests>=2.25.0",
 ]
 
-[project.optional-dependencies]
-test = [
-    "pytest>=8.4.0",
-    "pytest-cov>=6.2.1",
-    "psutil>=5.8.0",
-]
-
 [project.entry-points."mlflow.tracking_store"]
 modelregistry = "modelregistry_plugin.store:ModelRegistryStore"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "psutil>=7.0.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.1",
+]
