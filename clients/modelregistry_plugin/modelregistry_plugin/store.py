@@ -48,7 +48,7 @@ class ModelRegistryStore:
     def _get_artifact_location(self, response: Dict) -> str:
         return response.get("externalId") or self.artifact_uri
 
-    def _request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
+    def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
         """Make authenticated request to Model Registry API."""
         # Import MLflow exceptions locally to avoid circular imports
         from mlflow.exceptions import MlflowException, get_error_code
@@ -81,7 +81,7 @@ class ModelRegistryStore:
                 fromModelRegistryCustomProperties(item)
         else:
             fromModelRegistryCustomProperties(response_json)
-        return response
+        return response_json
 
     # Experiment operations
     def create_experiment(self, name: str, artifact_location: str = None, tags: List = None) -> str:
@@ -101,8 +101,7 @@ class ModelRegistryStore:
             for tag in tags:
                 payload["customProperties"][tag.key] = tag.value
                 
-        response = self._request("POST", "/experiments", json=payload)
-        experiment_data = response.json()
+        experiment_data = self._request("POST", "/experiments", json=payload)
         return str(experiment_data["id"])
     
     def get_experiment(self, experiment_id: str):
@@ -110,8 +109,7 @@ class ModelRegistryStore:
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import Experiment, ExperimentTag
         
-        response = self._request("GET", f"/experiments/{experiment_id}")
-        experiment_data = response.json()
+        experiment_data = self._request("GET", f"/experiments/{experiment_id}")
         
         return Experiment(
             experiment_id=str(experiment_data["id"]),
@@ -127,8 +125,7 @@ class ModelRegistryStore:
         from mlflow.entities import Experiment, ExperimentTag
         
         try:
-            response = self._request("GET", "/experiment", params={"name": experiment_name})
-            exp_data = response.json()
+            exp_data = self._request("GET", "/experiment", params={"name": experiment_name})
             return Experiment(
                 experiment_id=str(exp_data["id"]),
                 name=exp_data["name"],
@@ -172,8 +169,7 @@ class ModelRegistryStore:
         if page_token:
             params["pageToken"] = page_token
 
-        response = self._request("GET", "/experiments", params=params)
-        items = response.json().get("items", [])
+        items = self._request("GET", "/experiments", params=params).get("items", [])
         
         experiments = []
         for exp_data in items:
@@ -238,8 +234,7 @@ class ModelRegistryStore:
         if page_token:
             params["pageToken"] = page_token
 
-        response = self._request("GET", "/experiments", params=params)
-        response_data = response.json()
+        response_data = self._request("GET", "/experiments", params=params)
         items = response_data.get("items", [])
         
         experiments = []
@@ -285,8 +280,7 @@ class ModelRegistryStore:
             for tag in tags:
                 payload["customProperties"][tag.key] = tag.value
                 
-        response = self._request("POST", "/experiment_runs", json=payload)
-        run_data = response.json()
+        run_data = self._request("POST", "/experiment_runs", json=payload)
         
         run_info = RunInfo(
             run_id=str(run_data["id"]),
@@ -304,8 +298,7 @@ class ModelRegistryStore:
     
     def get_run(self, run_id: str):
         """Get run by ID."""
-        response = self._request("GET", f"/experiment_runs/{run_id}")
-        run_data = response.json()
+        run_data = self._request("GET", f"/experiment_runs/{run_id}")
         
         # Get metrics, parameters, and tags
         return self._getMLflowRun(run_data)
@@ -323,13 +316,12 @@ class ModelRegistryStore:
         if run_name:
             payload["name"] = run_name
             
-        response = self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
-        run_data = response.json()
+        run_data = self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
         
         return RunInfo(
             run_id=str(run_data["id"]),
             experiment_id=str(run_data["experimentId"]),
-            user_id=run_data["owner"] or "unknown",
+            user_id=run_data.get("owner") or "unknown",
             status=RunStatus.from_string(run_data.get("status", "RUNNING")),
             start_time=convert_timestamp(run_data.get("startTimeSinceEpoch") or run_data.get("createTimeSinceEpoch")),
             end_time=convert_timestamp(run_data.get("endTimeSinceEpoch")),
@@ -366,9 +358,8 @@ class ModelRegistryStore:
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import Metric
         
-        response = self._request("GET", f"/experiment_runs/{run_id}/artifacts",
-                                 params={"artifactType": "metric"})
-        items = response.json().get("items", [])
+        items = self._request("GET", f"/experiment_runs/{run_id}/artifacts",
+                                 params={"artifactType": "metric"}).get("items", [])
         
         metrics = []
         for metric_data in items:
@@ -428,9 +419,8 @@ class ModelRegistryStore:
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import Param
         
-        response = self._request("GET", f"/experiment_runs/{run_id}/artifacts",
-                                 params={"artifactType": "parameter"})
-        items = response.json().get("items", [])
+        items = self._request("GET", f"/experiment_runs/{run_id}/artifacts",
+                                 params={"artifactType": "parameter"}).get("items", [])
         
         params = []
         for param_data in items:
@@ -444,8 +434,8 @@ class ModelRegistryStore:
     def set_experiment_tag(self, experiment_id: str, tag) -> None:
         """Set a tag on an experiment."""
         # Get current experiment to preserve other properties
-        experiment = self.get_experiment(experiment_id)
-        custom_props = {k: v for k, v in experiment.tags.items()}
+        experiment = self._request("GET", f"/experiments/{experiment_id}")
+        custom_props = experiment.get("customProperties", {})
         custom_props[tag.key] = tag.value
         
         payload = {"customProperties": custom_props}
@@ -454,8 +444,8 @@ class ModelRegistryStore:
     def set_tag(self, run_id: str, tag) -> None:
         """Set a tag on a run."""
         # Get current run to preserve other properties
-        run = self.get_run(run_id)
-        custom_props = {k: v for k, v in run.data.tags.items()}
+        run = self._request("GET", f"/experiment_runs/{run_id}")
+        custom_props = run.get("customProperties", {})
         custom_props[tag.key] = tag.value
         
         payload = {"customProperties": custom_props}
@@ -463,8 +453,8 @@ class ModelRegistryStore:
     
     def delete_tag(self, run_id: str, key: str) -> None:
         """Delete a tag from a run."""
-        run = self.get_run(run_id)
-        custom_props = {k: v for k, v in run.data.tags.items()}
+        run = self._request("GET", f"/experiment_runs/{run_id}")
+        custom_props = run.get("customProperties", {})
         if key in custom_props:
             del custom_props[key]
         
@@ -489,7 +479,7 @@ class ModelRegistryStore:
         for experiment_id in experiment_ids:
             response = self._request("GET", f"/experiments/{experiment_id}/experiment_runs", 
                                      params={"pageSize": str(min(max_results, 1000))})
-            runs_data = response.json().get("items", [])
+            runs_data = response.get("items", [])
             
             for run_data in runs_data:
                 run = self._getMLflowRun(run_data)
@@ -500,7 +490,7 @@ class ModelRegistryStore:
                     continue
                 all_runs.append(run)
                 
-        return PagedList(all_runs, response.json().get("nextPageToken"))
+        return PagedList(all_runs, response.get("nextPageToken"))
 
     def _getMLflowRun(self, run_data):
         # Import MLflow entities locally to avoid circular imports
@@ -513,7 +503,7 @@ class ModelRegistryStore:
         run_info = RunInfo(
             run_id=str(run_data["id"]),
             experiment_id=str(run_data["experimentId"]),
-            user_id=run_data["owner"] or "unknown",
+            user_id=run_data.get("owner") or "unknown",
             status=RunStatus.from_string(run_data.get("status", "RUNNING")),
             start_time=convert_timestamp(run_data.get("startTimeSinceEpoch") or run_data.get("createTimeSinceEpoch")),
             end_time=convert_timestamp(run_data.get("endTimeSinceEpoch")) if run_data.get(
@@ -530,9 +520,8 @@ class ModelRegistryStore:
                  params: Sequence = (), tags: Sequence = ()) -> None:
         """Log a batch of metrics, parameters, and tags."""
         # Get current run to preserve other properties
-        response = self._request("GET", f"/experiment_runs/{run_id}")
-        run_data = response.json()
-        custom_props = run_data["customProperties"] or {}
+        run_data = self._request("GET", f"/experiment_runs/{run_id}")
+        custom_props = run_data.get("customProperties", {}) or {}
         for tag in tags:
             custom_props[tag.key] = tag.value
         payload = {"customProperties": custom_props}
@@ -576,8 +565,7 @@ class ModelRegistryStore:
         if models:
             for model in models:
                 # Get current model to preserve other properties
-                response = self._request("GET", f"/artifacts/{model.model_id}")
-                model_data = response.json()
+                model_data = self._request("GET", f"/artifacts/{model.model_id}")
                 custom_props = model_data.get("customProperties", {})
                 custom_props["mlflow.model_io_type"] = ModelIOType.INPUT.value
                 
@@ -600,8 +588,7 @@ class ModelRegistryStore:
         
         for model in models:
             # Get current model to preserve other properties
-            response = self._request("GET", f"/artifacts/{model.model_id}")
-            model_data = response.json()
+            model_data = self._request("GET", f"/artifacts/{model.model_id}")
             custom_props = model_data.get("customProperties", {})
             custom_props["mlflow.model_io_type"] = ModelIOType.OUTPUT.value
             
@@ -687,8 +674,7 @@ class ModelRegistryStore:
                 payload["customProperties"][f"param_{param.key}"] = param.value
 
         # TODO source_run_id is optional, but we need to handle it
-        response = self._request("POST", f"/experiment_runs/{source_run_id}/artifacts", json=payload)
-        model_data = response.json()
+        model_data = self._request("POST", f"/experiment_runs/{source_run_id}/artifacts", json=payload)
         
         return LoggedModel(
             model_id=str(model_data["id"]),
@@ -748,11 +734,10 @@ class ModelRegistryStore:
         models = []
         for experiment_id in experiment_ids:
             response = self._request("GET", f"/experiments/{experiment_id}/experiment_runs", params=params)
-            runs_data = response.json().get("items", [])
+            runs_data = response.get("items", [])
             for run_data in runs_data:
-                response = self._request("GET", f"/experiment_runs/{run_data['id']}/artifacts", 
-                                         params={"artifactType": "model-artifact"})
-                items = response.json().get("items", [])
+                items = self._request("GET", f"/experiment_runs/{run_data['id']}/artifacts", 
+                                         params={"artifactType": "model-artifact"}).get("items", [])
                 for item in items:
                     models.append(self.get_logged_model(item["id"]))
         
@@ -775,8 +760,7 @@ class ModelRegistryStore:
             "state": convert_to_model_artifact_state(status)
         }
         
-        response = self._request("PATCH", f"/artifacts/{model_id}", json=payload)
-        model_data = response.json()
+        model_data = self._request("PATCH", f"/artifacts/{model_id}", json=payload)
         
         # Extract tags and params from customProperties
         custom_props = model_data.get("customProperties", {})
@@ -811,8 +795,7 @@ class ModelRegistryStore:
             tags: Tags to set on the model
         """
         # Get current model to preserve other properties
-        response = self._request("GET", f"/artifacts/{model_id}")
-        model_data = response.json()
+        model_data = self._request("GET", f"/artifacts/{model_id}")
         custom_props = model_data.get("customProperties", {})
         
         # Update custom properties with new tags
@@ -833,8 +816,7 @@ class ModelRegistryStore:
             key: Key of the tag to delete
         """
         # Get current model to preserve other properties
-        response = self._request("GET", f"/artifacts/{model_id}")
-        model_data = response.json()
+        model_data = self._request("GET", f"/artifacts/{model_id}")
         custom_props = model_data.get("customProperties", {})
         
         # Remove the specified tag
@@ -859,8 +841,7 @@ class ModelRegistryStore:
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter, LoggedModelStatus
         
-        response = self._request("GET", f"/artifacts/{model_id}")
-        model_data = response.json()
+        model_data = self._request("GET", f"/artifacts/{model_id}")
         
         # Extract tags and params from customProperties
         custom_props = model_data.get("customProperties", {})

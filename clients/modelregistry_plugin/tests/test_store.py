@@ -88,10 +88,10 @@ class TestModelRegistryStore:
         """Test successful API request."""
         mock_request.return_value = mock_response
         
-        response = store._request("GET", "/test")
+        response_data = store._request("GET", "/test")
         
         mock_request.assert_called_once()
-        assert response == mock_response
+        assert response_data == mock_response.json.return_value
     
     @patch('modelregistry_plugin.store.requests.request')
     def test_request_failure(self, mock_request, store):
@@ -120,13 +120,15 @@ class TestModelRegistryStore:
         }
         mock_request.return_value = mock_response
         
-        response = store._request("POST", "/test", json={
+        response_data = store._request("POST", "/test", json={
             "customProperties": {"key1": "value1"}
         })
         
-        # Check that custom properties were converted
+        # Check that custom properties were converted in request and response
         call_args = mock_request.call_args
         assert call_args[1]['json']['customProperties']['key1']['string_value'] == "value1"
+        assert call_args[1]['json']['customProperties']['key1']['metadataType'] == "MetadataStringValue"
+        assert response_data['customProperties']['key1'] == "value1"
 
     # Experiment operations tests
     @patch('modelregistry_plugin.store.requests.request')
@@ -980,23 +982,24 @@ class TestModelRegistryStore:
                 "existing": {"string_value": "value", "metadataType": "MetadataStringValue"}
             }
         }
-        # Mock the raw response from Model Registry API for GET metrics request
-        mock_response_metrics = Mock(spec=requests.Response)
-        mock_response_metrics.ok = True
-        mock_response_metrics.json.return_value = {"items": []}
-        # Mock the raw response from Model Registry API for GET params request
-        mock_response_params = Mock(spec=requests.Response)
-        mock_response_params.ok = True
-        mock_response_params.json.return_value = {"items": []}
         # Mock the raw response from Model Registry API for PATCH request
         mock_response_patch = Mock(spec=requests.Response)
         mock_response_patch.ok = True
-        mock_response_patch.json.return_value = {}
+        mock_response_patch.json.return_value = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "name": "test-run",
+            "state": "RUNNING",
+            "owner": "user123",
+            "startTimeSinceEpoch": "1234567890",
+            "customProperties": {
+                "existing": {"string_value": "value", "metadataType": "MetadataStringValue"},
+                "key1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
+            }
+        }
         
         mock_request.side_effect = [
             mock_response_get_run,  # GET run
-            mock_response_metrics,  # GET metrics
-            mock_response_params,   # GET params
             mock_response_patch     # PATCH
         ]
         
@@ -1006,12 +1009,12 @@ class TestModelRegistryStore:
         
         # Should call PATCH to update tags
         call_args = mock_request.call_args_list
-        assert len(call_args) == 4  # GET run + GET metrics + GET params + PATCH
-        patch_call = call_args[3]
+        assert len(call_args) == 2  # GET run + PATCH
+        patch_call = call_args[1]
         json_data = patch_call[1]['json']
         custom_props = json_data['customProperties']
         assert custom_props['key1']['string_value'] == "value1"
-    
+
     @patch('modelregistry_plugin.store.requests.request')
     def test_delete_tag(self, mock_request, store):
         """Test deleting a run tag."""
@@ -1030,23 +1033,23 @@ class TestModelRegistryStore:
                 "key2": {"string_value": "value2", "metadataType": "MetadataStringValue"}
             }
         }
-        # Mock the raw response from Model Registry API for GET metrics request
-        mock_response_metrics = Mock(spec=requests.Response)
-        mock_response_metrics.ok = True
-        mock_response_metrics.json.return_value = {"items": []}
-        # Mock the raw response from Model Registry API for GET params request
-        mock_response_params = Mock(spec=requests.Response)
-        mock_response_params.ok = True
-        mock_response_params.json.return_value = {"items": []}
         # Mock the raw response from Model Registry API for PATCH request
         mock_response_patch = Mock(spec=requests.Response)
         mock_response_patch.ok = True
-        mock_response_patch.json.return_value = {}
+        mock_response_patch.json.return_value = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "name": "test-run",
+            "state": "RUNNING",
+            "owner": "user123",
+            "startTimeSinceEpoch": "1234567890",
+            "customProperties": {
+                "key2": {"string_value": "value2", "metadataType": "MetadataStringValue"}
+            }
+        }
         
         mock_request.side_effect = [
             mock_response_get_run,  # GET run
-            mock_response_metrics,  # GET metrics
-            mock_response_params,   # GET params
             mock_response_patch     # PATCH
         ]
         
@@ -1054,8 +1057,8 @@ class TestModelRegistryStore:
         
         # Should call PATCH to update tags without key1
         call_args = mock_request.call_args_list
-        assert len(call_args) == 4  # GET run + GET metrics + GET params + PATCH
-        patch_call = call_args[3]
+        assert len(call_args) == 2  # GET run + GET metrics + GET params + PATCH
+        patch_call = call_args[1]
         json_data = patch_call[1]['json']
         custom_props = json_data['customProperties']
         assert "key1" not in custom_props
