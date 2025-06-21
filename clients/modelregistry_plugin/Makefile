@@ -45,7 +45,7 @@ test-e2e:
 # Test e2e setup and connectivity
 test-e2e-setup:
 	@echo "Testing e2e setup and connectivity..."
-	python scripts/test_e2e_setup.py
+	uv run python scripts/test_e2e_setup.py
 
 # Run local end-to-end tests (starts local MLMD and Model Registry servers)
 test-e2e-local:
@@ -71,12 +71,12 @@ format:
 # Show available tracking stores
 show-stores:
 	@echo "Available MLflow tracking stores:"
-	python -c "import mlflow; print(list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()))"
+	uv run python -c "import mlflow; print(list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()))"
 
 # Verify entry point registration
 verify-entry-point:
 	@echo "Verifying entry point registration..."
-	python -c "import mlflow; stores = list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()); print('modelregistry' in stores and '✅ Entry point registered' or '❌ Entry point not found')"
+	uv run python -c "import mlflow; stores = list(mlflow.tracking._tracking_service.utils._tracking_store_registry._registry.keys()); print('modelregistry' in stores and '✅ Entry point registered' or '❌ Entry point not found')"
 
 # Full development workflow
 dev: install build install-dev verify-entry-point test 
