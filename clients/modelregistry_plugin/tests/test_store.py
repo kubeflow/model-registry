@@ -155,7 +155,8 @@ class TestModelRegistryStore:
         assert json_data["description"] == "MLflow experiment: test-experiment"
         assert json_data["state"] == "LIVE"
         assert json_data["customProperties"] == {}
-        assert json_data["externalId"] is None  # Initially None, will be updated
+        # externalId should not be in the initial payload when artifact_uri is available
+        assert "externalId" not in json_data
         
         # Check second call (PATCH to set default artifact location)
         call_args = mock_request.call_args_list[1]
@@ -580,15 +581,31 @@ class TestModelRegistryStore:
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_run(self, mock_request, store):
         """Test run creation."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
+        # Mock the raw response from Model Registry API for creating run
+        mock_response_create = Mock(spec=requests.Response)
+        mock_response_create.ok = True
+        mock_response_create.json.return_value = {
             "id": "run-123",
             "experimentId": "exp-123",
             "createTimeSinceEpoch": "1234567890"
         }
-        mock_request.return_value = mock_response
+        
+        # Mock the raw response from Model Registry API for getting experiment
+        mock_response_experiment = Mock(spec=requests.Response)
+        mock_response_experiment.ok = True
+        mock_response_experiment.json.return_value = {
+            "id": "exp-123",
+            "name": "test-experiment",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123",
+            "customProperties": {}
+        }
+        
+        # Mock the raw response from Model Registry API for updating run with artifact location
+        mock_response_update = Mock(spec=requests.Response)
+        mock_response_update.ok = True
+        mock_response_update.json.return_value = {}
+        
+        mock_request.side_effect = [mock_response_create, mock_response_experiment, mock_response_update]
         
         run = store.create_run("exp-123", start_time=1234567890)
         
@@ -596,6 +613,29 @@ class TestModelRegistryStore:
         assert run.info.run_id == "run-123"
         assert run.info.experiment_id == "exp-123"
         assert run.info.status == RunStatus.RUNNING
+        
+        # Should make 3 calls: POST to create run, GET to get experiment, then PATCH to set artifact location
+        assert mock_request.call_count == 3
+        
+        # Check first call (POST to create run)
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiment_runs" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["experimentId"] == "exp-123"
+        assert json_data["status"] == "RUNNING"
+        
+        # Check second call (GET experiment)
+        call_args = mock_request.call_args_list[1]
+        assert call_args[0][0] == "GET"  # method
+        assert "/experiments/exp-123" in call_args[0][1]  # endpoint
+        
+        # Check third call (PATCH to set artifact location)
+        call_args = mock_request.call_args_list[2]
+        assert call_args[0][0] == "PATCH"  # method
+        assert "/experiment_runs/run-123" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["externalId"] == "s3://bucket/artifacts/experiments/exp-123/run-123"
     
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_run_with_user_and_tags(self, mock_request, store):
@@ -634,6 +674,7 @@ class TestModelRegistryStore:
             "state": "RUNNING",
             "owner": "user123",
             "startTimeSinceEpoch": "1234567890",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
             "customProperties": {
                 "key1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
             }
@@ -656,6 +697,7 @@ class TestModelRegistryStore:
         assert run.info.experiment_id == "exp-123"
         assert run.info.run_name == "test-run"
         assert run.info.user_id == "user123"
+        assert run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
         assert len(run.data.tags) == 1
         assert run.data.tags["key1"] == "value1"
     
@@ -671,7 +713,8 @@ class TestModelRegistryStore:
             "status": "FINISHED",
             "endTimeSinceEpoch": "1234567899",
             "startTimeSinceEpoch": "1234567890",
-            "owner": "user123"
+            "owner": "user123",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123"
         }
         mock_request.return_value = mock_response
         
@@ -680,6 +723,7 @@ class TestModelRegistryStore:
         assert isinstance(run_info, RunInfo)
         assert run_info.run_id == "run-123"
         assert run_info.status == RunStatus.FINISHED
+        assert run_info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
     
     @patch('modelregistry_plugin.store.requests.request')
     def test_delete_run(self, mock_request, store):
@@ -1596,6 +1640,7 @@ class TestModelRegistryStore:
                     "state": "RUNNING",
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
                     "customProperties": {
                         "tag1": {"string_value": "value1", "metadataType": "MetadataStringValue"}
                     }
@@ -1628,6 +1673,7 @@ class TestModelRegistryStore:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
+        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
         assert result.token == "token123"
 
     @patch('modelregistry_plugin.store.requests.request')
@@ -1646,6 +1692,7 @@ class TestModelRegistryStore:
                     "state": "LIVE",      # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
                     "customProperties": {}
                 },
                 {
@@ -1656,6 +1703,7 @@ class TestModelRegistryStore:
                     "state": "ARCHIVED",   # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-456",
                     "customProperties": {}
                 }
             ],
@@ -1695,6 +1743,7 @@ class TestModelRegistryStore:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
+        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_search_runs_deleted_only(self, mock_request, store):
@@ -1712,6 +1761,7 @@ class TestModelRegistryStore:
                     "state": "LIVE",      # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
                     "customProperties": {}
                 },
                 {
@@ -1722,6 +1772,7 @@ class TestModelRegistryStore:
                     "state": "ARCHIVED",   # ModelRegistry lifecycle state
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-456",
                     "customProperties": {}
                 }
             ],
@@ -1761,6 +1812,7 @@ class TestModelRegistryStore:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-456"
+        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-456"
 
     # Error handling tests
     @patch('modelregistry_plugin.store.requests.request')
@@ -1790,3 +1842,49 @@ class TestModelRegistryStore:
         # Test with artifact_uri set
         store.artifact_uri = "s3://default/artifacts"
         assert store._get_artifact_location(response_without_external_id) == "s3://default/artifacts"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_create_run_without_artifact_uri(self, mock_request):
+        """Test run creation when experiment has no artifact_location."""
+        # Create store without artifact_uri
+        store = ModelRegistryStore("modelregistry://localhost:8080")
+        
+        # Mock the raw response from Model Registry API for creating run
+        mock_response_create = Mock(spec=requests.Response)
+        mock_response_create.ok = True
+        mock_response_create.json.return_value = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "createTimeSinceEpoch": "1234567890"
+        }
+        
+        # Mock the raw response from Model Registry API for getting experiment (no artifact_location)
+        mock_response_experiment = Mock(spec=requests.Response)
+        mock_response_experiment.ok = True
+        mock_response_experiment.json.return_value = {
+            "id": "exp-123",
+            "name": "test-experiment",
+            "customProperties": {}
+        }
+        
+        mock_request.side_effect = [mock_response_create, mock_response_experiment]
+        
+        run = store.create_run("exp-123", start_time=1234567890)
+        
+        assert isinstance(run, Run)
+        assert run.info.run_id == "run-123"
+        assert run.info.experiment_id == "exp-123"
+        assert run.info.status == RunStatus.RUNNING
+        assert run.info.artifact_uri is None
+        
+        # Should make only 2 calls since experiment has no artifact_location
+        assert mock_request.call_count == 2
+        
+        # Check first call (POST to create run)
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiment_runs" in call_args[0][1]  # endpoint
+        json_data = call_args[1]['json']
+        assert json_data["experimentId"] == "exp-123"
+        assert json_data["status"] == "RUNNING"
+        assert json_data.get("externalId") is None

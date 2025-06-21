@@ -299,9 +299,20 @@ class ModelRegistryStore:
                 payload["customProperties"][tag.key] = tag.value
                 
         run_data = self._request("POST", "/experiment_runs", json=payload)
+        run_id = str(run_data["id"])
+        
+        # Get the experiment to determine its externalId
+        experiment_data = self._request("GET", f"/experiments/{experiment_id}")
+        
+        # Set the artifact location for the run using experiment's externalId as prefix
+        experiment_artifact_location = self._get_artifact_location(experiment_data)
+        if experiment_artifact_location:
+            run_artifact_location = f"{experiment_artifact_location}/{run_id}"
+            update_payload = {"externalId": run_artifact_location}
+            self._request("PATCH", f"/experiment_runs/{run_id}", json=update_payload)
         
         run_info = RunInfo(
-            run_id=str(run_data["id"]),
+            run_id=run_id,
             experiment_id=experiment_id,
             user_id=user_id or "unknown",
             status=RunStatus.RUNNING,
