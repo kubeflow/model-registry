@@ -26,7 +26,7 @@ build:
 
 # Install in development mode
 install-dev:
-	uv pip install -e .
+	uv sync --dev
 
 # Run unit tests
 test:
