@@ -412,10 +412,11 @@ class ModelRegistryStore:
             page_token: Token specifying the next paginated set of results
             
         Returns:
-            A list of Metric entities if logged, else empty list
+            A PagedList of Metric entities if logged, else empty PagedList
         """
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import Metric
+        from mlflow.store.entities.paged_list import PagedList
         
         params = {"name": metric_key}
         if max_results:
@@ -424,8 +425,10 @@ class ModelRegistryStore:
             params["pageToken"] = page_token
             
         # Get all metrics for the run
-        items = self._request("GET", f"/experiment_runs/{run_id}/metric_history",
-                                 params=params).get("items", [])
+        response_data = self._request("GET", f"/experiment_runs/{run_id}/metric_history",
+                                 params=params)
+        next_page_token = response_data.get("nextPageToken")
+        items = response_data.get("items", [])
         metrics = []
         for metric_data in items:
             metrics.append(Metric(
@@ -434,12 +437,10 @@ class ModelRegistryStore:
                 timestamp=int(metric_data.get("timestamp") or metric_data.get("createTimeSinceEpoch")),
                 step=metric_data.get("step") or 0,
             ))
-        return metrics
+        return PagedList(metrics, next_page_token)
 
     # NOTE: Copied from mlflow.store.tracking.abstract_store.py
     def get_metric_history_bulk_interval_from_steps(self, run_id, metric_key, steps, max_results):
-        # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities.metric import MetricWithRunId
         """
         Return a list of metric objects corresponding to all values logged
         for a given metric within a run for the specified steps.
@@ -458,17 +459,33 @@ class ModelRegistryStore:
                 - step: Metric step.
                 - run_id: Unique identifier for run.
         """
-        metrics_for_run = sorted(
-            [m for m in self.get_metric_history(run_id, metric_key) if m.step in steps],
-            key=lambda metric: (metric.step, metric.timestamp),
-        )[:max_results]
-        return [
-            MetricWithRunId(
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import Metric
+        from mlflow.entities.metric import MetricWithRunId
+        from mlflow.store.entities.paged_list import PagedList
+        
+        params = {"name": metric_key}
+        if max_results:
+            params["pageSize"] = max_results
+        if steps:
+            params["step"] = steps
+            
+        response_data = self._request("GET", f"/experiment_runs/{run_id}/metric_history",
+                                 params=params)
+        next_page_token = response_data.get("nextPageToken")
+        items = response_data.get("items", [])
+        metrics = []
+        for metric_data in items:
+            metrics.append(MetricWithRunId(
+                metric=Metric(
+                    key=metric_data["name"],
+                    value=float(metric_data["value"]),
+                    timestamp=int(metric_data.get("timestamp") or metric_data.get("createTimeSinceEpoch")),
+                    step=metric_data.get("step") or 0,
+                ),
                 run_id=run_id,
-                metric=metric,
-            )
-            for metric in metrics_for_run
-        ]
+            ))
+        return PagedList(metrics, next_page_token)
 
     # Parameter operations  
     def log_param(self, run_id: str, param) -> None:
@@ -721,18 +738,29 @@ class ModelRegistryStore:
         """
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter, LoggedModelStatus
+
+        experiment_data = self._request("GET", f"/experiments/{experiment_id}")
+        artifact_location = self._get_artifact_location(experiment_data)
+        
+        if not name:
+            name = str(uuid.uuid4())
         
         payload = {
             "artifactType": "model-artifact",
-            "name": name or str(uuid.uuid4()),
-            # TODO: check whether this is correct for mlflow
-            "uri": f"{self._get_experiment_artifact_location(experiment_id)}/models/{name}",
+            "name": name,
             "customProperties": {
                 "model_type": model_type or "unknown",
                 "experiment_id": experiment_id,
                 "source_run_id": source_run_id,
             }
         }
+        # TODO: check whether this is correct for mlflow
+        if artifact_location:
+            if source_run_id:
+                artifact_location = f"{artifact_location}/{source_run_id}/{name}"
+            else:
+                artifact_location = f"{artifact_location}/{name}"
+            payload["uri"] = artifact_location
         
         if tags:
             for tag in tags:
