@@ -21,4 +21,5 @@ dev = [
     "psutil>=7.0.0",
     "pytest>=8.4.0",
     "pytest-cov>=6.2.1",
+    "testcontainers>=3.7.0",
 ]
