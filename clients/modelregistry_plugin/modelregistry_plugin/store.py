@@ -468,7 +468,7 @@ class ModelRegistryStore:
         if max_results:
             params["pageSize"] = max_results
         if steps:
-            params["step"] = steps
+            params["stepIds"] = ",".join(str(step) for step in steps) 
             
         response_data = self._request("GET", f"/experiment_runs/{run_id}/metric_history",
                                  params=params)
