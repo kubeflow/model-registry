@@ -76,7 +76,7 @@ class LocalModelRegistryServer:
             self.mlmd_container = DockerContainer(
                 image="gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0"
             ).with_exposed_ports(8080).with_volume_mapping(
-                temp_dir_abs, "/tmp/shared"
+                temp_dir_abs, "/tmp/shared", mode="rw"
             ).with_env(
                 "METADATA_STORE_SERVER_CONFIG_FILE", "/tmp/shared/conn_config.pb"
             )
@@ -85,7 +85,13 @@ class LocalModelRegistryServer:
             self.mlmd_container.start()
             
             # Wait for MLMD server to be ready
-            wait_for_logs(self.mlmd_container, "Server listening on", timeout=30)
+            try:
+                wait_for_logs(self.mlmd_container, "Server listening on", timeout=30)
+            except Exception as e:
+                # If wait fails, get container logs for debugging
+                print(f"❌ MLMD server didn't start properly. Container logs:")
+                print(self.mlmd_container.get_logs())
+                raise RuntimeError(f"MLMD server failed to start: {e}")
             
             # Get the mapped port
             self.mlmd_port = self.mlmd_container.get_exposed_port(8080)
@@ -96,6 +102,8 @@ class LocalModelRegistryServer:
             print(f"❌ Failed to start MLMD server: {e}")
             if self.mlmd_container:
                 try:
+                    print("🐳 Container logs:")
+                    print(self.mlmd_container.get_logs())
                     self.mlmd_container.stop()
                 except Exception as cleanup_error:
                     print(f"❌ Error during MLMD cleanup: {cleanup_error}")
