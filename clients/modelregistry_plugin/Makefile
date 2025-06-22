@@ -1,6 +1,6 @@
 # Makefile for Model Registry MLflow Plugin
 
-.PHONY: help install build test test-e2e test-e2e-setup clean lint format test-e2e-local
+.PHONY: help install build test test-e2e test-e2e-local clean lint format
 
 # Default target
 help:
@@ -8,9 +8,8 @@ help:
 	@echo "  install      - Install dependencies"
 	@echo "  build        - Build the package"
 	@echo "  install-dev  - Install in development mode"
-	@echo "  test         - Run unit tests"
-	@echo "  test-e2e     - Run end-to-end tests"
-	@echo "  test-e2e-setup - Test e2e setup and connectivity"
+	@echo "  test         - Run unit tests with coverage"
+	@echo "  test-e2e     - Run end-to-end tests (requires MLFLOW_TRACKING_URI)"
 	@echo "  test-e2e-local - Run local end-to-end tests"
 	@echo "  clean        - Clean build artifacts"
 	@echo "  lint         - Run linting"
@@ -30,22 +29,23 @@ install-dev:
 
 # Run unit tests
 test:
-	uv run pytest tests/ -v --tb=short
+	uv run pytest tests/ -v --tb=short --cov=modelregistry_plugin --cov-report=term-missing -k "not e2e"
 
-# Run end-to-end tests
+# Run end-to-end tests (requires MLFLOW_TRACKING_URI)
 test-e2e:
 	@echo "Running end-to-end tests..."
-	@echo "Make sure you have set the required environment variables:"
-	@echo "  MODEL_REGISTRY_HOST"
-	@echo "  MODEL_REGISTRY_TOKEN"
-	@echo ""
-	@echo "You can also use: ./scripts/run_e2e_tests.sh"
+	@if [ -z "$$MLFLOW_TRACKING_URI" ]; then \
+		echo "❌ MLFLOW_TRACKING_URI is not set"; \
+		echo "Please set: export MLFLOW_TRACKING_URI='modelregistry://host:port'"; \
+		exit 1; \
+	fi
+	@echo "✅ Using tracking URI: $$MLFLOW_TRACKING_URI"
+	@if [ -n "$$MODEL_REGISTRY_TOKEN" ]; then \
+		echo "✅ Using authentication token"; \
+	else \
+		echo "⚠️  No MODEL_REGISTRY_TOKEN set (may fail if auth required)"; \
+	fi
 	uv run pytest tests/test_e2e.py -v -s
-
-# Test e2e setup and connectivity
-test-e2e-setup:
-	@echo "Testing e2e setup and connectivity..."
-	uv run python scripts/test_e2e_setup.py
 
 # Run local end-to-end tests (starts local MLMD and Model Registry servers)
 test-e2e-local:
