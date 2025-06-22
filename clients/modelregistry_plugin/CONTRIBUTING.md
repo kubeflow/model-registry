@@ -56,17 +56,15 @@ clients/modelregistry_plugin/
 │   ├── __init__.py
 │   ├── auth.py                   # Authentication handling
 │   ├── store.py                  # Main ModelRegistryStore implementation
-│   └── types.py                  # Type definitions
+│   └── utils.py                  # Utility functions
 ├── tests/                        # Test suite
+│   ├── __init__.py              # Test package initialization
 │   ├── test_store.py            # Unit tests
 │   ├── test_e2e.py              # Remote e2e tests
 │   ├── test_e2e_local.py        # Local e2e tests
-│   └── e2e_config.env.example   # E2E test configuration
-├── scripts/                      # Development scripts
-│   ├── run_e2e_tests.sh         # Remote e2e test runner
-│   └── test_e2e_setup.py        # E2E setup verification
+│   ├── test_auth.py             # Authentication tests
+│   └── test_utils.py            # Utility tests
 ├── docs/                         # Documentation
-│   └── e2e_testing.md           # E2E testing guide
 ├── pyproject.toml               # Project configuration
 ├── Makefile                     # Development tasks
 └── README.md                    # End-user documentation
@@ -128,29 +126,150 @@ make verify-entry-point
 - No external dependencies or credentials required
 
 #### Remote E2E Tests (`make test-e2e`)
-- **Optional, for advanced integration testing**
+- **Advanced integration testing against real environments**
 - Requires remote Model Registry server and authentication
-- Tests against real production-like environments
-- Useful for release validation
+- Tests against production-like environments
+- Useful for release validation and advanced debugging
 
 ### Running Tests
 
 ```bash
 # Quick development cycle
-make test                    # Unit tests only
+make test                    # Unit tests with coverage (e2e tests excluded)
 make test-e2e-local         # Local e2e tests
+make test-e2e              # Remote e2e tests (requires MLFLOW_TRACKING_URI)
 
 # Full test suite
 make test && make test-e2e-local
 
-# With coverage
-uv run pytest --cov=modelregistry_plugin
+# Run all tests including e2e (requires MLFLOW_TRACKING_URI to be set)
+export MLFLOW_TRACKING_URI="modelregistry://your-host:port"
+uv run pytest tests/ -v -s
 
 # Specific test file
 uv run pytest tests/test_store.py -k "test_search_runs"
 
 # Debug mode
-uv run pytest -v -s --log-cli-level=DEBUG
+uv run pytest tests/ -v -s --log-cli-level=DEBUG -k "not e2e"
+```
+
+### Remote E2E Test Setup
+
+Remote e2e tests require access to a running Model Registry server. Follow these steps to set them up:
+
+#### Prerequisites
+
+1. **Model Registry Server Access**
+   - Local development server
+   - Kubernetes cluster deployment
+   - Cloud-hosted instance
+
+2. **Authentication Token**
+   - Valid token with sufficient permissions
+   - Permissions for experiments, runs, metrics, and artifacts
+
+3. **Network Connectivity**
+   ```bash
+   # Test basic connectivity
+   curl -H "Authorization: Bearer YOUR_TOKEN" \
+        "http://YOUR_HOST:PORT/health"
+   ```
+
+#### Configuration
+
+**Required Environment Variables**
+```bash
+# Required: MLflow tracking URI for the Model Registry server
+export MLFLOW_TRACKING_URI="modelregistry://your-host:port"
+
+# Optional: Authentication token (if required)
+export MODEL_REGISTRY_TOKEN="your-auth-token"
+```
+
+**Example Configuration**
+```bash
+# For HTTP server
+export MLFLOW_TRACKING_URI="modelregistry://model-registry.example.com:8080"
+
+# For HTTPS server
+export MLFLOW_TRACKING_URI="modelregistry+https://model-registry.example.com:443"
+export MODEL_REGISTRY_TOKEN="your-auth-token"
+```
+
+#### Running Remote E2E Tests
+
+**Using Makefile (Recommended)**
+```bash
+# Set the tracking URI
+export MLFLOW_TRACKING_URI="modelregistry+https://your-host:port"
+export MODEL_REGISTRY_TOKEN="your-auth-token"
+
+# Run e2e tests
+make test-e2e
+```
+
+**Manual Execution**
+```bash
+# Set environment variables
+export MLFLOW_TRACKING_URI="modelregistry+https://your-host:port"
+export MODEL_REGISTRY_TOKEN="your-auth-token"
+
+# Run e2e tests
+uv run pytest tests/test_e2e.py -v -s
+```
+
+#### Test Coverage
+
+Remote e2e tests cover:
+- ✅ Connection and authentication
+- ✅ Experiment management (create, retrieve, search, lifecycle)
+- ✅ Run management (create, update, lifecycle)
+- ✅ Data logging (metrics, parameters, tags)
+- ✅ Search and filtering with pagination
+- ✅ MLflow integration and entry point registration
+
+#### Troubleshooting Remote E2E Tests
+
+**Common Issues:**
+
+1. **MLFLOW_TRACKING_URI Not Set**
+   ```bash
+   # Error: MLFLOW_TRACKING_URI is not set
+   # Solution: Set the tracking URI
+   export MLFLOW_TRACKING_URI="modelregistry://your-host:port"
+   ```
+
+2. **Connection Refused**
+   ```bash
+   # Verify server is running and accessible
+   curl http://HOST:PORT/health
+   ```
+
+3. **Authentication Failed**
+   ```bash
+   # Test token validity
+   curl -H "Authorization: Bearer TOKEN" http://HOST:PORT/health
+   ```
+
+4. **SSL/TLS Errors**
+   ```bash
+   # For HTTPS servers, ensure proper certificate configuration
+   # The modelregistry:// URI scheme handles HTTPS automatically
+   ```
+
+5. **Entry Point Not Found**
+   ```bash
+   # Rebuild and reinstall
+   uv build && uv pip install dist/*.whl --force-reinstall
+   ```
+
+**Debug Mode:**
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+
+# Run with debug output
+uv run pytest tests/test_e2e.py -v -s --log-cli-level=DEBUG
 ```
 
 ### Test Best Practices
@@ -161,6 +280,8 @@ uv run pytest -v -s --log-cli-level=DEBUG
 4. **Mock external dependencies in unit tests**
 5. **Use fixtures for common setup**
 6. **Clean up test data after tests**
+7. **Use unique names (UUIDs/timestamps) for e2e tests**
+8. **Monitor test duration and optimize slow tests**
 
 ## Code Style and Standards
 
@@ -292,7 +413,8 @@ make build
 #### Test Failures
 ```bash
 # Check if Model Registry server is running (for e2e tests)
-make test-e2e-setup
+# Verify your MLFLOW_TRACKING_URI is set correctly
+echo $MLFLOW_TRACKING_URI
 
 # Run with debug output
 uv run pytest -v -s --log-cli-level=DEBUG
@@ -312,6 +434,19 @@ docker ps
 
 # Clean up containers
 docker system prune -f
+```
+
+#### Remote E2E Test Issues
+```bash
+# Verify MLFLOW_TRACKING_URI is set
+echo $MLFLOW_TRACKING_URI
+
+# Check connectivity (extract host:port from URI)
+# For modelregistry://host:port, test with:
+curl http://HOST:PORT/health
+
+# Test with debug logging
+LOG_LEVEL=DEBUG uv run pytest tests/test_e2e.py -v -s
 ```
 
 ### Getting Help

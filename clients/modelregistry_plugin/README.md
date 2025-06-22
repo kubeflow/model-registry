@@ -39,10 +39,11 @@ pip install modelregistry_plugin
 Set the following environment variables to configure the plugin:
 
 ```bash
+# Required: MLflow tracking URI for the Model Registry server
 export MLFLOW_TRACKING_URI="modelregistry://your-model-registry-host:port"
-export MODEL_REGISTRY_HOST="your-model-registry-host"
-export MODEL_REGISTRY_PORT="8080"
-export MODEL_REGISTRY_SECURE="true"  # Use HTTPS
+
+# Optional: Authentication token (if required)
+export MODEL_REGISTRY_TOKEN="your-token"
 ```
 
 ### Authentication
