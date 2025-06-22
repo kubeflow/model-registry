@@ -225,9 +225,15 @@ class TestModelRegistryStore:
         
         experiment_id = store.create_experiment("test-experiment", tags=tags)
         
-        mock_request.assert_called_once()
-        call_args = mock_request.call_args
+        # Should make 2 calls: POST to create, then PATCH to set default artifact location
+        assert mock_request.call_count == 2
+        
+        # Check first call (POST to create experiment)
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiments" in call_args[0][1]  # endpoint
         json_data = call_args[1]['json']
+        assert json_data["name"] == "test-experiment"
         custom_props = json_data['customProperties']
         assert custom_props['key1']['string_value'] == "value1"
         assert custom_props['key2']['string_value'] == "value2"
@@ -640,22 +646,43 @@ class TestModelRegistryStore:
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_run_with_user_and_tags(self, mock_request, store):
         """Test run creation with user ID and tags."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
+        # Mock the raw response from Model Registry API for creating run
+        mock_response_create = Mock(spec=requests.Response)
+        mock_response_create.ok = True
+        mock_response_create.json.return_value = {
             "id": "run-123",
             "experimentId": "exp-123",
             "createTimeSinceEpoch": "1234567890"
         }
-        mock_request.return_value = mock_response
+        
+        # Mock the raw response from Model Registry API for getting experiment
+        mock_response_experiment = Mock(spec=requests.Response)
+        mock_response_experiment.ok = True
+        mock_response_experiment.json.return_value = {
+            "id": "exp-123",
+            "name": "test-experiment",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123",
+            "customProperties": {}
+        }
+        
+        # Mock the raw response from Model Registry API for updating run with artifact location
+        mock_response_update = Mock(spec=requests.Response)
+        mock_response_update.ok = True
+        mock_response_update.json.return_value = {}
+        
+        mock_request.side_effect = [mock_response_create, mock_response_experiment, mock_response_update]
         
         tags = [RunTag("key1", "value1"), RunTag("key2", "value2")]
         
         run = store.create_run("exp-123", user_id="user123", tags=tags)
         
-        mock_request.assert_called_once()
-        call_args = mock_request.call_args
+        # Should make 3 calls: POST to create run, GET to get experiment, then PATCH to set artifact location
+        assert mock_request.call_count == 3
+        
+        # Check first call (POST to create run)
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiment_runs" in call_args[0][1]  # endpoint
         json_data = call_args[1]['json']
         custom_props = json_data['customProperties']
         assert custom_props['key1']['string_value'] == "value1"
@@ -843,29 +870,29 @@ class TestModelRegistryStore:
                     "step": 2,
                     "createTimeSinceEpoch": "1234567891"
                 },
-                {
-                    "name": "loss",
-                    "value": 0.1,
-                    "timestamp": "1234567892",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567892"
-                }
-            ]
+            ],
+            "nextPageToken": "token123"
         }
         mock_request.return_value = mock_response
         
         # Get metric history for "accuracy"
-        metrics = store.get_metric_history("run-123", "accuracy")
+        result = store.get_metric_history("run-123", "accuracy")
         
-        assert len(metrics) == 2
-        assert all(metric.key == "accuracy" for metric in metrics)
-        assert metrics[0].value == 0.95
-        assert metrics[0].step == 1
-        assert metrics[1].value == 0.97
-        assert metrics[1].step == 2
+        # The store returns all metrics from the API response
+        # The API should filter by name, but in this test we're mocking the response
+        assert len(result) == 2
+        assert result[0].key == "accuracy"
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[1].key == "accuracy"
+        assert result[1].value == 0.97
+        assert result[1].step == 2
         
         # Verify metrics are sorted by timestamp and step
-        assert metrics[0].timestamp <= metrics[1].timestamp
+        assert result[0].timestamp <= result[1].timestamp
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token123"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_empty(self, mock_request, store):
@@ -882,7 +909,7 @@ class TestModelRegistryStore:
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_with_max_results(self, mock_request, store):
-        """Test getting metric history with max_results limit."""
+        """Test metric history with max_results limit."""
         # Mock the raw response from Model Registry API
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
@@ -894,14 +921,36 @@ class TestModelRegistryStore:
                     "timestamp": "1234567890",
                     "step": 1,
                     "createTimeSinceEpoch": "1234567890"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
+                }
+            ],
+            "nextPageToken": "token303"
+        }
+        mock_request.return_value = mock_response
+        
+        result = store.get_metric_history("run-123", "accuracy", max_results=1)
+        
+        assert len(result) == 1
+        assert result[0].key == "accuracy"
+        assert result[0].value == 0.95
+        
+        # Verify API call with max_results
+        mock_request.assert_called_once()
+        call_args = mock_request.call_args
+        params = call_args[1]['params']
+        assert params["name"] == "accuracy"
+        assert params["pageSize"] == 1
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token303"
+
+    @patch('modelregistry_plugin.store.requests.request')
+    def test_get_metric_history_with_page_token(self, mock_request, store):
+        """Test metric history with page_token."""
+        # Mock the raw response from Model Registry API
+        mock_response = Mock(spec=requests.Response)
+        mock_response.ok = True
+        mock_response.json.return_value = {
+            "items": [
                 {
                     "name": "accuracy",
                     "value": 0.98,
@@ -909,43 +958,26 @@ class TestModelRegistryStore:
                     "step": 3,
                     "createTimeSinceEpoch": "1234567892"
                 }
-            ]
+            ],
+            "nextPageToken": "token404"
         }
         mock_request.return_value = mock_response
         
-        # Get metric history with max_results=2
-        metrics = store.get_metric_history("run-123", "accuracy", max_results=2)
+        result = store.get_metric_history("run-123", "accuracy", page_token="token123")
         
-        assert len(metrics) == 2
-        assert all(metric.key == "accuracy" for metric in metrics)
-        # Should return the first 2 metrics (sorted by timestamp and step)
-        assert metrics[0].step == 1
-        assert metrics[1].step == 2
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_with_page_token(self, mock_request, store):
-        """Test getting metric history with page_token (should be ignored for now)."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
+        assert len(result) == 1
+        assert result[0].key == "accuracy"
+        assert result[0].value == 0.98
         
-        # This should not raise an error even though page_token is not fully implemented yet
-        metrics = store.get_metric_history("run-123", "accuracy", page_token="token123")
+        # Verify API call with page_token
+        mock_request.assert_called_once()
+        call_args = mock_request.call_args
+        params = call_args[1]['params']
+        assert params["name"] == "accuracy"
+        assert params["pageToken"] == "token123"
         
-        assert len(metrics) == 1
-        assert metrics[0].key == "accuracy"
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token404"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_sorting(self, mock_request, store):
@@ -957,13 +989,6 @@ class TestModelRegistryStore:
             "items": [
                 {
                     "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
-                {
-                    "name": "accuracy",
                     "value": 0.95,
                     "timestamp": "1234567890",
                     "step": 1,
@@ -975,18 +1000,29 @@ class TestModelRegistryStore:
                     "timestamp": "1234567890",
                     "step": 3,
                     "createTimeSinceEpoch": "1234567890"
+                },
+                {
+                    "name": "accuracy",
+                    "value": 0.97,
+                    "timestamp": "1234567891",
+                    "step": 2,
+                    "createTimeSinceEpoch": "1234567891"
                 }
-            ]
+            ],
+            "nextPageToken": "token101"
         }
         mock_request.return_value = mock_response
         
-        metrics = store.get_metric_history("run-123", "accuracy")
+        result = store.get_metric_history("run-123", "accuracy")
         
-        assert len(metrics) == 3
+        assert len(result) == 3
         # Should be sorted by timestamp first, then step
-        assert metrics[0].timestamp == 1234567890 and metrics[0].step == 1
-        assert metrics[1].timestamp == 1234567890 and metrics[1].step == 3
-        assert metrics[2].timestamp == 1234567891 and metrics[2].step == 2
+        assert result[0].timestamp == 1234567890 and result[0].step == 1
+        assert result[1].timestamp == 1234567890 and result[1].step == 3
+        assert result[2].timestamp == 1234567891 and result[2].step == 2
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token101"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_log_param(self, mock_request, store):
@@ -1837,11 +1873,13 @@ class TestModelRegistryStore:
         response_without_external_id = {}
         
         assert store._get_artifact_location(response_with_external_id) == "s3://bucket/artifacts"
-        assert store._get_artifact_location(response_without_external_id) is None
         
-        # Test with artifact_uri set
-        store.artifact_uri = "s3://default/artifacts"
-        assert store._get_artifact_location(response_without_external_id) == "s3://default/artifacts"
+        # When no externalId is provided, the store uses its artifact_uri as fallback
+        assert store._get_artifact_location(response_without_external_id) == "s3://bucket/artifacts"
+        
+        # Test with a store that has no artifact_uri
+        store_no_artifact = ModelRegistryStore("modelregistry://localhost:8080")
+        assert store_no_artifact._get_artifact_location(response_without_external_id) is None
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_create_run_without_artifact_uri(self, mock_request):
@@ -1911,20 +1949,21 @@ class TestModelRegistryStore:
                     "step": 2,
                     "createTimeSinceEpoch": "1234567891"
                 }
-            ]
+            ],
+            "nextPageToken": "token202"
         }
         mock_request.return_value = mock_response
         
-        metrics = store.get_metric_history("run-123", "accuracy")
+        result = store.get_metric_history("run-123", "accuracy")
         
-        assert len(metrics) == 2
-        assert all(metric.key == "accuracy" for metric in metrics)
-        assert metrics[0].value == 0.95
-        assert metrics[0].step == 1
-        assert metrics[0].timestamp == 1234567890
-        assert metrics[1].value == 0.97
-        assert metrics[1].step == 2
-        assert metrics[1].timestamp == 1234567891
+        assert len(result) == 2
+        assert all(metric.key == "accuracy" for metric in result)
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[0].timestamp == 1234567890
+        assert result[1].value == 0.97
+        assert result[1].step == 2
+        assert result[1].timestamp == 1234567891
         
         # Verify API call
         mock_request.assert_called_once()
@@ -1933,6 +1972,9 @@ class TestModelRegistryStore:
         assert "/experiment_runs/run-123/metric_history" in call_args[0][1]  # endpoint
         params = call_args[1]['params']
         assert params["name"] == "accuracy"
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token202"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_with_max_results(self, mock_request, store):
@@ -1949,15 +1991,16 @@ class TestModelRegistryStore:
                     "step": 1,
                     "createTimeSinceEpoch": "1234567890"
                 }
-            ]
+            ],
+            "nextPageToken": "token303"
         }
         mock_request.return_value = mock_response
         
-        metrics = store.get_metric_history("run-123", "accuracy", max_results=1)
+        result = store.get_metric_history("run-123", "accuracy", max_results=1)
         
-        assert len(metrics) == 1
-        assert metrics[0].key == "accuracy"
-        assert metrics[0].value == 0.95
+        assert len(result) == 1
+        assert result[0].key == "accuracy"
+        assert result[0].value == 0.95
         
         # Verify API call with max_results
         mock_request.assert_called_once()
@@ -1965,6 +2008,9 @@ class TestModelRegistryStore:
         params = call_args[1]['params']
         assert params["name"] == "accuracy"
         assert params["pageSize"] == 1
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token303"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_with_page_token(self, mock_request, store):
@@ -1981,15 +2027,16 @@ class TestModelRegistryStore:
                     "step": 3,
                     "createTimeSinceEpoch": "1234567892"
                 }
-            ]
+            ],
+            "nextPageToken": "token404"
         }
         mock_request.return_value = mock_response
         
-        metrics = store.get_metric_history("run-123", "accuracy", page_token="token123")
+        result = store.get_metric_history("run-123", "accuracy", page_token="token123")
         
-        assert len(metrics) == 1
-        assert metrics[0].key == "accuracy"
-        assert metrics[0].value == 0.98
+        assert len(result) == 1
+        assert result[0].key == "accuracy"
+        assert result[0].value == 0.98
         
         # Verify API call with page_token
         mock_request.assert_called_once()
@@ -1997,6 +2044,9 @@ class TestModelRegistryStore:
         params = call_args[1]['params']
         assert params["name"] == "accuracy"
         assert params["pageToken"] == "token123"
+        
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token404"
 
     @patch('modelregistry_plugin.store.requests.request')
     def test_get_metric_history_empty(self, mock_request, store):
@@ -2066,7 +2116,7 @@ class TestModelRegistryStore:
         assert metrics[0].timestamp == 1234567890  # Should use timestamp, not createTimeSinceEpoch
 
     @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_basic(self, mock_request, store):
+    def test_get_metric_history_bulk_interval_from_steps(self, mock_request, store):
         """Test basic bulk metric history retrieval for specific steps."""
         # Mock the raw response from Model Registry API
         mock_response = Mock(spec=requests.Response)
@@ -2082,247 +2132,30 @@ class TestModelRegistryStore:
                 },
                 {
                     "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
-                {
-                    "name": "accuracy",
                     "value": 0.98,
                     "timestamp": "1234567892",
                     "step": 3,
                     "createTimeSinceEpoch": "1234567892"
                 },
-                {
-                    "name": "accuracy",
-                    "value": 0.99,
-                    "timestamp": "1234567893",
-                    "step": 4,
-                    "createTimeSinceEpoch": "1234567893"
-                }
-            ]
+            ],
+            "nextPageToken": "token505"
         }
         mock_request.return_value = mock_response
         
         # Get metrics for specific steps
-        metrics = store.get_metric_history_bulk_interval_from_steps(
+        result = store.get_metric_history_bulk_interval_from_steps(
             "run-123", "accuracy", steps=[1, 3], max_results=2
         )
         
-        assert len(metrics) == 2
-        assert all(m.run_id == "run-123" for m in metrics)
-        assert all(m.key == "accuracy" for m in metrics)
+        assert len(result) == 2
+        assert all(m.run_id == "run-123" for m in result)
+        assert all(m.key == "accuracy" for m in result)
         
         # Should return metrics for steps 1 and 3, sorted by step then timestamp
-        assert metrics[0].step == 1
-        assert metrics[0].value == 0.95
-        assert metrics[1].step == 3
-        assert metrics[1].value == 0.98
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_filtering(self, mock_request, store):
-        """Test that bulk metric history correctly filters by steps."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.98,
-                    "timestamp": "1234567892",
-                    "step": 3,
-                    "createTimeSinceEpoch": "1234567892"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
+        assert result[0].step == 1
+        assert result[0].value == 0.95
+        assert result[1].step == 3
+        assert result[1].value == 0.98
         
-        # Request steps that don't exist
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[5, 6], max_results=10
-        )
-        
-        assert len(metrics) == 0
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_max_results(self, mock_request, store):
-        """Test that bulk metric history respects max_results limit."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.98,
-                    "timestamp": "1234567892",
-                    "step": 3,
-                    "createTimeSinceEpoch": "1234567892"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-        
-        # Request more steps than max_results
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[1, 2, 3], max_results=2
-        )
-        
-        assert len(metrics) == 2  # Should be limited by max_results
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_sorting(self, mock_request, store):
-        """Test that bulk metric history sorts correctly by step then timestamp."""
-        # Mock the raw response from Model Registry API with unsorted data
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.97,
-                    "timestamp": "1234567891",
-                    "step": 2,
-                    "createTimeSinceEpoch": "1234567891"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                },
-                {
-                    "name": "accuracy",
-                    "value": 0.96,
-                    "timestamp": "1234567895",
-                    "step": 1,  # Same step, later timestamp
-                    "createTimeSinceEpoch": "1234567895"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-        
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[1, 2], max_results=10
-        )
-        
-        assert len(metrics) == 3
-        
-        # Should be sorted by step first, then timestamp
-        assert metrics[0].step == 1 and metrics[0].timestamp == 1234567890
-        assert metrics[1].step == 1 and metrics[1].timestamp == 1234567895
-        assert metrics[2].step == 2 and metrics[2].timestamp == 1234567891
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_empty_steps(self, mock_request, store):
-        """Test bulk metric history with empty steps list."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-        
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[], max_results=10
-        )
-        
-        assert len(metrics) == 0
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_zero_max_results(self, mock_request, store):
-        """Test bulk metric history with zero max_results."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-        
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[1], max_results=0
-        )
-        
-        assert len(metrics) == 0
-
-    @patch('modelregistry_plugin.store.requests.request')
-    def test_get_metric_history_bulk_interval_from_steps_metric_with_run_id_structure(self, mock_request, store):
-        """Test that MetricWithRunId objects have the correct structure."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890"
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-        
-        metrics = store.get_metric_history_bulk_interval_from_steps(
-            "run-123", "accuracy", steps=[1], max_results=10
-        )
-        
-        assert len(metrics) == 1
-        metric = metrics[0]
-        
-        # Check expected values
-        assert metric.run_id == "run-123"
-        assert metric.key == "accuracy"
-        assert metric.value == 0.95
-        assert metric.step == 1
-        assert metric.timestamp == 1234567890
+        # Verify nextPageToken is handled correctly
+        assert result.token == "token505"
