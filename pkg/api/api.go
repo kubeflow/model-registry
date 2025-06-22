@@ -143,4 +143,7 @@ type ModelRegistryApi interface {
 	// EXPERIMENT RUN ARTIFACTS
 	UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error)
 	GetExperimentRunArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
+
+	// EXPERIMENT RUN METRIC HISTORY
+	GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
 }

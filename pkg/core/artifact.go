@@ -167,7 +167,23 @@ func (serv *ModelRegistryService) upsertArtifactWithParentContext(artifact *open
 			if m.Name == nil {
 				return nil, fmt.Errorf("missing name for metric artifact: %w", api.ErrBadRequest)
 			}
-			glog.Info("Creating metric artifact")
+			// check if metric name already exists
+			existing, err := serv.GetArtifactByParams(m.Name, parentContextId, nil)
+			if api.IgnoreNotFound(err) != nil {
+				return nil, fmt.Errorf("error getting metric by name: %w", err)
+			}
+			if existing != nil {
+				glog.Info("Updating metric artifact")
+				existingArtifact = existing
+
+				withNotEditable, err := serv.openapiConv.OverrideNotEditableForMetric(converter.NewOpenapiUpdateWrapper(existing.Metric, m))
+				if err != nil {
+					return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+				}
+				artifact.Metric = &withNotEditable
+			} else {
+				glog.Info("Creating metric artifact")
+			}
 		} else {
 			glog.Info("Updating metric artifact")
 			existing, err := serv.GetArtifactById(*m.Id)

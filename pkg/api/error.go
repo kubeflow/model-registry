@@ -45,6 +45,8 @@ func ErrToStatus(err error) int {
 func IgnoreNotFound(err error) error {
 	if status.Code(err) == codes.NotFound {
 		return nil
+	} else if errors.Is(err, ErrNotFound) {
+		return nil
 	}
 	return err
 }

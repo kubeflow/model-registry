@@ -189,6 +189,10 @@ func (m *Mapper) MapToMetricArtifact(art *proto.Artifact) (*openapi.Metric, erro
 	return mapTo(art, m.MLMDTypes, defaults.MetricTypeName, m.MLMDConverter.ConvertMetric)
 }
 
+func (m *Mapper) MapToMetricHistory(art *proto.Artifact) (*openapi.Metric, error) {
+	return mapTo(art, m.MLMDTypes, defaults.MetricHistoryTypeName, m.MLMDConverter.ConvertMetric)
+}
+
 func (m *Mapper) MapToParameter(art *proto.Artifact) (*openapi.Parameter, error) {
 	return mapTo(art, m.MLMDTypes, defaults.ParameterTypeName, m.MLMDConverter.ConvertParameter)
 }
@@ -218,6 +222,11 @@ func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 		}, err
 	case defaults.MetricTypeName:
 		mt, err := m.MapToMetricArtifact(art)
+		return &openapi.Artifact{
+			Metric: mt,
+		}, err
+	case defaults.MetricHistoryTypeName:
+		mt, err := m.MapToMetricHistory(art) // metric history is a special case, it also maps to a metric
 		return &openapi.Artifact{
 			Metric: mt,
 		}, err

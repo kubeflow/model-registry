@@ -13,5 +13,6 @@ const (
 	ExperimentRunTypeName      = "kf.ExperimentRun"
 	DataSetTypeName            = "kf.DataSet"
 	MetricTypeName             = "kf.Metric"
+	MetricHistoryTypeName      = "kf.MetricHistory"
 	ParameterTypeName          = "kf.Parameter"
 )

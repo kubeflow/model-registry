@@ -3673,7 +3673,7 @@ type ApiGetArtifactsRequest struct {
 	nextPageToken *string
 }
 
-// Specifies the artifact type for listing entities.
+// Specifies the artifact type for listing artifacts.
 func (r ApiGetArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetArtifactsRequest {
 	r.artifactType = &artifactType
 	return r
@@ -4600,7 +4600,7 @@ func (r ApiGetExperimentRunArtifactsRequest) ExternalId(externalId string) ApiGe
 	return r
 }
 
-// Specifies the artifact type for listing entities.
+// Specifies the artifact type for listing artifacts.
 func (r ApiGetExperimentRunArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetExperimentRunArtifactsRequest {
 	r.artifactType = &artifactType
 	return r
@@ -4680,6 +4680,213 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunArtifactsExecute(r ApiG
 	}
 	if r.artifactType != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+	}
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+	}
+	if r.orderBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+	}
+	if r.sortOrder != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+	}
+	if r.nextPageToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 503 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiGetExperimentRunMetricHistoryRequest struct {
+	ctx             context.Context
+	ApiService      *ModelRegistryServiceAPIService
+	experimentrunId string
+	name            *string
+	stepIds         *string
+	pageSize        *string
+	orderBy         *OrderByField
+	sortOrder       *SortOrder
+	nextPageToken   *string
+}
+
+// Name of entity to search.
+func (r ApiGetExperimentRunMetricHistoryRequest) Name(name string) ApiGetExperimentRunMetricHistoryRequest {
+	r.name = &name
+	return r
+}
+
+// Comma-separated list of step IDs to filter metrics by.
+func (r ApiGetExperimentRunMetricHistoryRequest) StepIds(stepIds string) ApiGetExperimentRunMetricHistoryRequest {
+	r.stepIds = &stepIds
+	return r
+}
+
+// Number of entities in each page.
+func (r ApiGetExperimentRunMetricHistoryRequest) PageSize(pageSize string) ApiGetExperimentRunMetricHistoryRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+// Specifies the order by criteria for listing entities.
+func (r ApiGetExperimentRunMetricHistoryRequest) OrderBy(orderBy OrderByField) ApiGetExperimentRunMetricHistoryRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// Specifies the sort order for listing entities, defaults to ASC.
+func (r ApiGetExperimentRunMetricHistoryRequest) SortOrder(sortOrder SortOrder) ApiGetExperimentRunMetricHistoryRequest {
+	r.sortOrder = &sortOrder
+	return r
+}
+
+// Token to use to retrieve next page of results.
+func (r ApiGetExperimentRunMetricHistoryRequest) NextPageToken(nextPageToken string) ApiGetExperimentRunMetricHistoryRequest {
+	r.nextPageToken = &nextPageToken
+	return r
+}
+
+func (r ApiGetExperimentRunMetricHistoryRequest) Execute() (*ArtifactList, *http.Response, error) {
+	return r.ApiService.GetExperimentRunMetricHistoryExecute(r)
+}
+
+/*
+GetExperimentRunMetricHistory Get metric history for an ExperimentRun
+
+Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param experimentrunId A unique identifier for an `ExperimentRun`.
+	@return ApiGetExperimentRunMetricHistoryRequest
+*/
+func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx context.Context, experimentrunId string) ApiGetExperimentRunMetricHistoryRequest {
+	return ApiGetExperimentRunMetricHistoryRequest{
+		ApiService:      a,
+		ctx:             ctx,
+		experimentrunId: experimentrunId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return ArtifactList
+func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r ApiGetExperimentRunMetricHistoryRequest) (*ArtifactList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *ArtifactList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelRegistryServiceAPIService.GetExperimentRunMetricHistory")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history"
+	localVarPath = strings.Replace(localVarPath, "{"+"experimentrunId"+"}", url.PathEscape(parameterValueToString(r.experimentrunId, "experimentrunId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.name != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+	}
+	if r.stepIds != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "stepIds", r.stepIds, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -6489,7 +6696,7 @@ func (r ApiGetModelVersionArtifactsRequest) ExternalId(externalId string) ApiGet
 	return r
 }
 
-// Specifies the artifact type for listing entities.
+// Specifies the artifact type for listing artifacts.
 func (r ApiGetModelVersionArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetModelVersionArtifactsRequest {
 	r.artifactType = &artifactType
 	return r

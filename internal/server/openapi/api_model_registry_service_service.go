@@ -750,3 +750,28 @@ func (s *ModelRegistryServiceAPIService) UpsertExperimentRunArtifact(ctx context
 	}
 	return Response(http.StatusOK, result), nil
 }
+
+// GetExperimentRunMetricHistory - Get metric history for an ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx context.Context, experimentrunId string,
+	name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+
+	var namePtr *string
+	if name != "" {
+		namePtr = &name
+	}
+
+	var stepIdsPtr *string
+	if stepIds != "" {
+		stepIdsPtr = &stepIds
+	}
+
+	result, err := s.coreApi.GetExperimentRunMetricHistory(namePtr, stepIdsPtr, listOpts, apiutils.StrPtr(experimentrunId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}

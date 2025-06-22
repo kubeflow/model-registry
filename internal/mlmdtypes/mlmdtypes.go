@@ -16,6 +16,7 @@ type MLMDTypeNamesConfig struct {
 	DocArtifactTypeName        string
 	DataSetTypeName            string
 	MetricTypeName             string
+	MetricHistoryTypeName      string
 	ParameterTypeName          string
 	ServingEnvironmentTypeName string
 	InferenceServiceTypeName   string
@@ -33,6 +34,7 @@ func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
 		DocArtifactTypeName:        defaults.DocArtifactTypeName,
 		DataSetTypeName:            defaults.DataSetTypeName,
 		MetricTypeName:             defaults.MetricTypeName,
+		MetricHistoryTypeName:      defaults.MetricHistoryTypeName,
 		ParameterTypeName:          defaults.ParameterTypeName,
 		ServingEnvironmentTypeName: defaults.ServingEnvironmentTypeName,
 		InferenceServiceTypeName:   defaults.InferenceServiceTypeName,
@@ -132,6 +134,19 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		CanAddFields: &nameConfig.CanAddFields,
 		ArtifactType: &proto.ArtifactType{
 			Name: &nameConfig.MetricTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"value":       proto.PropertyType_DOUBLE,
+				"timestamp":   proto.PropertyType_STRING,
+				"step":        proto.PropertyType_INT,
+			},
+		},
+	}
+
+	metricHistoryArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: &nameConfig.MetricHistoryTypeName,
 			Properties: map[string]proto.PropertyType{
 				"description": proto.PropertyType_STRING,
 				"value":       proto.PropertyType_DOUBLE,
@@ -247,6 +262,11 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.MetricTypeName, err)
 	}
 
+	metricHistoryArtifactResp, err := client.PutArtifactType(context.Background(), &metricHistoryArtifactReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.MetricHistoryTypeName, err)
+	}
+
 	parameterResp, err := client.PutArtifactType(context.Background(), &parameterReq)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.ParameterTypeName, err)
@@ -284,6 +304,7 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		defaults.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
 		defaults.DataSetTypeName:            dataSetResp.GetTypeId(),
 		defaults.MetricTypeName:             metricArtifactResp.GetTypeId(),
+		defaults.MetricHistoryTypeName:      metricHistoryArtifactResp.GetTypeId(),
 		defaults.ParameterTypeName:          parameterResp.GetTypeId(),
 		defaults.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
 		defaults.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),

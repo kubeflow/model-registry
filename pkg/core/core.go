@@ -90,6 +90,13 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.MetricTypeName, err)
 	}
 
+	metricHistoryResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.MetricHistoryTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.MetricHistoryTypeName, err)
+	}
+
 	parameterResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
 		TypeName: &nameConfig.ParameterTypeName,
 	})
@@ -142,6 +149,7 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		nameConfig.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
 		nameConfig.DataSetTypeName:            dataSetResp.ArtifactType.GetId(),
 		nameConfig.MetricTypeName:             metricResp.ArtifactType.GetId(),
+		nameConfig.MetricHistoryTypeName:      metricHistoryResp.ArtifactType.GetId(),
 		nameConfig.ParameterTypeName:          parameterResp.ArtifactType.GetId(),
 		nameConfig.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
 		nameConfig.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),

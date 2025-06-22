@@ -184,6 +184,8 @@ func MapArtifactType(source *proto.Artifact) (*string, error) {
 		return of("dataset-artifact"), nil
 	case defaults.MetricTypeName:
 		return of("metric"), nil
+	case defaults.MetricHistoryTypeName:
+		return of("metric"), nil
 	case defaults.ParameterTypeName:
 		return of("parameter"), nil
 	default:

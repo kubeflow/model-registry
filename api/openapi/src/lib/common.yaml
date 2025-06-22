@@ -365,6 +365,18 @@ components:
         $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
+    stepIds:
+      style: form
+      explode: true
+      examples:
+        stepIds:
+          value: "1,2,3"
+      name: stepIds
+      description: "Comma-separated list of step IDs to filter metrics by."
+      schema:
+        type: string
+      in: query
+      required: false
   securitySchemes:
     Bearer:
       scheme: bearer

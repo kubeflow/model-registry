@@ -1506,6 +1506,41 @@ paths:
           type: string
         in: path
         required: true
+  "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history":
+    summary: Path used to get metric history for an experiment run.
+    description: >-
+      The REST endpoint/path used to get metric history for an `ExperimentRun`. This path contains a `GET` operation to retrieve metrics with optional filtering by name and step IDs.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/stepIds"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRunMetricHistory
+      summary: Get metric history for an ExperimentRun
+      description: Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+    parameters:
+      - name: experimentrunId
+        description: A unique identifier for an `ExperimentRun`.
+        schema:
+          type: string
+        in: path
+        required: true
 components:
   schemas:
     Artifact:
