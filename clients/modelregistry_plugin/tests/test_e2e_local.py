@@ -14,9 +14,7 @@ import subprocess
 import tempfile
 import shutil
 import signal
-import threading
 import sys
-import psutil
 from pathlib import Path
 from unittest.mock import patch
 
@@ -25,24 +23,23 @@ from mlflow.entities import (
     Experiment, Run, RunInfo, RunData, RunStatus, RunTag, Param, Metric,
     ViewType, LifecycleStage, ExperimentTag
 )
+from testcontainers.core.container import DockerContainer
+from testcontainers.core.waiting_utils import wait_for_logs
 
 from modelregistry_plugin.store import ModelRegistryStore
 
 
 class LocalModelRegistryServer:
-    """Manages a local Model Registry server with MLMD backend."""
+    """Manages a local Model Registry server with MLMD backend using testcontainers."""
     
     def __init__(self, temp_dir: Path):
         self.temp_dir = temp_dir
-        self.mlmd_server_process = None
+        self.mlmd_container = None
         self.model_registry_process = None
         self.mlmd_port = 9090
         self.model_registry_port = 8080
         self.mlmd_db_path = temp_dir / "metadata.sqlite.db"
         self.conn_config_path = temp_dir / "conn_config.pb"
-        # Track process IDs for cleanup
-        self.mlmd_pid = None
-        self.model_registry_pid = None
         
     def setup_mlmd_config(self):
         """Create MLMD connection configuration for SQLite."""
@@ -68,39 +65,40 @@ class LocalModelRegistryServer:
         print(f"📁 Database will be created at: {db_path}")
     
     def start_mlmd_server(self):
-        """Start the MLMD server using Docker."""
+        """Start the MLMD server using testcontainers."""
         try:
             # Use absolute path for Docker volume mount
             temp_dir_abs = str(self.temp_dir.absolute())
             
             print(f"🐳 Starting MLMD server with volume mount: {temp_dir_abs}:/tmp/shared")
             
-            # Start MLMD server
-            self.mlmd_server_process = subprocess.Popen([
-                'docker', 'run', '--rm',
-                '-p', f'{self.mlmd_port}:8080',
-                '-v', f'{temp_dir_abs}:/tmp/shared',
-                '-e', 'METADATA_STORE_SERVER_CONFIG_FILE=/tmp/shared/conn_config.pb',
-                'gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0'
-            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Create MLMD container using testcontainers
+            self.mlmd_container = DockerContainer(
+                image="gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0"
+            ).with_exposed_ports(8080).with_volume_mapping(
+                temp_dir_abs, "/tmp/shared"
+            ).with_env(
+                "METADATA_STORE_SERVER_CONFIG_FILE", "/tmp/shared/conn_config.pb"
+            )
             
-            # Store the process ID
-            self.mlmd_pid = self.mlmd_server_process.pid
+            # Start the container
+            self.mlmd_container.start()
             
-            # Wait for MLMD server to start
-            time.sleep(5)
+            # Wait for MLMD server to be ready
+            wait_for_logs(self.mlmd_container, "Server listening on", timeout=30)
             
-            # Check if MLMD server is running
-            if self.mlmd_server_process.poll() is not None:
-                stdout, stderr = self.mlmd_server_process.communicate()
-                print(f"MLMD stdout: {stdout.decode()}")
-                print(f"MLMD stderr: {stderr.decode()}")
-                raise RuntimeError(f"MLMD server failed to start: {stderr.decode()}")
-                
-            print(f"✅ MLMD server started on port {self.mlmd_port} (PID: {self.mlmd_pid})")
+            # Get the mapped port
+            self.mlmd_port = self.mlmd_container.get_exposed_port(8080)
+            
+            print(f"✅ MLMD server started on port {self.mlmd_port}")
             
         except Exception as e:
             print(f"❌ Failed to start MLMD server: {e}")
+            if self.mlmd_container:
+                try:
+                    self.mlmd_container.stop()
+                except Exception as cleanup_error:
+                    print(f"❌ Error during MLMD cleanup: {cleanup_error}")
             raise
     
     def start_model_registry_server(self):
@@ -118,12 +116,9 @@ class LocalModelRegistryServer:
                 '--hostname', '0.0.0.0',
                 '--port', str(self.model_registry_port),
                 '--mlmd-hostname', 'localhost',
-                '--mlmd-port', str(self.mlmd_port),  # Use the MLMD port (9090)
+                '--mlmd-port', str(self.mlmd_port),
                 '--datastore-type', 'mlmd'
             ], cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
-            # Store the process ID
-            self.model_registry_pid = self.model_registry_process.pid
             
             # Wait for Model Registry server to start
             time.sleep(10)
@@ -135,7 +130,7 @@ class LocalModelRegistryServer:
                 print(f"Model Registry stderr: {stderr.decode()}")
                 raise RuntimeError(f"Model Registry server failed to start: {stderr.decode()}")
                 
-            print(f"✅ Model Registry server started on port {self.model_registry_port} (PID: {self.model_registry_pid})")
+            print(f"✅ Model Registry server started on port {self.model_registry_port}")
             
         except Exception as e:
             print(f"❌ Failed to start Model Registry server: {e}")
@@ -162,33 +157,46 @@ class LocalModelRegistryServer:
         print("🛑 Stopping local Model Registry test environment...")
         
         # Stop Model Registry server
-        if self.model_registry_process and self.model_registry_pid:
+        if self.model_registry_process:
             try:
-                print(f"  🛑 Stopping Model Registry server (PID: {self.model_registry_pid})...")
-                # Terminate child process if it exists
-                try:
-                    parent = psutil.Process(self.model_registry_pid)
-                    children = parent.children()
-                    if children:
-                        child = children[0]  # Get the first (and likely only) child
-                        print(f"    🛑 Terminating child process: {child.pid} ({child.name()})")
-                        child.terminate()
-                        try:
-                            child.wait(timeout=5)
-                            print(f"    ✅ Child process {child.pid} terminated gracefully")
-                        except psutil.TimeoutExpired:
-                            print(f"    ⚠️  Child process {child.pid} didn't terminate gracefully, killing...")
-                            child.kill()
-                            child.wait(timeout=2)
-                            print(f"    ✅ Child process {child.pid} killed")
-                        except psutil.NoSuchProcess:
-                            print(f"    ✅ Child process {child.pid} already terminated")
-                except psutil.NoSuchProcess:
-                    print(f"    ℹ️  Parent process {self.model_registry_pid} not found")
-                except Exception as e:
-                    print(f"    ⚠️  Error terminating child process: {e}")
+                print("  🛑 Stopping Model Registry server...")
                 
-                # Terminate parent process
+                # First, try to terminate child processes if they exist
+                try:
+                    import psutil
+                    parent = psutil.Process(self.model_registry_process.pid)
+                    children = parent.children(recursive=True)
+                    
+                    if children:
+                        print(f"    🛑 Found {len(children)} child processes, terminating them...")
+                        for child in children:
+                            try:
+                                print(f"      🛑 Terminating child process: {child.pid} ({child.name()})")
+                                child.terminate()
+                            except psutil.NoSuchProcess:
+                                print(f"      ℹ️  Child process {child.pid} already terminated")
+                            except Exception as e:
+                                print(f"      ⚠️  Error terminating child process {child.pid}: {e}")
+                        
+                        # Wait for children to terminate gracefully
+                        gone, alive = psutil.wait_procs(children, timeout=5)
+                        for child in alive:
+                            print(f"      ⚠️  Child process {child.pid} didn't terminate gracefully, killing...")
+                            try:
+                                child.kill()
+                                child.wait(timeout=2)
+                                print(f"      ✅ Child process {child.pid} killed")
+                            except psutil.NoSuchProcess:
+                                print(f"      ✅ Child process {child.pid} already terminated")
+                            except Exception as e:
+                                print(f"      ❌ Error killing child process {child.pid}: {e}")
+                                
+                except psutil.NoSuchProcess:
+                    print("    ℹ️  Parent process not found")
+                except Exception as e:
+                    print(f"    ⚠️  Error handling child processes: {e}")
+                
+                # Now terminate the main process
                 self.model_registry_process.terminate()
                 try:
                     self.model_registry_process.wait(timeout=10)
@@ -201,63 +209,22 @@ class LocalModelRegistryServer:
                         print("  ✅ Model Registry server killed")
                     except subprocess.TimeoutExpired:
                         print("  ❌ Failed to kill Model Registry server")
+                        
             except Exception as e:
                 print(f"  ❌ Error stopping Model Registry server: {e}")
         
-        # Stop MLMD server
-        if self.mlmd_server_process and self.mlmd_pid:
+        # Stop MLMD container
+        if self.mlmd_container:
             try:
-                print(f"  🛑 Stopping MLMD server (PID: {self.mlmd_pid})...")
-                self.mlmd_server_process.terminate()
-                try:
-                    self.mlmd_server_process.wait(timeout=10)
-                    print("  ✅ MLMD server stopped gracefully")
-                except subprocess.TimeoutExpired:
-                    print("  ⚠️  MLMD server didn't stop gracefully, killing...")
-                    self.mlmd_server_process.kill()
-                    try:
-                        self.mlmd_server_process.wait(timeout=5)
-                        print("  ✅ MLMD server killed")
-                    except subprocess.TimeoutExpired:
-                        print("  ❌ Failed to kill MLMD server")
+                print("  🐳 Stopping MLMD container...")
+                self.mlmd_container.stop()
+                print("  ✅ MLMD container stopped")
             except Exception as e:
-                print(f"  ❌ Error stopping MLMD server: {e}")
+                print(f"  ❌ Error stopping MLMD container: {e}")
         
-        # Clean up Docker containers (MLMD server)
-        try:
-            print("  🐳 Cleaning up Docker containers...")
-            # Find running MLMD containers
-            result = subprocess.run(
-                ['docker', 'ps', '-q', '--filter', 'ancestor=gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0'], 
-                capture_output=True, text=True, check=False
-            )
-            
-            if result.returncode == 0 and result.stdout.strip():
-                container_ids = result.stdout.strip().split('\n')
-                for container_id in container_ids:
-                    if container_id.strip():
-                        print(f"    🛑 Stopping Docker container: {container_id}")
-                        subprocess.run(
-                            ['docker', 'stop', container_id], 
-                            capture_output=True, text=True, check=False
-                        )
-                        print(f"    🗑️  Removing Docker container: {container_id}")
-                        subprocess.run(
-                            ['docker', 'rm', container_id], 
-                            capture_output=True, text=True, check=False
-                        )
-                print("  ✅ Docker containers cleaned up")
-            else:
-                print("  ℹ️  No running MLMD Docker containers found")
-                
-        except Exception as e:
-            print(f"  ❌ Error cleaning up Docker containers: {e}")
-        
-        # Reset process references and PIDs
+        # Reset references
         self.model_registry_process = None
-        self.mlmd_server_process = None
-        self.model_registry_pid = None
-        self.mlmd_pid = None
+        self.mlmd_container = None
         
         print("✅ Local Model Registry test environment stopped.")
 
@@ -267,7 +234,6 @@ class TestModelRegistryStoreE2ELocal:
     
     # Class-level storage for cleanup
     _local_server = None
-    _class_store = None
     
     @classmethod
     def setup_class(cls):
@@ -293,12 +259,7 @@ class TestModelRegistryStoreE2ELocal:
         # Clean up local server
         if cls._local_server:
             try:
-                print(f"🛑 Stopping local server with tracked PIDs...")
-                if cls._local_server.model_registry_pid:
-                    print(f"  📋 Model Registry PID: {cls._local_server.model_registry_pid}")
-                if cls._local_server.mlmd_pid:
-                    print(f"  📋 MLMD PID: {cls._local_server.mlmd_pid}")
-                
+                print("🛑 Stopping local server...")
                 cls._local_server.stop()
                 print("  ✅ Successfully stopped local server")
             except Exception as e:
