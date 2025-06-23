@@ -116,7 +116,7 @@ def convert_to_mlflow_logged_model_status(state: Optional[str]) -> LoggedModelSt
     # map to values from openapi/model_artifact_state.go
     if state == "PENDING":
         return LoggedModelStatus.PENDING
-    elif state == "READY":
+    elif state == "LIVE":
         return LoggedModelStatus.READY
     elif state == "ABANDONED":
         return LoggedModelStatus.FAILED

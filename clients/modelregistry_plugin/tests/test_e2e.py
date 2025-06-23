@@ -36,12 +36,12 @@ from sklearn.model_selection import train_test_split
 class TestModelRegistryStoreE2E:
     """End-to-end tests for ModelRegistryStore using MLflow APIs."""
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def experiment_name(self):
         """Generate a unique experiment name for testing."""
         return f"e2e-test-{uuid.uuid4().hex[:8]}"
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def experiment_id(self, experiment_name):
         """Create a test experiment and return its ID."""
         try:
@@ -404,8 +404,11 @@ class TestModelRegistryStoreE2E:
             experiment = mlflow.get_experiment(experiment_id)
             assert experiment.lifecycle_stage == LifecycleStage.DELETED
 
-            # Restore experiment
-            mlflow.restore_experiment(experiment_id)
+            # Restore experiment using the tracking store
+            from mlflow.tracking import _get_store
+
+            store = _get_store()
+            store.restore_experiment(experiment_id)
 
             # Verify experiment is active again
             experiment = mlflow.get_experiment(experiment_id)
@@ -435,8 +438,11 @@ class TestModelRegistryStoreE2E:
         retrieved_run = mlflow.get_run(run_id)
         assert retrieved_run.info.lifecycle_stage == LifecycleStage.DELETED
 
-        # Restore run
-        mlflow.restore_run(run_id)
+        # Restore run using the tracking store
+        from mlflow.tracking import _get_store
+
+        store = _get_store()
+        store.restore_run(run_id)
 
         # Verify run is active again
         retrieved_run = mlflow.get_run(run_id)
@@ -482,8 +488,11 @@ class TestModelRegistryStoreE2E:
 
     def test_experiment_tags(self, experiment_id):
         """Test setting and managing experiment tags using MLflow."""
+        # set active experiment to avoid errors with mlflow.tracking.default_experiment
+        mlflow.set_experiment(experiment_id=experiment_id)
+
         # Set experiment tag
-        mlflow.set_experiment_tag(experiment_id, "test_tag", "test_value")
+        mlflow.set_experiment_tag("test_tag", "test_value")
 
         # Get experiment and verify tag
         experiment = mlflow.get_experiment(experiment_id)
