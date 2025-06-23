@@ -693,7 +693,7 @@ class ModelRegistryStore:
         for model_data in model_items:
             # Check the model's io_type to determine if it's input or output
             custom_props = model_data.get("customProperties", {})
-            io_type = custom_props.get("mlflow.model_io_type")
+            io_type = custom_props.get("mlflow__model_io_type")
 
             # Create LoggedModel entity using helper method
             logged_model = self._getMLflowLoggedModel(model_data)
@@ -702,7 +702,7 @@ class ModelRegistryStore:
                 # Create LoggedModelInput entity
                 model_input = LoggedModelInput(model=logged_model)
                 inputs.append(model_input)
-            elif io_type == ModelIOType.OUTPUT.value:
+            else:  # default to output
                 # Create LoggedModelOutput entity
                 model_output = LoggedModelOutput(model=logged_model)
                 outputs.append(model_output)
@@ -736,15 +736,32 @@ class ModelRegistryStore:
         """Create an MLflow LoggedModel entity from Model Registry model data."""
         # Import MLflow entities locally to avoid circular imports
         from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter
+        from mlflow.exceptions import MlflowException
 
         custom_props = model_data.get("customProperties", {})
+
+        # Check if the model has the serialized MLflow model data
+        if "mlflow__logged_model" in custom_props:
+            try:
+                # Import MLflow Model locally to avoid circular imports
+                from mlflow.models.model import Model
+
+                # Deserialize the stored model dictionary
+                model_dict = json.loads(custom_props["mlflow__logged_model"])
+
+                # Create and return the MLflow Model object
+                return Model.from_dict(model_dict)
+            except (json.JSONDecodeError, KeyError, TypeError) as e:
+                raise MlflowException(
+                    f"Failed to deserialize stored MLflow model: {e}"
+                ) from e
 
         # Extract tags and params from customProperties
         tags = []
         params = []
         for key, value in custom_props.items():
-            if key == "mlflow.model_io_type":
-                # Skip the io_type marker as it's used for internal tracking
+            if key.startswith("mlflow__"):
+                # Skip mlflow__* keys as they are used for internal tracking
                 continue
             elif key.startswith("param_"):
                 params.append(LoggedModelParameter(key=key[6:], value=value))
@@ -753,15 +770,19 @@ class ModelRegistryStore:
 
         return LoggedModel(
             model_id=str(model_data["id"]),
-            experiment_id=custom_props.get("experiment_id"),
+            experiment_id=custom_props.get("mlflow__experiment_id"),
             name=model_data["name"],
-            source_run_id=custom_props.get("source_run_id"),
+            source_run_id=custom_props.get("mlflow__source_run_id"),
             artifact_location=model_data.get("uri", ""),
-            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(
-                model_data["lastUpdateTimeSinceEpoch"]
+            creation_timestamp=convert_timestamp(
+                model_data.get("mlflow__utc_time_created")
+                or model_data.get("createTimeSinceEpoch")
             ),
-            model_type=custom_props.get("model_type"),
+            last_updated_timestamp=convert_timestamp(
+                model_data.get("mlflow__utc_time_updated")
+                or model_data.get("lastUpdateTimeSinceEpoch")
+            ),
+            model_type=custom_props.get("mlflow__model_type"),
             status=convert_to_mlflow_logged_model_status(model_data.get("state")),
             tags=tags,
             params=params,
@@ -828,7 +849,7 @@ class ModelRegistryStore:
                 # Get current model to preserve other properties
                 model_data = self._request("GET", f"/artifacts/{model.model_id}")
                 custom_props = model_data.get("customProperties", {})
-                custom_props["mlflow.model_io_type"] = ModelIOType.INPUT.value
+                custom_props["mlflow__model_io_type"] = ModelIOType.INPUT.value
 
                 payload = {
                     "artifactType": "model-artifact",
@@ -852,7 +873,7 @@ class ModelRegistryStore:
             # Get current model to preserve other properties
             model_data = self._request("GET", f"/artifacts/{model.model_id}")
             custom_props = model_data.get("customProperties", {})
-            custom_props["mlflow.model_io_type"] = ModelIOType.OUTPUT.value
+            custom_props["mlflow__model_io_type"] = ModelIOType.OUTPUT.value
 
             payload = {
                 "artifactType": "model-artifact",
@@ -868,27 +889,38 @@ class ModelRegistryStore:
             run_id: The ID of the run to record the model for
             mlflow_model: The MLflow model to record
         """
-        model_dict = mlflow_model.to_dict()
-        model_info = mlflow_model.get_model_info()
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.models.model import Model
+
+        model: Model = mlflow_model
+        model_info = model.get_model_info()
+        model_id = model.model_id
+        model_uuid = model.model_uuid
+        model_dict = model.to_dict()
+        model_name = (
+            model_dict.get("name") or model_uuid or str(uuid.uuid4())
+        )  # TODO: check the naming convention
 
         # Create a model artifact in Model Registry
         payload = {
             "artifactType": "model-artifact",
-            "name": model_dict.get("model_uuid")
-            or str(uuid.uuid4()),  # generate a unique name if not provided
-            "uri": model_info.model_uri,
+            "name": model_name,
+            "uri": model_info.model_uri,  # TODO: also set the externalId
             "customProperties": {
-                "artifactPath": model_info.artifact_path,
-                "model_uuid": model_info.model_uuid,
-                "utc_time_created": model_info.utc_time_created,
-                "mlflow_version": model_info.mlflow_version,
-                "flavor": str(model_info.flavors),
-                "source_run_id": run_id,
+                "mlflow__artifactPath": model_info.artifact_path,
+                "mlflow__model_uuid": model_uuid,
+                "mlflow__utc_time_created": model_info.utc_time_created,
+                "mlflow__utc_time_updated": model_info.utc_time_updated,
+                "mlflow__mlflow_version": model_info.mlflow_version,
+                "mlflow__flavor": str(model_info.flavors),
+                "mlflow__source_run_id": run_id or model_info.run_id,
             },
         }
+        if model_id:
+            payload["id"] = model_id
 
         # Store the full model dict as a tag for backward compatibility
-        payload["customProperties"]["mlflow.logged_model"] = json.dumps(model_dict)
+        payload["customProperties"]["mlflow__logged_model"] = json.dumps(model_dict)
 
         # Create the model artifact
         self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
@@ -918,16 +950,13 @@ class ModelRegistryStore:
         experiment_data = self._request("GET", f"/experiments/{experiment_id}")
         artifact_location = self._get_artifact_location(experiment_data)
 
-        if not name:
-            name = str(uuid.uuid4())
-
         payload = {
             "artifactType": "model-artifact",
-            "name": name,
+            "name": name or str(uuid.uuid4()),
             "customProperties": {
-                "model_type": model_type or "unknown",
-                "experiment_id": experiment_id,
-                "source_run_id": source_run_id,
+                "mlflow__model_type": model_type or "unknown",
+                "mlflow__experiment_id": experiment_id,
+                "mlflow__source_run_id": source_run_id,
             },
         }
         # TODO: check whether this is correct for mlflow
