@@ -137,8 +137,8 @@ class TestUtils:
         result = convert_to_mlflow_logged_model_status("PENDING")
         assert result == LoggedModelStatus.PENDING
 
-        # Test READY state
-        result = convert_to_mlflow_logged_model_status("READY")
+        # Test LIVE state
+        result = convert_to_mlflow_logged_model_status("LIVE")
         assert result == LoggedModelStatus.READY
 
         # Test ABANDONED state

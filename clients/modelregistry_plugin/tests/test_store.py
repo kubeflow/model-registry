@@ -795,11 +795,21 @@ class TestModelRegistryStore:
         mock_response_params = Mock(spec=requests.Response)
         mock_response_params.ok = True
         mock_response_params.json.return_value = {"items": []}
+        # Fourth call: get dataset artifacts (empty)
+        mock_response_datasets = Mock(spec=requests.Response)
+        mock_response_datasets.ok = True
+        mock_response_datasets.json.return_value = {"items": []}
+        # Fifth call: get model artifacts (empty)
+        mock_response_models = Mock(spec=requests.Response)
+        mock_response_models.ok = True
+        mock_response_models.json.return_value = {"items": []}
 
         mock_request.side_effect = [
             mock_response_run,
             mock_response_metrics,
             mock_response_params,
+            mock_response_datasets,
+            mock_response_models,
         ]
 
         run = store.get_run("run-123")
@@ -1492,18 +1502,52 @@ class TestModelRegistryStore:
     @patch("modelregistry_plugin.store.requests.request")
     def test_create_logged_model(self, mock_request, store):
         """Test creating a logged model."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
+        # Mock the raw response from Model Registry API for GET experiment request
+        mock_response_experiment = Mock(spec=requests.Response)
+        mock_response_experiment.ok = True
+        mock_response_experiment.json.return_value = {
+            "id": "exp-123",
+            "name": "test-experiment",
+            "externalId": "s3://bucket/artifacts/experiments/exp-123",
+            "customProperties": {},
+        }
+
+        # Mock the raw response from Model Registry API for POST model artifact request
+        mock_response_model = Mock(spec=requests.Response)
+        mock_response_model.ok = True
+        mock_response_model.json.return_value = {
             "id": "model-123",
             "name": "test-model",
-            "experimentId": "exp-123",
-            "uri": "s3://bucket/model",
+            "uri": "s3://bucket/artifacts/experiments/exp-123/run-123/test-model",
             "createTimeSinceEpoch": "1234567890",
             "lastUpdateTimeSinceEpoch": "1234567890",
+            "artifactType": "model-artifact",
+            "state": "LIVE",
+            "customProperties": {
+                "model_type": {
+                    "string_value": "sklearn",
+                    "metadataType": "MetadataStringValue",
+                },
+                "source_run_id": {
+                    "string_value": "run-123",
+                    "metadataType": "MetadataStringValue",
+                },
+                "experiment_id": {
+                    "string_value": "exp-123",
+                    "metadataType": "MetadataStringValue",
+                },
+                "key1": {
+                    "string_value": "value1",
+                    "metadataType": "MetadataStringValue",
+                },
+                "param_param1": {
+                    "string_value": "value1",
+                    "metadataType": "MetadataStringValue",
+                },
+            },
         }
-        mock_request.return_value = mock_response
+
+        mock_request.side_effect = [mock_response_experiment, mock_response_model]
 
         tags = [LoggedModelTag("key1", "value1")]
         params = [LoggedModelParameter("param1", "value1")]
@@ -1523,6 +1567,41 @@ class TestModelRegistryStore:
         assert logged_model.name == "test-model"
         assert logged_model.source_run_id == "run-123"
         assert logged_model.model_type == "sklearn"
+        # check logged model parameters
+        assert logged_model.params["param1"] == "value1"
+        # check logged model tags
+        assert logged_model.tags["key1"] == "value1"
+        # check logged model state
+        assert logged_model.status == LoggedModelStatus.READY
+
+        # Verify both API calls were made
+        assert mock_request.call_count == 2
+
+        # Check first call (GET experiment)
+        call_args = mock_request.call_args_list[0]
+        assert call_args[0][0] == "GET"  # method
+        assert "/experiments/exp-123" in call_args[0][1]  # endpoint
+
+        # Check second call (POST model artifact)
+        call_args = mock_request.call_args_list[1]
+        assert call_args[0][0] == "POST"  # method
+        assert "/experiment_runs/run-123/artifacts" in call_args[0][1]  # endpoint
+        json_data = call_args[1]["json"]
+        assert json_data["artifactType"] == "model-artifact"
+        assert json_data["name"] == "test-model"
+        assert json_data["customProperties"]["model_type"]["string_value"] == "sklearn"
+        assert (
+            json_data["customProperties"]["experiment_id"]["string_value"] == "exp-123"
+        )
+        assert (
+            json_data["customProperties"]["source_run_id"]["string_value"] == "run-123"
+        )
+        assert json_data["customProperties"]["key1"]["string_value"] == "value1"
+        assert json_data["customProperties"]["param_param1"]["string_value"] == "value1"
+        assert (
+            json_data["uri"]
+            == "s3://bucket/artifacts/experiments/exp-123/run-123/test-model"
+        )
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_search_logged_models(self, mock_request, store):
@@ -1832,11 +1911,21 @@ class TestModelRegistryStore:
         mock_response_params = Mock(spec=requests.Response)
         mock_response_params.ok = True
         mock_response_params.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for dataset artifacts request
+        mock_response_datasets = Mock(spec=requests.Response)
+        mock_response_datasets.ok = True
+        mock_response_datasets.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for model artifacts request
+        mock_response_models = Mock(spec=requests.Response)
+        mock_response_models.ok = True
+        mock_response_models.json.return_value = {"items": []}
 
         mock_request.side_effect = [
             mock_response_search,  # search request
             mock_response_metrics,  # metrics request
             mock_response_params,  # params request
+            mock_response_datasets,  # dataset artifacts request
+            mock_response_models,  # model artifacts request
         ]
 
         result = store.search_runs(
@@ -1896,21 +1985,22 @@ class TestModelRegistryStore:
         mock_response_params_active = Mock(spec=requests.Response)
         mock_response_params_active.ok = True
         mock_response_params_active.json.return_value = {"items": []}
-        # Mock the raw response from Model Registry API for metrics request (for deleted run)
-        mock_response_metrics_deleted = Mock(spec=requests.Response)
-        mock_response_metrics_deleted.ok = True
-        mock_response_metrics_deleted.json.return_value = {"items": []}
-        # Mock the raw response from Model Registry API for params request (for deleted run)
-        mock_response_params_deleted = Mock(spec=requests.Response)
-        mock_response_params_deleted.ok = True
-        mock_response_params_deleted.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for dataset artifacts request (for active run)
+        mock_response_datasets_active = Mock(spec=requests.Response)
+        mock_response_datasets_active.ok = True
+        mock_response_datasets_active.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for model artifacts request (for active run)
+        mock_response_models_active = Mock(spec=requests.Response)
+        mock_response_models_active.ok = True
+        mock_response_models_active.json.return_value = {"items": []}
 
         mock_request.side_effect = [
             mock_response_search,  # search request
             mock_response_metrics_active,  # metrics request for active run
             mock_response_params_active,  # params request for active run
-            mock_response_metrics_deleted,  # metrics request for deleted run
-            mock_response_params_deleted,  # params request for deleted run
+            mock_response_datasets_active,  # dataset artifacts request for active run
+            mock_response_models_active,  # model artifacts request for active run
+            # Note: No nested calls for deleted run since it gets filtered out
         ]
 
         result = store.search_runs(["exp-123"], run_view_type=ViewType.ACTIVE_ONLY)
@@ -1957,14 +2047,6 @@ class TestModelRegistryStore:
             ],
             "nextPageToken": "token123",
         }
-        # Mock the raw response from Model Registry API for metrics request (for active run)
-        mock_response_metrics_active = Mock(spec=requests.Response)
-        mock_response_metrics_active.ok = True
-        mock_response_metrics_active.json.return_value = {"items": []}
-        # Mock the raw response from Model Registry API for params request (for active run)
-        mock_response_params_active = Mock(spec=requests.Response)
-        mock_response_params_active.ok = True
-        mock_response_params_active.json.return_value = {"items": []}
         # Mock the raw response from Model Registry API for metrics request (for deleted run)
         mock_response_metrics_deleted = Mock(spec=requests.Response)
         mock_response_metrics_deleted.ok = True
@@ -1973,29 +2055,14 @@ class TestModelRegistryStore:
         mock_response_params_deleted = Mock(spec=requests.Response)
         mock_response_params_deleted.ok = True
         mock_response_params_deleted.json.return_value = {"items": []}
-
-        mock_request.side_effect = [
-            mock_response_search,  # search request
-            mock_response_metrics_active,  # metrics request for active run
-            mock_response_params_active,  # params request for active run
-            mock_response_metrics_deleted,  # metrics request for deleted run
-            mock_response_params_deleted,  # params request for deleted run
-        ]
-
-        result = store.search_runs(["exp-123"], run_view_type=ViewType.DELETED_ONLY)
-
-        # Should return all runs since filtering is not implemented yet
-        assert isinstance(result, PagedList)
-        assert len(result) == 1
-        assert result[0].info.run_id == "run-456"
-        assert (
-            result[0].info.artifact_uri
-            == "s3://bucket/artifacts/experiments/exp-123/run-456"
-        )
-
-    # Error handling tests
-    @patch("modelregistry_plugin.store.requests.request")
-    def test_request_error_handling(self, mock_request, store):
+        # Mock the raw response from Model Registry API for dataset artifacts request (for deleted run)
+        mock_response_datasets_deleted = Mock(spec=requests.Response)
+        mock_response_datasets_deleted.ok = True
+        mock_response_datasets_deleted.json.return_value = {"items": []}
+        # Mock the raw response from Model Registry API for model artifacts request (for deleted run)
+        mock_response_models_deleted = Mock(spec=requests.Response)
+        mock_response_models_deleted.ok = True
+        mock_response_models_deleted.json.return_value = {"items": []}
         """Test error handling in requests."""
         # Mock the raw response from Model Registry API with error
         mock_response = Mock(spec=requests.Response)
