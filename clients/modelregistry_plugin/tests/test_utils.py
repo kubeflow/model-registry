@@ -169,20 +169,34 @@ class TestUtils:
         toModelRegistryCustomProperties(json_data)
 
         # Verify string property is wrapped correctly
-        assert json_data["customProperties"]["string_prop"]["string_value"] == "test_value"
-        assert json_data["customProperties"]["string_prop"]["metadataType"] == "MetadataStringValue"
+        assert (
+            json_data["customProperties"]["string_prop"]["string_value"] == "test_value"
+        )
+        assert (
+            json_data["customProperties"]["string_prop"]["metadataType"]
+            == "MetadataStringValue"
+        )
 
         # Verify int property is wrapped correctly
         assert json_data["customProperties"]["int_prop"]["string_value"] == "42"
-        assert json_data["customProperties"]["int_prop"]["metadataType"] == "MetadataStringValue"
+        assert (
+            json_data["customProperties"]["int_prop"]["metadataType"]
+            == "MetadataStringValue"
+        )
 
         # Verify float property is wrapped correctly
         assert json_data["customProperties"]["float_prop"]["string_value"] == "3.14"
-        assert json_data["customProperties"]["float_prop"]["metadataType"] == "MetadataStringValue"
+        assert (
+            json_data["customProperties"]["float_prop"]["metadataType"]
+            == "MetadataStringValue"
+        )
 
         # Verify bool property is wrapped correctly
         assert json_data["customProperties"]["bool_prop"]["string_value"] == "True"
-        assert json_data["customProperties"]["bool_prop"]["metadataType"] == "MetadataStringValue"
+        assert (
+            json_data["customProperties"]["bool_prop"]["metadataType"]
+            == "MetadataStringValue"
+        )
 
         # Verify None property is not included
         assert "none_prop" not in json_data["customProperties"]
@@ -199,24 +213,18 @@ class TestUtils:
             "customProperties": {
                 "string_prop": {
                     "string_value": "test_value",
-                    "metadataType": "MetadataStringValue"
+                    "metadataType": "MetadataStringValue",
                 },
-                "int_prop": {
-                    "int_value": 42,
-                    "metadataType": "MetadataIntValue"
-                },
+                "int_prop": {"int_value": 42, "metadataType": "MetadataIntValue"},
                 "float_prop": {
                     "float_value": 3.14,
-                    "metadataType": "MetadataFloatValue"
+                    "metadataType": "MetadataFloatValue",
                 },
-                "bool_prop": {
-                    "bool_value": True,
-                    "metadataType": "MetadataBoolValue"
-                },
+                "bool_prop": {"bool_value": True, "metadataType": "MetadataBoolValue"},
                 "unknown_prop": {
                     "string_value": "unknown_value",
-                    "metadataType": "MetadataUnknownType"
-                }
+                    "metadataType": "MetadataUnknownType",
+                },
             }
         }
 
