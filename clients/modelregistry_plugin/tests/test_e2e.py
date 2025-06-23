@@ -12,26 +12,18 @@ Required environment variables:
 
 import os
 import pytest
-import time
 import uuid
 import tempfile
 import pandas as pd
-import numpy as np
 
 import mlflow
 from mlflow.entities import (
     Experiment,
-    Run,
-    RunInfo,
-    RunData,
     RunStatus,
-    RunTag,
-    Param,
-    Metric,
     ViewType,
     LifecycleStage,
-    ExperimentTag,
 )
+from mlflow.exceptions import MlflowException
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -59,7 +51,7 @@ class TestModelRegistryStoreE2E:
             # Cleanup: delete the experiment
             try:
                 mlflow.delete_experiment(experiment_id)
-            except:
+            except MlflowException:
                 pass  # Ignore cleanup errors
 
     @pytest.fixture
@@ -127,6 +119,10 @@ class TestModelRegistryStoreE2E:
         experiment_by_name = mlflow.get_experiment_by_name(experiment_name)
         assert experiment_by_name is not None
         assert experiment_by_name.experiment_id == experiment_id
+
+        # Get experiment by name that doesn't exist
+        experiment_by_name = mlflow.get_experiment_by_name("nonexistent")
+        assert experiment_by_name is None
 
         # Cleanup
         mlflow.delete_experiment(experiment_id)
@@ -283,6 +279,7 @@ class TestModelRegistryStoreE2E:
             loaded_model = mlflow.sklearn.load_model(
                 f"runs:/{input_run_id}/input_model"
             )
+            assert loaded_model is not None
 
             # Create a new model (fine-tuned version)
             new_model = RandomForestClassifier(n_estimators=15, random_state=42)
@@ -418,7 +415,7 @@ class TestModelRegistryStoreE2E:
             # Cleanup
             try:
                 mlflow.delete_experiment(experiment_id)
-            except:
+            except MlflowException:
                 pass
 
     def test_run_lifecycle(self, experiment_id):
@@ -639,7 +636,7 @@ def test_mlflow_integration():
         # Cleanup
         try:
             mlflow.delete_experiment(experiment_id)
-        except:
+        except MlflowException:
             pass
 
 
