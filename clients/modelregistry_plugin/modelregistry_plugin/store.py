@@ -93,6 +93,58 @@ class ModelRegistryStore:
             fromModelRegistryCustomProperties(response_json)
         return response_json
 
+    # Async logging methods copied from mlflow.store.tracking.abstract_store.py
+    def log_batch_async(self, run_id, metrics, params, tags):
+        """
+        Log multiple metrics, params, and tags for the specified run in async fashion.
+        This API does not offer immediate consistency of the data. When API returns,
+        data is accepted but not persisted/processed by back end. Data would be processed
+        in near real time fashion.
+
+        Args:
+            run_id: String id for the run.
+            metrics: List of :py:class:`mlflow.entities.Metric` instances to log.
+            params: List of :py:class:`mlflow.entities.Param` instances to log.
+            tags: List of :py:class:`mlflow.entities.RunTag` instances to log.
+
+        Returns:
+            An :py:class:`mlflow.utils.async_logging.run_operations.RunOperations` instance
+            that represents future for logging operation.
+        """
+        if not self._async_logging_queue.is_active():
+            self._async_logging_queue.activate()
+
+        return self._async_logging_queue.log_batch_async(
+            run_id=run_id, metrics=metrics, params=params, tags=tags
+        )
+
+    def end_async_logging(self):
+        """
+        Ends the async logging queue. This method is a no-op if the queue is not active. This is
+        different from flush as it just stops the async logging queue from accepting
+        new data (moving the queue state TEAR_DOWN state), but flush will ensure all data
+        is processed before returning (moving the queue to IDLE state).
+        """
+        if self._async_logging_queue.is_active():
+            self._async_logging_queue.end_async_logging()
+
+    def flush_async_logging(self):
+        """
+        Flushes the async logging queue. This method is a no-op if the queue is already
+        at IDLE state. This methods also shutdown the logging worker threads.
+        After flushing, logging thread is setup again.
+        """
+        if not self._async_logging_queue.is_idle():
+            self._async_logging_queue.flush()
+
+    def shut_down_async_logging(self):
+        """
+        Shuts down the async logging queue. This method is a no-op if the queue is already
+        at IDLE state. This methods also shutdown the logging worker threads.
+        """
+        if not self._async_logging_queue.is_idle():
+            self._async_logging_queue.shut_down_async_logging()
+
     # Experiment operations
     def create_experiment(
         self, name: str, artifact_location: str = None, tags: List = None
@@ -388,13 +440,18 @@ class ModelRegistryStore:
             RunTag(k, v) for k, v in run_data.get("customProperties", {}).items()
         ]
 
-        return Run(run_info=run_info, run_data=RunData(tags=run_tags))
+        return Run(
+            run_info=run_info,
+            run_inputs=[],  # empty lists or it causes errors in mlflow
+            run_outputs=[],  # empty lists or it causes errors in mlflow
+            run_data=RunData(tags=run_tags),
+        )
 
     def get_run(self, run_id: str):
         """Get run by ID."""
         run_data = self._request("GET", f"/experiment_runs/{run_id}")
 
-        # Get metrics, parameters, and tags
+        # Get metrics, parameters, tags, inputs, outputs
         return self._getMLflowRun(run_data)
 
     def update_run_info(
@@ -606,116 +663,109 @@ class ModelRegistryStore:
             params.append(Param(key=param_data["name"], value=str(param_data["value"])))
         return params
 
-    # Tag operations
-    def set_experiment_tag(self, experiment_id: str, tag) -> None:
-        """Set a tag on an experiment."""
-        # Get current experiment to preserve other properties
-        experiment = self._request("GET", f"/experiments/{experiment_id}")
-        custom_props = experiment.get("customProperties", {})
-        custom_props[tag.key] = tag.value
-
-        payload = {"customProperties": custom_props}
-        self._request("PATCH", f"/experiments/{experiment_id}", json=payload)
-
-    def set_tag(self, run_id: str, tag) -> None:
-        """Set a tag on a run."""
-        # Get current run to preserve other properties
-        run = self._request("GET", f"/experiment_runs/{run_id}")
-        custom_props = run.get("customProperties", {})
-        custom_props[tag.key] = tag.value
-
-        payload = {"customProperties": custom_props}
-        self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
-
-    def delete_tag(self, run_id: str, key: str) -> None:
-        """Delete a tag from a run."""
-        run = self._request("GET", f"/experiment_runs/{run_id}")
-        custom_props = run.get("customProperties", {})
-        if key in custom_props:
-            del custom_props[key]
-
-        payload = {"customProperties": custom_props}
-        self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
-
-    # Search operations (simplified implementation)
-    def search_runs(
-        self,
-        experiment_ids: List[str],
-        filter_string: str = "",
-        run_view_type=None,
-        max_results: int = 1000,
-        order_by: List[str] = None,
-        page_token: str = None,
-    ):
-        """Search for runs."""
+    def _get_run_inputs_outputs(self, run_id: str):
+        """Get all inputs and outputs for a run (datasets and models)."""
         # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import ViewType, LifecycleStage
-        from mlflow.store.entities.paged_list import PagedList
+        from mlflow.entities import LoggedModelInput, LoggedModelOutput
 
-        if run_view_type is None:
-            run_view_type = ViewType.ACTIVE_ONLY
+        inputs = []
+        outputs = []
 
-        all_runs = []
+        # Get dataset artifacts (inputs)
+        dataset_items = self._request(
+            "GET",
+            f"/experiment_runs/{run_id}/artifacts",
+            params={"artifactType": "dataset-artifact"},
+        ).get("items", [])
 
-        # TODO add support for filter_string in ModelRegistry API
-        for experiment_id in experiment_ids:
-            response = self._request(
-                "GET",
-                f"/experiments/{experiment_id}/experiment_runs",
-                params={"pageSize": str(min(max_results, 1000))},
-            )
-            runs_data = response.get("items", [])
+        for dataset_data in dataset_items:
+            # Create DatasetInput entity using helper method
+            dataset_input = self._getMLflowDatasetInput(dataset_data)
+            inputs.append(dataset_input)
 
-            for run_data in runs_data:
-                run = self._getMLflowRun(run_data)
-                # compare run.info.lifecycle_stage with run_view_type
-                if (
-                    run_view_type == ViewType.ACTIVE_ONLY
-                    and run.info.lifecycle_stage == LifecycleStage.DELETED
-                ):
-                    continue
-                elif (
-                    run_view_type == ViewType.DELETED_ONLY
-                    and run.info.lifecycle_stage == LifecycleStage.ACTIVE
-                ):
-                    continue
-                all_runs.append(run)
+        # Get model artifacts (both inputs and outputs) - single API call
+        model_items = self._request(
+            "GET",
+            f"/experiment_runs/{run_id}/artifacts",
+            params={"artifactType": "model-artifact"},
+        ).get("items", [])
 
-        return PagedList(all_runs, response.get("nextPageToken"))
+        for model_data in model_items:
+            # Check the model's io_type to determine if it's input or output
+            custom_props = model_data.get("customProperties", {})
+            io_type = custom_props.get("mlflow.model_io_type")
 
-    def _getMLflowRun(self, run_data):
+            # Create LoggedModel entity using helper method
+            logged_model = self._getMLflowLoggedModel(model_data)
+
+            if io_type == ModelIOType.INPUT.value:
+                # Create LoggedModelInput entity
+                model_input = LoggedModelInput(model=logged_model)
+                inputs.append(model_input)
+            elif io_type == ModelIOType.OUTPUT.value:
+                # Create LoggedModelOutput entity
+                model_output = LoggedModelOutput(model=logged_model)
+                outputs.append(model_output)
+
+        return inputs, outputs
+
+    def _getMLflowDatasetInput(self, dataset_data: Dict):
+        """Create an MLflow DatasetInput entity from Model Registry dataset data."""
         # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import (
-            Run,
-            RunInfo,
-            RunData,
-            RunStatus,
-            RunTag,
+        from mlflow.entities import Dataset, DatasetInput, LoggedModelTag
+
+        # Extract tags from customProperties
+        tags = []
+        for key, value in dataset_data.get("customProperties", {}).items():
+            tags.append(LoggedModelTag(key=key, value=value))
+
+        # Create Dataset entity
+        dataset = Dataset(
+            name=dataset_data["name"],
+            digest=dataset_data.get("digest", ""),
+            source_type=dataset_data.get("sourceType", ""),
+            source=dataset_data.get("source", ""),
+            schema=dataset_data.get("schema", ""),
+            profile=dataset_data.get("profile", ""),
         )
 
-        run_id = run_data["id"]
-        metrics = self._get_run_metrics(run_id)
-        params = self._get_run_params(run_id)
-        tags = [RunTag(k, v) for k, v in run_data.get("customProperties", {}).items()]
-        run_info = RunInfo(
-            run_id=str(run_data["id"]),
-            experiment_id=str(run_data["experimentId"]),
-            user_id=run_data.get("owner") or "unknown",
-            status=RunStatus.from_string(run_data.get("status", "RUNNING")),
-            start_time=convert_timestamp(
-                run_data.get("startTimeSinceEpoch")
-                or run_data.get("createTimeSinceEpoch")
+        # Create and return DatasetInput entity
+        return DatasetInput(dataset=dataset, tags=tags)
+
+    def _getMLflowLoggedModel(self, model_data: Dict):
+        """Create an MLflow LoggedModel entity from Model Registry model data."""
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter
+
+        custom_props = model_data.get("customProperties", {})
+
+        # Extract tags and params from customProperties
+        tags = []
+        params = []
+        for key, value in custom_props.items():
+            if key == "mlflow.model_io_type":
+                # Skip the io_type marker as it's used for internal tracking
+                continue
+            elif key.startswith("param_"):
+                params.append(LoggedModelParameter(key=key[6:], value=value))
+            else:
+                tags.append(LoggedModelTag(key=key, value=value))
+
+        return LoggedModel(
+            model_id=str(model_data["id"]),
+            experiment_id=custom_props.get("experiment_id"),
+            name=model_data["name"],
+            source_run_id=custom_props.get("source_run_id"),
+            artifact_location=model_data.get("uri", ""),
+            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
+            last_updated_timestamp=convert_timestamp(
+                model_data["lastUpdateTimeSinceEpoch"]
             ),
-            end_time=convert_timestamp(run_data.get("endTimeSinceEpoch"))
-            if run_data.get("state") == "TERMINATED"
-            else None,
-            lifecycle_stage=convert_modelregistry_state(run_data),
-            artifact_uri=self._get_artifact_location(run_data),
-            run_name=run_data.get("name"),
+            model_type=custom_props.get("model_type"),
+            status=convert_to_mlflow_logged_model_status(model_data.get("state")),
+            tags=tags,
+            params=params,
         )
-        run_data_obj = RunData(metrics=metrics, params=params, tags=tags)
-        run = Run(run_info=run_info, run_data=run_data_obj)
-        return run
 
     def log_batch(
         self,
@@ -865,12 +915,6 @@ class ModelRegistryStore:
         Returns:
             The created LoggedModel object
         """
-        # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import (
-            LoggedModel,
-            LoggedModelStatus,
-        )
-
         experiment_data = self._request("GET", f"/experiments/{experiment_id}")
         artifact_location = self._get_artifact_location(experiment_data)
 
@@ -907,21 +951,8 @@ class ModelRegistryStore:
             "POST", f"/experiment_runs/{source_run_id}/artifacts", json=payload
         )
 
-        return LoggedModel(
-            model_id=str(model_data["id"]),
-            experiment_id=experiment_id,
-            name=model_data["name"],
-            source_run_id=source_run_id,
-            artifact_location=model_data["uri"],
-            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(
-                model_data["lastUpdateTimeSinceEpoch"]
-            ),
-            model_type=model_type,
-            status=LoggedModelStatus.READY,
-            tags=tags or [],
-            params=params or [],
-        )
+        # Use the helper method to create LoggedModel entity
+        return self._getMLflowLoggedModel(model_data)
 
     def search_logged_models(
         self,
@@ -987,43 +1018,12 @@ class ModelRegistryStore:
         Returns:
             The updated LoggedModel
         """
-        # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import (
-            LoggedModel,
-            LoggedModelTag,
-            LoggedModelParameter,
-        )
-
         payload = {"state": convert_to_model_artifact_state(status)}
 
         model_data = self._request("PATCH", f"/artifacts/{model_id}", json=payload)
 
-        # Extract tags and params from customProperties
-        custom_props = model_data.get("customProperties", {})
-        tags = []
-        params = []
-
-        for key, value in custom_props.items():
-            if key.startswith("param_"):
-                params.append(LoggedModelParameter(key=key[6:], value=value))
-            else:
-                tags.append(LoggedModelTag(key=key, value=value))
-
-        return LoggedModel(
-            model_id=str(model_data["id"]),
-            experiment_id=custom_props.get("experiment_id"),
-            name=model_data["name"],
-            source_run_id=custom_props.get("source_run_id"),
-            artifact_location=model_data["uri"],
-            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(
-                model_data["lastUpdateTimeSinceEpoch"]
-            ),
-            model_type=custom_props.get("model_type"),
-            status=status,
-            tags=tags,
-            params=params,
-        )
+        # Use the helper method to create LoggedModel entity
+        return self._getMLflowLoggedModel(model_data)
 
     def set_logged_model_tags(self, model_id: str, tags: list) -> None:
         """Set tags on the specified logged model.
@@ -1070,41 +1070,10 @@ class ModelRegistryStore:
         Returns:
             The fetched LoggedModel
         """
-        # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import (
-            LoggedModel,
-            LoggedModelTag,
-            LoggedModelParameter,
-        )
-
         model_data = self._request("GET", f"/artifacts/{model_id}")
 
-        # Extract tags and params from customProperties
-        custom_props = model_data.get("customProperties", {})
-        tags = []
-        params = []
-
-        for key, value in custom_props.items():
-            if key.startswith("param_"):
-                params.append(LoggedModelParameter(key=key[6:], value=value))
-            else:
-                tags.append(LoggedModelTag(key=key, value=value))
-
-        return LoggedModel(
-            model_id=str(model_data["id"]),
-            experiment_id=custom_props.get("experiment_id"),
-            name=model_data["name"],
-            source_run_id=custom_props.get("source_run_id"),
-            artifact_location=model_data["uri"],
-            creation_timestamp=convert_timestamp(model_data["createTimeSinceEpoch"]),
-            last_updated_timestamp=convert_timestamp(
-                model_data["lastUpdateTimeSinceEpoch"]
-            ),
-            model_type=custom_props.get("model_type"),
-            status=convert_to_mlflow_logged_model_status(custom_props.get("state")),
-            tags=tags,
-            params=params,
-        )
+        # Use the helper method to create LoggedModel entity
+        return self._getMLflowLoggedModel(model_data)
 
     def delete_logged_model(self, model_id: str) -> None:
         """Delete the logged model with the specified ID.
@@ -1120,3 +1089,124 @@ class ModelRegistryStore:
             },
         }
         self._request("PATCH", f"/artifacts/{model_id}", json=payload)
+
+    # Tag operations
+    def set_experiment_tag(self, experiment_id: str, tag) -> None:
+        """Set a tag on an experiment."""
+        # Get current experiment to preserve other properties
+        experiment = self._request("GET", f"/experiments/{experiment_id}")
+        custom_props = experiment.get("customProperties", {})
+        custom_props[tag.key] = tag.value
+
+        payload = {"customProperties": custom_props}
+        self._request("PATCH", f"/experiments/{experiment_id}", json=payload)
+
+    def set_tag(self, run_id: str, tag) -> None:
+        """Set a tag on a run."""
+        # Get current run to preserve other properties
+        run = self._request("GET", f"/experiment_runs/{run_id}")
+        custom_props = run.get("customProperties", {})
+        custom_props[tag.key] = tag.value
+
+        payload = {"customProperties": custom_props}
+        self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
+
+    def delete_tag(self, run_id: str, key: str) -> None:
+        """Delete a tag from a run."""
+        run = self._request("GET", f"/experiment_runs/{run_id}")
+        custom_props = run.get("customProperties", {})
+        if key in custom_props:
+            del custom_props[key]
+
+        payload = {"customProperties": custom_props}
+        self._request("PATCH", f"/experiment_runs/{run_id}", json=payload)
+
+    # Search operations (simplified implementation)
+    def search_runs(
+        self,
+        experiment_ids: List[str],
+        filter_string: str = "",
+        run_view_type=None,
+        max_results: int = 1000,
+        order_by: List[str] = None,
+        page_token: str = None,
+    ):
+        """Search for runs."""
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import ViewType
+        from mlflow.store.entities.paged_list import PagedList
+
+        if run_view_type is None:
+            run_view_type = ViewType.ACTIVE_ONLY
+
+        all_runs = []
+
+        # TODO add support for filter_string in ModelRegistry API
+        for experiment_id in experiment_ids:
+            response = self._request(
+                "GET",
+                f"/experiments/{experiment_id}/experiment_runs",
+                params={"pageSize": str(min(max_results, 1000))},
+            )
+            runs_data = response.get("items", [])
+
+            for run_data in runs_data:
+                # avoid nested calls for run data by filtering out runs that are not active or deleted
+                if (
+                    run_view_type == ViewType.ACTIVE_ONLY
+                    and run_data.get("state") == "ARCHIVED"
+                ):
+                    continue
+                elif (
+                    run_view_type == ViewType.DELETED_ONLY
+                    and run_data.get("state") == "ACTIVE"
+                ):
+                    continue
+                run = self._getMLflowRun(run_data)
+
+                all_runs.append(run)
+
+        return PagedList(all_runs, response.get("nextPageToken"))
+
+    def _getMLflowRun(self, run_data):
+        # Import MLflow entities locally to avoid circular imports
+        from mlflow.entities import (
+            Run,
+            RunInfo,
+            RunData,
+            RunStatus,
+            RunTag,
+        )
+
+        run_id = run_data["id"]
+        # get metrics and parameters
+        metrics = self._get_run_metrics(run_id)
+        params = self._get_run_params(run_id)
+        # get inputs and outputs
+        inputs, outputs = self._get_run_inputs_outputs(run_id)
+
+        tags = [RunTag(k, v) for k, v in run_data.get("customProperties", {}).items()]
+        run_info = RunInfo(
+            run_id=str(run_data["id"]),
+            experiment_id=str(run_data["experimentId"]),
+            user_id=run_data.get("owner") or "unknown",
+            status=RunStatus.from_string(run_data.get("status", "RUNNING")),
+            start_time=convert_timestamp(
+                run_data.get("startTimeSinceEpoch")
+                or run_data.get("createTimeSinceEpoch")
+            ),
+            end_time=convert_timestamp(run_data.get("endTimeSinceEpoch"))
+            if run_data.get("state") == "TERMINATED"
+            else None,
+            lifecycle_stage=convert_modelregistry_state(run_data),
+            artifact_uri=self._get_artifact_location(run_data),
+            run_name=run_data.get("name"),
+        )
+        run_data_obj = RunData(metrics=metrics, params=params, tags=tags)
+        run = Run(
+            run_info=run_info,
+            run_inputs=inputs,
+            run_outputs=outputs,
+            run_data=run_data_obj,
+        )
+        return run
