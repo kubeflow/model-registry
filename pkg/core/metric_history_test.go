@@ -56,12 +56,13 @@ func (suite *CoreTestSuite) TestGetExperimentRunMetricHistory() {
 	foundLoss := false
 	for _, item := range result.Items {
 		if item.Metric != nil {
-			if *item.Metric.Name == "accuracy" {
+			switch *item.Metric.Name {
+			case "accuracy":
 				foundAccuracy = true
 				suite.Equal(0.95, *item.Metric.Value)
 				suite.Equal("1234567890", *item.Metric.Timestamp)
 				suite.Equal(int64(1), *item.Metric.Step)
-			} else if *item.Metric.Name == "loss" {
+			case "loss":
 				foundLoss = true
 				suite.Equal(0.05, *item.Metric.Value)
 				suite.Equal("1234567891", *item.Metric.Timestamp)
