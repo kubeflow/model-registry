@@ -20,7 +20,7 @@ install:
 	uv sync
 
 # Build the package
-build:
+build: lint format
 	uv build
 
 # Install in development mode
