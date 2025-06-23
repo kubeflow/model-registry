@@ -25,7 +25,7 @@ const (
 var (
 	proxyCfg = ProxyConfig{
 		Datastore: datastore.Datastore{
-			Type: "mlmd",
+			Type: "embedmd",
 		},
 	}
 
