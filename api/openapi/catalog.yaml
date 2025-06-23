@@ -48,7 +48,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: getAllCatalogModels
+      operationId: findModels
   /api/model_catalog/v1alpha1/sources:
     summary: Path used to get the list of catalog sources.
     description: >-
@@ -74,7 +74,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: getCatalogSources
+      operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}:
     description: >-
@@ -92,7 +92,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: getCatalogModel
+      operationId: getModel
     parameters:
       - name: source_id
         description: A unique identifier for a `CatalogSource`.
@@ -122,7 +122,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: findCatalogModelArtifacts
+      operationId: getAllModelArtifacts
     parameters:
       - name: source_id
         description: A unique identifier for a `CatalogSource`.
@@ -288,9 +288,13 @@ components:
     CatalogSource:
       description: A catalog source. A catalog source has CatalogModel children.
       required:
+        - id
         - name
       type: object
       properties:
+        id:
+          description: A unique identifier for a `CatalogSource`.
+          type: string
         name:
           description: The name of the catalog source.
           type: string
@@ -431,6 +435,7 @@ components:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
+        - NAME
       type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
@@ -450,7 +455,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CatalogModelArtifactList"
-      description: A response containing a list of CatalogSource entities.
+      description: A response containing a list of CatalogModelArtifact entities.
     CatalogModelListResponse:
       content:
         application/json:
@@ -512,6 +517,18 @@ components:
             $ref: "#/components/schemas/Error"
       description: Unprocessable Entity error
   parameters:
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
     id:
       name: id
       description: The ID of resource.
@@ -564,18 +581,6 @@ components:
       description: Token to use to retrieve next page of results.
       schema:
         type: string
-      in: query
-      required: false
-    orderBy:
-      style: form
-      explode: true
-      examples:
-        orderBy:
-          value: ID
-      name: orderBy
-      description: Specifies the order by criteria for listing entities.
-      schema:
-        $ref: "#/components/schemas/OrderByField"
       in: query
       required: false
     sortOrder:

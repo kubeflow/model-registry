@@ -25,7 +25,7 @@
         <mxCell id="El_kY7I2ZMZImhtPKoh1-9" value="Integration testing&lt;br&gt;(using Testcontainers)&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;pkg/core/core_test.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#ff0000;" parent="1" vertex="1">
           <mxGeometry x="50" y="440" width="160" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="El_kY7I2ZMZImhtPKoh1-10" value="&quot;MR REST API&quot;&lt;br&gt;implemented in Go&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;internal/server/openapi/routers.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="El_kY7I2ZMZImhtPKoh1-10" value="&quot;MR REST API&quot;&lt;br&gt;implemented in Go&lt;br&gt;&lt;font face=&quot;Courier New&quot;&gt;internal/server/openapi/registry/routers.go&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="50" y="289" width="330" height="70" as="geometry" />
         </mxCell>
         <mxCell id="El_kY7I2ZMZImhtPKoh1-17" value="REST" style="html=1;rounded=0;" parent="1" vertex="1">
