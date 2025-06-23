@@ -66,6 +66,13 @@ class TestModelRegistryStore:
         model_info.mlflow_version = "2.0.0"
         model_info.flavors = {"python_function": {}}
         model.get_model_info.return_value = model_info
+
+        # Add missing attributes that record_logged_model expects
+        model.model_id = None
+        model.model_uuid = "uuid-123"
+        model.name = "test-model"
+        model.source_run_id = "run-123"
+
         return model
 
     # Initialization tests
@@ -1442,7 +1449,7 @@ class TestModelRegistryStore:
         post_call = call_args[1]
         json_data = post_call[1]["json"]
         custom_props = json_data["customProperties"]
-        assert custom_props["mlflow.model_io_type"]["string_value"] == "input"
+        assert custom_props["mlflow__model_io_type"]["string_value"] == "input"
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_log_outputs(self, mock_request, store):
@@ -1474,7 +1481,7 @@ class TestModelRegistryStore:
         post_call = call_args[1]
         json_data = post_call[1]["json"]
         custom_props = json_data["customProperties"]
-        assert custom_props["mlflow.model_io_type"]["string_value"] == "output"
+        assert custom_props["mlflow__model_io_type"]["string_value"] == "output"
 
     # Logged model tests
     @patch("modelregistry_plugin.store.requests.request")
@@ -1483,7 +1490,29 @@ class TestModelRegistryStore:
         # Mock the raw response from Model Registry API
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
-        mock_response.json.return_value = {}
+        mock_response.json.return_value = {
+            "id": "model-123",
+            "name": "test-model",
+            "uri": "s3://bucket/artifacts/experiments/exp-123/run-123/test-model",
+            "createTimeSinceEpoch": "1234567890",
+            "lastUpdateTimeSinceEpoch": "1234567890",
+            "artifactType": "model-artifact",
+            "state": "LIVE",
+            "customProperties": {
+                "mlflow__model_io_type": {
+                    "string_value": "output",
+                    "metadataType": "MetadataStringValue",
+                },
+                "mlflow__source_run_id": {
+                    "string_value": "run-123",
+                    "metadataType": "MetadataStringValue",
+                },
+                "mlflow__model_uuid": {
+                    "string_value": "uuid-123",
+                    "metadataType": "MetadataStringValue",
+                },
+            },
+        }
         mock_request.return_value = mock_response
 
         store.record_logged_model("run-123", mock_model)
@@ -1496,8 +1525,14 @@ class TestModelRegistryStore:
         assert json_data["artifactType"] == "model-artifact"
         assert json_data["name"] == "uuid-123"
         assert json_data["uri"] == "runs:/run-123/model"
-        assert json_data["customProperties"]["artifactPath"]["string_value"] == "model"
-        assert json_data["customProperties"]["model_uuid"]["string_value"] == "uuid-123"
+        assert (
+            json_data["customProperties"]["mlflow__artifactPath"]["string_value"]
+            == "model"
+        )
+        assert (
+            json_data["customProperties"]["mlflow__model_uuid"]["string_value"]
+            == "uuid-123"
+        )
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_create_logged_model(self, mock_request, store):
@@ -1524,15 +1559,15 @@ class TestModelRegistryStore:
             "artifactType": "model-artifact",
             "state": "LIVE",
             "customProperties": {
-                "model_type": {
+                "mlflow__model_type": {
                     "string_value": "sklearn",
                     "metadataType": "MetadataStringValue",
                 },
-                "source_run_id": {
+                "mlflow__source_run_id": {
                     "string_value": "run-123",
                     "metadataType": "MetadataStringValue",
                 },
-                "experiment_id": {
+                "mlflow__experiment_id": {
                     "string_value": "exp-123",
                     "metadataType": "MetadataStringValue",
                 },
@@ -1589,12 +1624,17 @@ class TestModelRegistryStore:
         json_data = call_args[1]["json"]
         assert json_data["artifactType"] == "model-artifact"
         assert json_data["name"] == "test-model"
-        assert json_data["customProperties"]["model_type"]["string_value"] == "sklearn"
         assert (
-            json_data["customProperties"]["experiment_id"]["string_value"] == "exp-123"
+            json_data["customProperties"]["mlflow__model_type"]["string_value"]
+            == "sklearn"
         )
         assert (
-            json_data["customProperties"]["source_run_id"]["string_value"] == "run-123"
+            json_data["customProperties"]["mlflow__experiment_id"]["string_value"]
+            == "exp-123"
+        )
+        assert (
+            json_data["customProperties"]["mlflow__source_run_id"]["string_value"]
+            == "run-123"
         )
         assert json_data["customProperties"]["key1"]["string_value"] == "value1"
         assert json_data["customProperties"]["param_param1"]["string_value"] == "value1"
@@ -1631,15 +1671,15 @@ class TestModelRegistryStore:
             "createTimeSinceEpoch": "1234567890",
             "lastUpdateTimeSinceEpoch": "1234567890",
             "customProperties": {
-                "model_type": {
+                "mlflow__model_type": {
                     "string_value": "sklearn",
                     "metadataType": "MetadataStringValue",
                 },
-                "source_run_id": {
+                "mlflow__source_run_id": {
                     "string_value": "run-123",
                     "metadataType": "MetadataStringValue",
                 },
-                "experiment_id": {
+                "mlflow__experiment_id": {
                     "string_value": "exp-123",
                     "metadataType": "MetadataStringValue",
                 },
@@ -1710,7 +1750,7 @@ class TestModelRegistryStore:
                     "string_value": "READY",
                     "metadataType": "MetadataStringValue",
                 },
-                "model_type": {
+                "mlflow__model_type": {
                     "string_value": "sklearn",
                     "metadataType": "MetadataStringValue",
                 },
@@ -1811,15 +1851,15 @@ class TestModelRegistryStore:
             "createTimeSinceEpoch": "1234567890",
             "lastUpdateTimeSinceEpoch": "1234567890",
             "customProperties": {
-                "experiment_id": {
+                "mlflow__experiment_id": {
                     "string_value": "exp-123",
                     "metadataType": "MetadataStringValue",
                 },
-                "model_type": {
+                "mlflow__model_type": {
                     "string_value": "sklearn",
                     "metadataType": "MetadataStringValue",
                 },
-                "source_run_id": {
+                "mlflow__source_run_id": {
                     "string_value": "run-123",
                     "metadataType": "MetadataStringValue",
                 },
