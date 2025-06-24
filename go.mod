@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry
 
-go 1.23.6
+go 1.24.1
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/golang/glog v1.2.5
-	github.com/kserve/kserve v0.15.0
+	github.com/kserve/kserve v0.15.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
