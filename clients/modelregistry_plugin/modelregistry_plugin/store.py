@@ -38,6 +38,11 @@ class ModelRegistryStore:
         """
         # Import MLflow modules here to avoid circular imports
         from mlflow.store.tracking.abstract_store import AbstractStore
+        from mlflow.utils.file_utils import (
+            local_file_uri_to_path,
+            path_to_local_file_uri,
+        )
+        from mlflow.store.tracking.file_store import _default_root_dir
 
         # Initialize as AbstractStore
         AbstractStore.__init__(self)
@@ -53,12 +58,15 @@ class ModelRegistryStore:
         self.host, self.port, self.secure = parse_tracking_uri(self.store_uri)
         self.base_url = f"{'https' if self.secure else 'http'}://{self.host}:{self.port}/api/model_registry/v1alpha3"
 
-        self.artifact_uri = artifact_uri
+        if artifact_uri:
+            self.artifact_uri = artifact_uri
+        else:
+            # FIXME use local file store by default?
+            file_store_path = local_file_uri_to_path(_default_root_dir())
+            self.artifact_uri = path_to_local_file_uri(file_store_path)
 
     def _get_artifact_location(self, response: Dict) -> str:
-        return (
-            response.get("externalId") or self.artifact_uri or "file:./mlruns"
-        )  # FIXME will empty location use file store?
+        return response.get("externalId") or self.artifact_uri
 
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
         """Make authenticated request to Model Registry API."""

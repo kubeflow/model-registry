@@ -230,19 +230,33 @@ class TestModelRegistryStore:
         mock_response.ok = True
         mock_response.json.return_value = {"id": "exp-123"}
         mock_request.return_value = mock_response
+        # mock response for PATCH to set default artifact location
+        mock_response_patch = Mock(spec=requests.Response)
+        mock_response_patch.ok = True
+        mock_response_patch.json.return_value = {}
+        mock_request.side_effect = [mock_response, mock_response_patch]
 
         experiment_id = store.create_experiment("test-experiment")
 
         assert experiment_id == "exp-123"
-        # Should make only 1 call since no artifact_uri available
-        assert mock_request.call_count == 1
+        # Should make 2 calls: POST to create, then PATCH to set default artifact location
+        assert mock_request.call_count == 2
 
-        call_args = mock_request.call_args
+        call_args = mock_request.call_args_list[0]
         assert call_args[0][0] == "POST"  # method
         assert "/experiments" in call_args[0][1]  # endpoint
         json_data = call_args[1]["json"]
         assert json_data["name"] == "test-experiment"
+        assert json_data["description"] == "MLflow experiment: test-experiment"
+        assert json_data["state"] == "LIVE"
+        assert json_data["customProperties"] == {}
         assert json_data.get("externalId") is None
+
+        call_args = mock_request.call_args_list[1]
+        assert call_args[0][0] == "PATCH"  # method
+        assert "/experiments/exp-123" in call_args[0][1]  # endpoint
+        json_data = call_args[1]["json"]
+        assert json_data["externalId"] is not None
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_create_experiment_with_tags(self, mock_request, store):
@@ -2139,7 +2153,7 @@ class TestModelRegistryStore:
         store_no_artifact = ModelRegistryStore("modelregistry://localhost:8080")
         assert (
             store_no_artifact._get_artifact_location(response_without_external_id)
-            == "file:./mlruns"  # FIXME default artifact store
+            is not None  # uses default file store location instead of None
         )
 
     @patch("modelregistry_plugin.store.requests.request")
@@ -2188,7 +2202,7 @@ class TestModelRegistryStore:
         assert run.info.run_id == "run-123"
         assert run.info.experiment_id == "exp-123"
         assert run.info.status == RunStatus.RUNNING
-        assert run.info.artifact_uri == "file:./mlruns/run-123"
+        assert run.info.artifact_uri is not None
 
         # Should make 3 calls using experiment default artifact_location
         assert mock_request.call_count == 3
