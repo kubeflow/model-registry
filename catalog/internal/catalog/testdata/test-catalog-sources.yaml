@@ -1,0 +1,15 @@
+catalogs:
+  - name: "Catalog 1"
+    id: catalog1
+    type: yaml
+    properties:
+      privateProp11: 54321
+      privateProp12: privateStringValue
+      yamlCatalogPath: test-yaml-catalog.yaml
+  - name: "Catalog 2"
+    id: catalog2
+    type: yaml
+    properties:
+      privateProp21: 12345
+      privateProp22: privateStringValue2
+      yamlCatalogPath: test-yaml-catalog.yaml

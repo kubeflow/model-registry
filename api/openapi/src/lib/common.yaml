@@ -208,13 +208,6 @@ components:
       example:
         string_value: my_value
         metadataType: MetadataStringValue
-    OrderByField:
-      description: Supported fields for ordering result entities.
-      enum:
-        - CREATE_TIME
-        - LAST_UPDATE_TIME
-        - ID
-      type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
       enum:
@@ -317,18 +310,6 @@ components:
       description: Token to use to retrieve next page of results.
       schema:
         type: string
-      in: query
-      required: false
-    orderBy:
-      style: form
-      explode: true
-      examples:
-        orderBy:
-          value: ID
-      name: orderBy
-      description: Specifies the order by criteria for listing entities.
-      schema:
-        $ref: "#/components/schemas/OrderByField"
       in: query
       required: false
     sortOrder:
