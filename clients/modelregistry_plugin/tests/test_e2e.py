@@ -15,6 +15,7 @@ import pytest
 import uuid
 import tempfile
 import pandas as pd
+import math
 
 import mlflow
 from mlflow.entities import (
@@ -209,9 +210,6 @@ class TestModelRegistryStoreE2E:
             # Log dataset metadata as parameters
             mlflow.log_param("dataset_rows", str(len(sample_dataset)))
             mlflow.log_param("dataset_columns", str(len(sample_dataset.columns)))
-            mlflow.log_param(
-                "dataset_features", str(len(sample_dataset.columns) - 1)
-            )  # excluding target
 
             # Log dataset statistics as metrics
             mlflow.log_metric(
@@ -584,7 +582,7 @@ class TestModelRegistryStoreE2E:
 
         # Verify values are in order
         for i, metric in enumerate(metric_history):
-            assert metric.value == (i + 1) * 0.1
+            assert math.isclose(metric.value, (i + 1) * 0.1, rel_tol=1e-9)
             assert metric.step == i + 1
 
     def test_artifact_logging(self, experiment_id):
