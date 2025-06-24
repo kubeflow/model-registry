@@ -60,6 +60,7 @@ def tests(session: Session) -> None:
         "pytest-asyncio",
         "uvloop",
         "olot",
+        "schemathesis",
     )
     session.run(
         "pytest",
@@ -83,6 +84,7 @@ def e2e_tests(session: Session) -> None:
         "boto3",
         "olot",
         "uvloop",
+        "schemathesis",
     )
     try:
         session.run(

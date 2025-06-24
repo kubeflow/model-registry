@@ -1,7 +1,6 @@
 import pytest
 import schemathesis
-from hypothesis import settings, HealthCheck
-
+from hypothesis import HealthCheck, settings
 
 schema = schemathesis.pytest.from_fixture("generated_schema")
 
@@ -16,7 +15,7 @@ schema = schemathesis.pytest.from_fixture("generated_schema")
 @pytest.mark.e2e
 def test_mr_api_stateless(setup_env_user_token, case):
     """Test the Model Registry API endpoints.
-    
+
     This test uses schemathesis to generate and validate API requests
     """
 
@@ -28,7 +27,7 @@ def test_mr_api_stateless(setup_env_user_token, case):
     # We need to ensure valid data
     if case.path == "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
         case.path_parameters["modelversionId"] = "test-model-version-1"
-        
+
         if case.method == "POST":
             case.body = {
                 "artifactType": "model-artifact",

@@ -15,13 +15,9 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-import uvloop
 import schemathesis
-from pytest import Config
+import uvloop
 from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
-from schemathesis.generation.stateful.state_machine import APIStateMachine
-from schemathesis.core.transport import Response
-from schemathesis.generation.case import Case
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
@@ -325,7 +321,7 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
 
 @pytest.fixture(scope="class")
-def generated_schema(pytestconfig: Config ) -> BaseOpenAPISchema:
+def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
     os.environ["API_HOST"] = REGISTRY_URL
     config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
     schema = schemathesis.openapi.from_url(
