@@ -16,6 +16,7 @@ import uuid
 import tempfile
 import pandas as pd
 import math
+from typing import List, Tuple, Generator
 
 import mlflow
 from mlflow.entities import (
@@ -39,16 +40,16 @@ class TestModelRegistryStoreE2E:
     """End-to-end tests for ModelRegistryStore using MLflow APIs."""
 
     @pytest.fixture(scope="class")
-    def mlflow_client(self):
+    def mlflow_client(self) -> MlflowClient:
         return MlflowClient()
 
     @pytest.fixture(scope="function")
-    def experiment_name(self):
+    def experiment_name(self) -> str:
         """Generate a unique experiment name for testing."""
         return f"e2e-test-{uuid.uuid4().hex[:8]}"
 
     @pytest.fixture(scope="function")
-    def experiment_id(self, experiment_name):
+    def experiment_id(self, experiment_name: str) -> Generator[str, None, None]:
         """Create a test experiment and return its ID."""
         try:
             experiment_id = mlflow.create_experiment(experiment_name)
@@ -61,7 +62,7 @@ class TestModelRegistryStoreE2E:
                 pass  # Ignore cleanup errors
 
     @pytest.fixture
-    def sample_dataset(self):
+    def sample_dataset(self) -> pd.DataFrame:
         """Create a lightweight sample dataset."""
         # Generate a small synthetic dataset
         X, y = make_classification(
@@ -82,7 +83,9 @@ class TestModelRegistryStoreE2E:
         return df
 
     @pytest.fixture
-    def sample_model(self, sample_dataset):
+    def sample_model(
+        self, sample_dataset: pd.DataFrame
+    ) -> Tuple[RandomForestClassifier, pd.DataFrame, pd.Series]:
         """Create a lightweight sample model."""
         # Prepare data
         X = sample_dataset.drop("target", axis=1)
@@ -99,7 +102,7 @@ class TestModelRegistryStoreE2E:
 
         return model, X_test, y_test
 
-    def test_mlflow_connection(self):
+    def test_mlflow_connection(self) -> None:
         """Test that we can connect to the tracking server via MLflow."""
         # Try to list experiments to verify connection
         experiments = mlflow.search_experiments()
@@ -108,7 +111,7 @@ class TestModelRegistryStoreE2E:
             f"Successfully connected to tracking server via MLflow. Found {len(experiments)} experiments."
         )
 
-    def test_create_and_get_experiment(self, experiment_name):
+    def test_create_and_get_experiment(self, experiment_name: str) -> None:
         """Test creating and retrieving an experiment using MLflow."""
         # Create experiment
         experiment_id = mlflow.create_experiment(experiment_name)
@@ -135,8 +138,12 @@ class TestModelRegistryStoreE2E:
         mlflow.delete_experiment(experiment_id)
 
     def test_create_and_log_run(
-        self, experiment_id, sample_dataset, sample_model, mlflow_client
-    ):
+        self,
+        experiment_id: str,
+        sample_dataset: pd.DataFrame,
+        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+        mlflow_client: MlflowClient,
+    ) -> None:
         """Test creating and logging to a run using MLflow."""
         model, X_test, y_test = sample_model
 
@@ -197,7 +204,9 @@ class TestModelRegistryStoreE2E:
         # Cleanup
         os.unlink(dataset_path)
 
-    def test_log_dataset_inputs(self, experiment_id, sample_dataset):
+    def test_log_dataset_inputs(
+        self, experiment_id: str, sample_dataset: pd.DataFrame
+    ) -> None:
         """Test logging dataset inputs using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create a temporary dataset file
@@ -228,11 +237,11 @@ class TestModelRegistryStoreE2E:
         # Cleanup
         os.unlink(dataset_path)
 
-    def test_log_multiple_datasets(self, experiment_id):
+    def test_log_multiple_datasets(self, experiment_id: str) -> None:
         """Test logging multiple datasets using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create multiple small datasets
-            datasets = []
+            datasets: List[pd.DataFrame] = []
             for i in range(3):
                 # Create small synthetic dataset
                 X, y = make_classification(
@@ -264,7 +273,11 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.data.params["dataset_1_rows"] == "50"
         assert retrieved_run.data.params["dataset_2_rows"] == "50"
 
-    def test_log_model_inputs_and_outputs(self, experiment_id, sample_model):
+    def test_log_model_inputs_and_outputs(
+        self,
+        experiment_id: str,
+        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+    ) -> None:
         """Test logging model inputs and outputs using MLflow."""
         model, X_test, y_test = sample_model
 
@@ -313,7 +326,12 @@ class TestModelRegistryStoreE2E:
         assert output_retrieved.data.params["model_type"] == "random_forest_finetuned"
         assert output_retrieved.data.params["input_model_run_id"] == input_run_id
 
-    def test_log_model_with_steps(self, experiment_id, sample_dataset, mlflow_client):
+    def test_log_model_with_steps(
+        self,
+        experiment_id: str,
+        sample_dataset: pd.DataFrame,
+        mlflow_client: MlflowClient,
+    ) -> None:
         """Test logging model outputs with different steps using MLflow."""
         X = sample_dataset.drop("target", axis=1)
         y = sample_dataset["target"]
@@ -350,8 +368,11 @@ class TestModelRegistryStoreE2E:
         assert len(accuracy_history) == 5  # Should have 5 accuracy values
 
     def test_log_inputs_outputs_with_metrics_params(
-        self, experiment_id, sample_dataset, sample_model
-    ):
+        self,
+        experiment_id: str,
+        sample_dataset: pd.DataFrame,
+        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+    ) -> None:
         """Test logging inputs/outputs along with metrics and parameters using MLflow."""
         model, X_test, y_test = sample_model
 
@@ -394,7 +415,7 @@ class TestModelRegistryStoreE2E:
         # Cleanup
         os.unlink(dataset_path)
 
-    def test_experiment_lifecycle(self, experiment_name):
+    def test_experiment_lifecycle(self, experiment_name: str) -> None:
         """Test experiment lifecycle operations using MLflow."""
         # Create experiment
         experiment_id = mlflow.create_experiment(experiment_name)
@@ -428,7 +449,7 @@ class TestModelRegistryStoreE2E:
             except MlflowException:
                 pass
 
-    def test_run_lifecycle(self, experiment_id):
+    def test_run_lifecycle(self, experiment_id: str) -> None:
         """Test run lifecycle operations using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             mlflow.log_param("test_param", "test_value")
@@ -455,7 +476,7 @@ class TestModelRegistryStoreE2E:
         retrieved_run = mlflow.get_run(run_id)
         assert retrieved_run.info.lifecycle_stage == LifecycleStage.ACTIVE
 
-    def test_search_experiments(self, experiment_id):
+    def test_search_experiments(self, experiment_id: str) -> None:
         """Test searching experiments using MLflow."""
         # Search all experiments
         experiments = mlflow.search_experiments(view_type=ViewType.ALL)
@@ -472,7 +493,7 @@ class TestModelRegistryStoreE2E:
         experiment_ids = [exp.experiment_id for exp in active_experiments]
         assert experiment_id in experiment_ids
 
-    def test_search_runs(self, experiment_id):
+    def test_search_runs(self, experiment_id: str) -> None:
         """Test searching runs using MLflow."""
         # Create a test run
         with mlflow.start_run(experiment_id=experiment_id) as run:
@@ -495,7 +516,7 @@ class TestModelRegistryStoreE2E:
             # Cleanup
             mlflow.delete_run(run_id)
 
-    def test_experiment_tags(self, experiment_id):
+    def test_experiment_tags(self, experiment_id: str) -> None:
         """Test setting and managing experiment tags using MLflow."""
         # set active experiment to avoid errors with mlflow.tracking.default_experiment
         mlflow.set_experiment(experiment_id=experiment_id)
@@ -507,7 +528,7 @@ class TestModelRegistryStoreE2E:
         experiment = mlflow.get_experiment(experiment_id)
         assert experiment.tags["test_tag"] == "test_value"
 
-    def test_run_tags(self, experiment_id):
+    def test_run_tags(self, experiment_id: str) -> None:
         """Test setting and managing run tags using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Set run tag
@@ -528,7 +549,7 @@ class TestModelRegistryStoreE2E:
             # Cleanup
             mlflow.delete_run(run_id)
 
-    def test_batch_logging(self, experiment_id):
+    def test_batch_logging(self, experiment_id: str) -> None:
         """Test batch logging of metrics, parameters, and tags using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Log multiple parameters
@@ -567,7 +588,9 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.data.metrics["batch_metric1"] == 1.0
         assert retrieved_run.data.tags["batch_tag1"] == "tag_value1"
 
-    def test_metric_history(self, experiment_id, mlflow_client):
+    def test_metric_history(
+        self, experiment_id: str, mlflow_client: MlflowClient
+    ) -> None:
         """Test metric history functionality using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Log metrics with different steps
@@ -585,7 +608,7 @@ class TestModelRegistryStoreE2E:
             assert math.isclose(metric.value, (i + 1) * 0.1, rel_tol=1e-9)
             assert metric.step == i + 1
 
-    def test_artifact_logging(self, experiment_id):
+    def test_artifact_logging(self, experiment_id: str) -> None:
         """Test artifact logging using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create a simple text file
@@ -620,7 +643,7 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.info.run_id == run_id
 
 
-def test_mlflow_integration():
+def test_mlflow_integration() -> None:
     """Test that the ModelRegistryStore works with MLflow's tracking API."""
     # Test MLflow integration
     experiment_name = f"mlflow-e2e-test-{uuid.uuid4().hex[:8]}"
