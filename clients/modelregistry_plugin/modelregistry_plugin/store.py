@@ -56,7 +56,9 @@ class ModelRegistryStore:
         self.artifact_uri = artifact_uri
 
     def _get_artifact_location(self, response: Dict) -> str:
-        return response.get("externalId") or self.artifact_uri
+        return (
+            response.get("externalId") or self.artifact_uri or "file:./mlruns"
+        )  # FIXME will empty location use file store?
 
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
         """Make authenticated request to Model Registry API."""
@@ -370,7 +372,8 @@ class ModelRegistryStore:
                 )
             )
 
-        return PagedList(experiments, response_data.get("nextPageToken"))
+        nextPageToken = response_data.get("nextPageToken")
+        return PagedList(experiments, nextPageToken if nextPageToken != "" else None)
 
     # Run operations
     def create_run(
@@ -418,10 +421,10 @@ class ModelRegistryStore:
         experiment_data = self._request("GET", f"/experiments/{experiment_id}")
 
         # Set the artifact location for the run using experiment's externalId as prefix
-        experiment_artifact_location = self._get_artifact_location(experiment_data)
-        if experiment_artifact_location:
-            run_artifact_location = f"{experiment_artifact_location}/{run_id}"
-            update_payload = {"externalId": run_artifact_location}
+        artifact_location = self._get_artifact_location(experiment_data)
+        if artifact_location:
+            artifact_location = f"{artifact_location}/{run_id}"
+            update_payload = {"externalId": artifact_location}
             self._request("PATCH", f"/experiment_runs/{run_id}", json=update_payload)
 
         run_info = RunInfo(
@@ -433,7 +436,7 @@ class ModelRegistryStore:
             or convert_timestamp(run_data.get("createTimeSinceEpoch")),
             end_time=None,
             lifecycle_stage=LifecycleStage.ACTIVE,
-            artifact_uri=self._get_artifact_location(run_data),
+            artifact_uri=artifact_location,
             run_name=run_name,
         )
 
@@ -580,7 +583,7 @@ class ModelRegistryStore:
                     step=metric_data.get("step") or 0,
                 )
             )
-        return PagedList(metrics, next_page_token)
+        return PagedList(metrics, next_page_token if next_page_token != "" else None)
 
     # NOTE: Copied from mlflow.store.tracking.abstract_store.py
     def get_metric_history_bulk_interval_from_steps(
@@ -636,7 +639,7 @@ class ModelRegistryStore:
                     run_id=run_id,
                 )
             )
-        return PagedList(metrics, next_page_token)
+        return PagedList(metrics, next_page_token if next_page_token != "" else None)
 
     # Parameter operations
     def log_param(self, run_id: str, param) -> None:
@@ -701,18 +704,19 @@ class ModelRegistryStore:
         for model_data in model_items:
             # Check the model's io_type to determine if it's input or output
             custom_props = model_data.get("customProperties", {})
+            model_id = model_data["id"]
             io_type = custom_props.get("mlflow__model_io_type")
-
-            # Create LoggedModel entity using helper method
-            logged_model = self._getMLflowLoggedModel(model_data)
+            step = int(
+                custom_props.get("mlflow__step") or 0
+            )  # FIXME set this when logged model is created
 
             if io_type == ModelIOType.INPUT.value:
                 # Create LoggedModelInput entity
-                model_input = LoggedModelInput(model=logged_model)
+                model_input = LoggedModelInput(model_id=model_id)
                 input_models.append(model_input)
             else:  # default to output
                 # Create LoggedModelOutput entity
-                model_output = LoggedModelOutput(model=logged_model)
+                model_output = LoggedModelOutput(model_id=model_id, step=step)
                 output_models.append(model_output)
 
         return RunInputs(
@@ -1043,7 +1047,7 @@ class ModelRegistryStore:
                 for item in items:
                     models.append(self.get_logged_model(item["id"]))
 
-        return PagedList(models, None)
+        return PagedList(models, None)  # no paging across experiments
 
     def finalize_logged_model(self, model_id: str, status):
         """Finalize a model by updating its status.
@@ -1207,7 +1211,7 @@ class ModelRegistryStore:
 
                 all_runs.append(run)
 
-        return PagedList(all_runs, response.get("nextPageToken"))
+        return PagedList(all_runs, None)  # no paging across experiments
 
     def _getMLflowRun(self, run_data):
         # Import MLflow entities locally to avoid circular imports

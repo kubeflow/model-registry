@@ -27,6 +27,7 @@ from mlflow.exceptions import MlflowException
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
+from mlflow.tracking import MlflowClient
 
 
 @pytest.mark.skipif(
@@ -35,6 +36,10 @@ from sklearn.model_selection import train_test_split
 )
 class TestModelRegistryStoreE2E:
     """End-to-end tests for ModelRegistryStore using MLflow APIs."""
+
+    @pytest.fixture(scope="class")
+    def mlflow_client(self):
+        return MlflowClient()
 
     @pytest.fixture(scope="function")
     def experiment_name(self):
@@ -63,6 +68,7 @@ class TestModelRegistryStoreE2E:
             n_features=5,
             n_informative=3,
             n_redundant=1,
+            n_repeated=0,
             n_clusters_per_class=1,
             random_state=42,
         )
@@ -127,10 +133,13 @@ class TestModelRegistryStoreE2E:
         # Cleanup
         mlflow.delete_experiment(experiment_id)
 
-    def test_create_and_log_run(self, experiment_id, sample_dataset, sample_model):
+    def test_create_and_log_run(
+        self, experiment_id, sample_dataset, sample_model, mlflow_client
+    ):
         """Test creating and logging to a run using MLflow."""
         model, X_test, y_test = sample_model
 
+        run_id = ""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Log parameters
             mlflow.log_param("learning_rate", "0.01")
@@ -181,7 +190,7 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.data.tags["model_version"] == "1.0"
 
         # Test metric history
-        accuracy_history = mlflow.get_metric_history(run_id, "accuracy")
+        accuracy_history = mlflow_client.get_metric_history(run_id, "accuracy")
         assert len(accuracy_history) == 5  # Should have 5 accuracy values
 
         # Cleanup
@@ -229,7 +238,7 @@ class TestModelRegistryStoreE2E:
             for i in range(3):
                 # Create small synthetic dataset
                 X, y = make_classification(
-                    n_samples=50, n_features=3, random_state=42 + i
+                    n_samples=50, n_features=5, random_state=42 + i
                 )
                 df = pd.DataFrame(X, columns=[f"feature_{j}" for j in range(3)])
                 df["target"] = y
@@ -306,7 +315,7 @@ class TestModelRegistryStoreE2E:
         assert output_retrieved.data.params["model_type"] == "random_forest_finetuned"
         assert output_retrieved.data.params["input_model_run_id"] == input_run_id
 
-    def test_log_model_with_steps(self, experiment_id, sample_dataset):
+    def test_log_model_with_steps(self, experiment_id, sample_dataset, mlflow_client):
         """Test logging model outputs with different steps using MLflow."""
         X = sample_dataset.drop("target", axis=1)
         y = sample_dataset["target"]
@@ -339,7 +348,7 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.data.metrics["model_complexity"] == 10  # Latest complexity
 
         # Test metric history
-        accuracy_history = mlflow.get_metric_history(run_id, "accuracy")
+        accuracy_history = mlflow_client.get_metric_history(run_id, "accuracy")
         assert len(accuracy_history) == 5  # Should have 5 accuracy values
 
     def test_log_inputs_outputs_with_metrics_params(
@@ -456,7 +465,9 @@ class TestModelRegistryStoreE2E:
         assert len(experiments) > 0
 
         # Search active experiments only
-        active_experiments = mlflow.search_experiments(view_type=ViewType.ACTIVE_ONLY)
+        active_experiments = mlflow.search_experiments(
+            view_type=ViewType.ACTIVE_ONLY, max_results=10000
+        )
         assert isinstance(active_experiments, list)
 
         # Verify our test experiment is in the results
@@ -558,7 +569,7 @@ class TestModelRegistryStoreE2E:
         assert retrieved_run.data.metrics["batch_metric1"] == 1.0
         assert retrieved_run.data.tags["batch_tag1"] == "tag_value1"
 
-    def test_metric_history(self, experiment_id):
+    def test_metric_history(self, experiment_id, mlflow_client):
         """Test metric history functionality using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Log metrics with different steps
@@ -568,7 +579,7 @@ class TestModelRegistryStoreE2E:
             run_id = run.info.run_id
 
         # Test metric history
-        metric_history = mlflow.get_metric_history(run_id, "test_metric")
+        metric_history = mlflow_client.get_metric_history(run_id, "test_metric")
         assert len(metric_history) == 10
 
         # Verify values are in order

@@ -1984,7 +1984,7 @@ class TestModelRegistryStore:
             result[0].info.artifact_uri
             == "s3://bucket/artifacts/experiments/exp-123/run-123"
         )
-        assert result.token == "token123"
+        assert result.token is None
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_search_runs_active_only(self, mock_request, store):
@@ -2139,7 +2139,7 @@ class TestModelRegistryStore:
         store_no_artifact = ModelRegistryStore("modelregistry://localhost:8080")
         assert (
             store_no_artifact._get_artifact_location(response_without_external_id)
-            is None
+            == "file:./mlruns"  # FIXME default artifact store
         )
 
     @patch("modelregistry_plugin.store.requests.request")
@@ -2166,7 +2166,21 @@ class TestModelRegistryStore:
             "customProperties": {},
         }
 
-        mock_request.side_effect = [mock_response_create, mock_response_experiment]
+        # Mock the raw response from Model Registry API for patching run
+        mock_response_run_patch = Mock(spec=requests.Response)
+        mock_response_run_patch.ok = True
+        mock_response_run_patch.json.return_value = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "createTimeSinceEpoch": "1234567890",
+            "externalId": "file:./mlruns/run-123",
+        }
+
+        mock_request.side_effect = [
+            mock_response_create,
+            mock_response_experiment,
+            mock_response_run_patch,
+        ]
 
         run = store.create_run("exp-123", start_time=1234567890)
 
@@ -2174,10 +2188,10 @@ class TestModelRegistryStore:
         assert run.info.run_id == "run-123"
         assert run.info.experiment_id == "exp-123"
         assert run.info.status == RunStatus.RUNNING
-        assert run.info.artifact_uri is None
+        assert run.info.artifact_uri == "file:./mlruns/run-123"
 
-        # Should make only 2 calls since experiment has no artifact_location
-        assert mock_request.call_count == 2
+        # Should make 3 calls using experiment default artifact_location
+        assert mock_request.call_count == 3
 
         # Check first call (POST to create run)
         call_args = mock_request.call_args_list[0]
