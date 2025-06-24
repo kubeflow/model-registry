@@ -1027,11 +1027,12 @@ class TestModelRegistryStoreE2ELocal:
                     self.model_uuid = str(uuid.uuid4())
                     self._model_info = None
                     self._model_dict = None
-                    
+
                 def get_model_info(self):
                     """Return model info similar to what MLflow creates."""
                     if self._model_info is None:
                         from mlflow.models.model import ModelInfo
+
                         self._model_info = ModelInfo(
                             artifact_path="model",
                             model_uri=f"runs:/{run_id}/model",
@@ -1041,10 +1042,10 @@ class TestModelRegistryStoreE2ELocal:
                             signature=None,
                             utc_time_created=str(datetime.now()),
                             mlflow_version="2.0.0",
-                            flavors={"sklearn": {"pickled_model": "model.pkl"}}
+                            flavors={"sklearn": {"pickled_model": "model.pkl"}},
                         )
                     return self._model_info
-                
+
                 def to_dict(self):
                     """Return model dictionary similar to what MLflow creates."""
                     if self._model_dict is None:
@@ -1058,7 +1059,7 @@ class TestModelRegistryStoreE2ELocal:
                             "flavors": {"sklearn": {"pickled_model": "model.pkl"}},
                             "signature": None,
                             "saved_input_example_info": None,
-                            "model_file": "model.pkl"
+                            "model_file": "model.pkl",
                         }
                     return self._model_dict
 
@@ -1085,7 +1086,6 @@ class TestModelRegistryStoreE2ELocal:
                 LoggedModel,
                 LoggedModelTag,
                 LoggedModelParameter,
-                LoggedModelStatus,
             )
 
             # Create tags and parameters for the model
