@@ -390,6 +390,8 @@ class ModelRegistryStore:
             RunStatus,
             LifecycleStage,
             RunTag,
+            RunInputs,
+            RunOutputs,
         )
         from mlflow.utils import time
 
@@ -442,8 +444,8 @@ class ModelRegistryStore:
 
         return Run(
             run_info=run_info,
-            run_inputs=[],  # empty lists or it causes errors in mlflow
-            run_outputs=[],  # empty lists or it causes errors in mlflow
+            run_inputs=RunInputs(dataset_inputs=[], model_inputs=[]),
+            run_outputs=RunOutputs(model_outputs=[]),
             run_data=RunData(tags=run_tags),
         )
 
@@ -666,10 +668,16 @@ class ModelRegistryStore:
     def _get_run_inputs_outputs(self, run_id: str):
         """Get all inputs and outputs for a run (datasets and models)."""
         # Import MLflow entities locally to avoid circular imports
-        from mlflow.entities import LoggedModelInput, LoggedModelOutput
+        from mlflow.entities import (
+            LoggedModelInput,
+            LoggedModelOutput,
+            RunInputs,
+            RunOutputs,
+        )
 
-        inputs = []
-        outputs = []
+        dataset_inputs = []
+        input_models = []
+        output_models = []
 
         # Get dataset artifacts (inputs)
         dataset_items = self._request(
@@ -681,7 +689,7 @@ class ModelRegistryStore:
         for dataset_data in dataset_items:
             # Create DatasetInput entity using helper method
             dataset_input = self._getMLflowDatasetInput(dataset_data)
-            inputs.append(dataset_input)
+            dataset_inputs.append(dataset_input)
 
         # Get model artifacts (both inputs and outputs) - single API call
         model_items = self._request(
@@ -701,13 +709,15 @@ class ModelRegistryStore:
             if io_type == ModelIOType.INPUT.value:
                 # Create LoggedModelInput entity
                 model_input = LoggedModelInput(model=logged_model)
-                inputs.append(model_input)
+                input_models.append(model_input)
             else:  # default to output
                 # Create LoggedModelOutput entity
                 model_output = LoggedModelOutput(model=logged_model)
-                outputs.append(model_output)
+                output_models.append(model_output)
 
-        return inputs, outputs
+        return RunInputs(
+            dataset_inputs=dataset_inputs, model_inputs=input_models
+        ), RunOutputs(model_outputs=output_models)
 
     def _getMLflowDatasetInput(self, dataset_data: Dict):
         """Create an MLflow DatasetInput entity from Model Registry dataset data."""
@@ -779,8 +789,7 @@ class ModelRegistryStore:
                 or model_data.get("createTimeSinceEpoch")
             ),
             last_updated_timestamp=convert_timestamp(
-                model_data.get("mlflow__utc_time_updated")
-                or model_data.get("lastUpdateTimeSinceEpoch")
+                model_data.get("lastUpdateTimeSinceEpoch")
             ),
             model_type=custom_props.get("mlflow__model_type"),
             status=convert_to_mlflow_logged_model_status(model_data.get("state")),
@@ -910,7 +919,6 @@ class ModelRegistryStore:
                 "mlflow__artifactPath": model_info.artifact_path,
                 "mlflow__model_uuid": model_uuid,
                 "mlflow__utc_time_created": model_info.utc_time_created,
-                "mlflow__utc_time_updated": model_info.utc_time_updated,
                 "mlflow__mlflow_version": model_info.mlflow_version,
                 "mlflow__flavor": str(model_info.flavors),
                 "mlflow__source_run_id": run_id or model_info.run_id,
@@ -1050,9 +1058,13 @@ class ModelRegistryStore:
         payload = {"state": convert_to_model_artifact_state(status)}
 
         model_data = self._request("PATCH", f"/artifacts/{model_id}", json=payload)
+        # FIXME Model Regisistry is not returning artifact state in the response
+        # so we hack it for now
+        response = self._getMLflowLoggedModel(model_data)
+        response.status = status
 
         # Use the helper method to create LoggedModel entity
-        return self._getMLflowLoggedModel(model_data)
+        return response
 
     def set_logged_model_tags(self, model_id: str, tags: list) -> None:
         """Set tags on the specified logged model.
@@ -1212,7 +1224,7 @@ class ModelRegistryStore:
         metrics = self._get_run_metrics(run_id)
         params = self._get_run_params(run_id)
         # get inputs and outputs
-        inputs, outputs = self._get_run_inputs_outputs(run_id)
+        run_inputs, run_outputs = self._get_run_inputs_outputs(run_id)
 
         tags = [RunTag(k, v) for k, v in run_data.get("customProperties", {}).items()]
         run_info = RunInfo(
@@ -1234,8 +1246,8 @@ class ModelRegistryStore:
         run_data_obj = RunData(metrics=metrics, params=params, tags=tags)
         run = Run(
             run_info=run_info,
-            run_inputs=inputs,
-            run_outputs=outputs,
+            run_inputs=run_inputs,
+            run_outputs=run_outputs,
             run_data=run_data_obj,
         )
         return run
