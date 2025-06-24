@@ -11,6 +11,7 @@ schema = schemathesis.pytest.from_fixture("generated_schema")
     suppress_health_check=[
         HealthCheck.filter_too_much,
         HealthCheck.too_slow,
+        HealthCheck.filter_too_much,
     ]
 )
 @pytest.mark.e2e
