@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
@@ -29,7 +30,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 	)
 	require.NoError(t, err)
 
-	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx))
+	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx), &tls.TLSConfig{})
 	require.NoError(t, err)
 
 	db, err := dbConnector.Connect()

@@ -1517,6 +1517,13 @@ components:
             author:
               description: Name of the author.
               type: string
+    OrderByField:
+      description: Supported fields for ordering result entities.
+      enum:
+        - CREATE_TIME
+        - LAST_UPDATE_TIME
+        - ID
+      type: string
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1848,7 +1855,19 @@ components:
           $ref: '#/components/links/SearchServingEnvironmentByExternalId'
         SearchServingEnvironmentByName:
           $ref: '#/components/links/SearchServingEnvironmentByName'
-  parameters: {}
+  parameters:
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
   securitySchemes: {}
   links:
     # Artifact
