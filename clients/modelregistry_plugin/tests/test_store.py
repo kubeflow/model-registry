@@ -1745,6 +1745,7 @@ class TestModelRegistryStore:
             "uri": "s3://bucket/model",
             "createTimeSinceEpoch": "1234567890",
             "lastUpdateTimeSinceEpoch": "1234567890",
+            "state": "LIVE",
             "customProperties": {
                 "status": {
                     "string_value": "READY",
@@ -1763,6 +1764,7 @@ class TestModelRegistryStore:
         assert isinstance(logged_model, LoggedModel)
         assert logged_model.model_id == "model-123"
         assert logged_model.model_type == "sklearn"
+        assert logged_model.status == LoggedModelStatus.READY
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_set_logged_model_tags(self, mock_request, store):
