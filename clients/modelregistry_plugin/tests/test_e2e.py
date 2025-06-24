@@ -171,7 +171,7 @@ class TestModelRegistryStoreE2E:
             mlflow.set_tag("model_version", "1.0")
 
             # Log the model
-            mlflow.sklearn.log_model(model, "model")
+            mlflow.sklearn.log_model(model, "model", input_example=X_test[:1])
 
             # Log dataset as artifact
             dataset_path = tempfile.mktemp(suffix=".csv")
@@ -289,7 +289,7 @@ class TestModelRegistryStoreE2E:
         # First run: create and log a model
         with mlflow.start_run(experiment_id=experiment_id) as input_run:
             # Log the model
-            mlflow.sklearn.log_model(model, "input_model")
+            mlflow.sklearn.log_model(model, "input_model", input_example=X_test[:1])
 
             # Log model metadata
             mlflow.log_param("model_type", "random_forest")
@@ -311,7 +311,9 @@ class TestModelRegistryStoreE2E:
             new_model.fit(X_test, y_test)  # Using test data for simplicity
 
             # Log the new model
-            mlflow.sklearn.log_model(new_model, "output_model")
+            mlflow.sklearn.log_model(
+                new_model, "output_model", input_example=X_test[:1]
+            )
 
             # Log model metadata
             mlflow.log_param("model_type", "random_forest_finetuned")
@@ -353,7 +355,9 @@ class TestModelRegistryStoreE2E:
                 model.fit(X, y)
 
                 # Log model for this step
-                mlflow.sklearn.log_model(model, f"model_step_{step}")
+                mlflow.sklearn.log_model(
+                    model, f"model_step_{step}", input_example=X[:1]
+                )
 
                 # Log metrics for this step with small delay to ensure unique timestamps
                 score = model.score(X, y)
@@ -405,7 +409,7 @@ class TestModelRegistryStoreE2E:
             mlflow.log_artifact(dataset_path, "input_dataset")
 
             # Log model as output
-            mlflow.sklearn.log_model(model, "output_model")
+            mlflow.sklearn.log_model(model, "output_model", input_example=X_test[:1])
 
             # Log additional metrics
             mlflow.log_metric("test_accuracy", model.score(X_test, y_test))
