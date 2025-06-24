@@ -16,6 +16,12 @@ from urllib.parse import urlparse
 import pytest
 import requests
 import uvloop
+import schemathesis
+from pytest import Config
+from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
+from schemathesis.generation.stateful.state_machine import APIStateMachine
+from schemathesis.core.transport import Response
+from schemathesis.generation.case import Case
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
@@ -317,3 +323,14 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         skopeo_pull_mock.side_effect = mock_override
         skopeo_push_mock.side_effect = mock_override
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
+
+@pytest.fixture(scope="class")
+def generated_schema(pytestconfig: Config ) -> BaseOpenAPISchema:
+    os.environ["API_HOST"] = REGISTRY_URL
+    config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
+    schema = schemathesis.openapi.from_url(
+        url="https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml",
+        config=config,
+    )
+    schema.config.output.sanitization.update(enabled=False)
+    return schema
