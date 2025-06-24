@@ -32,19 +32,19 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 
 		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("database conneciton error: %s", err), http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("database new connector error: %s", err), http.StatusServiceUnavailable)
 			return
 		}
 
 		db, err := dbConnector.Connect()
 		if err != nil {
-			http.Error(w, fmt.Sprintf("database error connecting: %v", err), http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
 			return
 		}
 
 		sqlDB, err := db.DB()
 		if err != nil {
-			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("database sqlDB connection error: %v", err), http.StatusServiceUnavailable)
 			return
 		}
 		defer func() {
