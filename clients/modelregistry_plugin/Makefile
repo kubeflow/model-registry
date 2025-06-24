@@ -35,15 +35,23 @@ test:
 test-e2e:
 	@echo "Running end-to-end tests..."
 	@if [ -z "$$MLFLOW_TRACKING_URI" ]; then \
-		echo "❌ MLFLOW_TRACKING_URI is not set"; \
-		echo "Please set: export MLFLOW_TRACKING_URI='modelregistry://host:port'"; \
-		exit 1; \
-	fi
-	@echo "✅ Using tracking URI: $$MLFLOW_TRACKING_URI"
-	@if [ -n "$$MODEL_REGISTRY_TOKEN" ]; then \
-		echo "✅ Using authentication token"; \
+		if [ -f ".env" ]; then \
+			if grep -q "MLFLOW_TRACKING_URI" .env; then \
+				echo "✅ Using .env file"; \
+			else \
+				echo "❌ MLFLOW_TRACKING_URI not found in .env"; \
+				exit 1; \
+			fi; \
+		else \
+			echo "❌ MLFLOW_TRACKING_URI not set and no .env file found"; \
+			echo "Set MLFLOW_TRACKING_URI or create .env file"; \
+			exit 1; \
+		fi; \
 	else \
-		echo "⚠️  No MODEL_REGISTRY_TOKEN set (may fail if auth required)"; \
+		echo "✅ Tracking URI: $$MLFLOW_TRACKING_URI"; \
+	fi
+	@if [ -z "$$MODEL_REGISTRY_TOKEN" ] && [ -f ".env" ] && grep -q "MODEL_REGISTRY_TOKEN" .env; then \
+		echo "✅ Using token from .env"; \
 	fi
 	uv run pytest tests/test_e2e.py -v -s
 
