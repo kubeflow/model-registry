@@ -95,6 +95,28 @@ class ModelRegistryStore:
     def _get_artifact_location(self, response: Dict) -> str:
         return response.get("externalId") or self.artifact_uri
 
+    def _getMLflowMetric(self, metric_data: Dict) -> Metric:
+        """Create an MLflow Metric entity from Model Registry metric data."""
+        # Import MLflow modules here to avoid circular imports
+        from mlflow.entities import Metric
+
+        return Metric(
+            key=metric_data["name"],
+            value=float(metric_data["value"]),
+            timestamp=int(
+                metric_data.get("timestamp")
+                or metric_data.get("createTimeSinceEpoch")
+            ),
+            step=metric_data.get("step") or 0,
+        )
+
+    def _getMLflowParam(self, param_data: Dict) -> Param:
+        """Create an MLflow Param entity from Model Registry parameter data."""
+        # Import MLflow modules here to avoid circular imports
+        from mlflow.entities import Param
+
+        return Param(key=param_data["name"], value=str(param_data["value"]))
+
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
         """Make authenticated request to Model Registry API."""
         # Import MLflow modules here to avoid circular imports
@@ -579,17 +601,7 @@ class ModelRegistryStore:
 
         metrics = []
         for metric_data in items:
-            metrics.append(
-                Metric(
-                    key=metric_data["name"],
-                    value=float(metric_data["value"]),
-                    timestamp=int(
-                        metric_data.get("timestamp")
-                        or metric_data.get("createTimeSinceEpoch")
-                    ),
-                    step=metric_data.get("step") or 0,
-                )
-            )
+            metrics.append(self._getMLflowMetric(metric_data))
         return metrics
 
     def get_metric_history(
@@ -630,17 +642,7 @@ class ModelRegistryStore:
         items = response_data.get("items", [])
         metrics = []
         for metric_data in items:
-            metrics.append(
-                Metric(
-                    key=metric_data["name"],
-                    value=float(metric_data["value"]),
-                    timestamp=int(
-                        metric_data.get("timestamp")
-                        or metric_data.get("createTimeSinceEpoch")
-                    ),
-                    step=metric_data.get("step") or 0,
-                )
-            )
+            metrics.append(self._getMLflowMetric(metric_data))
         return PagedList(metrics, next_page_token if next_page_token != "" else None)
 
     # NOTE: Copied from mlflow.store.tracking.abstract_store.py
@@ -685,15 +687,7 @@ class ModelRegistryStore:
         for metric_data in items:
             metrics.append(
                 MetricWithRunId(
-                    metric=Metric(
-                        key=metric_data["name"],
-                        value=float(metric_data["value"]),
-                        timestamp=int(
-                            metric_data.get("timestamp")
-                            or metric_data.get("createTimeSinceEpoch")
-                        ),
-                        step=metric_data.get("step") or 0,
-                    ),
+                    metric=self._getMLflowMetric(metric_data),
                     run_id=run_id,
                 )
             )
@@ -725,7 +719,7 @@ class ModelRegistryStore:
 
         params = []
         for param_data in items:
-            params.append(Param(key=param_data["name"], value=str(param_data["value"])))
+            params.append(self._getMLflowParam(param_data))
         return params
 
     def _get_run_inputs_outputs(self, run_id: str) -> tuple[RunInputs, RunOutputs]:
