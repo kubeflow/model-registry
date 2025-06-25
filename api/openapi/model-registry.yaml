@@ -2112,6 +2112,18 @@ components:
             $ref: "#/components/schemas/Error"
       description: Unprocessable Entity error
   parameters:
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
     id:
       name: id
       description: The ID of resource.
@@ -2164,18 +2176,6 @@ components:
       description: Token to use to retrieve next page of results.
       schema:
         type: string
-      in: query
-      required: false
-    orderBy:
-      style: form
-      explode: true
-      examples:
-        orderBy:
-          value: ID
-      name: orderBy
-      description: Specifies the order by criteria for listing entities.
-      schema:
-        $ref: "#/components/schemas/OrderByField"
       in: query
       required: false
     sortOrder:
