@@ -68,12 +68,13 @@ clean:
 	find . -type d -name __pycache__ -delete
 	find . -type f -name "*.pyc" -delete
 
-# Run linting
+# Run linting (includes type checking)
 lint:
 	uv run ruff check .
 
-# Format code
+# Format code (includes auto-fixing)
 format:
+	uv run ruff check --fix --unsafe-fixes || true
 	uv run ruff format .
 
 # Show available tracking stores

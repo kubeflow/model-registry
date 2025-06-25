@@ -2,19 +2,19 @@
 Tests for utility functions
 """
 
-from unittest.mock import patch
 import os
+from unittest.mock import patch
 
 from mlflow.entities import LifecycleStage, LoggedModelStatus
 
 from modelregistry_plugin.utils import (
-    parse_tracking_uri,
-    convert_timestamp,
     convert_modelregistry_state,
-    convert_to_model_artifact_state,
+    convert_timestamp,
     convert_to_mlflow_logged_model_status,
-    toModelRegistryCustomProperties,
+    convert_to_model_artifact_state,
     fromModelRegistryCustomProperties,
+    parse_tracking_uri,
+    toModelRegistryCustomProperties,
 )
 
 

@@ -1,14 +1,12 @@
-"""
-Authentication utilities for Model Registry API
-"""
+from __future__ import annotations
+
+"""Authentication utilities for Model Registry API."""
 
 import os
-from typing import Dict
 
 
-def get_auth_headers() -> Dict[str, str]:
-    """
-    Get authentication headers for Model Registry API requests.
+def get_auth_headers() -> dict[str, str]:
+    """Get authentication headers for Model Registry API requests.
 
     Returns:
         Dictionary of headers for authentication
@@ -24,7 +22,7 @@ def get_auth_headers() -> Dict[str, str]:
     # Kubernetes service account token
     token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
     if os.path.exists(token_path):
-        with open(token_path, "r") as f:
+        with open(token_path) as f:
             token = f.read().strip()
         headers["Authorization"] = f"Bearer {token}"
         return headers
