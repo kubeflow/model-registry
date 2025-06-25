@@ -3,7 +3,6 @@ package mysql
 import (
 	"embed"
 	"fmt"
-	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -64,10 +63,6 @@ func (m *MySQLMigrator) Migrate() error {
 
 func (m *MySQLMigrator) Up(steps *int) error {
 	if steps == nil {
-		err := m.migrator.Up()
-		if strings.Contains(err.Error(), "Fix and force version") {
-			return fmt.Errorf("FATAL_ERROR %w", err)
-		}
 		return m.migrator.Up()
 	}
 
