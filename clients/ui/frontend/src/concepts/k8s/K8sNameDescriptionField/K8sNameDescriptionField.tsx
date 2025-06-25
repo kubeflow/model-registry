@@ -31,12 +31,12 @@ import ResourceNameField from './ResourceNameField';
 
 type K8sNameDescriptionFieldProps = {
   autoFocusName?: boolean;
-  //   data: UseK8sNameDescriptionFieldData['data'];
+//  data: K8sNameDescriptionFieldType;
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
-  //   onDataChange?: UseK8sNameDescriptionFieldData['onDataChange'];
+ // onDataChange: (data: K8sNameDescriptionFieldType) => void;
   hideDescription?: boolean;
 };
 

@@ -1,0 +1,100 @@
+import React from 'react';
+import { Breadcrumb, BreadcrumbItem, PageSection, Tab, Tabs } from '@patternfly/react-core';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
+import { useGroups } from '~/app/api/k8s';
+import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
+import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
+import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
+import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+//import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
+import {
+  createModelRegistryRoleBindingWrapper,
+  deleteModelRegistryRoleBindingWrapper,
+} from './roleBindingUtils';
+
+const ModelRegistriesManagePermissions: React.FC = () => {
+  const modelRegistryNamespace = 'model-registry'; // TODO: This is a placeholder
+  const [activeTabKey, setActiveTabKey] = React.useState(0);
+  const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
+  const [groups] = useGroups();
+  const roleBindings = useModelRegistryRoleBindings();
+  const { mrName } = useParams<{ mrName: string }>();
+  const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, mrName || '');
+  const filteredRoleBindings = roleBindings.data.filter(
+    (rb: RoleBindingKind) => rb.metadata.labels?.['app.kubernetes.io/name'] === mrName,
+  );
+
+  //const error = !modelRegistryNamespace
+  //  ? new Error('No registries namespace could be found')
+  //  : null;
+
+  React.useEffect(() => {
+    if (modelRegistryCR) {
+      setOwnerReference(modelRegistryCR);
+    } else {
+      setOwnerReference(undefined);
+    }
+  }, [modelRegistryCR]);
+
+  //if (!modelRegistryNamespace) {
+  //return (
+  //<ApplicationsPage loaded empty={false}>
+  //<RedirectErrorState title="Could not load component state" errorMessage={error?.message} />
+  //</ApplicationsPage>
+  //);
+  //}
+
+  if (
+    (roleBindings.loaded && filteredRoleBindings.length === 0) ||
+    (crLoaded && !modelRegistryCR)
+  ) {
+    return <Navigate to="/modelRegistrySettings" replace />;
+  }
+
+  return (
+    <ApplicationsPage
+      title={`Manage ${mrName ?? ''} permissions`}
+      description="Manage access to this model registry for individual users and user groups, and for service accounts in a project."
+      breadcrumb={
+        <Breadcrumb>
+          <BreadcrumbItem>
+            <Link to="/modelRegistrySettings">Model registry settings</Link>
+          </BreadcrumbItem>
+          <BreadcrumbItem isActive>Manage Permissions</BreadcrumbItem>
+        </Breadcrumb>
+      }
+      loaded
+      empty={false}
+    >
+      <Tabs activeKey={activeTabKey} onSelect={(_e, tabIndex) => setActiveTabKey(Number(tabIndex))}>
+        <Tab eventKey={0} title="Users" />
+        <Tab eventKey={1} title="Projects" />
+      </Tabs>
+      <PageSection isFilled>
+        {activeTabKey === 0 && (
+          <RoleBindingPermissions
+            ownerReference={ownerReference}
+            roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
+            groups={groups}
+            createRoleBinding={createModelRegistryRoleBindingWrapper}
+            deleteRoleBinding={deleteModelRegistryRoleBindingWrapper}
+            projectName={modelRegistryNamespace}
+            permissionOptions={[
+              {
+                type: RoleBindingPermissionsRoleType.DEFAULT,
+                description: 'Default role for all users',
+              },
+            ]}
+            description="To enable access for all cluster users, add system:authenticated to the group list."
+            roleRefKind="Role"
+            roleRefName={`registry-user-${mrName ?? ''}`}
+          />
+        )}
+        {/* TODO: Projects tab */}
+      </PageSection>
+    </ApplicationsPage>
+  );
+};
+
+export default ModelRegistriesManagePermissions;

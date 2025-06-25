@@ -17,7 +17,7 @@ import {
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
 import ModelRegistriesTable from './ModelRegistriesTable';
-import CreateModal from './ModelRegistryCreateModal';
+import CreateModal from './CreateModal';
 
 const ModelRegistrySettings: React.FC = () => {
   const queryParams = useQueryParamNamespaces();
@@ -79,18 +79,22 @@ const ModelRegistrySettings: React.FC = () => {
       >
         <ModelRegistriesTable
           modelRegistries={modelRegistries}
+          roleBindings={{
+            data: [],
+            loaded: true,
+            error: undefined,
+            refresh: () => Promise.resolve([]),
+          }}
           onCreateModelRegistryClick={() => {
             setCreateModalOpen(true);
           }}
           // eslint-disable-next-line @typescript-eslint/no-empty-function
-          refresh={() => {}}
+          refresh={() => Promise.resolve()}
         />
       </ApplicationsPage>
       {createModalOpen ? (
-        <CreateModal
-          onClose={() => setCreateModalOpen(false)}
-          // refresh={refreshAll}
-        />
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        <CreateModal onClose={() => setCreateModalOpen(false)} refresh={() => Promise.resolve()} />
       ) : null}
     </>
   );

@@ -1,15 +1,6 @@
 import { RoleBindingKind, RoleBindingSubject } from 'mod-arch-shared';
 import { genUID } from './mockUtils';
 
-type MockResourceConfigType = {
-  name?: string;
-  namespace?: string;
-  subjects?: RoleBindingSubject[];
-  roleRefName?: string;
-  uid?: string;
-  modelRegistryName?: string;
-};
-
 export const mockRoleBindingK8sResource = ({
   name = 'test-name-view',
   namespace = 'test-project',
@@ -22,8 +13,13 @@ export const mockRoleBindingK8sResource = ({
   ],
   roleRefName = 'view',
   uid = genUID('rolebinding'),
-  modelRegistryName = '',
-}: MockResourceConfigType): RoleBindingKind => ({
+}: {
+  name?: string;
+  namespace?: string;
+  subjects?: RoleBindingSubject[];
+  roleRefName?: string;
+  uid?: string;
+}): RoleBindingKind => ({
   kind: 'RoleBinding',
   apiVersion: 'rbac.authorization.k8s.io/v1',
   metadata: {
@@ -31,18 +27,13 @@ export const mockRoleBindingK8sResource = ({
     namespace,
     uid,
     creationTimestamp: '2023-02-14T21:43:59Z',
-    labels: {
-      'app.kubernetes.io/name': modelRegistryName,
-      app: modelRegistryName,
-      'app.kubernetes.io/component': 'model-registry',
-      'app.kubernetes.io/part-of': 'model-registry',
-      component: 'model-registry',
-    },
+    // No dashboard or known labels, but keep a generic label for testing if needed
+    labels: { 'mock-label': 'true' },
   },
   subjects,
   roleRef: {
     apiGroup: 'rbac.authorization.k8s.io',
-    kind: modelRegistryName ? 'Role' : 'ClusterRole',
+    kind: 'ClusterRole',
     name: roleRefName,
   },
 });

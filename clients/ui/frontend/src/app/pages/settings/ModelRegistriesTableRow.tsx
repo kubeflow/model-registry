@@ -7,19 +7,21 @@ import {
   PlatformMode,
   ResourceNameTooltip,
   useModularArchContext,
+  RoleBindingKind,
+  FetchStateObject,
 } from 'mod-arch-shared';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {
   modelRegistry: ModelRegistryKind;
-  // roleBindings: ContextResourceData<RoleBindingKind>; // TODO: [Midstream] Filter role bindings for this model registry
+  roleBindings: FetchStateObject<RoleBindingKind[]>;
   onEditRegistry: (obj: ModelRegistryKind) => void;
   onDeleteRegistry: (obj: ModelRegistryKind) => void;
 };
 
 const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   modelRegistry: mr,
-  // roleBindings, // TODO: [Midstream] Filter role bindings for this model registry
+  roleBindings,
   onEditRegistry,
   onDeleteRegistry,
 }) => {
@@ -33,6 +35,9 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
       <Td dataLabel="Model registry name">
         <ResourceNameTooltip resource={mr}>
           <strong>{mr.metadata.displayName || mr.metadata.name}</strong>
+          <strong>
+            {mr.metadata.annotations?.['openshift.io/display-name'] || mr.metadata.name}
+          </strong>
         </ResourceNameTooltip>
         {mr.metadata.description && <p>{mr.metadata.description}</p>}
       </Td>
@@ -44,6 +49,34 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
               status: 'True',
               reason: 'Ready',
               message: 'Model registry is ready.',
+            },
+          ]}
+        />
+      </Td>
+      <Td modifier="fitContent">
+        {filteredRoleBindings.length === 0 ? (
+          <Tooltip content="You can manage permissions when the model registry becomes available.">
+            <Button isAriaDisabled variant="link">
+              Manage permissions
+            </Button>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="link"
+            onClick={() => navigate(`/model-registry-settings/permissions/${mr.metadata.name}`)}
+          >
+            Manage permissions
+          </Button>
+        )}
+      </Td>
+      <Td isActionCell>
+        <ActionsColumn
+          items={[
+            {
+              title: 'Edit model registry',
+              onClick: () => {
+                onEditRegistry(mr);
+              },
             },
           ]}
         />

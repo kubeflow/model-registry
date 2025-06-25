@@ -21,7 +21,7 @@ import {
   DeploymentMode,
   useNamespaceSelector,
 } from 'mod-arch-shared';
-import AppRoutes from './AppRoutes';
+import  AppRoutes  from './AppRoutes';
 import { AppContext } from './AppContext';
 import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
 import 'mod-arch-shared/style/MUI-theme.scss';

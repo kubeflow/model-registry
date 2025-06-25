@@ -7,26 +7,27 @@ import {
   HelperTextItem,
   TextInput,
   Alert,
+  Modal,
+  ModalVariant,
+  ModalFooter,
+  ModalHeader,
+  ModalBody,
 } from '@patternfly/react-core';
-import { Modal } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router';
 import { FormSection } from 'mod-arch-shared';
 import ModelRegistryCreateModalFooter from '~/app/pages/settings/ModelRegistryCreateModalFooter';
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
-import ThemeAwareFormGroupWrapper from './components/ThemeAwareFormGroupWrapper';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
+import { ModelRegistryKind } from 'mod-arch-shared';
 
 type CreateModalProps = {
   onClose: () => void;
-  // refresh: () => Promise<unknown>;
-  // modelRegistry: ModelRegistry;
+  refresh: () => Promise<unknown>;
+  modelRegistry?: ModelRegistryKind;
 };
 
-const CreateModal: React.FC<CreateModalProps> = ({
-  onClose,
-  // refresh,
-  // modelRegistry,
-}) => {
+const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh, modelRegistry }) => {
   const [error, setError] = React.useState<Error>();
 
   const [host, setHost] = React.useState('');
@@ -69,6 +70,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
     hasContent(database);
 
   const onSubmit = () => {
+    refresh();
     navigate(`/model-registry-settings`);
     onClose();
   };
@@ -174,92 +176,85 @@ const CreateModal: React.FC<CreateModalProps> = ({
   return (
     <Modal
       isOpen
-      title="Create model registry"
+      variant={ModalVariant.medium}
       onClose={onBeforeClose}
-      actions={[
+      data-testid="create-model-registry-modal"
+    >
+      <ModalHeader title="Create model registry" />
+      <ModalBody>
+        <Form>
+          <K8sNameDescriptionField
+            dataTestId="mr"
+            // data={nameDesc}
+            //  onDataChange={setNameDesc}
+          />
+          <FormSection
+            title="Connect to external MySQL database"
+            description="This external database is where model data is stored."
+          >
+            <ThemeAwareFormGroupWrapper
+              label="Host"
+              fieldId="mr-host"
+              isRequired
+              helperTextNode={hostHelperText}
+            >
+              {hostInput}
+            </ThemeAwareFormGroupWrapper>
+
+            <ThemeAwareFormGroupWrapper
+              label="Port"
+              fieldId="mr-port"
+              isRequired
+              helperTextNode={portHelperText}
+            >
+              {portInput}
+            </ThemeAwareFormGroupWrapper>
+
+            <ThemeAwareFormGroupWrapper
+              label="Username"
+              fieldId="mr-username"
+              isRequired
+              helperTextNode={usernameHelperText}
+            >
+              {userNameInput}
+            </ThemeAwareFormGroupWrapper>
+
+            <ThemeAwareFormGroupWrapper
+              label="Password"
+              fieldId="mr-password"
+              isRequired
+              helperTextNode={passwordHelperText}
+            >
+              {passwordInput}
+            </ThemeAwareFormGroupWrapper>
+
+            <ThemeAwareFormGroupWrapper
+              label="Database"
+              fieldId="mr-database"
+              isRequired
+              helperTextNode={databaseHelperText}
+            >
+              {databaseInput}
+            </ThemeAwareFormGroupWrapper>
+
+            {/* ... Optional TLS section ... */}
+          </FormSection>
+
+          {error && (
+            <FormGroup>
+              <Alert variant="danger" isInline title={error.message} data-testid="mr-error" />
+            </FormGroup>
+          )}
+        </Form>
+      </ModalBody>
+      <ModalFooter>
         <Button key="create-button" variant="primary" isDisabled={!canSubmit()} onClick={onSubmit}>
           Create
-        </Button>,
+        </Button>
         <Button key="cancel-button" variant="secondary" onClick={onBeforeClose}>
           Cancel
-        </Button>,
-      ]}
-      variant="medium"
-      footer={
-        <ModelRegistryCreateModalFooter
-          onCancel={onBeforeClose}
-          onSubmit={onSubmit}
-          submitLabel="Create"
-          isSubmitDisabled={!canSubmit()}
-          error={error}
-          alertTitle={`Error ${'creating'} model registry`}
-        />
-      }
-    >
-      <Form>
-        <K8sNameDescriptionField
-          dataTestId="mr"
-          // data={nameDesc}
-          //  onDataChange={setNameDesc}
-        />
-        <FormSection
-          title="Connect to external MySQL database"
-          description="This external database is where model data is stored."
-        >
-          <ThemeAwareFormGroupWrapper
-            label="Host"
-            fieldId="mr-host"
-            isRequired
-            helperTextNode={hostHelperText}
-          >
-            {hostInput}
-          </ThemeAwareFormGroupWrapper>
-
-          <ThemeAwareFormGroupWrapper
-            label="Port"
-            fieldId="mr-port"
-            isRequired
-            helperTextNode={portHelperText}
-          >
-            {portInput}
-          </ThemeAwareFormGroupWrapper>
-
-          <ThemeAwareFormGroupWrapper
-            label="Username"
-            fieldId="mr-username"
-            isRequired
-            helperTextNode={usernameHelperText}
-          >
-            {userNameInput}
-          </ThemeAwareFormGroupWrapper>
-
-          <ThemeAwareFormGroupWrapper
-            label="Password"
-            fieldId="mr-password"
-            isRequired
-            helperTextNode={passwordHelperText}
-          >
-            {passwordInput}
-          </ThemeAwareFormGroupWrapper>
-
-          <ThemeAwareFormGroupWrapper
-            label="Database"
-            fieldId="mr-database"
-            isRequired
-            helperTextNode={databaseHelperText}
-          >
-            {databaseInput}
-          </ThemeAwareFormGroupWrapper>
-
-          {/* ... Optional TLS section ... */}
-        </FormSection>
-
-        {error && (
-          <FormGroup>
-            <Alert variant="danger" isInline title={error.message} data-testid="mr-error" />
-          </FormGroup>
-        )}
-      </Form>
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 };
