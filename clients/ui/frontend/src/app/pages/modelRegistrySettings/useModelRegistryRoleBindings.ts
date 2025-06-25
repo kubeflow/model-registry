@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { RoleBindingKind } from '~/app/k8sTypes';
+import { RoleBindingKind, POLL_INTERVAL, useFetchState, FetchStateObject } from 'mod-arch-shared';
 import { getRoleBindings } from '~/app/api/k8s';
-import { POLL_INTERVAL } from 'mod-arch-shared';
-import { useFetchState, FetchStateObject } from 'mod-arch-shared';
 
 const useModelRegistryRoleBindings = (): FetchStateObject<RoleBindingKind[]> => {
   const fetchRoleBindings = React.useCallback(
@@ -16,13 +14,9 @@ const useModelRegistryRoleBindings = (): FetchStateObject<RoleBindingKind[]> => 
     [],
   );
 
-  const [data, loaded, error, refresh] = useFetchState<RoleBindingKind[]>(
-    fetchRoleBindings,
-    [],
-    {
-      refreshRate: POLL_INTERVAL,
-    },
-  );
+  const [data, loaded, error, refresh] = useFetchState<RoleBindingKind[]>(fetchRoleBindings, [], {
+    refreshRate: POLL_INTERVAL,
+  });
   return { data, loaded, error, refresh };
 };
 

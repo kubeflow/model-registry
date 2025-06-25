@@ -10,8 +10,8 @@ import {
 import { useThemeContext } from 'mod-arch-shared';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { K8sDSGResource } from '~/app/k8sTypes';
 import { translateDisplayNameForK8s } from '~/app/concepts/k8s/utils';
+import { K8sDSGResource } from '~/shared/types';
 import ResourceNameField from './ResourceNameField';
 
 // TODO: replace with the actual call once we have the endpoint
@@ -42,12 +42,12 @@ export type K8sNameDescriptionFieldType = {
 
 type K8sNameDescriptionFieldProps = {
   autoFocusName?: boolean;
-  //   data: UseK8sNameDescriptionFieldData['data'];
+//  data: K8sNameDescriptionFieldType;
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
-  //   onDataChange?: UseK8sNameDescriptionFieldData['onDataChange'];
+ // onDataChange: (data: K8sNameDescriptionFieldType) => void;
   hideDescription?: boolean;
 };
 

@@ -87,11 +87,8 @@ const ModelRegistrySettings: React.FC = () => {
         />
       </ApplicationsPage>
       {createModalOpen ? (
-        <CreateModal
-          onClose={() => setCreateModalOpen(false)}
-          refresh={() => {}}
-          //  refresh={refreshAll}
-        />
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        <CreateModal onClose={() => setCreateModalOpen(false)} refresh={() => {}} />
       ) : null}
     </>
   );

@@ -13,7 +13,6 @@ export const filterRoleBindingSubjects = (
       !(roles.metadata.labels?.['opendatahub.io/rb-project-subject'] === 'true'),
   );
 
-
 export const castRoleBindingPermissionsRoleType = (
   role: string,
 ): RoleBindingPermissionsRoleType => {

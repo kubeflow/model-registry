@@ -2,14 +2,14 @@ import React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
-import { FetchStateObject, K8sResourceCommon } from 'mod-arch-shared/dist/types/common';
+import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
 import {
   ModelRegistryKind,
   PlatformMode,
   ResourceNameTooltip,
   useModularArchContext,
+  RoleBindingKind,
 } from 'mod-arch-shared';
-import { RoleBindingKind } from '~/app/k8sTypes';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {
@@ -37,7 +37,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
   return (
     <Tr>
       <Td dataLabel="Model registry name">
-        <ResourceNameTooltip resource={mr as K8sResourceCommon}>
+        <ResourceNameTooltip resource={mr}>
           <strong>
             {mr.metadata.annotations?.['openshift.io/display-name'] || mr.metadata.name}
           </strong>
@@ -50,7 +50,7 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
         <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
       </Td>
       <Td modifier="fitContent">
-        {filteredRoleBindings.length == 0 ? (
+        {filteredRoleBindings.length === 0 ? (
           <Tooltip content="You can manage permissions when the model registry becomes available.">
             <Button isAriaDisabled variant="link">
               Manage permissions

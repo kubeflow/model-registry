@@ -20,7 +20,7 @@ import {
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import RoleBindingPermissionsTableSection from './RoleBindingPermissionsTableSection';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
-import { filterRoleBindingSubjects, tryPatchRoleBinding } from './utils';
+import { filterRoleBindingSubjects } from './utils';
 
 type RoleBindingPermissionsProps = {
   ownerReference?: K8sResourceCommon;

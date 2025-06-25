@@ -15,19 +15,13 @@ import ModelRegistryCreateModalFooter from '~/app/pages/settings/ModelRegistryCr
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
 import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
-import { ModelRegistryKind } from 'mod-arch-shared';
 
 type CreateModalProps = {
   onClose: () => void;
   refresh: () => void;
-  modelRegistry?: ModelRegistryKind;
 };
 
-const CreateModal: React.FC<CreateModalProps> = ({
-  onClose,
-  refresh,
-  modelRegistry,
-}) => {
+const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
   const [error, setError] = React.useState<Error>();
 
   const [host, setHost] = React.useState('');
@@ -70,6 +64,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
     hasContent(database);
 
   const onSubmit = () => {
+    refresh();
     navigate(`/model-registry-settings`);
     onClose();
   };

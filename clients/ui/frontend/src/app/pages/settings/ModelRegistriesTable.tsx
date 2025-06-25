@@ -15,6 +15,7 @@ type ModelRegistriesTableProps = {
 const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
   modelRegistries,
   onCreateModelRegistryClick,
+  refresh,
 }) => {
   // TODO: [Midstream] Complete once we have permissions
 
@@ -85,17 +86,13 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
         </Tbody>
       </Table>
       {editRegistry ? (
-        <CreateModal
-          modelRegistry={editRegistry}
-          onClose={() => setEditRegistry(undefined)}
-          refresh={() => Promise.resolve(undefined)}
-        />
+        <CreateModal onClose={() => setEditRegistry(undefined)} refresh={refresh} />
       ) : null}
       {deleteRegistry ? (
         <DeleteModelRegistryModal
           modelRegistry={deleteRegistry}
           onClose={() => setDeleteRegistry(undefined)}
-          refresh={() => Promise.resolve(undefined)}
+          refresh={refresh}
         />
       ) : null}
     </>
