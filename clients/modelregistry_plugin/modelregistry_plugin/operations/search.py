@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """Search operations for Model Registry store."""
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
-    from mlflow.entities import Run, ViewType
+    from mlflow.entities import Run
     from mlflow.store.entities.paged_list import PagedList
 
 from ..api_client import ModelRegistryAPIClient

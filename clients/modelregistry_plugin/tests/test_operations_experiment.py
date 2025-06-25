@@ -1,9 +1,9 @@
 """Tests for ExperimentOperations."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
-from mlflow.entities import Experiment, ExperimentTag, LifecycleStage, ViewType
+from mlflow.entities import Experiment, ExperimentTag, ViewType
 from mlflow.exceptions import MlflowException
 from mlflow.store.entities.paged_list import PagedList
 

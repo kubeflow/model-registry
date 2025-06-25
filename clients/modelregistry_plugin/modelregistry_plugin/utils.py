@@ -1,13 +1,13 @@
-from __future__ import annotations
-
 """Utility functions for Model Registry plugin."""
+
+from __future__ import annotations
 
 import os
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from mlflow.entities import LifecycleStage, LoggedModelStatus
+    from mlflow.entities import LoggedModelStatus
 from urllib.parse import urlparse
 
 

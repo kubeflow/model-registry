@@ -1,9 +1,8 @@
 """Tests for async logging functionality."""
 
-import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-from modelregistry_plugin.store_new import ModelRegistryStore
+from modelregistry_plugin.store import ModelRegistryTrackingStore
 
 
 class TestAsyncLogging:
@@ -11,7 +10,9 @@ class TestAsyncLogging:
 
     def test_log_batch_async(self):
         """Test log_batch_async method."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -39,7 +40,9 @@ class TestAsyncLogging:
 
     def test_end_async_logging(self):
         """Test end_async_logging method."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -55,7 +58,9 @@ class TestAsyncLogging:
 
     def test_end_async_logging_inactive(self):
         """Test end_async_logging method when queue is inactive."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -71,7 +76,9 @@ class TestAsyncLogging:
 
     def test_flush_async_logging(self):
         """Test flush_async_logging method."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -87,7 +94,9 @@ class TestAsyncLogging:
 
     def test_flush_async_logging_idle(self):
         """Test flush_async_logging method when queue is idle."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -103,7 +112,9 @@ class TestAsyncLogging:
 
     def test_shut_down_async_logging(self):
         """Test shut_down_async_logging method."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()
@@ -119,7 +130,9 @@ class TestAsyncLogging:
 
     def test_shut_down_async_logging_idle(self):
         """Test shut_down_async_logging method when queue is idle."""
-        store = ModelRegistryStore("modelregistry://localhost:8080", "file:///tmp")
+        store = ModelRegistryTrackingStore(
+            "modelregistry://localhost:8080", "file:///tmp"
+        )
 
         # Mock the async logging queue
         mock_queue = Mock()

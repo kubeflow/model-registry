@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 """Model Registry API Client for handling HTTP communication."""
 
-import json
+from __future__ import annotations
+
 from typing import Any, Dict
 
 import requests
