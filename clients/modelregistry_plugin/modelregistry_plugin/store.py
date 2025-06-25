@@ -53,6 +53,9 @@ class ModelRegistryStore:
     MLflow tracking store that uses Kubeflow Model Registry as the backend.
     """
 
+    # Default page size for artifact fetching
+    DEFAULT_ARTIFACT_PAGE_SIZE = 1000
+
     def __init__(
         self, store_uri: Optional[str] = None, artifact_uri: Optional[str] = None
     ) -> None:
@@ -104,8 +107,7 @@ class ModelRegistryStore:
             key=metric_data["name"],
             value=float(metric_data["value"]),
             timestamp=int(
-                metric_data.get("timestamp")
-                or metric_data.get("createTimeSinceEpoch")
+                metric_data.get("timestamp") or metric_data.get("createTimeSinceEpoch")
             ),
             step=metric_data.get("step") or 0,
         )
@@ -116,6 +118,46 @@ class ModelRegistryStore:
         from mlflow.entities import Param
 
         return Param(key=param_data["name"], value=str(param_data["value"]))
+
+    def _get_all_run_artifacts(self, run_id: str) -> List[Dict]:
+        """Get all artifacts for a run with pagination support.
+
+        Args:
+            run_id: The ID of the run to fetch artifacts for
+
+        Returns:
+            List of all artifact data dictionaries
+        """
+        # Get page size from environment variable or use default
+        page_size = int(
+            os.getenv(
+                "MODEL_REGISTRY_ARTIFACT_PAGE_SIZE",
+                str(self.DEFAULT_ARTIFACT_PAGE_SIZE),
+            )
+        )
+
+        all_artifacts = []
+        page_token = None
+
+        while True:
+            params = {"pageSize": page_size}
+            if page_token:
+                params["pageToken"] = page_token
+
+            response = self._request(
+                "GET", f"/experiment_runs/{run_id}/artifacts", params=params
+            )
+
+            items = response.get("items", [])
+            all_artifacts.extend(items)
+
+            # Check for next page
+            next_page_token = response.get("nextPageToken")
+            if not next_page_token or next_page_token == "":
+                break
+            page_token = next_page_token
+
+        return all_artifacts
 
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
         """Make authenticated request to Model Registry API."""
@@ -591,7 +633,6 @@ class ModelRegistryStore:
     def _get_run_metrics(self, run_id: str) -> List[Metric]:
         """Get all metrics for a run."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Metric
 
         items = self._request(
             "GET",
@@ -625,7 +666,6 @@ class ModelRegistryStore:
             A PagedList of Metric entities if logged, else empty PagedList
         """
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Metric
         from mlflow.store.entities.paged_list import PagedList
 
         params = {"name": metric_key}
@@ -668,7 +708,6 @@ class ModelRegistryStore:
                 - run_id: Unique identifier for run.
         """
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Metric
         from mlflow.entities.metric import MetricWithRunId
         from mlflow.store.entities.paged_list import PagedList
 
@@ -709,7 +748,6 @@ class ModelRegistryStore:
     def _get_run_params(self, run_id: str) -> List[Param]:
         """Get all parameters for a run."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Param
 
         items = self._request(
             "GET",
@@ -732,46 +770,37 @@ class ModelRegistryStore:
             LoggedModelOutput,
         )
 
+        # Get all artifacts and filter by type
+        all_artifacts = self._get_all_run_artifacts(run_id)
+
         dataset_inputs = []
         input_models = []
         output_models = []
 
-        # Get dataset artifacts (inputs)
-        dataset_items = self._request(
-            "GET",
-            f"/experiment_runs/{run_id}/artifacts",
-            params={"artifactType": "dataset-artifact"},
-        ).get("items", [])
+        for artifact_data in all_artifacts:
+            artifact_type = artifact_data.get("artifactType")
 
-        for dataset_data in dataset_items:
-            # Create DatasetInput entity using helper method
-            dataset_input = self._getMLflowDatasetInput(dataset_data)
-            dataset_inputs.append(dataset_input)
+            if artifact_type == "dataset-artifact":
+                # Create DatasetInput entity using helper method
+                dataset_input = self._getMLflowDatasetInput(artifact_data)
+                dataset_inputs.append(dataset_input)
+            elif artifact_type == "model-artifact":
+                # Check the model's io_type to determine if it's input or output
+                custom_props = artifact_data.get("customProperties", {})
+                model_id = artifact_data["id"]
+                io_type = custom_props.get("mlflow__model_io_type")
+                step = int(
+                    custom_props.get("mlflow__step") or 0
+                )  # FIXME set this when logged model is created
 
-        # Get model artifacts (both inputs and outputs) - single API call
-        model_items = self._request(
-            "GET",
-            f"/experiment_runs/{run_id}/artifacts",
-            params={"artifactType": "model-artifact"},
-        ).get("items", [])
-
-        for model_data in model_items:
-            # Check the model's io_type to determine if it's input or output
-            custom_props = model_data.get("customProperties", {})
-            model_id = model_data["id"]
-            io_type = custom_props.get("mlflow__model_io_type")
-            step = int(
-                custom_props.get("mlflow__step") or 0
-            )  # FIXME set this when logged model is created
-
-            if io_type == ModelIOType.INPUT.value:
-                # Create LoggedModelInput entity
-                model_input = LoggedModelInput(model_id=model_id)
-                input_models.append(model_input)
-            else:  # default to output
-                # Create LoggedModelOutput entity
-                model_output = LoggedModelOutput(model_id=model_id, step=step)
-                output_models.append(model_output)
+                if io_type == ModelIOType.INPUT.value:
+                    # Create LoggedModelInput entity
+                    model_input = LoggedModelInput(model_id=model_id)
+                    input_models.append(model_input)
+                else:  # default to output
+                    # Create LoggedModelOutput entity
+                    model_output = LoggedModelOutput(model_id=model_id, step=step)
+                    output_models.append(model_output)
 
         return RunInputs(
             dataset_inputs=dataset_inputs, model_inputs=input_models
@@ -1261,14 +1290,61 @@ class ModelRegistryStore:
 
     def _getMLflowRun(self, run_data: Dict) -> Run:
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Run, RunInfo, RunStatus, RunTag, RunData
+        from mlflow.entities import (
+            Run,
+            RunInfo,
+            RunStatus,
+            RunTag,
+            RunData,
+            RunInputs,
+            RunOutputs,
+            LoggedModelInput,
+            LoggedModelOutput,
+        )
 
         run_id = run_data["id"]
-        # get metrics and parameters
-        metrics = self._get_run_metrics(run_id)
-        params = self._get_run_params(run_id)
-        # get inputs and outputs
-        run_inputs, run_outputs = self._get_run_inputs_outputs(run_id)
+
+        # Get all artifacts in a single API call
+        all_artifacts = self._get_all_run_artifacts(run_id)
+
+        # Process artifacts based on their artifactType discriminator
+        metrics = []
+        params = []
+        dataset_inputs = []
+        input_models = []
+        output_models = []
+
+        for artifact_data in all_artifacts:
+            artifact_type = artifact_data.get("artifactType")
+
+            if artifact_type == "metric":
+                metrics.append(self._getMLflowMetric(artifact_data))
+            elif artifact_type == "parameter":
+                params.append(self._getMLflowParam(artifact_data))
+            elif artifact_type == "dataset-artifact":
+                dataset_input = self._getMLflowDatasetInput(artifact_data)
+                dataset_inputs.append(dataset_input)
+            elif artifact_type == "model-artifact":
+                # Check the model's io_type to determine if it's input or output
+                custom_props = artifact_data.get("customProperties", {})
+                model_id = artifact_data["id"]
+                io_type = custom_props.get("mlflow__model_io_type")
+                step = int(
+                    custom_props.get("mlflow__step") or 0
+                )  # FIXME set this when logged model is created
+
+                if io_type == ModelIOType.INPUT.value:
+                    # Create LoggedModelInput entity
+                    model_input = LoggedModelInput(model_id=model_id)
+                    input_models.append(model_input)
+                else:  # default to output
+                    # Create LoggedModelOutput entity
+                    model_output = LoggedModelOutput(model_id=model_id, step=step)
+                    output_models.append(model_output)
+
+        # Create RunInputs and RunOutputs
+        run_inputs = RunInputs(dataset_inputs=dataset_inputs, model_inputs=input_models)
+        run_outputs = RunOutputs(model_outputs=output_models)
 
         tags = [RunTag(k, v) for k, v in run_data.get("customProperties", {}).items()]
         run_info = RunInfo(
