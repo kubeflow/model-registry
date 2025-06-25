@@ -453,7 +453,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "invalid model version id")
+		assert.Contains(t, err.Error(), "invalid syntax: bad request")
 	})
 
 	t.Run("unicode characters in model version artifact name", func(t *testing.T) {
@@ -1419,7 +1419,7 @@ func TestGetModelArtifacts(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "invalid model version id")
+		assert.Contains(t, err.Error(), "invalid syntax: bad request")
 	})
 }
 
