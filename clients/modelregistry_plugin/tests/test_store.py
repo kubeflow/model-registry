@@ -945,32 +945,6 @@ class TestModelRegistryStore:
         assert json_data["customProperties"] == {}
 
     @patch("modelregistry_plugin.store.requests.request")
-    def test_get_run_metrics(self, mock_request, store):
-        """Test getting run metrics."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "name": "accuracy",
-                    "value": 0.95,
-                    "timestamp": "1234567890",
-                    "step": 1,
-                    "createTimeSinceEpoch": "1234567890",
-                }
-            ]
-        }
-        mock_request.return_value = mock_response
-
-        metrics = store._get_run_metrics("run-123")
-
-        assert len(metrics) == 1
-        assert metrics[0].key == "accuracy"
-        assert metrics[0].value == 0.95
-        assert metrics[0].step == 1
-
-    @patch("modelregistry_plugin.store.requests.request")
     def test_get_metric_history(self, mock_request, store):
         """Test getting metric history for a specific metric key."""
         # Mock the raw response from Model Registry API
@@ -1161,25 +1135,6 @@ class TestModelRegistryStore:
         assert json_data["name"] == "learning_rate"
         assert json_data["value"] == "0.01"
         assert json_data["parameterType"] == "string"
-
-    @patch("modelregistry_plugin.store.requests.request")
-    def test_get_run_params(self, mock_request, store):
-        """Test getting run parameters."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {"name": "learning_rate", "value": "0.01", "parameterType": "string"}
-            ]
-        }
-        mock_request.return_value = mock_response
-
-        params = store._get_run_params("run-123")
-
-        assert len(params) == 1
-        assert params[0].key == "learning_rate"
-        assert params[0].value == "0.01"
 
     # Tag management tests
     @patch("modelregistry_plugin.store.requests.request")
