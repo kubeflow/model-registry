@@ -25,7 +25,7 @@ class ModelRegistryAPIClient:
         """
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
-        
+
         # Configure retry strategy
         retry_strategy = requests.adapters.Retry(
             total=3,
@@ -67,7 +67,7 @@ class ModelRegistryAPIClient:
             response_json = response.json()
         except requests.exceptions.RequestException as e:
             # Handle HTTP errors
-            if hasattr(e, 'response') and e.response is not None:
+            if hasattr(e, "response") and e.response is not None:
                 try:
                     error_detail = e.response.json().get("message", e.response.text)
                 except (ValueError, KeyError):
@@ -105,4 +105,4 @@ class ModelRegistryAPIClient:
 
     def delete(self, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make DELETE request."""
-        return self.request("DELETE", endpoint, **kwargs) 
+        return self.request("DELETE", endpoint, **kwargs)

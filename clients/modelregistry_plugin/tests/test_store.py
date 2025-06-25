@@ -423,8 +423,6 @@ class TestModelRegistryStore:
         json_data = call_args[1]["json"]
         assert json_data["name"] == "new-name"
 
-
-
     @patch("modelregistry_plugin.store.requests.request")
     def test_search_experiments(self, mock_request, store):
         """Test searching experiments."""
@@ -1166,8 +1164,6 @@ class TestModelRegistryStore:
         json_data = patch_call[1]["json"]
         custom_props = json_data["customProperties"]
         assert custom_props["key1"]["string_value"] == "value1"
-
-
 
     # Batch operations tests
     @patch("modelregistry_plugin.store.requests.request")

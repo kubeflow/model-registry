@@ -64,9 +64,11 @@ class SearchOperations:
                 if page_token:
                     params["pageToken"] = page_token
 
-                response = self.api_client.get(f"/experiments/{experiment_id}/experiment_runs", params=params)
+                response = self.api_client.get(
+                    f"/experiments/{experiment_id}/experiment_runs", params=params
+                )
                 runs = response.get("items", [])
-                
+
                 for run_data in runs:
                     # Filter by view_type
                     lifecycle_stage = MLflowEntityConverter.to_mlflow_run_info(
@@ -83,13 +85,15 @@ class SearchOperations:
                         continue
 
                     # Get artifacts for the run
-                    artifacts_response = self.api_client.get(f"/experiment_runs/{run_data['id']}/artifacts")
+                    artifacts_response = self.api_client.get(
+                        f"/experiment_runs/{run_data['id']}/artifacts"
+                    )
                     artifacts = artifacts_response.get("items", [])
-                    
+
                     artifact_location = run_data.get("externalId") or self.artifact_uri
-                    run = MLflowEntityConverter.to_mlflow_run(run_data, artifacts, artifact_location)
+                    run = MLflowEntityConverter.to_mlflow_run(
+                        run_data, artifacts, artifact_location
+                    )
                     all_runs.append(run)
 
         return PagedList(all_runs, None)  # no paging across experiments
-
- 

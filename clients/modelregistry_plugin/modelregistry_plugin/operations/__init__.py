@@ -8,8 +8,8 @@ from .search import SearchOperations
 
 __all__ = [
     "ExperimentOperations",
-    "MetricOperations", 
+    "MetricOperations",
     "ModelOperations",
     "RunOperations",
     "SearchOperations",
-] 
+]

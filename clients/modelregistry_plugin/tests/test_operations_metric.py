@@ -102,7 +102,9 @@ class TestMetricOperations:
         assert len(metrics) == 1
         assert metrics[0].timestamp == 1234567890  # Should use createTimeSinceEpoch
 
-    def test_get_metric_history_uses_timestamp_over_create_time(self, metric_ops, api_client):
+    def test_get_metric_history_uses_timestamp_over_create_time(
+        self, metric_ops, api_client
+    ):
         """Test that metric history prefers timestamp over createTimeSinceEpoch."""
         response_data = {
             "items": [
@@ -121,7 +123,9 @@ class TestMetricOperations:
         metrics = metric_ops.get_metric_history("run-123", "accuracy")
 
         assert len(metrics) == 1
-        assert metrics[0].timestamp == 1234567890  # Should use timestamp, not createTimeSinceEpoch
+        assert (
+            metrics[0].timestamp == 1234567890
+        )  # Should use timestamp, not createTimeSinceEpoch
 
     def test_get_metric_history_bulk_interval_from_steps(self, metric_ops, api_client):
         """Test basic bulk metric history retrieval for specific steps."""
@@ -162,10 +166,13 @@ class TestMetricOperations:
         assert result.token == "token505"
 
         api_client.get.assert_called_once_with(
-            "/experiment_runs/run-123/metric_history", params={"name": "accuracy", "pageSize": 2, "stepIds": "1,3"}
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageSize": 2, "stepIds": "1,3"},
         )
 
-    def test_get_metric_history_bulk_interval_from_steps_sorts_correctly(self, metric_ops, api_client):
+    def test_get_metric_history_bulk_interval_from_steps_sorts_correctly(
+        self, metric_ops, api_client
+    ):
         """Test that bulk metric history sorts correctly by step and timestamp."""
         response_data = {
             "items": [
@@ -213,10 +220,13 @@ class TestMetricOperations:
         assert result[2].key == "accuracy"
 
         api_client.get.assert_called_once_with(
-            "/experiment_runs/run-123/metric_history", params={"name": "accuracy", "stepIds": "1,3"}
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "stepIds": "1,3"},
         )
 
-    def test_get_metric_history_bulk_interval_from_steps_with_pagination(self, metric_ops, api_client):
+    def test_get_metric_history_bulk_interval_from_steps_with_pagination(
+        self, metric_ops, api_client
+    ):
         """Test bulk metric history retrieval with pagination parameters."""
         response_data = {
             "items": [
@@ -245,10 +255,17 @@ class TestMetricOperations:
 
         api_client.get.assert_called_once_with(
             "/experiment_runs/run-123/metric_history",
-            params={"name": "accuracy", "pageSize": 10, "pageToken": "token123", "stepIds": "1"},
+            params={
+                "name": "accuracy",
+                "pageSize": 10,
+                "pageToken": "token123",
+                "stepIds": "1",
+            },
         )
 
-    def test_get_metric_history_bulk_interval_from_steps_filters_by_steps(self, metric_ops, api_client):
+    def test_get_metric_history_bulk_interval_from_steps_filters_by_steps(
+        self, metric_ops, api_client
+    ):
         """Test that bulk metric history filters by specified steps."""
         response_data = {
             "items": [
@@ -285,10 +302,13 @@ class TestMetricOperations:
         assert result[1].key == "accuracy"
 
         api_client.get.assert_called_once_with(
-            "/experiment_runs/run-123/metric_history", params={"name": "accuracy", "stepIds": "1,3"}
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "stepIds": "1,3"},
         )
 
-    def test_get_metric_history_bulk_interval_from_steps_with_max_results(self, metric_ops, api_client):
+    def test_get_metric_history_bulk_interval_from_steps_with_max_results(
+        self, metric_ops, api_client
+    ):
         """Test bulk metric history retrieval with max_results parameter."""
         response_data = {
             "items": [
@@ -325,10 +345,13 @@ class TestMetricOperations:
         assert result[1].key == "accuracy"
 
         api_client.get.assert_called_once_with(
-            "/experiment_runs/run-123/metric_history", params={"name": "accuracy", "pageSize": 2, "stepIds": "1,2,3"}
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageSize": 2, "stepIds": "1,2,3"},
         )
 
-    def test_get_metric_history_bulk_interval_from_steps_no_steps_specified(self, metric_ops, api_client):
+    def test_get_metric_history_bulk_interval_from_steps_no_steps_specified(
+        self, metric_ops, api_client
+    ):
         """Test bulk metric history retrieval when no steps are specified."""
         response_data = {
             "items": [
@@ -352,7 +375,9 @@ class TestMetricOperations:
         }
         api_client.get.return_value = response_data
 
-        result = metric_ops.get_metric_history_bulk_interval_from_steps("run-123", "accuracy")
+        result = metric_ops.get_metric_history_bulk_interval_from_steps(
+            "run-123", "accuracy"
+        )
 
         assert len(result) == 2
         assert result[0].step == 1
@@ -364,4 +389,4 @@ class TestMetricOperations:
 
         api_client.get.assert_called_once_with(
             "/experiment_runs/run-123/metric_history", params={"name": "accuracy"}
-        ) 
+        )

@@ -37,15 +37,13 @@ class TestSearchOperations:
                     "owner": "user123",
                     "startTimeSinceEpoch": "1234567890",
                     "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
-                    "customProperties": {
-                        "tag1": "value1"
-                    },
+                    "customProperties": {"tag1": "value1"},
                 }
             ],
             "nextPageToken": "token123",
         }
         artifacts_data = {"items": []}
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(
@@ -55,7 +53,10 @@ class TestSearchOperations:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
-        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            result[0].info.artifact_uri
+            == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
         assert result.token is None  # Token is not returned in current implementation
 
         # Verify API calls
@@ -96,7 +97,7 @@ class TestSearchOperations:
             "nextPageToken": "token123",
         }
         artifacts_data = {"items": []}
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"], run_view_type=ViewType.ACTIVE_ONLY)
@@ -105,7 +106,10 @@ class TestSearchOperations:
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
-        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            result[0].info.artifact_uri
+            == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
 
         # Verify API calls
         assert api_client.get.call_count == 2
@@ -145,16 +149,21 @@ class TestSearchOperations:
             "nextPageToken": "token123",
         }
         artifacts_data = {"items": []}
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
-        result = search_ops.search_runs(["exp-123"], run_view_type=ViewType.DELETED_ONLY)
+        result = search_ops.search_runs(
+            ["exp-123"], run_view_type=ViewType.DELETED_ONLY
+        )
 
         # Should return all runs since filtering is not implemented yet
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-456"
-        assert result[0].info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-456"
+        assert (
+            result[0].info.artifact_uri
+            == "s3://bucket/artifacts/experiments/exp-123/run-456"
+        )
 
         # Verify API calls
         assert api_client.get.call_count == 2
@@ -229,8 +238,13 @@ class TestSearchOperations:
             ]
         }
         artifacts_data = {"items": []}
-        
-        api_client.get.side_effect = [search_data1, artifacts_data, search_data2, artifacts_data]
+
+        api_client.get.side_effect = [
+            search_data1,
+            artifacts_data,
+            search_data2,
+            artifacts_data,
+        ]
 
         result = search_ops.search_runs(["exp-1", "exp-2"])
 
@@ -286,7 +300,7 @@ class TestSearchOperations:
             "nextPageToken": "token123",
         }
         artifacts_data = {"items": []}
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(
@@ -347,7 +361,7 @@ class TestSearchOperations:
                 },
             ]
         }
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"])
@@ -356,7 +370,9 @@ class TestSearchOperations:
         assert len(result) == 1
         run = result[0]
         assert run.info.run_id == "run-123"
-        assert run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
 
         # Check that artifacts were processed
         assert len(run.data.metrics) == 1
@@ -409,7 +425,7 @@ class TestSearchOperations:
                 },
             ]
         }
-        
+
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"])
@@ -433,4 +449,4 @@ class TestSearchOperations:
             "/experiments/exp-123/experiment_runs",
             params={"pageSize": "1000"},
         )
-        api_client.get.assert_any_call("/experiment_runs/run-123/artifacts") 
+        api_client.get.assert_any_call("/experiment_runs/run-123/artifacts")
