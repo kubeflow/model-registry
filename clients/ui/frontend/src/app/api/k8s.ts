@@ -329,4 +329,3 @@ export const generateRoleBindingPermissions = (
   };
   return addOwnerReference(roleBindingObject, ownerReference);
 };
-

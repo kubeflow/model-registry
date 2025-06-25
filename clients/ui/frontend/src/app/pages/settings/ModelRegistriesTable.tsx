@@ -54,11 +54,7 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
         variant="compact"
       />
       {editRegistry ? (
-        <CreateModal
-          modelRegistry={editRegistry}
-          onClose={() => setEditRegistry(undefined)}
-          refresh={refresh}
-        />
+        <CreateModal onClose={() => setEditRegistry(undefined)} refresh={refresh} />
       ) : null}
       {deleteRegistry ? (
         <DeleteModelRegistryModal

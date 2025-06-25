@@ -11,7 +11,7 @@ import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding
 import {
   createModelRegistryRoleBindingWrapper,
   deleteModelRegistryRoleBindingWrapper,
-} from './roleBindingUtils';
+} from '~/app/pages/settings/roleBindingUtils';
 
 const ModelRegistriesManagePermissions: React.FC = () => {
   const modelRegistryNamespace = 'model-registry'; // TODO: This is a placeholder
