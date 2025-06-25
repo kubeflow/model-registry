@@ -304,6 +304,8 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, pare
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
+	// also filter out metric history artifacts
+	filterQuery = fmt.Sprintf("(%s) and (type != '%v')", filterQuery, serv.nameConfig.MetricHistoryTypeName)
 	glog.Info("FilterQuery ", filterQuery)
 
 	artifactsResponse, err := serv.mlmdClient.GetArtifacts(context.Background(), &proto.GetArtifactsRequest{
@@ -346,6 +348,13 @@ func (serv *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactType
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		listOperationOptions.FilterQuery = apiutils.Of(fmt.Sprintf("type = '%v'", mlmdType))
+	}
+	// also filter out metric history artifacts
+	if listOperationOptions.FilterQuery != nil {
+		listOperationOptions.FilterQuery = apiutils.Of(fmt.Sprintf("(%s) and (type != '%v')",
+			*listOperationOptions.FilterQuery, serv.nameConfig.MetricHistoryTypeName))
+	} else {
+		listOperationOptions.FilterQuery = apiutils.Of(fmt.Sprintf("type != '%v'", serv.nameConfig.MetricHistoryTypeName))
 	}
 
 	var artifacts []*proto.Artifact
