@@ -144,9 +144,7 @@ run = store.create_run(experiment_id, run_name="my-run")
 
 # Log metrics
 store.log_metric(run.info.run_id, Metric("accuracy", 0.95))
-```
-
-### **Direct Operation Usage** (for advanced use cases)
+```### **Direct Operation Usage** (for advanced use cases)
 ```python
 from modelregistry_plugin.operations import ExperimentOperations
 
@@ -154,7 +152,6 @@ from modelregistry_plugin.operations import ExperimentOperations
 experiment_ops = ExperimentOperations(api_client, artifact_uri)
 experiment = experiment_ops.get_experiment("123")
 ```
-
 ## 🔧 **Configuration and Environment Variables**
 
 ### **API Client Configuration**
@@ -222,3 +219,5 @@ The refactoring successfully achieved all goals:
 - ✅ **Code Reusability**: Extracted common functionality into reusable components
 
 The new architecture provides a solid foundation for future development and maintenance while maintaining full backward compatibility with existing code. 
+
+

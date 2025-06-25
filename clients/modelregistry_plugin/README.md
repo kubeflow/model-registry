@@ -205,7 +205,7 @@ The plugin registers itself as an MLflow tracking store via the entry point:
 
 ```toml
 [project.entry-points."mlflow.tracking_store"]
-modelregistry = "modelregistry_plugin.store:ModelRegistryStore"
+modelregistry = "modelregistry_plugin.tracking_store:ModelRegistryStore"
 ```
 
 This allows MLflow to automatically discover and use the plugin when the `modelregistry://` URI scheme is specified.
