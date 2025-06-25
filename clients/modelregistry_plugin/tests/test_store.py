@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from modelregistry_plugin.store import ModelRegistryTrackingStore
+from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
 
 
 class TestModelRegistryTrackingStore:

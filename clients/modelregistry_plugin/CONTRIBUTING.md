@@ -55,7 +55,7 @@ clients/modelregistry_plugin/
 ├── modelregistry_plugin/          # Main plugin package
 │   ├── __init__.py
 │   ├── auth.py                   # Authentication handling
-│   ├── store.py                  # Main ModelRegistryStore implementation
+│   ├── tracking_store.py         # Main ModelRegistryTrackingStore implementation
 │   └── utils.py                  # Utility functions
 ├── tests/                        # Test suite
 │   ├── __init__.py              # Test package initialization

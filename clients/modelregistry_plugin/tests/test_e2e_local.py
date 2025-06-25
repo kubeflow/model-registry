@@ -16,7 +16,7 @@ import shutil
 import signal
 import sys
 from pathlib import Path
-
+from unittest.mock import patch
 from mlflow.entities import (
     Experiment,
     Run,
@@ -31,7 +31,9 @@ from mlflow.entities import (
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
-from modelregistry_plugin.store import ModelRegistryTrackingStore
+# Mock the API client to avoid actual HTTP requests
+with patch("modelregistry_plugin.api_client.requests.Session.request") as mock_request:
+    from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
 
 
 class LocalModelRegistryServer:
