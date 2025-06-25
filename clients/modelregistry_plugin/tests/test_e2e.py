@@ -10,27 +10,28 @@ Required environment variables:
 - MODEL_REGISTRY_TOKEN: Authentication token for the Model Registry server
 """
 
-import os
-import pytest
-import uuid
-import tempfile
-import pandas as pd
+import contextlib
 import math
-from typing import List, Tuple, Generator
+import os
+import tempfile
 import time
+import uuid
+from collections.abc import Generator
 
 import mlflow
+import pandas as pd
+import pytest
 from mlflow.entities import (
     Experiment,
+    LifecycleStage,
     RunStatus,
     ViewType,
-    LifecycleStage,
 )
 from mlflow.exceptions import MlflowException
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
 from mlflow.tracking import MlflowClient
+from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
 
 @pytest.mark.skipif(
@@ -44,12 +45,12 @@ class TestModelRegistryStoreE2E:
     def mlflow_client(self) -> MlflowClient:
         return MlflowClient()
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def experiment_name(self) -> str:
         """Generate a unique experiment name for testing."""
         return f"e2e-test-{uuid.uuid4().hex[:8]}"
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def experiment_id(self, experiment_name: str) -> Generator[str, None, None]:
         """Create a test experiment and return its ID."""
         try:
@@ -86,7 +87,7 @@ class TestModelRegistryStoreE2E:
     @pytest.fixture
     def sample_model(
         self, sample_dataset: pd.DataFrame
-    ) -> Tuple[RandomForestClassifier, pd.DataFrame, pd.Series]:
+    ) -> tuple[RandomForestClassifier, pd.DataFrame, pd.Series]:
         """Create a lightweight sample model."""
         # Prepare data
         X = sample_dataset.drop("target", axis=1)
@@ -108,9 +109,6 @@ class TestModelRegistryStoreE2E:
         # Try to list experiments to verify connection
         experiments = mlflow.search_experiments()
         assert isinstance(experiments, list)
-        print(
-            f"Successfully connected to tracking server via MLflow. Found {len(experiments)} experiments."
-        )
 
     def test_create_and_get_experiment(self, experiment_name: str) -> None:
         """Test creating and retrieving an experiment using MLflow."""
@@ -142,7 +140,7 @@ class TestModelRegistryStoreE2E:
         self,
         experiment_id: str,
         sample_dataset: pd.DataFrame,
-        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+        sample_model: tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
         mlflow_client: MlflowClient,
     ) -> None:
         """Test creating and logging to a run using MLflow."""
@@ -246,7 +244,7 @@ class TestModelRegistryStoreE2E:
         """Test logging multiple datasets using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create multiple small datasets
-            datasets: List[pd.DataFrame] = []
+            datasets: list[pd.DataFrame] = []
             for i in range(3):
                 # Create small synthetic dataset
                 X, y = make_classification(
@@ -281,7 +279,7 @@ class TestModelRegistryStoreE2E:
     def test_log_model_inputs_and_outputs(
         self,
         experiment_id: str,
-        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+        sample_model: tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
     ) -> None:
         """Test logging model inputs and outputs using MLflow."""
         model, X_test, y_test = sample_model
@@ -345,7 +343,7 @@ class TestModelRegistryStoreE2E:
 
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Simulate training with multiple steps
-            for i, step in enumerate(
+            for _i, step in enumerate(
                 [1, 10, 20, 50, 100]
             ):  # Changed from 0 to 1 to avoid step=0 conflicts
                 # Create a model for this step (simulating training progress)
@@ -388,7 +386,7 @@ class TestModelRegistryStoreE2E:
         self,
         experiment_id: str,
         sample_dataset: pd.DataFrame,
-        sample_model: Tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
+        sample_model: tuple[RandomForestClassifier, pd.DataFrame, pd.Series],
     ) -> None:
         """Test logging inputs/outputs along with metrics and parameters using MLflow."""
         model, X_test, y_test = sample_model
@@ -461,10 +459,8 @@ class TestModelRegistryStoreE2E:
 
         finally:
             # Cleanup
-            try:
+            with contextlib.suppress(MlflowException):
                 mlflow.delete_experiment(experiment_id)
-            except MlflowException:
-                pass
 
     def test_run_lifecycle(self, experiment_id: str) -> None:
         """Test run lifecycle operations using MLflow."""
@@ -694,10 +690,8 @@ def test_mlflow_integration() -> None:
 
     finally:
         # Cleanup
-        try:
+        with contextlib.suppress(MlflowException):
             mlflow.delete_experiment(experiment_id)
-        except MlflowException:
-            pass
 
 
 if __name__ == "__main__":

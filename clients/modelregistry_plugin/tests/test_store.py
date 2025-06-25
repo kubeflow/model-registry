@@ -2,32 +2,33 @@
 Tests for ModelRegistryStore
 """
 
-import pytest
 from unittest.mock import Mock, patch
-import requests
 
-from modelregistry_plugin.store import ModelRegistryStore
+import pytest
+import requests
 from mlflow.entities import (
+    DatasetInput,
     Experiment,
+    ExperimentTag,
+    LoggedModel,
+    LoggedModelInput,
+    LoggedModelOutput,
+    LoggedModelParameter,
+    LoggedModelStatus,
+    LoggedModelTag,
+    Metric,
+    Param,
     Run,
     RunInfo,
     RunStatus,
-    ExperimentTag,
     RunTag,
-    Param,
-    Metric,
     ViewType,
-    DatasetInput,
-    LoggedModelInput,
-    LoggedModelOutput,
-    LoggedModel,
-    LoggedModelTag,
-    LoggedModelParameter,
-    LoggedModelStatus,
 )
-from mlflow.store.entities.paged_list import PagedList
-from mlflow.models import Model
 from mlflow.exceptions import MlflowException
+from mlflow.models import Model
+from mlflow.store.entities.paged_list import PagedList
+
+from modelregistry_plugin.store import ModelRegistryStore
 
 
 class TestModelRegistryStore:
@@ -422,72 +423,7 @@ class TestModelRegistryStore:
         json_data = call_args[1]["json"]
         assert json_data["name"] == "new-name"
 
-    @patch("modelregistry_plugin.store.requests.request")
-    def test_list_experiments(self, mock_request, store):
-        """Test listing experiments."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "items": [
-                {
-                    "id": "1",
-                    "name": "exp1",
-                    "state": "LIVE",
-                    "externalId": "s3://bucket/artifacts/experiments/1",
-                    "customProperties": {
-                        "tag1": {
-                            "string_value": "value1",
-                            "metadataType": "MetadataStringValue",
-                        }
-                    },
-                },
-                {
-                    "id": "2",
-                    "name": "exp2",
-                    "state": "ARCHIVED",
-                    "externalId": "s3://bucket/artifacts/experiments/2",
-                    "customProperties": {
-                        "tag2": {
-                            "string_value": "value2",
-                            "metadataType": "MetadataStringValue",
-                        }
-                    },
-                },
-            ]
-        }
-        mock_request.return_value = mock_response
 
-        experiments = store.list_experiments(view_type=ViewType.ALL)
-
-        assert len(experiments) == 2
-        assert experiments[0].experiment_id == "1"
-        assert experiments[0].name == "exp1"
-        assert experiments[0].artifact_location == "s3://bucket/artifacts/experiments/1"
-        assert len(experiments[0].tags) == 1
-        assert experiments[0].tags["tag1"] == "value1"
-        assert experiments[1].experiment_id == "2"
-        assert experiments[1].name == "exp2"
-        assert experiments[1].artifact_location == "s3://bucket/artifacts/experiments/2"
-        assert len(experiments[1].tags) == 1
-        assert experiments[1].tags["tag2"] == "value2"
-
-    @patch("modelregistry_plugin.store.requests.request")
-    def test_list_experiments_with_pagination(self, mock_request, store):
-        """Test listing experiments with pagination."""
-        # Mock the raw response from Model Registry API
-        mock_response = Mock(spec=requests.Response)
-        mock_response.ok = True
-        mock_response.json.return_value = {"items": []}
-        mock_request.return_value = mock_response
-
-        store.list_experiments(max_results=10, page_token="token123")
-
-        mock_request.assert_called_once()
-        call_args = mock_request.call_args
-        params = call_args[1]["params"]
-        assert params["pageSize"] == 10
-        assert params["pageToken"] == "token123"
 
     @patch("modelregistry_plugin.store.requests.request")
     def test_search_experiments(self, mock_request, store):
@@ -1231,63 +1167,7 @@ class TestModelRegistryStore:
         custom_props = json_data["customProperties"]
         assert custom_props["key1"]["string_value"] == "value1"
 
-    @patch("modelregistry_plugin.store.requests.request")
-    def test_delete_tag(self, mock_request, store):
-        """Test deleting a run tag."""
-        # Mock the raw response from Model Registry API for GET run request
-        mock_response_get_run = Mock(spec=requests.Response)
-        mock_response_get_run.ok = True
-        mock_response_get_run.json.return_value = {
-            "id": "run-123",
-            "experimentId": "exp-123",
-            "name": "test-run",
-            "state": "RUNNING",
-            "owner": "user123",
-            "startTimeSinceEpoch": "1234567890",
-            "customProperties": {
-                "key1": {
-                    "string_value": "value1",
-                    "metadataType": "MetadataStringValue",
-                },
-                "key2": {
-                    "string_value": "value2",
-                    "metadataType": "MetadataStringValue",
-                },
-            },
-        }
-        # Mock the raw response from Model Registry API for PATCH request
-        mock_response_patch = Mock(spec=requests.Response)
-        mock_response_patch.ok = True
-        mock_response_patch.json.return_value = {
-            "id": "run-123",
-            "experimentId": "exp-123",
-            "name": "test-run",
-            "state": "RUNNING",
-            "owner": "user123",
-            "startTimeSinceEpoch": "1234567890",
-            "customProperties": {
-                "key2": {
-                    "string_value": "value2",
-                    "metadataType": "MetadataStringValue",
-                }
-            },
-        }
 
-        mock_request.side_effect = [
-            mock_response_get_run,  # GET run
-            mock_response_patch,  # PATCH
-        ]
-
-        store.delete_tag("run-123", "key1")
-
-        # Should call PATCH to update tags without key1
-        call_args = mock_request.call_args_list
-        assert len(call_args) == 2  # GET run + GET metrics + GET params + PATCH
-        patch_call = call_args[1]
-        json_data = patch_call[1]["json"]
-        custom_props = json_data["customProperties"]
-        assert "key1" not in custom_props
-        assert "key2" in custom_props
 
     # Batch operations tests
     @patch("modelregistry_plugin.store.requests.request")

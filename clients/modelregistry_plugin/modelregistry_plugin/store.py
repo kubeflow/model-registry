@@ -1,66 +1,62 @@
-"""
-Model Registry MLflow Tracking Store Implementation
-"""
+"""Model Registry MLflow Tracking Store Implementation."""
 
 from __future__ import annotations
 
 import json
 import os
-from typing import TYPE_CHECKING, List, Optional, Dict, Sequence, Any
 import uuid
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import requests
 
-from .auth import get_auth_headers
-from .utils import (
+from modelregistry_plugin.auth import get_auth_headers
+from modelregistry_plugin.utils import (
+    ModelIOType,
+    convert_modelregistry_state,
+    convert_timestamp,
     convert_to_mlflow_logged_model_status,
     convert_to_model_artifact_state,
-    parse_tracking_uri,
-    convert_timestamp,
-    convert_modelregistry_state,
-    ModelIOType,
-    toModelRegistryCustomProperties,
     fromModelRegistryCustomProperties,
+    parse_tracking_uri,
+    toModelRegistryCustomProperties,
 )
 
 if TYPE_CHECKING:
     from mlflow.entities import (
+        DatasetInput,
         Experiment,
         ExperimentTag,
-        Run,
-        RunInfo,
-        RunStatus,
-        RunTag,
-        RunInputs,
-        RunOutputs,
-        Metric,
-        Param,
-        DatasetInput,
-        LoggedModelTag,
         LoggedModel,
-        LoggedModelParameter,
         LoggedModelInput,
         LoggedModelOutput,
-        ViewType,
+        LoggedModelParameter,
+        LoggedModelTag,
+        Metric,
         PagedList,
+        Param,
+        Run,
+        RunInfo,
+        RunInputs,
+        RunOutputs,
+        RunStatus,
+        RunTag,
+        ViewType,
     )
     from mlflow.entities.metric import MetricWithRunId
     from mlflow.models.model import Model
 
 
 class ModelRegistryStore:
-    """
-    MLflow tracking store that uses Kubeflow Model Registry as the backend.
-    """
+    """MLflow tracking store that uses Kubeflow Model Registry as the backend."""
 
     # Default page size for artifact fetching
     DEFAULT_ARTIFACT_PAGE_SIZE = 1000
 
     def __init__(
-        self, store_uri: Optional[str] = None, artifact_uri: Optional[str] = None
+        self, store_uri: str | None = None, artifact_uri: str | None = None
     ) -> None:
-        """
-        Initialize the Model Registry store.
+        """Initialize the Model Registry store.
 
         Args:
             store_uri: URI for the Model Registry (e.g., "modelregistry://localhost:8080")
@@ -68,11 +64,11 @@ class ModelRegistryStore:
         """
         # Import MLflow modules here to avoid circular imports
         from mlflow.store.tracking.abstract_store import AbstractStore
+        from mlflow.store.tracking.file_store import _default_root_dir
         from mlflow.utils.file_utils import (
             local_file_uri_to_path,
             path_to_local_file_uri,
         )
-        from mlflow.store.tracking.file_store import _default_root_dir
 
         # Initialize as AbstractStore
         AbstractStore.__init__(self)
@@ -95,10 +91,10 @@ class ModelRegistryStore:
             file_store_path = local_file_uri_to_path(_default_root_dir())
             self.artifact_uri = path_to_local_file_uri(file_store_path)
 
-    def _get_artifact_location(self, response: Dict) -> str:
+    def _get_artifact_location(self, response: dict) -> str:
         return response.get("externalId") or self.artifact_uri
 
-    def _getMLflowMetric(self, metric_data: Dict) -> Metric:
+    def _getMLflowMetric(self, metric_data: dict) -> Metric:
         """Create an MLflow Metric entity from Model Registry metric data."""
         # Import MLflow modules here to avoid circular imports
         from mlflow.entities import Metric
@@ -112,14 +108,14 @@ class ModelRegistryStore:
             step=metric_data.get("step") or 0,
         )
 
-    def _getMLflowParam(self, param_data: Dict) -> Param:
+    def _getMLflowParam(self, param_data: dict) -> Param:
         """Create an MLflow Param entity from Model Registry parameter data."""
         # Import MLflow modules here to avoid circular imports
         from mlflow.entities import Param
 
         return Param(key=param_data["name"], value=str(param_data["value"]))
 
-    def _get_all_run_artifacts(self, run_id: str) -> List[Dict]:
+    def _get_all_run_artifacts(self, run_id: str) -> list[dict]:
         """Get all artifacts for a run with pagination support.
 
         Args:
@@ -159,7 +155,7 @@ class ModelRegistryStore:
 
         return all_artifacts
 
-    def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
+    def _request(self, method: str, endpoint: str, **kwargs) -> dict:
         """Make authenticated request to Model Registry API."""
         # Import MLflow modules here to avoid circular imports
         from mlflow.exceptions import MlflowException, get_error_code
@@ -169,7 +165,7 @@ class ModelRegistryStore:
         headers.update(kwargs.pop("headers", {}))
 
         # convert customProperties to ModelRegistry customProperties format
-        json_data = kwargs.get("json", None)
+        json_data = kwargs.get("json")
         if json_data is not None:
             toModelRegistryCustomProperties(json_data)
 
@@ -181,8 +177,9 @@ class ModelRegistryStore:
                 error_detail = response_json.get("message", response.text)
             except (AttributeError, TypeError, KeyError):
                 error_detail = response.text
+            msg = f"Model Registry API error: {error_detail}"
             raise MlflowException(
-                f"Model Registry API error: {error_detail}",
+                msg,
                 error_code=get_error_code(response.status_code),
             )
 
@@ -198,12 +195,11 @@ class ModelRegistryStore:
     def log_batch_async(
         self,
         run_id: str,
-        metrics: List[Metric],
-        params: List[Param],
-        tags: List[RunTag],
+        metrics: list[Metric],
+        params: list[Param],
+        tags: list[RunTag],
     ) -> Any:
-        """
-        Log multiple metrics, params, and tags for the specified run in async fashion.
+        """Log multiple metrics, params, and tags for the specified run in async fashion.
         This API does not offer immediate consistency of the data. When API returns,
         data is accepted but not persisted/processed by back end. Data would be processed
         in near real time fashion.
@@ -226,8 +222,7 @@ class ModelRegistryStore:
         )
 
     def end_async_logging(self) -> None:
-        """
-        Ends the async logging queue. This method is a no-op if the queue is not active. This is
+        """Ends the async logging queue. This method is a no-op if the queue is not active. This is
         different from flush as it just stops the async logging queue from accepting
         new data (moving the queue state TEAR_DOWN state), but flush will ensure all data
         is processed before returning (moving the queue to IDLE state).
@@ -236,8 +231,7 @@ class ModelRegistryStore:
             self._async_logging_queue.end_async_logging()
 
     def flush_async_logging(self) -> None:
-        """
-        Flushes the async logging queue. This method is a no-op if the queue is already
+        """Flushes the async logging queue. This method is a no-op if the queue is already
         at IDLE state. This methods also shutdown the logging worker threads.
         After flushing, logging thread is setup again.
         """
@@ -245,8 +239,7 @@ class ModelRegistryStore:
             self._async_logging_queue.flush()
 
     def shut_down_async_logging(self) -> None:
-        """
-        Shuts down the async logging queue. This method is a no-op if the queue is already
+        """Shuts down the async logging queue. This method is a no-op if the queue is already
         at IDLE state. This methods also shutdown the logging worker threads.
         """
         if not self._async_logging_queue.is_idle():
@@ -256,8 +249,8 @@ class ModelRegistryStore:
     def create_experiment(
         self,
         name: str,
-        artifact_location: Optional[str] = None,
-        tags: Optional[List[ExperimentTag]] = None,
+        artifact_location: str | None = None,
+        tags: list[ExperimentTag] | None = None,
     ) -> str:
         """Create a new experiment in Model Registry."""
         payload = {
@@ -312,7 +305,7 @@ class ModelRegistryStore:
             ],
         )
 
-    def get_experiment_by_name(self, experiment_name: str) -> Optional[Experiment]:
+    def get_experiment_by_name(self, experiment_name: str) -> Experiment | None:
         """Get experiment by name."""
         # Import MLflow modules here to avoid circular imports
         from mlflow.entities import Experiment, ExperimentTag
@@ -356,13 +349,14 @@ class ModelRegistryStore:
 
     def list_experiments(
         self,
-        view_type: Optional[ViewType] = None,
-        max_results: Optional[int] = None,
-        page_token: Optional[str] = None,
-    ) -> List[Experiment]:
+        view_type: ViewType | None = None,
+        max_results: int | None = None,
+        page_token: str | None = None,
+    ) -> PagedList[Experiment]:
         """List experiments."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Experiment, ExperimentTag, ViewType, LifecycleStage
+        from mlflow.entities import Experiment, ExperimentTag, LifecycleStage, ViewType
+        from mlflow.store.entities.paged_list import PagedList
 
         if view_type is None:
             view_type = ViewType.ACTIVE_ONLY
@@ -373,7 +367,8 @@ class ModelRegistryStore:
         if page_token:
             params["pageToken"] = page_token
 
-        items = self._request("GET", "/experiments", params=params).get("items", [])
+        response_data = self._request("GET", "/experiments", params=params)
+        items = response_data.get("items", [])
 
         experiments = []
         for exp_data in items:
@@ -383,9 +378,7 @@ class ModelRegistryStore:
             if (
                 view_type == ViewType.ACTIVE_ONLY
                 and lifecycle_stage == LifecycleStage.DELETED
-            ):
-                continue
-            elif (
+            ) or (
                 view_type == ViewType.DELETED_ONLY
                 and lifecycle_stage == LifecycleStage.ACTIVE
             ):
@@ -404,18 +397,18 @@ class ModelRegistryStore:
                 )
             )
 
-        return experiments
+        nextPageToken = response_data.get("nextPageToken")
+        return PagedList(experiments, nextPageToken if nextPageToken != "" else None)
 
     def search_experiments(
         self,
-        view_type: Optional[ViewType] = None,
+        view_type: ViewType | None = None,
         max_results: int = 1000,  # TODO: Import SEARCH_MAX_RESULTS_DEFAULT
-        filter_string: Optional[str] = None,
-        order_by: Optional[List[str]] = None,
-        page_token: Optional[str] = None,
+        filter_string: str | None = None,
+        order_by: list[str] | None = None,
+        page_token: str | None = None,
     ) -> PagedList[Experiment]:
-        """
-        Search for experiments that match the specified search query.
+        """Search for experiments that match the specified search query.
 
         Args:
             view_type: One of enum values ACTIVE_ONLY, DELETED_ONLY, or ALL
@@ -428,7 +421,7 @@ class ModelRegistryStore:
             A PagedList of Experiment objects
         """
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import Experiment, ExperimentTag, ViewType, LifecycleStage
+        from mlflow.entities import Experiment, ExperimentTag, LifecycleStage, ViewType
         from mlflow.store.entities.paged_list import PagedList
 
         if view_type is None:
@@ -460,9 +453,7 @@ class ModelRegistryStore:
             if (
                 view_type == ViewType.ACTIVE_ONLY
                 and lifecycle_stage == LifecycleStage.DELETED
-            ):
-                continue
-            elif (
+            ) or (
                 view_type == ViewType.DELETED_ONLY
                 and lifecycle_stage == LifecycleStage.ACTIVE
             ):
@@ -488,24 +479,24 @@ class ModelRegistryStore:
     def create_run(
         self,
         experiment_id: str,
-        user_id: Optional[str] = None,
-        start_time: Optional[int] = None,
-        tags: Optional[List[RunTag]] = None,
-        run_name: Optional[str] = None,
+        user_id: str | None = None,
+        start_time: int | None = None,
+        tags: list[RunTag] | None = None,
+        run_name: str | None = None,
     ) -> Run:
         """Create a new run."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.utils.time import get_current_time_millis
         from mlflow.entities import (
-            RunInfo,
-            RunStatus,
             LifecycleStage,
-            RunTag,
+            Run,
+            RunData,
+            RunInfo,
             RunInputs,
             RunOutputs,
-            RunData,
-            Run,
+            RunStatus,
+            RunTag,
         )
+        from mlflow.utils.time import get_current_time_millis
 
         payload = {
             "experimentId": experiment_id,
@@ -571,9 +562,9 @@ class ModelRegistryStore:
     def update_run_info(
         self,
         run_id: str,
-        run_status: Optional[RunStatus] = None,
-        end_time: Optional[int] = None,
-        run_name: Optional[str] = None,
+        run_status: RunStatus | None = None,
+        end_time: int | None = None,
+        run_name: str | None = None,
     ) -> RunInfo:
         """Update run information."""
         # Import MLflow modules here to avoid circular imports
@@ -630,7 +621,7 @@ class ModelRegistryStore:
         }
         self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
 
-    def _get_run_metrics(self, run_id: str) -> List[Metric]:
+    def _get_run_metrics(self, run_id: str) -> list[Metric]:
         """Get all metrics for a run."""
         # Import MLflow modules here to avoid circular imports
 
@@ -649,11 +640,10 @@ class ModelRegistryStore:
         self,
         run_id: str,
         metric_key: str,
-        max_results: Optional[int] = None,
-        page_token: Optional[str] = None,
+        max_results: int | None = None,
+        page_token: str | None = None,
     ) -> PagedList[Metric]:
-        """
-        Return a list of metric objects corresponding to all values logged for a given metric
+        """Return a list of metric objects corresponding to all values logged for a given metric
         within a run.
 
         Args:
@@ -687,10 +677,9 @@ class ModelRegistryStore:
 
     # NOTE: Copied from mlflow.store.tracking.abstract_store.py
     def get_metric_history_bulk_interval_from_steps(
-        self, run_id: str, metric_key: str, steps: List[int], max_results: Optional[int]
+        self, run_id: str, metric_key: str, steps: list[int], max_results: int | None
     ) -> PagedList[MetricWithRunId]:
-        """
-        Return a list of metric objects corresponding to all values logged
+        """Return a list of metric objects corresponding to all values logged
         for a given metric within a run for the specified steps.
 
         Args:
@@ -745,7 +734,7 @@ class ModelRegistryStore:
         }
         self._request("POST", f"/experiment_runs/{run_id}/artifacts", json=payload)
 
-    def _get_run_params(self, run_id: str) -> List[Param]:
+    def _get_run_params(self, run_id: str) -> list[Param]:
         """Get all parameters for a run."""
         # Import MLflow modules here to avoid circular imports
 
@@ -764,10 +753,10 @@ class ModelRegistryStore:
         """Get all inputs and outputs for a run (datasets and models)."""
         # Import MLflow modules here to avoid circular imports
         from mlflow.entities import (
-            RunInputs,
-            RunOutputs,
             LoggedModelInput,
             LoggedModelOutput,
+            RunInputs,
+            RunOutputs,
         )
 
         # Get all artifacts and filter by type
@@ -806,10 +795,10 @@ class ModelRegistryStore:
             dataset_inputs=dataset_inputs, model_inputs=input_models
         ), RunOutputs(model_outputs=output_models)
 
-    def _getMLflowDatasetInput(self, dataset_data: Dict) -> DatasetInput:
+    def _getMLflowDatasetInput(self, dataset_data: dict) -> DatasetInput:
         """Create an MLflow DatasetInput entity from Model Registry dataset data."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import DatasetInput, LoggedModelTag, Dataset
+        from mlflow.entities import Dataset, DatasetInput, LoggedModelTag
 
         tags = []
         for key, value in dataset_data.get("customProperties", {}).items():
@@ -828,12 +817,12 @@ class ModelRegistryStore:
         # Create and return DatasetInput entity
         return DatasetInput(dataset=dataset, tags=tags)
 
-    def _getMLflowLoggedModel(self, model_data: Dict) -> LoggedModel:
+    def _getMLflowLoggedModel(self, model_data: dict) -> LoggedModel:
         """Create an MLflow LoggedModel entity from Model Registry model data."""
         # Import MLflow modules here to avoid circular imports
-        from mlflow.entities import LoggedModel, LoggedModelTag, LoggedModelParameter
-        from mlflow.models.model import Model
+        from mlflow.entities import LoggedModel, LoggedModelParameter, LoggedModelTag
         from mlflow.exceptions import MlflowException
+        from mlflow.models.model import Model
 
         custom_props = model_data.get("customProperties", {})
 
@@ -846,9 +835,8 @@ class ModelRegistryStore:
                 # Create and return the MLflow Model object
                 return Model.from_dict(model_dict)
             except (json.JSONDecodeError, KeyError, TypeError) as e:
-                raise MlflowException(
-                    f"Failed to deserialize stored MLflow model: {e}"
-                ) from e
+                msg = f"Failed to deserialize stored MLflow model: {e}"
+                raise MlflowException(msg) from e
 
         # Extract tags and params from customProperties
         tags = []
@@ -857,7 +845,7 @@ class ModelRegistryStore:
             if key.startswith("mlflow__"):
                 # Skip mlflow__* keys as they are used for internal tracking
                 continue
-            elif key.startswith("param_"):
+            if key.startswith("param_"):
                 params.append(LoggedModelParameter(key=key[6:], value=value))
             else:
                 tags.append(LoggedModelTag(key=key, value=value))
@@ -906,8 +894,8 @@ class ModelRegistryStore:
     def log_inputs(
         self,
         run_id: str,
-        datasets: Optional[List[DatasetInput]] = None,
-        models: Optional[List[LoggedModelInput]] = None,
+        datasets: list[DatasetInput] | None = None,
+        models: list[LoggedModelInput] | None = None,
     ) -> None:
         """Log inputs for a run.
 
@@ -951,7 +939,7 @@ class ModelRegistryStore:
                     "POST", f"/experiment_runs/{run_id}/artifacts", json=payload
                 )
 
-    def log_outputs(self, run_id: str, models: List[LoggedModelOutput]) -> None:
+    def log_outputs(self, run_id: str, models: list[LoggedModelOutput]) -> None:
         """Log outputs for a run.
 
         Args:
@@ -1015,11 +1003,11 @@ class ModelRegistryStore:
     def create_logged_model(
         self,
         experiment_id: str,
-        name: Optional[str] = None,
-        source_run_id: Optional[str] = None,
-        tags: Optional[List[LoggedModelTag]] = None,
-        params: Optional[List[LoggedModelParameter]] = None,
-        model_type: Optional[str] = None,
+        name: str | None = None,
+        source_run_id: str | None = None,
+        tags: list[LoggedModelTag] | None = None,
+        params: list[LoggedModelParameter] | None = None,
+        model_type: str | None = None,
     ) -> LoggedModel:
         """Create a new logged model.
 
@@ -1072,12 +1060,12 @@ class ModelRegistryStore:
 
     def search_logged_models(
         self,
-        experiment_ids: List[str],
-        filter_string: Optional[str] = None,
-        datasets: Optional[List[Dict[str, Any]]] = None,
-        max_results: Optional[int] = None,
-        order_by: Optional[List[Dict[str, Any]]] = None,
-        page_token: Optional[str] = None,
+        experiment_ids: list[str],
+        filter_string: str | None = None,
+        datasets: list[dict[str, Any]] | None = None,
+        max_results: int | None = None,
+        order_by: list[dict[str, Any]] | None = None,
+        page_token: str | None = None,
     ) -> PagedList[LoggedModel]:
         """Search for logged models that match the specified search criteria.
 
@@ -1145,7 +1133,7 @@ class ModelRegistryStore:
         # Use the helper method to create LoggedModel entity
         return response
 
-    def set_logged_model_tags(self, model_id: str, tags: List[LoggedModelTag]) -> None:
+    def set_logged_model_tags(self, model_id: str, tags: list[LoggedModelTag]) -> None:
         """Set tags on the specified logged model.
 
         Args:
@@ -1244,12 +1232,12 @@ class ModelRegistryStore:
     # Search operations (simplified implementation)
     def search_runs(
         self,
-        experiment_ids: List[str],
+        experiment_ids: list[str],
         filter_string: str = "",
-        run_view_type: Optional[ViewType] = None,
+        run_view_type: ViewType | None = None,
         max_results: int = 1000,
-        order_by: Optional[List[str]] = None,
-        page_token: Optional[str] = None,
+        order_by: list[str] | None = None,
+        page_token: str | None = None,
     ) -> PagedList[Run]:
         """Search for runs."""
         # Import MLflow modules here to avoid circular imports
@@ -1275,9 +1263,7 @@ class ModelRegistryStore:
                 if (
                     run_view_type == ViewType.ACTIVE_ONLY
                     and run_data.get("state") == "ARCHIVED"
-                ):
-                    continue
-                elif (
+                ) or (
                     run_view_type == ViewType.DELETED_ONLY
                     and run_data.get("state") == "ACTIVE"
                 ):
@@ -1288,18 +1274,18 @@ class ModelRegistryStore:
 
         return PagedList(all_runs, None)  # no paging across experiments
 
-    def _getMLflowRun(self, run_data: Dict) -> Run:
+    def _getMLflowRun(self, run_data: dict) -> Run:
         # Import MLflow modules here to avoid circular imports
         from mlflow.entities import (
-            Run,
-            RunInfo,
-            RunStatus,
-            RunTag,
-            RunData,
-            RunInputs,
-            RunOutputs,
             LoggedModelInput,
             LoggedModelOutput,
+            Run,
+            RunData,
+            RunInfo,
+            RunInputs,
+            RunOutputs,
+            RunStatus,
+            RunTag,
         )
 
         run_id = run_data["id"]
@@ -1364,10 +1350,9 @@ class ModelRegistryStore:
             run_name=run_data.get("name"),
         )
         run_data_obj = RunData(metrics=metrics, params=params, tags=tags)
-        run = Run(
+        return Run(
             run_info=run_info,
             run_inputs=run_inputs,
             run_outputs=run_outputs,
             run_data=run_data_obj,
         )
-        return run

@@ -2,8 +2,8 @@
 Tests for authentication utilities
 """
 
-from unittest.mock import patch, mock_open
 import os
+from unittest.mock import mock_open, patch
 
 from modelregistry_plugin.auth import get_auth_headers
 
@@ -42,5 +42,5 @@ class TestAuth:
                 "/var/run/secrets/kubernetes.io/serviceaccount/token"
             )
             mock_file.assert_called_once_with(
-                "/var/run/secrets/kubernetes.io/serviceaccount/token", "r"
+                "/var/run/secrets/kubernetes.io/serviceaccount/token"
             )
