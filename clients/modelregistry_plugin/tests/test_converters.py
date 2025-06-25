@@ -93,9 +93,7 @@ class TestMLflowEntityConverter:
             "name": "test-experiment",
             "externalId": "s3://bucket/artifacts/exp-123",
             "state": "LIVE",
-            "customProperties": {
-                "key1": "value1"
-            },
+            "customProperties": {"key1": "value1"},
         }
 
         experiment = MLflowEntityConverter.to_mlflow_experiment(
@@ -193,9 +191,7 @@ class TestMLflowEntityConverter:
             "source": "s3://bucket/data.csv",
             "schema": "schema",
             "profile": "profile",
-            "customProperties": {
-                "key1": "value1"
-            },
+            "customProperties": {"key1": "value1"},
         }
 
         dataset_input = MLflowEntityConverter.to_mlflow_dataset_input(dataset_data)
@@ -297,9 +293,7 @@ class TestMLflowEntityConverter:
             "owner": "user123",
             "startTimeSinceEpoch": 1234567890,
             "externalId": "s3://bucket/artifacts/exp-123/run-123",
-            "customProperties": {
-                "tag1": "value1"
-            },
+            "customProperties": {"tag1": "value1"},
         }
 
         artifacts = [
@@ -425,4 +419,4 @@ class TestMLflowEntityConverter:
         assert len(run.data.params) == 0
         assert len(run.inputs.dataset_inputs) == 0
         assert len(run.inputs.model_inputs) == 0
-        assert len(run.outputs.model_outputs) == 0 
+        assert len(run.outputs.model_outputs) == 0

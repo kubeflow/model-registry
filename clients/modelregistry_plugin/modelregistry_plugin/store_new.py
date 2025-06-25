@@ -162,8 +162,6 @@ class ModelRegistryStore:
         """
         self.experiments.rename_experiment(experiment_id, new_name)
 
-
-
     def search_experiments(
         self,
         view_type: Optional[ViewType] = None,
@@ -461,8 +459,6 @@ class ModelRegistryStore:
         """
         self.runs.set_tag(run_id, tag)
 
-
-
     # Metric operations
     def get_metric_history(
         self, run_id: str, metric_key: str, max_results: Optional[int] = None
@@ -512,12 +508,21 @@ class ModelRegistryStore:
             meaningful in such cases.
         """
         return self.search.search_runs(
-            experiment_ids, filter_string, run_view_type, max_results, order_by, page_token
+            experiment_ids,
+            filter_string,
+            run_view_type,
+            max_results,
+            order_by,
+            page_token,
         )
 
-
-
-    def get_metric_history_bulk_interval_from_steps(self, run_id: str, metric_key: str, steps: list[int], max_results: int | None = None):
+    def get_metric_history_bulk_interval_from_steps(
+        self,
+        run_id: str,
+        metric_key: str,
+        steps: list[int],
+        max_results: int | None = None,
+    ):
         """
         Return a list of metric objects corresponding to all values logged
         for a given metric within a run for the specified steps.
@@ -536,7 +541,9 @@ class ModelRegistryStore:
                 - step: Metric step.
                 - run_id: Unique identifier for run.
         """
-        return self.metrics.get_metric_history_bulk_interval_from_steps(run_id, metric_key, steps, max_results)
+        return self.metrics.get_metric_history_bulk_interval_from_steps(
+            run_id, metric_key, steps, max_results
+        )
 
     # Model operations
     def create_logged_model(
@@ -564,7 +571,13 @@ class ModelRegistryStore:
             The created model.
         """
         return self.models.create_logged_model(
-            name, source_run_id, experiment_id, model_type, artifact_location, tags, params
+            name,
+            source_run_id,
+            experiment_id,
+            model_type,
+            artifact_location,
+            tags,
+            params,
         )
 
     def get_logged_model(self, model_id: str) -> LoggedModel:
@@ -579,8 +592,6 @@ class ModelRegistryStore:
         """
         return self.models.get_logged_model(model_id)
 
-
-
     def delete_logged_model(self, model_id: str) -> None:
         """
         Delete the logged model with the specified ID.
@@ -589,12 +600,6 @@ class ModelRegistryStore:
             model_id: ID of the model to delete.
         """
         self.models.delete_logged_model(model_id)
-
-
-
-
-
-
 
     def delete_logged_model_tag(self, model_id: str, key: str) -> None:
         """
@@ -605,8 +610,6 @@ class ModelRegistryStore:
             key: Key of the tag to delete.
         """
         self.models.delete_logged_model_tag(model_id, key)
-
-
 
     def search_logged_models(
         self,
@@ -628,7 +631,9 @@ class ModelRegistryStore:
             A :py:class:`PagedList <mlflow.store.entities.PagedList>` of
             :py:class:`LoggedModel <mlflow.entities.LoggedModel>` objects.
         """
-        return self.models.search_logged_models(experiment_ids, filter_string, max_results, page_token)
+        return self.models.search_logged_models(
+            experiment_ids, filter_string, max_results, page_token
+        )
 
     def record_logged_model(self, run_id: str, mlflow_model: Model) -> None:
         """Record a logged model for a run."""
@@ -658,4 +663,4 @@ class ModelRegistryStore:
         Returns:
             None
         """
-        return self.models.set_logged_model_tags(model_id, tags) 
+        return self.models.set_logged_model_tags(model_id, tags)

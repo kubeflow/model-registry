@@ -37,18 +37,20 @@ class ModelOperations:
             LoggedModel entity
         """
         model_info = model.get_model_info()
-        
+
         # Get experiment ID from the run
         run_data = self.api_client.get(f"/experiment_runs/{run_id}")
         experiment_id = run_data.get("experimentId")
-        
+
         # Convert model to dict for serialization
         model_dict = model.to_dict()
-        
+
         payload = {
             "artifactType": "model-artifact",
             "name": model_dict.get("name", model.model_uuid or model.name),
-            "description": model_dict.get("description", f"MLflow logged model: {model.name}"),
+            "description": model_dict.get(
+                "description", f"MLflow logged model: {model.name}"
+            ),
             "uri": model_dict.get("artifact_location", model_info.model_uri),
             "customProperties": {
                 # Standard MLflow custom properties - try to get from model_dict first
@@ -56,19 +58,21 @@ class ModelOperations:
                 "mlflow__version": model_dict.get("version", "1"),
                 "mlflow__user_id": model_dict.get("user_id", "unknown"),
                 "mlflow__status_message": model_dict.get("status_message", ""),
-                "mlflow__artifact_location": model_dict.get("artifact_location", model_info.model_uri),
-                "mlflow__description": model_dict.get("description", f"MLflow logged model: {model.name}"),
+                "mlflow__artifact_location": model_dict.get(
+                    "artifact_location", model_info.model_uri
+                ),
+                "mlflow__description": model_dict.get(
+                    "description", f"MLflow logged model: {model.name}"
+                ),
                 "mlflow__experiment_id": model_dict.get("experiment_id", experiment_id),
                 "mlflow__source_run_id": model_dict.get("source_run_id", run_id),
                 "mlflow__model_type": model_dict.get("model_type", "unknown"),
-                
                 # MLflow model-specific properties
                 "mlflow__artifactPath": model_info.artifact_path,
                 "mlflow__model_uuid": model.model_uuid,
                 "mlflow__utc_time_created": model_info.utc_time_created,
                 "mlflow__mlflow_version": model_info.mlflow_version,
                 "mlflow__model_io_type": "output",
-                
                 # Store the full model dict for backward compatibility
                 "mlflow__logged_model": json.dumps(model_dict),
             },
@@ -76,9 +80,13 @@ class ModelOperations:
 
         # Add flavors as custom properties
         for flavor_name, flavor_config in model_info.flavors.items():
-            payload["customProperties"][f"mlflow__flavor_{flavor_name}"] = json.dumps(flavor_config)
+            payload["customProperties"][f"mlflow__flavor_{flavor_name}"] = json.dumps(
+                flavor_config
+            )
 
-        model_data = self.api_client.post(f"/experiment_runs/{run_id}/artifacts", json=payload)
+        model_data = self.api_client.post(
+            f"/experiment_runs/{run_id}/artifacts", json=payload
+        )
         return MLflowEntityConverter.to_mlflow_logged_model(model_data)
 
     def create_logged_model(
@@ -109,7 +117,9 @@ class ModelOperations:
         if experiment_id:
             experiment_data = self.api_client.get(f"/experiments/{experiment_id}")
             if not artifact_location:
-                artifact_location = experiment_data.get("externalId") or self.artifact_uri
+                artifact_location = (
+                    experiment_data.get("externalId") or self.artifact_uri
+                )
 
         # Set artifact location
         if artifact_location:
@@ -152,7 +162,9 @@ class ModelOperations:
             for param in params:
                 payload["customProperties"][f"param_{param.key}"] = param.value
 
-        model_data = self.api_client.post(f"/experiment_runs/{source_run_id}/artifacts", json=payload)
+        model_data = self.api_client.post(
+            f"/experiment_runs/{source_run_id}/artifacts", json=payload
+        )
         return MLflowEntityConverter.to_mlflow_logged_model(model_data)
 
     def get_logged_model(self, model_id: str) -> LoggedModel:
@@ -167,8 +179,6 @@ class ModelOperations:
         model_data = self.api_client.get(f"/artifacts/{model_id}")
         return MLflowEntityConverter.to_mlflow_logged_model(model_data)
 
-
-
     def delete_logged_model(self, model_id: str) -> None:
         """Delete a logged model.
 
@@ -179,15 +189,9 @@ class ModelOperations:
         model_data = self.api_client.get(f"/artifacts/{model_id}")
         custom_props = model_data.get("customProperties", {})
         custom_props["state"] = "MARKED_FOR_DELETION"
-        
+
         payload = {"artifactType": "model-artifact", "customProperties": custom_props}
         self.api_client.patch(f"/artifacts/{model_id}", json=payload)
-
-
-
-
-
-
 
     def delete_logged_model_tag(self, model_id: str, key: str) -> None:
         """Delete a tag from a logged model.
@@ -203,8 +207,6 @@ class ModelOperations:
 
         payload = {"customProperties": custom_props}
         self.api_client.patch(f"/artifacts/{model_id}", json=payload)
-
-
 
     def search_logged_models(
         self,
@@ -230,26 +232,30 @@ class ModelOperations:
         # TODO: Add support for datasets filtering in ModelRegistry API
         # TODO: Add support for mlflow order_by mapping to ModelRegistry API
         # TODO: Add support for pagination in ModelRegistry API across list of experiments
-        
+
         all_models = []
-        
+
         # Iterate over experiment_ids and get all runs, and get all model-artifacts for each run
         for experiment_id in experiment_ids:
             # Get runs from experiment
-            runs_response = self.api_client.get(f"/experiments/{experiment_id}/experiment_runs")
+            runs_response = self.api_client.get(
+                f"/experiments/{experiment_id}/experiment_runs"
+            )
             runs = runs_response.get("items", [])
 
             for run in runs:
                 run_id = run["id"]
                 # Get artifacts from run
                 artifacts_response = self.api_client.get(
-                    f"/experiment_runs/{run_id}/artifacts", 
-                    params={"artifactType": "model-artifact"}
+                    f"/experiment_runs/{run_id}/artifacts",
+                    params={"artifactType": "model-artifact"},
                 )
                 artifacts = artifacts_response.get("items", [])
 
                 for artifact in artifacts:
-                    all_models.append(MLflowEntityConverter.to_mlflow_logged_model(artifact))
+                    all_models.append(
+                        MLflowEntityConverter.to_mlflow_logged_model(artifact)
+                    )
 
         # Apply max_results limit if specified
         if max_results and len(all_models) > max_results:
@@ -258,7 +264,9 @@ class ModelOperations:
         # Return PagedList with no paging across experiments (same as original store.py)
         return PagedList(all_models, None)
 
-    def finalize_logged_model(self, model_id: str, status: LoggedModelStatus) -> LoggedModel:
+    def finalize_logged_model(
+        self, model_id: str, status: LoggedModelStatus
+    ) -> LoggedModel:
         """Finalize a logged model with status.
 
         Args:
@@ -270,11 +278,7 @@ class ModelOperations:
         """
         from mlflow.entities import LoggedModelStatus
 
-        payload = {
-            "customProperties": {
-                "status": status.name
-            }
-        }
+        payload = {"customProperties": {"status": status.name}}
 
         model_data = self.api_client.patch(f"/artifacts/{model_id}", json=payload)
         return MLflowEntityConverter.to_mlflow_logged_model(model_data)
@@ -292,4 +296,6 @@ class ModelOperations:
         for tag in tags:
             custom_props[tag.key] = tag.value
 
-        self.api_client.patch(f"/artifacts/{model_id}", json={"customProperties": custom_props}) 
+        self.api_client.patch(
+            f"/artifacts/{model_id}", json={"customProperties": custom_props}
+        )

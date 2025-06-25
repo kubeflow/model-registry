@@ -74,7 +74,7 @@ lint:
 
 # Format code (includes auto-fixing)
 format:
-	uv run ruff check --fix --unsafe-fixes || true
+	# uv run ruff check --fix --unsafe-fixes || true
 	uv run ruff format .
 
 # Show available tracking stores

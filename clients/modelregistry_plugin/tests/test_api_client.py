@@ -40,7 +40,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_success(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_request_success(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test successful API request."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -56,7 +58,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_with_json_data(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_request_with_json_data(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test API request with JSON data."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -65,15 +69,22 @@ class TestModelRegistryAPIClient:
         api_client.request("POST", "/test", json=json_data)
 
         call_args = mock_session_request.call_args
-        assert call_args[1]["json"]["customProperties"]["key1"]["string_value"] == "value1"
-        assert call_args[1]["json"]["customProperties"]["key1"]["metadataType"] == "MetadataStringValue"
+        assert (
+            call_args[1]["json"]["customProperties"]["key1"]["string_value"] == "value1"
+        )
+        assert (
+            call_args[1]["json"]["customProperties"]["key1"]["metadataType"]
+            == "MetadataStringValue"
+        )
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_with_response_items(self, mock_session_request, mock_auth_headers, api_client):
+    def test_request_with_response_items(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
         """Test API request with response containing items."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        
+
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
         mock_response.json.return_value = {
@@ -97,10 +108,12 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_with_single_response(self, mock_session_request, mock_auth_headers, api_client):
+    def test_request_with_single_response(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
         """Test API request with single response object."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        
+
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
         mock_response.json.return_value = {
@@ -120,17 +133,21 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_http_error(self, mock_session_request, mock_auth_headers, api_client):
+    def test_request_http_error(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
         """Test API request with HTTP error."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        
+
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = False
         mock_response.status_code = 404
         mock_response.json.return_value = {"message": "Not found"}
         mock_response.text = "Not found"
-        
-        mock_session_request.side_effect = requests.exceptions.HTTPError(response=mock_response)
+
+        mock_session_request.side_effect = requests.exceptions.HTTPError(
+            response=mock_response
+        )
 
         with pytest.raises(MlflowException) as exc_info:
             api_client.request("GET", "/test")
@@ -139,30 +156,40 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_network_error(self, mock_session_request, mock_auth_headers, api_client):
+    def test_request_network_error(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
         """Test API request with network error."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        
-        mock_session_request.side_effect = requests.exceptions.ConnectionError("Connection failed")
+
+        mock_session_request.side_effect = requests.exceptions.ConnectionError(
+            "Connection failed"
+        )
 
         with pytest.raises(MlflowException) as exc_info:
             api_client.request("GET", "/test")
 
-        assert "Network error connecting to Model Registry: Connection failed" in str(exc_info.value)
+        assert "Network error connecting to Model Registry: Connection failed" in str(
+            exc_info.value
+        )
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_invalid_json_response(self, mock_session_request, mock_auth_headers, api_client):
+    def test_request_invalid_json_response(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
         """Test API request with invalid JSON response."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        
+
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = False
         mock_response.status_code = 400
         mock_response.json.side_effect = ValueError("Invalid JSON")
         mock_response.text = "Invalid JSON"
-        
-        mock_session_request.side_effect = requests.exceptions.HTTPError(response=mock_response)
+
+        mock_session_request.side_effect = requests.exceptions.HTTPError(
+            response=mock_response
+        )
 
         with pytest.raises(MlflowException) as exc_info:
             api_client.request("GET", "/test")
@@ -171,7 +198,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_get_method(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_get_method(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test GET method."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -184,7 +213,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_post_method(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_post_method(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test POST method."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -197,7 +228,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_patch_method(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_patch_method(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test PATCH method."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -210,7 +243,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_delete_method(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_delete_method(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test DELETE method."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -222,7 +257,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_with_custom_headers(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_request_with_custom_headers(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test API request with custom headers."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -236,7 +273,9 @@ class TestModelRegistryAPIClient:
 
     @patch("modelregistry_plugin.api_client.get_auth_headers")
     @patch("modelregistry_plugin.api_client.requests.Session.request")
-    def test_request_with_params(self, mock_session_request, mock_auth_headers, api_client, mock_response):
+    def test_request_with_params(
+        self, mock_session_request, mock_auth_headers, api_client, mock_response
+    ):
         """Test API request with query parameters."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
@@ -257,4 +296,4 @@ class TestModelRegistryAPIClient:
         adapter = api_client.session.get_adapter("https://")
         assert adapter.max_retries.total == 3
         assert adapter.max_retries.backoff_factor == 1
-        assert adapter.max_retries.status_forcelist == [429, 500, 502, 503, 504] 
+        assert adapter.max_retries.status_forcelist == [429, 500, 502, 503, 504]

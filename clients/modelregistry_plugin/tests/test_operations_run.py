@@ -60,7 +60,9 @@ class TestRunOperations:
         assert run.info.run_id == "run-123"
         assert run.info.experiment_id == "exp-123"
         assert run.info.status == RunStatus.RUNNING
-        assert run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
 
         # Check POST call
         post_call = api_client.post.call_args
@@ -77,7 +79,10 @@ class TestRunOperations:
         patch_call = api_client.patch.call_args
         assert patch_call[0][0] == "/experiment_runs/run-123"
         json_data = patch_call[1]["json"]
-        assert json_data["externalId"] == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            json_data["externalId"]
+            == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
 
     def test_create_run_with_user_and_tags(self, run_ops, api_client):
         """Test creating a run with user ID and tags."""
@@ -126,9 +131,7 @@ class TestRunOperations:
             "owner": "user123",
             "startTimeSinceEpoch": "1234567890",
             "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
-            "customProperties": {
-                "key1": "value1"
-            },
+            "customProperties": {"key1": "value1"},
         }
         api_client.get.side_effect = [
             run_data,  # GET run
@@ -142,14 +145,18 @@ class TestRunOperations:
         assert run.info.experiment_id == "exp-123"
         assert run.info.run_name == "test-run"
         assert run.info.user_id == "user123"
-        assert run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
         assert len(run.data.tags) == 1
         assert run.data.tags["key1"] == "value1"
 
         # Check API calls
         assert api_client.get.call_count == 2
         api_client.get.assert_any_call("/experiment_runs/run-123")
-        api_client.get.assert_any_call("/experiment_runs/run-123/artifacts", params={"pageSize": 1000})
+        api_client.get.assert_any_call(
+            "/experiment_runs/run-123/artifacts", params={"pageSize": 1000}
+        )
 
     def test_update_run_info(self, run_ops, api_client):
         """Test updating run information."""
@@ -164,12 +171,16 @@ class TestRunOperations:
         }
         api_client.patch.return_value = run_data
 
-        run_info = run_ops.update_run_info("run-123", RunStatus.FINISHED, end_time=1234567899)
+        run_info = run_ops.update_run_info(
+            "run-123", RunStatus.FINISHED, end_time=1234567899
+        )
 
         assert isinstance(run_info, RunInfo)
         assert run_info.run_id == "run-123"
         assert run_info.status == RunStatus.FINISHED
-        assert run_info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        assert (
+            run_info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
+        )
 
         patch_call = api_client.patch.call_args
         assert patch_call[0][0] == "/experiment_runs/run-123"
@@ -233,9 +244,7 @@ class TestRunOperations:
         run_data = {
             "id": "run-123",
             "experimentId": "exp-123",
-            "customProperties": {
-                "existing": "tag"
-            },
+            "customProperties": {"existing": "tag"},
         }
         api_client.get.return_value = run_data
         api_client.patch.return_value = {}
@@ -290,11 +299,7 @@ class TestRunOperations:
 
     def test_log_inputs_models(self, run_ops, api_client):
         """Test logging model inputs."""
-        model_data = {
-            "customProperties": {
-                "existing": "value"
-            }
-        }
+        model_data = {"customProperties": {"existing": "value"}}
         api_client.get.return_value = model_data
         api_client.post.return_value = {}
 
@@ -313,11 +318,7 @@ class TestRunOperations:
 
     def test_log_outputs(self, run_ops, api_client):
         """Test logging model outputs."""
-        model_data = {
-            "customProperties": {
-                "existing": "value"
-            }
-        }
+        model_data = {"customProperties": {"existing": "value"}}
         api_client.get.return_value = model_data
         api_client.post.return_value = {}
 
@@ -339,9 +340,7 @@ class TestRunOperations:
         run_data = {
             "id": "run-123",
             "experimentId": "exp-123",
-            "customProperties": {
-                "existing": "value"
-            },
+            "customProperties": {"existing": "value"},
         }
         api_client.get.return_value = run_data
         api_client.patch.return_value = {}
@@ -358,8 +357,6 @@ class TestRunOperations:
         json_data = patch_call[1]["json"]
         custom_props = json_data["customProperties"]
         assert custom_props["key1"] == "value1"
-
-
 
     def test_get_all_run_artifacts(self, run_ops, api_client):
         """Test getting all artifacts for a run with pagination."""
@@ -387,7 +384,8 @@ class TestRunOperations:
             "/experiment_runs/run-123/artifacts", params={"pageSize": 1000}
         )
         api_client.get.assert_any_call(
-            "/experiment_runs/run-123/artifacts", params={"pageSize": 1000, "pageToken": "token123"}
+            "/experiment_runs/run-123/artifacts",
+            params={"pageSize": 1000, "pageToken": "token123"},
         )
 
     @patch.dict(os.environ, {"MODEL_REGISTRY_ARTIFACT_PAGE_SIZE": "500"})
@@ -422,4 +420,4 @@ class TestRunOperations:
         artifacts = run_ops._get_all_run_artifacts("run-123")
 
         assert len(artifacts) == 0
-        api_client.get.assert_called_once() 
+        api_client.get.assert_called_once()
