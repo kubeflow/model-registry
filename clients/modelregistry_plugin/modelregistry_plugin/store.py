@@ -623,7 +623,9 @@ class ModelRegistryTrackingStore:
         self,
         experiment_ids: List[str],
         filter_string: Optional[str] = None,
+        datasets: Optional[List[dict[str, Any]]] = None,
         max_results: Optional[int] = None,
+        order_by: Optional[List[dict[str, Any]]] = None,
         page_token: Optional[str] = None,
     ) -> PagedList[LoggedModel]:
         """
@@ -632,7 +634,25 @@ class ModelRegistryTrackingStore:
         Args:
             experiment_ids: List of experiment ids to scope the search.
             filter_string: A search filter string.
+            datasets: List of dictionaries to specify datasets on which to apply metrics filters.
+                The following fields are supported:
+
+                name (str): Required. Name of the dataset.
+                digest (str): Optional. Digest of the dataset.
             max_results: Maximum number of logged models desired.
+            order_by: List of dictionaries to specify the ordering of the search results.
+                The following fields are supported:
+
+                field_name (str): Required. Name of the field to order by, e.g. "metrics.accuracy".
+                ascending: (bool): Optional. Whether the order is ascending or not.
+                dataset_name: (str): Optional. If ``field_name`` refers to a metric, this field
+                    specifies the name of the dataset associated with the metric. Only metrics
+                    associated with the specified dataset name will be considered for ordering.
+                    This field may only be set if ``field_name`` refers to a metric.
+                dataset_digest (str): Optional. If ``field_name`` refers to a metric, this field
+                    specifies the digest of the dataset associated with the metric. Only metrics
+                    associated with the specified dataset name and digest will be considered for
+                    ordering. This field may only be set if ``dataset_name`` is also set.
             page_token: Token specifying the next page of results.
 
         Returns:
@@ -640,7 +660,7 @@ class ModelRegistryTrackingStore:
             :py:class:`LoggedModel <mlflow.entities.LoggedModel>` objects.
         """
         return self.models.search_logged_models(
-            experiment_ids, filter_string, max_results, page_token
+            experiment_ids, filter_string, datasets, max_results, order_by, page_token
         )
 
     def record_logged_model(self, run_id: str, mlflow_model: Model) -> None:
