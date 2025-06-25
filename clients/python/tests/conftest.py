@@ -4,6 +4,7 @@ import inspect
 import json
 import os
 import pathlib
+import secrets
 import shutil
 import subprocess
 import tempfile
@@ -320,8 +321,10 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         skopeo_push_mock.side_effect = mock_override
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
+    """Generate the schema for the API"""
+
     os.environ["API_HOST"] = REGISTRY_URL
     config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
     schema = schemathesis.openapi.from_url(
@@ -330,3 +333,20 @@ def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
     )
     schema.config.output.sanitization.update(enabled=False)
     return schema
+
+random_str_int = str(secrets.randbelow(1000))
+
+@pytest.fixture(scope="session")
+def schema_with_hooks(generated_schema: BaseOpenAPISchema) -> BaseOpenAPISchema:
+    """Add hooks to the schema fixture"""
+    def customize_test_data(context, case):
+        """Hook to customize test data for specific endpoints"""
+
+        if case.path == "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts" and case.method == "POST":
+            case.path_parameters["modelversionId"] = random_str_int
+        elif case.path == "/api/model_registry/v1alpha3/artifacts/{id}" and case.method == "PATCH":
+            case.path_parameters["id"] = random_str_int
+        return case
+
+    generated_schema.hooks.apply(customize_test_data)
+    return generated_schema

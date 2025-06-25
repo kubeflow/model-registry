@@ -2,8 +2,7 @@ import pytest
 import schemathesis
 from hypothesis import HealthCheck, settings
 
-schema = schemathesis.pytest.from_fixture("generated_schema")
-
+schema = schemathesis.pytest.from_fixture("schema_with_hooks")
 
 @schema.parametrize()
 @settings(
@@ -11,7 +10,6 @@ schema = schemathesis.pytest.from_fixture("generated_schema")
     suppress_health_check=[
         HealthCheck.filter_too_much,
         HealthCheck.too_slow,
-        HealthCheck.filter_too_much,
     ]
 )
 @pytest.mark.e2e
