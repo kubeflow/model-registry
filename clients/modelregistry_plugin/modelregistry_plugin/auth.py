@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Authentication utilities for Model Registry API."""
+
+from __future__ import annotations
 
 import os
 

@@ -249,7 +249,8 @@ class TestModelOperations:
         patch_call = api_client.patch.call_args
         assert patch_call[0][0] == "/artifacts/model-123"
         json_data = patch_call[1]["json"]
-        assert json_data["customProperties"]["status"] == "READY"
+        assert json_data["state"] == "LIVE"
+        assert json_data["artifactType"] == "model-artifact"
 
     def test_set_logged_model_tags(self, model_ops, api_client):
         """Test setting logged model tags."""

@@ -1,12 +1,18 @@
-from __future__ import annotations
-
 """Model operations for Model Registry store."""
+
+from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
-    from mlflow.entities import LoggedModel, LoggedModelParameter, LoggedModelTag
+    from mlflow.entities import (
+        LoggedModel,
+        LoggedModelParameter,
+        LoggedModelTag,
+        LoggedModelStatus,
+    )
+    from mlflow.store.entities.paged_list import PagedList
     from mlflow.models.model import Model
 
 from ..api_client import ModelRegistryAPIClient
@@ -276,9 +282,13 @@ class ModelOperations:
         Returns:
             Updated LoggedModel entity
         """
-        from mlflow.entities import LoggedModelStatus
+        from ..utils import convert_to_model_artifact_state
 
-        payload = {"customProperties": {"status": status.name}}
+        # Convert MLflow status to Model Registry state
+        model_state = convert_to_model_artifact_state(status)
+
+        # Use /artifacts endpoint with state and artifactType discriminator properties
+        payload = {"artifactType": "model-artifact", "state": model_state}
 
         model_data = self.api_client.patch(f"/artifacts/{model_id}", json=payload)
         return MLflowEntityConverter.to_mlflow_logged_model(model_data)

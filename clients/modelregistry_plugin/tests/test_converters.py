@@ -1,26 +1,17 @@
 """Tests for MLflowEntityConverter."""
 
 import json
-from unittest.mock import Mock
 
 import pytest
 from mlflow.entities import (
-    Dataset,
     DatasetInput,
     Experiment,
-    ExperimentTag,
     LoggedModel,
-    LoggedModelParameter,
-    LoggedModelTag,
     Metric,
     Param,
     Run,
-    RunData,
     RunInfo,
-    RunInputs,
-    RunOutputs,
     RunStatus,
-    RunTag,
 )
 from mlflow.exceptions import MlflowException
 from mlflow.models import Model

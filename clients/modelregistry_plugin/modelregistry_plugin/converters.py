@@ -9,22 +9,12 @@ if TYPE_CHECKING:
     from mlflow.entities import (
         DatasetInput,
         Experiment,
-        ExperimentTag,
         LoggedModel,
-        LoggedModelParameter,
-        LoggedModelTag,
         Metric,
         Param,
         Run,
-        RunData,
         RunInfo,
-        RunInputs,
-        RunOutputs,
-        RunStatus,
-        RunTag,
     )
-    from mlflow.entities.metric import MetricWithRunId
-    from mlflow.models.model import Model
 
 from modelregistry_plugin.utils import (
     ModelIOType,
@@ -112,7 +102,7 @@ class MLflowEntityConverter:
         Returns:
             MLflow RunInfo entity
         """
-        from mlflow.entities import LifecycleStage, RunInfo, RunStatus
+        from mlflow.entities import RunInfo, RunStatus
 
         start_time = convert_timestamp(
             run_data.get("startTimeSinceEpoch") or run_data.get("createTimeSinceEpoch")
@@ -215,9 +205,7 @@ class MLflowEntityConverter:
                 model_data.get("lastUpdatedTimeSinceEpoch")
             ),
             model_type=custom_props.get("mlflow__model_type"),
-            status=convert_to_mlflow_logged_model_status(
-                model_data.get("state", "LIVE")
-            ),
+            status=convert_to_mlflow_logged_model_status(model_data.get("state")),
             tags=tags,
             params=params,
         )
@@ -239,17 +227,12 @@ class MLflowEntityConverter:
             MLflow Run entity
         """
         from mlflow.entities import (
-            DatasetInput,
             LoggedModelInput,
             LoggedModelOutput,
-            Metric,
-            Param,
             Run,
             RunData,
-            RunInfo,
             RunInputs,
             RunOutputs,
-            RunStatus,
             RunTag,
         )
 

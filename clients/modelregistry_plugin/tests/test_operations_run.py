@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 import pytest
 from mlflow.entities import (
     DatasetInput,
-    InputTag,
     LoggedModelInput,
     LoggedModelOutput,
     Metric,
@@ -16,10 +15,8 @@ from mlflow.entities import (
     RunStatus,
     RunTag,
 )
-from mlflow.models.model import Model
 
 from modelregistry_plugin.operations.run import RunOperations
-from modelregistry_plugin.utils import ModelIOType
 
 
 class TestRunOperations:

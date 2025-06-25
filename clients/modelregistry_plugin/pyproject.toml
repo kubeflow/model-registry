@@ -10,9 +10,9 @@ dependencies = [
 ]
 
 [project.entry-points."mlflow.tracking_store"]
-modelregistry = "modelregistry_plugin.store:ModelRegistryStore"
-"modelregistry+http" = "modelregistry_plugin.store:ModelRegistryStore"
-"modelregistry+https" = "modelregistry_plugin.store:ModelRegistryStore"
+modelregistry = "modelregistry_plugin.store:ModelRegistryTrackingStore"
+"modelregistry+http" = "modelregistry_plugin.store:ModelRegistryTrackingStore"
+"modelregistry+https" = "modelregistry_plugin.store:ModelRegistryTrackingStore"
 
 [build-system]
 requires = ["hatchling"]
@@ -27,56 +27,3 @@ dev = [
     "ruff>=0.12.0",
     "testcontainers>=3.7.0",
 ]
-
-[tool.ruff]
-target-version = "py39"
-respect-gitignore = true
-
-[tool.ruff.lint]
-select = [
-    "F", # pyflakes
-    "W", # warnings
-    "E", # errors
-    "C90", # mccabe
-    "B",   # bugbear
-    "S",   # flake8-bandit
-    "C4",  # flake8-comprehensions
-    "D",   # pydocstyle
-    "EM",  # flake8-errmsg
-    "I",   # isort
-    "PT",  # pytest
-    "Q",   # flake8-quotes
-    "RET", # flake8-return
-    "SIM", # flake8-simplify
-    "UP",  # pyupgrade
-    
-    # Type checking rules
-    "TCH", # flake8-type-checking
-    "TID", # flake8-tidy-imports
-    "ARG", # flake8-unused-arguments
-    "PIE", # flake8-pie
-    "T20", # flake8-print
-    "PYI", # flake8-pyi
-]
-ignore = [
-    "D105", # missing docstring in magic method
-    "E501", # line too long
-    "S101", # use of assert detected
-    "TCH001", # allow typing imports in runtime code
-    "TCH002", # allow typing imports in runtime code
-    "TCH003", # allow typing imports in runtime code
-]
-mccabe.max-complexity = 8
-per-file-ignores = { "tests/**/*.py" = [
-    "D", # missing docstring in public module
-] }
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.flake8-type-checking]
-# Allow type-checking imports in runtime code
-runtime-evaluated-base-classes = ["pydantic.BaseModel"]
-
-[tool.ruff.lint.flake8-tidy-imports]
-ban-relative-imports = "all"
