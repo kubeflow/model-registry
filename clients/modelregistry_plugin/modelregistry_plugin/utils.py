@@ -1,13 +1,16 @@
-"""
-Utility functions for Model Registry plugin
-"""
+from __future__ import annotations
+
+"""Utility functions for Model Registry plugin."""
 
 import os
-from typing import Optional, Tuple, Dict, Any
-from urllib.parse import urlparse
 from enum import Enum
-from mlflow.entities import LoggedModelStatus
-from mlflow.entities import LifecycleStage
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from mlflow.entities import LifecycleStage, LoggedModelStatus
+from urllib.parse import urlparse
+
+
 
 
 class ModelIOType(Enum):
@@ -16,9 +19,8 @@ class ModelIOType(Enum):
     UNKNOWN = "unknown"
 
 
-def parse_tracking_uri(tracking_uri: str) -> Tuple[str, int, bool]:
-    """
-    Parse the tracking URI to extract connection details.
+def parse_tracking_uri(tracking_uri: str) -> tuple[str, int, bool]:
+    """Parse the tracking URI to extract connection details.
 
     Args:
         tracking_uri: URI like "modelregistry://localhost:8080" or "modelregistry+https://host:port"
@@ -44,36 +46,42 @@ def parse_tracking_uri(tracking_uri: str) -> Tuple[str, int, bool]:
     return host, port, secure
 
 
-def convert_timestamp(timestamp_str: str) -> Any:
-    """
-    Convert timestamp string to milliseconds since epoch.
+def convert_timestamp(timestamp_input: Any) -> Optional[int]:
+    """Convert timestamp input to milliseconds since epoch.
 
     Args:
-        timestamp_str: Timestamp string from Model Registry
+        timestamp_input: Timestamp from Model Registry (string or int)
 
     Returns:
-        Timestamp in milliseconds since epoch
+        Timestamp in milliseconds since epoch, or None if conversion fails
     """
-    if not timestamp_str:
+    if timestamp_input is None:
         return None
 
     try:
+        # If it's already an integer, return it
+        if isinstance(timestamp_input, int):
+            return timestamp_input
+        
+        # Convert to string and handle
+        timestamp_str = str(timestamp_input)
+        if not timestamp_str:
+            return None
+
         # Assuming timestamp is in ISO format or milliseconds
         if timestamp_str.isdigit():
             return int(timestamp_str)
-        else:
-            # Parse ISO format timestamp
-            from datetime import datetime
+        # Parse ISO format timestamp
+        from datetime import datetime
 
-            dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-            return int(dt.timestamp() * 1000)
+        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        return int(dt.timestamp() * 1000)
     except (ValueError, TypeError, AttributeError, OSError):
         return None
 
 
-def convert_modelregistry_state(response: Dict):
-    """
-    Convert Model Registry state to MLflow lifecycle stage.
+def convert_modelregistry_state(response: dict):
+    """Convert Model Registry state to MLflow lifecycle stage.
 
     Args:
         response: Model Registry Response with state (LIVE, ARCHIVED, etc.)
@@ -81,6 +89,8 @@ def convert_modelregistry_state(response: Dict):
     Returns:
         Corresponding MLflow lifecycle stage
     """
+    from mlflow.entities import LifecycleStage
+    
     return (
         LifecycleStage.ACTIVE
         if response.get("state") != "ARCHIVED"
@@ -89,39 +99,39 @@ def convert_modelregistry_state(response: Dict):
 
 
 def convert_to_model_artifact_state(state: Optional[LoggedModelStatus]) -> str:
-    """
-    Convert MLflow LoggedModelStatus to Model Artifact State.
-    """
+    """Convert MLflow LoggedModelStatus to Model Artifact State."""
+    from mlflow.entities import LoggedModelStatus
+    
     if state is None:
         return "UNKNOWN"
 
     # map to values from openapi/model_artifact_state.go
     if state == LoggedModelStatus.UNSPECIFIED:
         return "UNKNOWN"
-    elif state == LoggedModelStatus.PENDING:
+    if state == LoggedModelStatus.PENDING:
         return "PENDING"
-    elif state == LoggedModelStatus.READY:
+    if state == LoggedModelStatus.READY:
         return "LIVE"
-    elif state == LoggedModelStatus.FAILED:
+    if state == LoggedModelStatus.FAILED:
         return "ABANDONED"
+    return None
 
 
 def convert_to_mlflow_logged_model_status(state: Optional[str]) -> LoggedModelStatus:
-    """
-    Convert Model Artifact State to MLflow LoggedModelStatus.
-    """
+    """Convert Model Artifact State to MLflow LoggedModelStatus."""
+    from mlflow.entities import LoggedModelStatus
+    
     if state is None:
         return LoggedModelStatus.UNSPECIFIED
 
     # map to values from openapi/model_artifact_state.go
     if state == "PENDING":
         return LoggedModelStatus.PENDING
-    elif state == "LIVE":
+    if state == "LIVE":
         return LoggedModelStatus.READY
-    elif state == "ABANDONED":
+    if state == "ABANDONED":
         return LoggedModelStatus.FAILED
-    else:
-        return LoggedModelStatus.UNSPECIFIED
+    return LoggedModelStatus.UNSPECIFIED
 
 
 def toModelRegistryCustomProperties(json):
