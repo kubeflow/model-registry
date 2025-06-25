@@ -18,7 +18,7 @@ import {
   genRandomChars,
   useFetchState,
 } from 'mod-arch-shared';
-import { ModelRegistry } from '~/app/types';
+import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 
@@ -135,7 +135,7 @@ export const listModelRegistrySettings =
 
 export const createModelRegistrySettings =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: ModelRegistryKind): Promise<ModelRegistryKind[]> =>
+  (opts: APIOptions, data: ModelRegistryPayload): Promise<ModelRegistryKind> =>
     handleRestFailures(
       restCREATE(
         hostPath,
@@ -145,7 +145,7 @@ export const createModelRegistrySettings =
         opts,
       ),
     ).then((response) => {
-      if (isModArchResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
