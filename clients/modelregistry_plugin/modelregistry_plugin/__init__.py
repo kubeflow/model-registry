@@ -3,7 +3,7 @@
 A MLflow tracking plugin that integrates with Kubeflow Model Registry.
 """
 
-from .store import ModelRegistryTrackingStore
+from .tracking_store import ModelRegistryTrackingStore
 
 __version__ = "0.1.0"
 __all__ = ["ModelRegistryTrackingStore"]

@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from modelregistry_plugin.store import ModelRegistryTrackingStore
+from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
 
 
 class TestAsyncLogging:

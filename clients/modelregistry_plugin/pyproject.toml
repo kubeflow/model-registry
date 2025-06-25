@@ -10,9 +10,9 @@ dependencies = [
 ]
 
 [project.entry-points."mlflow.tracking_store"]
-modelregistry = "modelregistry_plugin.store:ModelRegistryTrackingStore"
-"modelregistry+http" = "modelregistry_plugin.store:ModelRegistryTrackingStore"
-"modelregistry+https" = "modelregistry_plugin.store:ModelRegistryTrackingStore"
+modelregistry = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+http" = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+https" = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
 
 [build-system]
 requires = ["hatchling"]

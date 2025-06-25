@@ -271,8 +271,8 @@ class ModelOperations:
         if max_results and len(all_models) > max_results:
             all_models = all_models[:max_results]
 
-        # Return PagedList with no paging across experiments (same as original store.py)
-        return PagedList(all_models, None)
+        # Return PagedList with no paging across experiments
+        return PagedList(items=all_models, token=None)
 
     def finalize_logged_model(
         self, model_id: str, status: LoggedModelStatus
