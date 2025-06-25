@@ -114,7 +114,7 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	if servingEnvironmentId != nil {
 		convertedId, err := strconv.ParseInt(*servingEnvironmentId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid serving environment id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)

@@ -280,7 +280,7 @@ func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVe
 	if modelVersionId != nil {
 		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid model version id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		convertedIdInt32 := int32(convertedId)
