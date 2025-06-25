@@ -104,9 +104,7 @@ class TestExperimentOperations:
             "name": "test-experiment",
             "externalId": "s3://bucket/artifacts/exp-123",
             "state": "LIVE",
-            "customProperties": {
-                "key1": "value1"
-            },
+            "customProperties": {"key1": "value1"},
         }
         api_client.get.return_value = experiment_data
 
@@ -138,12 +136,14 @@ class TestExperimentOperations:
         assert experiment.experiment_id == "exp-123"
         assert experiment.name == "test-experiment"
 
-        api_client.get.assert_called_once_with("/experiment", params={"name": "test-experiment"})
+        api_client.get.assert_called_once_with(
+            "/experiment", params={"name": "test-experiment"}
+        )
 
     def test_get_experiment_by_name_not_found(self, experiment_ops, api_client):
         """Test getting an experiment by name when not found."""
         from mlflow.exceptions import MlflowException
-        
+
         # Mock the API client to raise a proper MlflowException with 404 status
         # The API client creates exceptions with error_code, so we need to mock that
         exception = MlflowException("Model Registry API error: not found")
@@ -153,14 +153,16 @@ class TestExperimentOperations:
         exception.message = "Model Registry API error: not found"
         # Set the error_code that the API client would set
         exception.error_code = "RESOURCE_DOES_NOT_EXIST"
-        
+
         # Mock the API client to raise this exception
         api_client.get.side_effect = exception
 
         experiment = experiment_ops.get_experiment_by_name("nonexistent")
 
         assert experiment is None
-        api_client.get.assert_called_once_with("/experiment", params={"name": "nonexistent"})
+        api_client.get.assert_called_once_with(
+            "/experiment", params={"name": "nonexistent"}
+        )
 
     def test_get_experiment_by_name_other_error(self, experiment_ops, api_client):
         """Test getting an experiment by name with other error."""
@@ -200,8 +202,6 @@ class TestExperimentOperations:
         api_client.patch.assert_called_once_with(
             "/experiments/exp-123", json={"name": "new-name"}
         )
-
-
 
     def test_search_experiments(self, experiment_ops, api_client):
         """Test searching experiments."""
@@ -309,9 +309,7 @@ class TestExperimentOperations:
         experiment_data = {
             "id": "exp-123",
             "name": "test-experiment",
-            "customProperties": {
-                "existing": "value"
-            },
+            "customProperties": {"existing": "value"},
         }
         api_client.get.return_value = experiment_data
         api_client.patch.return_value = {}
@@ -328,4 +326,4 @@ class TestExperimentOperations:
         json_data = patch_call[1]["json"]
         custom_props = json_data["customProperties"]
         assert custom_props["key1"] == "value1"
-        assert custom_props["existing"] == "value" 
+        assert custom_props["existing"] == "value"

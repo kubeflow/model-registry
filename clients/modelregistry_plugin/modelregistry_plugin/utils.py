@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 from urllib.parse import urlparse
 
 
-
-
 class ModelIOType(Enum):
     INPUT = "input"
     OUTPUT = "output"
@@ -62,7 +60,7 @@ def convert_timestamp(timestamp_input: Any) -> Optional[int]:
         # If it's already an integer, return it
         if isinstance(timestamp_input, int):
             return timestamp_input
-        
+
         # Convert to string and handle
         timestamp_str = str(timestamp_input)
         if not timestamp_str:
@@ -90,7 +88,7 @@ def convert_modelregistry_state(response: dict):
         Corresponding MLflow lifecycle stage
     """
     from mlflow.entities import LifecycleStage
-    
+
     return (
         LifecycleStage.ACTIVE
         if response.get("state") != "ARCHIVED"
@@ -101,7 +99,7 @@ def convert_modelregistry_state(response: dict):
 def convert_to_model_artifact_state(state: Optional[LoggedModelStatus]) -> str:
     """Convert MLflow LoggedModelStatus to Model Artifact State."""
     from mlflow.entities import LoggedModelStatus
-    
+
     if state is None:
         return "UNKNOWN"
 
@@ -120,7 +118,7 @@ def convert_to_model_artifact_state(state: Optional[LoggedModelStatus]) -> str:
 def convert_to_mlflow_logged_model_status(state: Optional[str]) -> LoggedModelStatus:
     """Convert Model Artifact State to MLflow LoggedModelStatus."""
     from mlflow.entities import LoggedModelStatus
-    
+
     if state is None:
         return LoggedModelStatus.UNSPECIFIED
 

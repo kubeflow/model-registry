@@ -138,7 +138,9 @@ class RunOperations:
         run_data = self.api_client.get(f"/experiment_runs/{run_id}")
         all_artifacts = self._get_all_run_artifacts(run_id)
         artifact_location = run_data.get("externalId") or self.artifact_uri
-        return MLflowEntityConverter.to_mlflow_run(run_data, all_artifacts, artifact_location)
+        return MLflowEntityConverter.to_mlflow_run(
+            run_data, all_artifacts, artifact_location
+        )
 
     def update_run_info(
         self,
@@ -247,7 +249,7 @@ class RunOperations:
             custom_props[tag.key] = tag.value
         payload = {"customProperties": custom_props}
         self.api_client.patch(f"/experiment_runs/{run_id}", json=payload)
-        
+
         # Log metrics and params individually
         # TODO: Add support for batch logging in Model Registry REST API
         for metric in metrics:
@@ -283,7 +285,9 @@ class RunOperations:
                 if dataset_input.tags:
                     for tag in dataset_input.tags:
                         payload["customProperties"][tag.key] = tag.value
-                self.api_client.post(f"/experiment_runs/{run_id}/artifacts", json=payload)
+                self.api_client.post(
+                    f"/experiment_runs/{run_id}/artifacts", json=payload
+                )
 
         if models:
             for model in models:
@@ -297,7 +301,9 @@ class RunOperations:
                     "id": model.model_id,
                     "customProperties": custom_props,
                 }
-                self.api_client.post(f"/experiment_runs/{run_id}/artifacts", json=payload)
+                self.api_client.post(
+                    f"/experiment_runs/{run_id}/artifacts", json=payload
+                )
 
     def log_outputs(self, run_id: str, models: List[LoggedModelOutput]) -> None:
         """Log outputs for a run.
@@ -333,8 +339,6 @@ class RunOperations:
         payload = {"customProperties": custom_props}
         self.api_client.patch(f"/experiment_runs/{run_id}", json=payload)
 
-
-
     def _get_all_run_artifacts(self, run_id: str) -> List[dict]:
         """Get all artifacts for a run with pagination support.
 
@@ -360,7 +364,9 @@ class RunOperations:
             if page_token:
                 params["pageToken"] = page_token
 
-            response = self.api_client.get(f"/experiment_runs/{run_id}/artifacts", params=params)
+            response = self.api_client.get(
+                f"/experiment_runs/{run_id}/artifacts", params=params
+            )
 
             items = response.get("items", [])
             all_artifacts.extend(items)
@@ -371,4 +377,4 @@ class RunOperations:
                 break
             page_token = next_page_token
 
-        return all_artifacts 
+        return all_artifacts

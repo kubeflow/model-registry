@@ -38,12 +38,14 @@ class MetricOperations:
             PagedList of metrics
         """
         from mlflow.store.entities.paged_list import PagedList
-        
+
         params = {"name": metric_key}
         if max_results:
             params["pageSize"] = max_results
 
-        response = self.api_client.get(f"/experiment_runs/{run_id}/metric_history", params=params)
+        response = self.api_client.get(
+            f"/experiment_runs/{run_id}/metric_history", params=params
+        )
         next_page_token = response.get("nextPageToken")
         items = response.get("items", [])
 
@@ -84,18 +86,20 @@ class MetricOperations:
         if steps:
             params["stepIds"] = ",".join(map(str, steps))
 
-        response = self.api_client.get(f"/experiment_runs/{run_id}/metric_history", params=params)
+        response = self.api_client.get(
+            f"/experiment_runs/{run_id}/metric_history", params=params
+        )
         next_page_token = response.get("nextPageToken")
         items = response.get("items", [])
 
         metrics = []
         for item in items:
             metric = MLflowEntityConverter.to_mlflow_metric(item)
-            metrics.append(MetricWithRunId(
-                metric=metric,
-                run_id=run_id,
-            ))
+            metrics.append(
+                MetricWithRunId(
+                    metric=metric,
+                    run_id=run_id,
+                )
+            )
 
         return PagedList(metrics, next_page_token if next_page_token != "" else None)
-
- 

@@ -3,7 +3,12 @@
 from unittest.mock import Mock
 
 import pytest
-from mlflow.entities import LoggedModel, LoggedModelParameter, LoggedModelStatus, LoggedModelTag
+from mlflow.entities import (
+    LoggedModel,
+    LoggedModelParameter,
+    LoggedModelStatus,
+    LoggedModelTag,
+)
 from mlflow.models import Model
 from mlflow.store.entities.paged_list import PagedList
 
@@ -153,12 +158,17 @@ class TestModelOperations:
         assert json_data["customProperties"]["mlflow__source_run_id"] == "run-123"
         assert json_data["customProperties"]["key1"] == "value1"
         assert json_data["customProperties"]["param_param1"] == "value1"
-        assert json_data["uri"] == "s3://bucket/artifacts/experiments/exp-123/run-123/test-model"
+        assert (
+            json_data["uri"]
+            == "s3://bucket/artifacts/experiments/exp-123/run-123/test-model"
+        )
 
     def test_search_logged_models(self, model_ops, api_client):
         """Test searching logged models."""
         # Mock runs response
-        runs_data = {"items": [{"id": "run-123", "experimentId": "exp-123", "name": "test-run"}]}
+        runs_data = {
+            "items": [{"id": "run-123", "experimentId": "exp-123", "name": "test-run"}]
+        }
         api_client.get.side_effect = [
             runs_data,  # GET /experiments/exp-123/experiment_runs
             {  # GET /experiment_runs/run-123/artifacts
@@ -227,7 +237,9 @@ class TestModelOperations:
         }
         api_client.patch.return_value = model_data
 
-        logged_model = model_ops.finalize_logged_model("model-123", LoggedModelStatus.READY)
+        logged_model = model_ops.finalize_logged_model(
+            "model-123", LoggedModelStatus.READY
+        )
 
         assert isinstance(logged_model, LoggedModel)
         assert logged_model.model_id == "model-123"
@@ -239,16 +251,12 @@ class TestModelOperations:
         json_data = patch_call[1]["json"]
         assert json_data["customProperties"]["status"] == "READY"
 
-
-
     def test_set_logged_model_tags(self, model_ops, api_client):
         """Test setting logged model tags."""
         model_data = {
             "id": "model-123",
             "name": "test-model",
-            "customProperties": {
-                "existing": "value"
-            },
+            "customProperties": {"existing": "value"},
         }
         api_client.get.return_value = model_data
         api_client.patch.return_value = {}
@@ -328,9 +336,7 @@ class TestModelOperations:
         model_data = {
             "id": "model-123",
             "name": "test-model",
-            "customProperties": {
-                "existing": "value"
-            },
+            "customProperties": {"existing": "value"},
         }
         api_client.get.return_value = model_data
         api_client.patch.return_value = {}
@@ -400,7 +406,7 @@ class TestModelOperations:
                 }
             ]
         }
-        
+
         api_client.get.side_effect = [
             runs_data1,  # GET /experiments/exp-1/experiment_runs
             artifacts_data1,  # GET /experiment_runs/run-1/artifacts
@@ -418,16 +424,12 @@ class TestModelOperations:
 
         # Verify API calls
         assert api_client.get.call_count == 4
-        api_client.get.assert_any_call(
-            "/experiments/exp-1/experiment_runs"
-        )
+        api_client.get.assert_any_call("/experiments/exp-1/experiment_runs")
         api_client.get.assert_any_call(
             "/experiment_runs/run-1/artifacts",
             params={"artifactType": "model-artifact"},
         )
-        api_client.get.assert_any_call(
-            "/experiments/exp-2/experiment_runs"
-        )
+        api_client.get.assert_any_call("/experiments/exp-2/experiment_runs")
         api_client.get.assert_any_call(
             "/experiment_runs/run-2/artifacts",
             params={"artifactType": "model-artifact"},

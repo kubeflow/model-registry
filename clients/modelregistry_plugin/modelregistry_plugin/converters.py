@@ -76,7 +76,9 @@ class MLflowEntityConverter:
         )
 
     @staticmethod
-    def to_mlflow_experiment(experiment_data: Dict[str, Any], artifact_uri: str) -> Experiment:
+    def to_mlflow_experiment(
+        experiment_data: Dict[str, Any], artifact_uri: str
+    ) -> Experiment:
         """Convert Model Registry experiment to MLflow Experiment.
 
         Args:
@@ -118,6 +120,7 @@ class MLflowEntityConverter:
         if start_time is None:
             # Provide a default timestamp if none is available
             import time
+
             start_time = int(time.time() * 1000)
 
         return RunInfo(
@@ -202,11 +205,19 @@ class MLflowEntityConverter:
             experiment_id=custom_props.get("mlflow__experiment_id"),
             name=custom_props.get("mlflow__name", model_data["name"]),
             source_run_id=custom_props.get("mlflow__source_run_id"),
-            artifact_location=custom_props.get("mlflow__artifact_location", model_data.get("uri", "")),
-            creation_timestamp=convert_timestamp(model_data.get("createTimeSinceEpoch")),
-            last_updated_timestamp=convert_timestamp(model_data.get("lastUpdatedTimeSinceEpoch")),
+            artifact_location=custom_props.get(
+                "mlflow__artifact_location", model_data.get("uri", "")
+            ),
+            creation_timestamp=convert_timestamp(
+                model_data.get("createTimeSinceEpoch")
+            ),
+            last_updated_timestamp=convert_timestamp(
+                model_data.get("lastUpdatedTimeSinceEpoch")
+            ),
             model_type=custom_props.get("mlflow__model_type"),
-            status=convert_to_mlflow_logged_model_status(model_data.get("state", "LIVE")),
+            status=convert_to_mlflow_logged_model_status(
+                model_data.get("state", "LIVE")
+            ),
             tags=tags,
             params=params,
         )
@@ -260,13 +271,21 @@ class MLflowEntityConverter:
             elif artifact_type == "parameter":
                 params.append(MLflowEntityConverter.to_mlflow_param(artifact))
             elif artifact_type == "dataset-artifact":
-                dataset_inputs.append(MLflowEntityConverter.to_mlflow_dataset_input(artifact))
-            elif artifact_type == "model-artifact" and artifact.get("customProperties", {}).get("mlflow__model_io_type") == ModelIOType.INPUT.value:
+                dataset_inputs.append(
+                    MLflowEntityConverter.to_mlflow_dataset_input(artifact)
+                )
+            elif (
+                artifact_type == "model-artifact"
+                and artifact.get("customProperties", {}).get("mlflow__model_io_type")
+                == ModelIOType.INPUT.value
+            ):
                 model_inputs.append(LoggedModelInput(model_id=artifact["id"]))
-            elif artifact_type == "model-artifact": # default to output
+            elif artifact_type == "model-artifact":  # default to output
                 custom_props = artifact.get("customProperties", {})
                 step = int(custom_props.get("mlflow__step", 0))
-                model_outputs.append(LoggedModelOutput(model_id=artifact["id"], step=step))
+                model_outputs.append(
+                    LoggedModelOutput(model_id=artifact["id"], step=step)
+                )
 
         # Add tags from customProperties
         for key, value in run_data.get("customProperties", {}).items():
@@ -292,4 +311,4 @@ class MLflowEntityConverter:
             run_data=run_data_obj,
             run_inputs=run_inputs,
             run_outputs=run_outputs,
-        ) 
+        )

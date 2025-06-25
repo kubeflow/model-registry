@@ -66,7 +66,9 @@ class ExperimentOperations:
 
         # If no artifact_location was provided but we have artifact_uri, update with the default pattern
         if not artifact_location and self.artifact_uri:
-            default_artifact_location = f"{self.artifact_uri}/experiments/{experiment_id}"
+            default_artifact_location = (
+                f"{self.artifact_uri}/experiments/{experiment_id}"
+            )
             update_payload = {"externalId": default_artifact_location}
             self.api_client.patch(f"/experiments/{experiment_id}", json=update_payload)
 
@@ -82,7 +84,9 @@ class ExperimentOperations:
             Experiment entity
         """
         experiment_data = self.api_client.get(f"/experiments/{experiment_id}")
-        return MLflowEntityConverter.to_mlflow_experiment(experiment_data, self.artifact_uri)
+        return MLflowEntityConverter.to_mlflow_experiment(
+            experiment_data, self.artifact_uri
+        )
 
     def get_experiment_by_name(self, experiment_name: str) -> Optional[Experiment]:
         """Get experiment by name.
@@ -96,8 +100,12 @@ class ExperimentOperations:
         from mlflow.exceptions import MlflowException
 
         try:
-            exp_data = self.api_client.get("/experiment", params={"name": experiment_name})
-            return MLflowEntityConverter.to_mlflow_experiment(exp_data, self.artifact_uri)
+            exp_data = self.api_client.get(
+                "/experiment", params={"name": experiment_name}
+            )
+            return MLflowEntityConverter.to_mlflow_experiment(
+                exp_data, self.artifact_uri
+            )
         except MlflowException as e:
             if e.get_http_status_code() == 404 and "not found" in e.message:
                 return None
@@ -130,8 +138,6 @@ class ExperimentOperations:
         """
         payload = {"name": new_name}
         self.api_client.patch(f"/experiments/{experiment_id}", json=payload)
-
-
 
     def search_experiments(
         self,
@@ -204,4 +210,4 @@ class ExperimentOperations:
         custom_props[tag.key] = tag.value
 
         payload = {"customProperties": custom_props}
-        self.api_client.patch(f"/experiments/{experiment_id}", json=payload) 
+        self.api_client.patch(f"/experiments/{experiment_id}", json=payload)
