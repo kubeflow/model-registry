@@ -334,7 +334,6 @@ def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
     schema.config.output.sanitization.update(enabled=False)
     return schema
 
-random_str_int = str(secrets.randbelow(1000))
 
 @pytest.fixture(scope="session")
 def schema_with_hooks(generated_schema: BaseOpenAPISchema) -> BaseOpenAPISchema:
@@ -343,9 +342,9 @@ def schema_with_hooks(generated_schema: BaseOpenAPISchema) -> BaseOpenAPISchema:
         """Hook to customize test data for specific endpoints"""
 
         if case.path == "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts" and case.method == "POST":
-            case.path_parameters["modelversionId"] = random_str_int
+            case.path_parameters["modelversionId"] = str(secrets.randbelow(1000))
         elif case.path == "/api/model_registry/v1alpha3/artifacts/{id}" and case.method == "PATCH":
-            case.path_parameters["id"] = random_str_int
+            case.path_parameters["id"] = str(secrets.randbelow(1000))
         return case
 
     generated_schema.hooks.apply(customize_test_data)
