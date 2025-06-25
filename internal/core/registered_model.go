@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.RegisteredModel) (*openapi.RegisteredModel, error) {
@@ -36,6 +38,10 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 
 	savedModel, err := b.registeredModelRepository.Save(model)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("registered model with name %s already exists: %w", registeredModel.Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 

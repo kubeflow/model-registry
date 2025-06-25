@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
@@ -36,6 +38,10 @@ func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *open
 
 	savedServEnv, err := b.servingEnvironmentRepository.Save(servEnv)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("serving environment with name %s already exists: %w", servingEnvironment.Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 

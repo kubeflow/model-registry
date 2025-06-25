@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/mapper"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 type ModelRegistryService struct {
@@ -109,6 +111,10 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 
 		modelArtifact, err = b.modelArtifactRepository.Save(modelArtifact, modelVersionIDPtr)
 		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("model artifact with name %s already exists: %w", *ma.Name, api.ErrConflict)
+			}
+
 			return nil, err
 		}
 
@@ -155,6 +161,10 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 
 		docArtifact, err = b.docArtifactRepository.Save(docArtifact, modelVersionIDPtr)
 		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("doc artifact with name %s already exists: %w", *da.Name, api.ErrConflict)
+			}
+
 			return nil, err
 		}
 
