@@ -218,7 +218,9 @@ class ModelOperations:
         self,
         experiment_ids: List[str],
         filter_string: Optional[str] = None,
+        datasets: Optional[List[dict]] = None,
         max_results: Optional[int] = None,
+        order_by: Optional[List[dict]] = None,
         page_token: Optional[str] = None,
     ) -> PagedList[LoggedModel]:
         """Search for logged models across experiments.
@@ -226,7 +228,9 @@ class ModelOperations:
         Args:
             experiment_ids: List of experiment IDs to search
             filter_string: Filter string (not supported yet)
+            datasets: List of datasets for metrics filtering (not supported yet)
             max_results: Maximum number of results
+            order_by: List of order specifications (not supported yet)
             page_token: Token for pagination
 
         Returns:
@@ -236,7 +240,7 @@ class ModelOperations:
 
         # TODO: Add support for filter_string in ModelRegistry API
         # TODO: Add support for datasets filtering in ModelRegistry API
-        # TODO: Add support for mlflow order_by mapping to ModelRegistry API
+        # TODO: Add support for order_by mapping to ModelRegistry API
         # TODO: Add support for pagination in ModelRegistry API across list of experiments
 
         all_models = []
