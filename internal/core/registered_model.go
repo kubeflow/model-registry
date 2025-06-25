@@ -31,7 +31,7 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 
 	model, err := b.mapper.MapFromRegisteredModel(registeredModel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	savedModel, err := b.registeredModelRepository.Save(model)
@@ -45,7 +45,7 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.RegisteredModel, error) {
 	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid id: %w", err)
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	model, err := b.registeredModelRepository.GetByID(int32(convertedId))
@@ -59,12 +59,12 @@ func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Regis
 func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceServiceId string) (*openapi.RegisteredModel, error) {
 	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid inference service id: %w", err)
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
 
 	infSvcProps := infSvc.GetProperties()
@@ -115,7 +115,12 @@ func (b *ModelRegistryService) GetRegisteredModelByParams(name *string, external
 		return nil, fmt.Errorf("multiple registered models found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
-	return b.mapper.MapToRegisteredModel(modelsList.Items[0])
+	registeredModel, err := b.mapper.MapToRegisteredModel(modelsList.Items[0])
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return registeredModel, nil
 }
 
 func (b *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) (*openapi.RegisteredModelList, error) {
@@ -138,7 +143,7 @@ func (b *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) 
 	for _, model := range modelsList.Items {
 		registeredModel, err := b.mapper.MapToRegisteredModel(model)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		registeredModelList.Items = append(registeredModelList.Items, *registeredModel)
 	}

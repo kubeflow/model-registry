@@ -36,7 +36,7 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 
 	model, err := b.mapper.MapFromModelVersion(modelVersion)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	modelVersion.Name = converter.PrefixWhenOwned(&modelVersion.RegisteredModelId, modelVersion.Name)
@@ -78,12 +78,12 @@ func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVer
 func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
 	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid inference service id: %w", err)
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
 
 	infSvcProps := infSvc.GetProperties()
@@ -168,7 +168,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	if registeredModelId != nil {
 		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid registered model id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)
@@ -195,7 +195,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	for _, model := range versionsList.Items {
 		modelVersion, err := b.mapper.MapToModelVersion(model)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		modelVersionList.Items = append(modelVersionList.Items, *modelVersion)
 	}

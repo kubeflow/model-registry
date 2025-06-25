@@ -32,6 +32,7 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 
 		if orderBy != "" && sortOrder != "" {
 			orderByStr := ""
+			sortOrderStr := ""
 
 			switch orderBy {
 			case "CREATE_TIME":
@@ -39,10 +40,19 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 			case "LAST_UPDATE_TIME":
 				orderByStr = "last_update_time_since_epoch"
 			default:
-				orderByStr = "id"
+				orderByStr = models.DefaultOrderBy
 			}
 
-			orderClause := fmt.Sprintf("%s %s", orderByStr, sortOrder)
+			switch sortOrder {
+			case "ASC":
+				sortOrderStr = "ASC"
+			case "DESC":
+				sortOrderStr = "DESC"
+			default:
+				sortOrderStr = models.DefaultSortOrder
+			}
+
+			orderClause := fmt.Sprintf("%s %s", orderByStr, sortOrderStr)
 			db = db.Order(orderClause)
 		}
 

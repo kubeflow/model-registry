@@ -32,7 +32,7 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 
 	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, *infSvc.GetAttributes().Name)
@@ -143,7 +143,7 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	for _, infSvc := range infServicesList.Items {
 		inferenceService, err := b.mapper.MapToInferenceService(infSvc)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		inferenceServiceList.Items = append(inferenceServiceList.Items, *inferenceService)
 	}
