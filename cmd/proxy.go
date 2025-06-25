@@ -99,7 +99,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		conn, err := ds.Connect()
 		if err != nil {
-			errChan <- fmt.Errorf("error connecting to datastore: %w", err)
+			errChan <- fmt.Errorf("FATAL error connecting to datastore: %w", err)
 			return
 		}
 
