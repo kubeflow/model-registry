@@ -16,9 +16,7 @@ if TYPE_CHECKING:
         RunInfo,
         RunStatus,
         RunTag,
-        ViewType,
     )
-    from mlflow.store.entities.paged_list import PagedList
 
 from ..api_client import ModelRegistryAPIClient
 from ..converters import MLflowEntityConverter
@@ -160,7 +158,7 @@ class RunOperations:
         Returns:
             Updated RunInfo
         """
-        from mlflow.entities import RunInfo, RunStatus
+        from mlflow.entities import RunStatus
 
         payload = {}
         if run_status:

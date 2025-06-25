@@ -3,8 +3,6 @@
 from unittest.mock import Mock
 
 import pytest
-from mlflow.entities import Metric
-from mlflow.store.entities.paged_list import PagedList
 
 from modelregistry_plugin.operations.metric import MetricOperations
 
@@ -389,4 +387,103 @@ class TestMetricOperations:
 
         api_client.get.assert_called_once_with(
             "/experiment_runs/run-123/metric_history", params={"name": "accuracy"}
+        )
+
+    def test_get_metric_history_with_page_token(self, metric_ops, api_client):
+        """Test getting metric history with page_token parameter."""
+        response_data = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.95,
+                    "timestamp": "1234567890",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567890",
+                    "artifactType": "metric",
+                }
+            ],
+            "nextPageToken": "next_token_456",
+        }
+        api_client.get.return_value = response_data
+
+        result = metric_ops.get_metric_history(
+            "run-123", "accuracy", page_token="token_123"
+        )
+
+        assert len(result) == 1
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[0].key == "accuracy"
+        assert result.token == "next_token_456"
+
+        # Verify API call includes page_token
+        api_client.get.assert_called_once_with(
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageToken": "token_123"},
+        )
+
+    def test_get_metric_history_with_max_results_and_page_token(
+        self, metric_ops, api_client
+    ):
+        """Test getting metric history with both max_results and page_token parameters."""
+        response_data = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.95,
+                    "timestamp": "1234567890",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567890",
+                    "artifactType": "metric",
+                }
+            ],
+            "nextPageToken": "next_token_789",
+        }
+        api_client.get.return_value = response_data
+
+        result = metric_ops.get_metric_history(
+            "run-123", "accuracy", max_results=10, page_token="token_456"
+        )
+
+        assert len(result) == 1
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[0].key == "accuracy"
+        assert result.token == "next_token_789"
+
+        # Verify API call includes both parameters
+        api_client.get.assert_called_once_with(
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageSize": 10, "pageToken": "token_456"},
+        )
+
+    def test_get_metric_history_with_max_results(self, metric_ops, api_client):
+        """Test getting metric history with max_results parameter."""
+        response_data = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.95,
+                    "timestamp": "1234567890",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567890",
+                    "artifactType": "metric",
+                }
+            ],
+            "nextPageToken": "",
+        }
+        api_client.get.return_value = response_data
+
+        result = metric_ops.get_metric_history("run-123", "accuracy", max_results=5)
+
+        assert len(result) == 1
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[0].key == "accuracy"
+        assert result.token is None  # Empty nextPageToken should become None
+
+        # Verify API call includes max_results as pageSize
+        api_client.get.assert_called_once_with(
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageSize": 5},
         )

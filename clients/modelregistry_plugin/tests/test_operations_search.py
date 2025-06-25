@@ -3,7 +3,7 @@
 from unittest.mock import Mock
 
 import pytest
-from mlflow.entities import Run, RunInfo, RunStatus, ViewType
+from mlflow.entities import ViewType
 from mlflow.store.entities.paged_list import PagedList
 
 from modelregistry_plugin.operations.search import SearchOperations

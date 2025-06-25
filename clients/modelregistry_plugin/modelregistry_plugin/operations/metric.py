@@ -25,7 +25,11 @@ class MetricOperations:
         self.api_client = api_client
 
     def get_metric_history(
-        self, run_id: str, metric_key: str, max_results: Optional[int] = None
+        self,
+        run_id: str,
+        metric_key: str,
+        max_results: Optional[int] = None,
+        page_token: Optional[str] = None,
     ) -> PagedList[Metric]:
         """Get metric history for a run.
 
@@ -33,6 +37,7 @@ class MetricOperations:
             run_id: ID of the run
             metric_key: Key of the metric
             max_results: Maximum number of results
+            page_token: Token for pagination
 
         Returns:
             PagedList of metrics
@@ -42,6 +47,8 @@ class MetricOperations:
         params = {"name": metric_key}
         if max_results:
             params["pageSize"] = max_results
+        if page_token:
+            params["pageToken"] = page_token
 
         response = self.api_client.get(
             f"/experiment_runs/{run_id}/metric_history", params=params

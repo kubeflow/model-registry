@@ -1,5 +1,5 @@
 """
-End-to-end tests for ModelRegistryStore with real Model Registry server.
+End-to-end tests for ModelRegistryTrackingStore with real Model Registry server.
 
 These tests use MLflow's standard APIs and rely on the tracking URI configuration
 to connect to the Model Registry server. The tracking URI should be configured
@@ -38,8 +38,8 @@ from sklearn.model_selection import train_test_split
     not os.getenv("MLFLOW_TRACKING_URI"),
     reason="MLFLOW_TRACKING_URI environment variable not set",
 )
-class TestModelRegistryStoreE2E:
-    """End-to-end tests for ModelRegistryStore using MLflow APIs."""
+class TestModelRegistryTrackingStoreE2E:
+    """End-to-end tests for ModelRegistryTrackingStore using MLflow APIs."""
 
     @pytest.fixture(scope="class")
     def mlflow_client(self) -> MlflowClient:
@@ -659,7 +659,7 @@ class TestModelRegistryStoreE2E:
 
 
 def test_mlflow_integration() -> None:
-    """Test that the ModelRegistryStore works with MLflow's tracking API."""
+    """Test that the ModelRegistryTrackingStore works with MLflow's tracking API."""
     # Test MLflow integration
     experiment_name = f"mlflow-e2e-test-{uuid.uuid4().hex[:8]}"
 
