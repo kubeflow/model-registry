@@ -505,3 +505,119 @@ class TestSearchOperations:
             params={"pageSize": "1000"},
         )
         api_client.get.assert_any_call("/experiment_runs/run-123/artifacts")
+
+    def test_search_datasets(self, search_ops, api_client):
+        """Test searching for datasets across experiments."""
+        runs_data1 = {"items": [{"id": "run-1", "experimentId": "exp-1"}]}
+        runs_data2 = {"items": [{"id": "run-2", "experimentId": "exp-2"}]}
+        artifacts_data1 = {
+            "items": [
+                {
+                    "name": "dataset1",
+                    "digest": "digest1",
+                    "artifactType": "dataset-artifact",
+                    "customProperties": {"mlflow.dataset.context": "training"},
+                }
+            ]
+        }
+        artifacts_data2 = {
+            "items": [
+                {
+                    "name": "dataset2",
+                    "digest": "digest2",
+                    "artifactType": "dataset-artifact",
+                    "customProperties": {"mlflow.dataset.context": "validation"},
+                }
+            ]
+        }
+
+        api_client.get.side_effect = [
+            runs_data1,  # GET /experiments/exp-1/experiment_runs
+            artifacts_data1,  # GET /experiment_runs/run-1/artifacts
+            runs_data2,  # GET /experiments/exp-2/experiment_runs
+            artifacts_data2,  # GET /experiment_runs/run-2/artifacts
+        ]
+
+        result = search_ops._search_datasets(["exp-1", "exp-2"])
+
+        assert len(result) == 2
+        assert result[0].experiment_id == "exp-1"
+        assert result[0].name == "dataset1"
+        assert result[0].digest == "digest1"
+        assert result[0].context == "training"
+        assert result[1].experiment_id == "exp-2"
+        assert result[1].name == "dataset2"
+        assert result[1].digest == "digest2"
+        assert result[1].context == "validation"
+
+        # Verify API calls
+        assert api_client.get.call_count == 4
+        api_client.get.assert_any_call("/experiments/exp-1/experiment_runs")
+        api_client.get.assert_any_call(
+            "/experiment_runs/run-1/artifacts",
+            params={"artifactType": "dataset-artifact"},
+        )
+        api_client.get.assert_any_call("/experiments/exp-2/experiment_runs")
+        api_client.get.assert_any_call(
+            "/experiment_runs/run-2/artifacts",
+            params={"artifactType": "dataset-artifact"},
+        )
+
+    def test_search_datasets_deduplication(self, search_ops, api_client):
+        """Test that _search_datasets deduplicates datasets."""
+        runs_data = {
+            "items": [
+                {"id": "run-1", "experimentId": "exp-1"},
+                {"id": "run-2", "experimentId": "exp-1"},
+            ]
+        }
+        # Both runs have the same dataset
+        artifacts_data = {
+            "items": [
+                {
+                    "name": "dataset1",
+                    "digest": "digest1",
+                    "artifactType": "dataset-artifact",
+                    "customProperties": {},
+                }
+            ]
+        }
+
+        api_client.get.side_effect = [
+            runs_data,  # GET /experiments/exp-1/experiment_runs
+            artifacts_data,  # GET /experiment_runs/run-1/artifacts
+            artifacts_data,  # GET /experiment_runs/run-2/artifacts
+        ]
+
+        result = search_ops._search_datasets(["exp-1"])
+
+        # Should only return one dataset despite being in two runs
+        assert len(result) == 1
+        assert result[0].experiment_id == "exp-1"
+        assert result[0].name == "dataset1"
+        assert result[0].digest == "digest1"
+
+        # Verify API calls
+        assert api_client.get.call_count == 3
+
+    def test_search_datasets_empty_response(self, search_ops, api_client):
+        """Test _search_datasets with no datasets found."""
+        runs_data = {"items": [{"id": "run-1", "experimentId": "exp-1"}]}
+        artifacts_data = {"items": []}  # No dataset artifacts
+
+        api_client.get.side_effect = [runs_data, artifacts_data]
+
+        result = search_ops._search_datasets(["exp-1"])
+
+        assert len(result) == 0
+
+    def test_search_datasets_no_runs(self, search_ops, api_client):
+        """Test _search_datasets with no runs in experiment."""
+        runs_data = {"items": []}  # No runs
+
+        api_client.get.return_value = runs_data
+
+        result = search_ops._search_datasets(["exp-1"])
+
+        assert len(result) == 0
+        api_client.get.assert_called_once_with("/experiments/exp-1/experiment_runs")

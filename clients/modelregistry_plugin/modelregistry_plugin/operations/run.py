@@ -337,6 +337,29 @@ class RunOperations:
         payload = {"customProperties": custom_props}
         self.api_client.patch(f"/experiment_runs/{run_id}", json=payload)
 
+    def delete_tag(self, run_id: str, key: str) -> None:
+        """Delete a tag from a run.
+
+        Args:
+            run_id: ID of the run
+            key: Key of the tag to delete
+        """
+        from mlflow.exceptions import MlflowException
+        from mlflow.protos.databricks_pb2 import RESOURCE_DOES_NOT_EXIST
+
+        run = self.api_client.get(f"/experiment_runs/{run_id}")
+        custom_props = run.get("customProperties", {})
+
+        if key not in custom_props:
+            raise MlflowException(
+                f"No tag with name: {key} in run with id {run_id}",
+                error_code=RESOURCE_DOES_NOT_EXIST,
+            )
+
+        del custom_props[key]
+        payload = {"customProperties": custom_props}
+        self.api_client.patch(f"/experiment_runs/{run_id}", json=payload)
+
     def _get_all_run_artifacts(self, run_id: str) -> List[dict]:
         """Get all artifacts for a run with pagination support.
 
