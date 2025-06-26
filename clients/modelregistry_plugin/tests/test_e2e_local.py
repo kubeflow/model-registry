@@ -450,7 +450,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         retrieved_run = store.get_run(run_id)
         assert isinstance(retrieved_run, Run)
         assert retrieved_run.info.run_id == run_id
-        assert retrieved_run.info.status == RunStatus.RUNNING
+        assert retrieved_run.info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert retrieved_run.info.lifecycle_stage == LifecycleStage.ACTIVE
         print(f"✅ Run exists: {retrieved_run.info.run_name}")
 
@@ -536,7 +536,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             run_status=RunStatus.FINISHED,
             end_time=int(time.time() * 1000),
         )
-        assert updated_info.status == RunStatus.FINISHED
+        assert updated_info.status == RunStatus.to_string(RunStatus.FINISHED)
 
         # Verify run is still active (not deleted)
         run = store.get_run(run_id)
@@ -577,7 +577,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         assert isinstance(run, Run)
         assert run.info.experiment_id == experiment_id
         assert run.info.user_id == "test-user"
-        assert run.info.status == RunStatus.RUNNING
+        assert run.info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert run.info.lifecycle_stage == LifecycleStage.ACTIVE
 
         run_id = run.info.run_id
@@ -594,7 +594,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             run_status=RunStatus.FINISHED,
             end_time=int(time.time() * 1000),
         )
-        assert updated_info.status == RunStatus.FINISHED
+        assert updated_info.status == RunStatus.to_string(RunStatus.FINISHED)
 
         # Cleanup
         store.delete_run(run_id)

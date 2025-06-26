@@ -135,7 +135,7 @@ class TestMLflowEntityConverter:
         assert run_info.experiment_id == "exp-123"
         assert run_info.run_name == "test-run"
         assert run_info.user_id == "user123"
-        assert run_info.status == RunStatus.RUNNING
+        assert run_info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert run_info.start_time == 1234567890
         assert run_info.artifact_uri == "s3://bucket/artifacts/exp-123/run-123"
 
@@ -329,7 +329,7 @@ class TestMLflowEntityConverter:
         assert run.info.experiment_id == "exp-123"
         assert run.info.run_name == "test-run"
         assert run.info.user_id == "user123"
-        assert run.info.status == RunStatus.RUNNING
+        assert run.info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert run.info.artifact_uri == "s3://bucket/artifacts/exp-123/run-123"
 
         # Check metrics

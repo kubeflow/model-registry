@@ -51,7 +51,7 @@ class SearchOperations:
         from mlflow.store.entities.paged_list import PagedList
 
         if run_view_type is None:
-            run_view_type = ViewType.ACTIVE_ONLY
+            run_view_type = ViewType.ALL
 
         # TODO: Add support for filter_string and order_by in Model Registry API
         all_runs = []

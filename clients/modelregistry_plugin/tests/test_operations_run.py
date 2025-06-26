@@ -56,7 +56,7 @@ class TestRunOperations:
         assert isinstance(run, Run)
         assert run.info.run_id == "run-123"
         assert run.info.experiment_id == "exp-123"
-        assert run.info.status == RunStatus.RUNNING
+        assert run.info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert (
             run.info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
         )
@@ -174,7 +174,7 @@ class TestRunOperations:
 
         assert isinstance(run_info, RunInfo)
         assert run_info.run_id == "run-123"
-        assert run_info.status == RunStatus.FINISHED
+        assert run_info.status == RunStatus.to_string(RunStatus.FINISHED)
         assert (
             run_info.artifact_uri == "s3://bucket/artifacts/experiments/exp-123/run-123"
         )

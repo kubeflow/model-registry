@@ -44,6 +44,7 @@ class TestSearchOperations:
         }
         artifacts_data = {"items": []}
 
+        # Only one run, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(
@@ -98,11 +99,12 @@ class TestSearchOperations:
         }
         artifacts_data = {"items": []}
 
+        # Two runs in data, but only one returned after filtering, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"], run_view_type=ViewType.ACTIVE_ONLY)
 
-        # Should return all runs since filtering is not implemented yet
+        # Should return only the active run
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-123"
@@ -150,13 +152,14 @@ class TestSearchOperations:
         }
         artifacts_data = {"items": []}
 
+        # Two runs in data, but only one returned after filtering, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(
             ["exp-123"], run_view_type=ViewType.DELETED_ONLY
         )
 
-        # Should return all runs since filtering is not implemented yet
+        # Should return only the deleted run
         assert isinstance(result, PagedList)
         assert len(result) == 1
         assert result[0].info.run_id == "run-456"
@@ -301,6 +304,7 @@ class TestSearchOperations:
         }
         artifacts_data = {"items": []}
 
+        # Only one run, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(
@@ -362,6 +366,7 @@ class TestSearchOperations:
             ]
         }
 
+        # Only one run, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"])
@@ -426,6 +431,7 @@ class TestSearchOperations:
             ]
         }
 
+        # Only one run, so only one artifact call
         api_client.get.side_effect = [search_data, artifacts_data]
 
         result = search_ops.search_runs(["exp-123"])
@@ -445,6 +451,55 @@ class TestSearchOperations:
 
         # Verify API calls
         assert api_client.get.call_count == 2
+        api_client.get.assert_any_call(
+            "/experiments/exp-123/experiment_runs",
+            params={"pageSize": "1000"},
+        )
+        api_client.get.assert_any_call("/experiment_runs/run-123/artifacts")
+
+    def test_search_runs_default_view_type(self, search_ops, api_client):
+        """Test that search_runs defaults to ViewType.ALL when no run_view_type is specified."""
+        search_data = {
+            "items": [
+                {
+                    "id": "run-123",
+                    "experimentId": "exp-123",
+                    "name": "active-run",
+                    "status": "RUNNING",
+                    "state": "LIVE",
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-123",
+                    "customProperties": {},
+                },
+                {
+                    "id": "run-456",
+                    "experimentId": "exp-123",
+                    "name": "deleted-run",
+                    "status": "FINISHED",
+                    "state": "ARCHIVED",
+                    "owner": "user123",
+                    "startTimeSinceEpoch": "1234567890",
+                    "externalId": "s3://bucket/artifacts/experiments/exp-123/run-456",
+                    "customProperties": {},
+                },
+            ]
+        }
+        artifacts_data = {"items": []}
+
+        api_client.get.side_effect = [search_data, artifacts_data, artifacts_data]
+
+        # Call without specifying run_view_type - should default to ViewType.ALL
+        result = search_ops.search_runs(["exp-123"])
+
+        # Should return both active and deleted runs (ALL view type)
+        assert isinstance(result, PagedList)
+        assert len(result) == 2
+        assert result[0].info.run_id == "run-123"
+        assert result[1].info.run_id == "run-456"
+
+        # Verify API calls
+        assert api_client.get.call_count == 3
         api_client.get.assert_any_call(
             "/experiments/exp-123/experiment_runs",
             params={"pageSize": "1000"},
