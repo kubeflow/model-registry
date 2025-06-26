@@ -459,6 +459,16 @@ class ModelRegistryTrackingStore:
         """
         self.runs.set_tag(run_id, tag)
 
+    def delete_tag(self, run_id: str, key: str) -> None:
+        """
+        Delete a tag from the specified run
+
+        Args:
+            run_id: String id for the run.
+            key: Key of the tag to delete.
+        """
+        self.runs.delete_tag(run_id, key)
+
     # Metric operations
     def get_metric_history(
         self,
@@ -552,6 +562,31 @@ class ModelRegistryTrackingStore:
         return self.metrics.get_metric_history_bulk_interval_from_steps(
             run_id, metric_key, steps, max_results
         )
+
+    def get_metric_history_bulk(
+        self,
+        run_ids: list[str],
+        metric_key: str,
+        max_results: int | None = None,
+    ):
+        """
+        Return a list of metric objects corresponding to all values logged
+        for a given metric within multiple runs.
+
+        Args:
+            run_ids: List of unique identifiers for runs.
+            metric_key: Metric name within the runs.
+            max_results: Maximum number of metric history events (steps) to return per run.
+
+        Returns:
+            A list of MetricWithRunId objects:
+                - key: Metric name within the run.
+                - value: Metric value.
+                - timestamp: Metric timestamp.
+                - step: Metric step.
+                - run_id: Unique identifier for run.
+        """
+        return self.metrics.get_metric_history_bulk(run_ids, metric_key, max_results)
 
     # Model operations
     def create_logged_model(
@@ -692,3 +727,28 @@ class ModelRegistryTrackingStore:
             None
         """
         return self.models.set_logged_model_tags(model_id, tags)
+
+    def log_logged_model_params(self, model_id: str, params):
+        """
+        Log parameters for the specified logged model.
+
+        Args:
+            model_id: ID of the model.
+            params: Parameters to log on the model.
+
+        Returns:
+            None
+        """
+        return self.models.log_logged_model_params(model_id, params)
+
+    def _search_datasets(self, experiment_ids):
+        """
+        Search for datasets across experiments.
+
+        Args:
+            experiment_ids: List of experiment IDs to search.
+
+        Returns:
+            List of dataset summaries.
+        """
+        return self.search._search_datasets(experiment_ids)

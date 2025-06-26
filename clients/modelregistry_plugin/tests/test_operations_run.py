@@ -355,6 +355,47 @@ class TestRunOperations:
         custom_props = json_data["customProperties"]
         assert custom_props["key1"] == "value1"
 
+    def test_delete_tag(self, run_ops, api_client):
+        """Test deleting a run tag."""
+        run_data = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "customProperties": {"key1": "value1", "key2": "value2"},
+        }
+        api_client.get.return_value = run_data
+        api_client.patch.return_value = {}
+
+        run_ops.delete_tag("run-123", "key1")
+
+        # Check GET call
+        api_client.get.assert_called_once_with("/experiment_runs/run-123")
+
+        # Check PATCH call
+        patch_call = api_client.patch.call_args
+        assert patch_call[0][0] == "/experiment_runs/run-123"
+        json_data = patch_call[1]["json"]
+        custom_props = json_data["customProperties"]
+        assert "key1" not in custom_props
+        assert custom_props["key2"] == "value2"
+
+    def test_delete_tag_not_found(self, run_ops, api_client):
+        """Test deleting a non-existent tag raises an error."""
+        from mlflow.exceptions import MlflowException
+
+        run_data = {
+            "id": "run-123",
+            "experimentId": "exp-123",
+            "customProperties": {"key2": "value2"},
+        }
+        api_client.get.return_value = run_data
+
+        with pytest.raises(MlflowException) as exc_info:
+            run_ops.delete_tag("run-123", "nonexistent")
+
+        assert "No tag with name: nonexistent in run with id run-123" in str(
+            exc_info.value
+        )
+
     def test_get_all_run_artifacts(self, run_ops, api_client):
         """Test getting all artifacts for a run with pagination."""
         # Mock responses for pagination

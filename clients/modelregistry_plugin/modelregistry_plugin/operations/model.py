@@ -313,3 +313,22 @@ class ModelOperations:
         self.api_client.patch(
             f"/artifacts/{model_id}", json={"customProperties": custom_props}
         )
+
+    def log_logged_model_params(
+        self, model_id: str, params: List[LoggedModelParameter]
+    ) -> None:
+        """Log parameters for a logged model.
+
+        Args:
+            model_id: ID of the model
+            params: List of parameters to log
+        """
+        model = self.api_client.get(f"/artifacts/{model_id}")
+        custom_props = model.get("customProperties", {})
+
+        for param in params:
+            custom_props[f"param_{param.key}"] = param.value
+
+        self.api_client.patch(
+            f"/artifacts/{model_id}", json={"customProperties": custom_props}
+        )
