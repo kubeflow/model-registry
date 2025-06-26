@@ -38,6 +38,14 @@ const initIntercepts = ({
       },
     })),
   );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/settings/role_bindings`,
+    {
+      path: { apiVersion: MODEL_REGISTRY_API_VERSION },
+    },
+    [],
+  );
 };
 
 it('Shows empty state when there are no registries', () => {

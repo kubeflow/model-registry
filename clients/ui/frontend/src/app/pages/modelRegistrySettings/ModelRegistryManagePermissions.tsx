@@ -1,13 +1,17 @@
 import React from 'react';
 import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
-import { useGroups } from '~/app/api/k8s';
+import {
+  ApplicationsPage,
+  ModelRegistryKind,
+  RoleBindingKind,
+  useQueryParamNamespaces,
+} from 'mod-arch-shared';
+import { useGroups } from '~/app/hooks/useGroups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
-//import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
 import {
   createModelRegistryRoleBindingWrapper,
   deleteModelRegistryRoleBindingWrapper,
@@ -18,7 +22,8 @@ const ModelRegistriesManagePermissions: React.FC = () => {
   const [activeTabKey, setActiveTabKey] = React.useState(0);
   const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
   const [groups] = useGroups();
-  const roleBindings = useModelRegistryRoleBindings();
+  const queryParams = useQueryParamNamespaces();
+  const roleBindings = useModelRegistryRoleBindings(queryParams);
   const { mrName } = useParams<{ mrName: string }>();
   const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, mrName || '');
 

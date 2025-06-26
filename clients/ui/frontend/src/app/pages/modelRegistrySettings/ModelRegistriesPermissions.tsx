@@ -2,7 +2,7 @@ import React from 'react';
 import { Breadcrumb, BreadcrumbItem, PageSection, Tab, Tabs } from '@patternfly/react-core';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
-import { useGroups } from '~/app/api/k8s';
+import { useGroups } from '~/app/hooks/useGroups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
@@ -18,7 +18,7 @@ const ModelRegistriesManagePermissions: React.FC = () => {
   const [activeTabKey, setActiveTabKey] = React.useState(0);
   const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
   const [groups] = useGroups();
-  const roleBindings = useModelRegistryRoleBindings();
+  const roleBindings = useModelRegistryRoleBindings({});
   const { mrName } = useParams<{ mrName: string }>();
   const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, mrName || '');
   const filteredRoleBindings = roleBindings.data.filter(

@@ -16,6 +16,7 @@ import {
 } from 'mod-arch-shared';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
+import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import ModelRegistriesTable from './ModelRegistriesTable';
 import CreateModal from './CreateModal';
 
@@ -27,11 +28,12 @@ const ModelRegistrySettings: React.FC = () => {
     loadError,
     // refreshModelRegistries
   ] = useModelRegistriesSettings(queryParams);
+  const roleBindings = useModelRegistryRoleBindings(queryParams);
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   // TODO: [Midstream] Implement this when adding logic for rules review
   // const { refreshRulesReview } = React.useContext(ModelRegistrySelectorContext);
 
-  const loaded = mrloaded; //&& roleBindings.loaded;
+  const loaded = mrloaded && roleBindings.loaded;
 
   // TODO: implement when refreshModelRegistries() and refreshRulesReview() are added
   // const refreshAll = React.useCallback(
@@ -79,12 +81,7 @@ const ModelRegistrySettings: React.FC = () => {
       >
         <ModelRegistriesTable
           modelRegistries={modelRegistries}
-          roleBindings={{
-            data: [],
-            loaded: true,
-            error: undefined,
-            refresh: () => Promise.resolve([]),
-          }}
+          roleBindings={roleBindings}
           onCreateModelRegistryClick={() => {
             setCreateModalOpen(true);
           }}

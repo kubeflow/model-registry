@@ -1,5 +1,5 @@
 import { K8sResourceCommon, genRandomChars } from 'mod-arch-shared';
-import { K8sCondition, K8sDSGResource } from '~/shared/types';
+import { K8sCondition, K8sDSGResource } from '~/app/shared/components/types';
 
 export const PreInstalledName = 'Pre-installed';
 

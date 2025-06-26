@@ -16,7 +16,6 @@ import {
   RoleBindingSubject,
   RoleBindingRoleRef,
   genRandomChars,
-  useFetchState,
 } from 'mod-arch-shared';
 import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
@@ -194,22 +193,6 @@ export const patchModelRegistrySettings =
       }
       throw new Error('Invalid response format');
     });
-
-const getGroupsForHook = (): Promise<GroupKind[]> =>
-  fetch('/api/v1/settings/groups')
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-      throw new Error(res.statusText);
-    })
-    .then((data) => data.items);
-
-export const useGroups = (): [GroupKind[], boolean, Error | undefined] => {
-  const [groups, loaded, error] = useFetchState<GroupKind[]>(getGroupsForHook, []);
-
-  return [groups, loaded, error];
-};
 
 export const createRoleBinding =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
