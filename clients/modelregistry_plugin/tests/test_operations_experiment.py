@@ -327,3 +327,37 @@ class TestExperimentOperations:
         custom_props = json_data["customProperties"]
         assert custom_props["key1"] == "value1"
         assert custom_props["existing"] == "value"
+
+    def test_search_experiments_default_view_type(self, experiment_ops, api_client):
+        """Test that search_experiments defaults to ViewType.ACTIVE_ONLY when no view_type is specified."""
+        response_data = {
+            "items": [
+                {
+                    "id": "1",
+                    "name": "exp1",
+                    "state": "LIVE",
+                    "externalId": "s3://bucket/artifacts/exp1",
+                    "customProperties": {},
+                },
+                {
+                    "id": "2",
+                    "name": "exp2",
+                    "state": "ARCHIVED",
+                    "externalId": "s3://bucket/artifacts/exp2",
+                    "customProperties": {},
+                },
+            ]
+        }
+        api_client.get.return_value = response_data
+
+        # Call without specifying view_type - should default to ViewType.ACTIVE_ONLY
+        result = experiment_ops.search_experiments()
+
+        # Should only return active experiments (ACTIVE_ONLY view type)
+        assert len(result) == 1
+        assert result[0].experiment_id == "1"
+        assert result[0].name == "exp1"
+
+        api_client.get.assert_called_once_with(
+            "/experiments", params={"pageSize": 1000}
+        )

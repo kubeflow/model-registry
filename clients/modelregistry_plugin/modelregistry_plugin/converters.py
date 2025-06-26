@@ -102,7 +102,7 @@ class MLflowEntityConverter:
         Returns:
             MLflow RunInfo entity
         """
-        from mlflow.entities import RunInfo, RunStatus
+        from mlflow.entities import RunInfo
 
         start_time = convert_timestamp(
             run_data.get("startTimeSinceEpoch") or run_data.get("createTimeSinceEpoch")
@@ -117,7 +117,7 @@ class MLflowEntityConverter:
             run_id=str(run_data["id"]),
             experiment_id=str(run_data["experimentId"]),
             user_id=run_data.get("owner") or "unknown",
-            status=RunStatus.from_string(run_data.get("status", "RUNNING")),
+            status=run_data.get("status", "RUNNING"),
             start_time=start_time,
             end_time=convert_timestamp(run_data.get("endTimeSinceEpoch"))
             if run_data.get("state") == "TERMINATED"
