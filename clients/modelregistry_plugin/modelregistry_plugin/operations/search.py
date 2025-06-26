@@ -97,3 +97,55 @@ class SearchOperations:
                     all_runs.append(run)
 
         return PagedList(all_runs, None)  # no paging across experiments
+
+    def _search_datasets(self, experiment_ids: List[str]):
+        """Search for datasets across experiments.
+
+        Args:
+            experiment_ids: List of experiment IDs to search
+
+        Returns:
+            List of dataset summaries
+        """
+        from mlflow.entities import _DatasetSummary
+
+        all_datasets = []
+        seen_datasets = set()  # To avoid duplicates
+
+        for experiment_id in experiment_ids:
+            # Get runs from experiment
+            runs_response = self.api_client.get(
+                f"/experiments/{experiment_id}/experiment_runs"
+            )
+            runs = runs_response.get("items", [])
+
+            for run in runs:
+                run_id = run["id"]
+                # Get dataset artifacts from run
+                artifacts_response = self.api_client.get(
+                    f"/experiment_runs/{run_id}/artifacts",
+                    params={"artifactType": "dataset-artifact"},
+                )
+                artifacts = artifacts_response.get("items", [])
+
+                for artifact in artifacts:
+                    name = artifact.get("name", "")
+                    digest = artifact.get("digest", "")
+                    dataset_key = (experiment_id, name, digest)
+
+                    if dataset_key not in seen_datasets:
+                        seen_datasets.add(dataset_key)
+
+                        # Extract context from custom properties if available
+                        custom_props = artifact.get("customProperties", {})
+                        context = custom_props.get("mlflow.dataset.context")
+
+                        dataset_summary = _DatasetSummary(
+                            experiment_id=experiment_id,
+                            name=name,
+                            digest=digest,
+                            context=context,
+                        )
+                        all_datasets.append(dataset_summary)
+
+        return all_datasets

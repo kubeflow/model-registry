@@ -435,3 +435,31 @@ class TestModelOperations:
             "/experiment_runs/run-2/artifacts",
             params={"artifactType": "model-artifact"},
         )
+
+    def test_log_logged_model_params(self, model_ops, api_client):
+        """Test logging parameters for a logged model."""
+        model_data = {
+            "id": "model-123",
+            "name": "test-model",
+            "customProperties": {"existing": "value"},
+        }
+        api_client.get.return_value = model_data
+        api_client.patch.return_value = {}
+
+        params = [
+            LoggedModelParameter("learning_rate", "0.01"),
+            LoggedModelParameter("batch_size", "32"),
+        ]
+        model_ops.log_logged_model_params("model-123", params)
+
+        # Check GET call
+        api_client.get.assert_called_once_with("/artifacts/model-123")
+
+        # Check PATCH call
+        patch_call = api_client.patch.call_args
+        assert patch_call[0][0] == "/artifacts/model-123"
+        json_data = patch_call[1]["json"]
+        custom_props = json_data["customProperties"]
+        assert custom_props["param_learning_rate"] == "0.01"
+        assert custom_props["param_batch_size"] == "32"
+        assert custom_props["existing"] == "value"  # Existing properties preserved

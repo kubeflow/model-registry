@@ -487,3 +487,89 @@ class TestMetricOperations:
             "/experiment_runs/run-123/metric_history",
             params={"name": "accuracy", "pageSize": 5},
         )
+
+    def test_get_metric_history_bulk(self, metric_ops, api_client):
+        """Test getting metric history for multiple runs."""
+        response_data_run1 = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.95,
+                    "timestamp": "1234567890",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567890",
+                    "artifactType": "metric",
+                }
+            ]
+        }
+        response_data_run2 = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.97,
+                    "timestamp": "1234567891",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567891",
+                    "artifactType": "metric",
+                }
+            ]
+        }
+        api_client.get.side_effect = [response_data_run1, response_data_run2]
+
+        result = metric_ops.get_metric_history_bulk(["run-123", "run-456"], "accuracy")
+
+        assert len(result) == 2
+        assert result[0].value == 0.95
+        assert result[0].step == 1
+        assert result[0].key == "accuracy"
+        assert result[0].run_id == "run-123"
+        assert result[1].value == 0.97
+        assert result[1].step == 1
+        assert result[1].key == "accuracy"
+        assert result[1].run_id == "run-456"
+
+        # Verify API calls
+        assert api_client.get.call_count == 2
+        api_client.get.assert_any_call(
+            "/experiment_runs/run-123/metric_history", params={"name": "accuracy"}
+        )
+        api_client.get.assert_any_call(
+            "/experiment_runs/run-456/metric_history", params={"name": "accuracy"}
+        )
+
+    def test_get_metric_history_bulk_with_max_results(self, metric_ops, api_client):
+        """Test getting metric history for multiple runs with max_results."""
+        response_data = {
+            "items": [
+                {
+                    "name": "accuracy",
+                    "value": 0.95,
+                    "timestamp": "1234567890",
+                    "step": 1,
+                    "createTimeSinceEpoch": "1234567890",
+                    "artifactType": "metric",
+                }
+            ]
+        }
+        api_client.get.return_value = response_data
+
+        result = metric_ops.get_metric_history_bulk(
+            ["run-123"], "accuracy", max_results=10
+        )
+
+        assert len(result) == 1
+        assert result[0].value == 0.95
+        assert result[0].run_id == "run-123"
+
+        # Verify API call includes max_results
+        api_client.get.assert_called_once_with(
+            "/experiment_runs/run-123/metric_history",
+            params={"name": "accuracy", "pageSize": 10},
+        )
+
+    def test_get_metric_history_bulk_empty_runs(self, metric_ops, api_client):
+        """Test getting metric history for empty run list."""
+        result = metric_ops.get_metric_history_bulk([], "accuracy")
+
+        assert len(result) == 0
+        api_client.get.assert_not_called()

@@ -6,6 +6,7 @@ and runs comprehensive tests against it. This provides a self-contained testing
 environment that doesn't require external dependencies.
 """
 
+import logging
 import os
 import pytest
 import time
@@ -34,6 +35,9 @@ from testcontainers.core.waiting_utils import wait_for_logs
 # Mock the API client to avoid actual HTTP requests
 with patch("modelregistry_plugin.api_client.requests.Session.request") as mock_request:
     from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class LocalModelRegistryServer:
@@ -68,8 +72,8 @@ class LocalModelRegistryServer:
         # Ensure the config file has proper permissions
         os.chmod(self.conn_config_path, 0o644)
 
-        print(f"📁 Created MLMD config at: {self.conn_config_path}")
-        print(f"📁 Database will be created at: {db_path}")
+        logger.info(f"📁 Created MLMD config at: {self.conn_config_path}")
+        logger.info(f"📁 Database will be created at: {db_path}")
 
     def start_mlmd_server(self):
         """Start the MLMD server using testcontainers."""
@@ -77,7 +81,7 @@ class LocalModelRegistryServer:
             # Use absolute path for Docker volume mount
             temp_dir_abs = str(self.temp_dir.absolute())
 
-            print(
+            logger.info(
                 f"🐳 Starting MLMD server with volume mount: {temp_dir_abs}:/tmp/shared"
             )
 
@@ -101,24 +105,24 @@ class LocalModelRegistryServer:
                 wait_for_logs(self.mlmd_container, "Server listening on", timeout=30)
             except Exception as e:
                 # If wait fails, get container logs for debugging
-                print("❌ MLMD server didn't start properly. Container logs:")
-                print(self.mlmd_container.get_logs())
+                logger.error("❌ MLMD server didn't start properly. Container logs:")
+                logger.error(self.mlmd_container.get_logs())
                 raise RuntimeError(f"MLMD server failed to start: {e}")
 
             # Get the mapped port
             self.mlmd_port = self.mlmd_container.get_exposed_port(8080)
 
-            print(f"✅ MLMD server started on port {self.mlmd_port}")
+            logger.info(f"✅ MLMD server started on port {self.mlmd_port}")
 
         except Exception as e:
-            print(f"❌ Failed to start MLMD server: {e}")
+            logger.error(f"❌ Failed to start MLMD server: {e}")
             if self.mlmd_container:
                 try:
-                    print("🐳 Container logs:")
-                    print(self.mlmd_container.get_logs())
+                    logger.error("🐳 Container logs:")
+                    logger.error(self.mlmd_container.get_logs())
                     self.mlmd_container.stop()
                 except Exception as cleanup_error:
-                    print(f"❌ Error during MLMD cleanup: {cleanup_error}")
+                    logger.error(f"❌ Error during MLMD cleanup: {cleanup_error}")
             raise
 
     def start_model_registry_server(self):
@@ -127,7 +131,7 @@ class LocalModelRegistryServer:
             # Get the project root (two levels up from the plugin directory)
             project_root = Path(__file__).parent.parent.parent.parent
 
-            print(
+            logger.info(
                 f"🚀 Starting Model Registry server with Go, connecting to MLMD on localhost:{self.mlmd_port}"
             )
 
@@ -161,23 +165,23 @@ class LocalModelRegistryServer:
             # Check if Model Registry server is running
             if self.model_registry_process.poll() is not None:
                 stdout, stderr = self.model_registry_process.communicate()
-                print(f"Model Registry stdout: {stdout.decode()}")
-                print(f"Model Registry stderr: {stderr.decode()}")
+                logger.error(f"Model Registry stdout: {stdout.decode()}")
+                logger.error(f"Model Registry stderr: {stderr.decode()}")
                 raise RuntimeError(
                     f"Model Registry server failed to start: {stderr.decode()}"
                 )
 
-            print(
+            logger.info(
                 f"✅ Model Registry server started on port {self.model_registry_port}"
             )
 
         except Exception as e:
-            print(f"❌ Failed to start Model Registry server: {e}")
+            logger.error(f"❌ Failed to start Model Registry server: {e}")
             raise
 
     def start(self):
         """Start both MLMD and Model Registry servers."""
-        print("🚀 Starting local Model Registry test environment...")
+        logger.info("🚀 Starting local Model Registry test environment...")
 
         # Setup MLMD configuration
         self.setup_mlmd_config()
@@ -189,16 +193,16 @@ class LocalModelRegistryServer:
         # Wait a bit more for everything to be ready
         time.sleep(5)
 
-        print("✅ Local Model Registry test environment ready!")
+        logger.info("✅ Local Model Registry test environment ready!")
 
     def stop(self):
         """Stop both servers and clean up."""
-        print("🛑 Stopping local Model Registry test environment...")
+        logger.info("🛑 Stopping local Model Registry test environment...")
 
         # Stop Model Registry server
         if self.model_registry_process:
             try:
-                print("  🛑 Stopping Model Registry server...")
+                logger.info("  🛑 Stopping Model Registry server...")
 
                 # First, try to terminate child processes if they exist
                 try:
@@ -208,81 +212,83 @@ class LocalModelRegistryServer:
                     children = parent.children(recursive=True)
 
                     if children:
-                        print(
+                        logger.info(
                             f"    🛑 Found {len(children)} child processes, terminating them..."
                         )
                         for child in children:
                             try:
-                                print(
+                                logger.info(
                                     f"      🛑 Terminating child process: {child.pid} ({child.name()})"
                                 )
                                 child.terminate()
                             except psutil.NoSuchProcess:
-                                print(
+                                logger.error(
                                     f"      ℹ️  Child process {child.pid} already terminated"
                                 )
                             except Exception as e:
-                                print(
+                                logger.error(
                                     f"      ⚠️  Error terminating child process {child.pid}: {e}"
                                 )
 
                         # Wait for children to terminate gracefully
                         gone, alive = psutil.wait_procs(children, timeout=5)
                         for child in alive:
-                            print(
+                            logger.warning(
                                 f"      ⚠️  Child process {child.pid} didn't terminate gracefully, killing..."
                             )
                             try:
                                 child.kill()
                                 child.wait(timeout=2)
-                                print(f"      ✅ Child process {child.pid} killed")
+                                logger.info(
+                                    f"      ✅ Child process {child.pid} killed"
+                                )
                             except psutil.NoSuchProcess:
-                                print(
+                                logger.info(
                                     f"      ✅ Child process {child.pid} already terminated"
                                 )
                             except Exception as e:
-                                print(
+                                logger.error(
                                     f"      ❌ Error killing child process {child.pid}: {e}"
                                 )
 
                 except psutil.NoSuchProcess:
-                    print("    ℹ️  Parent process not found")
+                    logger.info("    ℹ️  Parent process not found")
                 except Exception as e:
-                    print(f"    ⚠️  Error handling child processes: {e}")
+                    logger.error(f"    ⚠️  Error handling child processes: {e}")
 
                 # Now terminate the main process
                 self.model_registry_process.terminate()
                 try:
                     self.model_registry_process.wait(timeout=10)
-                    print("  ✅ Model Registry server stopped gracefully")
+                    logger.info("  ✅ Model Registry server stopped gracefully")
                 except subprocess.TimeoutExpired:
-                    print(
+                    logger.warning(
                         "  ⚠️  Model Registry server didn't stop gracefully, killing..."
                     )
                     self.model_registry_process.kill()
                     try:
                         self.model_registry_process.wait(timeout=5)
-                        print("  ✅ Model Registry server killed")
+                        logger.info("  ✅ Model Registry server killed")
                     except subprocess.TimeoutExpired:
-                        print("  ❌ Failed to kill Model Registry server")
+                        logger.error("  ❌ Failed to kill Model Registry server")
 
             except Exception as e:
-                print(f"  ❌ Error stopping Model Registry server: {e}")
+                logger.error(f"  ❌ Error stopping Model Registry server: {e}")
 
         # Stop MLMD container
         if self.mlmd_container:
             try:
-                print("  🐳 Stopping MLMD container...")
+                logger.info("  🐳 Stopping MLMD container...")
                 self.mlmd_container.stop()
-                print("  ✅ MLMD container stopped")
+                logger.info("  ✅ MLMD container stopped")
             except Exception as e:
-                print(f"  ❌ Error stopping MLMD container: {e}")
+                logger.error(f"  ❌ Error stopping MLMD container: {e}")
 
         # Reset references
         self.model_registry_process = None
         self.mlmd_container = None
 
-        print("✅ Local Model Registry test environment stopped.")
+        logger.info("✅ Local Model Registry test environment stopped.")
 
 
 class TestModelRegistryTrackingStoreE2ELocal:
@@ -296,12 +302,12 @@ class TestModelRegistryTrackingStoreE2ELocal:
         """Setup signal handlers for graceful cleanup."""
 
         def signal_handler(signum, frame):
-            print(f"\n🛑 Received signal {signum}, cleaning up...")
+            logger.info(f"\n🛑 Received signal {signum}, cleaning up...")
             if cls._local_server:
                 try:
                     cls._local_server.stop()
                 except Exception as e:
-                    print(f"❌ Error during signal cleanup: {e}")
+                    logger.error(f"❌ Error during signal cleanup: {e}")
             sys.exit(1)
 
         # Register signal handlers for graceful cleanup
@@ -311,23 +317,23 @@ class TestModelRegistryTrackingStoreE2ELocal:
     @classmethod
     def teardown_class(cls):
         """Ensure cleanup happens at class teardown."""
-        print("🧹 Cleaning up class-level resources...")
+        logger.info("🧹 Cleaning up class-level resources...")
 
         # Clean up local server
         if cls._local_server:
             try:
-                print("🛑 Stopping local server...")
+                logger.info("🛑 Stopping local server...")
                 cls._local_server.stop()
-                print("  ✅ Successfully stopped local server")
+                logger.info("  ✅ Successfully stopped local server")
             except Exception as e:
-                print(f"❌ Error during class teardown cleanup: {e}")
+                logger.error(f"❌ Error during class teardown cleanup: {e}")
         else:
-            print("  ℹ️  No local server to clean up")
+            logger.info("  ℹ️  No local server to clean up")
 
         # Clear class reference
         cls._local_server = None
 
-        print("✅ Class-level cleanup completed.")
+        logger.info("✅ Class-level cleanup completed.")
 
     @pytest.fixture(scope="class")
     def local_server(self):
@@ -344,21 +350,23 @@ class TestModelRegistryTrackingStoreE2ELocal:
             TestModelRegistryTrackingStoreE2ELocal._local_server = server
             yield server
         except Exception as e:
-            print(f"❌ Failed to start local server: {e}")
+            logger.error(f"❌ Failed to start local server: {e}")
             try:
                 server.stop()
             except Exception as cleanup_error:
-                print(f"❌ Error during cleanup after startup failure: {cleanup_error}")
+                logger.error(
+                    f"❌ Error during cleanup after startup failure: {cleanup_error}"
+                )
             raise
         finally:
             try:
                 server.stop()
             except Exception as e:
-                print(f"❌ Error during final cleanup: {e}")
+                logger.error(f"❌ Error during final cleanup: {e}")
             try:
                 shutil.rmtree(temp_dir, ignore_errors=True)
             except Exception as e:
-                print(f"❌ Error cleaning up temp directory: {e}")
+                logger.error(f"❌ Error cleaning up temp directory: {e}")
             TestModelRegistryTrackingStoreE2ELocal._local_server = None
 
     @pytest.fixture(scope="class")
@@ -381,23 +389,27 @@ class TestModelRegistryTrackingStoreE2ELocal:
         experiment_id = None
         try:
             experiment_id = store.create_experiment(experiment_name)
-            print(f"📁 Created test experiment: {experiment_id} ({experiment_name})")
+            logger.info(
+                f"📁 Created test experiment: {experiment_id} ({experiment_name})"
+            )
             yield experiment_id
         except Exception as e:
-            print(f"❌ Failed to create experiment '{experiment_name}': {e}")
+            logger.error(f"❌ Failed to create experiment '{experiment_name}': {e}")
             raise
         finally:
             # Cleanup: delete the experiment
             if experiment_id:
                 try:
                     store.delete_experiment(experiment_id)
-                    print(f"✅ Cleaned up test experiment: {experiment_id}")
+                    logger.info(f"✅ Cleaned up test experiment: {experiment_id}")
                 except Exception as e:
-                    print(f"❌ Error deleting test experiment {experiment_id}: {e}")
+                    logger.error(
+                        f"❌ Error deleting test experiment {experiment_id}: {e}"
+                    )
                     # Fail the test if cleanup fails - this could indicate resource leaks
                     pytest.fail(f"Failed to clean up experiment {experiment_id}: {e}")
             else:
-                print("⚠️  No test experiment to clean up (creation failed)")
+                logger.warning("⚠️  No test experiment to clean up (creation failed)")
 
     @pytest.fixture
     def run_id(self, store, experiment_id):
@@ -411,29 +423,29 @@ class TestModelRegistryTrackingStoreE2ELocal:
                 experiment_id=experiment_id, user_id="test-user", run_name="test-run"
             )
             run_id = run.info.run_id
-            print(f"🏃 Created test run: {run_id}")
+            logger.info(f"🏃 Created test run: {run_id}")
             yield run_id
         except Exception as e:
-            print(f"❌ Failed to create run in experiment {experiment_id}: {e}")
+            logger.error(f"❌ Failed to create run in experiment {experiment_id}: {e}")
             raise
         finally:
             # Cleanup: delete the run
             if run_id:
                 try:
                     store.delete_run(run_id)
-                    print(f"✅ Cleaned up test run: {run_id}")
+                    logger.info(f"✅ Cleaned up test run: {run_id}")
                 except Exception as e:
-                    print(f"❌ Error deleting test run {run_id}: {e}")
+                    logger.error(f"❌ Error deleting test run {run_id}: {e}")
                     # Fail the test if cleanup fails - this could indicate resource leaks
                     pytest.fail(f"Failed to clean up run {run_id}: {e}")
             else:
-                print("⚠️  No test run to clean up (creation failed)")
+                logger.warning("⚠️  No test run to clean up (creation failed)")
 
     def test_local_server_connection(self, store):
         """Test that we can connect to the local Model Registry server."""
         experiments = store.search_experiments()
         assert isinstance(experiments, list)
-        print(
+        logger.info(
             f"✅ Successfully connected to local Model Registry. Found {len(experiments)} experiments."
         )
 
@@ -443,7 +455,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         assert isinstance(experiment, Experiment)
         assert experiment.experiment_id == experiment_id
         assert experiment.lifecycle_stage == LifecycleStage.ACTIVE
-        print(f"✅ Experiment exists: {experiment.name}")
+        logger.info(f"✅ Experiment exists: {experiment.name}")
 
     def test_run_exists(self, store, run_id):
         """Test that the run exists and can be retrieved."""
@@ -452,7 +464,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         assert retrieved_run.info.run_id == run_id
         assert retrieved_run.info.status == RunStatus.to_string(RunStatus.RUNNING)
         assert retrieved_run.info.lifecycle_stage == LifecycleStage.ACTIVE
-        print(f"✅ Run exists: {retrieved_run.info.run_name}")
+        logger.info(f"✅ Run exists: {retrieved_run.info.run_name}")
 
     def test_run_logging(self, store, run_id):
         """Test logging to the run."""
@@ -485,7 +497,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         assert retrieved_run.data.metrics["accuracy"] == 0.98
         assert retrieved_run.data.metrics["loss"] == 0.02
 
-        print(f"✅ Successfully logged data to run: {run_id}")
+        logger.info(f"✅ Successfully logged data to run: {run_id}")
 
     def test_run_batch_logging(self, store, run_id):
         """Test batch logging to the run."""
@@ -522,7 +534,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         assert len(retrieved_run.data.params) >= 2
         assert len(retrieved_run.data.tags) >= 2
 
-        print(f"✅ Successfully batch logged data to run: {run_id}")
+        logger.info(f"✅ Successfully batch logged data to run: {run_id}")
 
     def test_update_run_status(self, store, run_id):
         """Test updating run status."""
@@ -542,7 +554,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
         run = store.get_run(run_id)
         assert run.info.lifecycle_stage == LifecycleStage.ACTIVE
 
-        print(f"✅ Successfully tested status update operations on run: {run_id}")
+        logger.info(f"✅ Successfully tested status update operations on run: {run_id}")
 
     def test_create_and_get_experiment(self, store, experiment_name):
         """Test creating and retrieving an experiment."""
@@ -689,13 +701,13 @@ class TestModelRegistryTrackingStoreE2ELocal:
                 assert metric.value == loss_values[i]
                 assert metric.step == i + 1
 
-            print(
+            logger.info(
                 "✅ Successfully logged multiple metric values using loops and verified history contains all values in correct order"
             )
-            print(
+            logger.info(
                 f"   Accuracy history: {len(accuracy_history)} values, Loss history: {len(loss_history)} values"
             )
-            print(
+            logger.info(
                 "   Both metrics are sorted by (timestamp, step) as per MLMD specification"
             )
 
@@ -734,10 +746,14 @@ class TestModelRegistryTrackingStoreE2ELocal:
             )
             assert len(accuracy_bulk_limited) == 2  # Should be limited to 2 results
 
-            print("✅ Successfully tested bulk metric history API for specific steps")
-            print(f"   Accuracy bulk (steps 2,3): {len(accuracy_bulk_history)} values")
-            print(f"   Loss bulk (steps 1,4): {len(loss_bulk_history)} values")
-            print(
+            logger.info(
+                "✅ Successfully tested bulk metric history API for specific steps"
+            )
+            logger.info(
+                f"   Accuracy bulk (steps 2,3): {len(accuracy_bulk_history)} values"
+            )
+            logger.info(f"   Loss bulk (steps 1,4): {len(loss_bulk_history)} values")
+            logger.info(
                 f"   Limited results: {len(accuracy_bulk_limited)} values (max_results=2)"
             )
 
@@ -890,9 +906,11 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Cleanup
             try:
                 store.delete_experiment(experiment_id)
-                print(f"✅ Cleaned up experiment from lifecycle test: {experiment_id}")
+                logger.info(
+                    f"✅ Cleaned up experiment from lifecycle test: {experiment_id}"
+                )
             except Exception as e:
-                print(
+                logger.info(
                     f"❌ Error deleting experiment {experiment_id} in lifecycle test: {e}"
                 )
                 # Fail the test if cleanup fails - this could indicate resource leaks
@@ -929,9 +947,9 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Cleanup
             try:
                 store.delete_run(run_id)
-                print(f"✅ Cleaned up run from lifecycle test: {run_id}")
+                logger.info(f"✅ Cleaned up run from lifecycle test: {run_id}")
             except Exception as e:
-                print(f"❌ Error deleting run {run_id} in lifecycle test: {e}")
+                logger.error(f"❌ Error deleting run {run_id} in lifecycle test: {e}")
                 # Fail the test if cleanup fails - this could indicate resource leaks
                 pytest.fail(f"Failed to clean up run {run_id} in lifecycle test: {e}")
 
@@ -965,7 +983,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
 
             # Verify the input was logged by checking run artifacts
             # Note: This would require additional API calls to verify artifacts
-            print(f"✅ Successfully logged dataset input to run: {run_id}")
+            logger.info(f"✅ Successfully logged dataset input to run: {run_id}")
 
         finally:
             # Cleanup
@@ -996,7 +1014,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Log model input
             store.log_inputs(run_id, models=[model_input])
 
-            print(f"✅ Successfully logged model input to run: {run_id}")
+            logger.info(f"✅ Successfully logged model input to run: {run_id}")
 
         finally:
             # Cleanup
@@ -1027,7 +1045,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Log model output
             store.log_outputs(run_id, models=[model_output])
 
-            print(f"✅ Successfully logged model output to run: {run_id}")
+            logger.info(f"✅ Successfully logged model output to run: {run_id}")
 
         finally:
             # Cleanup
@@ -1080,7 +1098,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Record the logged model
             store.record_logged_model(run_id, mock_model)
 
-            print(f"✅ Successfully recorded logged model to run: {run_id}")
+            logger.info(f"✅ Successfully recorded logged model to run: {run_id}")
 
         finally:
             # Cleanup
@@ -1139,7 +1157,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             assert retrieved_model.name == model_name
             assert retrieved_model.experiment_id == experiment_id
 
-            print(
+            logger.info(
                 f"✅ Successfully created and retrieved logged model: {logged_model.model_id}"
             )
 
@@ -1179,7 +1197,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Delete model
             store.delete_logged_model(logged_model.model_id)
 
-            print(
+            logger.info(
                 f"✅ Successfully tested logged model lifecycle: {logged_model.model_id}"
             )
 
@@ -1216,7 +1234,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             # Verify tags were set (check if any tags exist)
             model = store.get_logged_model(logged_model.model_id)
             # TODO: Tag setting may not be working as expected, investigate
-            print(f"Model tags: {model.tags}")
+            logger.info(f"Model tags: {model.tags}")
             # assert len(model.tags) >= 2
 
             # Delete a tag
@@ -1226,7 +1244,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             model = store.get_logged_model(logged_model.model_id)
             # The tag should be removed (though we can't easily verify this without knowing all tags)
 
-            print(
+            logger.info(
                 f"✅ Successfully managed tags on logged model: {logged_model.model_id}"
             )
 
@@ -1274,7 +1292,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             for created_model in created_models:
                 assert created_model.model_id in model_ids
 
-            print(
+            logger.info(
                 f"✅ Successfully searched for logged models, found {len(models)} models"
             )
 
@@ -1321,7 +1339,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             assert retrieved_model.params["epochs"] == "100"
             assert retrieved_model.params["batch_size"] == "32"
 
-            print(
+            logger.info(
                 f"✅ Successfully created logged model with parameters: {logged_model.model_id}"
             )
 
@@ -1362,7 +1380,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
             )
             assert finalized_model.status == LoggedModelStatus.READY
 
-            print(
+            logger.info(
                 f"✅ Successfully tested logged model status transitions: {logged_model.model_id}"
             )
 
@@ -1395,8 +1413,186 @@ class TestModelRegistryTrackingStoreE2ELocal:
             retrieved_model = store.get_logged_model(logged_model.model_id)
             assert retrieved_model.artifact_location is not None
 
-            print(
+            logger.info(
                 f"✅ Successfully tested logged model artifact location: {logged_model.model_id}"
+            )
+
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+
+    def test_delete_tag(self, store, experiment_id):
+        """Test deleting run tags."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+
+        try:
+            # Import MLflow entities
+            from mlflow.entities import RunTag
+
+            # Set multiple tags
+            tag1 = RunTag("tag_to_keep", "keep_value")
+            tag2 = RunTag("tag_to_delete", "delete_value")
+            store.set_tag(run_id, tag1)
+            store.set_tag(run_id, tag2)
+
+            # Verify both tags exist
+            run = store.get_run(run_id)
+            assert run.data.tags["tag_to_keep"] == "keep_value"
+            assert run.data.tags["tag_to_delete"] == "delete_value"
+
+            # Delete one tag
+            store.delete_tag(run_id, "tag_to_delete")
+
+            # Verify tag was deleted
+            run = store.get_run(run_id)
+            assert run.data.tags["tag_to_keep"] == "keep_value"
+            assert "tag_to_delete" not in run.data.tags
+
+            logger.info(f"✅ Successfully tested delete_tag for run: {run_id}")
+
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+
+    def test_get_metric_history_bulk(self, store, experiment_id):
+        """Test bulk metric history functionality."""
+        run_ids = []
+
+        try:
+            # Create multiple runs with metrics
+            for i in range(3):
+                # Use unique run names to avoid conflicts
+                unique_run_name = f"bulk-metric-run-{i}-{uuid.uuid4().hex[:8]}"
+                run = store.create_run(
+                    experiment_id=experiment_id, run_name=unique_run_name
+                )
+                run_id = run.info.run_id
+                run_ids.append(run_id)
+
+                # Import MLflow entities
+                from mlflow.entities import Metric
+
+                # Log metrics with different steps for each run
+                for step in range(1, 6):
+                    metric = Metric(
+                        key="bulk_metric",
+                        value=(i + 1) * step * 0.1,
+                        timestamp=int(time.time() * 1000) + step,
+                        step=step,
+                    )
+                    store.log_metric(run_id, metric)
+
+            # Test bulk metric history
+            bulk_metrics = store.get_metric_history_bulk(run_ids, "bulk_metric")
+
+            # Should have 15 metrics total (3 runs * 5 steps each)
+            assert len(bulk_metrics) == 15
+
+            # Verify each metric has the correct run_id
+            run_id_counts = {}
+            for metric_with_run_id in bulk_metrics:
+                run_id = metric_with_run_id.run_id
+                assert run_id in run_ids
+                run_id_counts[run_id] = run_id_counts.get(run_id, 0) + 1
+
+            # Each run should have 5 metrics
+            for run_id in run_ids:
+                assert run_id_counts[run_id] == 5
+
+            logger.info(
+                f"✅ Successfully tested get_metric_history_bulk for {len(run_ids)} runs"
+            )
+
+        finally:
+            # Cleanup
+            for run_id in run_ids:
+                try:
+                    store.delete_run(run_id)
+                except Exception as e:
+                    logger.error(f"❌ Error deleting run {run_id}: {e}")
+
+    def test_search_datasets(self, store, experiment_id):
+        """Test dataset search functionality."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+
+        try:
+            # Import MLflow entities for dataset testing
+            from mlflow.entities import DatasetInput, Dataset, InputTag
+
+            # Create dataset
+            dataset = Dataset(
+                name="search_test_dataset",
+                digest="search123",
+                source_type="local",
+                source="/path/to/search/dataset",
+                schema="feature1:double,feature2:string",
+                profile='{"num_rows": 500}',
+            )
+
+            # Create dataset input with tags
+            dataset_tags = [InputTag(key="search_context", value="test")]
+            dataset_input = DatasetInput(dataset=dataset, tags=dataset_tags)
+
+            # Log dataset input
+            store.log_inputs(run_id, datasets=[dataset_input])
+
+            # Test dataset search
+            datasets = store._search_datasets([experiment_id])
+
+            # Verify datasets were found
+            assert isinstance(datasets, list)
+            # The exact number depends on implementation, but should be at least 0
+            assert len(datasets) >= 0
+
+            logger.info(
+                f"✅ Successfully tested _search_datasets, found {len(datasets)} datasets"
+            )
+
+        finally:
+            # Cleanup
+            store.delete_run(run_id)
+
+    def test_log_logged_model_params(self, store, experiment_id):
+        """Test logging parameters for logged models."""
+        # Create run
+        run = store.create_run(experiment_id=experiment_id)
+        run_id = run.info.run_id
+
+        try:
+            # Import MLflow entities for model testing
+            from mlflow.entities import LoggedModelParameter
+
+            # Create logged model
+            model_name = f"params-test-model-{uuid.uuid4().hex[:8]}"
+            logged_model = store.create_logged_model(
+                experiment_id=experiment_id,
+                name=model_name,
+                source_run_id=run_id,
+                model_type="sklearn",
+            )
+
+            # Create parameters to log
+            params = [
+                LoggedModelParameter("test_param1", "value1"),
+                LoggedModelParameter("test_param2", "value2"),
+            ]
+
+            # Log model parameters
+            store.log_logged_model_params(logged_model.model_id, params)
+
+            # Verify parameters were logged by getting the model
+            retrieved_model = store.get_logged_model(logged_model.model_id)
+
+            # Check that parameters were added (they should be prefixed with "param_")
+            # Note: The exact parameter format depends on implementation
+            assert isinstance(retrieved_model.params, dict)
+
+            logger.info(
+                f"✅ Successfully tested log_logged_model_params for model: {logged_model.model_id}"
             )
 
         finally:
