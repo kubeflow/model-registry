@@ -335,6 +335,16 @@ def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
     return schema
 
 
+ARTIFACT_STATES = [
+    "UNKNOWN",
+    "PENDING",
+    "LIVE",
+    "MARKED_FOR_DELETION",
+    "DELETED",
+    "ABANDONED",
+    "REFERENCE",
+]
+
 @pytest.fixture(scope="session")
 def schema_with_hooks(generated_schema: BaseOpenAPISchema) -> BaseOpenAPISchema:
     """Add hooks to the schema fixture"""
@@ -343,8 +353,16 @@ def schema_with_hooks(generated_schema: BaseOpenAPISchema) -> BaseOpenAPISchema:
 
         if case.path == "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts" and case.method == "POST":
             case.path_parameters["modelversionId"] = str(secrets.randbelow(1000))
+            case.body["name"] = f"test-artifact-{str(secrets.randbelow(1000))}"
+            case.body["uri"] = "s3://test-bucket/test-artifact"
         elif case.path == "/api/model_registry/v1alpha3/artifacts/{id}" and case.method == "PATCH":
             case.path_parameters["id"] = str(secrets.randbelow(1000))
+            if not hasattr(case, "_artifact_state_index"):
+                case._artifact_state_index = 0
+            state = ARTIFACT_STATES[case._artifact_state_index % len(ARTIFACT_STATES)]
+            case.body["artifactType"] = "model-artifact"
+            case.body["state"] = state
+            case._artifact_state_index += 1
         return case
 
     generated_schema.hooks.apply(customize_test_data)

@@ -10,7 +10,7 @@ schema = schemathesis.pytest.from_fixture("schema_with_hooks")
     suppress_health_check=[
         HealthCheck.filter_too_much,
         HealthCheck.too_slow,
-    ]
+    ],
 )
 @pytest.mark.e2e
 def test_mr_api_stateless(setup_env_user_token, case):
