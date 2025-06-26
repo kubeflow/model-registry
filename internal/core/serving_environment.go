@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *openapi.ServingEnvironment) (*openapi.ServingEnvironment, error) {
@@ -31,21 +33,30 @@ func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *open
 
 	servEnv, err := b.mapper.MapFromServingEnvironment(servingEnvironment)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	savedServEnv, err := b.servingEnvironmentRepository.Save(servEnv)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("serving environment with name %s already exists: %w", servingEnvironment.Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 
-	return b.mapper.MapToServingEnvironment(savedServEnv)
+	toReturn, err := b.mapper.MapToServingEnvironment(savedServEnv)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
 }
 
 func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
 	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid id: %w", err)
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	model, err := b.servingEnvironmentRepository.GetByID(int32(convertedId))
@@ -53,7 +64,12 @@ func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.Se
 		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, api.ErrNotFound)
 	}
 
-	return b.mapper.MapToServingEnvironment(model)
+	toReturn, err := b.mapper.MapToServingEnvironment(model)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
 }
 
 func (b *ModelRegistryService) GetServingEnvironmentByParams(name *string, externalId *string) (*openapi.ServingEnvironment, error) {
@@ -77,7 +93,12 @@ func (b *ModelRegistryService) GetServingEnvironmentByParams(name *string, exter
 		return nil, fmt.Errorf("multiple serving environments found for name=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
-	return b.mapper.MapToServingEnvironment(servEnvsList.Items[0])
+	toReturn, err := b.mapper.MapToServingEnvironment(servEnvsList.Items[0])
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	return toReturn, nil
 }
 
 func (b *ModelRegistryService) GetServingEnvironments(listOptions api.ListOptions) (*openapi.ServingEnvironmentList, error) {
@@ -100,7 +121,7 @@ func (b *ModelRegistryService) GetServingEnvironments(listOptions api.ListOption
 	for _, servEnv := range servEnvsList.Items {
 		servingEnvironment, err := b.mapper.MapToServingEnvironment(servEnv)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		servingEnvironmentList.Items = append(servingEnvironmentList.Items, *servingEnvironment)
 	}

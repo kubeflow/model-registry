@@ -47,7 +47,8 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 
 	for i := range mysqlMaxRetries {
 		db, err = gorm.Open(gorm_mysql.Open(c.DSN), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Silent),
+			Logger:         logger.Default.LogMode(logger.Silent),
+			TranslateError: true,
 		})
 		if err == nil {
 			break

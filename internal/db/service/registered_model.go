@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"gorm.io/gorm"
 )
+
+var ErrRegisteredModelNotFound = errors.New("registered model by id not found")
 
 type RegisteredModelRepositoryImpl struct {
 	db     *gorm.DB
@@ -25,6 +28,10 @@ func (r *RegisteredModelRepositoryImpl) GetByID(id int32) (models.RegisteredMode
 	propertiesCtx := []schema.ContextProperty{}
 
 	if err := r.db.Where("id = ? AND type_id = ?", id, r.typeID).First(modelCtx).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", ErrRegisteredModelNotFound, err)
+		}
+
 		return nil, fmt.Errorf("error getting model by id: %w", err)
 	}
 

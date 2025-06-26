@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, inferenceServiceId *string) (*openapi.ServeModel, error) {
@@ -31,10 +33,16 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 
 	srvModel, err := b.mapper.MapFromServeModel(serveModel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, *srvModel.GetAttributes().Name)
+	name := ""
+
+	if srvModel.GetAttributes().Name != nil {
+		name = *srvModel.GetAttributes().Name
+	}
+
+	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, name)
 	srvModel.GetAttributes().Name = &prefixedName
 
 	if inferenceServiceId == nil && srvModel.GetID() == nil {
@@ -46,16 +54,25 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 	if inferenceServiceId != nil {
 		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid inference service id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)
 
 		inferenceServiceID = &id
+
+		_, err = b.inferenceServiceRepository.GetByID(*inferenceServiceID)
+		if err != nil {
+			return nil, fmt.Errorf("no InferenceService found for id %d: %w", *inferenceServiceID, api.ErrNotFound)
+		}
 	}
 
 	savedSrvModel, err := b.serveModelRepository.Save(srvModel, inferenceServiceID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("serve model with name %s already exists: %w", *serveModel.Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 
@@ -76,7 +93,7 @@ func (b *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeModel
 	}
 	serveModel, err := b.serveModelRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, fmt.Errorf("no ServeModel found for id %s: %w", id, api.ErrNotFound)
+		return nil, fmt.Errorf("no serve model found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	toReturn, err := b.mapper.MapToServeModel(serveModel)
@@ -93,7 +110,7 @@ func (b *ModelRegistryService) GetServeModels(listOptions api.ListOptions, infer
 	if inferenceServiceId != nil {
 		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid inference service id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)
@@ -121,7 +138,7 @@ func (b *ModelRegistryService) GetServeModels(listOptions api.ListOptions, infer
 	for _, serveModel := range serveModels.Items {
 		serveModel, err := b.mapper.MapToServeModel(serveModel)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		serveModelList.Items = append(serveModelList.Items, *serveModel)
 	}

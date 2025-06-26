@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"gorm.io/gorm"
 )
+
+var ErrModelVersionNotFound = errors.New("model version by id not found")
 
 type ModelVersionRepositoryImpl struct {
 	db     *gorm.DB
@@ -29,6 +32,10 @@ func (r *ModelVersionRepositoryImpl) GetByID(id int32) (models.ModelVersion, err
 	propertiesCtx := []schema.ContextProperty{}
 
 	if err := r.db.Where("id = ? AND type_id = ?", id, r.typeID).First(&modelVersionCtx).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", ErrModelVersionNotFound, err)
+		}
+
 		return nil, fmt.Errorf("failed to get model version by id: %w", err)
 	}
 

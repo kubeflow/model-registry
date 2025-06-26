@@ -11,6 +11,7 @@ import (
 var (
 	ErrBadRequest = errors.New("bad request")
 	ErrNotFound   = errors.New("not found")
+	ErrConflict   = errors.New("conflict")
 )
 
 func ErrToStatus(err error) int {
@@ -31,6 +32,10 @@ func ErrToStatus(err error) int {
 	}
 	if errors.Is(err, ErrNotFound) {
 		return http.StatusNotFound
+	}
+
+	if errors.Is(err, ErrConflict) {
+		return http.StatusConflict
 	}
 
 	// Default error to return
