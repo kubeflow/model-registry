@@ -18,26 +18,43 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	modelCatalogs map[string]catalog.CatalogSource
+	sources map[string]catalog.CatalogSource
 }
 
-func (m ModelCatalogServiceAPIService) GetAllModelArtifacts(context.Context, string, string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(context.Context, string, string) (ImplResponse, error) {
 	return Response(http.StatusNotImplemented, "Not implemented"), nil
 }
 
-func (m ModelCatalogServiceAPIService) FindModels(ctx context.Context, source string, q string, pageSize string, orderBy model.OrderByField, sortOder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, source string, q string, pageSize string, orderBy model.OrderByField, sortOder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	return Response(http.StatusNotImplemented, "Not implemented"), nil
 }
 
-func (m ModelCatalogServiceAPIService) GetModel(ctx context.Context, source string, name string) (ImplResponse, error) {
-	return Response(http.StatusNotImplemented, "Not implemented"), nil
+func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
+	if name, ok := strings.CutSuffix(name, "/artifacts"); ok {
+		return m.GetAllModelArtifacts(ctx, sourceID, name)
+	}
+
+	source, ok := m.sources[sourceID]
+	if !ok {
+		return notFound("Unknown source"), nil
+	}
+
+	model, err := source.Provider.GetModel(ctx, name)
+	if err != nil {
+		return Response(http.StatusInternalServerError, err), err
+	}
+	if model == nil {
+		return notFound("Unknown model"), nil
+	}
+
+	return Response(http.StatusOK, model), nil
 }
 
 func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// TODO: Implement real pagination in here by reusing the nextPageToken
 	// code from https://github.com/kubeflow/model-registry/pull/1205.
 
-	if len(m.modelCatalogs) > math.MaxInt32 {
+	if len(m.sources) > math.MaxInt32 {
 		err := errors.New("too many registered models")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
@@ -51,11 +68,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		pageSize = int32(pageSize64)
 	}
 
-	items := make([]model.CatalogSource, 0, len(m.modelCatalogs))
+	items := make([]model.CatalogSource, 0, len(m.sources))
 
 	name = strings.ToLower(name)
 
-	for _, v := range m.modelCatalogs {
+	for _, v := range m.sources {
 		if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
 			continue
 		}
@@ -108,17 +125,18 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 	}
 }
 
-//nolint:unused
-func missingCatalogError(id string) (ImplResponse, error) {
-	err := fmt.Errorf("missing catalog %s", id)
-	return ErrorResponse(http.StatusNotFound, err), err
-}
-
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(modelCatalogs map[string]catalog.CatalogSource) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(sources map[string]catalog.CatalogSource) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
-		modelCatalogs: modelCatalogs,
+		sources: sources,
 	}
+}
+
+func notFound(msg string) ImplResponse {
+	if msg == "" {
+		msg = "Resource not found"
+	}
+	return ErrorResponse(http.StatusNotFound, errors.New(msg))
 }
