@@ -104,7 +104,7 @@ class RunOperations:
             run_id=run_id,
             experiment_id=experiment_id,
             user_id=user_id or "unknown",
-            status=RunStatus.RUNNING,
+            status=RunStatus.to_string(RunStatus.RUNNING),
             start_time=start_time or run_data.get("createTimeSinceEpoch"),
             end_time=None,
             lifecycle_stage=LifecycleStage.ACTIVE,

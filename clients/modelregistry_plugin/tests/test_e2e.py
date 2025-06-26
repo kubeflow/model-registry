@@ -182,7 +182,7 @@ class TestModelRegistryTrackingStoreE2E:
         retrieved_run = mlflow.get_run(run_id)
         assert retrieved_run.info.run_id == run_id
         assert retrieved_run.info.experiment_id == experiment_id
-        assert retrieved_run.info.status == RunStatus.FINISHED
+        assert retrieved_run.info.status == RunStatus.to_string(RunStatus.FINISHED)
         assert retrieved_run.info.lifecycle_stage == LifecycleStage.ACTIVE
 
         # Verify parameters
