@@ -32,12 +32,23 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 		inferenceService = &withNotEditable
 	}
 
+	_, err := b.GetServingEnvironmentById(inferenceService.ServingEnvironmentId)
+	if err != nil {
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", inferenceService.ServingEnvironmentId, api.ErrNotFound)
+	}
+
 	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, *infSvc.GetAttributes().Name)
+	name := ""
+
+	if infSvc.GetAttributes().Name != nil {
+		name = *infSvc.GetAttributes().Name
+	}
+
+	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
 	infSvc.GetAttributes().Name = &prefixedName
 
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)

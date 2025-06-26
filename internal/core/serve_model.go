@@ -36,7 +36,13 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, *srvModel.GetAttributes().Name)
+	name := ""
+
+	if srvModel.GetAttributes().Name != nil {
+		name = *srvModel.GetAttributes().Name
+	}
+
+	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, name)
 	srvModel.GetAttributes().Name = &prefixedName
 
 	if inferenceServiceId == nil && srvModel.GetID() == nil {
@@ -54,6 +60,11 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 		id := int32(convertedId)
 
 		inferenceServiceID = &id
+
+		_, err = b.inferenceServiceRepository.GetByID(*inferenceServiceID)
+		if err != nil {
+			return nil, fmt.Errorf("no InferenceService found for id %d: %w", *inferenceServiceID, api.ErrNotFound)
+		}
 	}
 
 	savedSrvModel, err := b.serveModelRepository.Save(srvModel, inferenceServiceID)
