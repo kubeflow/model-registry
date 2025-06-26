@@ -99,7 +99,8 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		conn, err := ds.Connect()
 		if err != nil {
-			errChan <- fmt.Errorf("error connecting to datastore: %w", err)
+			// {{ALERT}} is used to identify this error in pod logs, DO NOT REMOVE
+			errChan <- fmt.Errorf("{{ALERT}} error connecting to datastore: %w", err)
 			return
 		}
 

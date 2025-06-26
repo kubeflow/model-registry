@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrServeModelNotFound = errors.New("serve model by id not found")
+
 type ServeModelRepositoryImpl struct {
 	db     *gorm.DB
 	typeID int64
@@ -28,7 +30,7 @@ func (r *ServeModelRepositoryImpl) GetByID(id int32) (models.ServeModel, error) 
 
 	if err := r.db.Where("id = ? AND type_id = ?", id, r.typeID).First(serveModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
+			return nil, fmt.Errorf("%w: %v", ErrServeModelNotFound, err)
 		}
 
 		return nil, fmt.Errorf("error getting serve model by id: %w", err)
@@ -115,11 +117,11 @@ func (r *ServeModelRepositoryImpl) Save(serveModel models.ServeModel, inferenceS
 			tx.Where("execution_id = ?", serveModelExec.ID).Find(&associations)
 
 			if len(associations) > 1 {
-				return fmt.Errorf("multiple InferenceService found for ServeModel %d: %w", serveModelExec.ID, ErrNotFound)
+				return fmt.Errorf("multiple InferenceService found for ServeModel %d: %w", serveModelExec.ID, ErrModelArtifactNotFound)
 			}
 
 			if len(associations) == 0 {
-				return fmt.Errorf("no InferenceService found for ServeModel %d: %w", serveModelExec.ID, ErrNotFound)
+				return fmt.Errorf("no InferenceService found for ServeModel %d: %w", serveModelExec.ID, ErrModelArtifactNotFound)
 			}
 
 			inferenceServiceID = &associations[0].ContextID

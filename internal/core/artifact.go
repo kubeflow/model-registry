@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/mapper"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 type ModelRegistryService struct {
@@ -66,7 +68,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 	} else {
 		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid model version id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		convertedIdInt32 := int32(convertedId)
@@ -104,11 +106,15 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 
 		modelArtifact, err := b.mapper.MapFromModelArtifact(ma)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		modelArtifact, err = b.modelArtifactRepository.Save(modelArtifact, modelVersionIDPtr)
 		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("model artifact with name %s already exists: %w", *ma.Name, api.ErrConflict)
+			}
+
 			return nil, err
 		}
 
@@ -150,11 +156,15 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 
 		docArtifact, err := b.mapper.MapFromDocArtifact(da)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		docArtifact, err = b.docArtifactRepository.Save(docArtifact, modelVersionIDPtr)
 		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("doc artifact with name %s already exists: %w", *da.Name, api.ErrConflict)
+			}
+
 			return nil, err
 		}
 
@@ -188,7 +198,7 @@ func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*opena
 
 	artifact, err := b.artifactRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no artifact found for id %s: %w", id, api.ErrNotFound)
 	}
 
 	if artifact.ModelArtifact != nil {
@@ -280,7 +290,7 @@ func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVe
 	if modelVersionId != nil {
 		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid model version id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		convertedIdInt32 := int32(convertedId)
@@ -397,7 +407,7 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, mo
 	if modelVersionId != nil {
 		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid model version id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		convertedIdInt32 := int32(convertedId)

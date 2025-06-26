@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVersion, registeredModelId *string) (*openapi.ModelVersion, error) {
@@ -36,13 +38,17 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 
 	model, err := b.mapper.MapFromModelVersion(modelVersion)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	modelVersion.Name = converter.PrefixWhenOwned(&modelVersion.RegisteredModelId, modelVersion.Name)
 
 	savedModel, err := b.modelVersionRepository.Save(model)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("model version with name %s already exists: %w", modelVersion.Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 
@@ -78,12 +84,12 @@ func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVer
 func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
 	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid inference service id: %w", err)
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
 	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
 
 	infSvcProps := infSvc.GetProperties()
@@ -168,7 +174,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	if registeredModelId != nil {
 		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid registered model id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)
@@ -195,7 +201,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	for _, model := range versionsList.Items {
 		modelVersion, err := b.mapper.MapToModelVersion(model)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		modelVersionList.Items = append(modelVersionList.Items, *modelVersion)
 	}

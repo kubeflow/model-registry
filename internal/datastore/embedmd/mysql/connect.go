@@ -2,12 +2,19 @@ package mysql
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/golang/glog"
 	_tls "github.com/kubeflow/model-registry/internal/tls"
 	gorm_mysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+)
+
+const (
+	// mysqlMaxRetries is the maximum number of attempts to retry MySQL connection.
+	mysqlMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 type MySQLDBConnector struct {
@@ -27,6 +34,9 @@ func NewMySQLDBConnector(
 }
 
 func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
 	if c.needsTLSConfig() {
 		if err := c.registerTLSConfig(); err != nil {
 			return nil, err
@@ -35,11 +45,22 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 		c.DSN += "&tls=custom"
 	}
 
-	db, err := gorm.Open(gorm_mysql.Open(c.DSN), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+	for i := range mysqlMaxRetries {
+		db, err = gorm.Open(gorm_mysql.Open(c.DSN), &gorm.Config{
+			Logger:         logger.Default.LogMode(logger.Silent),
+			TranslateError: true,
+		})
+		if err == nil {
+			break
+		}
+
+		glog.Warningf("Retrying connection to MySQL (attempt %d/%d): %v", i+1, mysqlMaxRetries, err)
+
+		time.Sleep(time.Duration(i+1) * time.Second)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
 
 	c.db = db

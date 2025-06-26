@@ -666,7 +666,7 @@ func TestGetServeModelById(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "no ServeModel found")
+		assert.Contains(t, err.Error(), "no serve model found")
 	})
 }
 
@@ -902,7 +902,7 @@ func TestGetServeModels(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "invalid inference service id")
+		assert.Contains(t, err.Error(), "invalid syntax: bad request")
 	})
 }
 
