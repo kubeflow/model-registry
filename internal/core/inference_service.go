@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"gorm.io/gorm"
 )
 
 func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.InferenceService) (*openapi.InferenceService, error) {
@@ -30,16 +32,31 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 		inferenceService = &withNotEditable
 	}
 
-	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
+	_, err := b.GetServingEnvironmentById(inferenceService.ServingEnvironmentId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no serving environment found for id %s: %w", inferenceService.ServingEnvironmentId, api.ErrNotFound)
 	}
 
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, *infSvc.GetAttributes().Name)
+	infSvc, err := b.mapper.MapFromInferenceService(inferenceService, inferenceService.ServingEnvironmentId)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+	}
+
+	name := ""
+
+	if infSvc.GetAttributes().Name != nil {
+		name = *infSvc.GetAttributes().Name
+	}
+
+	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
 	infSvc.GetAttributes().Name = &prefixedName
 
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("inference service with name %s already exists: %w", *infSvc.GetAttributes().Name, api.ErrConflict)
+		}
+
 		return nil, err
 	}
 
@@ -114,7 +131,7 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	if servingEnvironmentId != nil {
 		convertedId, err := strconv.ParseInt(*servingEnvironmentId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid serving environment id: %w", err)
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
 		id := int32(convertedId)
@@ -143,7 +160,7 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	for _, infSvc := range infServicesList.Items {
 		inferenceService, err := b.mapper.MapToInferenceService(infSvc)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		inferenceServiceList.Items = append(inferenceServiceList.Items, *inferenceService)
 	}

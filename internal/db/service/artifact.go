@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrArtifactNotFound = errors.New("artifact by id not found")
+
 type ArtifactRepositoryImpl struct {
 	db                  *gorm.DB
 	modelArtifactTypeID int64
@@ -26,7 +28,7 @@ func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
 
 	if err := r.db.Where("id = ?", id).First(artifact).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return models.Artifact{}, fmt.Errorf("%w: %v", ErrNotFound, err)
+			return models.Artifact{}, fmt.Errorf("%w: %v", ErrArtifactNotFound, err)
 		}
 
 		return models.Artifact{}, fmt.Errorf("error getting artifact by id: %w", err)

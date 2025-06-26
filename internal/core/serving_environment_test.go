@@ -327,7 +327,7 @@ func TestGetServingEnvironmentById(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "invalid id")
+		assert.Contains(t, err.Error(), "invalid syntax: bad request")
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {

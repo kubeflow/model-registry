@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"gorm.io/gorm"
 )
+
+var ErrInferenceServiceNotFound = errors.New("inference service by id not found")
 
 type InferenceServiceRepositoryImpl struct {
 	db     *gorm.DB
@@ -26,6 +29,10 @@ func (r *InferenceServiceRepositoryImpl) GetByID(id int32) (models.InferenceServ
 	propertiesCtx := []schema.ContextProperty{}
 
 	if err := r.db.Where("id = ? AND type_id = ?", id, r.typeID).First(infSvcCtx).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", ErrInferenceServiceNotFound, err)
+		}
+
 		return nil, fmt.Errorf("error getting inference service by id: %w", err)
 	}
 
