@@ -70,10 +70,10 @@ export const getNamespacesForSettings =
     });
 
 export const getGroups =
-  (hostPath: string) =>
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions): Promise<GroupKind[]> =>
     handleRestFailures(
-      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/groups`, {}, opts),
+      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/groups`, queryParams, opts),
     ).then((response) => {
       if (isModArchResponse<GroupKind[]>(response)) {
         return response.data;

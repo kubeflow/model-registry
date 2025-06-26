@@ -1,33 +1,35 @@
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem, PageSection, Tab, Tabs } from '@patternfly/react-core';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
-import { useGroups } from '~/app/hooks/useGroups';
+import {
+  ApplicationsPage,
+  ModelRegistryKind,
+  RoleBindingKind,
+  useQueryParamNamespaces,
+} from 'mod-arch-shared';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
-//import RedirectErrorState from '~/app/pages/external/RedirectErrorState';
+import RedirectErrorState from '~/app/shared/components/RedirectErrorState';
 import {
   createModelRegistryRoleBindingWrapper,
   deleteModelRegistryRoleBindingWrapper,
 } from '~/app/pages/settings/roleBindingUtils';
+import { useGroups } from '~/app/hooks/useGroups';
 
 const ModelRegistriesManagePermissions: React.FC = () => {
-  const modelRegistryNamespace = 'model-registry'; // TODO: This is a placeholder
   const [activeTabKey, setActiveTabKey] = React.useState(0);
+  const modelRegistryNamespace = 'model-registry'; //TODO this is a placeholder
   const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
-  const [groups] = useGroups();
-  const roleBindings = useModelRegistryRoleBindings({});
+  const queryParams = useQueryParamNamespaces();
+  const [groups] = useGroups(queryParams);
+  const roleBindings = useModelRegistryRoleBindings(queryParams);
   const { mrName } = useParams<{ mrName: string }>();
-  const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, mrName || '');
+  const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, queryParams);
   const filteredRoleBindings = roleBindings.data.filter(
     (rb: RoleBindingKind) => rb.metadata.labels?.['app.kubernetes.io/name'] === mrName,
   );
-
-  //const error = !modelRegistryNamespace
-  //  ? new Error('No registries namespace could be found')
-  //  : null;
 
   React.useEffect(() => {
     if (modelRegistryCR) {
@@ -37,13 +39,13 @@ const ModelRegistriesManagePermissions: React.FC = () => {
     }
   }, [modelRegistryCR]);
 
-  //if (!modelRegistryNamespace) {
-  //return (
-  //<ApplicationsPage loaded empty={false}>
-  //<RedirectErrorState title="Could not load component state" errorMessage={error?.message} />
-  //</ApplicationsPage>
-  //);
-  //}
+  if (!queryParams.namespace) {
+    return (
+      <ApplicationsPage loaded empty={false}>
+        <RedirectErrorState title="Could not load component state" />
+      </ApplicationsPage>
+    );
+  }
 
   if (
     (roleBindings.loaded && filteredRoleBindings.length === 0) ||

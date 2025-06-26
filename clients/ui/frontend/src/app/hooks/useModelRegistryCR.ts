@@ -1,43 +1,30 @@
 import React from 'react';
-import { ModelRegistryKind, APIOptions } from 'mod-arch-shared';
+import {
+  ModelRegistryKind,
+  APIOptions,
+  useFetchState,
+  useDeepCompareMemoize,
+  FetchState,
+  FetchStateCallbackPromise,
+} from 'mod-arch-shared';
 import { getModelRegistrySettings } from '~/app/api/k8s';
 
 const useModelRegistryCR = (
-  namespace: string | undefined,
   name: string,
-): [ModelRegistryKind | null, boolean, Error | undefined] => {
-  const [modelRegistry, setModelRegistry] = React.useState<ModelRegistryKind | null>(null);
-  const [loaded, setLoaded] = React.useState(false);
-  const [error, setError] = React.useState<Error | undefined>(undefined);
+  queryParams: Record<string, unknown>,
+): FetchState<ModelRegistryKind | null> => {
+  const paramsMemo = useDeepCompareMemoize(queryParams);
+  const getModelRegistry = React.useMemo(
+    () => getModelRegistrySettings('', paramsMemo),
+    [paramsMemo],
+  );
 
-  React.useEffect(() => {
-    if (!name) {
-      setModelRegistry(null);
-      setLoaded(true);
-      setError(undefined);
-      return;
-    }
+  const callback = React.useCallback<FetchStateCallbackPromise<ModelRegistryKind | null>>(
+    (opts: APIOptions) => (name ? getModelRegistry(opts, name) : Promise.resolve(null)),
+    [getModelRegistry, name],
+  );
 
-    const fetchModelRegistry = async () => {
-      try {
-        setLoaded(false);
-        setError(undefined);
-        const opts: APIOptions = {};
-        const hostPath = window.location.origin;
-        const result = await getModelRegistrySettings(hostPath, {})(opts, name);
-        setModelRegistry(result);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch model registry'));
-        setModelRegistry(null);
-      } finally {
-        setLoaded(true);
-      }
-    };
-
-    fetchModelRegistry();
-  }, [name, namespace]);
-
-  return [modelRegistry, loaded, error];
+  return useFetchState(callback, null, { initialPromisePurity: true });
 };
 
 export { useModelRegistryCR };
