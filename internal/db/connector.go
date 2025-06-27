@@ -27,7 +27,11 @@ func NewConnector(dbType string, dsn string, tlsConfig *tls.TLSConfig) (Connecto
 
 		return mysql.NewMySQLDBConnector(dsn, &tls.TLSConfig{}), nil
 	case "postgres":
-		return postgres.NewPostgresDBConnector(dsn), nil
+		if tlsConfig != nil {
+			return postgres.NewPostgresDBConnector(dsn, tlsConfig), nil
+		}
+
+		return postgres.NewPostgresDBConnector(dsn, &tls.TLSConfig{}), nil
 	}
 
 	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
