@@ -2,7 +2,7 @@ import pytest
 import schemathesis
 from hypothesis import HealthCheck, settings
 
-schema = schemathesis.pytest.from_fixture("schema_with_hooks")
+schema = schemathesis.pytest.from_fixture("generated_schema")
 
 @schema.parametrize()
 @settings(
@@ -25,4 +25,3 @@ def test_mr_api_stateless(setup_env_user_token, case):
     }
 
     case.call_and_validate(headers=headers)
-
