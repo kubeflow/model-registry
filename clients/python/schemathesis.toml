@@ -1,0 +1,5 @@
+base-url = "${API_HOST}"
+
+[generation]
+# Don't shrink failing examples to save time
+no-shrink = true
