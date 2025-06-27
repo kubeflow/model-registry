@@ -17,6 +17,7 @@ for o in objects:
     if o["kind"] == "Deployment" and o.get("metadata").get("name") in ["model-registry-deployment"]:
         o["spec"]["template"]["spec"]["securityContext"] = {"runAsNonRoot": False, "readOnlyRootFilesystem": False}
         o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
+        o["spec"]["template"]["spec"]["containers"][0]["args"].insert(0, "proxy")
 
 overridden_manifests = encode_yaml_stream(objects)
 
@@ -65,6 +66,7 @@ local_resource(
     dir="../",
     deps=[
         "../cmd",
+        "../catalog",
         "../internal",
         "../pkg",
         "../go.mod",
@@ -79,7 +81,7 @@ docker_build_with_restart(
     "ghcr.io/kubeflow/model-registry/server:latest",
     context="../",
     dockerfile="../tilt.dockerfile",
-    entrypoint=["/model-registry", "proxy"],
+    entrypoint=["/model-registry"],
     only=[
       "devenv/bin/model-registry",
     ],

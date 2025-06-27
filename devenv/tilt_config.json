@@ -3,6 +3,7 @@
         "jupyterhub",
         "pythonclient",
         "frontend",
-        "controller"
+        "controller",
+        "catalog"
     ]
 }
