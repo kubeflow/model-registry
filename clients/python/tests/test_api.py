@@ -1,8 +1,14 @@
 import pytest
 import schemathesis
-from hypothesis import HealthCheck, settings
+from hypothesis import HealthCheck, settings, strategies as st
+from schemathesis.specs.openapi.formats import register_string_format
 
 schema = schemathesis.pytest.from_fixture("generated_schema")
+
+
+int64_string_strategy_instance = st.integers(min_value=1, max_value=2**31 - 1).map(str)
+
+register_string_format("int64", int64_string_strategy_instance)
 
 @schema.parametrize()
 @settings(

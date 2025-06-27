@@ -147,6 +147,7 @@ paths:
           type: string
         in: path
         required: true
+        example: "123"
   /api/model_registry/v1alpha3/inference_service:
     summary: Path used to manage an instance of inferenceservice.
     description: >-
@@ -733,6 +734,7 @@ paths:
           type: string
         in: path
         required: true
+        example: "123"
   /api/model_registry/v1alpha3/registered_model:
     summary: Path used to search for a registeredmodel.
     description: >-
