@@ -1216,6 +1216,7 @@ components:
               format: int64
               description: The unique server generated id of the resource.
               type: string
+              example: "123"
         - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceCreate:
       type: object
