@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	_tls "github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -63,8 +64,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 	dsn := fmt.Sprintf("postgres://postgres:postgres@%s:%s/test?sslmode=disable",
 		host, port.Port())
 	
-	dbConnector := postgres.NewPostgresDBConnector(dsn)
-	require.NoError(t, err)
+	dbConnector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{})
 
 	db, err := dbConnector.Connect()
 	require.NoError(t, err)
