@@ -137,12 +137,40 @@ start/mysql:
 stop/mysql:
 	./scripts/teardown_mysql_db.sh
 
-# generate the gorm structs
-.PHONY: gen/gorm
-gen/gorm: bin/golang-migrate start/mysql
+# Start the PostgreSQL database
+.PHONY: start/postgres
+start/postgres:
+	./scripts/start_postgres_db.sh
+
+# Stop the PostgreSQL database
+.PHONY: stop/postgres
+stop/postgres:
+	./scripts/teardown_postgres_db.sh
+
+# generate the gorm structs for MySQL
+.PHONY: gen/gorm/mysql
+gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
 	cd gorm-gen && go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
+
+# generate the gorm structs for PostgreSQL
+.PHONY: gen/gorm/postgres
+gen/gorm/postgres: bin/golang-migrate start/postgres
+	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
+	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
+	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
+
+# generate the gorm structs (defaults to MySQL for backward compatibility)
+# Use GORM_DB_TYPE=postgres to generate for PostgreSQL instead
+.PHONY: gen/gorm
+gen/gorm: bin/golang-migrate
+ifeq ($(GORM_DB_TYPE),postgres)
+	$(MAKE) gen/gorm/postgres
+else
+	$(MAKE) gen/gorm/mysql
+endif
 
 .PHONY: vet
 vet:
@@ -199,7 +227,7 @@ bin/yq:
 
 GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"

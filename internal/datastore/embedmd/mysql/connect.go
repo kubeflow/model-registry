@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
 	_tls "github.com/kubeflow/model-registry/internal/tls"
+	"github.com/golang/glog"
 	gorm_mysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -62,6 +62,8 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
+
+	glog.Info("Successfully connected to MySQL database")
 
 	c.db = db
 
