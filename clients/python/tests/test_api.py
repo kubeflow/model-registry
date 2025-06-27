@@ -1,6 +1,7 @@
 import pytest
 import schemathesis
-from hypothesis import HealthCheck, settings, strategies as st
+from hypothesis import HealthCheck, settings
+from hypothesis import strategies as st
 from schemathesis.specs.openapi.formats import register_string_format
 
 schema = schemathesis.pytest.from_fixture("generated_schema")
