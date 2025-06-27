@@ -3,6 +3,7 @@ package {{packageName}}
 
 import (
 	"reflect"
+        "net/http"
 
 	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -32,7 +33,10 @@ func ResponseWithHeaders(code int, headers map[string][]string, body interface{}
 func ErrorResponse(code int, err error) ImplResponse {
        return ImplResponse{
                Code: code,
-               Body: model.Error{Message: err.Error()},
+               Body: model.Error{
+                    Code: http.StatusText(code),
+                    Message: err.Error(),
+               },
        }
 }
 

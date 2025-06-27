@@ -10,74 +10,79 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-type YamlArtifacts struct {
+type yamlArtifacts struct {
 	Protocol string `yaml:"protocol"`
 	URI      string `yaml:"uri"`
 }
 
-type YamlModel struct {
+type yamlModel struct {
 	model.CatalogModel `yaml:",inline"`
-	Artifacts          []YamlArtifacts `yaml:"artifacts"`
+	Artifacts          []yamlArtifacts `yaml:"artifacts"`
 }
 
-type YamlCatalog struct {
+type yamlCatalog struct {
 	Source string      `yaml:"source"`
-	Models []YamlModel `yaml:"models"`
+	Models []yamlModel `yaml:"models"`
 }
 
 type yamlCatalogImpl struct {
-	contents *YamlCatalog
-	source   *CatalogSourceConfig
+	models map[string]*yamlModel
+	source *CatalogSourceConfig
 }
 
-func (y yamlCatalogImpl) GetModel(ctx context.Context, name string) (model.CatalogModel, error) {
+var _ CatalogSourceProvider = &yamlCatalogImpl{}
+
+func (y *yamlCatalogImpl) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+	ym := y.models[name]
+	if ym == nil {
+		return nil, nil
+	}
+	cp := ym.CatalogModel
+	return &cp, nil
+}
+
+func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func (y yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (y yamlCatalogImpl) GetCatalogSource() (model.CatalogSource, error) {
-	return y.source.CatalogSource, nil
 }
 
 // TODO start background thread to watch file
 
-var _ ModelProvider = &yamlCatalogImpl{}
-
 const yamlCatalogPath = "yamlCatalogPath"
 
-func NewYamlCatalog(source *CatalogSourceConfig) (ModelProvider, error) {
-	var contents YamlCatalog
-	properties := source.Properties
-	if len(properties) == 0 {
-		return nil, fmt.Errorf("missing yaml catalog private properties")
-	}
-	yamlModelFile, exists := properties[yamlCatalogPath].(string)
-	if !exists || len(yamlModelFile) == 0 {
+func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+	yamlModelFile, exists := source.Properties[yamlCatalogPath].(string)
+	if !exists || yamlModelFile == "" {
 		return nil, fmt.Errorf("missing %s string property", yamlCatalogPath)
 	}
 	bytes, err := os.ReadFile(yamlModelFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s file: %v", yamlCatalogPath, err)
 	}
+
+	var contents yamlCatalog
 	if err = yaml.UnmarshalStrict(bytes, &contents); err != nil {
 		return nil, fmt.Errorf("failed to parse %s file: %v", yamlCatalogPath, err)
 	}
 
 	// override catalog name from Yaml Catalog File if set
-	if len(source.Name) > 0 {
+	if source.Name != "" {
 		source.Name = contents.Source
 	}
 
-	return &yamlCatalogImpl{source: source, contents: &contents}, nil
+	models := make(map[string]*yamlModel, len(contents.Models))
+	for i := range contents.Models {
+		models[contents.Models[i].Name] = &contents.Models[i]
+	}
+
+	return &yamlCatalogImpl{
+		models: models,
+		source: source,
+	}, nil
 }
 
 func init() {
-	if err := RegisterCatalogType("yaml", NewYamlCatalog); err != nil {
+	if err := RegisterCatalogType("yaml", newYamlCatalog); err != nil {
 		panic(err)
 	}
 }

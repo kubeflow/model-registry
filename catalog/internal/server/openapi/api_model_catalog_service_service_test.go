@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestListSources(t *testing.T) {
+func TestFindSources(t *testing.T) {
 	// Setup test cases
 	testCases := []struct {
 		name           string
@@ -387,6 +387,117 @@ func TestListSources(t *testing.T) {
 					}
 				}
 			}
+		})
+	}
+}
+
+// Define a mock model provider
+type mockModelProvider struct {
+	models map[string]*model.CatalogModel
+}
+
+// Implement GetModel method for the mock provider
+func (m *mockModelProvider) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+	model, exists := m.models[name]
+	if !exists {
+		return nil, nil
+	}
+	return model, nil
+}
+
+func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListModelsParams) (model.CatalogModelList, error) {
+	return model.CatalogModelList{}, nil
+}
+
+func TestGetModel(t *testing.T) {
+
+	testCases := []struct {
+		name           string
+		sources        map[string]catalog.CatalogSource
+		sourceID       string
+		modelName      string
+		expectedStatus int
+		expectedModel  *model.CatalogModel
+	}{
+		{
+			name: "Existing model in source",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+					Provider: &mockModelProvider{
+						models: map[string]*model.CatalogModel{
+							"test-model": {
+								Name: "test-model",
+							},
+						},
+					},
+				},
+			},
+			sourceID:       "source1",
+			modelName:      "test-model",
+			expectedStatus: http.StatusOK,
+			expectedModel: &model.CatalogModel{
+				Name: "test-model",
+			},
+		},
+		{
+			name: "Non-existing source",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+				},
+			},
+			sourceID:       "source2",
+			modelName:      "test-model",
+			expectedStatus: http.StatusNotFound,
+			expectedModel:  nil,
+		},
+		{
+			name: "Existing source, non-existing model",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+					Provider: &mockModelProvider{
+						models: map[string]*model.CatalogModel{},
+					},
+				},
+			},
+			sourceID:       "source1",
+			modelName:      "test-model",
+			expectedStatus: http.StatusNotFound,
+			expectedModel:  nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create service with test sources
+			service := NewModelCatalogServiceAPIService(tc.sources)
+
+			// Call GetModel
+			resp, _ := service.GetModel(
+				context.Background(),
+				tc.sourceID,
+				tc.modelName,
+			)
+
+			// Check response status
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			// If we expect an error or not found, we don't need to check the response body
+			if tc.expectedStatus != http.StatusOK {
+				return
+			}
+
+			// For successful responses, check the response body
+			require.NotNil(t, resp.Body)
+
+			// Type assertion to access the Model
+			model, ok := resp.Body.(*model.CatalogModel)
+			require.True(t, ok, "Response body should be a Model")
+
+			// Check the model details
+			assert.Equal(t, tc.expectedModel.Name, model.Name)
 		})
 	}
 }

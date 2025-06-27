@@ -598,9 +598,9 @@ func (a *ModelCatalogServiceAPIService) GetModelExecute(r ApiGetModelRequest) (*
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}"
+	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}"
 	localVarPath = strings.Replace(localVarPath, "{"+"source_id"+"}", url.PathEscape(parameterValueToString(r.sourceId, "sourceId")), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"model_name"+"}", url.PathEscape(parameterValueToString(r.modelName, "modelName")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"model_name+"+"}", url.PathEscape(parameterValueToString(r.modelName, "modelName")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
