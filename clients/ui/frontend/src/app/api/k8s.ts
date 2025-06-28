@@ -17,7 +17,7 @@ import {
   RoleBindingRoleRef,
   genRandomChars,
 } from 'mod-arch-shared';
-import { ModelRegistry } from '~/app/types';
+import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
 
@@ -70,10 +70,10 @@ export const getNamespacesForSettings =
     });
 
 export const getGroups =
-  (hostPath: string) =>
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions): Promise<GroupKind[]> =>
     handleRestFailures(
-      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/groups`, {}, opts),
+      restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/groups`, queryParams, opts),
     ).then((response) => {
       if (isModArchResponse<GroupKind[]>(response)) {
         return response.data;
@@ -134,7 +134,7 @@ export const listModelRegistrySettings =
 
 export const createModelRegistrySettings =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: ModelRegistryKind): Promise<ModelRegistryKind[]> =>
+  (opts: APIOptions, data: ModelRegistryPayload): Promise<ModelRegistryKind> =>
     handleRestFailures(
       restCREATE(
         hostPath,
@@ -144,7 +144,7 @@ export const createModelRegistrySettings =
         opts,
       ),
     ).then((response) => {
-      if (isModArchResponse<ModelRegistryKind[]>(response)) {
+      if (isModArchResponse<ModelRegistryKind>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -248,6 +248,7 @@ export const deleteRoleBinding =
       throw new Error('Invalid response format');
     });
 
+//TODO : migrate thuis to shared library
 export const addOwnerReference = <R extends K8sResourceCommon>(
   resource: R,
   owner?: K8sResourceCommon,

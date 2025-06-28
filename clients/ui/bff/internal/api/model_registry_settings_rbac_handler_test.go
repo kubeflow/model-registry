@@ -56,9 +56,27 @@ var _ = Describe("TestRoleBindingHandlers", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(rr.Code).To(Equal(http.StatusOK))
-			Expect(actual.Data.Items).To(HaveLen(2))
+			Expect(actual.Data.Items).To(HaveLen(5))
+
+			// Check the first two stub role bindings
 			Expect(actual.Data.Items[0].Name).To(Equal("stub-rb-1"))
 			Expect(actual.Data.Items[1].Name).To(Equal("stub-rb-2"))
+
+			// Check model-registry permissions role binding
+			Expect(actual.Data.Items[2].Name).To(Equal("model-registry-permissions"))
+			Expect(actual.Data.Items[2].Labels["app.kubernetes.io/name"]).To(Equal("model-registry"))
+			Expect(actual.Data.Items[2].Subjects[0].Name).To(Equal("admin-user"))
+
+			// Check dora permissions role binding
+			Expect(actual.Data.Items[3].Name).To(Equal("model-registry-dora-permissions"))
+			Expect(actual.Data.Items[3].Labels["app.kubernetes.io/name"]).To(Equal("model-registry-dora"))
+			Expect(actual.Data.Items[3].Subjects[0].Name).To(Equal("dora-user"))
+
+			// Check bella permissions role binding
+			Expect(actual.Data.Items[4].Name).To(Equal("model-registry-bella-permissions"))
+			Expect(actual.Data.Items[4].Labels["app.kubernetes.io/name"]).To(Equal("model-registry-bella"))
+			Expect(actual.Data.Items[4].Subjects[0].Name).To(Equal("bella-team"))
+			Expect(actual.Data.Items[4].Subjects[0].Kind).To(Equal("Group"))
 		})
 
 		It("should create a role binding", func() {
