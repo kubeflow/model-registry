@@ -32,7 +32,8 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   refresh,
 }) => {
   const navigate = useNavigate();
-  const { deploymentMode, platformMode } = useModularArchContext();
+  const { config } = useModularArchContext();
+  const { deploymentMode, platformMode } = config;
   return (
     <Tabs
       activeKey={tab}
