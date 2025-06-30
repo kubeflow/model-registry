@@ -10,6 +10,16 @@ deploy-latest-mr:
 	LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
+.PHONY: deploy-test-minio
+deploy-test-minio:
+	cd ../../ && ./scripts/deploy_minio_on_kind.sh
+	kubectl port-forward -n minio svc/minio 9000:9000 & echo $$! >> .port-forwards.pid
+
+.PHONY: deploy-local-registry
+deploy-local-registry:
+	cd ../../ && ./scripts/deploy_local_kind_registry.sh
+	kubectl port-forward service/distribution-registry-test-service 5001:5001 & echo $$! >> .port-forwards.pid
+
 
 .PHONY: test
 test:
@@ -19,7 +29,7 @@ test-with-cov:
 	poetry run pytest --cov=job --cov-report=term-missing tests/
 
 .PHONY: test-e2e
-test-e2e: deploy-latest-mr
+test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@echo "Starting test-e2e"
 	-$(MAKE) test-e2e-run; STATUS=$$?
 	$(MAKE) test-e2e-cleanup
