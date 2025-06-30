@@ -11,6 +11,7 @@
 package openapi
 
 import (
+	"net/http"
 	"reflect"
 
 	model "github.com/kubeflow/model-registry/pkg/openapi"
@@ -27,7 +28,10 @@ func Response(code int, body interface{}) ImplResponse {
 func ErrorResponse(code int, err error) ImplResponse {
 	return ImplResponse{
 		Code: code,
-		Body: model.Error{Message: err.Error()},
+		Body: model.Error{
+			Code:    http.StatusText(code),
+			Message: err.Error(),
+		},
 	}
 }
 

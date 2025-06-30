@@ -32,6 +32,7 @@ sed_inplace 's/"encoding\/json"//' "$PROJECT_ROOT"/internal/server/openapi/api_m
 sed_inplace 's/github.com\/kubeflow\/model-registry\/pkg\/openapi/github.com\/kubeflow\/model-registry\/catalog\/pkg\/openapi/' \
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
+sed_inplace 's/{\?model_name+}\?/*/' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 echo "Assembling type_assert Go file"
 ./scripts/gen_type_asserts.sh "$DST"

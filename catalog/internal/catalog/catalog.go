@@ -33,9 +33,12 @@ type ListModelsParams struct {
 	SortDirection SortDirection
 }
 
-// ModelProvider is implemented by catalog types, e.g. YamlCatalog
-type ModelProvider interface {
-	GetModel(ctx context.Context, name string) (model.CatalogModel, error)
+// CatalogSourceProvider is implemented by catalog source types, e.g. YamlCatalog
+type CatalogSourceProvider interface {
+	// GetModel returns model metadata for a single model by its name. If
+	// nothing is found with the name provided it returns nil, without an
+	// error.
+	GetModel(ctx context.Context, name string) (*model.CatalogModel, error)
 	ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error)
 }
 
@@ -55,7 +58,7 @@ type sourceConfig struct {
 	Catalogs []CatalogSourceConfig `json:"catalogs"`
 }
 
-type CatalogTypeRegisterFunc func(source *CatalogSourceConfig) (ModelProvider, error)
+type CatalogTypeRegisterFunc func(source *CatalogSourceConfig) (CatalogSourceProvider, error)
 
 var registeredCatalogTypes = make(map[string]CatalogTypeRegisterFunc, 0)
 
@@ -68,8 +71,8 @@ func RegisterCatalogType(catalogType string, callback CatalogTypeRegisterFunc) e
 }
 
 type CatalogSource struct {
-	ModelProvider ModelProvider
-	Metadata      model.CatalogSource
+	Provider CatalogSourceProvider
+	Metadata model.CatalogSource
 }
 
 func LoadCatalogSources(catalogsPath string) (map[string]CatalogSource, error) {
@@ -131,8 +134,8 @@ func LoadCatalogSources(catalogsPath string) (map[string]CatalogSource, error) {
 		}
 
 		catalogs[id] = CatalogSource{
-			ModelProvider: provider,
-			Metadata:      catalogConfig.CatalogSource,
+			Provider: provider,
+			Metadata: catalogConfig.CatalogSource,
 		}
 
 		glog.Infof("loaded config %s of type %s", id, catalogType)

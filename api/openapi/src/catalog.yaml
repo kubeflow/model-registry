@@ -76,7 +76,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
-  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}:
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
     get:
@@ -100,7 +100,7 @@ paths:
           type: string
         in: path
         required: true
-      - name: model_name
+      - name: model_name+
         description: A unique identifier for the model.
         schema:
           type: string
