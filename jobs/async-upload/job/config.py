@@ -20,6 +20,7 @@ def _parser() -> cap.ArgumentParser:
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
     p.add("--source-type", choices=["s3", "oci"], default="s3")
     p.add("--source-aws-bucket")
+    p.add("--source-aws-key")
     p.add("--source-aws-region")
     p.add("--source-aws-access-key-id")
     p.add("--source-aws-secret-access-key")
@@ -34,6 +35,7 @@ def _parser() -> cap.ArgumentParser:
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
     p.add("--destination-type", choices=["s3", "oci"], default="oci")
     p.add("--destination-aws-bucket")
+    p.add("--destination-aws-key")
     p.add("--destination-aws-region")
     p.add("--destination-aws-access-key-id")
     p.add("--destination-aws-secret-access-key")
@@ -47,6 +49,9 @@ def _parser() -> cap.ArgumentParser:
     p.add("--model-name")
     p.add("--model-version")
     p.add("--model-format")
+
+    # --- model-storage configuration ---
+    p.add("--storage-path", default="/tmp/model-sync")
 
     # --- model-registry client ---
     p.add("--registry-server-address")
@@ -87,6 +92,7 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     - AWS_BUCKET
     - AWS_REGION
     - AWS_ENDPOINT_URL
+    - AWS_KEY
 
     These would be mounted as files with the names above and whose contents are the secret values.
 
@@ -167,6 +173,8 @@ def _validate_s3_config(cfg: Dict[str, Any]) -> None:
         raise ValueError("S3 credentials must be set")
     if cfg["s3"]["bucket"] is None:
         raise ValueError("S3 bucket must be set")
+    if cfg["s3"]["key"] is None:
+        raise ValueError("S3 key must be set")
 
 
 def _validate_model_config(cfg: Dict[str, Any]) -> None:
@@ -223,6 +231,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             "type": args.source_type,
             "s3": {
                 "bucket": None,
+                "key": None,
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
@@ -239,6 +248,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             "type": args.destination_type,
             "s3": {
                 "bucket": None,
+                "key": None,
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
@@ -256,6 +266,9 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             "version": args.model_version,
             "format": args.model_format,
             # TODO: Add the rest of the needed values
+        },
+        "storage": {
+            "path": args.storage_path,
         },
         "registry": {
             # These are the values required to instantiate a ModelRegistry client
@@ -290,6 +303,8 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     # Override with command-line arguments if provided. configargparse will prioritize CLI > ENV
     if args.source_aws_bucket:
         cfg["source"]["s3"]["bucket"] = args.source_aws_bucket
+    if args.source_aws_key:
+        cfg["source"]["s3"]["key"] = args.source_aws_key
     if args.source_aws_region:
         cfg["source"]["s3"]["region"] = args.source_aws_region
     if args.source_aws_access_key_id:
@@ -301,6 +316,8 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
 
     if args.destination_aws_bucket:
         cfg["destination"]["s3"]["bucket"] = args.destination_aws_bucket
+    if args.destination_aws_key:
+        cfg["destination"]["s3"]["key"] = args.destination_aws_key
     if args.destination_aws_region:
         cfg["destination"]["s3"]["region"] = args.destination_aws_region
     if args.destination_aws_access_key_id:
