@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -33,6 +34,7 @@ func TestLoadCatalogSources(t *testing.T) {
 			for k := range got {
 				gotKeys = append(gotKeys, k)
 			}
+			sort.Strings(gotKeys)
 			if !reflect.DeepEqual(gotKeys, tt.want) {
 				t.Errorf("LoadCatalogSources() got = %v, want %v", got, tt.want)
 			}

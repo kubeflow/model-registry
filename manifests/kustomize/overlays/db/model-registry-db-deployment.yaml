@@ -22,6 +22,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
         runAsNonRoot: true
+        fsGroup: 999
       containers:
       - name: db-container
         image: mysql:8.3
