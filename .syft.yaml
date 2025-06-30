@@ -1,0 +1,5 @@
+# Only the Go backend is part of the final container image.
+# Other components like the Upstream MR UI are _not_ consumed midstream/downstream from this monorepo
+# therefore, should not be part of any generated (see Syft config docs: https://github.com/anchore/syft/wiki/configuration#list-of-configurable-values).
+exclude:
+  - ./clients/ui/**
