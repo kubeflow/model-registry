@@ -5,8 +5,9 @@ on:
       - ".github/workflows/**"
       - "internal/db/schema/**"
       - "internal/datastore/embedmd/mysql/migrations/**"
+      - "internal/datastore/embedmd/postgres/migrations/**"
 jobs:
-  check-schema-structs:
+  check-mysql-schema-structs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,15 +15,35 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.6"
-      - name: Generate DB schema structs
-        run: make gen/gorm
+      - name: Generate MySQL DB schema structs
+        run: make gen/gorm/mysql
       - name: Check if there are uncommitted file changes
         run: |
           clean=$(git status --porcelain)
           if [[ -z "$clean" ]]; then
-              echo "Empty git status --porcelain: $clean"
+              echo "MySQL schema is up to date."
           else
-              echo "Uncommitted file changes detected: $clean"
+              echo "Uncommitted file changes detected after generating MySQL schema: $clean"
+              git diff
+              exit 1
+          fi
+  check-postgres-schema-structs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.6"
+      - name: Generate PostgreSQL DB schema structs
+        run: make gen/gorm/postgres
+      - name: Check if there are uncommitted file changes
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "PostgreSQL schema is up to date."
+          else
+              echo "Uncommitted file changes detected after generating PostgreSQL schema: $clean"
               git diff
               exit 1
           fi
