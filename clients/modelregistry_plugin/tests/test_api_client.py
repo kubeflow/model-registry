@@ -1,5 +1,6 @@
 """Tests for ModelRegistryAPIClient."""
 
+import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -297,3 +298,105 @@ class TestModelRegistryAPIClient:
         assert adapter.max_retries.total == 3
         assert adapter.max_retries.backoff_factor == 1
         assert adapter.max_retries.status_forcelist == [429, 500, 502, 503, 504]
+
+    def test_ca_cert_configuration_http(self):
+        """Test that CA certificate configuration is skipped for HTTP URLs."""
+        with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            client = ModelRegistryAPIClient("http://localhost:8080")
+            assert client.session.verify is True  # Default requests behavior
+            mock_logger.debug.assert_called_with(
+                "Using HTTP connection, skipping CA certificate configuration"
+            )
+
+    def test_ca_cert_configuration_explicit_path(self):
+        """Test CA certificate configuration with explicit path."""
+        with patch("pathlib.Path.exists", return_value=True):
+            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+                client = ModelRegistryAPIClient(
+                    "https://localhost:8080", ca_cert_path="/path/to/cert.pem"
+                )
+                assert client.session.verify == "/path/to/cert.pem"
+                mock_logger.info.assert_called_with(
+                    "Configuring custom CA certificate: /path/to/cert.pem"
+                )
+
+    def test_ca_cert_configuration_explicit_path_not_found(self):
+        """Test CA certificate configuration with explicit path that doesn't exist."""
+        with patch("pathlib.Path.exists", return_value=False):
+            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+                client = ModelRegistryAPIClient(
+                    "https://localhost:8080", ca_cert_path="/path/to/nonexistent.pem"
+                )
+                assert client.session.verify is True  # Should fall back to default
+                mock_logger.warning.assert_called_with(
+                    "CA certificate file not found: /path/to/nonexistent.pem, falling back to system CA"
+                )
+
+    @patch.dict(os.environ, {"MODELREGISTRY_CA_CERT_PATH": "/env/path/to/cert.pem"})
+    def test_ca_cert_configuration_env_var(self):
+        """Test CA certificate configuration via environment variable."""
+        with patch("pathlib.Path.exists", return_value=True):
+            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+                client = ModelRegistryAPIClient("https://localhost:8080")
+                assert client.session.verify == "/env/path/to/cert.pem"
+                # Check that the environment variable message was logged (first call)
+                mock_logger.info.assert_any_call(
+                    "Using CA certificate from environment variable MODELREGISTRY_CA_CERT_PATH: /env/path/to/cert.pem"
+                )
+
+    def test_ca_cert_configuration_kubernetes_ca_file_exists(self):
+        """Test CA certificate configuration when Kubernetes CA file exists."""
+        with patch("modelregistry_plugin.api_client.Path") as mock_path:
+            # Mock the Path constructor and its exists method
+            mock_path_instance = Mock()
+            mock_path_instance.exists.return_value = True
+            mock_path.return_value = mock_path_instance
+
+            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+                client = ModelRegistryAPIClient("https://localhost:8080")
+                assert (
+                    client.session.verify
+                    == "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                )
+                mock_logger.info.assert_any_call(
+                    "Using Kubernetes default CA certificate: /run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                )
+
+    def test_ca_cert_configuration_default_system_ca(self):
+        """Test CA certificate configuration falls back to system CA."""
+        with patch("pathlib.Path.exists", return_value=False):
+            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+                client = ModelRegistryAPIClient("https://localhost:8080")
+                assert client.session.verify is True  # System default
+                mock_logger.debug.assert_called_with("Using system default CA bundle")
+
+    @patch("modelregistry_plugin.api_client.get_auth_headers")
+    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    def test_request_ssl_error(
+        self, mock_session_request, mock_auth_headers, api_client
+    ):
+        """Test API request with SSL error."""
+        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
+        mock_session_request.side_effect = requests.exceptions.SSLError("SSL Error")
+
+        with pytest.raises(MlflowException) as exc_info:
+            api_client.request("GET", "/test")
+
+        assert (
+            "SSL certificate verification failed connecting to Model Registry: SSL Error"
+            in str(exc_info.value)
+        )
+
+    def test_api_client_with_ca_cert_parameter(self):
+        """Test API client initialization with ca_cert_path parameter."""
+        with patch("pathlib.Path.exists", return_value=True):
+            client = ModelRegistryAPIClient(
+                "https://localhost:8080", ca_cert_path="/custom/ca.pem"
+            )
+            assert client.session.verify == "/custom/ca.pem"
+
+    def test_api_client_constructor_backward_compatibility(self):
+        """Test that the original constructor signature still works."""
+        client = ModelRegistryAPIClient("http://localhost:8080")
+        assert client.base_url == "http://localhost:8080"
+        assert isinstance(client.session, requests.Session)
