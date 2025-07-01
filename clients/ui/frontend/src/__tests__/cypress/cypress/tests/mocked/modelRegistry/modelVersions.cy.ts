@@ -224,13 +224,22 @@ describe('Model Versions', () => {
     modelRegistry.findModelVersionsTableSearch().type('new model version');
     modelRegistry.findModelVersionsTableRows().should('have.length', 1);
     modelRegistry.findModelVersionsTableRows().contains('new model version');
-    modelRegistry.findModelVersionsTableSearch().focused().clear();
+    modelRegistry
+      .findModelVersionsTableToolbar()
+      .findByRole('button', { name: 'Clear all filters' })
+      .click();
+    modelRegistry.findModelVersionsTableRows().should('have.length', 2);
 
     // filtering by model version author
     modelRegistry.findModelVersionsTableFilter().findSelectOption('Author').click();
     modelRegistry.findModelVersionsTableSearch().type('Test author');
     modelRegistry.findModelVersionsTableRows().should('have.length', 1);
     modelRegistry.findModelVersionsTableRows().contains('Test author');
+    modelRegistry
+      .findModelVersionsTableToolbar()
+      .findByRole('button', { name: 'Clear all filters' })
+      .click();
+    modelRegistry.findModelVersionsTableRows().should('have.length', 2);
   });
 
   it('Model version details back button should lead to versions table', () => {

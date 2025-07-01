@@ -219,6 +219,12 @@ describe('Model archive list', () => {
 
     // name, last modified, owner, labels modal
     registeredModelArchive.findArchiveModelTable().should('be.visible');
+    registeredModelArchive.findArchiveModelsTableSearch().type('model 1');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive
+      .findArchiveModelsTableToolbar()
+      .findByRole('button', { name: 'Clear all filters' })
+      .click();
     registeredModelArchive.findArchiveModelsTableRows().should('have.length', 2);
 
     const archiveModelRow = registeredModelArchive.getRow('model 1');

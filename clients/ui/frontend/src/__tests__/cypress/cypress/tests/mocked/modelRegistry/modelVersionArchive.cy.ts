@@ -187,6 +187,13 @@ describe('Model version archive list', () => {
 
     // name, last modified, owner, labels modal
     modelVersionArchive.findArchiveVersionTable().should('be.visible');
+
+    modelVersionArchive.findArchivedVersionTableSearch().type('model version 1');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive
+      .findArchivedVersionTableToolbar()
+      .findByRole('button', { name: 'Clear all filters' })
+      .click();
     modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 2);
 
     const archiveVersionRow = modelVersionArchive.getRow('model version 1');

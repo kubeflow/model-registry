@@ -51,7 +51,7 @@ const ModelVersionsArchiveListView: React.FC<ModelVersionsArchiveListViewProps> 
       clearFilters={resetFilters}
       modelVersions={filteredModelVersions}
       toolbarContent={
-        <Toolbar>
+        <Toolbar data-testid="model-versions-archive-table-toolbar" clearAllFilters={resetFilters}>
           <ToolbarContent>
             <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
               <ToolbarGroup variant="filter-group">
