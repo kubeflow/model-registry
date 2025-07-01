@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+import os
+import logging
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -12,18 +15,28 @@ from modelregistry_plugin.utils import (
     toModelRegistryCustomProperties,
 )
 
+logger = logging.getLogger(__name__)
+
+# Default paths for CA certificates
+DEFAULT_K8S_CA_CERT_PATH = "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+DEFAULT_CA_CERT_ENV_VAR = "MODELREGISTRY_CA_CERT_PATH"
+
 
 class ModelRegistryAPIClient:
     """Handles all HTTP communication with Model Registry."""
 
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, ca_cert_path: Optional[str] = None):
         """Initialize the API client.
 
         Args:
             base_url: Base URL for the Model Registry API
+            ca_cert_path: Path to CA certificate file. If None, will attempt to auto-detect.
         """
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
+
+        # Configure CA certificate
+        self._configure_ca_cert(ca_cert_path)
 
         # Configure retry strategy
         retry_strategy = requests.adapters.Retry(
@@ -34,6 +47,55 @@ class ModelRegistryAPIClient:
         adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
+
+    def _configure_ca_cert(self, ca_cert_path: Optional[str] = None) -> None:
+        """Configure CA certificate for SSL verification.
+
+        Priority order:
+        1. Explicitly provided ca_cert_path parameter
+        2. Environment variable MODELREGISTRY_CA_CERT_PATH
+        3. Kubernetes default CA cert (if file exists)
+        4. System default CA bundle (requests default)
+
+        Args:
+            ca_cert_path: Path to CA certificate file
+        """
+        # Only configure CA for HTTPS URLs
+        if not self.base_url.startswith("https://"):
+            logger.debug("Using HTTP connection, skipping CA certificate configuration")
+            return
+
+        final_ca_path = ca_cert_path
+
+        # Check environment variable if no explicit path provided
+        if not final_ca_path:
+            env_ca_path = os.getenv(DEFAULT_CA_CERT_ENV_VAR)
+            if env_ca_path:
+                logger.info(
+                    f"Using CA certificate from environment variable {DEFAULT_CA_CERT_ENV_VAR}: {env_ca_path}"
+                )
+                final_ca_path = env_ca_path
+
+        # Check for Kubernetes default CA if still no path
+        if not final_ca_path and Path(DEFAULT_K8S_CA_CERT_PATH).exists():
+            logger.info(
+                f"Using Kubernetes default CA certificate: {DEFAULT_K8S_CA_CERT_PATH}"
+            )
+            final_ca_path = DEFAULT_K8S_CA_CERT_PATH
+
+        # Configure the session with CA certificate
+        if final_ca_path:
+            if Path(final_ca_path).exists():
+                logger.info(f"Configuring custom CA certificate: {final_ca_path}")
+                self.session.verify = final_ca_path
+            else:
+                logger.warning(
+                    f"CA certificate file not found: {final_ca_path}, falling back to system CA"
+                )
+                # Let requests use system CA bundle (default behavior)
+        else:
+            logger.debug("Using system default CA bundle")
+            # Let requests use system CA bundle (default behavior)
 
     def request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make authenticated request to Model Registry API.
@@ -64,6 +126,13 @@ class ModelRegistryAPIClient:
             response = self.session.request(method, url, headers=headers, **kwargs)
             response.raise_for_status()
             response_json = response.json()
+        except requests.exceptions.SSLError as e:
+            # Handle SSL certificate errors specifically
+            msg = (
+                f"SSL certificate verification failed connecting to Model Registry: {e}"
+            )
+            logger.error(msg)
+            raise MlflowException(msg) from e
         except requests.exceptions.RequestException as e:
             # Handle HTTP errors
             if hasattr(e, "response") and e.response is not None:
