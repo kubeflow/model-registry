@@ -13,6 +13,8 @@ This plugin allows you to use MLflow's tracking API to log experiments, runs, me
 - **Run Tracking**: Log runs, metrics, parameters, and tags
 - **Artifact Storage**: Store and retrieve model artifacts
 - **Authentication**: Built-in support for Kubeflow authentication
+- **SSL/TLS Support**: Automatic CA certificate detection for secure HTTPS connections
+- **Kubernetes Ready**: Auto-detects Kubernetes CA certificates and service account tokens
 - **Full MLflow Compatibility**: Implements all required AbstractStore methods
 
 ## Installation
@@ -56,6 +58,97 @@ export MODEL_REGISTRY_TOKEN="your-token"
 
 # Kubernetes service account token from `/var/run/secrets/kubernetes.io/serviceaccount/token`
 ```
+
+### SSL/TLS and CA Certificate Configuration
+
+For secure HTTPS connections to Model Registry, the plugin supports custom CA certificate configuration. This is particularly useful when using self-signed certificates or custom certificate authorities.
+
+#### CA Certificate Priority Order
+
+The plugin automatically detects and configures CA certificates in the following priority order:
+
+1. **Custom CA via Environment Variable** (highest priority)
+2. **Kubernetes Default CA** (auto-detected when running in K8s)
+3. **System Default CA Bundle** (fallback)
+
+#### Configuration Options
+
+```bash
+# Option 1: Custom CA certificate via environment variable
+export MODELREGISTRY_CA_CERT_PATH="/path/to/your/ca.crt"
+export MLFLOW_TRACKING_URI="modelregistry+https://registry.example.com:8080"
+
+# Option 2: In Kubernetes - works automatically (no configuration needed)
+export MLFLOW_TRACKING_URI="modelregistry+https://model-registry-service:8080"
+# Plugin automatically uses /run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+# Option 3: HTTP (no SSL) - CA configuration is skipped
+export MLFLOW_TRACKING_URI="modelregistry://registry.example.com:8080"
+```
+
+#### Kubernetes Deployment Example
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: mlflow-app
+        image: your-mlflow-app:latest
+        env:
+        - name: MLFLOW_TRACKING_URI
+          value: "modelregistry+https://model-registry-service:8080"
+        # CA certificate is automatically detected from Kubernetes service account
+```
+
+#### Custom CA in Kubernetes
+
+For custom CA certificates in Kubernetes deployments:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-certificates
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    ... your CA certificate content ...
+    -----END CERTIFICATE-----
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: mlflow-app
+        image: your-mlflow-app:latest
+        env:
+        - name: MLFLOW_TRACKING_URI
+          value: "modelregistry+https://model-registry-service:8080"
+        - name: MODELREGISTRY_CA_CERT_PATH
+          value: "/etc/ssl/certs/ca.crt"
+        volumeMounts:
+        - name: ca-certs
+          mountPath: /etc/ssl/certs
+          readOnly: true
+      volumes:
+      - name: ca-certs
+        configMap:
+          name: ca-certificates
+```
+
+#### Protocol Support
+
+- **HTTP** (`modelregistry://`): No CA certificate configuration
+- **HTTPS** (`modelregistry+https://`): Automatic CA certificate detection and configuration
 
 ## Usage
 
@@ -216,7 +309,11 @@ This allows MLflow to automatically discover and use the plugin when the `modelr
 
 1. **Connection Refused**: Ensure Model Registry is running and accessible
 2. **Authentication Failed**: Verify tokens and credentials are correct
-3. **SSL/TLS Errors**: Check certificate configuration for secure connections
+3. **SSL/TLS Certificate Errors**: 
+   - Check that the CA certificate path is correct and the file exists
+   - Verify the certificate is in PEM format
+   - Ensure the server certificate is signed by the specified CA
+   - For Kubernetes: verify the service account has access to CA certificates
 4. **Entry Point Not Found**: Ensure the package is properly installed and the entry point is registered
 
 ### Debug Logging
@@ -226,7 +323,16 @@ Enable debug logging to troubleshoot issues:
 ```python
 import logging
 logging.getLogger("modelregistry_plugin").setLevel(logging.DEBUG)
+
+# For detailed CA certificate configuration logging:
+logging.getLogger("modelregistry_plugin.api_client").setLevel(logging.INFO)
 ```
+
+**CA Certificate Log Messages:**
+- `"Using CA certificate from environment variable MODELREGISTRY_CA_CERT_PATH: /path/to/ca.crt"` - Custom CA detected
+- `"Using Kubernetes default CA certificate: /run/secrets/kubernetes.io/serviceaccount/ca.crt"` - K8s CA auto-detected  
+- `"Using system default CA bundle"` - Fallback to system CA
+- `"SSL certificate verification failed connecting to Model Registry"` - Certificate verification error
 
 ### Verification Commands
 
@@ -238,6 +344,23 @@ print('Available tracking stores:', list(mlflow.tracking._tracking_service.utils
 # Test store creation
 store = mlflow.tracking._tracking_service.utils._get_store('modelregistry://localhost:8080')
 print('Store type:', type(store).__name__)
+
+# Test CA certificate configuration
+import logging
+logging.getLogger("modelregistry_plugin.api_client").setLevel(logging.INFO)
+
+# This will show CA certificate detection logs
+store = mlflow.tracking._tracking_service.utils._get_store('modelregistry+https://your-registry:8080')
+```
+
+**Testing CA Certificate with curl:**
+
+```bash
+# Test with custom CA certificate
+curl --cacert /path/to/ca.crt https://your-registry:8080/api/model_registry/v1alpha3
+
+# Test with system CA
+curl https://your-registry:8080/api/model_registry/v1alpha3
 ```
 
 ## Contributing
