@@ -28,22 +28,6 @@ func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
 	return db, dsn, cleanup
 }
 
-func TestReadinessHandler_NonEmbedMD(t *testing.T) {
-	ds := datastore.Datastore{
-		Type: "mlmd",
-	}
-	handler := ReadinessHandler(ds)
-
-	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "OK", rr.Body.String())
-}
-
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()

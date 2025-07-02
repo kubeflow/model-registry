@@ -6,15 +6,12 @@
 
 ## Getting Started
 
-Model Registry is a high level Go library client for a remote [ML Metadata (MLMD)](https://github.com/google/ml-metadata)
-server that provides a [high-level model metadata registry API](../pkg/api/api.go).
+Model Registry is a high level Go library client for recording and retrieving metadata associated with ML developer and data scientist workflows that provides a [high-level model metadata registry API](../pkg/api/api.go).
 
-You can use Model Registry to interact with MLMD using [convenient type definitions](../pkg/openapi/), instead of managing them yourself.
-This includes models, model versions, artifacts, serving environments, inference services, and serve models.
+You can use Model Registry to manage [convenient type definitions](../pkg/openapi/) for models, model versions, artifacts, serving environments, inference services, and serve models.
 
 ### Prerequisites
 
-* [MLMD server](https://github.com/google/ml-metadata/blob/f0fef74eae2bdf6650a79ba976b36bea0b777c2e/g3doc/get_started.md#use-mlmd-with-a-remote-grpc-server)
 * Go >= 1.24
 
 Install it using:
@@ -23,44 +20,30 @@ Install it using:
 go get github.com/kubeflow/model-registry
 ```
 
-Assuming that an MLMD server is running at `localhost:9090`, you can connect with it using a gRPC connection:
-
-<!-- TODO: https://github.com/kubeflow/model-registry/issues/194: drop DialContext from this example -->
+Assuming that an Model Registry server is running at `localhost:8080`, you can connect with it using:
 
 ```go
 import (
-  "context"
-  "google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+  "net/http"
+  "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
-conn, err := grpc.DialContext(
-  context.Background(),
-  "localhost:9090",
-  grpc.WithReturnConnectionError(),
-  grpc.WithBlock(), // optional
-  grpc.WithTransportCredentials(insecure.NewCredentials()),
-)
-if err != nil {
-  return fmt.Errorf("error dialing connection to mlmd server localhost:9090: %v", err)
+cfg := &openapi.Configuration{
+  HTTPClient: http.DefaultClient,
+  Servers: openapi.ServerConfigurations{
+    {
+      URL: "http://localhost:8080",
+    },
+  },
 }
-defer conn.Close()
+
+client := openapi.NewAPIClient(cfg)
 ```
 
-> NOTE: Check the [go gRPC documentation](https://pkg.go.dev/google.golang.org/grpc#DialContext) for more details.
-
-Once the gRPC connection is established, you can create a `ModelRegistryService`:
+Once the connection is established, you can create a `ModelRegistryServiceAPI` service:
 
 ```go
-import (
-  "fmt"
-  "github.com/kubeflow/model-registry/pkg/core"
-)
-
-service, err := core.NewModelRegistryService(conn)
-if err != nil {
-  return fmt.Errorf("error creating model registry core service: %v", err)
-}
+service := client.ModelRegistryServiceAPI
 ```
 
 ### Example usage
@@ -76,12 +59,12 @@ modelName := "MODEL_NAME"
 modelDescription := "MODEL_DESCRIPTION"
 
 // register a new model
-registeredModel, err = service.UpsertRegisteredModel(&openapi.RegisteredModel{
-  Name:        &modelName,
+registeredModel, _, err := service.CreateRegisteredModel(ctx).RegisteredModelCreate(openapi.RegisteredModelCreate{
+  Name: modelName,
   Description: &modelDescription,
-})
+}).Execute()
 if err != nil {
-  return fmt.Errorf("error registering model: %v", err)
+  return nil, fmt.Errorf("error registering model: %w", err)
 }
 ```
 
@@ -93,9 +76,10 @@ versionDescription := "VERSION_DESCRIPTION"
 versionScore := 0.83
 
 // register model version
-modelVersion, err = service.UpsertModelVersion(&openapi.ModelVersion{
-  Name:        &versionName,
-  Description: &versionDescription,
+modelVersion, _, err := service.CreateModelVersion(ctx).ModelVersionCreate(openapi.ModelVersionCreate{
+  Name:              versionName,
+  Description:       &versionDescription,
+  RegisteredModelId: *registeredModel.Id,
   CustomProperties: &map[string]openapi.MetadataValue{
     "score": {
       MetadataDoubleValue: &openapi.MetadataDoubleValue{
@@ -103,9 +87,9 @@ modelVersion, err = service.UpsertModelVersion(&openapi.ModelVersion{
       },
     },
   },
-}, registeredModel.Id)
+}).Execute()
 if err != nil {
-  return fmt.Errorf("error registering model version: %v", err)
+  return nil, fmt.Errorf("unable to create model version: %w", err)
 }
 ```
 
@@ -115,15 +99,19 @@ Create a `ModelArtifact` for the version
 artifactName := "ARTIFACT_NAME"
 artifactDescription := "ARTIFACT_DESCRIPTION"
 artifactUri := "ARTIFACT_URI"
+artifactType := "model-artifact"
 
 // register model artifact
-modelArtifact, err := service.UpsertModelVersionArtifact(&openapi.ModelArtifact{
-  Name:        &artifactName,
-  Description: &artifactDescription,
-  Uri:         &artifactUri,
-}, *modelVersion.Id)
+modelArtifact, _, err = service.UpsertModelVersionArtifact(ctx, *modelVersion.Id).Artifact(openapi.Artifact{
+  ModelArtifact: &openapi.ModelArtifact{
+    Name:        &artifactName,
+    Description: &artifactDescription,
+    Uri:         &artifactUri,
+    ArtifactType: &artifactType,
+  },
+}).Execute()
 if err != nil {
-  return fmt.Errorf("error creating model artifact: %v", err)
+  return nil, fmt.Errorf("unable to create model artifact: %w", err)
 }
 ```
 
@@ -136,23 +124,34 @@ in**sert** a new model, or **up**date it:
 artifactName := "ARTIFACT_NAME"
 artifactDescription := "ARTIFACT_DESCRIPTION"
 artifactUri := "ARTIFACT_URI"
+artifactType := "model-artifact"
 
 // register model artifact
-modelArtifact, err := service.UpsertModelVersionArtifact(&openapi.ModelArtifact{
-  Name:        &artifactName,
-  Description: &artifactDescription,
-  Uri:         &artifactUri,
-}, *modelVersion.Id)
+modelArtifact, _, err = service.UpsertModelVersionArtifact(ctx, *modelVersion.Id).Artifact(openapi.Artifact{
+  ModelArtifact: &openapi.ModelArtifact{
+    Name:        &artifactName,
+    Description: &artifactDescription,
+    Uri:         &artifactUri,
+    ArtifactType: &artifactType,
+  },
+}).Execute()
 if err != nil {
-  return fmt.Errorf("error creating model artifact: %v", err)
+  return nil, fmt.Errorf("unable to create model artifact: %w", err)
 }
 
+// update model artifact
 newDescription := "update it!"
-modelArtifact.Description = &newDescription
 
-modelArtifact, err = service.UpsertModelVersionArtifact(modelArtifact, *modelVersion.Id)
+modelArtifact, _, err = service.UpsertModelVersionArtifact(ctx, *modelVersion.Id).Artifact(openapi.Artifact{
+  ModelArtifact: &openapi.ModelArtifact{
+    Name:        &artifactName,
+    Description: &newDescription,
+    Uri:         &artifactUri,
+    ArtifactType: &artifactType,
+  },
+}).Execute()
 if err != nil {
-  return fmt.Errorf("error updating model artifact: %v", err)
+  return nil, fmt.Errorf("unable to update model artifact: %w", err)
 }
 ```
 
@@ -163,19 +162,18 @@ Get a `RegisteredModel` by name:
 
 ```go
 modelName := "MODEL_NAME"
-registeredModel, err := service.GetRegisteredModelByParams(&modelName, nil)
+registeredModel, _, err := service.FindRegisteredModel(ctx).Name(modelName).Execute()
 if err != nil {
-  log.Printf("unable to find model %s: %v", getModelCfg.RegisteredModelName, err)
-  return err
+  return nil, fmt.Errorf("unable to find registered model: %w", err)
 }
 ```
 
 Get all `ModelVersion` associated to a specific registered model
 
 ```go
-allVersions, err := service.GetModelVersions(api.ListOptions{}, registeredModel.Id)
+allVersions, _, err := service.FindModelVersion(ctx).ParentResourceId(*regModelFound.Id).Execute()
 if err != nil {
-  return fmt.Errorf("error retrieving model versions for model %s: %v", *registeredModel.Id, err)
+  return nil, fmt.Errorf("unable to find model version: %w", err)
 }
 ```
 
