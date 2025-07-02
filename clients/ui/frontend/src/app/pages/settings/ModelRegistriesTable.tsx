@@ -1,25 +1,26 @@
 import React from 'react';
 import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
-import { ModelRegistryKind, Table } from 'mod-arch-shared';
+import { ModelRegistryKind, RoleBindingKind, Table, FetchStateObject } from 'mod-arch-shared';
 import { modelRegistryColumns } from './columns';
 import ModelRegistriesTableRow from './ModelRegistriesTableRow';
 import DeleteModelRegistryModal from './DeleteModelRegistryModal';
+import CreateModal from './CreateModal';
 
 type ModelRegistriesTableProps = {
   modelRegistries: ModelRegistryKind[];
+  refresh: () => Promise<unknown>;
+  roleBindings: FetchStateObject<RoleBindingKind[]>;
   onCreateModelRegistryClick: () => void;
-  refresh: () => void;
 };
 
 const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
   modelRegistries,
-  onCreateModelRegistryClick,
+  roleBindings,
   refresh,
+  onCreateModelRegistryClick,
 }) => {
-  // TODO: [Midstream] Complete once we have permissions
-
+  const [editRegistry, setEditRegistry] = React.useState<ModelRegistryKind>();
   const [deleteRegistry, setDeleteRegistry] = React.useState<ModelRegistryKind>();
-
   return (
     <>
       <Table
@@ -41,25 +42,20 @@ const ModelRegistriesTable: React.FC<ModelRegistriesTableProps> = ({
             </ToolbarContent>
           </Toolbar>
         }
-        rowRenderer={(mr: ModelRegistryKind) => (
+        rowRenderer={(mr) => (
           <ModelRegistriesTableRow
             key={mr.metadata.name}
             modelRegistry={mr}
-            onDeleteRegistry={(i) => setDeleteRegistry(i)}
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            onEditRegistry={() => {}}
+            roleBindings={roleBindings}
+            onEditRegistry={() => setEditRegistry(mr)}
+            onDeleteRegistry={() => setDeleteRegistry(mr)}
           />
         )}
         variant="compact"
       />
-      {/* TODO: implement when CRD endpoint is ready */}
-      {/* {editRegistry ? (
-        <CreateModal
-          modelRegistry={editRegistry}
-          onClose={() => setEditRegistry(undefined)}
-          refresh={refresh}
-        />
-      ) : null} */}
+      {editRegistry ? (
+        <CreateModal onClose={() => setEditRegistry(undefined)} refresh={refresh} />
+      ) : null}
       {deleteRegistry ? (
         <DeleteModelRegistryModal
           modelRegistry={deleteRegistry}
