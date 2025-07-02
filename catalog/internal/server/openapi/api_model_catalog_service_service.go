@@ -18,7 +18,7 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	sources map[string]catalog.CatalogSource
+	sources *catalog.SourceCollection
 }
 
 func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(context.Context, string, string) (ImplResponse, error) {
@@ -34,7 +34,7 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 		return m.GetAllModelArtifacts(ctx, sourceID, name)
 	}
 
-	source, ok := m.sources[sourceID]
+	source, ok := m.sources.Get(sourceID)
 	if !ok {
 		return notFound("Unknown source"), nil
 	}
@@ -54,7 +54,8 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	// TODO: Implement real pagination in here by reusing the nextPageToken
 	// code from https://github.com/kubeflow/model-registry/pull/1205.
 
-	if len(m.sources) > math.MaxInt32 {
+	sources := m.sources.All()
+	if len(sources) > math.MaxInt32 {
 		err := errors.New("too many registered models")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
@@ -68,11 +69,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		pageSize = int32(pageSize64)
 	}
 
-	items := make([]model.CatalogSource, 0, len(m.sources))
+	items := make([]model.CatalogSource, 0, len(sources))
 
 	name = strings.ToLower(name)
 
-	for _, v := range m.sources {
+	for _, v := range sources {
 		if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
 			continue
 		}
@@ -128,7 +129,7 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(sources map[string]catalog.CatalogSource) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		sources: sources,
 	}

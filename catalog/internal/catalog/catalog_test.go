@@ -30,8 +30,8 @@ func TestLoadCatalogSources(t *testing.T) {
 				t.Errorf("LoadCatalogSources() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			gotKeys := make([]string, 0, len(got))
-			for k := range got {
+			gotKeys := make([]string, 0, len(got.All()))
+			for k := range got.All() {
 				gotKeys = append(gotKeys, k)
 			}
 			sort.Strings(gotKeys)
