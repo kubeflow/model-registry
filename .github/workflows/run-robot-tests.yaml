@@ -50,7 +50,7 @@ jobs:
       # Start docker compose with locally build image from current code
       - name: Start docker compose with local image
         # Start docker compose in the background
-        run: docker compose -f docker-compose-mysql.yaml up --detach
+        run: docker compose -f docker-compose-local.yaml up --detach
       # Run Robot Framework tests in REST mode against running docker compose
       - name: Run Robot Framework tests (REST mode)
         # Run Robot Framework tests in REST mode from test/robot directory
@@ -58,4 +58,4 @@ jobs:
       # Shutdown docker compose with locally build image from current code
       - name: Shutdown docker compose with local image
         # Shutdown docker compose running in the background
-        run: docker compose -f docker-compose-mysql.yaml down
+        run: docker compose -f docker-compose-local.yaml down
