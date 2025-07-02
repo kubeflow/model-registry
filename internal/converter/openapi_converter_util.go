@@ -148,8 +148,3 @@ func MapNameFromOwned(source *string) *string {
 	joined := strings.Join(exploded[1:], ":")
 	return &joined
 }
-
-// of returns a pointer to the provided literal/const input
-func of[E any](e E) *E {
-	return &e
-}
