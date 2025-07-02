@@ -29,14 +29,18 @@ import ResourceNameField from './ResourceNameField';
 //   return { data, onDataChange };
 // };
 
+type NameDescType = {
+  name: string;
+  description: string;
+};
+
 type K8sNameDescriptionFieldProps = {
-  autoFocusName?: boolean;
-  //   data: UseK8sNameDescriptionFieldData['data'];
+  data: NameDescType;
+  onDataChange: (data: NameDescType) => void;
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
-  //   onDataChange?: UseK8sNameDescriptionFieldData['onDataChange'];
   hideDescription?: boolean;
 };
 
@@ -45,11 +49,10 @@ type K8sNameDescriptionFieldProps = {
  * @see useK8sNameDescriptionFieldData
  */
 const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
-  autoFocusName,
-  //   data,
+  data,
+  onDataChange,
   dataTestId,
   descriptionLabel = 'Description',
-  //   onDataChange,
   nameLabel = 'Name',
   nameHelperText,
   hideDescription,
@@ -57,17 +60,14 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   const [showK8sField, setShowK8sField] = React.useState(false);
   const { isMUITheme } = useThemeContext();
 
-  //   const { name, description, k8sName } = data;
   const nameInput = (
     <TextInput
-      //   aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-name`}
       id={`${dataTestId}-name`}
       name={`${dataTestId}-name`}
-      autoFocus={autoFocusName}
+      value={data.name}
+      onChange={(_e, value) => onDataChange({ ...data, name: value })}
       isRequired
-      //   value={name}
-      //   onChange={(event, value) => onDataChange?.('name', value)}
     />
   );
 
@@ -110,25 +110,23 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
 
   const descriptionTextInput = (
     <TextInput
-      // aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-description`}
       id={`${dataTestId}-description`}
       name={`${dataTestId}-description`}
       type="text"
-      // value={description}
-      // onChange={(event, value) => onDataChange?.('description', value)}
+      value={data.description}
+      onChange={(_e, value) => onDataChange({ ...data, description: value })}
     />
   );
 
   const descriptionTextArea = (
     <TextArea
-      // aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-description`}
       id={`${dataTestId}-description`}
       name={`${dataTestId}-description`}
       type="text"
-      // value={description}
-      // onChange={(event, value) => onDataChange?.('description', value)}
+      value={data.description}
+      onChange={(_e, value) => onDataChange({ ...data, description: value })}
       resizeOrientation="vertical"
     />
   );
@@ -152,12 +150,7 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
         </>
       )}
 
-      <ResourceNameField
-        allowEdit={showK8sField}
-        dataTestId={dataTestId}
-        // k8sName={k8sName}
-        // onDataChange={onDataChange}
-      />
+      <ResourceNameField allowEdit={showK8sField} dataTestId={dataTestId} />
 
       {!hideDescription && isMUITheme ? (
         descriptionFormGroup

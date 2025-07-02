@@ -5,6 +5,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// Add other necessary imports like context, slog, helpers etc.
 )
@@ -53,6 +54,75 @@ func (app *App) GetRoleBindingsHandler(w http.ResponseWriter, r *http.Request, p
 			Items: []models.RoleBinding{
 				{ /* Dummy RoleBinding 1 */ ObjectMeta: metav1.ObjectMeta{Name: "stub-rb-1"}},
 				{ /* Dummy RoleBinding 2 */ ObjectMeta: metav1.ObjectMeta{Name: "stub-rb-2"}},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "model-registry-permissions",
+						Labels: map[string]string{
+							"app.kubernetes.io/name":      "model-registry",
+							"app":                         "model-registry",
+							"app.kubernetes.io/component": "model-registry",
+							"app.kubernetes.io/part-of":   "model-registry",
+						},
+					},
+					Subjects: []rbacv1.Subject{
+						{
+							Kind:     "User",
+							Name:     "admin-user",
+							APIGroup: "rbac.authorization.k8s.io",
+						},
+					},
+					RoleRef: rbacv1.RoleRef{
+						Kind:     "Role",
+						Name:     "registry-user-model-registry",
+						APIGroup: "rbac.authorization.k8s.io",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "model-registry-dora-permissions",
+						Labels: map[string]string{
+							"app.kubernetes.io/name":      "model-registry-dora",
+							"app":                         "model-registry-dora",
+							"app.kubernetes.io/component": "model-registry",
+							"app.kubernetes.io/part-of":   "model-registry",
+						},
+					},
+					Subjects: []rbacv1.Subject{
+						{
+							Kind:     "User",
+							Name:     "dora-user",
+							APIGroup: "rbac.authorization.k8s.io",
+						},
+					},
+					RoleRef: rbacv1.RoleRef{
+						Kind:     "Role",
+						Name:     "registry-user-model-registry-dora",
+						APIGroup: "rbac.authorization.k8s.io",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "model-registry-bella-permissions",
+						Labels: map[string]string{
+							"app.kubernetes.io/name":      "model-registry-bella",
+							"app":                         "model-registry-bella",
+							"app.kubernetes.io/component": "model-registry",
+							"app.kubernetes.io/part-of":   "model-registry",
+						},
+					},
+					Subjects: []rbacv1.Subject{
+						{
+							Kind:     "Group",
+							Name:     "bella-team",
+							APIGroup: "rbac.authorization.k8s.io",
+						},
+					},
+					RoleRef: rbacv1.RoleRef{
+						Kind:     "Role",
+						Name:     "registry-user-model-registry-bella",
+						APIGroup: "rbac.authorization.k8s.io",
+					},
+				},
 			},
 		},
 	}

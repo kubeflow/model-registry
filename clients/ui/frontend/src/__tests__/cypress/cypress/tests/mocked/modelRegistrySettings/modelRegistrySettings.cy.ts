@@ -27,7 +27,24 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    modelRegistries,
+    modelRegistries.map((mr) => ({
+      ...mr,
+      metadata: {
+        ...mr.metadata,
+        annotations: {
+          ...mr.metadata.annotations,
+          'openshift.io/display-name': mr.metadata.displayName,
+        },
+      },
+    })),
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/settings/role_bindings`,
+    {
+      path: { apiVersion: MODEL_REGISTRY_API_VERSION },
+    },
+    [],
   );
 };
 
