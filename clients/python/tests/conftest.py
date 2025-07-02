@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import contextlib
 import inspect
 import json
 import os
@@ -8,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from collections.abc import Generator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -21,6 +23,8 @@ from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
+
+from .constants import DEFAULT_API_TIMEOUT
 
 
 def pytest_addoption(parser):
@@ -334,3 +338,37 @@ def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
     schema.config.output.sanitization.update(enabled=False)
     return schema
 
+@pytest.fixture
+def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
+    """Cleanup artifacts created during the test."""
+    created_ids = []
+    def register(artifact_id):
+        created_ids.append(artifact_id)
+
+    yield register
+
+    for artifact_id in created_ids:
+        del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
+        try:
+            requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+        except Exception as e:
+            print(f"Failed to delete artifact {artifact_id}: {e}")
+
+@pytest.fixture
+def artifact_resource():
+    """Create an artifact resource for the test."""
+    @contextlib.contextmanager
+    def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
+        create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
+        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+        resp.raise_for_status()
+        artifact_id = resp.json()["id"]
+        try:
+            yield artifact_id
+        finally:
+            del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
+            try:
+                requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+            except Exception as e:
+                print(f"Failed to delete artifact {artifact_id}: {e}")
+    return _artifact_resource

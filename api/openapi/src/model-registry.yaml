@@ -143,11 +143,11 @@ paths:
     parameters:
       - name: id
         description: A unique identifier for an `Artifact`.
-        schema:
-          type: string
         in: path
         required: true
-        example: "1234567890123456789"
+        schema:
+          type: string
+          example: "2"
   /api/model_registry/v1alpha3/inference_service:
     summary: Path used to manage an instance of inferenceservice.
     description: >-
@@ -668,9 +668,9 @@ paths:
         description: A unique identifier for a `ModelVersion`.
         schema:
           type: string
+          example: "3"
         in: path
         required: true
-        example: "9876543210987654321"
   "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
     summary: Path used to manage the list of artifacts for a modelversion.
     description: >-
@@ -733,9 +733,9 @@ paths:
         description: A unique identifier for a `ModelVersion`.
         schema:
           type: string
+          example: "4"
         in: path
         required: true
-        example: "9876543210987654321"
   /api/model_registry/v1alpha3/registered_model:
     summary: Path used to search for a registeredmodel.
     description: >-
@@ -1219,7 +1219,7 @@ components:
               format: int64
               description: The unique server generated id of the resource.
               type: string
-              example: "123"
+              example: "1"
         - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceCreate:
       type: object
