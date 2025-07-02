@@ -4227,6 +4227,7 @@ type ApiGetExperimentExperimentRunsRequest struct {
 	experimentId  string
 	name          *string
 	externalId    *string
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -4242,6 +4243,12 @@ func (r ApiGetExperimentExperimentRunsRequest) Name(name string) ApiGetExperimen
 // External ID of entity to search.
 func (r ApiGetExperimentExperimentRunsRequest) ExternalId(externalId string) ApiGetExperimentExperimentRunsRequest {
 	r.externalId = &externalId
+	return r
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetExperimentExperimentRunsRequest) FilterQuery(filterQuery string) ApiGetExperimentExperimentRunsRequest {
+	r.filterQuery = &filterQuery
 	return r
 }
 
@@ -4318,6 +4325,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentExperimentRunsExecute(r Ap
 	}
 	if r.externalId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+	}
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -5000,10 +5010,17 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r 
 type ApiGetExperimentRunsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetExperimentRunsRequest) FilterQuery(filterQuery string) ApiGetExperimentRunsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -5071,6 +5088,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunsExecute(r ApiGetExperi
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -5172,10 +5192,17 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunsExecute(r ApiGetExperi
 type ApiGetExperimentsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetExperimentsRequest) FilterQuery(filterQuery string) ApiGetExperimentsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -5243,6 +5270,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentsExecute(r ApiGetExperimen
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -6889,10 +6919,17 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionArtifactsExecute(r ApiGe
 type ApiGetModelVersionsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetModelVersionsRequest) FilterQuery(filterQuery string) ApiGetModelVersionsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -6960,6 +6997,9 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionsExecute(r ApiGetModelVe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -7211,6 +7251,7 @@ type ApiGetRegisteredModelVersionsRequest struct {
 	registeredmodelId string
 	name              *string
 	externalId        *string
+	filterQuery       *string
 	pageSize          *string
 	orderBy           *OrderByField
 	sortOrder         *SortOrder
@@ -7226,6 +7267,12 @@ func (r ApiGetRegisteredModelVersionsRequest) Name(name string) ApiGetRegistered
 // External ID of entity to search.
 func (r ApiGetRegisteredModelVersionsRequest) ExternalId(externalId string) ApiGetRegisteredModelVersionsRequest {
 	r.externalId = &externalId
+	return r
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetRegisteredModelVersionsRequest) FilterQuery(filterQuery string) ApiGetRegisteredModelVersionsRequest {
+	r.filterQuery = &filterQuery
 	return r
 }
 
@@ -7302,6 +7349,9 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelVersionsExecute(r Api
 	}
 	if r.externalId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+	}
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
@@ -7415,10 +7465,17 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelVersionsExecute(r Api
 type ApiGetRegisteredModelsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+func (r ApiGetRegisteredModelsRequest) FilterQuery(filterQuery string) ApiGetRegisteredModelsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -7486,6 +7543,9 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelsExecute(r ApiGetRegi
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}

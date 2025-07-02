@@ -854,11 +854,12 @@ func (c *ModelRegistryServiceAPIController) GetExperimentExperimentRuns(w http.R
 	experimentIdParam := chi.URLParam(r, "experimentId")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetExperimentExperimentRuns(r.Context(), experimentIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentExperimentRuns(r.Context(), experimentIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -925,11 +926,12 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRunMetricHistory(w http
 // GetExperimentRuns - List All ExperimentRuns
 func (c *ModelRegistryServiceAPIController) GetExperimentRuns(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetExperimentRuns(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRuns(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -942,11 +944,12 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRuns(w http.ResponseWri
 // GetExperiments - List All Experiments
 func (c *ModelRegistryServiceAPIController) GetExperiments(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetExperiments(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperiments(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1099,11 +1102,12 @@ func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.Resp
 // GetModelVersions - List All ModelVersions
 func (c *ModelRegistryServiceAPIController) GetModelVersions(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelVersions(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersions(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1132,11 +1136,12 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1149,11 +1154,12 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 // GetRegisteredModels - List All RegisteredModels
 func (c *ModelRegistryServiceAPIController) GetRegisteredModels(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetRegisteredModels(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModels(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

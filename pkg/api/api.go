@@ -9,6 +9,7 @@ type ListOptions struct {
 	OrderBy       *string // The field by which entities are ordered.
 	SortOrder     *string // The sorting order, which can be "ASC" (ascending) or "DESC" (descending).
 	NextPageToken *string // A token to retrieve the next page of entities in a paginated result set.
+	FilterQuery   *string // A filter query to restrict results based on entity properties.
 }
 
 // ModelRegistryApi defines the external API for the Model Registry library

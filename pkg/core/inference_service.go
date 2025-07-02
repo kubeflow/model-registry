@@ -226,8 +226,16 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 		queries = append(queries, queryRuntimeProp)
 	}
 
-	query := strings.Join(queries, " and ")
-	listOperationOptions.FilterQuery = &query
+	if len(queries) > 0 {
+		additionalQuery := strings.Join(queries, " and ")
+		if listOperationOptions.FilterQuery != nil {
+			existingFilter := *listOperationOptions.FilterQuery
+			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, additionalQuery)
+			listOperationOptions.FilterQuery = &combinedQuery
+		} else {
+			listOperationOptions.FilterQuery = &additionalQuery
+		}
+	}
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: &serv.nameConfig.InferenceServiceTypeName,

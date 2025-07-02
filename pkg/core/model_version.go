@@ -226,7 +226,13 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 
 	if registeredModelId != nil {
 		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *registeredModelId)
-		listOperationOptions.FilterQuery = &queryParentCtxId
+		if listOperationOptions.FilterQuery != nil {
+			existingFilter := *listOperationOptions.FilterQuery
+			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, queryParentCtxId)
+			listOperationOptions.FilterQuery = &combinedQuery
+		} else {
+			listOperationOptions.FilterQuery = &queryParentCtxId
+		}
 	}
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{

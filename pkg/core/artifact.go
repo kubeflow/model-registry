@@ -528,7 +528,13 @@ func (serv *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions,
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		typeQuery := fmt.Sprintf("type = '%v'", serv.nameConfig.ModelArtifactTypeName)
-		listOperationOptions.FilterQuery = &typeQuery
+		if listOperationOptions.FilterQuery != nil {
+			existingFilter := *listOperationOptions.FilterQuery
+			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, typeQuery)
+			listOperationOptions.FilterQuery = &combinedQuery
+		} else {
+			listOperationOptions.FilterQuery = &typeQuery
+		}
 		artifactsResp, err := serv.mlmdClient.GetArtifactsByContext(context.Background(), &proto.GetArtifactsByContextRequest{
 			ContextId: ctxId,
 			Options:   listOperationOptions,
