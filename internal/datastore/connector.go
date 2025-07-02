@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
-	"github.com/kubeflow/model-registry/internal/datastore/mlmd"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
@@ -17,7 +16,6 @@ var (
 type TeardownFunc func() error
 
 type Datastore struct {
-	MLMD    mlmd.MLMDConfig
 	EmbedMD embedmd.EmbedMDConfig
 	Type    string
 }
@@ -29,14 +27,6 @@ type Connector interface {
 
 func NewConnector(ds Datastore) (Connector, error) {
 	switch ds.Type {
-	case "mlmd":
-		if err := ds.MLMD.Validate(); err != nil {
-			return nil, fmt.Errorf("invalid MLMD config: %w", err)
-		}
-
-		mlmd := mlmd.NewMLMDService(&ds.MLMD)
-
-		return mlmd, nil
 	case "embedmd":
 		if err := ds.EmbedMD.Validate(); err != nil {
 			return nil, fmt.Errorf("invalid EmbedMD config: %w", err)
@@ -49,6 +39,6 @@ func NewConnector(ds Datastore) (Connector, error) {
 
 		return embedmd, nil
 	default:
-		return nil, fmt.Errorf("%w: %s. Supported types: mlmd, embedmd", ErrUnsupportedDatastore, ds.Type)
+		return nil, fmt.Errorf("%w: %s. Supported types: embedmd", ErrUnsupportedDatastore, ds.Type)
 	}
 }
