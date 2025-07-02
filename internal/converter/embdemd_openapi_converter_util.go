@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -416,7 +417,7 @@ func MapEmbedMDURIModelArtifact(source *models.ModelArtifactAttributes) *string 
 }
 
 func MapEmbedMDArtifactTypeModelArtifact(source *models.ModelArtifactAttributes) *string {
-	return of("model-artifact")
+	return apiutils.Of("model-artifact")
 }
 
 func MapEmbedMDPropertyModelFormatName(source *[]models.Properties) *string {
@@ -544,7 +545,7 @@ func MapEmbedMDURIDocArtifact(source *models.DocArtifactAttributes) *string {
 }
 
 func MapEmbedMDArtifactTypeDocArtifact(source *models.DocArtifactAttributes) *string {
-	return of("doc-artifact")
+	return apiutils.Of("doc-artifact")
 }
 
 func MapEmbedMDExternalIDDocArtifact(source *models.DocArtifactAttributes) *string {

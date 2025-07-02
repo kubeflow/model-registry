@@ -140,23 +140,6 @@ func createTestDatastore(sharedDSN string) datastore.Datastore {
 	}
 }
 
-func TestReadinessHandler_NonEmbedMD(t *testing.T) {
-	ds := datastore.Datastore{
-		Type: "mlmd",
-	}
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker)
-
-	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, responseOK, rr.Body.String())
-}
-
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	// Ensure clean state before test
 	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
