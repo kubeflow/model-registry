@@ -19,16 +19,13 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "model-registry",
-	Short: "A go server for ml-metadata",
-	Long: `The model-registry is a gRPC server that stores metadata
+	Short: "A go server for recording and retrieving metadata associated with ML developer and data scientist workflows",
+	Long: `The model-registry is a rest server that stores metadata
 for ML applications.
 
-It's based on the ml-metadata project that provides a python client library
-for ML applications to record metadata about metadata such as Artifacts,
-Executions and Contexts.
 This go server is an alternative to the CPP gRPC service provided by the
 ml-metadata project. It's meant to provide extra features such as loading
-custom metadata libraries, exposing a higher level GraphQL API, RBAC, etc.`,
+custom metadata libraries, exposing a higher level API, RBAC, etc.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
