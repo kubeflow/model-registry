@@ -36,6 +36,16 @@ test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	$(MAKE) test-e2e-cleanup
 	@exit $$STATUS
 
+.PHONY: test-fuzz
+test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
+	@echo "Starting test-fuzz"
+	poetry install --all-extras
+	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	poetry run pytest --fuzz -v -s --hypothesis-show-statistics
+	@rm -f ../../scripts/manifests/minio/.env
+	$(MAKE) test-e2e-cleanup
+	@exit $$STATUS
+
 .PHONY: test-e2e-run
 test-e2e-run:
 	@echo "Ensuring all extras are installed..."

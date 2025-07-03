@@ -345,6 +345,12 @@ Then you can run tests:
 make test test-e2e
 ```
 
+Then you can run fuzz tests:
+
+```bash
+make test-fuzz
+```
+
 ### Using Nox
 
 Common tasks, such as building documentation and running tests, can be executed using [`nox`](https://github.com/wntrblm/nox) sessions.
