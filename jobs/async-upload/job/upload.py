@@ -37,13 +37,14 @@ def _prepare_modelcar_structure(config: Dict[str, Any], model_files_path: str) -
     if model_path.is_file():
         # Single file - copy to models directory
         shutil.copy2(model_path, models_dir / model_path.name)
-    else:
+    elif model_path.is_dir():
         # Directory - copy contents to models directory
         for item in model_path.iterdir():
             if item.is_file():
                 shutil.copy2(item, models_dir / item.name)
             else:
                 shutil.copytree(item, models_dir / item.name)
+    # If path doesn't exist, just create empty modelcar structure (already done above)
 
     return str(modelcar_base)
 
