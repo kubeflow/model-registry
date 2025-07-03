@@ -13,6 +13,7 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
+    types: [opened, synchronize, reopened, labeled]
 jobs:
   lint:
     name: ${{ matrix.session }}
@@ -221,9 +222,7 @@ jobs:
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
       - name: Nox test fuzz (main only or PR with /test-fuzz comment)
-        if: |
-          (github.ref == 'refs/heads/main') ||
-          (github.event.action == 'labeled' && github.event.label.name == 'test-fuzz')
+        if: github.ref == 'refs/heads/main' || github.event.label.name == 'test-fuzz'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
