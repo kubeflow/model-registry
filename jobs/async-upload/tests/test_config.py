@@ -23,6 +23,7 @@ def source_s3_env_vars():
         "aws_secret_access_key": "source_secret_env",
         "aws_region": "us-east-1",
         "aws_bucket": "source-bucket-env",
+        "aws_key": "source-key-env",
     }
 
     for key, value in vars.items():
@@ -69,7 +70,7 @@ def model_env_vars():
         "model_name": "my-model",
         "model_version": "1.0.0",
         "model_format": "onnx",
-        "registry_url": "https://registry.example.com",
+        "registry_server_address": "https://registry.example.com",
     }
 
     for key, value in vars.items():
@@ -95,6 +96,7 @@ def s3_credentials_folder():
             "secret_access_key": f"file_secret_{random.randint(1000, 9999)}",
             "region": f"eu-west-1_{random.randint(1000, 9999)}",
             "bucket": f"file-bucket_{random.randint(1000, 9999)}",
+            "key": f"file-key_{random.randint(1000, 9999)}",
         }
 
         # Write the credentials to files
@@ -106,6 +108,8 @@ def s3_credentials_folder():
             f.write(credentials["region"])
         with open(os.path.join(temp_dir, "AWS_BUCKET"), "w") as f:
             f.write(credentials["bucket"])
+        with open(os.path.join(temp_dir, "AWS_KEY"), "w") as f:
+            f.write(credentials["key"])
 
         yield Path(temp_dir), credentials
 
@@ -185,7 +189,10 @@ def test_env_based_s3_to_oci_config(
     assert config["model"]["name"] == model_env_vars["model_name"]
     assert config["model"]["version"] == model_env_vars["model_version"]
     assert config["model"]["format"] == model_env_vars["model_format"]
-    assert config["registry"]["url"] == model_env_vars["registry_url"]
+    assert (
+        config["registry"]["server_address"]
+        == model_env_vars["registry_server_address"]
+    )
 
 
 def test_params_based_config():
@@ -200,6 +207,8 @@ def test_params_based_config():
             "s3",
             "--destination-aws-bucket",
             "destination-bucket-params",
+            "--destination-aws-key",
+            "destination-key-params",
             "--destination-aws-region",
             "eu-central-1",
             "--destination-aws-access-key-id",
@@ -212,7 +221,7 @@ def test_params_based_config():
             "1.0.0",
             "--model-format",
             "onnx",
-            "--registry-url",
+            "--registry-server-address",
             "https://registry.example.com",
         ]
     )
@@ -257,7 +266,7 @@ def test_params_will_override_env_config(
             "1.0.0",
             "--model-format",
             "onnx",
-            "--registry-url",
+            "--registry-server-address",
             "https://registry.example.com",
         ]
     )
