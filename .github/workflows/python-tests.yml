@@ -13,7 +13,6 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
-    types: [opened, synchronize, reopened, labeled]
 jobs:
   lint:
     name: ${{ matrix.session }}
@@ -214,7 +213,6 @@ jobs:
       - name: Deploy OCI Registry using manifests
         run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
-        if: github.event.label.name != 'test-fuzz'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
@@ -222,8 +220,8 @@ jobs:
           kubectl port-forward service/distribution-registry-test-service 5001:5001 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
-      - name: Nox test fuzz (main only or PR with /test-fuzz comment)
-        if: github.ref == 'refs/heads/main' || github.event.label.name == 'test-fuzz'
+      - name: Nox test fuzz (main only)
+        if: github.ref == 'refs/heads/main'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
