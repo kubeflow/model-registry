@@ -41,7 +41,7 @@ schema = (
         HealthCheck.data_too_large,
     ],
 )
-@pytest.mark.e2e
+@pytest.mark.fuzz
 def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case):
     """Test the Model Registry API endpoints.
 
@@ -50,7 +50,7 @@ def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case):
 
     case.call_and_validate(headers=auth_headers)
 
-@pytest.mark.e2e
+@pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
 @pytest.mark.parametrize("state", ARTIFACT_STATES)
 def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
@@ -81,7 +81,7 @@ def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, ur
     assert response_json.get("artifactType") == payload["artifactType"], "Response artifactType should match payload"
 
 
-@pytest.mark.e2e
+@pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
 def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifact_type: str, uri_prefix: str):
     """

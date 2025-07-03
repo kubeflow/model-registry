@@ -83,7 +83,10 @@ line-length = 119
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-markers = ["e2e: end-to-end testing"]
+markers = [
+    "e2e: end-to-end testing",
+    "fuzz: mark a test as a fuzzing (property-based or randomized) test"
+]
 
 [tool.ruff]
 target-version = "py39"

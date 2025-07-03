@@ -29,6 +29,7 @@ from .constants import DEFAULT_API_TIMEOUT
 
 def pytest_addoption(parser):
     parser.addoption("--e2e", action="store_true", help="run end-to-end tests")
+    parser.addoption("--fuzz", action="store_true", help="run fuzzing tests")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -39,6 +40,13 @@ def pytest_collection_modifyitems(config, items):
             )
             if not config.getoption("--e2e"):
                 item.add_marker(skip_e2e)
+            continue
+        if "fuzz" in item.keywords:
+            skip_fuzz = pytest.mark.skip(
+                reason="this is a fuzzing test, requires explicit opt-in --fuzz option to run."
+            )
+            if not config.getoption("--fuzz"):
+                item.add_marker(skip_fuzz)
             continue
 
 

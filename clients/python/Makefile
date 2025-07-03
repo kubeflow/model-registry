@@ -17,7 +17,7 @@ clean:
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
 	cd ../../ && IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)"  && LOCAL=1 ./scripts/deploy_on_kind.sh
-	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
+	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 2>&1 >/dev/null & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio
 deploy-test-minio:
@@ -33,6 +33,16 @@ deploy-local-registry:
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@echo "Starting test-e2e"
 	-$(MAKE) test-e2e-run; STATUS=$$?
+	$(MAKE) test-e2e-cleanup
+	@exit $$STATUS
+
+.PHONY: test-fuzz
+test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
+	@echo "Starting test-fuzz"
+	poetry install --all-extras
+	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	poetry run pytest --fuzz -v -s --hypothesis-show-statistics
+	@rm -f ../../scripts/manifests/minio/.env
 	$(MAKE) test-e2e-cleanup
 	@exit $$STATUS
 
