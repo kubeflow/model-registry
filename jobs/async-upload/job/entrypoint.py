@@ -1,5 +1,7 @@
 import logging
 from config import get_config
+from .mr_client import validate_and_get_model_registry_client
+from .download import perform_download
 
 # Configure logging
 logging.basicConfig(
@@ -17,7 +19,7 @@ def main() -> None:
         # Get complete configuration
         config = get_config()
 
-        # TODO: Validate credentials and connection to Model Registry
+        client = validate_and_get_model_registry_client(config)
 
         logger.info(
             f"Source: {config.source.type.upper()} storage at {config.source.endpoint or 'default endpoint'}"
@@ -26,7 +28,9 @@ def main() -> None:
             f"Destination: {config.destination.type.upper()} storage at {config.destination.endpoint or 'default endpoint'}"
         )
 
-        # TODO: Implement the main upload logic here
+        # Download the model from the defined source
+        perform_download(client, config)
+
 
     except ValueError as e:
         logger.error(f"Configuration error: {str(e)}")
