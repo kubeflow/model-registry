@@ -5,7 +5,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9937/badge)](https://www.bestpractices.dev/projects/9937)
 
-Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata. A Go-based application that leverages [ml_metadata](https://github.com/google/ml-metadata/) project under the hood.
+Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata.
 
 ## Red Hat's Pledge
 - Red Hat drives the project's development through Open Source principles, ensuring transparency, sustainability, and community ownership.
@@ -62,9 +62,7 @@ Run the following command to start the OpenAPI proxy server from source:
 ```shell
 make run/proxy
 ```
-The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API on top of the existing ml-metadata server.
-
-> **NOTE** The ml-metadata server must be running and accessible from the environment where model-registry starts up.
+The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API.
 
 ### Model registry logical model
 
@@ -72,8 +70,8 @@ For a high-level documentation of the Model Registry _logical model_, please che
 
 ## Model Registry Core
 
-The model registry core is the layer which implements the core/business logic by interacting with the underlying ml-metadata server.
-It provides a model registry domain-specific [api](pkg/api/api.go) that is in charge to proxy all, appropriately transformed, requests to ml-metadata using gRPC calls.
+The model registry core is the layer which implements the core/business logic by interacting with the underlying datastore internal service.
+It provides a model registry domain-specific [api](pkg/api/api.go) that is in charge to proxy all, appropriately transformed, requests to the datastore internal service.
 
 ### Model registry library
 
@@ -143,8 +141,6 @@ Subsequent builds will re-use the cached tools layer.
 
 #### Running the proxy server
 
-> **NOTE:** ml-metadata server must be running and accessible, see more info on how to start the gRPC server in the official ml-metadata [documentation](https://github.com/google/ml-metadata).
-
 The following command starts the proxy server:
 
 ```shell
@@ -155,7 +151,7 @@ Where, `<uid>`, `<gid>`, and `<host-path>` are the same as in the migrate comman
 And `<hostname>` and `<port>` are the local ip and port to use to expose the container's default `8080` listening port.
 The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allows the server port to be exposed.
 
-#### Running model registry & ml-metadata
+#### Running model registry
 
 > **NOTE:** Docker compose must be installed in your environment.
 
