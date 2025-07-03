@@ -49,6 +49,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--model-name")
     p.add("--model-version")
     p.add("--model-format")
+    p.add("--model-format-version")
 
     # --- model-storage configuration ---
     p.add("--storage-path", default="/tmp/model-sync")
@@ -181,6 +182,8 @@ def _validate_model_config(cfg: Dict[str, Any]) -> None:
     """Validates the model config is valid"""
     if cfg["name"] is None or cfg["version"] is None or cfg["format"] is None:
         raise ValueError("Model must be set")
+    if cfg["format_version"] is None:
+        raise ValueError("Model format version must be set")
 
 
 def _validate_registry_config(cfg: Dict[str, Any]) -> None:
@@ -265,6 +268,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             "name": args.model_name,
             "version": args.model_version,
             "format": args.model_format,
+            "format_version": args.model_format_version,
             # TODO: Add the rest of the needed values
         },
         "storage": {
