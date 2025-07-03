@@ -17,12 +17,6 @@ import (
 const (
 	// postgresMaxRetries is the maximum number of attempts to retry PostgreSQL connection.
 	postgresMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
-	"gorm.io/gorm/logger"
-)
-
-const (
-	// postgresMaxRetries is the maximum number of attempts to retry PostgreSQL connection.
-	postgresMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 type PostgresDBConnector struct {
@@ -80,14 +74,12 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
-		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
 	glog.Info("Successfully connected to PostgreSQL database")
 
 	c.db = db
 
 	return db, nil
-}
 }
 
 func (c *PostgresDBConnector) DB() *gorm.DB {
