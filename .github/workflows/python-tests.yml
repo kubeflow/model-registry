@@ -214,6 +214,7 @@ jobs:
       - name: Deploy OCI Registry using manifests
         run: ./scripts/deploy_local_kind_registry.sh
       - name: Nox test end-to-end
+        if: github.event.label.name != 'test-fuzz'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
