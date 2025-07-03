@@ -261,6 +261,11 @@ describe('Model Registry core', () => {
       modelRegistry.findTableSearch().type('Fraud detection model');
       modelRegistry.findTableRows().should('have.length', 1);
       modelRegistry.findTableRows().contains('Fraud detection model');
+      modelRegistry
+        .findRegisteredModelsTableToolbar()
+        .findByRole('button', { name: 'Clear all filters' })
+        .click();
+      modelRegistry.findTableRows().should('have.length', 2);
     });
   });
 });

@@ -58,7 +58,10 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
       clearFilters={resetFilters}
       registeredModels={filteredRegisteredModels}
       toolbarContent={
-        <Toolbar>
+        <Toolbar
+          data-testid="registered-models-archive-table-toolbar"
+          clearAllFilters={resetFilters}
+        >
           <ToolbarContent>
             <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
               <ToolbarGroup variant="filter-group">

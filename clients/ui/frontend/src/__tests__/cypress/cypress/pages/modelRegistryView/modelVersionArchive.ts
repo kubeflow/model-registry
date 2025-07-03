@@ -93,6 +93,14 @@ class ModelVersionArchive {
     cy.findByTestId('empty-archive-state').should('exist');
   }
 
+  findArchivedVersionTableToolbar() {
+    return cy.findByTestId('model-versions-archive-table-toolbar');
+  }
+
+  findArchivedVersionTableSearch() {
+    return cy.findByTestId('model-versions-archive-table-search');
+  }
+
   findArchiveVersionBreadcrumbItem() {
     return cy.findByTestId('archive-version-page-breadcrumb');
   }
