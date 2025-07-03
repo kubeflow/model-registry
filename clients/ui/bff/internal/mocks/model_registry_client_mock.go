@@ -52,6 +52,11 @@ func (m *ModelRegistryClientMock) GetModelVersion(_ mrserver.HTTPClientInterface
 		return &mockData, nil
 	}
 
+	if id == "2" {
+		mockData := GetModelVersionMocks()[1]
+		return &mockData, nil
+	}
+
 	mockData := GetModelVersionMocks()[0]
 	return &mockData, nil
 }
