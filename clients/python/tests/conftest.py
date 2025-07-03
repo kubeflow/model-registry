@@ -33,21 +33,26 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
+    skip_reasons = {
+        "e2e": pytest.mark.skip(reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."),
+        "fuzz": pytest.mark.skip(reason="this is a fuzzing test, requires explicit opt-in --fuzz option to run."),
+        "skip": pytest.mark.skip(reason="skipping non-e2e and non-fuzz tests"),
+    }
+    e2e = config.getoption("--e2e")
+    fuzz = config.getoption("--fuzz")
+
     for item in items:
-        if "e2e" in item.keywords:
-            skip_e2e = pytest.mark.skip(
-                reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
-            )
-            if not config.getoption("--e2e"):
-                item.add_marker(skip_e2e)
-            continue
-        if "fuzz" in item.keywords:
-            skip_fuzz = pytest.mark.skip(
-                reason="this is a fuzzing test, requires explicit opt-in --fuzz option to run."
-            )
-            if not config.getoption("--fuzz"):
-                item.add_marker(skip_fuzz)
-            continue
+        if e2e:
+            if "e2e" not in item.keywords:
+                item.add_marker(skip_reasons["skip"])
+        elif fuzz:
+            if "fuzz" not in item.keywords:
+                item.add_marker(skip_reasons["skip"])
+        else:
+            if "e2e" in item.keywords:
+                item.add_marker(skip_reasons["e2e"])
+            if "fuzz" in item.keywords:
+                item.add_marker(skip_reasons["fuzz"])
 
 
 def pytest_report_teststatus(report, config):
