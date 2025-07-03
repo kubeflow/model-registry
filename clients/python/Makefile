@@ -17,7 +17,7 @@ clean:
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
 	cd ../../ && IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)"  && LOCAL=1 ./scripts/deploy_on_kind.sh
-	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 2>&1 >/dev/null & echo $$! >> .port-forwards.pid
+	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio
 deploy-test-minio:
