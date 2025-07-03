@@ -104,6 +104,14 @@ class ModelArchive {
     return cy.findByTestId('registered-models-archive-table');
   }
 
+  findArchiveModelsTableSearch() {
+    return cy.findByTestId('registered-models-archive-table-search');
+  }
+
+  findArchiveModelsTableToolbar() {
+    return cy.findByTestId('registered-models-archive-table-toolbar');
+  }
+
   findArchiveModelsTableRows() {
     return this.findArchiveModelTable().find('tbody tr');
   }

@@ -1,5 +1,5 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
-import type { ModelRegistryKind, Namespace, UserSettings } from 'mod-arch-shared';
+import type { ModelRegistryKind, Namespace, UserSettings, RoleBindingKind } from 'mod-arch-shared';
 import { mockModArchResponse } from 'mod-arch-shared';
 import type {
   ModelArtifact,
@@ -125,6 +125,11 @@ declare global {
           type: 'GET /api/:apiVersion/namespaces',
           options: { path: { apiVersion: string } },
           response: ApiResponse<Namespace[]>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/settings/role_bindings',
+          options: { path: { apiVersion: string } },
+          response: ApiResponse<RoleBindingKind[]>,
         ) => Cypress.Chainable<null>);
     }
   }

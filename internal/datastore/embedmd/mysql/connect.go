@@ -42,7 +42,14 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 			return nil, err
 		}
 
-		c.DSN += "&tls=custom"
+		cfg, err := mysql.ParseDSN(c.DSN)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse DSN: %w", err)
+		}
+
+		cfg.TLSConfig = "custom"
+
+		c.DSN = cfg.FormatDSN()
 	}
 
 	for i := range mysqlMaxRetries {
@@ -62,6 +69,8 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
+
+	glog.Info("Successfully connected to MySQL database")
 
 	c.db = db
 

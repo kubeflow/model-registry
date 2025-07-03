@@ -130,7 +130,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
         clearFilters={resetFilters}
         modelVersions={sortModelVersionsByCreateTime(filteredModelVersions)}
         toolbarContent={
-          <Toolbar data-testid="model-versions-table-toolbar">
+          <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={resetFilters}>
             <ToolbarContent>
               <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
                 <ToolbarGroup variant="filter-group">

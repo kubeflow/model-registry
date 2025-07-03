@@ -184,6 +184,10 @@ class ModelRegistry {
     return cy.findByTestId('registered-model-table-search');
   }
 
+  findModelVersionsTableToolbar() {
+    return cy.findByTestId('model-versions-table-toolbar');
+  }
+
   findModelVersionsTableSearch() {
     return cy.findByTestId('model-versions-table-search');
   }
@@ -206,6 +210,10 @@ class ModelRegistry {
 
   findRegisterModelButton() {
     return cy.findByRole('button', { name: 'Register model' });
+  }
+
+  findRegisteredModelsTableToolbar() {
+    return cy.findByTestId('registered-models-table-toolbar');
   }
 }
 
