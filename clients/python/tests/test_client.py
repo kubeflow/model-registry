@@ -498,9 +498,6 @@ def test_get_model_versions(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-@pytest.mark.xfail(
-    reason="MLMD issue tracked on: https://github.com/kubeflow/model-registry/issues/358"
-)
 def test_get_model_versions_order_by(client: ModelRegistry):
     name = "test_model"
     models = 5
