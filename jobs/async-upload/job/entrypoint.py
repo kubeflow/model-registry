@@ -1,4 +1,6 @@
 import logging
+
+from job.upload import perform_upload
 from config import get_config
 from .mr_client import validate_and_get_model_registry_client
 from .download import perform_download
@@ -31,6 +33,11 @@ def main() -> None:
         # Download the model from the defined source
         perform_download(client, config)
 
+        # KServe Modelcars compatibility is handled within perform_upload()
+        # For OCI destinations, it automatically creates the required /models directory structure
+        # and prepares the model files in a KServe Modelcars-compatible format
+
+        perform_upload(client, config)
 
     except ValueError as e:
         logger.error(f"Configuration error: {str(e)}")
