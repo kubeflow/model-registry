@@ -13,8 +13,7 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
-  issue_comment:
-    types: [created]
+    types: [labeled]
 jobs:
   lint:
     name: ${{ matrix.session }}
@@ -224,8 +223,7 @@ jobs:
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
       - name: Nox test fuzz (main only or PR with /test-fuzz comment)
         if: |
-          (github.ref == 'refs/heads/main') ||
-          (contains(github.event.comment.body, '/test-fuzz') && github.event.issue.pull_request)
+          github.ref == 'refs/heads/main' || github.event.label.name == '/test-fuzz'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
