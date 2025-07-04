@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sync"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 
+	"github.com/golang/glog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
@@ -26,13 +29,16 @@ type yamlCatalog struct {
 }
 
 type yamlCatalogImpl struct {
-	models map[string]*yamlModel
-	source *CatalogSourceConfig
+	modelsLock sync.RWMutex
+	models     map[string]*yamlModel
 }
 
 var _ CatalogSourceProvider = &yamlCatalogImpl{}
 
 func (y *yamlCatalogImpl) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+	y.modelsLock.RLock()
+	defer y.modelsLock.RUnlock()
+
 	ym := y.models[name]
 	if ym == nil {
 		return nil, nil
@@ -46,7 +52,28 @@ func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	panic("implement me")
 }
 
-// TODO start background thread to watch file
+func (y *yamlCatalogImpl) load(path string) error {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("failed to read %s file: %v", yamlCatalogPath, err)
+	}
+
+	var contents yamlCatalog
+	if err = yaml.UnmarshalStrict(bytes, &contents); err != nil {
+		return fmt.Errorf("failed to parse %s file: %v", yamlCatalogPath, err)
+	}
+
+	models := make(map[string]*yamlModel, len(contents.Models))
+	for i := range contents.Models {
+		models[contents.Models[i].Name] = &contents.Models[i]
+	}
+
+	y.modelsLock.Lock()
+	defer y.modelsLock.Unlock()
+	y.models = models
+
+	return nil
+}
 
 const yamlCatalogPath = "yamlCatalogPath"
 
@@ -55,30 +82,36 @@ func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) 
 	if !exists || yamlModelFile == "" {
 		return nil, fmt.Errorf("missing %s string property", yamlCatalogPath)
 	}
-	bytes, err := os.ReadFile(yamlModelFile)
+
+	yamlModelFile, err := filepath.Abs(yamlModelFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read %s file: %v", yamlCatalogPath, err)
+		return nil, fmt.Errorf("abs: %w", err)
 	}
 
-	var contents yamlCatalog
-	if err = yaml.UnmarshalStrict(bytes, &contents); err != nil {
-		return nil, fmt.Errorf("failed to parse %s file: %v", yamlCatalogPath, err)
+	p := &yamlCatalogImpl{}
+	err = p.load(yamlModelFile)
+	if err != nil {
+		return nil, err
 	}
 
-	// override catalog name from Yaml Catalog File if set
-	if source.Name != "" {
-		source.Name = contents.Source
-	}
+	go func() {
+		changes, err := getMonitor().Path(yamlModelFile)
+		if err != nil {
+			glog.Errorf("unable to watch YAML catalog file: %v", err)
+			// Not fatal, we just won't get automatic updates.
+		}
 
-	models := make(map[string]*yamlModel, len(contents.Models))
-	for i := range contents.Models {
-		models[contents.Models[i].Name] = &contents.Models[i]
-	}
+		for range changes {
+			glog.Infof("Reloading YAML catalog %s", yamlModelFile)
 
-	return &yamlCatalogImpl{
-		models: models,
-		source: source,
-	}, nil
+			err = p.load(yamlModelFile)
+			if err != nil {
+				glog.Errorf("unable to load YAML catalog: %v", err)
+			}
+		}
+	}()
+
+	return p, nil
 }
 
 func init() {

@@ -310,7 +310,7 @@ func TestFindSources(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test catalogs
-			service := NewModelCatalogServiceAPIService(tc.catalogs)
+			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.catalogs))
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -472,7 +472,7 @@ func TestGetModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test sources
-			service := NewModelCatalogServiceAPIService(tc.sources)
+			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.sources))
 
 			// Call GetModel
 			resp, _ := service.GetModel(
