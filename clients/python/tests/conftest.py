@@ -420,8 +420,5 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str) -> API
             return {"verify": False, "headers": self.headers}
 
         def after_call(self, response: Response, case: Case) -> None:
-            print("after_call")
-            event(f"{case.method} {case.path} -> {response.status_code},")
-            print("after_call done")
-
+            print(f"{case.method} {case.path} -> {response.status_code},")
     return APIWorkflow
