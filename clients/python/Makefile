@@ -33,6 +33,7 @@ deploy-local-registry:
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@echo "Starting test-e2e"
 	-$(MAKE) test-e2e-run; STATUS=$$?
+	$(MAKE) db-cleanup
 	$(MAKE) test-e2e-cleanup
 	@exit $$STATUS
 
@@ -43,6 +44,7 @@ test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
 	poetry run pytest --fuzz -v -s --hypothesis-show-statistics
 	@rm -f ../../scripts/manifests/minio/.env
+	$(MAKE) db-cleanup
 	$(MAKE) test-e2e-cleanup
 	@exit $$STATUS
 
@@ -62,6 +64,11 @@ test-e2e-cleanup:
 		kill $$(cat .port-forwards.pid) || true; \
 		rm -f .port-forwards.pid; \
 	fi
+
+.PHONY: db-cleanup
+db-cleanup:
+	@echo "Cleaning up database..."
+	cd ../../ && ./scripts/cleanup.sh
 
 .PHONY: undeploy-minio
 undeploy-minio:

@@ -12,14 +12,6 @@ from .constants import ARTIFACT_STATES, ARTIFACT_TYPE_PARAMS, DEFAULT_API_TIMEOU
 schema = schemathesis.pytest.from_fixture("generated_schema")
 
 
-@pytest.fixture
-def auth_headers(setup_env_user_token):
-    """Provides authorization headers for API requests."""
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {setup_env_user_token}"
-    }
-
 schema = (
     schema
     .exclude(
