@@ -5,7 +5,6 @@ import {
   DeploymentMode,
   FetchStateObject,
   InferenceServiceKind,
-  PlatformMode,
   ServingRuntimeKind,
   useModularArchContext,
 } from 'mod-arch-shared';
@@ -32,7 +31,8 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   refresh,
 }) => {
   const navigate = useNavigate();
-  const { deploymentMode, platformMode } = useModularArchContext();
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
   return (
     <Tabs
       activeKey={tab}
@@ -61,7 +61,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
       </Tab>
       {!isArchiveVersion &&
         (deploymentMode === DeploymentMode.Standalone ||
-          platformMode !== PlatformMode.Kubeflow) && (
+          deploymentMode === DeploymentMode.Federated) && (
           <Tab
             eventKey={ModelVersionDetailsTab.DEPLOYMENTS}
             title={<TabTitleText>{ModelVersionDetailsTabTitle.DEPLOYMENTS}</TabTitleText>}

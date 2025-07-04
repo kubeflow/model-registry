@@ -64,6 +64,7 @@ func (kc *SharedClientLogic) GetServiceDetails(sessionCtx context.Context, names
 		services = append(services, *serviceDetails)
 
 	}
+
 	return services, nil
 }
 
@@ -73,17 +74,19 @@ func buildServiceDetails(service *corev1.Service, logger *slog.Logger) (*Service
 	}
 
 	var httpPort int32
+	var isHTTPS bool
 	hasHTTPPort := false
 	for _, port := range service.Spec.Ports {
-		if port.Name == "http-api" {
+		if port.Name == "http-api" || port.Name == "https-api" {
 			httpPort = port.Port
+			isHTTPS = port.Name == "https-api"
 			hasHTTPPort = true
 			break
 		}
 	}
 	if !hasHTTPPort {
-		logger.Error("service missing HTTP port", "serviceName", service.Name)
-		return nil, fmt.Errorf("service %q missing required 'http-api' port", service.Name)
+		logger.Error("service missing HTTP/HTTPS port", "serviceName", service.Name)
+		return nil, fmt.Errorf("service %q missing required 'http-api' or 'https-api' port", service.Name)
 	}
 
 	if service.Spec.ClusterIP == "" {
@@ -111,6 +114,7 @@ func buildServiceDetails(service *corev1.Service, logger *slog.Logger) (*Service
 		Description: description,
 		ClusterIP:   service.Spec.ClusterIP,
 		HTTPPort:    httpPort,
+		IsHTTPS:     isHTTPS,
 	}, nil
 }
 

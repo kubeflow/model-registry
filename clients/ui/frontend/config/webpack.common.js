@@ -18,7 +18,7 @@ const FAVICON = process.env.FAVICON;
 const PRODUCT_NAME = process.env.PRODUCT_NAME;
 const COVERAGE = process.env.COVERAGE;
 const DEPLOYMENT_MODE = process.env._DEPLOYMENT_MODE;
-const BASE_PATH = DEPLOYMENT_MODE === 'integrated' ? '/model-registry/' : PUBLIC_PATH;
+const BASE_PATH = DEPLOYMENT_MODE === 'kubeflow' ? '/model-registry/' : PUBLIC_PATH;
 
 if (OUTPUT_ONLY !== 'true') {
   console.info(

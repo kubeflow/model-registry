@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { AppContext } from '~/app/AppContext';
+import { AppContext } from '~/app/context/AppContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { useRegisterModelData } from './useRegisterModelData';
 import {

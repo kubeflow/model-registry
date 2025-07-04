@@ -61,6 +61,7 @@ requests = "^2.32.2"
 black = ">=24.4.2,<26.0.0"
 types-python-dateutil = "^2.9.0.20240906"
 pytest-html = "^4.1.1"
+schemathesis = ">=4.0.3"
 
 [tool.coverage.run]
 branch = true
@@ -82,7 +83,10 @@ line-length = 119
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-markers = ["e2e: end-to-end testing"]
+markers = [
+    "e2e: end-to-end testing",
+    "fuzz: mark a test as a fuzzing (property-based or randomized) test"
+]
 
 [tool.ruff]
 target-version = "py39"

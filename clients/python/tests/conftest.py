@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import contextlib
 import inspect
 import json
 import os
@@ -8,32 +9,53 @@ import shutil
 import subprocess
 import tempfile
 import time
+from collections.abc import Generator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 from urllib.parse import urlparse
 
 import pytest
 import requests
+import schemathesis
 import uvloop
+from schemathesis import Case, Response
+from schemathesis.generation.stateful.state_machine import APIStateMachine
+from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
 
+from .constants import DEFAULT_API_TIMEOUT
+
 
 def pytest_addoption(parser):
     parser.addoption("--e2e", action="store_true", help="run end-to-end tests")
+    parser.addoption("--fuzz", action="store_true", help="run fuzzing tests")
 
 
 def pytest_collection_modifyitems(config, items):
+    skip_reasons = {
+        "e2e": pytest.mark.skip(reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."),
+        "fuzz": pytest.mark.skip(reason="this is a fuzzing test, requires explicit opt-in --fuzz option to run."),
+        "skip": pytest.mark.skip(reason="skipping non-e2e and non-fuzz tests"),
+    }
+    e2e = config.getoption("--e2e")
+    fuzz = config.getoption("--fuzz")
+
     for item in items:
-        if "e2e" in item.keywords:
-            skip_e2e = pytest.mark.skip(
-                reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
-            )
-            if not config.getoption("--e2e"):
-                item.add_marker(skip_e2e)
-            continue
+        if e2e:
+            if "e2e" not in item.keywords:
+                item.add_marker(skip_reasons["skip"])
+        elif fuzz:
+            if "fuzz" not in item.keywords:
+                item.add_marker(skip_reasons["skip"])
+        else:
+            if "e2e" in item.keywords:
+                item.add_marker(skip_reasons["e2e"])
+            if "fuzz" in item.keywords:
+                item.add_marker(skip_reasons["fuzz"])
 
 
 def pytest_report_teststatus(report, config):
@@ -317,3 +339,85 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         skopeo_pull_mock.side_effect = mock_override
         skopeo_push_mock.side_effect = mock_override
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
+
+@pytest.fixture(scope="session")
+def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
+    """Generate the schema for the API"""
+
+    os.environ["API_HOST"] = REGISTRY_URL
+    config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
+    local_schema_path = f"{pytestconfig.rootpath}/../../api/openapi/model-registry.yaml"
+    schema = schemathesis.openapi.from_path(
+        path=local_schema_path,
+        config=config,
+    )
+    schema.config.output.sanitization.update(enabled=False)
+    return schema
+
+@pytest.fixture
+def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
+    """Cleanup artifacts created during the test."""
+    created_ids = []
+    def register(artifact_id):
+        created_ids.append(artifact_id)
+
+    yield register
+
+    for artifact_id in created_ids:
+        del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
+        try:
+            requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+        except Exception as e:
+            print(f"Failed to delete artifact {artifact_id}: {e}")
+
+@pytest.fixture
+def artifact_resource():
+    """Create an artifact resource for the test."""
+    @contextlib.contextmanager
+    def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
+        create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
+        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+        resp.raise_for_status()
+        artifact_id = resp.json()["id"]
+        try:
+            yield artifact_id
+        finally:
+            del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
+            try:
+                requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+            except Exception as e:
+                print(f"Failed to delete artifact {artifact_id}: {e}")
+    return _artifact_resource
+
+@pytest.fixture
+def auth_headers(setup_env_user_token):
+    """Provides authorization headers for API requests."""
+    return {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {setup_env_user_token}"
+    }
+
+@pytest.fixture
+def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str) -> APIStateMachine:
+    BaseAPIWorkflow = generated_schema.as_state_machine()
+
+    class APIWorkflow(BaseAPIWorkflow):  # type: ignore
+        headers: dict[str, str]
+
+        def setup(self) -> None:
+            print("Cleaning up database")
+            subprocess.run(
+                ["../../scripts/cleanup.sh"],
+                capture_output=True,
+                check=True
+            )
+            self.headers = auth_headers
+
+        def before_call(self, case: Case) -> None:
+            print(f"Checking: {case.method} {case.path}")
+        def get_call_kwargs(self, case: Case) -> dict[str, Any]:
+            return {"verify": False, "headers": self.headers}
+
+        def after_call(self, response: Response, case: Case) -> None:
+            print(f"{case.method} {case.path} -> {response.status_code},")
+    return APIWorkflow

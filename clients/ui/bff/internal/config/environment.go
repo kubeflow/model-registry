@@ -1,6 +1,10 @@
 package config
 
-import "log/slog"
+import (
+	"fmt"
+	"log/slog"
+	"strings"
+)
 
 const (
 	// AuthMethodInternal uses the credentials of the running backend.
@@ -21,12 +25,59 @@ const (
 	DefaultAuthTokenPrefix = "Bearer "
 )
 
+// DeploymentMode represents the deployment mode enum
+type DeploymentMode string
+
+const (
+	// DeploymentModeKubeflow represents the Kubeflow integration mode
+	DeploymentModeKubeflow DeploymentMode = "kubeflow"
+	// DeploymentModeFederated represents the federated platform mode
+	DeploymentModeFederated DeploymentMode = "federated"
+	// DeploymentModeStandalone represents the standalone mode
+	DeploymentModeStandalone DeploymentMode = "standalone"
+)
+
+// String implements the fmt.Stringer interface
+func (d DeploymentMode) String() string {
+	return string(d)
+}
+
+// Set implements the flag.Value interface
+func (d *DeploymentMode) Set(value string) error {
+	switch strings.ToLower(value) {
+	case "kubeflow":
+		*d = DeploymentModeKubeflow
+	case "federated":
+		*d = DeploymentModeFederated
+	case "standalone":
+		*d = DeploymentModeStandalone
+	default:
+		return fmt.Errorf("invalid deployment mode: %s (must be kubeflow, federated, or standalone)", value)
+	}
+	return nil
+}
+
+// IsKubeflowMode returns true if the deployment mode is Kubeflow
+func (d DeploymentMode) IsKubeflowMode() bool {
+	return d == DeploymentModeKubeflow
+}
+
+// IsStandaloneMode returns true if the deployment mode is standalone
+func (d DeploymentMode) IsStandaloneMode() bool {
+	return d == DeploymentModeStandalone
+}
+
+// IsFederatedMode returns true if the deployment mode is federated
+func (d DeploymentMode) IsFederatedMode() bool {
+	return d == DeploymentModeFederated
+}
+
 type EnvConfig struct {
 	Port            int
 	MockK8Client    bool
 	MockMRClient    bool
 	DevMode         bool
-	StandaloneMode  bool
+	DeploymentMode  DeploymentMode
 	DevModePort     int
 	StaticAssetsDir string
 	LogLevel        slog.Level
@@ -44,4 +95,10 @@ type EnvConfig struct {
 	// Optional prefix to strip from the token header value.
 	// Default is "Bearer ", can be set to empty if the token is sent without a prefix.
 	AuthTokenPrefix string
+
+	// ─── DEPRECATED ─────────────────────────────────────────────
+	// The following fields are deprecated and maintained for backward compatibility
+	// Use DeploymentMode instead
+	StandaloneMode    bool
+	FederatedPlatform bool
 }

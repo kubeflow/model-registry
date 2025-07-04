@@ -17,8 +17,10 @@ import RegisterModel from './screens/RegisterModel/RegisterModel';
 import RegisterVersion from './screens/RegisterModel/RegisterVersion';
 
 const ModelRegistryRoutes: React.FC = () => {
-  const { deploymentMode } = useModularArchContext();
-  const isIntegrated = deploymentMode === DeploymentMode.Integrated;
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
+  const isStandalone = deploymentMode === DeploymentMode.Standalone;
+  const isFederated = deploymentMode === DeploymentMode.Federated;
   return (
     <Routes>
       <Route
@@ -47,7 +49,7 @@ const ModelRegistryRoutes: React.FC = () => {
               path={ModelVersionDetailsTab.DETAILS}
               element={<ModelVersionsDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />}
             />
-            {!isIntegrated && (
+            {(isStandalone || isFederated) && (
               <Route
                 path={ModelVersionDetailsTab.DEPLOYMENTS}
                 element={
@@ -67,7 +69,7 @@ const ModelRegistryRoutes: React.FC = () => {
                   <ModelVersionsArchiveDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
                 }
               />
-              {!isIntegrated && (
+              {(isStandalone || isFederated) && (
                 <Route
                   path={ModelVersionDetailsTab.DEPLOYMENTS}
                   element={
@@ -109,7 +111,7 @@ const ModelRegistryRoutes: React.FC = () => {
                   <ArchiveModelVersionDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />
                 }
               />
-              {!isIntegrated && (
+              {(isStandalone || isFederated) && (
                 <Route
                   path={ModelVersionDetailsTab.DEPLOYMENTS}
                   element={
