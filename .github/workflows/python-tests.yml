@@ -221,7 +221,8 @@ jobs:
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
       - name: Nox test fuzz (main only)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/pull/1271/merge' # just for testing
+        # if: github.ref == 'refs/heads/main'
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
