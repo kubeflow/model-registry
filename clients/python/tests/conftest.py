@@ -12,6 +12,7 @@ import time
 from collections.abc import Generator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 from urllib.parse import urlparse
 
@@ -19,6 +20,8 @@ import pytest
 import requests
 import schemathesis
 import uvloop
+from schemathesis import Case, Response
+from schemathesis.generation.stateful.state_machine import APIStateMachine
 from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 
 from model_registry import ModelRegistry
@@ -385,3 +388,36 @@ def artifact_resource():
             except Exception as e:
                 print(f"Failed to delete artifact {artifact_id}: {e}")
     return _artifact_resource
+
+@pytest.fixture
+def auth_headers(setup_env_user_token):
+    """Provides authorization headers for API requests."""
+    return {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {setup_env_user_token}"
+    }
+
+@pytest.fixture
+def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str) -> APIStateMachine:
+    BaseAPIWorkflow = generated_schema.as_state_machine()
+
+    class APIWorkflow(BaseAPIWorkflow):  # type: ignore
+        headers: dict[str, str]
+
+        def setup(self) -> None:
+            print("Cleaning up database")
+            subprocess.run(
+                ["../../scripts/cleanup.sh"],
+                capture_output=True,
+                check=True
+            )
+            self.headers = auth_headers
+
+        def before_call(self, case: Case) -> None:
+            print(f"Checking: {case.method} {case.path}")
+        def get_call_kwargs(self, case: Case) -> dict[str, Any]:
+            return {"verify": False, "headers": self.headers}
+
+        def after_call(self, response: Response, case: Case) -> None:
+            print(f"{case.method} {case.path} -> {response.status_code},")
+    return APIWorkflow

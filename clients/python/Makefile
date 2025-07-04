@@ -57,6 +57,8 @@ test-e2e-run:
 
 .PHONY: test-e2e-cleanup
 test-e2e-cleanup:
+	@echo "Cleaning up database..."
+	cd ../../ && ./scripts/cleanup.sh
 	@echo "Cleaning up port-forward processes..."
 	@if [ -f .port-forwards.pid ]; then \
 		kill $$(cat .port-forwards.pid) || true; \
