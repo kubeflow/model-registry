@@ -3,13 +3,14 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
+
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
-	"time"
 )
 
 type InternalKubernetesClient struct {
@@ -117,37 +118,136 @@ func (kc *InternalKubernetesClient) GetNamespaces(ctx context.Context, identity 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	//list namespaces
+	// Optimization 1: Early exit for cluster admins
+	// Check if user is cluster-admin first to avoid individual SAR checks
+	isAdmin, err := kc.IsClusterAdmin(identity)
+	if err != nil {
+		kc.Logger.Warn("failed to check cluster admin status", "user", identity.UserID, "error", err)
+		// Continue with individual checks if cluster admin check fails
+	} else if isAdmin {
+		kc.Logger.Debug("user is cluster-admin, returning all namespaces", "user", identity.UserID)
+		namespaceList, err := kc.Client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list namespaces: %w", err)
+		}
+		return namespaceList.Items, nil
+	}
+
+	// List namespaces
 	namespaceList, err := kc.Client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	//check access for each namespace
+	// Optimization 2: Worker pool for parallel SAR processing
+	// Use a fixed number of workers to process namespace checks, providing better resource control
+	const numWorkers = 10 // Fixed number of workers to avoid resource overhead
+
+	type sarJob struct {
+		namespace corev1.Namespace
+	}
+
+	type sarResult struct {
+		namespace corev1.Namespace
+		allowed   bool
+		err       error
+	}
+
+	// Create job and result channels
+	jobs := make(chan sarJob, len(namespaceList.Items))
+	results := make(chan sarResult, len(namespaceList.Items))
+
+	// Start worker pool
+	for w := 0; w < numWorkers; w++ {
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					// Respect context cancellation
+					return
+				case job, ok := <-jobs:
+					if !ok {
+						// Jobs channel closed, exit worker
+						return
+					}
+
+					// Perform SAR check
+					sar := &authv1.SubjectAccessReview{
+						Spec: authv1.SubjectAccessReviewSpec{
+							User:   identity.UserID,
+							Groups: identity.Groups,
+							ResourceAttributes: &authv1.ResourceAttributes{
+								Verb:      "get",
+								Resource:  "namespaces",
+								Namespace: job.namespace.Name,
+							},
+						},
+					}
+
+					response, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+
+					select {
+					case <-ctx.Done():
+						// Context cancelled, exit worker
+						return
+					case results <- sarResult{
+						namespace: job.namespace,
+						allowed:   err == nil && response.Status.Allowed,
+						err:       err,
+					}:
+						// Result sent successfully
+					}
+				}
+			}
+		}()
+	}
+
+	// Send jobs to workers
+	go func() {
+		defer close(jobs)
+		for _, ns := range namespaceList.Items {
+			select {
+			case <-ctx.Done():
+				// Context cancelled, stop sending jobs
+				return
+			case jobs <- sarJob{namespace: ns}:
+				// Job sent successfully
+			}
+		}
+	}()
+
+	// Collect results
 	var allowed []corev1.Namespace
-	for _, ns := range namespaceList.Items {
-		sar := &authv1.SubjectAccessReview{
-			Spec: authv1.SubjectAccessReviewSpec{
-				User:   identity.UserID,
-				Groups: identity.Groups,
-				ResourceAttributes: &authv1.ResourceAttributes{
-					Verb:      "get",
-					Resource:  "namespaces",
-					Namespace: ns.Name,
-				},
-			},
-		}
+	errorCount := 0
+	processed := 0
 
-		response, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
-		if err != nil {
-			kc.Logger.Error("failed SAR for namespace", "namespace", ns.Name, "error", err)
-			continue
-		}
-
-		if response.Status.Allowed {
-			allowed = append(allowed, ns)
+	for processed < len(namespaceList.Items) {
+		select {
+		case <-ctx.Done():
+			// Context cancelled, return what we have so far
+			kc.Logger.Warn("context cancelled during namespace access checks",
+				"user", identity.UserID,
+				"processed", processed,
+				"total", len(namespaceList.Items))
+			return allowed, ctx.Err()
+		case result := <-results:
+			processed++
+			if result.err != nil {
+				kc.Logger.Error("failed SAR for namespace", "namespace", result.namespace.Name, "error", result.err)
+				errorCount++
+				continue
+			}
+			if result.allowed {
+				allowed = append(allowed, result.namespace)
+			}
 		}
 	}
+
+	kc.Logger.Debug("namespace access check completed",
+		"user", identity.UserID,
+		"total_namespaces", len(namespaceList.Items),
+		"accessible_namespaces", len(allowed),
+		"errors", errorCount)
 
 	return allowed, nil
 }

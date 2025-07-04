@@ -3,7 +3,7 @@ MOCK_K8S_CLIENT ?= false
 MOCK_MR_CLIENT ?= false
 DEV_MODE ?= false
 DEV_MODE_PORT ?= 8080
-STANDALONE_MODE ?= true
+DEPLOYMENT_MODE ?= kubeflow
 AUTH_METHOD ?= internal
 AUTH_TOKEN_HEADER ?= Authorization
 AUTH_TOKEN_PREFIX ?= Bearer\
@@ -59,7 +59,7 @@ endif
 .PHONY: run
 run: fmt vet envtest ## Runs the project.
 	ENVTEST_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
-	go run ./cmd --port=$(PORT) --auth-method=${AUTH_METHOD} --auth-token-header=$(AUTH_TOKEN_HEADER) --auth-token-prefix="$(AUTH_TOKEN_PREFIX)" --static-assets-dir=$(STATIC_ASSETS_DIR) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)  --standalone-mode=$(STANDALONE_MODE) --log-level=$(LOG_LEVEL) --allowed-origins=$(ALLOWED_ORIGINS)
+	go run ./cmd --port=$(PORT) --auth-method=${AUTH_METHOD} --auth-token-header=$(AUTH_TOKEN_HEADER) --auth-token-prefix="$(AUTH_TOKEN_PREFIX)" --static-assets-dir=$(STATIC_ASSETS_DIR) --mock-k8s-client=$(MOCK_K8S_CLIENT) --mock-mr-client=$(MOCK_MR_CLIENT) --dev-mode=$(DEV_MODE) --dev-mode-port=$(DEV_MODE_PORT)  --deployment-mode=$(DEPLOYMENT_MODE) --log-level=$(LOG_LEVEL) --allowed-origins=$(ALLOWED_ORIGINS)
 
 ##@ Dependencies
 

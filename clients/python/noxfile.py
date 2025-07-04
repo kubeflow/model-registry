@@ -60,6 +60,7 @@ def tests(session: Session) -> None:
         "pytest-asyncio",
         "uvloop",
         "olot",
+        "schemathesis",
     )
     session.run(
         "pytest",
@@ -83,6 +84,7 @@ def e2e_tests(session: Session) -> None:
         "boto3",
         "olot",
         "uvloop",
+        "schemathesis",
     )
     try:
         session.run(
@@ -99,6 +101,22 @@ def e2e_tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
+@session(name="fuzz", python=python_versions)
+def fuzz_tests(session: Session) -> None:
+    """Run the fuzzing tests."""
+    session.install(
+        ".",
+        "requests",
+        "pytest",
+        "uvloop",
+        "olot",
+        "schemathesis",
+    )
+    session.run(
+        "pytest",
+        "--fuzz",
+        "-rA",
+    )
 @session(python=python_versions[0])
 def coverage(session: Session) -> None:
     """Produce the coverage report."""

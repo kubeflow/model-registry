@@ -161,8 +161,10 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(UserPath, app.UserHandler)
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))
 
-	// Standalone "only" routes
-	if app.config.StandaloneMode {
+	// Enable these routes in all cases except Kubeflow integration mode
+	// (Kubeflow integration mode is when DeploymentMode is kubeflow)
+	isKubeflowIntegrationMode := app.config.DeploymentMode.IsKubeflowMode()
+	if !isKubeflowIntegrationMode {
 		// This namespace endpoint is used on standalone mode to simulate
 		// Kubeflow Central Dashboard namespace selector dropdown on our standalone web app
 		apiRouter.GET(NamespaceListPath, app.GetNamespacesHandler)
