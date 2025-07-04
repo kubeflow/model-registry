@@ -74,5 +74,6 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
           DEPLOYMENT_MODE=standalone
+          STYLE_THEME=mui-theme
         cache-from: type=gha
         cache-to: type=gha,mode=max

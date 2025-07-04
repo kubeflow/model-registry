@@ -42,12 +42,9 @@ jest.mock('mod-arch-shared', () => ({
     MUI: 'mui',
   },
   DeploymentMode: {
-    Integrated: 'integrated',
-    Default: 'default',
-  },
-  PlatformMode: {
     Kubeflow: 'kubeflow',
-    Default: 'default',
+    Standalone: 'standalone',
+    Federated: 'federated',
   },
 }));
 

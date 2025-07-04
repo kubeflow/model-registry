@@ -24,7 +24,7 @@ There's two main environments that the Model Registry UI is targeted for:
 
 1. **Standalone**: This is the default environment for local development. The UI is served by the BFF and the BFF is responsible for serving the API requests. The BFF exposes a `/namespace` endpoint that returns all the namespaces in the cluster and the UI sends a user header `kubeflow-user` to authenticate the calls.
 
-2. **Integrated**: This is the environment where the UI is served by the Kubeflow Ingress and the BFF is served by the Kubeflow API Gateway. The BFF is responsible for serving the API requests and namespace selection is leveraged from Kubeflow.
+2. **Kubeflow**: This is the environment where the UI is served by the Kubeflow Ingress and the BFF is served by the Kubeflow API Gateway. The BFF is responsible for serving the API requests and namespace selection is leveraged from Kubeflow.
 
 ## Environment Variables
 
@@ -49,6 +49,12 @@ The following environment variables are used to configure the deployment and dev
 * **Default Value**: `ghcr.io/kubeflow/model-registry/ui-standalone:latest`
 * **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-standalone:latest`
 
+### `IMG_UI_FEDERATED`
+
+* **Description**: Specifies the image name and tag for the UI (with BFF) in **federated mode**, used for federated mode outside kubeflow.
+* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-federated:latest`
+* **Example**: `IMG_UI_FEDERATED=ghcr.io/kubeflow/model-registry/ui-federated:latest`
+
 ### `PLATFORM`
 
 * **Description**: Specifies the platform for a **docker buildx** build.
@@ -58,8 +64,17 @@ The following environment variables are used to configure the deployment and dev
 ### `DEPLOYMENT_MODE`
 
 * **Description**: Specifies the deployment mode for the UI.
-* **Default Value**: `standalone` (in dev mode) / `integrated` (in production mode)
-* **Possible Values**: `standalone`, `integrated`
+* **Default Value**: `standalone`
+* **Note**: This variable is used to determine how the UI is built and deployed.
+* **Possible Values**: `standalone`, `kubeflow`, `federated`
+* **Example**: `DEPLOYMENT_MODE=standalone`
+
+### `STYLE_THEME`
+
+* **Description**: Specifies the theme/styling framework to be used for the UI.
+* **Default Value**: `mui-theme`
+* **Possible Values**: `mui-theme`, `patternfly-theme`
+* **Example**: `STYLE_THEME=mui-theme`
 
 ### Example `.env.local` File
 

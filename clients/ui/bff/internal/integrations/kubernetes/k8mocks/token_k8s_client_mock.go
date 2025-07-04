@@ -40,6 +40,7 @@ func (m *TokenKubernetesClientMock) GetServiceDetails(sessionCtx context.Context
 	for i := range originalServices {
 		originalServices[i].ClusterIP = "127.0.0.1"
 		originalServices[i].HTTPPort = 8080
+		originalServices[i].IsHTTPS = false
 	}
 
 	return originalServices, nil
@@ -53,6 +54,7 @@ func (m *TokenKubernetesClientMock) GetServiceDetailsByName(sessionCtx context.C
 	}
 	originalService.ClusterIP = "127.0.0.1"
 	originalService.HTTPPort = 8080
+	originalService.IsHTTPS = false
 	return originalService, nil
 }
 
