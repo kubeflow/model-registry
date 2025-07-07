@@ -1,7 +1,7 @@
 import logging
 
 from job.upload import perform_upload
-from config import get_config
+from .config import get_config
 from .mr_client import validate_and_get_model_registry_client
 from .download import perform_download
 
@@ -24,10 +24,10 @@ def main() -> None:
         client = validate_and_get_model_registry_client(config)
 
         logger.info(
-            f"Source: {config.source.type.upper()} storage at {config.source.endpoint or 'default endpoint'}"
+            f"Source: {config['source']['type'].upper()} storage at {config['source'].get('endpoint') or 'default endpoint'}"
         )
         logger.info(
-            f"Destination: {config.destination.type.upper()} storage at {config.destination.endpoint or 'default endpoint'}"
+            f"Destination: {config['destination']['type'].upper()} storage at {config['destination'].get('endpoint') or 'default endpoint'}"
         )
 
         # Download the model from the defined source

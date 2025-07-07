@@ -19,10 +19,10 @@ def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
 
 def perform_download(client: ModelRegistry, config: Dict[str, Any]):
     # Download the model from the defined source
-    if config.source.type == "s3":
+    if config["source"]["type"] == "s3":
         download_from_s3(client, config)
-    elif config.source.type == "oci":
+    elif config["source"]["type"] == "oci":
         # TODO: Implement the OCI download logic here
         raise ValueError("OCI source is not supported yet")
     else:
-        raise ValueError(f"Unsupported source type: {config.source.type}")
+        raise ValueError(f"Unsupported source type: {config['source']['type']}")
