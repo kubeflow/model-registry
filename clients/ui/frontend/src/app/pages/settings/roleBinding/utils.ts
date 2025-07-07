@@ -1,6 +1,8 @@
 import { capitalize } from '@patternfly/react-core';
 import { RoleBindingKind } from 'mod-arch-shared';
 import { patchRoleBinding } from '~/app/api/k8s';
+import { getDisplayNameFromK8sResource } from '~/app/shared/components/utils';
+import { ProjectKind } from '~/app/shared/components/types';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 
 export const filterRoleBindingSubjects = (
@@ -28,8 +30,17 @@ export const castRoleBindingPermissionsRoleType = (
   return RoleBindingPermissionsRoleType.CUSTOM;
 };
 
-export const firstSubject = (roleBinding: RoleBindingKind): string =>
-  roleBinding.subjects[0]?.name || '';
+export const firstSubject = (
+  roleBinding: RoleBindingKind,
+  isProjectSubject?: boolean,
+  project?: ProjectKind[],
+): string =>
+  (isProjectSubject && project
+    ? namespaceToProjectDisplayName(
+        roleBinding.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''),
+        project,
+      )
+    : roleBinding.subjects[0]?.name) || '';
 
 export const roleLabel = (value: RoleBindingPermissionsRoleType): string => {
   if (value === RoleBindingPermissionsRoleType.EDIT) {
@@ -76,4 +87,22 @@ export const tryPatchRoleBinding = async (
   } catch {
     return false;
   }
+};
+
+export const namespaceToProjectDisplayName = (
+  namespace: string,
+  projects: ProjectKind[],
+): string => {
+  const project = projects.find((p) => p.metadata.name === namespace);
+  return project ? getDisplayNameFromK8sResource(project) : namespace;
+};
+
+export const projectDisplayNameToNamespace = (
+  displayName: string,
+  projects: ProjectKind[],
+): string => {
+  const project = projects.find(
+    (p) => p.metadata.annotations?.['openshift.io/display-name'] === displayName,
+  );
+  return project?.metadata.name || displayName;
 };

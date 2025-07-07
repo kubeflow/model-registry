@@ -24,11 +24,13 @@ import {
   RoleBindingSubject,
 } from 'mod-arch-shared';
 import useUser from '~/app/hooks/useUser';
+import { ProjectKind } from '~/app/shared/components/types';
 import {
   castRoleBindingPermissionsRoleType,
   firstSubject,
   roleLabel,
   isCurrentUserChanging,
+  projectDisplayNameToNamespace,
 } from './utils';
 import { RoleBindingPermissionsRoleType } from './types';
 import RoleBindingPermissionsNameInput from './RoleBindingPermissionsNameInput';
@@ -46,13 +48,18 @@ type RoleBindingPermissionsTableRowProps = {
     description: string;
   }[];
   typeAhead?: string[];
+  isProjectSubject?: boolean;
   onChange: (name: string, roleType: RoleBindingPermissionsRoleType) => void;
   onCancel: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
-const defaultValueName = (obj: RoleBindingKind) => firstSubject(obj);
+const defaultValueName = (
+  obj: RoleBindingKind,
+  isProjectSubject?: boolean,
+  projects?: ProjectKind[],
+) => firstSubject(obj, isProjectSubject, projects);
 const defaultValueRole = (obj: RoleBindingKind) =>
   castRoleBindingPermissionsRoleType(obj.roleRef.name);
 
@@ -64,19 +71,21 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
   defaultRoleBindingName,
   permissionOptions,
   typeAhead,
+  isProjectSubject,
   onChange,
   onCancel,
   onEdit,
   onDelete,
 }) => {
-  // TODO: We don't have project context yet and need to add logic to show projects permission tab under manage permissions of MR - might need to move the project-context part to shared library
+  // TODO: We don't have project context yet - might need to move the project-context part to shared library
+  const projects: ProjectKind[] = React.useMemo(() => [], []);
   const currentUser = useUser();
   const isCurrentUserBeingChanged = isCurrentUserChanging(obj, currentUser.userId);
   const [roleBindingName, setRoleBindingName] = React.useState(() => {
     if (isAdding || !obj) {
       return '';
     }
-    return defaultValueName(obj);
+    return defaultValueName(obj, isProjectSubject, projects);
   });
   const [roleBindingRoleRef, setRoleBindingRoleRef] =
     React.useState<RoleBindingPermissionsRoleType>(() => {
@@ -94,10 +103,14 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
   //Sync local state with props if exiting edit mode
   React.useEffect(() => {
     if (!isEditing && obj) {
-      setRoleBindingName(defaultValueName(obj));
+      setRoleBindingName(
+        isProjectSubject
+          ? defaultValueName(obj, isProjectSubject, projects)
+          : defaultValueName(obj),
+      );
       setRoleBindingRoleRef(defaultValueRole(obj));
     }
-  }, [obj, isEditing]);
+  }, [obj, isEditing, isProjectSubject, projects]);
 
   return (
     <>
@@ -112,8 +125,9 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
                   setRoleBindingName(selection);
                 }}
                 onClear={() => setRoleBindingName('')}
-                placeholderText="Select a group"
+                placeholderText={isProjectSubject ? 'Select or enter a project' : 'Select a group'}
                 typeAhead={typeAhead}
+                isProjectSubject={isProjectSubject}
               />
             ) : (
               <Content component="p">
@@ -179,7 +193,15 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
                         setShowModal(true);
                       } else {
                         setIsLoading(true);
-                        onChange(roleBindingName, roleBindingRoleRef);
+                        onChange(
+                          isProjectSubject
+                            ? `system:serviceaccounts:${projectDisplayNameToNamespace(
+                                roleBindingName,
+                                projects,
+                              )}`
+                            : roleBindingName,
+                          roleBindingRoleRef,
+                        );
                         setIsLoading(false);
                       }
                     }}
@@ -245,7 +267,15 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
           }}
           onEdit={() => {
             setIsLoading(true);
-            onChange(roleBindingName, roleBindingRoleRef);
+            onChange(
+              isProjectSubject
+                ? `system:serviceaccounts:${projectDisplayNameToNamespace(
+                    roleBindingName,
+                    projects,
+                  )}`
+                : roleBindingName,
+              roleBindingRoleRef,
+            );
             setIsLoading(false);
             setShowModal(false);
           }}
