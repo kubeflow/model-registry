@@ -29,7 +29,6 @@ spec:
         args:
         - --datadir
         - /var/lib/mysql/datadir
-        - --default-authentication-plugin=mysql_native_password
         envFrom:
         - configMapRef:
             name: model-registry-db-parameters
