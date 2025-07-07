@@ -34,3 +34,17 @@ export type K8sDSGResource = K8sResourceCommon & {
     name: string;
   };
 };
+
+export type ProjectKind = K8sResourceCommon & {
+  metadata: {
+    annotations?: DisplayNameAnnotations &
+      Partial<{
+        'openshift.io/requester': string; // the username of the user that requested this project
+      }>;
+    labels?: Record<string, string>;
+    name: string;
+  };
+  status?: {
+    phase: 'Active' | 'Terminating';
+  };
+};
