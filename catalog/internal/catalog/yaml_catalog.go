@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -13,14 +14,9 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-type yamlArtifacts struct {
-	Protocol string `yaml:"protocol"`
-	URI      string `yaml:"uri"`
-}
-
 type yamlModel struct {
 	model.CatalogModel `yaml:",inline"`
-	Artifacts          []yamlArtifacts `yaml:"artifacts"`
+	Artifacts          []*model.CatalogModelArtifact `yaml:"artifacts"`
 }
 
 type yamlCatalog struct {
@@ -50,6 +46,31 @@ func (y *yamlCatalogImpl) GetModel(ctx context.Context, name string) (*model.Cat
 func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {
+	y.modelsLock.RLock()
+	defer y.modelsLock.RUnlock()
+
+	ym := y.models[name]
+	if ym == nil {
+		return nil, nil
+	}
+
+	count := len(ym.Artifacts)
+	if count > math.MaxInt32 {
+		count = math.MaxInt32
+	}
+
+	list := model.CatalogModelArtifactList{
+		Items:    make([]model.CatalogModelArtifact, count),
+		PageSize: int32(count),
+		Size:     int32(count),
+	}
+	for i := range list.Items {
+		list.Items[i] = *ym.Artifacts[i]
+	}
+	return &list, nil
 }
 
 func (y *yamlCatalogImpl) load(path string) error {

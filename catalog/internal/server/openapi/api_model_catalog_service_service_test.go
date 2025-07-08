@@ -393,7 +393,8 @@ func TestFindSources(t *testing.T) {
 
 // Define a mock model provider
 type mockModelProvider struct {
-	models map[string]*model.CatalogModel
+	models    map[string]*model.CatalogModel
+	artifacts map[string][]model.CatalogModelArtifact
 }
 
 // Implement GetModel method for the mock provider
@@ -409,8 +410,25 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 	return model.CatalogModelList{}, nil
 }
 
-func TestGetModel(t *testing.T) {
+func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {
+	artifacts, exists := m.artifacts[name]
+	if !exists {
+		return &model.CatalogModelArtifactList{
+			Items:         []model.CatalogModelArtifact{},
+			Size:          0,
+			PageSize:      0, // Or a default page size if applicable
+			NextPageToken: "",
+		}, nil
+	}
+	return &model.CatalogModelArtifactList{
+		Items:         artifacts,
+		Size:          int32(len(artifacts)),
+		PageSize:      int32(len(artifacts)),
+		NextPageToken: "",
+	}, nil
+}
 
+func TestGetModel(t *testing.T) {
 	testCases := []struct {
 		name           string
 		sources        map[string]catalog.CatalogSource
@@ -498,6 +516,109 @@ func TestGetModel(t *testing.T) {
 
 			// Check the model details
 			assert.Equal(t, tc.expectedModel.Name, model.Name)
+		})
+	}
+}
+
+func TestGetAllModelArtifacts(t *testing.T) {
+	testCases := []struct {
+		name              string
+		sources           map[string]catalog.CatalogSource
+		sourceID          string
+		modelName         string
+		expectedStatus    int
+		expectedArtifacts []model.CatalogModelArtifact
+	}{
+		{
+			name: "Existing artifacts for model in source",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+					Provider: &mockModelProvider{
+						artifacts: map[string][]model.CatalogModelArtifact{
+							"test-model": {
+								{
+									Uri: "s3://bucket/artifact1",
+								},
+								{
+									Uri: "s3://bucket/artifact2",
+								},
+							},
+						},
+					},
+				},
+			},
+			sourceID:       "source1",
+			modelName:      "test-model",
+			expectedStatus: http.StatusOK,
+			expectedArtifacts: []model.CatalogModelArtifact{
+				{
+					Uri: "s3://bucket/artifact1",
+				},
+				{
+					Uri: "s3://bucket/artifact2",
+				},
+			},
+		},
+		{
+			name: "Non-existing source",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+				},
+			},
+			sourceID:          "source2",
+			modelName:         "test-model",
+			expectedStatus:    http.StatusNotFound,
+			expectedArtifacts: nil,
+		},
+		{
+			name: "Existing source, no artifacts for model",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+					Provider: &mockModelProvider{
+						artifacts: map[string][]model.CatalogModelArtifact{},
+					},
+				},
+			},
+			sourceID:          "source1",
+			modelName:         "test-model",
+			expectedStatus:    http.StatusOK,
+			expectedArtifacts: []model.CatalogModelArtifact{}, // Should be an empty slice, not nil
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create service with test sources
+			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.sources))
+
+			// Call GetAllModelArtifacts
+			resp, _ := service.GetAllModelArtifacts(
+				context.Background(),
+				tc.sourceID,
+				tc.modelName,
+			)
+
+			// Check response status
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			// If we expect an error or not found, we don't need to check the response body
+			if tc.expectedStatus != http.StatusOK {
+				return
+			}
+
+			// For successful responses, check the response body
+			require.NotNil(t, resp.Body)
+
+			// Type assertion to access the list of artifacts
+			artifactList, ok := resp.Body.(*model.CatalogModelArtifactList)
+			require.True(t, ok, "Response body should be a CatalogModelArtifactList")
+
+			// Check the artifacts
+			assert.Equal(t, tc.expectedArtifacts, artifactList.Items)
+			assert.Equal(t, int32(len(tc.expectedArtifacts)), artifactList.Size)
 		})
 	}
 }
