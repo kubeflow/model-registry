@@ -32,7 +32,6 @@ type RoleBindingPermissionsProps = {
   }[];
   createRoleBinding: (roleBinding: RoleBindingKind) => Promise<RoleBindingKind>;
   deleteRoleBinding: (name: string, namespace: string) => Promise<K8sStatus>;
-
   projectName: string;
   roleRefKind: RoleBindingRoleRef['kind'];
   roleRefName?: RoleBindingRoleRef['name'];

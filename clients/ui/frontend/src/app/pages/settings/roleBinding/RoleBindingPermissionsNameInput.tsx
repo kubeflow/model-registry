@@ -1,7 +1,9 @@
 import React from 'react';
 import { TextInput } from '@patternfly/react-core';
 import { RoleBindingSubject, TypeaheadSelect } from 'mod-arch-shared';
+import { ProjectKind } from '~/app/shared/components/types';
 import { RoleBindingPermissionsRBType } from './types';
+import { namespaceToProjectDisplayName } from './utils';
 
 type RoleBindingPermissionsNameInputProps = {
   subjectKind: RoleBindingSubject['kind'];
@@ -10,6 +12,7 @@ type RoleBindingPermissionsNameInputProps = {
   onClear: () => void;
   placeholderText: string;
   typeAhead?: string[];
+  isProjectSubject?: boolean;
 };
 
 const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNameInputProps> = ({
@@ -19,8 +22,10 @@ const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNameInputP
   onClear,
   placeholderText,
   typeAhead,
+  isProjectSubject,
 }) => {
-  // TODO: We don't have project context yet and need to add logic to show projects permission tab under manage permissions of MR - might need to move the project-context part to shared library
+  // TODO: We don't have project context yet - might need to move the project-context part to shared library
+  const projects: ProjectKind[] = [];
   if (!typeAhead) {
     return (
       <TextInput
@@ -30,7 +35,11 @@ const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNameInputP
         type="text"
         value={value}
         placeholder={`Type ${
-          subjectKind === RoleBindingPermissionsRBType.GROUP ? 'group name' : 'username'
+          isProjectSubject
+            ? 'project name'
+            : subjectKind === RoleBindingPermissionsRBType.GROUP
+              ? 'group name'
+              : 'username'
         }`}
         onChange={(e, newValue) => onChange(newValue)}
       />
@@ -38,7 +47,7 @@ const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNameInputP
   }
 
   const selectOptions = typeAhead.map((option) => {
-    const displayName = option;
+    const displayName = isProjectSubject ? namespaceToProjectDisplayName(option, projects) : option;
     return { value: displayName, content: displayName };
   });
   // If we've selected an option that doesn't exist via isCreatable, include it in the options so it remains selected

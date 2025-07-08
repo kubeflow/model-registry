@@ -40,6 +40,7 @@ export type RoleBindingPermissionsTableSectionAltProps = {
   typeModifier: string;
   defaultRoleBindingName?: string;
   labels?: { [key: string]: string };
+  isProjectSubject?: boolean;
 };
 
 const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSectionAltProps> = ({
@@ -57,6 +58,7 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
   typeModifier,
   defaultRoleBindingName,
   labels,
+  isProjectSubject,
 }) => {
   const [addField, setAddField] = React.useState(false);
   const [error, setError] = React.useState<React.ReactNode>();
@@ -72,14 +74,20 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
         >
           <HeaderIcon
             type={
-              subjectKind === RoleBindingPermissionsRBType.USER
-                ? ProjectObjectType.user
-                : ProjectObjectType.group
+              isProjectSubject
+                ? ProjectObjectType.project
+                : subjectKind === RoleBindingPermissionsRBType.USER
+                  ? ProjectObjectType.user
+                  : ProjectObjectType.group
             }
           />
           <FlexItem>
             <Title id={`user-permission-${typeModifier}`} headingLevel="h2" size="xl">
-              {subjectKind === RoleBindingPermissionsRBType.USER ? 'Users' : 'Groups'}
+              {isProjectSubject
+                ? 'Projects'
+                : subjectKind === RoleBindingPermissionsRBType.USER
+                  ? 'Users'
+                  : 'Groups'}
             </Title>
           </FlexItem>
         </Flex>
@@ -93,6 +101,7 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
           namespace={projectName}
           roleRefKind={roleRefKind}
           roleRefName={roleRefName}
+          isProjectSubject={isProjectSubject}
           labels={labels}
           subjectKind={subjectKind}
           typeAhead={typeAhead}
@@ -133,7 +142,11 @@ const RoleBindingPermissionsTableSection: React.FC<RoleBindingPermissionsTableSe
           onClick={() => setAddField(true)}
           style={{ paddingLeft: 'var(--pf-t--global--spacer--lg)' }}
         >
-          {subjectKind === RoleBindingPermissionsRBType.USER ? 'Add user' : 'Add group'}
+          {isProjectSubject
+            ? 'Add project'
+            : subjectKind === RoleBindingPermissionsRBType.USER
+              ? 'Add user'
+              : 'Add group'}
         </Button>
       </StackItem>
     </Stack>
