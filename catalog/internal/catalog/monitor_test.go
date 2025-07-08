@@ -103,12 +103,16 @@ func TestMonitorSymlinks(t *testing.T) {
 
 	a.AssertCount(t, 1)
 	b.AssertCount(t, 1)
+	a.Reset()
+	b.Reset()
 
 	// Make a new version directory
 	os.Mkdir(filepath.Join(tmpDir, "v2"), 0777)
 	updateFile(t, filepath.Join(tmpDir, "v2", "a"), "UPDATED")
 	updateFile(t, filepath.Join(tmpDir, "v2", "b"), "bar")
 
+	a.AssertCount(t, 0)
+	b.AssertCount(t, 0)
 	a.Reset()
 	b.Reset()
 
