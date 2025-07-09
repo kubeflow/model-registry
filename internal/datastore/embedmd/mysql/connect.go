@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -18,9 +19,10 @@ const (
 )
 
 type MySQLDBConnector struct {
-	DSN       string
-	TLSConfig *_tls.TLSConfig
-	db        *gorm.DB
+	DSN          string
+	TLSConfig    *_tls.TLSConfig
+	db           *gorm.DB
+	connectMutex sync.Mutex
 }
 
 func NewMySQLDBConnector(
@@ -34,6 +36,15 @@ func NewMySQLDBConnector(
 }
 
 func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
+	// Use mutex to ensure only one connection attempt at a time
+	c.connectMutex.Lock()
+	defer c.connectMutex.Unlock()
+
+	// If we already have a working connection, return it
+	if c.db != nil {
+		return c.db, nil
+	}
+
 	var db *gorm.DB
 	var err error
 
