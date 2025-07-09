@@ -22,10 +22,12 @@ import {
   KubeflowDocs,
   useThemeContext,
   SimpleSelect,
+  InlineTruncatedClipboardCopy,
 } from 'mod-arch-shared';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';
+import { getServerAddress } from './utils';
 
 const MODEL_REGISTRY_FAVORITE_STORAGE_KEY = 'kubeflow.dashboard.model.registry.favorite';
 
@@ -167,6 +169,14 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
                     className={!selection.description ? text.textColorDisabled : ''}
                   >
                     {selection.description || 'No description'}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Server URL</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <InlineTruncatedClipboardCopy
+                      textToCopy={`https://${getServerAddress(selection)}`}
+                    />
                   </DescriptionListDescription>
                 </DescriptionListGroup>
               </DescriptionList>

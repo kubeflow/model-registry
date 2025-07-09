@@ -14,6 +14,7 @@ approvers:
 - tarilabs
 - tonyxrmdavidson
 - Al-Pragliola
+- pboyd
 options: {}
 reviewers:
 - dhirajsb
@@ -25,3 +26,4 @@ reviewers:
 - tarilabs
 - tonyxrmdavidson
 - Al-Pragliola
+- pboyd
