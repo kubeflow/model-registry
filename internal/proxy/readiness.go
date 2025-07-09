@@ -12,13 +12,6 @@ import (
 // ReadinessHandler is a readiness probe that requires schema_migrations.dirty to be false before allowing traffic.
 func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// skip embedmd check for mlmd datastore
-		if datastore.Type != "embedmd" {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("ok"))
-			return
-		}
-
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
