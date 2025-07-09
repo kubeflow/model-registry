@@ -32,8 +32,9 @@ func Init(dbType string, dsn string, tlsConfig *tls.TLSConfig) error {
 	switch dbType {
 	case "mysql":
 		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
+		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
 	case "postgres":
-		_connectorInstance = postgres.NewPostgresDBConnector(dsn)
+		_connectorInstance = postgres.NewPostgresDBConnector(dsn, tlsConfig)
 	default:
 		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 	}
@@ -54,4 +55,3 @@ func ClearConnector() {
 
 	_connectorInstance = nil
 }
-
