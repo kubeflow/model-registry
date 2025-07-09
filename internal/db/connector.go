@@ -55,4 +55,4 @@ func ClearConnector() {
 
 	_connectorInstance = nil
 }
-}
+
