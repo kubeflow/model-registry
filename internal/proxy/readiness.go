@@ -14,7 +14,7 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 		// skip embedmd check for mlmd datastore
 		if datastore.Type != "embedmd" {
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("ok"))
+			_, _ = w.Write([]byte("OK"))
 			return
 		}
 
