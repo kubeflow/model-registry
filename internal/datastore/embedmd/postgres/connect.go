@@ -5,20 +5,12 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/golang/glog"
 	_tls "github.com/kubeflow/model-registry/internal/tls"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-)
-
-const (
-	// postgresMaxRetries is the maximum number of attempts to retry PostgreSQL connection.
-	postgresMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 	"gorm.io/gorm/logger"
 )
 
@@ -32,7 +24,6 @@ type PostgresDBConnector struct {
 	TLSConfig *_tls.TLSConfig
 	db        *gorm.DB
 	connectMutex sync.Mutex
-	TLSConfig *_tls.TLSConfig
 }
 
 func NewPostgresDBConnector(
@@ -83,7 +74,6 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
-		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
 	glog.Info("Successfully connected to PostgreSQL database")
 
@@ -91,7 +81,7 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 
 	return db, nil
 }
-}
+
 
 func (c *PostgresDBConnector) DB() *gorm.DB {
 	return c.db
