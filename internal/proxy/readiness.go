@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/db"
 )
@@ -30,35 +29,25 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 			return
 		}
 
-		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn, nil)
+		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn, datastore.EmbedMD.TLSConfig)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("database new connector error: %s", err), http.StatusServiceUnavailable)
 			return
 		}
 
-		db, err := dbConnector.Connect()
+		database, err := dbConnector.Connect()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
 			return
 		}
 
-		sqlDB, err := db.DB()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("database sqlDB connection error: %v", err), http.StatusServiceUnavailable)
-			return
-		}
-		defer func() {
-			if err := sqlDB.Close(); err != nil {
-				glog.Errorf("error closing database: %v", err)
-			}
-		}()
-
 		var result struct {
 			Version int64
 			Dirty   int
 		}
+
 		query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
-		if err := db.Raw(query).Scan(&result).Error; err != nil {
+		if err := database.Raw(query).Scan(&result).Error; err != nil {
 			http.Error(w, fmt.Sprintf("schema_migrations query error: %v", err), http.StatusServiceUnavailable)
 			return
 		}

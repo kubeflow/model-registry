@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/golang/glog"
@@ -16,8 +17,9 @@ const (
 )
 
 type PostgresDBConnector struct {
-	DSN string
-	db  *gorm.DB
+	DSN          string
+	db           *gorm.DB
+	connectMutex sync.Mutex
 }
 
 func NewPostgresDBConnector(dsn string) *PostgresDBConnector {
@@ -27,6 +29,15 @@ func NewPostgresDBConnector(dsn string) *PostgresDBConnector {
 }
 
 func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
+	// Use mutex to ensure only one connection attempt at a time
+	c.connectMutex.Lock()
+	defer c.connectMutex.Unlock()
+
+	// If we already have a working connection, return it
+	if c.db != nil {
+		return c.db, nil
+	}
+
 	var db *gorm.DB
 	var err error
 
