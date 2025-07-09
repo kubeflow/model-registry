@@ -18,42 +18,27 @@ type Connector interface {
 
 var (
 	_connectorInstance Connector
-	connectorOnce      sync.Once
 	connectorMutex     sync.RWMutex
 )
 
-func NewConnector(dbType string, dsn string, tlsConfig *tls.TLSConfig) (Connector, error) {
-	connectorMutex.RLock()
-	if _connectorInstance != nil {
-		connectorMutex.RUnlock()
-		return _connectorInstance, nil
-	}
-	connectorMutex.RUnlock()
+func Init(dbType string, dsn string, tlsConfig *tls.TLSConfig) error {
+	connectorMutex.Lock()
+	defer connectorMutex.Unlock()
 
-	var err error
-	connectorOnce.Do(func() {
-		connectorMutex.Lock()
-		defer connectorMutex.Unlock()
-
-		switch dbType {
-		case "mysql":
-			if tlsConfig != nil {
-				_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
-			} else {
-				_connectorInstance = mysql.NewMySQLDBConnector(dsn, &tls.TLSConfig{})
-			}
-		case "postgres":
-			_connectorInstance = postgres.NewPostgresDBConnector(dsn)
-		default:
-			err = fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
-		}
-	})
-
-	if err != nil {
-		return nil, err
+	if tlsConfig == nil {
+		tlsConfig = &tls.TLSConfig{}
 	}
 
-	return _connectorInstance, nil
+	switch dbType {
+	case "mysql":
+		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
+	case "postgres":
+		_connectorInstance = postgres.NewPostgresDBConnector(dsn)
+	default:
+		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+	}
+
+	return nil
 }
 
 func GetConnector() (Connector, bool) {
@@ -68,5 +53,4 @@ func ClearConnector() {
 	defer connectorMutex.Unlock()
 
 	_connectorInstance = nil
-	connectorOnce = sync.Once{}
 }

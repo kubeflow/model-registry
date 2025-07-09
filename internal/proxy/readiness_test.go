@@ -34,7 +34,12 @@ func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
 	require.NoError(t, err)
 
 	dsn := mysqlContainer.MustConnectionString(ctx)
-	dbConnector := mysql.NewMySQLDBConnector(dsn, nil)
+
+	err = db.Init("mysql", dsn, nil)
+	require.NoError(t, err)
+
+	dbConnector, ok := db.GetConnector()
+	require.True(t, ok)
 
 	db, err := dbConnector.Connect()
 	require.NoError(t, err)
@@ -54,9 +59,6 @@ func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
 }
 
 func TestReadinessHandler_NonEmbedMD(t *testing.T) {
-	// Clear singleton connector to ensure fresh state
-	db.ClearConnector()
-
 	ds := datastore.Datastore{
 		Type: "mlmd",
 	}
@@ -69,13 +71,10 @@ func TestReadinessHandler_NonEmbedMD(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "ok", rr.Body.String())
+	assert.Equal(t, "OK", rr.Body.String())
 }
 
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
-	// Clear singleton connector to ensure fresh state
-	db.ClearConnector()
-
 	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -101,13 +100,10 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "ok", rr.Body.String())
+	assert.Equal(t, "OK", rr.Body.String())
 }
 
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
-	// Clear singleton connector to ensure fresh state
-	db.ClearConnector()
-
 	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -139,9 +135,6 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	maxRetries := 3
 
 	for i := 0; i < maxRetries; i++ {
-		// Clear singleton again to force fresh connection
-		db.ClearConnector()
-
 		rr = httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 		responseBody = rr.Body.String()

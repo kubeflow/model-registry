@@ -29,9 +29,9 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 			return
 		}
 
-		dbConnector, err := db.NewConnector(datastore.EmbedMD.DatabaseType, dsn, datastore.EmbedMD.TLSConfig)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("database new connector error: %s", err), http.StatusServiceUnavailable)
+		dbConnector, ok := db.GetConnector()
+		if !ok {
+			http.Error(w, "database connector not initialized", http.StatusServiceUnavailable)
 			return
 		}
 
@@ -58,6 +58,6 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("OK"))
 	})
 }
