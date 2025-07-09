@@ -7,7 +7,6 @@ import (
 	"math"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
@@ -51,22 +50,15 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 }
 
 func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO: Implement real pagination in here by reusing the nextPageToken
-	// code from https://github.com/kubeflow/model-registry/pull/1205.
-
 	sources := m.sources.All()
 	if len(sources) > math.MaxInt32 {
 		err := errors.New("too many registered models")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
-	var pageSize int32 = 10
-	if strPageSize != "" {
-		pageSize64, err := strconv.ParseInt(strPageSize, 10, 32)
-		if err != nil {
-			return ErrorResponse(http.StatusBadRequest, err), err
-		}
-		pageSize = int32(pageSize64)
+	pagination, err := buildPagination(strPageSize, string(orderBy), string(sortOrder), nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	items := make([]model.CatalogSource, 0, len(sources))
@@ -88,15 +80,14 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	slices.SortStableFunc(items, cmpFunc)
 
 	total := int32(len(items))
-	if total > pageSize {
-		items = items[:pageSize]
-	}
+
+	pagedItems, newNextPageToken := paginateSources(items, pagination)
 
 	res := model.CatalogSourceList{
-		PageSize:      pageSize,
-		Items:         items,
+		PageSize:      pagination.GetPageSize(),
+		Items:         pagedItems,
 		Size:          total,
-		NextPageToken: "",
+		NextPageToken: newNextPageToken,
 	}
 	return Response(http.StatusOK, res), nil
 }
