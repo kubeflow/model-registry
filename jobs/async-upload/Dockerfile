@@ -2,11 +2,13 @@
 #  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
 ###############################################################################
 
-FROM ubi10/python-312-minimal AS base
+FROM python:3.10-slim AS base
 
 # security/env hardening
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=2.1.3 \
+    POETRY_HOME="/opt/poetry" \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on
 
@@ -14,14 +16,26 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN addgroup --system --gid 1000 app \
     && adduser  --system --uid 1000 --ingroup app --home /app app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    curl build-essential libffi-dev libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+
 WORKDIR /app
 
 # Copy Python dependencies first to leverage layer caching
-COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache \
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates \
-    && pip install --no-cache-dir -r requirements.txt \
-    && apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
+COPY ./poetry.lock ./pyproject.toml ./
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cache/pypoetry \
+    poetry config virtualenvs.create false \
+    && poetry install --no-root --no-ansi
+
 
 # Copy application source
 COPY . .

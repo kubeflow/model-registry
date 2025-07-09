@@ -14,12 +14,18 @@ deploy-latest-mr:
 deploy-test-minio:
 	cd ../../ && ./scripts/deploy_minio_on_kind.sh
 	kubectl port-forward -n minio svc/minio 9000:9000 & echo $$! >> .port-forwards.pid
+	kubectl port-forward -n minio svc/minio 9001:9001 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-local-registry
 deploy-local-registry:
 	cd ../../ && ./scripts/deploy_local_kind_registry.sh
 	kubectl port-forward service/distribution-registry-test-service 5001:5001 & echo $$! >> .port-forwards.pid
 
+
+.PHONY: dev-load-image
+dev-load-image:
+	docker buildx build --load -t kubeflow/model-registry-async-job:local .
+	kind load docker-image kubeflow/model-registry-async-job:local
 
 .PHONY: test
 test:
