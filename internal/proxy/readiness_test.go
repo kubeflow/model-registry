@@ -5,11 +5,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -51,6 +54,9 @@ func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
 }
 
 func TestReadinessHandler_NonEmbedMD(t *testing.T) {
+	// Clear singleton connector to ensure fresh state
+	db.ClearConnector()
+
 	ds := datastore.Datastore{
 		Type: "mlmd",
 	}
@@ -67,11 +73,14 @@ func TestReadinessHandler_NonEmbedMD(t *testing.T) {
 }
 
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
-	db, dsn, cleanup := setupTestDB(t)
+	// Clear singleton connector to ensure fresh state
+	db.ClearConnector()
+
+	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	// run migrations to create tables
-	migrator, err := mysql.NewMySQLMigrator(db)
+	migrator, err := mysql.NewMySQLMigrator(testDB)
 	require.NoError(t, err)
 	err = migrator.Migrate()
 	require.NoError(t, err)
@@ -96,17 +105,20 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 }
 
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
-	db, dsn, cleanup := setupTestDB(t)
+	// Clear singleton connector to ensure fresh state
+	db.ClearConnector()
+
+	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	// run migrations to create tables
-	migrator, err := mysql.NewMySQLMigrator(db)
+	migrator, err := mysql.NewMySQLMigrator(testDB)
 	require.NoError(t, err)
 	err = migrator.Migrate()
 	require.NoError(t, err)
 
 	// manually set latest migration to dirty
-	err = db.Exec("UPDATE schema_migrations SET dirty = 1").Error
+	err = testDB.Exec("UPDATE schema_migrations SET dirty = 1").Error
 	require.NoError(t, err)
 
 	ds := datastore.Datastore{
@@ -121,8 +133,34 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	// Retry logic for CI robustness
+	var rr *httptest.ResponseRecorder
+	var responseBody string
+	maxRetries := 3
+
+	for i := 0; i < maxRetries; i++ {
+		// Clear singleton again to force fresh connection
+		db.ClearConnector()
+
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		responseBody = rr.Body.String()
+
+		// If we get the expected dirty state error, test passes
+		if rr.Code == http.StatusServiceUnavailable &&
+			(strings.Contains(responseBody, "database schema is in dirty state") ||
+				strings.Contains(responseBody, "schema_migrations query error")) {
+			break
+		}
+
+		// If it's a connection error and not the last retry, wait and try again
+		if i < maxRetries-1 && strings.Contains(responseBody, "connection refused") {
+			time.Sleep(time.Duration(i+1) * 500 * time.Millisecond) // 500ms, 1s, 1.5s
+			continue
+		}
+
+		break
+	}
 
 	assert.Equal(t, http.StatusServiceUnavailable, rr.Code)
 	assert.Contains(t, rr.Body.String(), "database schema is in dirty state")
