@@ -44,7 +44,7 @@ const initIntercepts = ({
     {
       path: { apiVersion: MODEL_REGISTRY_API_VERSION },
     },
-    [],
+    { items: [] },
   );
 };
 

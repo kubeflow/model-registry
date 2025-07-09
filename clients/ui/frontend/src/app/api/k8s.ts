@@ -92,8 +92,8 @@ export const getRoleBindings =
         opts,
       ),
     ).then((response) => {
-      if (isModArchResponse<RoleBindingKind[]>(response)) {
-        return response.data;
+      if (isModArchResponse<{ items: RoleBindingKind[] }>(response)) {
+        return response.data.items;
       }
       throw new Error('Invalid response format');
     });
