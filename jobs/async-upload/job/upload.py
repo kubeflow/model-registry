@@ -1,10 +1,9 @@
-import json
+from dataclasses import asdict
 import os
 import shutil
 from pathlib import Path
 from typing import Any, Dict
-from model_registry import ModelRegistry
-from model_registry.utils import OCIParams, S3Params
+from model_registry.utils import OCIParams, S3Params, save_to_oci_registry
 
 
 def _prepare_modelcar_structure(config: Dict[str, Any], model_files_path: str) -> str:
@@ -78,9 +77,12 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
         raise ValueError(f"Unsupported destination type: {destination_config['type']}")
 
 
-def perform_upload(client: ModelRegistry, config: Dict[str, Any]):
+def perform_upload(config: Dict[str, Any]) -> str:
     """
     Performs the upload of the model to the destination with KServe Modelcars compatibility
+
+    Returns:
+        The URI of the uploaded model
     """
     model_files_path = config["storage"]["path"]
 
@@ -97,11 +99,14 @@ def perform_upload(client: ModelRegistry, config: Dict[str, Any]):
 
     upload_params = _get_upload_params(config)
 
-    client.upload_artifact_and_register_model(
-        model_files_path=upload_path,
-        name=config["model"]["name"],
-        version=config["model"]["version"],
-        model_format_name=config["model"]["format"],
-        model_format_version=config["model"]["format_version"],
-        upload_params=upload_params,
-    )
+    if isinstance(upload_params, S3Params):
+        raise ValueError("S3 upload destination is not supported")
+    elif isinstance(upload_params, OCIParams):
+        uri = save_to_oci_registry(
+            **asdict(upload_params),
+            model_files_path=upload_path,
+        )
+    else:
+        raise ValueError("Unsupported destination type")
+
+    return uri
