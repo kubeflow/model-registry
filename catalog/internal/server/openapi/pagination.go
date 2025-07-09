@@ -100,8 +100,13 @@ func paginateSources(items []model.CatalogSource, pagination *models.Pagination)
 
 	if startIndex < len(items) {
 		limit := int(pagination.GetPageSize())
-		if startIndex+limit < len(items) {
-			pagedItems = items[startIndex : startIndex+limit]
+		endIndex := startIndex + limit
+		if endIndex > len(items) {
+			endIndex = len(items)
+		}
+		pagedItems = items[startIndex:endIndex]
+
+		if endIndex < len(items) {
 			lastItem := pagedItems[len(pagedItems)-1]
 			var lastItemValue string
 			switch model.OrderByField(strings.ToUpper(pagination.GetOrderBy())) {
@@ -120,8 +125,6 @@ func paginateSources(items []model.CatalogSource, pagination *models.Pagination)
 					ID:    lastItem.Id,
 				})
 			}
-		} else {
-			pagedItems = items[startIndex:]
 		}
 	} else {
 		pagedItems = []model.CatalogSource{}
