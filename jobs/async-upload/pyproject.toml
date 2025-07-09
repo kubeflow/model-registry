@@ -9,7 +9,7 @@ packages = [{include = "job"}]
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 configargparse = ">=1.7.1,<2.0.0"
-model-registry = ">=0.2.19,<0.3.0"
+model-registry = { version = ">=0.2.19,<0.3.0", extras = ["boto3", "olot"] }
 aiohttp = "^3.12.12"
 
 [tool.poetry.group.dev.dependencies]
