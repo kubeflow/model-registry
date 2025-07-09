@@ -44,9 +44,9 @@ def main() -> None:
         # For OCI destinations, it automatically creates the required /models directory structure
         # and prepares the model files in a KServe Modelcars-compatible format
 
-        uri = perform_upload(client, config)
+        uri = perform_upload(config)
 
-        update_model_registration(client, registered_model, uri)
+        update_model_registration(uri, client, registered_model)
 
     except ValueError as e:
         logger.error(f"Configuration error: {str(e)}")
