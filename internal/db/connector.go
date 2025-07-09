@@ -32,7 +32,6 @@ func Init(dbType string, dsn string, tlsConfig *tls.TLSConfig) error {
 	switch dbType {
 	case "mysql":
 		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
-		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
 	case "postgres":
 		_connectorInstance = postgres.NewPostgresDBConnector(dsn, tlsConfig)
 	default:
