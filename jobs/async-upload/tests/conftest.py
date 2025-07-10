@@ -5,7 +5,6 @@ logging.basicConfig(level=logging.INFO)
 
 def pytest_collection_modifyitems(config, items):
     for item in items: 
-        print([k for k in item.keywords])
         skip_e2e = pytest.mark.skip(
             reason="this is an end-to-end test, requires explicit opt-in --e2e option to run."
         )
@@ -15,9 +14,7 @@ def pytest_collection_modifyitems(config, items):
         if "e2e" in item.keywords:
             if not config.getoption("--e2e"):
                 item.add_marker(skip_e2e)
-        # here you can continue and elif if you need future options
-
-        if config.getoption("--e2e"):
+        elif config.getoption("--e2e"):
             item.add_marker(skip_not_e2e)
 
 
