@@ -19,9 +19,10 @@ on:
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  MODEL_REGISTRY_IMG: model-registry/job/async-upload
+  IMG_NAME: model-registry/job/async-upload
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
+
 jobs:
   py-test:
     runs-on: ubuntu-latest
