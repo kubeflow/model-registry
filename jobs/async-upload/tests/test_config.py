@@ -69,7 +69,7 @@ def model_env_vars():
         "model_name": "my-model",
         "model_version": "1.0.0",
         "model_format": "onnx",
-        "registry_url": "https://registry.example.com",
+        "registry_server_address": "https://registry.example.com",
     }
 
     for key, value in vars.items():
@@ -126,6 +126,8 @@ def test_s3_file_to_oci_env_config(
             "s3",
             "--source-s3-credentials-path",
             str(folder_location),
+            "--registry-server-address",
+            "https://registry.example.com",
         ]
     )
 
@@ -185,7 +187,7 @@ def test_env_based_s3_to_oci_config(
     assert config["model"]["name"] == model_env_vars["model_name"]
     assert config["model"]["version"] == model_env_vars["model_version"]
     assert config["model"]["format"] == model_env_vars["model_format"]
-    assert config["registry"]["url"] == model_env_vars["registry_url"]
+    assert config["registry"]["server_address"] == model_env_vars["registry_server_address"]
 
 
 def test_params_based_config():
@@ -212,7 +214,7 @@ def test_params_based_config():
             "1.0.0",
             "--model-format",
             "onnx",
-            "--registry-url",
+            "--registry-server-address",
             "https://registry.example.com",
         ]
     )
@@ -257,7 +259,7 @@ def test_params_will_override_env_config(
             "1.0.0",
             "--model-format",
             "onnx",
-            "--registry-url",
+            "--registry-server-address",
             "https://registry.example.com",
         ]
     )

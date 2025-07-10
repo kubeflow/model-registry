@@ -8,7 +8,7 @@ deploy-latest-mr:
 
 .PHONY: test
 test:
-	poetry run pytest -s -rA
+	poetry run pytest -s -x -rA
 
 test-with-cov:
 	poetry run pytest --cov=job --cov-report=term-missing tests/
@@ -34,3 +34,7 @@ test-e2e-cleanup:
 		kill $$(cat .port-forwards.pid) || true; \
 		rm -f .port-forwards.pid; \
 	fi
+
+.PHONY: install
+install:
+	poetry install
