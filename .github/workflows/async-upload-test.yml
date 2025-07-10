@@ -1,0 +1,45 @@
+name: Test async-upload Job
+on:
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - "LICENSE*"
+      - "**.gitignore"
+      - "**.md"
+      - "**.txt"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
+      - "docs/**"
+  pull_request:
+    paths:
+      - "jobs/async-upload/**"
+      - ".github/workflows/**"
+
+env:
+  IMG_REGISTRY: ghcr.io
+  IMG_ORG: kubeflow
+  MODEL_REGISTRY_IMG: model-registry/job/async-upload
+  PUSH_IMAGE: false
+  BRANCH: ${{ github.base_ref }}
+jobs:
+  py-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jobs/async-upload
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12" # refers to the Container image
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+      - name: Install dependencies
+        run: |
+          make install
+      - name: Run tests
+        run: |
+          make test
