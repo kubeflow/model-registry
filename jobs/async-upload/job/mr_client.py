@@ -36,7 +36,7 @@ async def set_artifact_pending(
     if artifact is None:
         raise ValueError(f"Artifact {config['model']['artifact_id']} not found")
     
-    artifact.update(state=ArtifactState.PENDING)
+    artifact.state = ArtifactState.PENDING
     await client._api.upsert_model_artifact(artifact)
 
 
