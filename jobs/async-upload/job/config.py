@@ -45,11 +45,10 @@ def _parser() -> cap.ArgumentParser:
     p.add("--destination-oci-username")
     p.add("--destination-oci-password")
 
-    # --- model-registry model data --- TODO: use IDs https://github.com/kubeflow/model-registry/issues/1108#issuecomment-2880448765
-    p.add("--model-name")
-    p.add("--model-version")
-    p.add("--model-format")
-    p.add("--model-format-version")
+    # --- model-registry model data ---
+    p.add("--model-id")
+    p.add("--model-version-name")
+    p.add("--model-artifact-id")
 
     # --- model-storage configuration ---
     p.add("--storage-path", default="/tmp/model-sync")
@@ -180,10 +179,8 @@ def _validate_s3_config(cfg: Dict[str, Any]) -> None:
 
 def _validate_model_config(cfg: Dict[str, Any]) -> None:
     """Validates the model config is valid"""
-    if cfg["name"] is None or cfg["version"] is None or cfg["format"] is None:
-        raise ValueError("Model must be set")
-    if cfg["format_version"] is None:
-        raise ValueError("Model format version must be set")
+    if cfg["id"] is None or cfg["version_name"] is None or cfg["artifact_id"] is None:
+        raise ValueError("Model ID, version name and artifact ID must be set")
 
 
 def _validate_registry_config(cfg: Dict[str, Any]) -> None:
@@ -265,11 +262,9 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             },
         },
         "model": {
-            "name": args.model_name,
-            "version": args.model_version,
-            "format": args.model_format,
-            "format_version": args.model_format_version,
-            # TODO: Add the rest of the needed values
+            "id": args.model_id,
+            "version_name": args.model_version_name,
+            "artifact_id": args.model_artifact_id,
         },
         "storage": {
             "path": args.storage_path,

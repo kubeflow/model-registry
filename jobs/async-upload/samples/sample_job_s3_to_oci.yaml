@@ -32,14 +32,12 @@ spec:
               value: "oci://localhost:5000/my-model"
 
             # ---- Model Params ----
-            - name: MODEL_SYNC_MODEL_NAME
-              value: "my-model"
-            - name: MODEL_SYNC_MODEL_VERSION
-              value: "1.0.0"
-            - name: MODEL_SYNC_MODEL_FORMAT
-              value: "onnx"
-            - name: MODEL_SYNC_MODEL_FORMAT_VERSION
-              value: "1"
+            - name: MODEL_SYNC_MODEL_ID
+              value: "0987654321"
+            - name: MODEL_SYNC_MODEL_VERSION_NAME
+              value: "some-version"
+            - name: MODEL_SYNC_MODEL_ARTIFACT_ID
+              value: "1234567890"
 
             # ---- Model Registry Client Params ----
             - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS

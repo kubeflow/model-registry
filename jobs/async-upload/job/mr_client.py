@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from model_registry import ModelRegistry
-from model_registry.types import RegisteredModel
+from mr_openapi import ArtifactState
 
 
 def validate_and_get_model_registry_client(config: Dict[str, Any]) -> ModelRegistry:
@@ -11,26 +11,33 @@ def validate_and_get_model_registry_client(config: Dict[str, Any]) -> ModelRegis
     return ModelRegistry(**config["registry"])
 
 
-def perform_model_registration(
+def set_artifact_pending(
     client: ModelRegistry, config: Dict[str, Any]
-) -> RegisteredModel:
+) -> None:
     """
-    Performs the model registration.
+    Sets the model artifact to pending.
     """
-    return client.register_model(
-        config["model"]["name"],
-        # URI will be populated after the upload completes
-        "",
-        model_format_name=config["model"]["model_format_name"],
-        model_format_version=config["model"]["model_format_version"],
-        version=config["model"]["version"],
-        storage_key=config["model"]["storage_key"],
-        storage_path=config["model"]["storage_path"],
+    artifact = client.get_model_artifact(
+        config["model"]["name"], config["model"]["version_name"]
     )
 
+    if artifact is None:
+        raise ValueError(f"Artifact {config['model']['name']}/{config['model']['version_name']} not found")
+    
+    artifact.update(state=ArtifactState.PENDING)
+    client.update(artifact)
 
-def update_model_registration(
-    uri: str, client: ModelRegistry, registered_model: RegisteredModel
+
+
+def update_model_artifact_uri(
+    uri: str, client: ModelRegistry, config: Dict[str, Any]
 ) -> None:
-    updated_model = registered_model.update(uri=uri)
-    client.update(updated_model)
+    artifact = client.get_model_artifact(
+        config["model"]["name"], config["model"]["version_name"]
+    )
+    if artifact is None:
+        raise ValueError(f"Artifact {config['model']['name']}/{config['model']['version_name']} not found, was it deleted since starting this job?")
+    
+    # Set the state of the artifact to LIVE and set the URI
+    artifact.update(state=ArtifactState.LIVE, uri=uri)
+    client.update(artifact)
