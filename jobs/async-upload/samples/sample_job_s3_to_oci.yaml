@@ -35,11 +35,11 @@ spec:
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID
-              value: "0987654321"
+              value: "1"
             - name: MODEL_SYNC_MODEL_VERSION_ID
-              value: "some-version"
+              value: "3"
             - name: MODEL_SYNC_MODEL_ARTIFACT_ID
-              value: "1234567890"
+              value: "4"
 
             # ---- Model Registry Client Params ----
             - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
