@@ -7,9 +7,9 @@ import (
 	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/db/types"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/tls"
-	"github.com/kubeflow/model-registry/internal/db/types"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
@@ -33,9 +33,14 @@ type EmbedMDService struct {
 }
 
 func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
-	dbConnector, err := db.NewConnector(cfg.DatabaseType, cfg.DatabaseDSN, cfg.TLSConfig)
+	err := db.Init(cfg.DatabaseType, cfg.DatabaseDSN, cfg.TLSConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize database connector: %w", err)
+	}
+
+	dbConnector, ok := db.GetConnector()
+	if !ok {
+		return nil, fmt.Errorf("database connector not initialized")
 	}
 
 	return &EmbedMDService{
