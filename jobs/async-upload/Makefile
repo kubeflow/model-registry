@@ -1,8 +1,13 @@
 IMG_VERSION ?= latest
+BUILD_IMAGE ?= true
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
-	cd ../../ && IMG_VERSION=${IMG_VERSION} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)"  && LOCAL=1 ./scripts/deploy_on_kind.sh
+	cd ../../ && \
+	$(if $(filter true,$(BUILD_IMAGE)),\
+		IMG_VERSION=${IMG_VERSION} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
+	) \
+	LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
 
@@ -25,7 +30,7 @@ test-e2e-run:
 	@echo "Ensuring all extras are installed..."
 	poetry install --all-extras
 	@echo "Running tests..."
-	poetry run pytest -m e2e -s -rA
+	poetry run pytest --e2e -s -x -rA
 
 .PHONY: test-e2e-cleanup
 test-e2e-cleanup:
