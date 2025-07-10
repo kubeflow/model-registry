@@ -47,7 +47,7 @@ def _parser() -> cap.ArgumentParser:
 
     # --- model-registry model data ---
     p.add("--model-id")
-    p.add("--model-version-name")
+    p.add("--model-version-id")
     p.add("--model-artifact-id")
 
     # --- model-storage configuration ---
@@ -179,8 +179,8 @@ def _validate_s3_config(cfg: Dict[str, Any]) -> None:
 
 def _validate_model_config(cfg: Dict[str, Any]) -> None:
     """Validates the model config is valid"""
-    if cfg["id"] is None or cfg["version_name"] is None or cfg["artifact_id"] is None:
-        raise ValueError("Model ID, version name and artifact ID must be set")
+    if cfg["id"] is None or cfg["version_id"] is None or cfg["artifact_id"] is None:
+        raise ValueError("Model ID, version ID and artifact ID must be set")
 
 
 def _validate_registry_config(cfg: Dict[str, Any]) -> None:
@@ -263,7 +263,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
         },
         "model": {
             "id": args.model_id,
-            "version_name": args.model_version_name,
+            "version_id": args.model_version_id,
             "artifact_id": args.model_artifact_id,
         },
         "storage": {

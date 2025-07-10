@@ -11,6 +11,8 @@ spec:
         - name: async-upload
           image: kubeflow/model-registry-async-job:local
           env:
+            - name: LOGLEVEL
+              value: "DEBUG"
             # ---- Source ----------
             - name: MODEL_SYNC_SOURCE_TYPE
               value: "s3"
@@ -34,7 +36,7 @@ spec:
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID
               value: "0987654321"
-            - name: MODEL_SYNC_MODEL_VERSION_NAME
+            - name: MODEL_SYNC_MODEL_VERSION_ID
               value: "some-version"
             - name: MODEL_SYNC_MODEL_ARTIFACT_ID
               value: "1234567890"

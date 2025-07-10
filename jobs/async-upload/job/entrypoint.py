@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from job.upload import perform_upload
@@ -16,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
+async def main() -> None:
     """
     Main entrypoint for the async upload job.
     Validates source and destination credentials before proceeding.
@@ -34,11 +35,12 @@ def main() -> None:
             f"Destination: {config['destination']['type'].upper()} storage at {config['destination'].get('endpoint') or 'default endpoint'}"
         )
 
+        # Queue up model registration
+        await set_artifact_pending(client, config)
+
         # Download the model from the defined source
         perform_download(client, config)
 
-        # Queue up model registration
-        set_artifact_pending(client, config)
 
         # Upload the model to the destination
         uri = perform_upload(config)
@@ -54,4 +56,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    asyncio.run(main())
