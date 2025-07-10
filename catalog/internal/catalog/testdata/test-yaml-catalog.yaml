@@ -324,8 +324,7 @@ models:
     createTimeSinceEpoch: "1733514949000"
     lastUpdateTimeSinceEpoch: "1734637721000"
     artifacts:
-      - protocol: oci
-        uri: oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892
+      - uri: oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892
   - name: rhelai1/granite-8b-code-instruct
     provider: IBM
     description: |-
@@ -668,5 +667,27 @@ models:
     createTimeSinceEpoch: "1733514949000"
     lastUpdateTimeSinceEpoch: "1734637721000"
     artifacts:
-      - protocol: oci
-        uri: oci://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.3-1732870892
+      - uri: oci://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.3-1732870892
+        createTimeSinceEpoch: "1733514949000"
+        lastUpdateTimeSinceEpoch: "1734637721000"
+        customProperties:
+          foo:
+            string_value: bar
+          baz:
+            string_value: qux
+  - name: model-with-no-artifacts
+    provider: Test
+    description: A model used for testing the GetArtifacts method when no artifacts are present.
+    readme: |
+      # Model with No Artifacts
+      This is a test model.
+    language: ["en"]
+    license: apache-2.0
+    licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+    maturity: Development
+    libraryName: testlib
+    tasks:
+      - test-task
+    createTimeSinceEpoch: "1700000000000"
+    lastUpdateTimeSinceEpoch: "1700000000000"
+    artifacts: []

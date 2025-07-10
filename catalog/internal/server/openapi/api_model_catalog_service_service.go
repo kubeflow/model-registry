@@ -20,8 +20,19 @@ type ModelCatalogServiceAPIService struct {
 	sources *catalog.SourceCollection
 }
 
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(context.Context, string, string) (ImplResponse, error) {
-	return Response(http.StatusNotImplemented, "Not implemented"), nil
+// GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
+	source, ok := m.sources.Get(sourceID)
+	if !ok {
+		return notFound("Unknown source"), nil
+	}
+
+	artifacts, err := source.Provider.GetArtifacts(ctx, name)
+	if err != nil {
+		return Response(http.StatusInternalServerError, err), err
+	}
+
+	return Response(http.StatusOK, artifacts), nil
 }
 
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, source string, q string, pageSize string, orderBy model.OrderByField, sortOder model.SortOrder, nextPageToken string) (ImplResponse, error) {

@@ -41,6 +41,7 @@ type CatalogSourceProvider interface {
 	// error.
 	GetModel(ctx context.Context, name string) (*model.CatalogModel, error)
 	ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error)
+	GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error)
 }
 
 // CatalogSourceConfig is a single entry from the catalog sources YAML file.
