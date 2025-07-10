@@ -18,7 +18,7 @@ RUN addgroup --system --gid 1000 app \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    curl build-essential libffi-dev libssl-dev \
+    curl build-essential libffi-dev libssl-dev skopeo \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
