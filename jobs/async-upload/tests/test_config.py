@@ -67,9 +67,9 @@ def model_env_vars():
     original_env = dict(os.environ)
 
     vars = {
-        "model_name": "my-model",
-        "model_version": "1.0.0",
-        "model_format": "onnx",
+        "model_id": "1234",
+        "model_version_id": "0987",
+        "model_artifact_id": "5678",
         "registry_server_address": "https://registry.example.com",
     }
 
@@ -188,9 +188,9 @@ def test_env_based_s3_to_oci_config(
         == destination_oci_env_vars["oci_password"]
     )
 
-    assert config["model"]["name"] == model_env_vars["model_name"]
-    assert config["model"]["version"] == model_env_vars["model_version"]
-    assert config["model"]["format"] == model_env_vars["model_format"]
+    assert config["model"]["id"] == model_env_vars["model_id"]
+    assert config["model"]["version_id"] == model_env_vars["model_version_id"]
+    assert config["model"]["artifact_id"] == model_env_vars["model_artifact_id"]
     assert config["registry"]["server_address"] == model_env_vars["registry_server_address"]
 
 
@@ -214,12 +214,12 @@ def test_params_based_config():
             "destination_key_params",
             "--destination-aws-secret-access-key",
             "destination_secret_params",
-            "--model-name",
-            "my-model",
-            "--model-version",
-            "1.0.0",
-            "--model-format",
-            "onnx",
+            "--model-id",
+            "1234",
+            "--model-version-id",
+            "0987",
+            "--model-artifact-id",
+            "5678",
             "--registry-server-address",
             "https://registry.example.com",
         ]
@@ -259,12 +259,12 @@ def test_params_will_override_env_config(
             override_vars["aws_access_key_id"],
             "--source-aws-secret-access-key",
             override_vars["aws_secret_access_key"],
-            "--model-name",
-            "my-model",
-            "--model-version",
-            "1.0.0",
-            "--model-format",
-            "onnx",
+            "--model-id",
+            "1234",
+            "--model-version-id",
+            "0987",
+            "--model-artifact-id",
+            "5678",
             "--registry-server-address",
             "https://registry.example.com",
         ]

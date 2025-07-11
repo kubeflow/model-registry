@@ -25,9 +25,9 @@ def minimal_env_source_dest_vars():
         os.environ[f"MODEL_SYNC_SOURCE_{key.upper()}"] = value
 
     vars = {
-        "model_name": "my-model",
-        "model_version": "1.0.0",
-        "model_format": "onnx",
+        "model_id": "abc",
+        "model_version_id": "def",
+        "model_artifact_id": "123",
         "registry_server_address": "http://localhost",
         "registry_port": "8080",
         "registry_author": "author",
