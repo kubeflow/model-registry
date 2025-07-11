@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 from job.download import download_from_s3
 from job.config import get_config
 from job.mr_client import validate_and_get_model_registry_client
@@ -36,9 +36,9 @@ def minimal_env_source_dest_vars():
 
     # Model and registry variables
     model_vars = {
-        "model_name": "my-model",
-        "model_version": "1.0.0",
-        "model_format": "onnx",
+        "model_id": "abc",
+        "model_version_id": "def",
+        "model_artifact_id": "123",
         "registry_server_address": "http://localhost",
         "registry_port": "8080",
         "registry_author": "author",
@@ -56,49 +56,91 @@ def minimal_env_source_dest_vars():
 
 
 def test_download_from_s3(minimal_env_source_dest_vars):
-    """Test download_from_s3 function with proper configuration"""
+    """Test download_from_s3 now that it pages through prefixes."""
 
-    # Get configuration from environment variables
+    # load config from your fixture
     config = get_config([])
 
-    # Verify the configuration is set up correctly
+    # sanity-check config
     assert config["source"]["type"] == "s3"
     assert config["source"]["s3"]["bucket"] == "test-bucket"
     assert config["source"]["s3"]["key"] == "test-key"
-    assert config["source"]["s3"]["access_key_id"] == "test-access-key-id"
-    assert config["source"]["s3"]["secret_access_key"] == "test-secret-access-key"
-    assert config["source"]["s3"]["endpoint"] == "http://localhost:9000"
-    assert config["storage"]["path"] == "/tmp/model-sync"
 
-    # Create mock ModelRegistry client
+    # use whatever path came back in config
+    storage_path = config["storage"]["path"]
+    assert storage_path == "/tmp/model-sync"
+
+    # mock out ModelRegistry so validate_and_get_model_registry_client returns a dummy client
     with patch("job.mr_client.ModelRegistry") as mock_registry_class:
-        mock_client = Mock()
-        mock_registry_class.return_value = mock_client
+        mock_registry_class.return_value = Mock()
         client = validate_and_get_model_registry_client(config)
 
-        # Mock the S3 client and _connect_to_s3 function
-        with patch("job.download._connect_to_s3") as mock_connect:
-            mock_s3_client = Mock()
-            mock_transfer_config = Mock()
-            mock_connect.return_value = (mock_s3_client, mock_transfer_config)
+    # now patch _connect_to_s3 and os.makedirs
+    with patch("job.download._connect_to_s3") as mock_connect, \
+         patch("os.makedirs") as mock_makedirs:
 
-            # Call the function under test
-            download_from_s3(client, config)
+        # prepare our fake s3 client + transfer config
+        mock_s3 = Mock()
+        mock_transfer_cfg = Mock()
+        mock_connect.return_value = (mock_s3, mock_transfer_cfg)
 
-            # Verify _connect_to_s3 was called with correct parameters
-            mock_connect.assert_called_once_with(
-                endpoint_url="http://localhost:9000",
-                access_key_id="test-access-key-id",
-                secret_access_key="test-secret-access-key",
-                region=None,  # Not set in the test fixture
-            )
+        # set up a paginator that yields a single page with two entries
+        fake_page = {
+            "Contents": [
+                {"Key": "test-key/file1.txt"},
+                {"Key": "test-key/dir/"},                # should be skipped
+                {"Key": "test-key/dir/file2.bin"},
+            ]
+        }
+        mock_paginator = Mock()
+        mock_paginator.paginate.return_value = [fake_page]
+        mock_s3.get_paginator.return_value = mock_paginator
 
-            # Verify download_file was called with correct parameters
-            mock_s3_client.download_file.assert_called_once_with(
-                "test-bucket",  # bucket
-                "test-key",  # key
-                "/tmp/model-sync",  # local path
-            )
+        # call under test
+        download_from_s3(client, config)
+
+        # ensure _connect_to_s3 got all args including multipart settings
+        mock_connect.assert_called_once_with(
+            "http://localhost:9000",
+            "test-access-key-id",
+            "test-secret-access-key",
+            None,  # region
+            multipart_threshold=1024 * 1024,
+            multipart_chunksize=1024 * 1024,
+            max_pool_connections=10,
+        )
+
+        # ensure we asked for the right paginator and paginated correctly
+        mock_s3.get_paginator.assert_called_once_with("list_objects_v2")
+        mock_paginator.paginate.assert_called_once_with(
+            Bucket="test-bucket",
+            Prefix="test-key",
+        )
+
+        # build expected download calls using the real storage_path
+        expected = [
+            call(
+                "test-bucket",
+                "test-key/file1.txt",
+                os.path.join(storage_path, "file1.txt"),
+            ),
+            call(
+                "test-bucket",
+                "test-key/dir/file2.bin",
+                os.path.join(storage_path, "dir", "file2.bin"),
+            ),
+        ]
+        mock_s3.download_file.assert_has_calls(expected, any_order=False)
+
+        # directories should be created for each file
+        mock_makedirs.assert_any_call(
+            os.path.dirname(os.path.join(storage_path, "file1.txt")),
+            exist_ok=True
+        )
+        mock_makedirs.assert_any_call(
+            os.path.dirname(os.path.join(storage_path, "dir", "file2.bin")),
+            exist_ok=True
+        )
 
 
 def test_download_from_s3_with_region(minimal_env_source_dest_vars):
@@ -115,22 +157,38 @@ def test_download_from_s3_with_region(minimal_env_source_dest_vars):
         mock_registry_class.return_value = mock_client
         client = validate_and_get_model_registry_client(config)
 
-        # Mock the S3 client and _connect_to_s3 function
-        with patch("job.download._connect_to_s3") as mock_connect:
-            mock_s3_client = Mock()
-            mock_transfer_config = Mock()
-            mock_connect.return_value = (mock_s3_client, mock_transfer_config)
+    # Mock the S3 client and _connect_to_s3 function
+    with patch("job.download._connect_to_s3") as mock_connect, \
+         patch("os.makedirs"):  # silence dir creation
+        mock_s3_client = Mock()
+        mock_transfer_config = Mock()
+        mock_connect.return_value = (mock_s3_client, mock_transfer_config)
 
-            # Call the function under test
-            download_from_s3(client, config)
+        # set up a paginator that yields a single page with two entries
+        fake_page = {
+            "Contents": [
+                {"Key": "test-key/file1.txt"},
+                {"Key": "test-key/dir/"},                # should be skipped
+                {"Key": "test-key/dir/file2.bin"},
+            ]
+        }
+        mock_paginator = Mock()
+        mock_paginator.paginate.return_value = [fake_page]
+        mock_s3_client.get_paginator.return_value = mock_paginator
 
-            # Verify _connect_to_s3 was called with correct parameters including region
-            mock_connect.assert_called_once_with(
-                endpoint_url="http://localhost:9000",
-                access_key_id="test-access-key-id",
-                secret_access_key="test-secret-access-key",
-                region="us-west-2",
-            )
+        # Call the function under test
+        download_from_s3(client, config)
+
+        # Verify _connect_to_s3 was called with correct parameters including region
+        mock_connect.assert_called_once_with(
+            "http://localhost:9000",
+            "test-access-key-id",
+            "test-secret-access-key",
+            "us-west-2",
+            multipart_threshold=1024 * 1024,
+            multipart_chunksize=1024 * 1024,
+            max_pool_connections=10,
+        )
 
 
 def test_download_from_s3_connection_error(minimal_env_source_dest_vars):
@@ -164,15 +222,26 @@ def test_download_from_s3_download_error(minimal_env_source_dest_vars):
         mock_registry_class.return_value = mock_client
         client = validate_and_get_model_registry_client(config)
 
-        # Mock the S3 client and _connect_to_s3 function
-        with patch("job.download._connect_to_s3") as mock_connect:
-            mock_s3_client = Mock()
-            mock_transfer_config = Mock()
-            mock_connect.return_value = (mock_s3_client, mock_transfer_config)
+    # Mock the S3 client, paginator, and _connect_to_s3 function
+    with patch("job.download._connect_to_s3") as mock_connect, \
+         patch("os.makedirs"):  # silence dir creation
+        mock_s3_client = Mock()
+        mock_transfer_config = Mock()
+        mock_connect.return_value = (mock_s3_client, mock_transfer_config)
 
-            # Mock download_file to raise an exception
-            mock_s3_client.download_file.side_effect = Exception("Download failed")
+        # Stub out pagination so we get one file to download
+        fake_page = {
+            "Contents": [
+                {"Key": "test-key/failing-file.txt"},
+            ]
+        }
+        mock_paginator = Mock()
+        mock_paginator.paginate.return_value = [fake_page]
+        mock_s3_client.get_paginator.return_value = mock_paginator
 
-            # Test that the exception is propagated
-            with pytest.raises(Exception, match="Download failed"):
-                download_from_s3(client, config)
+        # Have download_file raise
+        mock_s3_client.download_file.side_effect = Exception("Download failed")
+
+        # Now the loop will hit download_file and propagate our exception
+        with pytest.raises(Exception, match="Download failed"):
+            download_from_s3(client, config)

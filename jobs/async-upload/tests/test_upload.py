@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import pytest
 from unittest.mock import Mock, patch
 from model_registry.utils import S3Params, OCIParams
@@ -43,14 +44,14 @@ class TestGetUploadParams:
                     "password": "test-password",
                 },
             },
-            "model": {"name": "test-model"},
+            "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
             "storage": {"path": "/tmp/test-model"},
         }
 
         result = _get_upload_params(config)
 
         assert isinstance(result, OCIParams)
-        assert result.base_image == "test-model"
+        assert result.base_image == "123"
         assert result.oci_ref == "quay.io/example/test:latest"
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username == "test-user"
@@ -100,14 +101,14 @@ class TestGetUploadParams:
                     "password": None,
                 },
             },
-            "model": {"name": "test-model"},
+            "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
             "storage": {"path": "/tmp/test-model"},
         }
 
         result = _get_upload_params(config)
 
         assert isinstance(result, OCIParams)
-        assert result.base_image == "test-model"
+        assert result.base_image == "123"
         assert result.oci_ref == "quay.io/example/test:latest"
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username is None
@@ -117,208 +118,30 @@ class TestGetUploadParams:
 class TestPerformUpload:
     """Test cases for perform_upload function"""
 
-    @patch("job.upload._get_upload_params")
-    def test_perform_upload_s3_calls_client_with_correct_params(
-        self, mock_get_upload_params
+    @patch("job.upload.save_to_oci_registry")
+    def test_perform_upload_oci(
+        self, mock_save_to_oci_registry
     ):
-        """Test perform_upload calls client.upload_artifact_and_register_model with correct parameters for S3"""
-        # Setup
-        mock_client = Mock()
-        mock_upload_params = Mock()
-        mock_get_upload_params.return_value = mock_upload_params
+        """Test perform_upload with OCI destination"""
+
+        mock_save_to_oci_registry.return_value = 'quay.io/example/oci/abc:def'
 
         config = {
-            "destination": {"type": "s3"},
+            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass"}},
             "storage": {"path": "/tmp/test-model"},
             "model": {
-                "name": "test-model",
-                "version": "1.0.0",
-                "format": "onnx",
+                "id": "abc",
+                "version_id": "def",
+                "artifact_id": "123",
                 "format_version": "1.16",
             },
         }
 
-        # Execute
-        perform_upload(mock_client, config)
+        # Act
+        result_uri = perform_upload(config)
 
-        # Verify _get_upload_params was called with config
-        mock_get_upload_params.assert_called_once_with(config)
-
-        # Verify client method was called with correct parameters
-        mock_client.upload_artifact_and_register_model.assert_called_once_with(
-            model_files_path="/tmp/test-model",
-            name="test-model",
-            version="1.0.0",
-            model_format_name="onnx",
-            model_format_version="1.16",
-            upload_params=mock_upload_params,
-        )
-
-    @patch("job.upload._get_upload_params")
-    @patch("job.upload._prepare_modelcar_structure")
-    @patch("os.path.exists")
-    def test_perform_upload_oci_with_modelcar_preparation(
-        self, mock_exists, mock_prepare_modelcar, mock_get_upload_params
-    ):
-        """Test perform_upload with OCI destination prepares modelcar structure"""
-        # Setup
-        mock_client = Mock()
-        mock_upload_params = Mock()
-        mock_get_upload_params.return_value = mock_upload_params
-        mock_exists.return_value = True
-        mock_prepare_modelcar.return_value = "/tmp/modelcar"
-
-        config = {
-            "destination": {"type": "oci"},
-            "storage": {"path": "/tmp/test-model"},
-            "model": {
-                "name": "test-model",
-                "version": "1.0.0",
-                "format": "onnx",
-                "format_version": "1.16",
-            },
-        }
-
-        # Execute
-        perform_upload(mock_client, config)
-
-        # Verify modelcar preparation was called
-        mock_prepare_modelcar.assert_called_once_with(config, "/tmp/test-model")
-        mock_exists.assert_called_once_with("/tmp/test-model")
-
-        # Verify client method was called with modelcar path
-        mock_client.upload_artifact_and_register_model.assert_called_once_with(
-            model_files_path="/tmp/modelcar",
-            name="test-model",
-            version="1.0.0",
-            model_format_name="onnx",
-            model_format_version="1.16",
-            upload_params=mock_upload_params,
-        )
-
-    @patch("job.upload._get_upload_params")
-    @patch("job.upload._prepare_modelcar_structure")
-    @patch("os.path.exists")
-    def test_perform_upload_oci_without_existing_files(
-        self, mock_exists, mock_prepare_modelcar, mock_get_upload_params
-    ):
-        """Test perform_upload with OCI destination when model files don't exist"""
-        # Setup
-        mock_client = Mock()
-        mock_upload_params = Mock()
-        mock_get_upload_params.return_value = mock_upload_params
-        mock_exists.return_value = False
-
-        config = {
-            "destination": {"type": "oci"},
-            "storage": {"path": "/tmp/test-model"},
-            "model": {
-                "name": "test-model",
-                "version": "1.0.0",
-                "format": "onnx",
-                "format_version": "1.16",
-            },
-        }
-
-        # Execute
-        perform_upload(mock_client, config)
-
-        # Verify modelcar preparation was NOT called
-        mock_prepare_modelcar.assert_not_called()
-        mock_exists.assert_called_once_with("/tmp/test-model")
-
-        # Verify client method was called with original path
-        mock_client.upload_artifact_and_register_model.assert_called_once_with(
-            model_files_path="/tmp/test-model",
-            name="test-model",
-            version="1.0.0",
-            model_format_name="onnx",
-            model_format_version="1.16",
-            upload_params=mock_upload_params,
-        )
-
-    @patch("job.upload._get_upload_params")
-    def test_perform_upload_with_s3_params(self, mock_get_upload_params):
-        """Test perform_upload integration with S3 parameters"""
-        # Setup
-        mock_client = Mock()
-        s3_params = S3Params(
-            bucket_name="test-bucket",
-            s3_prefix="test-key",
-            endpoint_url="https://s3.amazonaws.com",
-            access_key_id="test-access-key",
-            secret_access_key="test-secret-key",
-            region="us-east-1",
-        )
-        mock_get_upload_params.return_value = s3_params
-
-        config = {
-            "destination": {"type": "s3"},
-            "storage": {"path": "/tmp/test-model"},
-            "model": {
-                "name": "test-model",
-                "version": "2.0.0",
-                "format": "pytorch",
-                "format_version": "1.12",
-            },
-        }
-
-        # Execute
-        perform_upload(mock_client, config)
-
-        # Verify
-        mock_client.upload_artifact_and_register_model.assert_called_once_with(
-            model_files_path="/tmp/test-model",
-            name="test-model",
-            version="2.0.0",
-            model_format_name="pytorch",
-            model_format_version="1.12",
-            upload_params=s3_params,
-        )
-
-    @patch("job.upload._get_upload_params")
-    @patch("job.upload._prepare_modelcar_structure")
-    @patch("os.path.exists")
-    def test_perform_upload_with_oci_params(
-        self, mock_exists, mock_prepare_modelcar, mock_get_upload_params
-    ):
-        """Test perform_upload integration with OCI parameters"""
-        # Setup
-        mock_client = Mock()
-        oci_params = OCIParams(
-            base_image="test-model",
-            oci_ref="quay.io/example/test:latest",
-            dest_dir="/tmp/test-model",
-            oci_username="test-user",
-            oci_password="test-password",
-        )
-        mock_get_upload_params.return_value = oci_params
-        mock_exists.return_value = True
-        mock_prepare_modelcar.return_value = "/tmp/modelcar"
-
-        config = {
-            "destination": {"type": "oci"},
-            "storage": {"path": "/tmp/test-model"},
-            "model": {
-                "name": "test-model",
-                "version": "3.0.0",
-                "format": "tensorflow",
-                "format_version": "2.8",
-            },
-        }
-
-        # Execute
-        perform_upload(mock_client, config)
-
-        # Verify
-        mock_client.upload_artifact_and_register_model.assert_called_once_with(
-            model_files_path="/tmp/modelcar",
-            name="test-model",
-            version="3.0.0",
-            model_format_name="tensorflow",
-            model_format_version="2.8",
-            upload_params=oci_params,
-        )
+        # - And the returned URI is forwarded
+        assert result_uri == "quay.io/example/oci/abc:def"
 
     @patch("job.upload._get_upload_params")
     def test_perform_upload_propagates_exceptions_from_get_upload_params(
@@ -342,70 +165,35 @@ class TestPerformUpload:
 
         # Execute and verify exception is propagated
         with pytest.raises(ValueError, match="Invalid config"):
-            perform_upload(mock_client, config)
+            perform_upload(config)
 
         # Verify client method was not called
         mock_client.upload_artifact_and_register_model.assert_not_called()
 
-    @patch("job.upload._get_upload_params")
+    @patch("job.upload.save_to_oci_registry")
     def test_perform_upload_propagates_exceptions_from_client(
-        self, mock_get_upload_params
+        self, mock_save_to_oci_registry
     ):
         """Test perform_upload propagates exceptions from client method"""
         # Setup
-        mock_client = Mock()
-        mock_upload_params = Mock()
-        mock_get_upload_params.return_value = mock_upload_params
-        mock_client.upload_artifact_and_register_model.side_effect = Exception(
+        mock_save_to_oci_registry.side_effect = Exception(
             "Upload failed"
         )
 
         config = {
-            "destination": {"type": "s3"},
+            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass"}},
             "storage": {"path": "/tmp/test-model"},
             "model": {
-                "name": "test-model",
-                "version": "1.0.0",
-                "format": "onnx",
+                "id": "abc",
+                "version_id": "def",
+                "artifact_id": "123",
                 "format_version": "1.16",
             },
         }
 
         # Execute and verify exception is propagated
         with pytest.raises(Exception, match="Upload failed"):
-            perform_upload(mock_client, config)
+            perform_upload(config)
 
         # Verify client method was called
-        mock_client.upload_artifact_and_register_model.assert_called_once()
-
-    @patch("job.upload._get_upload_params")
-    @patch("job.upload._prepare_modelcar_structure")
-    @patch("os.path.exists")
-    def test_perform_upload_propagates_exceptions_from_prepare_modelcar(
-        self, mock_exists, mock_prepare_modelcar, mock_get_upload_params
-    ):
-        """Test perform_upload propagates exceptions from _prepare_modelcar_structure"""
-        # Setup
-        mock_client = Mock()
-        mock_upload_params = Mock()
-        mock_get_upload_params.return_value = mock_upload_params
-        mock_exists.return_value = True
-        mock_prepare_modelcar.side_effect = OSError("Permission denied")
-
-        config = {
-            "destination": {"type": "oci"},
-            "storage": {"path": "/tmp/test-model"},
-            "model": {
-                "name": "test-model",
-                "version": "1.0.0",
-                "format": "onnx",
-                "format_version": "1.16",
-            },
-        }
-
-        # Execute and verify exception is propagated
-        with pytest.raises(OSError, match="Permission denied"):
-            perform_upload(mock_client, config)
-
-        # Verify client method was not called
-        mock_client.upload_artifact_and_register_model.assert_not_called()
+        mock_save_to_oci_registry.assert_called_once()
