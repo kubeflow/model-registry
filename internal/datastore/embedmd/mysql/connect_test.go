@@ -18,26 +18,10 @@ import (
 	_tls "github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
 func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
 	ctx := context.Background()
-
-	// Start MySQL container without SSL
-	mysqlContainer, err := cont_mysql.Run(
-		ctx,
-		"mysql:8.0",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("testpass"),
-		cont_mysql.WithDatabase("testdb"),
-	)
-	require.NoError(t, err)
-	defer func() {
-		err := testcontainers.TerminateContainer(mysqlContainer)
-		require.NoError(t, err)
-	}()
 
 	// Test basic connection without SSL
 	t.Run("BasicConnection", func(t *testing.T) {
@@ -62,10 +46,7 @@ func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
 
 	t.Run("EmptySSLConfig", func(t *testing.T) {
 		dsn := mysqlContainer.MustConnectionString(ctx)
-		connector := &mysql.MySQLDBConnector{
-			DSN:       dsn,
-			TLSConfig: &_tls.TLSConfig{},
-		}
+		connector := mysql.NewMySQLDBConnector(dsn, &_tls.TLSConfig{})
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -157,24 +138,6 @@ func TestMySQLDBConnector_TLSConfigValidation(t *testing.T) {
 
 func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 	ctx := context.Background()
-
-	// Start MySQL container with SSL enabled using built-in SSL support
-	mysqlContainer, err := cont_mysql.Run(
-		ctx,
-		"mysql:8.0",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("testpass"),
-		cont_mysql.WithDatabase("testdb"),
-		// Enable SSL with default certificates
-		testcontainers.WithEnv(map[string]string{
-			"MYSQL_ROOT_HOST": "%",
-		}),
-	)
-	require.NoError(t, err)
-	defer func() {
-		err := testcontainers.TerminateContainer(mysqlContainer)
-		require.NoError(t, err)
-	}()
 
 	baseDSN := mysqlContainer.MustConnectionString(ctx)
 
@@ -284,13 +247,10 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 		} else {
 			dsn += "?tls=custom"
 		}
-		connector := &mysql.MySQLDBConnector{
-			DSN: dsn,
-			TLSConfig: &_tls.TLSConfig{
-				Cipher:           "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-				VerifyServerCert: false,
-			},
-		}
+		connector := mysql.NewMySQLDBConnector(dsn, &_tls.TLSConfig{
+			Cipher:           "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+			VerifyServerCert: false,
+		})
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -311,7 +271,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 
 func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidDSN", func(t *testing.T) {
-		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{})
+		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{}).WithMaxRetries(1)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -319,12 +279,9 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	})
 
 	t.Run("NonExistentCertFile", func(t *testing.T) {
-		connector := &mysql.MySQLDBConnector{
-			DSN: "root:pass@tcp(localhost:3306)/test",
-			TLSConfig: &_tls.TLSConfig{
-				RootCertPath: "/nonexistent/cert.pem",
-			},
-		}
+		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
+			RootCertPath: "/nonexistent/cert.pem",
+		}).WithMaxRetries(1)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -346,13 +303,10 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		err = os.WriteFile(invalidKeyPath, []byte("invalid key"), 0600)
 		require.NoError(t, err)
 
-		connector := &mysql.MySQLDBConnector{
-			DSN: "root:pass@tcp(localhost:3306)/test",
-			TLSConfig: &_tls.TLSConfig{
-				CertPath: invalidCertPath,
-				KeyPath:  invalidKeyPath,
-			},
-		}
+		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
+			CertPath: invalidCertPath,
+			KeyPath:  invalidKeyPath,
+		}).WithMaxRetries(1)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -369,12 +323,9 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		err = os.WriteFile(invalidRootCertPath, []byte("invalid root cert"), 0600)
 		require.NoError(t, err)
 
-		connector := &mysql.MySQLDBConnector{
-			DSN: "root:pass@tcp(localhost:3306)/test",
-			TLSConfig: &_tls.TLSConfig{
-				RootCertPath: invalidRootCertPath,
-			},
-		}
+		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
+			RootCertPath: invalidRootCertPath,
+		}).WithMaxRetries(1)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)

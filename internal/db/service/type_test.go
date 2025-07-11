@@ -11,10 +11,9 @@ import (
 )
 
 func TestTypeRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
-	repo := service.NewTypeRepository(db)
+	repo := service.NewTypeRepository(sharedDB)
 
 	t.Run("TestGetAll", func(t *testing.T) {
 		// Test retrieving all types

@@ -2,7 +2,7 @@ package postgres_test
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
@@ -41,10 +41,17 @@ func (TypeProperty) TableName() string {
 	return "TypeProperty"
 }
 
-func setupTestDB(t *testing.T) (*gorm.DB, func()) {
+// Package-level shared database instance
+var (
+	sharedDB          *gorm.DB
+	postgresContainer *cont_postgres.PostgresContainer
+)
+
+func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	postgresContainer, err := cont_postgres.Run(
+	// Create Postgres container once for all tests
+	container, err := cont_postgres.Run(
 		ctx,
 		"postgres:15",
 		cont_postgres.WithUsername("postgres"),
@@ -52,43 +59,70 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 		cont_postgres.WithDatabase("test"),
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")),
 	)
-	require.NoError(t, err)
+	if err != nil {
+		panic("Failed to start Postgres container: " + err.Error())
+	}
+	postgresContainer = container
 
-	// Get the container's host and port
-	host, err := postgresContainer.Host(ctx)
-	require.NoError(t, err)
-	port, err := postgresContainer.MappedPort(ctx, "5432")
-	require.NoError(t, err)
+	defer func() {
+		if sharedDB != nil {
+			if sqlDB, err := sharedDB.DB(); err == nil {
+				sqlDB.Close() //nolint:errcheck
+			}
+		}
 
-	// Construct the connection string in URL format
-	dsn := fmt.Sprintf("postgres://postgres:postgres@%s:%s/test?sslmode=disable",
-		host, port.Port())
-	
-	dbConnector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{})
+		if postgresContainer != nil {
+			testcontainers.TerminateContainer(postgresContainer) //nolint:errcheck
+		}
+	}()
 
-	db, err := dbConnector.Connect()
-	require.NoError(t, err)
-
-	// Return cleanup function
-	cleanup := func() {
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
-		err = testcontainers.TerminateContainer(
-			postgresContainer,
-		)
-		require.NoError(t, err)
+	// Connect to the database
+	dbConnector := postgres.NewPostgresDBConnector(postgresContainer.MustConnectionString(ctx), &_tls.TLSConfig{})
+	sharedDB, err = dbConnector.Connect()
+	if err != nil {
+		panic("Failed to connect to database: " + err.Error())
 	}
 
-	return db, cleanup
+	// Run all tests
+	code := m.Run()
+
+	os.Exit(code)
+}
+
+// cleanupTestData truncates all tables to provide clean state between tests
+func cleanupTestData(t *testing.T, db *gorm.DB) {
+	// List of tables to clean up (in order to respect foreign key constraints)
+	tables := []string{
+		"TypeProperty",
+		"Type",
+		"MLMDEnv",
+		"schema_migrations",
+		// Add other tables as needed
+	}
+
+	// Disable foreign key checks temporarily
+	err := db.Exec("SET FOREIGN_KEY_CHECKS = 0").Error
+	require.NoError(t, err)
+
+	// Truncate all tables
+	for _, table := range tables {
+		err := db.Exec("TRUNCATE TABLE " + table).Error
+		if err != nil {
+			// Table might not exist, which is okay
+			t.Logf("Could not truncate table %s: %v", table, err)
+		}
+	}
+
+	// Re-enable foreign key checks
+	err = db.Exec("SET FOREIGN_KEY_CHECKS = 1").Error
+	require.NoError(t, err)
 }
 
 func TestMigrations(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Create migrator
-	migrator, err := postgres.NewPostgresMigrator(db)
+	migrator, err := postgres.NewPostgresMigrator(sharedDB)
 	require.NoError(t, err)
 
 	// Run migrations
@@ -97,27 +131,26 @@ func TestMigrations(t *testing.T) {
 
 	// Verify MLMDEnv table
 	var schemaVersion int
-	err = db.Raw("SELECT schema_version FROM \"MLMDEnv\" LIMIT 1").Scan(&schemaVersion).Error
+	err = sharedDB.Raw("SELECT schema_version FROM \"MLMDEnv\" LIMIT 1").Scan(&schemaVersion).Error
 	require.NoError(t, err)
 	assert.Equal(t, 10, schemaVersion)
 
 	// Verify Type table has expected entries
 	var count int64
-	err = db.Model(&Type{}).Count(&count).Error
+	err = sharedDB.Model(&Type{}).Count(&count).Error
 	require.NoError(t, err)
 	assert.Greater(t, count, int64(0))
 
 	// Verify TypeProperty table has expected entries
-	err = db.Model(&TypeProperty{}).Count(&count).Error
+	err = sharedDB.Model(&TypeProperty{}).Count(&count).Error
 	require.NoError(t, err)
 	assert.Greater(t, count, int64(0))
 }
 
 func TestDownMigrations(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
-	migrator, err := postgres.NewPostgresMigrator(db)
+	migrator, err := postgres.NewPostgresMigrator(sharedDB)
 	require.NoError(t, err)
 
 	// Run migrations
@@ -130,7 +163,7 @@ func TestDownMigrations(t *testing.T) {
 
 	// Verify tables don't exist (except schema_migrations)
 	var count int64
-	err = db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name != 'schema_migrations'").Scan(&count).Error
+	err = sharedDB.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name != 'schema_migrations'").Scan(&count).Error
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), count)
-} 
+}
