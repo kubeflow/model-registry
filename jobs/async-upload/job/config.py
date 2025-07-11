@@ -64,6 +64,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--registry-custom-ca-envvar", default=None)
     p.add("--registry-log-level", default=logging.WARNING)
 
+    # TODO: The type of credential should be inferrable from the `type` specified in the source/destination
     p.add(
         "--source-s3-credentials-path",
         metavar="PATH",
