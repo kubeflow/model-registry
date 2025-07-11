@@ -7,7 +7,6 @@ stringData:
   AWS_ACCESS_KEY_ID: minioadmin
   AWS_SECRET_ACCESS_KEY: minioadmin
   AWS_BUCKET: default
-  AWS_KEY: my-model
   AWS_REGION: us-east-1
   AWS_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
 ---
@@ -56,6 +55,8 @@ spec:
             # ---- Source ----------
             - name: MODEL_SYNC_SOURCE_TYPE
               value: "s3"
+            - name: MODEL_SYNC_SOURCE_AWS_KEY
+              value: "my-model"
             - name: MODEL_SYNC_SOURCE_S3_CREDENTIALS_PATH
               value: "/opt/creds/source"
 
