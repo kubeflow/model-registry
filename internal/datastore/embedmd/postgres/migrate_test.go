@@ -89,15 +89,65 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// cleanupTestData truncates all tables to provide clean state between tests
+// cleanupTestData truncates tables and drops indexes to provide clean state between tests
 func cleanupTestData(t *testing.T, db *gorm.DB) {
-	// List of tables to clean up (in order to respect foreign key constraints)
+	// First, drop any indexes that might conflict with migrations
+	dropIndexes := []string{
+		"idx_artifact_uri",
+		"idx_artifact_create_time_since_epoch",
+		"idx_artifact_last_update_time_since_epoch",
+		"idx_artifact_external_id",
+		"idx_context_name",
+		"idx_context_create_time_since_epoch",
+		"idx_context_last_update_time_since_epoch",
+		"idx_context_external_id",
+		"idx_execution_name",
+		"idx_execution_create_time_since_epoch",
+		"idx_execution_last_update_time_since_epoch",
+		"idx_execution_external_id",
+		"idx_event_artifact_id",
+		"idx_event_execution_id",
+		"idx_event_milliseconds_since_epoch",
+		"idx_parentcontext_parent_id",
+		"idx_parentcontext_child_id",
+		"idx_association_context_id",
+		"idx_association_execution_id",
+		"idx_attribution_context_id",
+		"idx_attribution_artifact_id",
+		"idx_artifactproperty_artifact_id",
+		"idx_artifactproperty_name",
+		"idx_contextproperty_context_id",
+		"idx_contextproperty_name",
+		"idx_executionproperty_execution_id",
+		"idx_executionproperty_name",
+		"idx_typeproperty_type_id",
+		"idx_typeproperty_name",
+	}
+
+	for _, index := range dropIndexes {
+		err := db.Exec("DROP INDEX IF EXISTS " + index).Error
+		if err != nil {
+			// Log but don't fail - index might not exist
+			t.Logf("Could not drop index %s: %v", index, err)
+		}
+	}
+
+	// List of tables to clean up (in dependency order - dependent tables first)
 	tables := []string{
+		"ArtifactProperty",
+		"ContextProperty",
+		"ExecutionProperty",
 		"TypeProperty",
+		"ParentContext",
+		"Association",
+		"Attribution",
+		"Event",
+		"Artifact",
+		"Execution",
+		"Context",
 		"Type",
 		"MLMDEnv",
 		"schema_migrations",
-		// Add other tables as needed
 	}
 
 	// Disable triggers and foreign key constraints temporarily (PostgreSQL-specific)
@@ -106,9 +156,9 @@ func cleanupTestData(t *testing.T, db *gorm.DB) {
 
 	// Truncate all tables
 	for _, table := range tables {
-		err := db.Exec("TRUNCATE TABLE " + table).Error
+		err := db.Exec("TRUNCATE TABLE IF EXISTS \"" + table + "\" CASCADE").Error
 		if err != nil {
-			// Table might not exist, which is okay
+			// Log but don't fail - table might not exist
 			t.Logf("Could not truncate table %s: %v", table, err)
 		}
 	}
