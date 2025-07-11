@@ -100,8 +100,8 @@ func cleanupTestData(t *testing.T, db *gorm.DB) {
 		// Add other tables as needed
 	}
 
-	// Disable foreign key checks temporarily
-	err := db.Exec("SET FOREIGN_KEY_CHECKS = 0").Error
+	// Disable triggers and foreign key constraints temporarily (PostgreSQL-specific)
+	err := db.Exec("SET session_replication_role = replica").Error
 	require.NoError(t, err)
 
 	// Truncate all tables
@@ -113,8 +113,8 @@ func cleanupTestData(t *testing.T, db *gorm.DB) {
 		}
 	}
 
-	// Re-enable foreign key checks
-	err = db.Exec("SET FOREIGN_KEY_CHECKS = 1").Error
+	// Re-enable triggers and foreign key constraints (PostgreSQL-specific)
+	err = db.Exec("SET session_replication_role = DEFAULT").Error
 	require.NoError(t, err)
 }
 
