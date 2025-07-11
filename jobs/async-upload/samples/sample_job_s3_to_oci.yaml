@@ -11,8 +11,8 @@ metadata:
     component: model-registry-job
     modelregistry.kubeflow.org/job-type: async-upload
     modelregistry.kubeflow.org/registered-model-id: "1"
-    modelregistry.kubeflow.org/model-version-id: "v3"
-    modelregistry.kubeflow.org/model-artifact-id: "6"
+    modelregistry.kubeflow.org/model-version-id: "2"
+    modelregistry.kubeflow.org/model-artifact-id: "3"
   annotations:
     modelregistry.kubeflow.org/description: "Asynchronous job for uploading models to Model Registry"
 spec:
