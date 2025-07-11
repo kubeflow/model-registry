@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,8 +29,8 @@ func TestPaginateSources(t *testing.T) {
 	testCases := []struct {
 		name               string
 		items              []model.CatalogSource
-		pageSize           int32
-		orderBy            string
+		pageSize           string
+		orderBy            model.OrderByField
 		nextPageToken      string
 		expectedItemsCount int
 		expectedNextToken  bool
@@ -41,7 +40,7 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "First page, full page",
 			items:              allSources,
-			pageSize:           10,
+			pageSize:           "10",
 			orderBy:            "ID",
 			nextPageToken:      "",
 			expectedItemsCount: 10,
@@ -52,9 +51,9 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Second page, full page",
 			items:              allSources,
-			pageSize:           10,
+			pageSize:           "10",
 			orderBy:            "ID",
-			nextPageToken:      encodeStringCursor(stringCursor{Value: "source9", ID: "source9"}),
+			nextPageToken:      (&stringCursor{Value: "source9", ID: "source9"}).String(),
 			expectedItemsCount: 10,
 			expectedNextToken:  true,
 			expectedFirstID:    "source10",
@@ -63,9 +62,9 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Last page, partial page",
 			items:              allSources,
-			pageSize:           10,
+			pageSize:           "10",
 			orderBy:            "ID",
-			nextPageToken:      encodeStringCursor(stringCursor{Value: "source19", ID: "source19"}),
+			nextPageToken:      (&stringCursor{Value: "source19", ID: "source19"}).String(),
 			expectedItemsCount: 5,
 			expectedNextToken:  false,
 			expectedFirstID:    "source20",
@@ -74,7 +73,7 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Page size larger than items",
 			items:              allSources,
-			pageSize:           30,
+			pageSize:           "30",
 			orderBy:            "ID",
 			nextPageToken:      "",
 			expectedItemsCount: 25,
@@ -85,7 +84,7 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Empty items",
 			items:              []model.CatalogSource{},
-			pageSize:           10,
+			pageSize:           "10",
 			orderBy:            "ID",
 			nextPageToken:      "",
 			expectedItemsCount: 0,
@@ -94,7 +93,7 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Order by Name, first page",
 			items:              allSources,
-			pageSize:           5,
+			pageSize:           "5",
 			orderBy:            "NAME",
 			nextPageToken:      "",
 			expectedItemsCount: 5,
@@ -105,9 +104,9 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Order by Name, second page",
 			items:              allSources,
-			pageSize:           5,
+			pageSize:           "5",
 			orderBy:            "NAME",
-			nextPageToken:      encodeStringCursor(stringCursor{Value: "Source 4", ID: "source4"}),
+			nextPageToken:      (&stringCursor{Value: "Source 4", ID: "source4"}).String(),
 			expectedItemsCount: 5,
 			expectedNextToken:  true,
 			expectedFirstID:    "source5",
@@ -116,7 +115,7 @@ func TestPaginateSources(t *testing.T) {
 		{
 			name:               "Invalid token",
 			items:              allSources,
-			pageSize:           10,
+			pageSize:           "10",
 			orderBy:            "ID",
 			nextPageToken:      "invalid-token",
 			expectedItemsCount: 10,
@@ -128,13 +127,12 @@ func TestPaginateSources(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pagination := &models.Pagination{
-				PageSize:      &tc.pageSize,
-				OrderBy:       &tc.orderBy,
-				NextPageToken: &tc.nextPageToken,
+			paginator, err := newPaginator[model.CatalogSource](tc.pageSize, tc.orderBy, "", tc.nextPageToken)
+			if !assert.NoError(t, err) {
+				return
 			}
 
-			pagedItems, newNextPageToken := paginateSources(tc.items, pagination)
+			pagedItems, newNextPageToken := paginator.Paginate(tc.items)
 
 			assert.Equal(t, tc.expectedItemsCount, len(pagedItems))
 			if tc.expectedNextToken {
@@ -153,35 +151,29 @@ func TestPaginateSources(t *testing.T) {
 
 func TestPaginateSources_NoDuplicates(t *testing.T) {
 	allSources := createCatalogSources(100)
-	pageSize := int32(10)
+	pageSize := "10"
 	orderBy := "ID"
 
-	seenItems := make(map[string]bool)
-	var nextPageToken string
+	seenItems := make(map[string]struct{}, len(allSources))
 	totalSeen := 0
 
-	for {
-		pagination := &models.Pagination{
-			PageSize:      &pageSize,
-			OrderBy:       &orderBy,
-			NextPageToken: &nextPageToken,
-		}
+	paginator, err := newPaginator[model.CatalogSource](pageSize, model.OrderByField(orderBy), "", "")
+	if !assert.NoError(t, err) {
+		return
+	}
 
-		pagedItems, newNextPageToken := paginateSources(allSources, pagination)
+	for paginator != nil {
+		var pagedItems []model.CatalogSource
+		pagedItems, paginator = paginator.Paginate(allSources)
 
 		for _, item := range pagedItems {
 			if _, ok := seenItems[item.Id]; ok {
 				t.Errorf("Duplicate item found: %s", item.Id)
 			}
-			seenItems[item.Id] = true
+			seenItems[item.Id] = struct{}{}
 		}
 
 		totalSeen += len(pagedItems)
-
-		if newNextPageToken == "" {
-			break
-		}
-		nextPageToken = newNextPageToken
 	}
 
 	assert.Equal(t, len(allSources), totalSeen, "Total number of items seen should match the original slice")

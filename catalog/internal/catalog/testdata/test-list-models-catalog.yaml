@@ -1,0 +1,40 @@
+
+source: test-list-models
+models:
+  - name: model-alpha
+    description: A model for text generation.
+    tasks: ["text-generation", "nlp"]
+    provider: IBM
+    libraryName: transformers
+    createTimeSinceEpoch: "1678886400000" # March 15, 2023 00:00:00 GMT
+  - name: model-beta
+    description: Another model for image recognition.
+    tasks: ["image-recognition"]
+    provider: Google
+    libraryName: tensorflow
+    createTimeSinceEpoch: "1681564800000" # April 15, 2023 00:00:00 GMT
+  - name: model-gamma
+    description: A specialized model for natural language processing.
+    tasks: ["nlp"]
+    provider: IBM
+    libraryName: pytorch
+    createTimeSinceEpoch: "1675209600000" # February 1, 2023 00:00:00 GMT
+  - name: another-model-alpha
+    description: A different model for text summarization.
+    tasks: ["text-summarization", "nlp"]
+    provider: Microsoft
+    libraryName: huggingface
+    createTimeSinceEpoch: "1684243200000" # May 16, 2023 00:00:00 GMT
+  - name: model-with-no-tasks
+    description: This model has no specific tasks.
+    tasks: []
+    provider: None
+    libraryName: custom
+    createTimeSinceEpoch: "1672531200000" # January 1, 2023 00:00:00 GMT
+  - name: Z-model
+    description: The last model in alphabetical order.
+    tasks: ["optimization"]
+    provider: Oracle
+    libraryName: scikit-learn
+    createTimeSinceEpoch: "1690934400000" # August 2, 2023 00:00:00 GMT
+

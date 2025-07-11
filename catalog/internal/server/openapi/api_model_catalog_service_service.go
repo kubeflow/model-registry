@@ -35,8 +35,35 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, source string, q string, pageSize string, orderBy model.OrderByField, sortOder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	return Response(http.StatusNotImplemented, "Not implemented"), nil
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	source, ok := m.sources.Get(sourceID)
+	if !ok {
+		return notFound("Unknown source"), errors.New("Unknown source")
+	}
+
+	p, err := newPaginator[model.CatalogModel](pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	listModelsParams := catalog.ListModelsParams{
+		Query:     q,
+		OrderBy:   p.OrderBy,
+		SortOrder: p.SortOrder,
+	}
+
+	models, err := source.Provider.ListModels(ctx, listModelsParams)
+	if err != nil {
+		return ErrorResponse(http.StatusInternalServerError, err), err
+	}
+
+	page, next := p.Paginate(models.Items)
+
+	models.Items = page
+	models.PageSize = p.PageSize
+	models.NextPageToken = next.Token()
+
+	return Response(http.StatusOK, models), nil
 }
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
@@ -67,7 +94,7 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
-	pagination, err := buildPagination(strPageSize, string(orderBy), string(sortOrder), nextPageToken)
+	paginator, err := newPaginator[model.CatalogSource](strPageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
@@ -92,13 +119,13 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 
 	total := int32(len(items))
 
-	pagedItems, newNextPageToken := paginateSources(items, pagination)
+	pagedItems, next := paginator.Paginate(items)
 
 	res := model.CatalogSourceList{
-		PageSize:      pagination.GetPageSize(),
+		PageSize:      paginator.PageSize,
 		Items:         pagedItems,
 		Size:          total,
-		NextPageToken: newNextPageToken,
+		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
 }
