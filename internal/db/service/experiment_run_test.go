@@ -570,3 +570,326 @@ func TestExperimentRunRepository(t *testing.T) {
 		assert.Empty(t, result.NextPageToken)
 	})
 }
+
+func TestExperimentRunRepository_FilterQuery(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// Get the actual type IDs from the database
+	experimentRunTypeID := getExperimentRunTypeID(t, db)
+	experimentTypeID := getExperimentTypeID(t, db)
+
+	experimentRunRepo := service.NewExperimentRunRepository(db, experimentRunTypeID)
+	experimentRepo := service.NewExperimentRepository(db, experimentTypeID)
+
+	// Create a parent experiment
+	experiment := &models.ExperimentImpl{
+		TypeID: apiutils.Of(int32(experimentTypeID)),
+		Attributes: &models.ExperimentAttributes{
+			Name: apiutils.Of("test-parent-experiment"),
+		},
+	}
+	savedExperiment, err := experimentRepo.Save(experiment)
+	require.NoError(t, err)
+
+	// Create multiple experiment runs with different properties for filtering
+	experimentRun1 := &models.ExperimentRunImpl{
+		TypeID: apiutils.Of(int32(experimentRunTypeID)),
+		Attributes: &models.ExperimentRunAttributes{
+			Name: apiutils.Of("pytorch-experiment-run"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:        "status",
+				StringValue: apiutils.Of("RUNNING"),
+			},
+			{
+				Name:     "startTimeSinceEpoch",
+				IntValue: apiutils.Of(int32(1640995200)), // 2022-01-01
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("pytorch"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epochs",
+				IntValue:         apiutils.Of(int32(100)),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "learning_rate",
+				DoubleValue:      apiutils.Of(0.001),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = experimentRunRepo.Save(experimentRun1, savedExperiment.GetID())
+	require.NoError(t, err)
+
+	experimentRun2 := &models.ExperimentRunImpl{
+		TypeID: apiutils.Of(int32(experimentRunTypeID)),
+		Attributes: &models.ExperimentRunAttributes{
+			Name: apiutils.Of("tensorflow-experiment-run"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:        "status",
+				StringValue: apiutils.Of("COMPLETED"),
+			},
+			{
+				Name:     "startTimeSinceEpoch",
+				IntValue: apiutils.Of(int32(1641081600)), // 2022-01-02
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("tensorflow"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epochs",
+				IntValue:         apiutils.Of(int32(50)),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "learning_rate",
+				DoubleValue:      apiutils.Of(0.01),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = experimentRunRepo.Save(experimentRun2, savedExperiment.GetID())
+	require.NoError(t, err)
+
+	experimentRun3 := &models.ExperimentRunImpl{
+		TypeID: apiutils.Of(int32(experimentRunTypeID)),
+		Attributes: &models.ExperimentRunAttributes{
+			Name: apiutils.Of("sklearn-experiment-run"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:        "status",
+				StringValue: apiutils.Of("FAILED"),
+			},
+			{
+				Name:     "startTimeSinceEpoch",
+				IntValue: apiutils.Of(int32(1641168000)), // 2022-01-03
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("sklearn"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epochs",
+				IntValue:         apiutils.Of(int32(10)),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "learning_rate",
+				DoubleValue:      apiutils.Of(0.1),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = experimentRunRepo.Save(experimentRun3, savedExperiment.GetID())
+	require.NoError(t, err)
+
+	// Test core property filtering
+	t.Run("CorePropertyFilter", func(t *testing.T) {
+		filterQuery := `name = "pytorch-experiment-run"`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test custom property filtering
+	t.Run("CustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `framework = "tensorflow"`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "tensorflow-experiment-run", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test numeric custom property filtering
+	t.Run("NumericCustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `epochs >= 50`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (100) and tensorflow (50)
+	})
+
+	// Test double custom property filtering
+	t.Run("DoubleCustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `learning_rate <= 0.01`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (0.001) and tensorflow (0.01)
+	})
+
+	// Test standard property filtering
+	t.Run("StandardPropertyFilter", func(t *testing.T) {
+		filterQuery := `status = "COMPLETED"`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "tensorflow-experiment-run", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test complex AND filter
+	t.Run("ComplexANDFilter", func(t *testing.T) {
+		filterQuery := `framework = "pytorch" AND epochs = 100`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test complex OR filter
+	t.Run("ComplexORFilter", func(t *testing.T) {
+		filterQuery := `framework = "pytorch" OR framework = "sklearn"`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch and sklearn
+	})
+
+	// Test ILIKE operator
+	t.Run("ILIKEFilter", func(t *testing.T) {
+		filterQuery := `name ILIKE "%experiment%"`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 3, len(result.Items)) // All experiment runs contain "experiment"
+	})
+
+	// Test mixed core and custom property filter
+	t.Run("MixedCoreAndCustomFilter", func(t *testing.T) {
+		filterQuery := `name ILIKE "%pytorch%" AND learning_rate < 0.01`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test invalid filter query
+	t.Run("InvalidFilterQuery", func(t *testing.T) {
+		filterQuery := `invalid syntax =`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.Error(t, err)
+		require.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid filter query")
+	})
+
+	// Test with parentheses grouping
+	t.Run("ParenthesesGrouping", func(t *testing.T) {
+		filterQuery := `(framework = "pytorch" OR framework = "tensorflow") AND epochs > 25`
+		pageSize := int32(10)
+		listOptions := models.ExperimentRunListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := experimentRunRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (100 epochs) and tensorflow (50 epochs)
+	})
+}

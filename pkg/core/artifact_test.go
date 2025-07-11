@@ -641,10 +641,10 @@ func (suite *CoreTestSuite) TestGetArtifactsByType() {
 
 	createdArtifact5, err := service.UpsertModelVersionArtifact(&openapi.Artifact{
 		Parameter: &openapi.Parameter{
-			Name:       &fifthArtifactName,
-			State:      (*openapi.ArtifactState)(&artifactState),
-			ExternalId: &fifthArtifactExtId,
-			Value:      apiutils.Of("parameter-value"),
+			Name:          &fifthArtifactName,
+			State:         (*openapi.ArtifactState)(&artifactState),
+			ExternalId:    &fifthArtifactExtId,
+			Value:         apiutils.Of("parameter-value"),
 			ParameterType: apiutils.Of(openapi.PARAMETERTYPE_STRING),
 		},
 	}, modelVersionId)

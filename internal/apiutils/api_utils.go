@@ -115,8 +115,3 @@ func BuildListOptionWithFilterTranslation(filterQuery string, pageSize string, o
 
 	return listOptions, nil
 }
-
-// BuildListOptionLegacy builds list options without filter query for backward compatibility
-func BuildListOptionLegacy(pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (api.ListOptions, error) {
-	return BuildListOption("", pageSize, orderBy, sortOrder, nextPageToken)
-}

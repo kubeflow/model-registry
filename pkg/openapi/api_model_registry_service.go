@@ -3666,11 +3666,18 @@ func (a *ModelRegistryServiceAPIService) GetArtifactExecute(r ApiGetArtifactRequ
 type ApiGetArtifactsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	artifactType  *ArtifactTypeQueryParam
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetArtifactsRequest) FilterQuery(filterQuery string) ApiGetArtifactsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Specifies the artifact type for listing artifacts.
@@ -3744,6 +3751,9 @@ func (a *ModelRegistryServiceAPIService) GetArtifactsExecute(r ApiGetArtifactsRe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.artifactType != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
 	}
@@ -3871,12 +3881,19 @@ type ApiGetEnvironmentInferenceServicesRequest struct {
 	ctx                  context.Context
 	ApiService           *ModelRegistryServiceAPIService
 	servingenvironmentId string
+	filterQuery          *string
 	name                 *string
 	externalId           *string
 	pageSize             *string
 	orderBy              *OrderByField
 	sortOrder            *SortOrder
 	nextPageToken        *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetEnvironmentInferenceServicesRequest) FilterQuery(filterQuery string) ApiGetEnvironmentInferenceServicesRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Name of entity to search.
@@ -3959,6 +3976,9 @@ func (a *ModelRegistryServiceAPIService) GetEnvironmentInferenceServicesExecute(
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
@@ -4246,7 +4266,7 @@ func (r ApiGetExperimentExperimentRunsRequest) ExternalId(externalId string) Api
 	return r
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetExperimentExperimentRunsRequest) FilterQuery(filterQuery string) ApiGetExperimentExperimentRunsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -4589,6 +4609,7 @@ type ApiGetExperimentRunArtifactsRequest struct {
 	ctx             context.Context
 	ApiService      *ModelRegistryServiceAPIService
 	experimentrunId string
+	filterQuery     *string
 	name            *string
 	externalId      *string
 	artifactType    *ArtifactTypeQueryParam
@@ -4596,6 +4617,12 @@ type ApiGetExperimentRunArtifactsRequest struct {
 	orderBy         *OrderByField
 	sortOrder       *SortOrder
 	nextPageToken   *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetExperimentRunArtifactsRequest) FilterQuery(filterQuery string) ApiGetExperimentRunArtifactsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Name of entity to search.
@@ -4682,6 +4709,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunArtifactsExecute(r ApiG
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
@@ -4804,12 +4834,19 @@ type ApiGetExperimentRunMetricHistoryRequest struct {
 	ctx             context.Context
 	ApiService      *ModelRegistryServiceAPIService
 	experimentrunId string
+	filterQuery     *string
 	name            *string
 	stepIds         *string
 	pageSize        *string
 	orderBy         *OrderByField
 	sortOrder       *SortOrder
 	nextPageToken   *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetExperimentRunMetricHistoryRequest) FilterQuery(filterQuery string) ApiGetExperimentRunMetricHistoryRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Name of entity to search.
@@ -4892,6 +4929,9 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
@@ -5017,7 +5057,7 @@ type ApiGetExperimentRunsRequest struct {
 	nextPageToken *string
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetExperimentRunsRequest) FilterQuery(filterQuery string) ApiGetExperimentRunsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -5199,7 +5239,7 @@ type ApiGetExperimentsRequest struct {
 	nextPageToken *string
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetExperimentsRequest) FilterQuery(filterQuery string) ApiGetExperimentsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -5669,12 +5709,19 @@ type ApiGetInferenceServiceServesRequest struct {
 	ctx                context.Context
 	ApiService         *ModelRegistryServiceAPIService
 	inferenceserviceId string
+	filterQuery        *string
 	name               *string
 	externalId         *string
 	pageSize           *string
 	orderBy            *OrderByField
 	sortOrder          *SortOrder
 	nextPageToken      *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetInferenceServiceServesRequest) FilterQuery(filterQuery string) ApiGetInferenceServiceServesRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Name of entity to search.
@@ -5757,6 +5804,9 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServiceServesExecute(r ApiG
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
@@ -6022,10 +6072,17 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServiceVersionExecute(r Api
 type ApiGetInferenceServicesRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetInferenceServicesRequest) FilterQuery(filterQuery string) ApiGetInferenceServicesRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -6093,6 +6150,9 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServicesExecute(r ApiGetInf
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -6363,10 +6423,17 @@ func (a *ModelRegistryServiceAPIService) GetModelArtifactExecute(r ApiGetModelAr
 type ApiGetModelArtifactsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetModelArtifactsRequest) FilterQuery(filterQuery string) ApiGetModelArtifactsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -6434,6 +6501,9 @@ func (a *ModelRegistryServiceAPIService) GetModelArtifactsExecute(r ApiGetModelA
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
@@ -6705,6 +6775,7 @@ type ApiGetModelVersionArtifactsRequest struct {
 	ctx            context.Context
 	ApiService     *ModelRegistryServiceAPIService
 	modelversionId string
+	filterQuery    *string
 	name           *string
 	externalId     *string
 	artifactType   *ArtifactTypeQueryParam
@@ -6712,6 +6783,12 @@ type ApiGetModelVersionArtifactsRequest struct {
 	orderBy        *OrderByField
 	sortOrder      *SortOrder
 	nextPageToken  *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetModelVersionArtifactsRequest) FilterQuery(filterQuery string) ApiGetModelVersionArtifactsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Name of entity to search.
@@ -6798,6 +6875,9 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionArtifactsExecute(r ApiGe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
 	}
@@ -6926,7 +7006,7 @@ type ApiGetModelVersionsRequest struct {
 	nextPageToken *string
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetModelVersionsRequest) FilterQuery(filterQuery string) ApiGetModelVersionsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -7270,7 +7350,7 @@ func (r ApiGetRegisteredModelVersionsRequest) ExternalId(externalId string) ApiG
 	return r
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetRegisteredModelVersionsRequest) FilterQuery(filterQuery string) ApiGetRegisteredModelVersionsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -7472,7 +7552,7 @@ type ApiGetRegisteredModelsRequest struct {
 	nextPageToken *string
 }
 
-// A query string to filter the list of entities. The query string is parsed and applied to the list of entities. The query string can contain the following operators: &#39;&#x3D;&#39;, &#39;!&#x3D;&#39;, &#39;&gt;&#39;, &#39;&lt;&#39;, &#39;&gt;&#x3D;&#39;, &#39;&lt;&#x3D;&#39;, &#39;IN&#39;, &#39;NOT IN&#39;, &#39;LIKE&#39;, &#39;NOT LIKE&#39;, &#39;IS NULL&#39;, &#39;IS NOT NULL&#39;, &#39;AND&#39;, &#39;OR&#39;, &#39;NOT&#39;. The query string can also contain parentheses to group expressions.
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiGetRegisteredModelsRequest) FilterQuery(filterQuery string) ApiGetRegisteredModelsRequest {
 	r.filterQuery = &filterQuery
 	return r
@@ -7794,10 +7874,17 @@ func (a *ModelRegistryServiceAPIService) GetServingEnvironmentExecute(r ApiGetSe
 type ApiGetServingEnvironmentsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelRegistryServiceAPIService
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
+func (r ApiGetServingEnvironmentsRequest) FilterQuery(filterQuery string) ApiGetServingEnvironmentsRequest {
+	r.filterQuery = &filterQuery
+	return r
 }
 
 // Number of entities in each page.
@@ -7865,6 +7952,9 @@ func (a *ModelRegistryServiceAPIService) GetServingEnvironmentsExecute(r ApiGetS
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}

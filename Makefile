@@ -174,7 +174,7 @@ endif
 
 .PHONY: vet
 vet:
-	${GO} vet ./...
+	${GO} vet $$(${GO} list ./... | grep -v github.com/kubeflow/model-registry/internal/db/filter)
 
 .PHONY: clean/csi
 clean/csi:

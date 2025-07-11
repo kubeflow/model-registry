@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
@@ -164,9 +165,23 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 	query := r.db.Model(&schema.Execution{}).Where("type_id = ?", r.typeID)
 
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		query = query.Where("Execution.name = ?", listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("external_id = ?", listOptions.ExternalID)
+		query = query.Where("Execution.external_id = ?", listOptions.ExternalID)
+	}
+
+	// Apply filter query if provided
+	if filterQuery := listOptions.GetFilterQuery(); filterQuery != "" {
+		filterExpr, err := filter.Parse(filterQuery)
+		if err != nil {
+			return nil, fmt.Errorf("invalid filter query: %w", err)
+		}
+
+		if filterExpr != nil {
+			// Use REST entity-aware query builder for proper property validation
+			queryBuilder := filter.NewQueryBuilderForRestEntity(filter.RestEntityServeModel)
+			query = queryBuilder.BuildQuery(query, filterExpr)
+		}
 	}
 
 	if listOptions.InferenceServiceID != nil {

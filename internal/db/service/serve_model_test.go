@@ -789,4 +789,474 @@ func TestServeModelRepository(t *testing.T) {
 		}
 		assert.True(t, foundModelVersionID, "Should find model_version_id property")
 	})
+
+	t.Run("TestFilterQuery", func(t *testing.T) {
+		// First create a registered model and model version
+		registeredModel := &models.RegisteredModelImpl{
+			TypeID: apiutils.Of(int32(registeredModelTypeID)),
+			Attributes: &models.RegisteredModelAttributes{
+				Name: apiutils.Of("test-registered-model-for-filter"),
+			},
+		}
+		savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &models.ModelVersionImpl{
+			TypeID: apiutils.Of(int32(modelVersionTypeID)),
+			Attributes: &models.ModelVersionAttributes{
+				Name: apiutils.Of("test-model-version-for-filter"),
+			},
+			Properties: &[]models.Properties{
+				{
+					Name:     "registered_model_id",
+					IntValue: savedRegisteredModel.GetID(),
+				},
+			},
+		}
+		savedModelVersion, err := modelVersionRepo.Save(modelVersion)
+		require.NoError(t, err)
+
+		// Create an inference service for the serve models
+		servingEnvironment := &models.ServingEnvironmentImpl{
+			TypeID: apiutils.Of(int32(servingEnvironmentTypeID)),
+			Attributes: &models.ServingEnvironmentAttributes{
+				Name: apiutils.Of("test-serving-env-for-filter"),
+			},
+		}
+		savedServingEnv, err := servingEnvironmentRepo.Save(servingEnvironment)
+		require.NoError(t, err)
+
+		inferenceService := &models.InferenceServiceImpl{
+			TypeID: apiutils.Of(int32(inferenceServiceTypeID)),
+			Attributes: &models.InferenceServiceAttributes{
+				Name: apiutils.Of("test-inference-service-for-filter"),
+			},
+			Properties: &[]models.Properties{
+				{
+					Name:     "serving_environment_id",
+					IntValue: savedServingEnv.GetID(),
+				},
+				{
+					Name:     "registered_model_id",
+					IntValue: savedRegisteredModel.GetID(),
+				},
+			},
+		}
+		savedInferenceService, err := inferenceServiceRepo.Save(inferenceService)
+		require.NoError(t, err)
+
+		// Create multiple serve models with different properties for filtering
+		serveModel1 := &models.ServeModelImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.ServeModelAttributes{
+				Name:           apiutils.Of("pytorch-serve-model"),
+				LastKnownState: apiutils.Of("RUNNING"),
+			},
+			Properties: &[]models.Properties{
+				{
+					Name:     "model_version_id",
+					IntValue: savedModelVersion.GetID(),
+				},
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:             "framework",
+					StringValue:      apiutils.Of("pytorch"),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "replicas",
+					IntValue:         apiutils.Of(int32(3)),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "accuracy",
+					DoubleValue:      apiutils.Of(0.95),
+					IsCustomProperty: true,
+				},
+			},
+		}
+		_, err = repo.Save(serveModel1, savedInferenceService.GetID())
+		require.NoError(t, err)
+
+		serveModel2 := &models.ServeModelImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.ServeModelAttributes{
+				Name:           apiutils.Of("tensorflow-serve-model"),
+				LastKnownState: apiutils.Of("COMPLETE"),
+			},
+			Properties: &[]models.Properties{
+				{
+					Name:     "model_version_id",
+					IntValue: savedModelVersion.GetID(),
+				},
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:             "framework",
+					StringValue:      apiutils.Of("tensorflow"),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "replicas",
+					IntValue:         apiutils.Of(int32(5)),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "accuracy",
+					DoubleValue:      apiutils.Of(0.89),
+					IsCustomProperty: true,
+				},
+			},
+		}
+		_, err = repo.Save(serveModel2, savedInferenceService.GetID())
+		require.NoError(t, err)
+
+		serveModel3 := &models.ServeModelImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.ServeModelAttributes{
+				Name:           apiutils.Of("sklearn-serve-model"),
+				LastKnownState: apiutils.Of("NEW"),
+			},
+			Properties: &[]models.Properties{
+				{
+					Name:     "model_version_id",
+					IntValue: savedModelVersion.GetID(),
+				},
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:             "framework",
+					StringValue:      apiutils.Of("sklearn"),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "replicas",
+					IntValue:         apiutils.Of(int32(2)),
+					IsCustomProperty: true,
+				},
+				{
+					Name:             "accuracy",
+					DoubleValue:      apiutils.Of(0.92),
+					IsCustomProperty: true,
+				},
+			},
+		}
+		_, err = repo.Save(serveModel3, savedInferenceService.GetID())
+		require.NoError(t, err)
+
+		// Test core property filtering
+		t.Run("CorePropertyFilter", func(t *testing.T) {
+			filterQuery := `name = "pytorch-serve-model"`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 1, len(result.Items))
+			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+		})
+
+		// Test custom property filtering
+		t.Run("CustomPropertyFilter", func(t *testing.T) {
+			filterQuery := `framework = "tensorflow"`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 1, len(result.Items))
+			assert.Equal(t, "tensorflow-serve-model", *result.Items[0].GetAttributes().Name)
+		})
+
+		// Test numeric custom property filtering
+		t.Run("NumericCustomPropertyFilter", func(t *testing.T) {
+			filterQuery := `replicas >= 3`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 2, len(result.Items)) // pytorch (3) and tensorflow (5)
+		})
+
+		// Test double custom property filtering
+		t.Run("DoubleCustomPropertyFilter", func(t *testing.T) {
+			filterQuery := `accuracy > 0.9`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 2, len(result.Items)) // pytorch (0.95) and sklearn (0.92)
+		})
+
+		// Test complex AND filter
+		t.Run("ComplexANDFilter", func(t *testing.T) {
+			filterQuery := `framework = "pytorch" AND replicas = 3`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 1, len(result.Items))
+			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+		})
+
+		// Test complex OR filter
+		t.Run("ComplexORFilter", func(t *testing.T) {
+			filterQuery := `framework = "pytorch" OR framework = "sklearn"`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 2, len(result.Items)) // pytorch and sklearn
+		})
+
+		// Test ILIKE operator
+		t.Run("ILIKEFilter", func(t *testing.T) {
+			filterQuery := `name ILIKE "%Serve-Model%"`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.GreaterOrEqual(t, len(result.Items), 3) // All serve models contain "serve-model"
+		})
+
+		// Test mixed core and custom property filter
+		t.Run("MixedCoreAndCustomFilter", func(t *testing.T) {
+			filterQuery := `name ILIKE "%pytorch%" AND accuracy > 0.9`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 1, len(result.Items))
+			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+		})
+
+		// Test invalid filter query
+		t.Run("InvalidFilterQuery", func(t *testing.T) {
+			filterQuery := `invalid syntax =`
+			pageSize := int32(10)
+			listOptions := models.ServeModelListOptions{
+				Pagination: models.Pagination{
+					PageSize:    &pageSize,
+					FilterQuery: &filterQuery,
+				},
+			}
+
+			result, err := repo.List(listOptions)
+			require.Error(t, err)
+			require.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		})
+
+		// Test combining old parameters with new filterQuery
+		t.Run("CombinedOldAndNewFilters", func(t *testing.T) {
+			// Setup additional test data with ExternalID
+			serveModelWithExternalID := &models.ServeModelImpl{
+				TypeID: apiutils.Of(int32(typeID)),
+				Attributes: &models.ServeModelAttributes{
+					Name:           apiutils.Of("pytorch-serve-model-with-external-id"),
+					ExternalID:     apiutils.Of("ext-pytorch-123"),
+					LastKnownState: apiutils.Of("RUNNING"),
+				},
+				CustomProperties: &[]models.Properties{
+					{
+						Name:             "framework",
+						StringValue:      apiutils.Of("pytorch"),
+						IsCustomProperty: true,
+					},
+					{
+						Name:             "replicas",
+						IntValue:         apiutils.Of(int32(3)),
+						IsCustomProperty: true,
+					},
+				},
+			}
+			_, err := repo.Save(serveModelWithExternalID, savedInferenceService.GetID())
+			require.NoError(t, err)
+
+			// Test old Name parameter alone
+			t.Run("OldNameParameterAlone", func(t *testing.T) {
+				name := "pytorch-serve-model"
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					Name: &name,
+					Pagination: models.Pagination{
+						PageSize: &pageSize,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Equal(t, 1, len(result.Items))
+				assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+			})
+
+			// Test old Name parameter combined with filterQuery (should be AND)
+			t.Run("OldNameParameterCombinedWithFilterQuery", func(t *testing.T) {
+				name := "pytorch-serve-model"
+				filterQuery := `framework = "pytorch"`
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					Name: &name,
+					Pagination: models.Pagination{
+						PageSize:    &pageSize,
+						FilterQuery: &filterQuery,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Equal(t, 1, len(result.Items))
+				assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+			})
+
+			// Test old Name parameter combined with filterQuery (should return 0 results)
+			t.Run("OldNameParameterCombinedWithFilterQueryNoMatch", func(t *testing.T) {
+				name := "pytorch-serve-model"
+				filterQuery := `framework = "tensorflow"` // This model has framework=pytorch, so should return 0
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					Name: &name,
+					Pagination: models.Pagination{
+						PageSize:    &pageSize,
+						FilterQuery: &filterQuery,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Equal(t, 0, len(result.Items))
+			})
+
+			// Test old ExternalID parameter alone
+			t.Run("OldExternalIDParameterAlone", func(t *testing.T) {
+				externalID := "ext-pytorch-123"
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					ExternalID: &externalID,
+					Pagination: models.Pagination{
+						PageSize: &pageSize,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Equal(t, 1, len(result.Items))
+				assert.Equal(t, "ext-pytorch-123", *result.Items[0].GetAttributes().ExternalID)
+			})
+
+			// Test old ExternalID parameter combined with filterQuery
+			t.Run("OldExternalIDParameterCombinedWithFilterQuery", func(t *testing.T) {
+				externalID := "ext-pytorch-123"
+				filterQuery := `replicas = 3` // The model with this ExternalID has replicas=3
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					ExternalID: &externalID,
+					Pagination: models.Pagination{
+						PageSize:    &pageSize,
+						FilterQuery: &filterQuery,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Equal(t, 1, len(result.Items))
+				assert.Equal(t, "pytorch-serve-model-with-external-id", *result.Items[0].GetAttributes().Name)
+			})
+
+			// Test old InferenceServiceID parameter combined with filterQuery
+			t.Run("OldInferenceServiceIDParameterCombinedWithFilterQuery", func(t *testing.T) {
+				inferenceServiceID := savedInferenceService.GetID()
+				filterQuery := `framework = "pytorch"` // Should match existing pytorch models + new one
+				pageSize := int32(10)
+				listOptions := models.ServeModelListOptions{
+					InferenceServiceID: inferenceServiceID,
+					Pagination: models.Pagination{
+						PageSize:    &pageSize,
+						FilterQuery: &filterQuery,
+					},
+				}
+
+				result, err := repo.List(listOptions)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.GreaterOrEqual(t, len(result.Items), 1) // At least one pytorch model should match
+
+				// Check that all returned models have framework=pytorch
+				for _, item := range result.Items {
+					// Find the framework property
+					found := false
+					if item.GetCustomProperties() != nil {
+						for _, prop := range *item.GetCustomProperties() {
+							if prop.Name == "framework" && prop.StringValue != nil {
+								assert.Equal(t, "pytorch", *prop.StringValue)
+								found = true
+								break
+							}
+						}
+					}
+					assert.True(t, found, "Framework property not found for model %s", *item.GetAttributes().Name)
+				}
+			})
+		})
+	})
 }

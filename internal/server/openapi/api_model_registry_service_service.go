@@ -12,6 +12,7 @@ package openapi
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -223,8 +224,8 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 }
 
 // GetEnvironmentInferenceServices - List All ServingEnvironment&#39;s InferenceServices
-func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, filterQuery string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -254,8 +255,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 }
 
 // GetInferenceServiceServes - List All InferenceService&#39;s ServeModel actions
-func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, filterQuery string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -276,8 +277,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 }
 
 // GetInferenceServices - List All InferenceServices
-func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -298,8 +299,8 @@ func (s *ModelRegistryServiceAPIService) GetArtifact(ctx context.Context, artifa
 }
 
 // GetArtifacts - List All Artifacts
-func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, filterQuery string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -320,8 +321,8 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 }
 
 // GetModelArtifacts - List All ModelArtifacts
-func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -343,11 +344,14 @@ func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, mo
 
 // GetModelVersionArtifacts - List All ModelVersion&#39;s artifacts
 func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string,
-	name string, externalID string, artifactType model.ArtifactTypeQueryParam, pageSize string,
+	filterQuery string, name string, externalID string, artifactType model.ArtifactTypeQueryParam, pageSize string,
 	orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO name unused
-	// TODO externalID unused
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+
+	// Build combined filter query from filterQuery, name, and externalID parameters
+	// Following MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID, "Artifact")
+
+	listOpts, err := apiutils.BuildListOption(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -356,6 +360,40 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
+}
+
+// buildCombinedFilterQuery combines filterQuery with name and externalID parameters
+// Follows MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
+func buildCombinedFilterQuery(filterQuery, name, externalID, tablePrefix string) string {
+	var conditions []string
+
+	// Add existing filter query if provided
+	if filterQuery != "" {
+		conditions = append(conditions, "("+filterQuery+")")
+	}
+
+	// Add name or externalID filter (exclusive, following MLMD behavior)
+	// Use proper string escaping and table prefixes for filter queries
+	if name != "" {
+		// Escape single quotes in the name by doubling them
+		escapedName := strings.ReplaceAll(name, "'", "''")
+		conditions = append(conditions, tablePrefix+".name = '"+escapedName+"'")
+	} else if externalID != "" {
+		// Escape single quotes in the externalID by doubling them
+		escapedExternalID := strings.ReplaceAll(externalID, "'", "''")
+		conditions = append(conditions, tablePrefix+".external_id = '"+escapedExternalID+"'")
+	}
+
+	// Combine all conditions with AND
+	if len(conditions) == 0 {
+		return ""
+	}
+
+	if len(conditions) == 1 {
+		return conditions[0]
+	}
+
+	return conditions[0] + " AND " + conditions[1]
 }
 
 // GetModelVersions - List All ModelVersions
@@ -382,9 +420,12 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context,
 
 // GetRegisteredModelVersions - List All RegisteredModel&#39;s ModelVersions
 func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.Context, registeredmodelId string, name string, externalID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO name unused
-	// TODO externalID unused
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ModelVersionEntity)
+
+	// Build combined filter query from filterQuery, name, and externalID parameters
+	// Following MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID, "Context")
+
+	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ModelVersionEntity)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -418,8 +459,8 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 }
 
 // GetServingEnvironments - List All ServingEnvironments
-func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -655,8 +696,8 @@ func (s *ModelRegistryServiceAPIService) GetExperimentRun(ctx context.Context, e
 
 // GetExperimentRunArtifacts - List all artifacts associated with the ExperimentRun
 func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.Context, experimentrunId string,
-	name string, externalId string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+	filterQuery string, name string, externalId string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -753,8 +794,8 @@ func (s *ModelRegistryServiceAPIService) UpsertExperimentRunArtifact(ctx context
 
 // GetExperimentRunMetricHistory - Get metric history for an ExperimentRun
 func (s *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx context.Context, experimentrunId string,
-	name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionLegacy(pageSize, orderBy, sortOrder, nextPageToken)
+	filterQuery string, name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}

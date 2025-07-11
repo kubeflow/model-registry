@@ -388,3 +388,354 @@ func TestModelVersionRepository(t *testing.T) {
 		assert.Len(t, *retrieved.GetCustomProperties(), 2)
 	})
 }
+
+func TestModelVersionRepository_FilterQuery(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// Get the actual type IDs from the database
+	modelVersionTypeID := getModelVersionTypeID(t, db)
+	registeredModelTypeID := getRegisteredModelTypeID(t, db)
+
+	modelVersionRepo := service.NewModelVersionRepository(db, modelVersionTypeID)
+	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+
+	// Create a parent registered model
+	registeredModel := &models.RegisteredModelImpl{
+		TypeID: apiutils.Of(int32(registeredModelTypeID)),
+		Attributes: &models.RegisteredModelAttributes{
+			Name: apiutils.Of("test-parent-model"),
+		},
+	}
+	savedRegisteredModel, err := registeredModelRepo.Save(registeredModel)
+	require.NoError(t, err)
+
+	// Create multiple model versions with different properties for filtering
+	modelVersion1 := &models.ModelVersionImpl{
+		TypeID: apiutils.Of(int32(modelVersionTypeID)),
+		Attributes: &models.ModelVersionAttributes{
+			Name: apiutils.Of("pytorch-model-version"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:     "registered_model_id",
+				IntValue: savedRegisteredModel.GetID(),
+			},
+			{
+				Name:        "state",
+				StringValue: apiutils.Of("LIVE"),
+			},
+			{
+				Name:        "author",
+				StringValue: apiutils.Of("data-scientist-1"),
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("pytorch"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "accuracy",
+				DoubleValue:      apiutils.Of(0.95),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epoch_count",
+				IntValue:         apiutils.Of(int32(100)),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = modelVersionRepo.Save(modelVersion1)
+	require.NoError(t, err)
+
+	modelVersion2 := &models.ModelVersionImpl{
+		TypeID: apiutils.Of(int32(modelVersionTypeID)),
+		Attributes: &models.ModelVersionAttributes{
+			Name: apiutils.Of("tensorflow-model-version"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:     "registered_model_id",
+				IntValue: savedRegisteredModel.GetID(),
+			},
+			{
+				Name:        "state",
+				StringValue: apiutils.Of("ARCHIVED"),
+			},
+			{
+				Name:        "author",
+				StringValue: apiutils.Of("data-scientist-2"),
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("tensorflow"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "accuracy",
+				DoubleValue:      apiutils.Of(0.89),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epoch_count",
+				IntValue:         apiutils.Of(int32(50)),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = modelVersionRepo.Save(modelVersion2)
+	require.NoError(t, err)
+
+	modelVersion3 := &models.ModelVersionImpl{
+		TypeID: apiutils.Of(int32(modelVersionTypeID)),
+		Attributes: &models.ModelVersionAttributes{
+			Name: apiutils.Of("sklearn-model-version"),
+		},
+		Properties: &[]models.Properties{
+			{
+				Name:     "registered_model_id",
+				IntValue: savedRegisteredModel.GetID(),
+			},
+			{
+				Name:        "state",
+				StringValue: apiutils.Of("LIVE"),
+			},
+			{
+				Name:        "author",
+				StringValue: apiutils.Of("data-scientist-1"),
+			},
+		},
+		CustomProperties: &[]models.Properties{
+			{
+				Name:             "framework",
+				StringValue:      apiutils.Of("sklearn"),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "accuracy",
+				DoubleValue:      apiutils.Of(0.92),
+				IsCustomProperty: true,
+			},
+			{
+				Name:             "epoch_count",
+				IntValue:         apiutils.Of(int32(25)),
+				IsCustomProperty: true,
+			},
+		},
+	}
+	_, err = modelVersionRepo.Save(modelVersion3)
+	require.NoError(t, err)
+
+	// Test core property filtering
+	t.Run("CorePropertyFilter", func(t *testing.T) {
+		filterQuery := `name = "pytorch-model-version"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test custom property filtering
+	t.Run("CustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `framework = "tensorflow"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "tensorflow-model-version", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test numeric custom property filtering
+	t.Run("NumericCustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `epoch_count >= 50`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (100) and tensorflow (50)
+	})
+
+	// Test double custom property filtering
+	t.Run("DoubleCustomPropertyFilter", func(t *testing.T) {
+		filterQuery := `accuracy > 0.9`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (0.95) and sklearn (0.92)
+	})
+
+	// Test standard property filtering
+	t.Run("StandardPropertyFilter", func(t *testing.T) {
+		filterQuery := `state = "LIVE"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch and sklearn are LIVE
+	})
+
+	// Test complex AND filter
+	t.Run("ComplexANDFilter", func(t *testing.T) {
+		filterQuery := `framework = "pytorch" AND accuracy > 0.9`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test complex OR filter
+	t.Run("ComplexORFilter", func(t *testing.T) {
+		filterQuery := `framework = "pytorch" OR framework = "sklearn"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch and sklearn
+	})
+
+	// Test ILIKE operator
+	t.Run("ILIKEFilter", func(t *testing.T) {
+		filterQuery := `name ILIKE "%model%"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 3, len(result.Items)) // All model versions contain "model"
+	})
+
+	// Test mixed core and custom property filter
+	t.Run("MixedCoreAndCustomFilter", func(t *testing.T) {
+		filterQuery := `name ILIKE "%pytorch%" AND accuracy > 0.9`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+	})
+
+	// Test author property filtering
+	t.Run("AuthorPropertyFilter", func(t *testing.T) {
+		filterQuery := `author = "data-scientist-1"`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch and sklearn have data-scientist-1
+	})
+
+	// Test invalid filter query
+	t.Run("InvalidFilterQuery", func(t *testing.T) {
+		filterQuery := `invalid syntax =`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.Error(t, err)
+		require.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid filter query")
+	})
+
+	// Test with parentheses grouping
+	t.Run("ParenthesesGrouping", func(t *testing.T) {
+		filterQuery := `(framework = "pytorch" OR framework = "tensorflow") AND epoch_count > 40`
+		pageSize := int32(10)
+		listOptions := models.ModelVersionListOptions{
+			Pagination: models.Pagination{
+				PageSize:    &pageSize,
+				FilterQuery: &filterQuery,
+			},
+		}
+
+		result, err := modelVersionRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items)) // pytorch (100 epochs) and tensorflow (50 epochs)
+	})
+}
