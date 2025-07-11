@@ -6,23 +6,15 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getDocArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.DocArtifactTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find DocArtifact type")
-	return int64(typeRecord.ID)
-}
-
 func TestDocArtifactRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual DocArtifact type ID from the database
 	typeID := getDocArtifactTypeID(t, sharedDB)
@@ -99,6 +91,8 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact.ID = saved.GetID()
 		docArtifact.GetAttributes().Name = apiutils.Of("updated-doc-artifact")
 		docArtifact.GetAttributes().State = apiutils.Of("PENDING")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		docArtifact.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(docArtifact, savedModelVersion.GetID())
 		require.NoError(t, err)
@@ -270,7 +264,7 @@ func TestDocArtifactRepository(t *testing.T) {
 
 		// Test listing by model version ID
 		listOptions = models.DocArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 

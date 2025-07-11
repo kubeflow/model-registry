@@ -16,10 +16,20 @@ type ArtifactRepositoryImpl struct {
 	db                  *gorm.DB
 	modelArtifactTypeID int64
 	docArtifactTypeID   int64
+	dataSetTypeID       int64
+	metricTypeID        int64
+	parameterTypeID     int64
 }
 
-func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTypeID int64) models.ArtifactRepository {
-	return &ArtifactRepositoryImpl{db: db, modelArtifactTypeID: modelArtifactTypeID, docArtifactTypeID: docArtifactTypeID}
+func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTypeID int64, dataSetTypeID int64, metricTypeID int64, parameterTypeID int64) models.ArtifactRepository {
+	return &ArtifactRepositoryImpl{
+		db:                  db,
+		modelArtifactTypeID: modelArtifactTypeID,
+		docArtifactTypeID:   docArtifactTypeID,
+		dataSetTypeID:       dataSetTypeID,
+		metricTypeID:        metricTypeID,
+		parameterTypeID:     parameterTypeID,
+	}
 }
 
 func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
@@ -38,15 +48,13 @@ func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
 		return models.Artifact{}, fmt.Errorf("error getting properties by artifact id: %w", err)
 	}
 
-	if artifact.TypeID == int32(r.modelArtifactTypeID) {
-		modelArtifact := mapDataLayerToModelArtifact(*artifact, properties)
-
-		return models.Artifact{ModelArtifact: &modelArtifact}, nil
+	// Use the same logic as mapDataLayerToArtifact to handle all artifact types
+	mappedArtifact, err := r.mapDataLayerToArtifact(*artifact, properties)
+	if err != nil {
+		return models.Artifact{}, fmt.Errorf("error mapping artifact: %w", err)
 	}
 
-	docArtifact := mapDataLayerToDocArtifact(*artifact, properties)
-
-	return models.Artifact{DocArtifact: &docArtifact}, nil
+	return mappedArtifact, nil
 }
 
 func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*models.ListWrapper[models.Artifact], error) {
@@ -65,9 +73,9 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
 
-	if listOptions.ModelVersionID != nil {
+	if listOptions.ParentResourceID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ModelVersionID).
+			Where("Attribution.context_id = ?", listOptions.ParentResourceID).
 			Select("Artifact.*") // Explicitly select from Artifact table to avoid ambiguity
 		// Use table-prefixed pagination to avoid column ambiguity
 		query = query.Scopes(scopes.PaginateWithTablePrefix(artifacts, &listOptions.Pagination, r.db, "Artifact"))
@@ -94,7 +102,10 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 			return nil, fmt.Errorf("error getting properties by artifact id: %w", err)
 		}
 
-		artifact := r.mapDataLayerToArtifact(artifactArt, properties)
+		artifact, err := r.mapDataLayerToArtifact(artifactArt, properties)
+		if err != nil {
+			return nil, fmt.Errorf("error mapping artifact: %w", err)
+		}
 		artifacts = append(artifacts, artifact)
 	}
 
@@ -128,16 +139,28 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	return &list, nil
 }
 
-func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact, properties []schema.ArtifactProperty) models.Artifact {
+func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact, properties []schema.ArtifactProperty) (models.Artifact, error) {
 	artToReturn := models.Artifact{}
 
-	if artifact.TypeID == int32(r.modelArtifactTypeID) {
+	switch artifact.TypeID {
+	case int32(r.modelArtifactTypeID):
 		modelArtifact := mapDataLayerToModelArtifact(artifact, properties)
 		artToReturn.ModelArtifact = &modelArtifact
-	} else {
+	case int32(r.docArtifactTypeID):
 		docArtifact := mapDataLayerToDocArtifact(artifact, properties)
 		artToReturn.DocArtifact = &docArtifact
+	case int32(r.dataSetTypeID):
+		dataSet := mapDataLayerToDataSet(artifact, properties)
+		artToReturn.DataSet = &dataSet
+	case int32(r.metricTypeID):
+		metric := mapDataLayerToMetric(artifact, properties)
+		artToReturn.Metric = &metric
+	case int32(r.parameterTypeID):
+		parameter := mapDataLayerToParameter(artifact, properties)
+		artToReturn.Parameter = &parameter
+	default:
+		return models.Artifact{}, fmt.Errorf("invalid artifact type: %d", artifact.TypeID)
 	}
 
-	return artToReturn
+	return artToReturn, nil
 }

@@ -12,7 +12,8 @@ import (
 )
 
 func TestUpsertRegisteredModel(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
@@ -321,7 +322,8 @@ func TestUpsertRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModelById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// First create a model to retrieve
@@ -366,7 +368,8 @@ func TestGetRegisteredModelById(t *testing.T) {
 }
 
 func TestGetRegisteredModelByInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a registered model
@@ -418,7 +421,8 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 }
 
 func TestGetRegisteredModelByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
@@ -491,7 +495,8 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 }
 
 func TestGetRegisteredModels(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple models for listing
@@ -565,7 +570,8 @@ func TestGetRegisteredModels(t *testing.T) {
 }
 
 func TestRegisteredModelRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a model with all fields

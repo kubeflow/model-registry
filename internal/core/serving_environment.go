@@ -24,7 +24,7 @@ func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *open
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
+		withNotEditable, err := b.mapper.UpdateExistingServingEnvironment(converter.NewOpenapiUpdateWrapper(existing, servingEnvironment))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}

@@ -4,9 +4,9 @@ const DocArtifactType = "doc-artifact"
 
 type DocArtifactListOptions struct {
 	Pagination
-	Name           *string
-	ExternalID     *string
-	ModelVersionID *int32
+	Name             *string
+	ExternalID       *string
+	ParentResourceID *int32
 }
 
 type DocArtifactAttributes struct {
@@ -28,5 +28,5 @@ type DocArtifactImpl = BaseEntity[DocArtifactAttributes]
 type DocArtifactRepository interface {
 	GetByID(id int32) (DocArtifact, error)
 	List(listOptions DocArtifactListOptions) (*ListWrapper[DocArtifact], error)
-	Save(docArtifact DocArtifact, modelVersionID *int32) (DocArtifact, error)
+	Save(docArtifact DocArtifact, parentResourceID *int32) (DocArtifact, error)
 }

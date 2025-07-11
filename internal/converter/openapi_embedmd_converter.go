@@ -55,4 +55,34 @@ type OpenAPIToEmbedMDConverter interface {
 	// goverter:map Model Attributes | MapServeModelAttributesEmbedMD
 	// goverter:map . TypeID | MapServeModelTypeIDEmbedMD
 	ConvertServeModel(source *OpenAPIModelWrapper[openapi.ServeModel]) (*models.ServeModelImpl, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Properties | MapExperimentPropertiesEmbedMD
+	// goverter:map Model Attributes | MapExperimentAttributesEmbedMD
+	// goverter:map . TypeID | MapExperimentTypeIDEmbedMD
+	ConvertExperiment(source *OpenAPIModelWrapper[openapi.Experiment]) (*models.ExperimentImpl, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Properties | MapExperimentRunPropertiesEmbedMD
+	// goverter:map Model Attributes | MapExperimentRunAttributesEmbedMD
+	// goverter:map . TypeID | MapExperimentRunTypeIDEmbedMD
+	ConvertExperimentRun(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*models.ExperimentRunImpl, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Properties | MapDataSetPropertiesEmbedMD
+	// goverter:map Model Attributes | MapDataSetAttributesEmbedMD
+	// goverter:map . TypeID | MapDataSetTypeIDEmbedMD
+	ConvertDataSet(source *OpenAPIModelWrapper[openapi.DataSet]) (*models.DataSetImpl, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Properties | MapMetricPropertiesEmbedMD
+	// goverter:map Model Attributes | MapMetricAttributesEmbedMD
+	// goverter:map . TypeID | MapMetricTypeIDEmbedMD
+	ConvertMetric(source *OpenAPIModelWrapper[openapi.Metric]) (*models.MetricImpl, error)
+
+	// goverter:autoMap Model
+	// goverter:map Model Properties | MapParameterPropertiesEmbedMD
+	// goverter:map Model Attributes | MapParameterAttributesEmbedMD
+	// goverter:map . TypeID | MapParameterTypeIDEmbedMD
+	ConvertParameter(source *OpenAPIModelWrapper[openapi.Parameter]) (*models.ParameterImpl, error)
 }

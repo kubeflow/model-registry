@@ -90,7 +90,7 @@ func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
 
 	glog.Infof("Types retrieved")
 
-	artifactRepository := service.NewArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName])
+	artifactRepository := service.NewArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName])
 	modelArtifactRepository := service.NewModelArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepository := service.NewDocArtifactRepository(connectedDB, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepository := service.NewRegisteredModelRepository(connectedDB, typesMap[defaults.RegisteredModelTypeName])
@@ -98,6 +98,13 @@ func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
 	servingEnvironmentRepository := service.NewServingEnvironmentRepository(connectedDB, typesMap[defaults.ServingEnvironmentTypeName])
 	inferenceServiceRepository := service.NewInferenceServiceRepository(connectedDB, typesMap[defaults.InferenceServiceTypeName])
 	serveModelRepository := service.NewServeModelRepository(connectedDB, typesMap[defaults.ServeModelTypeName])
+	experimentRepository := service.NewExperimentRepository(connectedDB, typesMap[defaults.ExperimentTypeName])
+	experimentRunRepository := service.NewExperimentRunRepository(connectedDB, typesMap[defaults.ExperimentRunTypeName])
+
+	dataSetRepository := service.NewDataSetRepository(connectedDB, typesMap[defaults.DataSetTypeName])
+	metricRepository := service.NewMetricRepository(connectedDB, typesMap[defaults.MetricTypeName])
+	parameterRepository := service.NewParameterRepository(connectedDB, typesMap[defaults.ParameterTypeName])
+	metricHistoryRepository := service.NewMetricHistoryRepository(connectedDB, typesMap[defaults.MetricHistoryTypeName])
 
 	modelRegistryService := core.NewModelRegistryService(
 		artifactRepository,
@@ -108,6 +115,12 @@ func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
 		servingEnvironmentRepository,
 		inferenceServiceRepository,
 		serveModelRepository,
+		experimentRepository,
+		experimentRunRepository,
+		dataSetRepository,
+		metricRepository,
+		parameterRepository,
+		metricHistoryRepository,
 		typesMap,
 	)
 

@@ -25,7 +25,7 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+		withNotEditable, err := b.mapper.UpdateExistingModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}

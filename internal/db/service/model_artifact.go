@@ -43,7 +43,7 @@ func (r *ModelArtifactRepositoryImpl) GetByID(id int32) (models.ModelArtifact, e
 	return mapDataLayerToModelArtifact(*modelArtifact, properties), nil
 }
 
-func (r *ModelArtifactRepositoryImpl) Save(modelArtifact models.ModelArtifact, modelVersionID *int32) (models.ModelArtifact, error) {
+func (r *ModelArtifactRepositoryImpl) Save(modelArtifact models.ModelArtifact, parentResourceID *int32) (models.ModelArtifact, error) {
 	now := time.Now().UnixMilli()
 
 	modelArtifactArt := mapModelArtifactToArtifact(modelArtifact)
@@ -113,15 +113,15 @@ func (r *ModelArtifactRepositoryImpl) Save(modelArtifact models.ModelArtifact, m
 			}
 		}
 
-		if modelVersionID != nil {
+		if parentResourceID != nil {
 			// Check if attribution already exists to avoid duplicate key errors
 			var existingAttribution schema.Attribution
-			result := tx.Where("context_id = ? AND artifact_id = ?", *modelVersionID, modelArtifactArt.ID).First(&existingAttribution)
+			result := tx.Where("context_id = ? AND artifact_id = ?", *parentResourceID, modelArtifactArt.ID).First(&existingAttribution)
 
 			if result.Error == gorm.ErrRecordNotFound {
 				// Attribution doesn't exist, create it
 				attribution := schema.Attribution{
-					ContextID:  *modelVersionID,
+					ContextID:  *parentResourceID,
 					ArtifactID: modelArtifactArt.ID,
 				}
 
@@ -160,9 +160,9 @@ func (r *ModelArtifactRepositoryImpl) List(listOptions models.ModelArtifactListO
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
 
-	if listOptions.ModelVersionID != nil {
+	if listOptions.ParentResourceID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ModelVersionID)
+			Where("Attribution.context_id = ?", listOptions.ParentResourceID)
 		// Use table-prefixed pagination to avoid column ambiguity
 		query = query.Scopes(scopes.PaginateWithTablePrefix(modelArtifacts, &listOptions.Pagination, r.db, "Artifact"))
 	} else {

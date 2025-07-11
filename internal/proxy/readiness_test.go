@@ -1,10 +1,9 @@
 package proxy
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -13,48 +12,19 @@ import (
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/db"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"gorm.io/gorm"
 )
 
+func TestMain(m *testing.M) {
+	os.Exit(testutils.TestMainHelper(m))
+}
+
 func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
-	ctx := context.Background()
-
-	mysqlContainer, err := cont_mysql.Run(
-		ctx,
-		"mysql:8",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("root"),
-		cont_mysql.WithDatabase("test"),
-		cont_mysql.WithConfigFile(filepath.Join("testdata", "testdb.cnf")),
-	)
-	require.NoError(t, err)
-
-	dsn := mysqlContainer.MustConnectionString(ctx)
-
-	err = db.Init("mysql", dsn, nil)
-	require.NoError(t, err)
-
-	dbConnector, ok := db.GetConnector()
-	require.True(t, ok)
-
-	db, err := dbConnector.Connect()
-	require.NoError(t, err)
-
-	// Return cleanup function
-	cleanup := func() {
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
-		err = testcontainers.TerminateContainer(
-			mysqlContainer,
-		)
-		require.NoError(t, err)
-	}
-
+	db, cleanup := testutils.GetSharedMySQLDB(t)
+	dsn := testutils.GetSharedMySQLDSN(t)
 	return db, dsn, cleanup
 }
 
@@ -77,6 +47,11 @@ func TestReadinessHandler_NonEmbedMD(t *testing.T) {
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
+
+	// Initialize the global db connector
+	err := db.Init("mysql", dsn, nil)
+	require.NoError(t, err)
+	defer db.ClearConnector()
 
 	// run migrations to create tables
 	migrator, err := mysql.NewMySQLMigrator(testDB)
@@ -106,6 +81,11 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	testDB, dsn, cleanup := setupTestDB(t)
 	defer cleanup()
+
+	// Initialize the global db connector
+	err := db.Init("mysql", dsn, nil)
+	require.NoError(t, err)
+	defer db.ClearConnector()
 
 	// run migrations to create tables
 	migrator, err := mysql.NewMySQLMigrator(testDB)

@@ -24,7 +24,7 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
+		withNotEditable, err := b.mapper.UpdateExistingServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}

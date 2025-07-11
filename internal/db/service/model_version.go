@@ -56,7 +56,6 @@ func (r *ModelVersionRepositoryImpl) Save(modelVersion models.ModelVersion) (mod
 
 	if modelVersion.GetID() == nil {
 		glog.Info("Creating new ModelVersion")
-
 		modelVersionCtx.CreateTimeSinceEpoch = now
 	} else {
 		glog.Infof("Updating ModelVersion %d", *modelVersion.GetID())

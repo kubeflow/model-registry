@@ -13,7 +13,8 @@ import (
 )
 
 func TestUpsertArtifact(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create model artifact", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -153,7 +154,7 @@ func TestUpsertArtifact(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "invalid artifact type, must be either ModelArtifact or DocArtifact")
+		assert.Contains(t, err.Error(), "invalid artifact type, must be either ModelArtifact, DocArtifact, DataSet, Metric, or Parameter")
 	})
 
 	t.Run("unicode characters in model artifact name", func(t *testing.T) {
@@ -275,7 +276,7 @@ func TestUpsertArtifact(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := _service.GetArtifacts(listOptions, nil)
+		firstPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -310,7 +311,7 @@ func TestUpsertArtifact(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := _service.GetArtifacts(listOptions, nil)
+			secondPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -340,7 +341,7 @@ func TestUpsertArtifact(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := _service.GetArtifacts(listOptions, nil)
+		allItems, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
@@ -372,7 +373,7 @@ func TestUpsertArtifact(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := _service.GetArtifacts(listOptions, nil)
+		descPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -399,7 +400,9 @@ func TestUpsertArtifact(t *testing.T) {
 }
 
 func TestUpsertModelVersionArtifact(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
 	t.Run("successful create with model version", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &openapi.RegisteredModel{
@@ -623,7 +626,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+		firstPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -651,7 +654,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+			secondPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -672,7 +675,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+		allItems, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
@@ -699,7 +702,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+		descPage, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -724,7 +727,8 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 }
 
 func TestGetArtifactById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get model artifact", func(t *testing.T) {
 		// Create a model artifact first
@@ -799,7 +803,8 @@ func TestGetArtifactById(t *testing.T) {
 }
 
 func TestGetArtifactByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name and model version", func(t *testing.T) {
 		// Create registered model and model version
@@ -879,7 +884,8 @@ func TestGetArtifactByParams(t *testing.T) {
 }
 
 func TestGetArtifacts(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list all artifacts", func(t *testing.T) {
 		// Create multiple artifacts
@@ -914,7 +920,7 @@ func TestGetArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := _service.GetArtifacts(listOptions, nil)
+		result, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -954,7 +960,7 @@ func TestGetArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+		result, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -964,7 +970,7 @@ func TestGetArtifacts(t *testing.T) {
 	t.Run("invalid model version id", func(t *testing.T) {
 		listOptions := api.ListOptions{}
 
-		result, err := _service.GetArtifacts(listOptions, apiutils.Of("invalid"))
+		result, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, apiutils.Of("invalid"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -973,7 +979,8 @@ func TestGetArtifacts(t *testing.T) {
 }
 
 func TestUpsertModelArtifact(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -1138,7 +1145,8 @@ func TestUpsertModelArtifact(t *testing.T) {
 }
 
 func TestGetModelArtifactById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a model artifact
@@ -1193,7 +1201,8 @@ func TestGetModelArtifactById(t *testing.T) {
 }
 
 func TestGetModelArtifactByInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create the full chain: RegisteredModel -> ModelVersion -> InferenceService -> ModelArtifact
@@ -1286,7 +1295,8 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 }
 
 func TestGetModelArtifactByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by external id", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -1332,7 +1342,8 @@ func TestGetModelArtifactByParams(t *testing.T) {
 }
 
 func TestGetModelArtifacts(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list all model artifacts", func(t *testing.T) {
 		// Create multiple model artifacts
@@ -1412,7 +1423,8 @@ func TestGetModelArtifacts(t *testing.T) {
 }
 
 func TestArtifactRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create registered model and model version
@@ -1483,7 +1495,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		artifacts, err := _service.GetArtifacts(listOptions, createdVersion.Id)
+		artifacts, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, artifacts)
 		assert.Equal(t, 1, len(artifacts.Items))
@@ -1570,7 +1582,8 @@ func TestArtifactRoundTrip(t *testing.T) {
 }
 
 func TestModelArtifactNilFieldsPreservation(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("nil fields preserved during model artifact upsert", func(t *testing.T) {
 		// Create model artifact with only required fields, leaving optional fields as nil
@@ -1637,7 +1650,8 @@ func TestModelArtifactNilFieldsPreservation(t *testing.T) {
 }
 
 func TestDocArtifactNilFieldsPreservation(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("nil fields preserved during doc artifact upsert", func(t *testing.T) {
 		// Create doc artifact with only required fields, leaving optional fields as nil
@@ -1666,7 +1680,6 @@ func TestDocArtifactNilFieldsPreservation(t *testing.T) {
 		// Update the artifact while keeping nil fields as nil
 		created.DocArtifact.Uri = apiutils.Of("s3://bucket/updated-doc.pdf")
 		// Keep all other optional fields as nil
-
 		updated, err := _service.UpsertArtifact(created)
 		require.NoError(t, err)
 

@@ -4,9 +4,9 @@ const ModelArtifactType = "model-artifact"
 
 type ModelArtifactListOptions struct {
 	Pagination
-	Name           *string
-	ExternalID     *string
-	ModelVersionID *int32
+	Name             *string
+	ExternalID       *string
+	ParentResourceID *int32
 }
 
 type ModelArtifactAttributes struct {
@@ -28,5 +28,5 @@ type ModelArtifactImpl = BaseEntity[ModelArtifactAttributes]
 type ModelArtifactRepository interface {
 	GetByID(id int32) (ModelArtifact, error)
 	List(listOptions ModelArtifactListOptions) (*ListWrapper[ModelArtifact], error)
-	Save(modelArtifact ModelArtifact, modelVersionID *int32) (ModelArtifact, error)
+	Save(modelArtifact ModelArtifact, parentResourceID *int32) (ModelArtifact, error)
 }

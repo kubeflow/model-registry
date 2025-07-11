@@ -12,7 +12,8 @@ import (
 )
 
 func TestUpsertServeModel(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		// Create prerequisites: registered model, serving environment, model version, and inference service
@@ -594,7 +595,8 @@ func TestUpsertServeModel(t *testing.T) {
 }
 
 func TestGetServeModelById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create prerequisites
@@ -668,7 +670,8 @@ func TestGetServeModelById(t *testing.T) {
 }
 
 func TestGetServeModels(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create prerequisites
@@ -903,7 +906,8 @@ func TestGetServeModels(t *testing.T) {
 }
 
 func TestServeModelRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create prerequisites

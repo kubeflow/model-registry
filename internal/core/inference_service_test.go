@@ -13,7 +13,8 @@ import (
 )
 
 func TestUpsertInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		// Create prerequisites: registered model and serving environment
@@ -485,7 +486,8 @@ func TestUpsertInferenceService(t *testing.T) {
 }
 
 func TestGetInferenceServiceById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create prerequisites
@@ -545,7 +547,8 @@ func TestGetInferenceServiceById(t *testing.T) {
 }
 
 func TestGetInferenceServiceByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name and parent resource id", func(t *testing.T) {
 		// Create prerequisites
@@ -633,7 +636,8 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 }
 
 func TestGetInferenceServices(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create prerequisites
@@ -881,7 +885,8 @@ func TestGetInferenceServices(t *testing.T) {
 }
 
 func TestInferenceServiceRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create prerequisites

@@ -6,23 +6,15 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getServeModelTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.ServeModelTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find ServeModel type")
-	return int64(typeRecord.ID)
-}
-
 func TestServeModelRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual ServeModel type ID from the database
 	typeID := getServeModelTypeID(t, sharedDB)

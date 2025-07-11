@@ -1,7 +1,7 @@
 package models
 
 var (
-	SupportedArtifactTypes = []string{ModelArtifactType, DocArtifactType}
+	SupportedArtifactTypes = []string{ModelArtifactType, DocArtifactType, DataSetType, MetricType, ParameterType}
 
 	Artifact_State_name = map[int32]string{
 		0: "UNKNOWN",
@@ -25,14 +25,17 @@ var (
 
 type ArtifactListOptions struct {
 	Pagination
-	Name           *string
-	ExternalID     *string
-	ModelVersionID *int32
+	Name             *string
+	ExternalID       *string
+	ParentResourceID *int32
 }
 
 type Artifact struct {
 	ModelArtifact *ModelArtifact
 	DocArtifact   *DocArtifact
+	DataSet       *DataSet
+	Metric        *Metric
+	Parameter     *Parameter
 }
 
 type ArtifactRepository interface {

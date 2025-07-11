@@ -46,15 +46,14 @@ func (r *InferenceServiceRepositoryImpl) GetByID(id int32) (models.InferenceServ
 func (r *InferenceServiceRepositoryImpl) Save(inferenceService models.InferenceService) (models.InferenceService, error) {
 	now := time.Now().UnixMilli()
 
-	infSvcCtx := mapInferenceServiceToContext(inferenceService)
+	inferenceServiceCtx := mapInferenceServiceToContext(inferenceService)
 	propertiesCtx := []schema.ContextProperty{}
 
-	infSvcCtx.LastUpdateTimeSinceEpoch = now
+	inferenceServiceCtx.LastUpdateTimeSinceEpoch = now
 
 	if inferenceService.GetID() == nil {
 		glog.Info("Creating new InferenceService")
-
-		infSvcCtx.CreateTimeSinceEpoch = now
+		inferenceServiceCtx.CreateTimeSinceEpoch = now
 	} else {
 		glog.Infof("Updating InferenceService %d", *inferenceService.GetID())
 	}
@@ -62,14 +61,14 @@ func (r *InferenceServiceRepositoryImpl) Save(inferenceService models.InferenceS
 	hasCustomProperties := inferenceService.GetCustomProperties() != nil
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(&infSvcCtx).Error; err != nil {
+		if err := tx.Save(&inferenceServiceCtx).Error; err != nil {
 			return fmt.Errorf("error saving inference service context: %w", err)
 		}
 
-		propertiesCtx = mapInferenceServiceToContextProperties(inferenceService, infSvcCtx.ID)
+		propertiesCtx = mapInferenceServiceToContextProperties(inferenceService, inferenceServiceCtx.ID)
 		existingCustomPropertiesCtx := []schema.ContextProperty{}
 
-		if err := tx.Where("context_id = ? AND is_custom_property = ?", infSvcCtx.ID, true).Find(&existingCustomPropertiesCtx).Error; err != nil {
+		if err := tx.Where("context_id = ? AND is_custom_property = ?", inferenceServiceCtx.ID, true).Find(&existingCustomPropertiesCtx).Error; err != nil {
 			return fmt.Errorf("error getting existing custom properties by inference service id: %w", err)
 		}
 
@@ -122,7 +121,7 @@ func (r *InferenceServiceRepositoryImpl) Save(inferenceService models.InferenceS
 		}
 
 		parentsCtx := schema.ParentContext{
-			ContextID:       infSvcCtx.ID,
+			ContextID:       inferenceServiceCtx.ID,
 			ParentContextID: servEnvID,
 		}
 
@@ -136,7 +135,7 @@ func (r *InferenceServiceRepositoryImpl) Save(inferenceService models.InferenceS
 		return nil, err
 	}
 
-	return mapDataLayerToInferenceService(infSvcCtx, propertiesCtx), nil
+	return mapDataLayerToInferenceService(inferenceServiceCtx, propertiesCtx), nil
 }
 
 func (r *InferenceServiceRepositoryImpl) List(listOptions models.InferenceServiceListOptions) (*models.ListWrapper[models.InferenceService], error) {

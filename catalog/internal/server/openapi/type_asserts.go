@@ -16,6 +16,16 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
+// AssertArtifactTypeQueryParamConstraints checks if the values respects the defined constraints
+func AssertArtifactTypeQueryParamConstraints(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
+// AssertArtifactTypeQueryParamRequired checks if the required fields are not zero-ed
+func AssertArtifactTypeQueryParamRequired(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
 // AssertBaseModelConstraints checks if the values respects the defined constraints
 func AssertBaseModelConstraints(obj model.BaseModel) error {
 	return nil

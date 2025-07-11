@@ -7,17 +7,22 @@ import (
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestArtifactRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual type IDs from the database
 	modelArtifactTypeID := getModelArtifactTypeID(t, sharedDB)
 	docArtifactTypeID := getDocArtifactTypeID(t, sharedDB)
-	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID)
+	dataSetTypeID := getDataSetTypeID(t, sharedDB)
+	metricTypeID := getMetricTypeID(t, sharedDB)
+	parameterTypeID := getParameterTypeID(t, sharedDB)
+	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID, dataSetTypeID, metricTypeID, parameterTypeID)
 
 	// Also get other type IDs for creating related entities
 	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
@@ -236,7 +241,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Test listing by model version ID
 		listOptions = models.ArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -472,7 +477,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Test filtering by model version ID (should NOT include standalone artifacts)
 		listOptions = models.ArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 

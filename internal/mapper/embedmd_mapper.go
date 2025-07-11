@@ -14,15 +14,17 @@ type EmbedMDMapper struct {
 	openAPIConverter converter.OpenAPIToEmbedMDConverter
 	embedMDConverter converter.EmbedMDToOpenAPIConverter
 	*generated.OpenAPIConverterImpl
+	*generated.OpenAPIReconcilerImpl
 	typesMap map[string]int64
 }
 
 func NewEmbedMDMapper(typesMap map[string]int64) *EmbedMDMapper {
 	return &EmbedMDMapper{
-		openAPIConverter:     &generated.OpenAPIToEmbedMDConverterImpl{},
-		embedMDConverter:     &generated.EmbedMDToOpenAPIConverterImpl{},
-		OpenAPIConverterImpl: &generated.OpenAPIConverterImpl{},
-		typesMap:             typesMap,
+		openAPIConverter:      &generated.OpenAPIToEmbedMDConverterImpl{},
+		embedMDConverter:      &generated.EmbedMDToOpenAPIConverterImpl{},
+		OpenAPIConverterImpl:  &generated.OpenAPIConverterImpl{},
+		OpenAPIReconcilerImpl: &generated.OpenAPIReconcilerImpl{},
+		typesMap:              typesMap,
 	}
 }
 
@@ -75,6 +77,41 @@ func (e *EmbedMDMapper) MapFromServeModel(serveModel *openapi.ServeModel) (model
 	return e.openAPIConverter.ConvertServeModel(&converter.OpenAPIModelWrapper[openapi.ServeModel]{
 		TypeId: e.typesMap[defaults.ServeModelTypeName],
 		Model:  serveModel,
+	})
+}
+
+func (e *EmbedMDMapper) MapFromExperiment(experiment *openapi.Experiment) (models.Experiment, error) {
+	return e.openAPIConverter.ConvertExperiment(&converter.OpenAPIModelWrapper[openapi.Experiment]{
+		TypeId: e.typesMap[defaults.ExperimentTypeName],
+		Model:  experiment,
+	})
+}
+
+func (e *EmbedMDMapper) MapFromExperimentRun(experimentRun *openapi.ExperimentRun) (models.ExperimentRun, error) {
+	return e.openAPIConverter.ConvertExperimentRun(&converter.OpenAPIModelWrapper[openapi.ExperimentRun]{
+		TypeId: e.typesMap[defaults.ExperimentRunTypeName],
+		Model:  experimentRun,
+	})
+}
+
+func (e *EmbedMDMapper) MapFromMetric(metric *openapi.Metric) (models.Metric, error) {
+	return e.openAPIConverter.ConvertMetric(&converter.OpenAPIModelWrapper[openapi.Metric]{
+		TypeId: e.typesMap[defaults.MetricTypeName],
+		Model:  metric,
+	})
+}
+
+func (e *EmbedMDMapper) MapFromParameter(parameter *openapi.Parameter) (models.Parameter, error) {
+	return e.openAPIConverter.ConvertParameter(&converter.OpenAPIModelWrapper[openapi.Parameter]{
+		TypeId: e.typesMap[defaults.ParameterTypeName],
+		Model:  parameter,
+	})
+}
+
+func (e *EmbedMDMapper) MapFromDataSet(dataSet *openapi.DataSet) (models.DataSet, error) {
+	return e.openAPIConverter.ConvertDataSet(&converter.OpenAPIModelWrapper[openapi.DataSet]{
+		TypeId: e.typesMap[defaults.DataSetTypeName],
+		Model:  dataSet,
 	})
 }
 
@@ -151,5 +188,103 @@ func (e *EmbedMDMapper) MapToServeModel(serveModel models.ServeModel) (*openapi.
 		Attributes:       serveModel.GetAttributes(),
 		Properties:       serveModel.GetProperties(),
 		CustomProperties: serveModel.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToExperiment(experiment models.Experiment) (*openapi.Experiment, error) {
+	if experiment == nil {
+		return nil, fmt.Errorf("experiment is nil")
+	}
+
+	return e.embedMDConverter.ConvertExperiment(&models.ExperimentImpl{
+		ID:               experiment.GetID(),
+		TypeID:           experiment.GetTypeID(),
+		Attributes:       experiment.GetAttributes(),
+		Properties:       experiment.GetProperties(),
+		CustomProperties: experiment.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToExperimentRun(experimentRun models.ExperimentRun) (*openapi.ExperimentRun, error) {
+	if experimentRun == nil {
+		return nil, fmt.Errorf("experiment run is nil")
+	}
+
+	return e.embedMDConverter.ConvertExperimentRun(&models.ExperimentRunImpl{
+		ID:               experimentRun.GetID(),
+		TypeID:           experimentRun.GetTypeID(),
+		Attributes:       experimentRun.GetAttributes(),
+		Properties:       experimentRun.GetProperties(),
+		CustomProperties: experimentRun.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToMetric(metricHistory models.MetricHistory) (*openapi.Metric, error) {
+	if metricHistory == nil {
+		return nil, fmt.Errorf("metric history is nil")
+	}
+
+	// Convert MetricHistoryAttributes to MetricAttributes
+	var metricAttributes *models.MetricAttributes
+	if metricHistory.GetAttributes() != nil {
+		metricAttributes = &models.MetricAttributes{
+			Name:                     metricHistory.GetAttributes().Name,
+			URI:                      metricHistory.GetAttributes().URI,
+			State:                    metricHistory.GetAttributes().State,
+			ArtifactType:             metricHistory.GetAttributes().ArtifactType,
+			ExternalID:               metricHistory.GetAttributes().ExternalID,
+			CreateTimeSinceEpoch:     metricHistory.GetAttributes().CreateTimeSinceEpoch,
+			LastUpdateTimeSinceEpoch: metricHistory.GetAttributes().LastUpdateTimeSinceEpoch,
+		}
+	}
+
+	return e.embedMDConverter.ConvertMetric(&models.MetricImpl{
+		ID:               metricHistory.GetID(),
+		TypeID:           metricHistory.GetTypeID(),
+		Attributes:       metricAttributes,
+		Properties:       metricHistory.GetProperties(),
+		CustomProperties: metricHistory.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToMetricFromMetric(metric models.Metric) (*openapi.Metric, error) {
+	if metric == nil {
+		return nil, fmt.Errorf("metric is nil")
+	}
+
+	return e.embedMDConverter.ConvertMetric(&models.MetricImpl{
+		ID:               metric.GetID(),
+		TypeID:           metric.GetTypeID(),
+		Attributes:       metric.GetAttributes(),
+		Properties:       metric.GetProperties(),
+		CustomProperties: metric.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToDataSet(dataSet models.DataSet) (*openapi.DataSet, error) {
+	if dataSet == nil {
+		return nil, fmt.Errorf("data set is nil")
+	}
+
+	return e.embedMDConverter.ConvertDataSet(&models.DataSetImpl{
+		ID:               dataSet.GetID(),
+		TypeID:           dataSet.GetTypeID(),
+		Attributes:       dataSet.GetAttributes(),
+		Properties:       dataSet.GetProperties(),
+		CustomProperties: dataSet.GetCustomProperties(),
+	})
+}
+
+func (e *EmbedMDMapper) MapToParameter(parameter models.Parameter) (*openapi.Parameter, error) {
+	if parameter == nil {
+		return nil, fmt.Errorf("parameter is nil")
+	}
+
+	return e.embedMDConverter.ConvertParameter(&models.ParameterImpl{
+		ID:               parameter.GetID(),
+		TypeID:           parameter.GetTypeID(),
+		Attributes:       parameter.GetAttributes(),
+		Properties:       parameter.GetProperties(),
+		CustomProperties: parameter.GetCustomProperties(),
 	})
 }

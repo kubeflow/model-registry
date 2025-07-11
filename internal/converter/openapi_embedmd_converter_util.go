@@ -736,3 +736,425 @@ func MapServeModelAttributesEmbedMD(source *openapi.ServeModel) (*models.ServeMo
 
 	return attributes, nil
 }
+
+// MapExperimentTypeIDEmbedMD maps Experiment type id to embedmd one
+func MapExperimentTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Experiment]) (*int32, error) {
+	return Int64ToInt32(&source.TypeId)
+}
+
+// MapExperimentPropertiesEmbedMD maps Experiment fields to specific embedmd properties
+func MapExperimentPropertiesEmbedMD(source *openapi.Experiment) (*[]models.Properties, error) {
+	props := make([]models.Properties, 0)
+	if source != nil {
+		if source.Description != nil {
+			props = append(props, models.Properties{
+				Name:             "description",
+				IsCustomProperty: false,
+				StringValue:      source.Description,
+			})
+		}
+
+		if source.Owner != nil {
+			props = append(props, models.Properties{
+				Name:             "owner",
+				IsCustomProperty: false,
+				StringValue:      source.Owner,
+			})
+		}
+
+		if source.State != nil {
+			props = append(props, models.Properties{
+				Name:             "state",
+				IsCustomProperty: false,
+				StringValue:      of(string(*source.State)),
+			})
+		}
+	}
+
+	return &props, nil
+}
+
+// MapExperimentAttributesEmbedMD maps Experiment attributes to specific embedmd properties
+func MapExperimentAttributesEmbedMD(source *openapi.Experiment) (*models.ExperimentAttributes, error) {
+	attributes := &models.ExperimentAttributes{}
+
+	if source != nil {
+		attributes.Name = &source.Name
+		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
+		}
+
+		attributes.ExternalID = source.ExternalId
+
+		attributes.CreateTimeSinceEpoch = createdTime
+
+		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
+		}
+
+		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
+	}
+
+	return attributes, nil
+}
+
+// MapExperimentRunTypeIDEmbedMD maps ExperimentRun type id to embedmd one
+func MapExperimentRunTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*int32, error) {
+	return Int64ToInt32(&source.TypeId)
+}
+
+// MapExperimentRunPropertiesEmbedMD maps ExperimentRun fields to specific embedmd properties
+func MapExperimentRunPropertiesEmbedMD(source *openapi.ExperimentRun) (*[]models.Properties, error) {
+	props := make([]models.Properties, 0)
+	if source != nil {
+		if source.Description != nil {
+			props = append(props, models.Properties{
+				Name:             "description",
+				IsCustomProperty: false,
+				StringValue:      source.Description,
+			})
+		}
+
+		if source.Owner != nil {
+			props = append(props, models.Properties{
+				Name:             "owner",
+				IsCustomProperty: false,
+				StringValue:      source.Owner,
+			})
+		}
+
+		if source.State != nil {
+			props = append(props, models.Properties{
+				Name:             "state",
+				IsCustomProperty: false,
+				StringValue:      of(string(*source.State)),
+			})
+		}
+
+		if source.Status != nil {
+			props = append(props, models.Properties{
+				Name:             "status",
+				IsCustomProperty: false,
+				StringValue:      of(string(*source.Status)),
+			})
+		}
+
+		if source.StartTimeSinceEpoch != nil {
+			props = append(props, models.Properties{
+				Name:             "start_time_since_epoch",
+				IsCustomProperty: false,
+				StringValue:      source.StartTimeSinceEpoch,
+			})
+		}
+
+		if source.EndTimeSinceEpoch != nil {
+			props = append(props, models.Properties{
+				Name:             "end_time_since_epoch",
+				IsCustomProperty: false,
+				StringValue:      source.EndTimeSinceEpoch,
+			})
+		}
+
+		if source.ExperimentId != "" {
+			experimentId, err := StringToInt32(source.ExperimentId)
+			if err != nil {
+				return nil, err
+			}
+			props = append(props, models.Properties{
+				Name:             "experiment_id",
+				IsCustomProperty: false,
+				IntValue:         &experimentId,
+			})
+		} else {
+			return nil, fmt.Errorf("missing required ExperimentId field")
+		}
+	}
+
+	return &props, nil
+}
+
+// MapExperimentRunAttributesEmbedMD maps ExperimentRun attributes to specific embedmd properties
+func MapExperimentRunAttributesEmbedMD(source *openapi.ExperimentRun) (*models.ExperimentRunAttributes, error) {
+	attributes := &models.ExperimentRunAttributes{}
+
+	if source != nil {
+		attributes.Name = source.Name
+		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
+		}
+
+		attributes.ExternalID = source.ExternalId
+
+		attributes.CreateTimeSinceEpoch = createdTime
+
+		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
+		}
+
+		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
+	}
+
+	return attributes, nil
+}
+
+// MapDataSetTypeIDEmbedMD maps DataSet type id to embedmd one
+func MapDataSetTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.DataSet]) (*int32, error) {
+	return Int64ToInt32(&source.TypeId)
+}
+
+// MapDataSetPropertiesEmbedMD maps DataSet fields to specific embedmd properties
+func MapDataSetPropertiesEmbedMD(source *openapi.DataSet) (*[]models.Properties, error) {
+	props := make([]models.Properties, 0)
+	if source != nil {
+		if source.Description != nil {
+			props = append(props, models.Properties{
+				Name:             "description",
+				IsCustomProperty: false,
+				StringValue:      source.Description,
+			})
+		}
+
+		if source.Digest != nil {
+			props = append(props, models.Properties{
+				Name:             "digest",
+				IsCustomProperty: false,
+				StringValue:      source.Digest,
+			})
+		}
+
+		if source.SourceType != nil {
+			props = append(props, models.Properties{
+				Name:             "source_type",
+				IsCustomProperty: false,
+				StringValue:      source.SourceType,
+			})
+		}
+
+		if source.Source != nil {
+			props = append(props, models.Properties{
+				Name:             "source",
+				IsCustomProperty: false,
+				StringValue:      source.Source,
+			})
+		}
+
+		if source.Schema != nil {
+			props = append(props, models.Properties{
+				Name:             "schema",
+				IsCustomProperty: false,
+				StringValue:      source.Schema,
+			})
+		}
+
+		if source.Profile != nil {
+			props = append(props, models.Properties{
+				Name:             "profile",
+				IsCustomProperty: false,
+				StringValue:      source.Profile,
+			})
+		}
+	}
+
+	return &props, nil
+}
+
+// MapDataSetAttributesEmbedMD maps DataSet attributes to specific embedmd properties
+func MapDataSetAttributesEmbedMD(source *openapi.DataSet) (*models.DataSetAttributes, error) {
+	attributes := &models.DataSetAttributes{}
+
+	if source != nil {
+		attributes.Name = source.Name
+
+		attributes.URI = source.Uri
+
+		if source.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+			}
+			attributes.State = &state
+		}
+
+		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
+		}
+
+		attributes.ExternalID = source.ExternalId
+
+		attributes.CreateTimeSinceEpoch = createdTime
+
+		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
+		}
+
+		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
+	}
+
+	return attributes, nil
+}
+
+// MapMetricTypeIDEmbedMD maps Metric type id to embedmd one
+func MapMetricTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Metric]) (*int32, error) {
+	return Int64ToInt32(&source.TypeId)
+}
+
+// MapMetricPropertiesEmbedMD maps Metric fields to specific embedmd properties
+func MapMetricPropertiesEmbedMD(source *openapi.Metric) (*[]models.Properties, error) {
+	props := make([]models.Properties, 0)
+	if source != nil {
+		if source.Description != nil {
+			props = append(props, models.Properties{
+				Name:             "description",
+				IsCustomProperty: false,
+				StringValue:      source.Description,
+			})
+		}
+
+		if source.Value != nil {
+			props = append(props, models.Properties{
+				Name:             "value",
+				IsCustomProperty: false,
+				DoubleValue:      source.Value,
+			})
+		}
+
+		if source.Timestamp != nil {
+			props = append(props, models.Properties{
+				Name:             "timestamp",
+				IsCustomProperty: false,
+				StringValue:      source.Timestamp,
+			})
+		}
+
+		if source.Step != nil {
+			stepInt32 := int32(*source.Step)
+			props = append(props, models.Properties{
+				Name:             "step",
+				IsCustomProperty: false,
+				IntValue:         &stepInt32,
+			})
+		}
+	}
+
+	return &props, nil
+}
+
+// MapMetricAttributesEmbedMD maps Metric attributes to specific embedmd properties
+func MapMetricAttributesEmbedMD(source *openapi.Metric) (*models.MetricAttributes, error) {
+	attributes := &models.MetricAttributes{}
+
+	if source != nil {
+		attributes.Name = source.Name
+
+		// Note: Metric artifacts don't have a URI field in the OpenAPI spec
+		attributes.URI = nil
+
+		if source.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+			}
+			attributes.State = &state
+		}
+
+		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
+		}
+
+		attributes.ExternalID = source.ExternalId
+
+		attributes.CreateTimeSinceEpoch = createdTime
+
+		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
+		}
+
+		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
+	}
+
+	return attributes, nil
+}
+
+// MapParameterTypeIDEmbedMD maps Parameter type id to embedmd one
+func MapParameterTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Parameter]) (*int32, error) {
+	return Int64ToInt32(&source.TypeId)
+}
+
+// MapParameterPropertiesEmbedMD maps Parameter fields to specific embedmd properties
+func MapParameterPropertiesEmbedMD(source *openapi.Parameter) (*[]models.Properties, error) {
+	props := make([]models.Properties, 0)
+	if source != nil {
+		if source.Description != nil {
+			props = append(props, models.Properties{
+				Name:             "description",
+				IsCustomProperty: false,
+				StringValue:      source.Description,
+			})
+		}
+
+		if source.Value != nil {
+			props = append(props, models.Properties{
+				Name:             "value",
+				IsCustomProperty: false,
+				StringValue:      source.Value,
+			})
+		}
+
+		if source.ParameterType != nil {
+			parameterTypeStr := string(*source.ParameterType)
+			props = append(props, models.Properties{
+				Name:             "parameter_type",
+				IsCustomProperty: false,
+				StringValue:      &parameterTypeStr,
+			})
+		}
+	}
+
+	return &props, nil
+}
+
+// MapParameterAttributesEmbedMD maps Parameter attributes to specific embedmd properties
+func MapParameterAttributesEmbedMD(source *openapi.Parameter) (*models.ParameterAttributes, error) {
+	attributes := &models.ParameterAttributes{}
+
+	if source != nil {
+		attributes.Name = source.Name
+
+		// Note: Parameter artifacts don't have a URI field in the OpenAPI spec
+		attributes.URI = nil
+
+		if source.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+			if !ok {
+				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+			}
+			attributes.State = &state
+		}
+
+		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
+		}
+
+		attributes.ExternalID = source.ExternalId
+
+		attributes.CreateTimeSinceEpoch = createdTime
+
+		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
+		}
+
+		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
+	}
+
+	return attributes, nil
+}

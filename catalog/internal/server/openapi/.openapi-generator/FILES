@@ -4,6 +4,7 @@ error.go
 helpers.go
 impl.go
 logger.go
+model_artifact_type_query_param.go
 model_base_model.go
 model_base_resource_dates.go
 model_base_resource_list.go

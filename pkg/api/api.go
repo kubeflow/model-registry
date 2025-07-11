@@ -61,7 +61,7 @@ type ModelRegistryApi interface {
 
 	GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error)
 
-	GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
+	GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, parentResourceId *string) (*openapi.ArtifactList, error)
 
 	// MODEL ARTIFACT
 
