@@ -2,222 +2,51 @@ package service
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
-	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"gorm.io/gorm"
 )
 
 var ErrDataSetNotFound = errors.New("dataset by id not found")
 
 type DataSetRepositoryImpl struct {
-	db     *gorm.DB
-	typeID int64
+	*GenericRepository[models.DataSet, schema.Artifact, schema.ArtifactProperty, *models.DataSetListOptions]
 }
 
 func NewDataSetRepository(db *gorm.DB, typeID int64) models.DataSetRepository {
-	return &DataSetRepositoryImpl{db: db, typeID: typeID}
+	config := GenericRepositoryConfig[models.DataSet, schema.Artifact, schema.ArtifactProperty, *models.DataSetListOptions]{
+		DB:                  db,
+		TypeID:              typeID,
+		EntityToSchema:      mapDataSetToArtifact,
+		SchemaToEntity:      mapDataLayerToDataSet,
+		EntityToProperties:  mapDataSetToArtifactProperties,
+		NotFoundError:       ErrDataSetNotFound,
+		EntityName:          "dataset",
+		PropertyFieldName:   "artifact_id",
+		ApplyListFilters:    applyDataSetListFilters,
+		IsNewEntity:         func(entity models.DataSet) bool { return entity.GetID() == nil },
+		HasCustomProperties: func(entity models.DataSet) bool { return entity.GetCustomProperties() != nil },
+	}
+
+	return &DataSetRepositoryImpl{
+		GenericRepository: NewGenericRepository(config),
+	}
 }
 
-func (r *DataSetRepositoryImpl) GetByID(id int32) (models.DataSet, error) {
-	dataSet := &schema.Artifact{}
-	properties := []schema.ArtifactProperty{}
-
-	if err := r.db.Where("id = ? AND type_id = ?", id, r.typeID).First(dataSet).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("%w: %v", ErrDataSetNotFound, err)
-		}
-		return nil, fmt.Errorf("error getting dataset by id: %w", err)
-	}
-
-	if err := r.db.Where("artifact_id = ?", dataSet.ID).Find(&properties).Error; err != nil {
-		return nil, fmt.Errorf("error getting properties by dataset id: %w", err)
-	}
-
-	return mapDataLayerToDataSet(*dataSet, properties), nil
-}
-
-func (r *DataSetRepositoryImpl) Save(dataSet models.DataSet, parentResourceID *int32) (models.DataSet, error) {
-	now := time.Now().UnixMilli()
-
-	dataSetArt := mapDataSetToArtifact(dataSet)
-	properties := mapDataSetToArtifactProperties(dataSet, dataSetArt.ID)
-
-	dataSetArt.LastUpdateTimeSinceEpoch = now
-
-	if dataSet.GetID() == nil {
-		glog.Info("Creating new DataSet")
-		dataSetArt.CreateTimeSinceEpoch = now
-	} else {
-		glog.Infof("Updating DataSet %d", *dataSet.GetID())
-	}
-
-	hasCustomProperties := dataSet.GetCustomProperties() != nil
-
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(&dataSetArt).Error; err != nil {
-			return fmt.Errorf("error saving dataset: %w", err)
-		}
-
-		properties = mapDataSetToArtifactProperties(dataSet, dataSetArt.ID)
-		existingCustomProperties := []schema.ArtifactProperty{}
-
-		if err := tx.Where("artifact_id = ? AND is_custom_property = ?", dataSetArt.ID, true).Find(&existingCustomProperties).Error; err != nil {
-			return fmt.Errorf("error getting existing custom properties by dataset id: %w", err)
-		}
-
-		if hasCustomProperties {
-			for _, existingProp := range existingCustomProperties {
-				found := false
-				for _, prop := range properties {
-					if prop.Name == existingProp.Name && prop.ArtifactID == existingProp.ArtifactID && prop.IsCustomProperty == existingProp.IsCustomProperty {
-						found = true
-						break
-					}
-				}
-
-				if !found {
-					if err := tx.Delete(&existingProp).Error; err != nil {
-						return fmt.Errorf("error deleting dataset property: %w", err)
-					}
-				}
-			}
-		}
-
-		for _, prop := range properties {
-			var existingProp schema.ArtifactProperty
-			result := tx.Where("artifact_id = ? AND name = ? AND is_custom_property = ?",
-				prop.ArtifactID, prop.Name, prop.IsCustomProperty).First(&existingProp)
-
-			switch result.Error {
-			case nil:
-				prop.ArtifactID = existingProp.ArtifactID
-				prop.Name = existingProp.Name
-				prop.IsCustomProperty = existingProp.IsCustomProperty
-				if err := tx.Model(&existingProp).Updates(prop).Error; err != nil {
-					return fmt.Errorf("error updating dataset property: %w", err)
-				}
-			case gorm.ErrRecordNotFound:
-				if err := tx.Create(&prop).Error; err != nil {
-					return fmt.Errorf("error creating dataset property: %w", err)
-				}
-			default:
-				return fmt.Errorf("error checking existing property: %w", result.Error)
-			}
-		}
-
-		if parentResourceID != nil {
-			// Check if attribution already exists to avoid duplicate key errors
-			var existingAttribution schema.Attribution
-			result := tx.Where("context_id = ? AND artifact_id = ?", *parentResourceID, dataSetArt.ID).First(&existingAttribution)
-
-			if result.Error == gorm.ErrRecordNotFound {
-				// Attribution doesn't exist, create it
-				attribution := schema.Attribution{
-					ContextID:  *parentResourceID,
-					ArtifactID: dataSetArt.ID,
-				}
-
-				if err := tx.Create(&attribution).Error; err != nil {
-					return fmt.Errorf("error creating attribution: %w", err)
-				}
-			} else if result.Error != nil {
-				return fmt.Errorf("error checking existing attribution: %w", result.Error)
-			}
-			// If attribution already exists, do nothing
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return mapDataLayerToDataSet(dataSetArt, properties), nil
-}
-
+// List adapts the generic repository List method to match the interface contract
 func (r *DataSetRepositoryImpl) List(listOptions models.DataSetListOptions) (*models.ListWrapper[models.DataSet], error) {
-	list := models.ListWrapper[models.DataSet]{
-		PageSize: listOptions.GetPageSize(),
-	}
+	return r.GenericRepository.List(&listOptions)
+}
 
-	dataSets := []models.DataSet{}
-	dataSetsArt := []schema.Artifact{}
-
-	query := r.db.Model(&schema.Artifact{}).Where("type_id = ?", r.typeID)
-
+func applyDataSetListFilters(query *gorm.DB, listOptions *models.DataSetListOptions) *gorm.DB {
 	if listOptions.Name != nil {
 		query = query.Where("name = ?", listOptions.Name)
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
-
-	if listOptions.ParentResourceID != nil {
-		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ParentResourceID)
-		// Use table-prefixed pagination to avoid column ambiguity
-		query = query.Scopes(scopes.PaginateWithTablePrefix(dataSets, &listOptions.Pagination, r.db, "Artifact"))
-	} else {
-		query = query.Scopes(scopes.Paginate(dataSets, &listOptions.Pagination, r.db))
-	}
-
-	if err := query.Find(&dataSetsArt).Error; err != nil {
-		return nil, fmt.Errorf("error listing datasets: %w", err)
-	}
-
-	hasMore := false
-	pageSize := listOptions.GetPageSize()
-	if pageSize > 0 {
-		hasMore = len(dataSetsArt) > int(pageSize)
-		if hasMore {
-			dataSetsArt = dataSetsArt[:len(dataSetsArt)-1]
-		}
-	}
-
-	for _, dataSetArt := range dataSetsArt {
-		properties := []schema.ArtifactProperty{}
-		if err := r.db.Where("artifact_id = ?", dataSetArt.ID).Find(&properties).Error; err != nil {
-			return nil, fmt.Errorf("error getting properties by dataset id: %w", err)
-		}
-
-		dataSet := mapDataLayerToDataSet(dataSetArt, properties)
-		dataSets = append(dataSets, dataSet)
-	}
-
-	if hasMore && len(dataSetsArt) > 0 {
-		lastDataSet := dataSetsArt[len(dataSetsArt)-1]
-		orderBy := listOptions.GetOrderBy()
-		value := ""
-		if orderBy != "" {
-			switch orderBy {
-			case "ID":
-				value = fmt.Sprintf("%d", lastDataSet.ID)
-			case "CREATE_TIME":
-				value = fmt.Sprintf("%d", lastDataSet.CreateTimeSinceEpoch)
-			case "LAST_UPDATE_TIME":
-				value = fmt.Sprintf("%d", lastDataSet.LastUpdateTimeSinceEpoch)
-			default:
-				value = fmt.Sprintf("%d", lastDataSet.ID)
-			}
-		}
-		nextToken := scopes.CreateNextPageToken(lastDataSet.ID, value)
-		listOptions.NextPageToken = &nextToken
-	} else {
-		listOptions.NextPageToken = nil
-	}
-
-	list.Items = dataSets
-	list.NextPageToken = listOptions.GetNextPageToken()
-	list.PageSize = listOptions.GetPageSize()
-	list.Size = int32(len(dataSets))
-
-	return &list, nil
+	return query
 }
 
 func mapDataSetToArtifact(dataSet models.DataSet) schema.Artifact {
@@ -254,13 +83,13 @@ func mapDataSetToArtifactProperties(dataSet models.DataSet, artifactID int32) []
 
 	if dataSet.GetProperties() != nil {
 		for _, prop := range *dataSet.GetProperties() {
-			properties = append(properties, mapPropertiesToArtifactProperty(prop, artifactID, false))
+			properties = append(properties, MapPropertiesToArtifactProperty(prop, artifactID, false))
 		}
 	}
 
 	if dataSet.GetCustomProperties() != nil {
 		for _, prop := range *dataSet.GetCustomProperties() {
-			properties = append(properties, mapPropertiesToArtifactProperty(prop, artifactID, true))
+			properties = append(properties, MapPropertiesToArtifactProperty(prop, artifactID, true))
 		}
 	}
 
@@ -295,9 +124,9 @@ func mapDataLayerToDataSet(dataSet schema.Artifact, artProperties []schema.Artif
 
 	for _, prop := range artProperties {
 		if prop.IsCustomProperty {
-			customProperties = append(customProperties, mapDataLayerToArtifactProperties(prop))
+			customProperties = append(customProperties, MapArtifactPropertyToProperties(prop))
 		} else {
-			properties = append(properties, mapDataLayerToArtifactProperties(prop))
+			properties = append(properties, MapArtifactPropertyToProperties(prop))
 		}
 	}
 

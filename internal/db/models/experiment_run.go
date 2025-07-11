@@ -1,10 +1,17 @@
 package models
 
+import "github.com/kubeflow/model-registry/internal/db/filter"
+
 type ExperimentRunListOptions struct {
 	Pagination
 	Name         *string
 	ExternalID   *string
 	ExperimentID *int32
+}
+
+// GetRestEntityType implements the FilterApplier interface
+func (e *ExperimentRunListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityExperimentRun
 }
 
 type ExperimentRunAttributes struct {

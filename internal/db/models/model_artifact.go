@@ -1,5 +1,7 @@
 package models
 
+import "github.com/kubeflow/model-registry/internal/db/filter"
+
 const ModelArtifactType = "model-artifact"
 
 type ModelArtifactListOptions struct {
@@ -7,6 +9,11 @@ type ModelArtifactListOptions struct {
 	Name             *string
 	ExternalID       *string
 	ParentResourceID *int32
+}
+
+// GetRestEntityType implements the FilterApplier interface
+func (m *ModelArtifactListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityModelArtifact
 }
 
 type ModelArtifactAttributes struct {

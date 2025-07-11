@@ -59,3 +59,7 @@ func (p *Pagination) GetFilterQuery() string {
 
 	return *p.FilterQuery
 }
+
+func (p *Pagination) SetNextPageToken(token *string) {
+	p.NextPageToken = token
+}
