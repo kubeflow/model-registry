@@ -610,4 +610,125 @@ func TestMetricHistoryRepository(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("TestListByStepIds", func(t *testing.T) {
+		// Create metric histories with different step values
+		testMetricHistories := []*models.MetricHistoryImpl{
+			{
+				TypeID: apiutils.Of(int32(typeID)),
+				Attributes: &models.MetricHistoryAttributes{
+					Name:         apiutils.Of("step-metric-history-1"),
+					ExternalID:   apiutils.Of("step-metric-history-ext-1"),
+					URI:          apiutils.Of("s3://bucket/step-metric-history-1.json"),
+					State:        apiutils.Of("LIVE"),
+					ArtifactType: apiutils.Of("metric-history"),
+				},
+				Properties: &[]models.Properties{
+					{
+						Name:     "step",
+						IntValue: apiutils.Of(int32(1)),
+					},
+					{
+						Name:        "description",
+						StringValue: apiutils.Of("Metric history for step 1"),
+					},
+				},
+			},
+			{
+				TypeID: apiutils.Of(int32(typeID)),
+				Attributes: &models.MetricHistoryAttributes{
+					Name:         apiutils.Of("step-metric-history-2"),
+					ExternalID:   apiutils.Of("step-metric-history-ext-2"),
+					URI:          apiutils.Of("s3://bucket/step-metric-history-2.json"),
+					State:        apiutils.Of("LIVE"),
+					ArtifactType: apiutils.Of("metric-history"),
+				},
+				Properties: &[]models.Properties{
+					{
+						Name:     "step",
+						IntValue: apiutils.Of(int32(2)),
+					},
+					{
+						Name:        "description",
+						StringValue: apiutils.Of("Metric history for step 2"),
+					},
+				},
+			},
+			{
+				TypeID: apiutils.Of(int32(typeID)),
+				Attributes: &models.MetricHistoryAttributes{
+					Name:         apiutils.Of("step-metric-history-3"),
+					ExternalID:   apiutils.Of("step-metric-history-ext-3"),
+					URI:          apiutils.Of("s3://bucket/step-metric-history-3.json"),
+					State:        apiutils.Of("LIVE"),
+					ArtifactType: apiutils.Of("metric-history"),
+				},
+				Properties: &[]models.Properties{
+					{
+						Name:     "step",
+						IntValue: apiutils.Of(int32(3)),
+					},
+					{
+						Name:        "description",
+						StringValue: apiutils.Of("Metric history for step 3"),
+					},
+				},
+			},
+		}
+
+		// Save all metric histories
+		for _, metricHistory := range testMetricHistories {
+			_, err := repo.Save(metricHistory, nil)
+			require.NoError(t, err)
+		}
+
+		// Test filtering by single step ID
+		pageSize := int32(10)
+		stepIds := "1"
+		listOptions := models.MetricHistoryListOptions{
+			StepIds: &stepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 1, len(result.Items), "should return 1 metric history for step 1")
+		if len(result.Items) > 0 {
+			assert.Equal(t, "step-metric-history-1", *result.Items[0].GetAttributes().Name)
+		}
+
+		// Test filtering by multiple step IDs
+		stepIds = "1,3"
+		listOptions = models.MetricHistoryListOptions{
+			StepIds: &stepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items), "should return 2 metric histories for steps 1 and 3")
+
+		// Verify the returned metric histories are from steps 1 and 3
+		names := make(map[string]bool)
+		for _, item := range result.Items {
+			names[*item.GetAttributes().Name] = true
+		}
+		assert.True(t, names["step-metric-history-1"], "should contain metric history from step 1")
+		assert.True(t, names["step-metric-history-3"], "should contain metric history from step 3")
+		assert.False(t, names["step-metric-history-2"], "should not contain metric history from step 2")
+
+		// Test filtering by non-existent step ID
+		stepIds = "999"
+		listOptions = models.MetricHistoryListOptions{
+			StepIds: &stepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items), "should return 0 metric histories for non-existent step")
+	})
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -145,12 +146,19 @@ func (r *MetricHistoryRepositoryImpl) List(listOptions models.MetricHistoryListO
 	metricHistories := []models.MetricHistory{}
 	metricHistoriesArt := []schema.Artifact{}
 
-	query := r.db.Model(&schema.Artifact{}).Where("type_id = ?", r.typeID)
+	query := r.db.Model(&schema.Artifact{}).Where("Artifact.type_id = ?", r.typeID)
 
 	if listOptions.Name != nil {
-		query = query.Where("name LIKE ?", fmt.Sprintf("%%%s%%", *listOptions.Name))
+		query = query.Where("Artifact.name LIKE ?", fmt.Sprintf("%%%s%%", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("external_id = ?", listOptions.ExternalID)
+		query = query.Where("Artifact.external_id = ?", listOptions.ExternalID)
+	}
+
+	// Add step IDs filter if provided
+	if listOptions.StepIds != nil && *listOptions.StepIds != "" {
+		query = query.Joins("JOIN ArtifactProperty ON ArtifactProperty.artifact_id = Artifact.id").
+			Where("ArtifactProperty.name = ? AND ArtifactProperty.int_value IN (?)",
+				"step", strings.Split(*listOptions.StepIds, ","))
 	}
 
 	if listOptions.ExperimentRunID != nil {

@@ -439,3 +439,113 @@ func TestGetExperimentRunMetricHistoryReturnsCorrectArtifactType(t *testing.T) {
 	assert.Equal(t, int64(1), *retrievedArtifact.Metric.Step)
 	assert.Equal(t, "Test metric for artifact type validation", *retrievedArtifact.Metric.Description)
 }
+
+func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create experiment
+	experiment := &openapi.Experiment{
+		Name:        "test-experiment-stepids",
+		Description: apiutils.Of("Test experiment for metric history stepIds filter"),
+	}
+	savedExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create experiment run
+	experimentRun := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-stepids"),
+		Description: apiutils.Of("Test experiment run for metric history stepIds filter"),
+	}
+	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
+	require.NoError(t, err)
+
+	// Create metrics with different step values
+	metrics := []*openapi.Metric{
+		{
+			Name:      apiutils.Of("accuracy"),
+			Value:     apiutils.Of(0.85),
+			Timestamp: apiutils.Of("1234567890"),
+			Step:      apiutils.Of(int64(1)),
+		},
+		{
+			Name:      apiutils.Of("accuracy"),
+			Value:     apiutils.Of(0.90),
+			Timestamp: apiutils.Of("1234567891"),
+			Step:      apiutils.Of(int64(2)),
+		},
+		{
+			Name:      apiutils.Of("accuracy"),
+			Value:     apiutils.Of(0.95),
+			Timestamp: apiutils.Of("1234567892"),
+			Step:      apiutils.Of(int64(3)),
+		},
+		{
+			Name:      apiutils.Of("loss"),
+			Value:     apiutils.Of(0.15),
+			Timestamp: apiutils.Of("1234567893"),
+			Step:      apiutils.Of(int64(1)),
+		},
+		{
+			Name:      apiutils.Of("loss"),
+			Value:     apiutils.Of(0.10),
+			Timestamp: apiutils.Of("1234567894"),
+			Step:      apiutils.Of(int64(2)),
+		},
+	}
+
+	// Insert all metric history records
+	for _, metric := range metrics {
+		err = service.InsertMetricHistory(metric, *savedExperimentRun.Id)
+		require.NoError(t, err, "error inserting metric history")
+	}
+
+	// Test filtering by single step ID
+	stepIds := "1"
+	result, err := service.GetExperimentRunMetricHistory(nil, &stepIds, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting metric history with step filter")
+	assert.Equal(t, int32(2), result.Size, "should return 2 metric history records for step 1")
+	assert.Equal(t, 2, len(result.Items), "should have 2 items in the result")
+
+	// Verify the returned metrics are from step 1
+	for _, item := range result.Items {
+		assert.Equal(t, int64(1), *item.Metric.Step, "all metrics should be from step 1")
+	}
+
+	// Test filtering by multiple step IDs
+	stepIds = "1,3"
+	result, err = service.GetExperimentRunMetricHistory(nil, &stepIds, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting metric history with multiple step filter")
+	assert.Equal(t, int32(3), result.Size, "should return 3 metric history records for steps 1 and 3")
+	assert.Equal(t, 3, len(result.Items), "should have 3 items in the result")
+
+	// Verify the returned metrics are from steps 1 and 3
+	stepValues := make(map[int64]bool)
+	for _, item := range result.Items {
+		stepValues[*item.Metric.Step] = true
+	}
+	assert.True(t, stepValues[1], "should contain metrics from step 1")
+	assert.True(t, stepValues[3], "should contain metrics from step 3")
+	assert.False(t, stepValues[2], "should not contain metrics from step 2")
+
+	// Test filtering by non-existent step ID
+	stepIds = "999"
+	result, err = service.GetExperimentRunMetricHistory(nil, &stepIds, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting metric history with non-existent step filter")
+	assert.Equal(t, int32(0), result.Size, "should return 0 metric history records for non-existent step")
+	assert.Equal(t, 0, len(result.Items), "should have 0 items in the result")
+
+	// Test combining stepIds with name filter
+	accuracyName := "accuracy"
+	stepIds = "1,2"
+	result, err = service.GetExperimentRunMetricHistory(&accuracyName, &stepIds, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting metric history with name and step filter")
+	assert.Equal(t, int32(2), result.Size, "should return 2 accuracy metric history records for steps 1 and 2")
+	assert.Equal(t, 2, len(result.Items), "should have 2 items in the result")
+
+	// Verify all returned metrics are accuracy metrics from steps 1 and 2
+	for _, item := range result.Items {
+		assert.Equal(t, "accuracy", *item.Metric.Name, "all metrics should be accuracy")
+		assert.True(t, *item.Metric.Step == 1 || *item.Metric.Step == 2, "all metrics should be from step 1 or 2")
+	}
+}

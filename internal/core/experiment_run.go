@@ -251,6 +251,11 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 		listOptsCopy.Name = name
 	}
 
+	// Add step IDs filter if provided
+	if stepIds != nil && *stepIds != "" {
+		listOptsCopy.StepIds = stepIds
+	}
+
 	// Query metric history repository
 	metricHistories, err := b.metricHistoryRepository.List(listOptsCopy)
 	if err != nil {

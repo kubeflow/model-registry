@@ -7,6 +7,7 @@ type MetricHistoryListOptions struct {
 	Name            *string
 	ExternalID      *string
 	ExperimentRunID *int32
+	StepIds         *string
 }
 
 type MetricHistoryAttributes struct {
