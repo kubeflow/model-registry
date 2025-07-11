@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
@@ -96,25 +97,30 @@ func buildServiceDetails(service *corev1.Service, logger *slog.Logger) (*Service
 
 	displayName := ""
 	description := ""
+	externalAddressRest := ""
+
+	// Check for annotations including external-address-rest
 	if service.Annotations != nil {
 		displayName = service.Annotations["displayName"]
 		description = service.Annotations["description"]
-	}
 
-	if displayName == "" {
-		logger.Warn("service missing displayName annotation", "serviceName", service.Name)
-	}
-	if description == "" {
-		logger.Warn("service missing description annotation", "serviceName", service.Name)
+		// Look for external-address-rest annotation with any prefix
+		for key, value := range service.Annotations {
+			if strings.HasSuffix(key, "/external-address-rest") {
+				externalAddressRest = value
+				break
+			}
+		}
 	}
 
 	return &ServiceDetails{
-		Name:        service.Name,
-		DisplayName: displayName,
-		Description: description,
-		ClusterIP:   service.Spec.ClusterIP,
-		HTTPPort:    httpPort,
-		IsHTTPS:     isHTTPS,
+		Name:                service.Name,
+		DisplayName:         displayName,
+		Description:         description,
+		ClusterIP:           service.Spec.ClusterIP,
+		HTTPPort:            httpPort,
+		IsHTTPS:             isHTTPS,
+		ExternalAddressRest: externalAddressRest,
 	}, nil
 }
 
