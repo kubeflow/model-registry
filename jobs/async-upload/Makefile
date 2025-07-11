@@ -29,7 +29,7 @@ deploy-local-registry:
 .PHONY: dev-load-image
 dev-load-image:
 	docker buildx build --load -t $(IMG) .
-	kind load docker-image $(IMG)
+	kind load docker-image $(IMG) -n mr-e2e
 
 .PHONY: test
 test:
