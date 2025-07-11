@@ -3,8 +3,23 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: my-async-upload-job
+  labels:
+    app.kubernetes.io/name: model-registry-async-job
+    app.kubernetes.io/component: async-job
+    app.kubernetes.io/part-of: model-registry
+    app.kubernetes.io/managed-by: kubectl
+    component: model-registry-job
+    modelregistry.kubeflow.org/job-type: async-upload
+  annotations:
+    modelregistry.kubeflow.org/description: "Asynchronous job for uploading models to Model Registry"
 spec:
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: model-registry-async-job
+        app.kubernetes.io/component: async-job
+        component: model-registry-job
+        modelregistry.kubeflow.org/job-type: async-upload
     spec:
       restartPolicy: Never
       containers:
