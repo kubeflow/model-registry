@@ -1,0 +1,60 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-async-upload-job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: async-upload
+          image: kubeflow/model-registry-async-job:local
+          env:
+            - name: LOGLEVEL
+              value: "DEBUG"
+            - name: HTTP_PROXY
+              value: ""
+            - name: HTTPS_PROXY
+              value: ""
+            - name: NO_PROXY
+              value: "minio.minio.svc.cluster.local,*.svc.cluster.local"
+            # ---- Source ----------
+            - name: MODEL_SYNC_SOURCE_TYPE
+              value: "s3"
+            - name: MODEL_SYNC_SOURCE_AWS_BUCKET
+              value: "default"
+            - name: MODEL_SYNC_SOURCE_AWS_KEY
+              value: "my-model"
+            - name: MODEL_SYNC_SOURCE_AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: MODEL_SYNC_SOURCE_AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            - name: MODEL_SYNC_SOURCE_AWS_ENDPOINT
+              value: "http://minio.minio.svc.cluster.local:9000"
+
+            # ---- Destination -----
+            - name: MODEL_SYNC_DESTINATION_TYPE
+              value: "oci"
+            - name: MODEL_SYNC_DESTINATION_OCI_URI
+              value: "oci://distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+
+            # ---- Model Params ----
+            - name: MODEL_SYNC_MODEL_ID
+              value: "1"
+            - name: MODEL_SYNC_MODEL_VERSION_ID
+              value: "3"
+            - name: MODEL_SYNC_MODEL_ARTIFACT_ID
+              value: "6"
+
+            # ---- Model Registry Client Params ----
+            - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
+              value: "http://model-registry-service.kubeflow.svc.cluster.local"
+            - name: MODEL_SYNC_REGISTRY_PORT
+              value: "8080"
+            - name: MODEL_SYNC_REGISTRY_AUTHOR
+              value: "Alice Bob"
+            - name: MODEL_SYNC_REGISTRY_USER_TOKEN
+              value: "super-secret"
+
+            # ...

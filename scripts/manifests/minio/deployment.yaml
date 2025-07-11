@@ -4,8 +4,8 @@ metadata:
   name: minio-secret
 type: Opaque
 stringData:
-  ACCESS_KEY_ID: "minioadmin"  
-  SECRET_KEY: "minioadmin"   
+  ACCESS_KEY_ID: "minioadmin"
+  SECRET_KEY: "minioadmin"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,25 +22,29 @@ spec:
         app: minio
     spec:
       containers:
-      - name: minio
-        image: minio/minio:latest
-        args:
-          - server
-          - /data
-        env:
-          - name: MINIO_ROOT_USER
-            valueFrom:
-              secretKeyRef:
-                name: minio-secret
-                key: ACCESS_KEY_ID
-          - name: MINIO_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: minio-secret
-                key: SECRET_KEY
-        ports:
-          - containerPort: 9000
-            name: minio
+        - name: minio
+          image: quay.io/minio/minio
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: ACCESS_KEY_ID
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: SECRET_KEY
+          ports:
+            - containerPort: 9000
+              name: minio
+            - containerPort: 9001
+              name: console
 ---
 apiVersion: v1
 kind: Service
@@ -54,3 +58,9 @@ spec:
     - port: 9000
       targetPort: 9000
       protocol: TCP
+      name: api
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP
+      name: console
+      nodePort: 30091
