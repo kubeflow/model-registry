@@ -36,6 +36,7 @@ type ModelRegistrySelectorProps = {
   onSelection: (modelRegistry: string) => void;
   primary?: boolean;
   isFullWidth?: boolean;
+  hasError?: boolean;
 };
 
 const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
@@ -43,6 +44,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   onSelection,
   primary,
   isFullWidth,
+  hasError,
 }) => {
   const { modelRegistries, updatePreferredModelRegistry } = React.useContext(
     ModelRegistrySelectorContext,
@@ -97,7 +99,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
       isScrollable
       placeholder="Select a model registry"
       dataTestId="model-registry-selector-dropdown"
-      toggleProps={{ id: 'download-steps-logs-toggle' }}
+      toggleProps={{ id: 'download-steps-logs-toggle', status: hasError ? 'danger' : undefined }}
       toggleLabel={toggleLabel}
       aria-label="Model registry toggle"
       previewDescription={false}

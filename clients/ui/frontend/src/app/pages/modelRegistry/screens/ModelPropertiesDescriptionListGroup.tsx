@@ -5,14 +5,9 @@ import { PlusCircleIcon } from '@patternfly/react-icons';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { DashboardDescriptionListGroup } from 'mod-arch-shared';
-import {
-  filterCustomProperties,
-  getProperties,
-  mergeUpdatedProperty,
-} from '~/app/pages/modelRegistry/screens/utils';
+import { getProperties, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
 import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/ModelPropertiesTableRow';
-import { pipelineRunSpecificKeys } from './ModelVersionDetails/const';
 
 type ModelPropertiesDescriptionListGroupProps = {
   customProperties: ModelRegistryCustomProperties;
@@ -35,13 +30,9 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
   const isEditingSomeRow = isAdding || editingPropertyKeys.length > 0;
 
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
-  const filteredCustomProperties = filterCustomProperties(
-    customProperties,
-    pipelineRunSpecificKeys,
-  );
 
   // We only show string properties with a defined value (no labels or other property types)
-  const filteredProperties = getProperties(filteredCustomProperties);
+  const filteredProperties = getProperties(customProperties);
 
   const [isShowingMoreProperties, setIsShowingMoreProperties] = React.useState(false);
   const keys = Object.keys(filteredProperties);
