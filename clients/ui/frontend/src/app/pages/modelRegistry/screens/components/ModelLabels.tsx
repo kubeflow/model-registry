@@ -1,5 +1,15 @@
-import { Button, Label, LabelGroup, Popover, SearchInput, Content } from '@patternfly/react-core';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import {
+  Button,
+  Label,
+  LabelGroup,
+  Popover,
+  SearchInput,
+  Content,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Modal,
+} from '@patternfly/react-core';
 import React from 'react';
 import { useDebounceCallback } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
@@ -66,17 +76,30 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
   );
 
   const labelModal = isLabelModalOpen ? (
-    <Modal
-      variant={ModalVariant.small}
-      title="Labels"
-      isOpen
-      onClose={() => setIsLabelModalOpen(false)}
-      description={
-        <Content component="p">
-          The following are all the labels of <strong>{name}</strong>
-        </Content>
-      }
-      actions={[
+    <Modal variant="small" isOpen onClose={() => setIsLabelModalOpen(false)}>
+      <ModalHeader
+        title="Labels"
+        description={
+          <Content component="p">
+            The following are all the labels of <strong>{name}</strong>
+          </Content>
+        }
+      />
+      <ModalBody>
+        <SearchInput
+          aria-label="Label modal search"
+          data-testid="label-modal-search"
+          placeholder="Find a label"
+          value={searchValue}
+          onChange={(_event, value) => doSetSearchDebounced(value)}
+          onClear={() => setSearchValue('')}
+        />
+        <br />
+        <LabelGroup data-testid="modal-label-group" numLabels={allLabels.length}>
+          {labelsComponent(filteredLabels, '50ch')}
+        </LabelGroup>
+      </ModalBody>
+      <ModalFooter>
         <Button
           data-testid="close-modal"
           key="close"
@@ -84,21 +107,8 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
           onClick={() => setIsLabelModalOpen(false)}
         >
           Close
-        </Button>,
-      ]}
-    >
-      <SearchInput
-        aria-label="Label modal search"
-        data-testid="label-modal-search"
-        placeholder="Find a label"
-        value={searchValue}
-        onChange={(_event, value) => doSetSearchDebounced(value)}
-        onClear={() => setSearchValue('')}
-      />
-      <br />
-      <LabelGroup data-testid="modal-label-group" numLabels={allLabels.length}>
-        {labelsComponent(filteredLabels, '50ch')}
-      </LabelGroup>
+        </Button>
+      </ModalFooter>
     </Modal>
   ) : null;
 

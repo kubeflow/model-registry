@@ -1,6 +1,14 @@
 import React from 'react';
-import { Content, TextInput, Stack, StackItem } from '@patternfly/react-core';
-import { Modal } from '@patternfly/react-core/deprecated';
+import {
+  Content,
+  TextInput,
+  Stack,
+  StackItem,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
+} from '@patternfly/react-core';
 import { DashboardModalFooter, ModelRegistryKind } from 'mod-arch-shared';
 
 type DeleteModelRegistryModalProps = {
@@ -43,14 +51,39 @@ const DeleteModelRegistryModal: React.FC<DeleteModelRegistryModalProps> = ({
   };
 
   return (
-    <Modal
-      data-testid="delete-mr-modal"
-      titleIconVariant="warning"
-      title="Delete model registry?"
-      isOpen
-      onClose={onClose}
-      variant="medium"
-      footer={
+    <Modal data-testid="delete-mr-modal" isOpen onClose={onClose} variant="medium">
+      <ModalHeader title="Delete model registry?" titleIconVariant="warning" />
+      <ModalBody>
+        <Stack hasGutter>
+          <StackItem>
+            <Content>
+              <Content component="p">
+                The <strong>{mr.metadata.name}</strong> model registry, its default group, and any
+                permissions associated with it will be deleted. Data located in the database
+                connected to the registry will be unaffected.
+              </Content>
+              <Content component="p">
+                Type <strong>{mr.metadata.name}</strong> to confirm deletion:
+              </Content>
+            </Content>
+          </StackItem>
+          <StackItem>
+            <TextInput
+              id="confirm-delete-input"
+              data-testid="confirm-delete-input"
+              aria-label="Confirm delete input"
+              value={confirmInputValue}
+              onChange={(_e, newValue) => setConfirmInputValue(newValue)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !isDisabled) {
+                  onConfirm();
+                }
+              }}
+            />
+          </StackItem>
+        </Stack>
+      </ModalBody>
+      <ModalFooter>
         <DashboardModalFooter
           submitLabel="Delete model registry"
           submitButtonVariant="danger"
@@ -61,36 +94,7 @@ const DeleteModelRegistryModal: React.FC<DeleteModelRegistryModalProps> = ({
           error={error}
           alertTitle="Error deleting model registry"
         />
-      }
-    >
-      <Stack hasGutter>
-        <StackItem>
-          <Content>
-            <Content component="p">
-              The <strong>{mr.metadata.name}</strong> model registry, its default group, and any
-              permissions associated with it will be deleted. Data located in the database connected
-              to the registry will be unaffected.
-            </Content>
-            <Content component="p">
-              Type <strong>{mr.metadata.name}</strong> to confirm deletion:
-            </Content>
-          </Content>
-        </StackItem>
-        <StackItem>
-          <TextInput
-            id="confirm-delete-input"
-            data-testid="confirm-delete-input"
-            aria-label="Confirm delete input"
-            value={confirmInputValue}
-            onChange={(_e, newValue) => setConfirmInputValue(newValue)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !isDisabled) {
-                onConfirm();
-              }
-            }}
-          />
-        </StackItem>
-      </Stack>
+      </ModalFooter>
     </Modal>
   );
 };
