@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Modal } from '@patternfly/react-core/deprecated';
 import { DashboardModalFooter } from 'mod-arch-shared';
+import { Modal, ModalBody, ModalFooter, ModalHeader } from '@patternfly/react-core';
 import { useNotification } from '~/app/hooks/useNotification';
 
 interface RestoreRegisteredModelModalProps {
@@ -39,12 +39,13 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
   }, [onSubmit, onClose, notification, registeredModelName]);
 
   return (
-    <Modal
-      isOpen
-      title="Restore model?"
-      variant="small"
-      onClose={onClose}
-      footer={
+    <Modal isOpen variant="small" onClose={onClose} data-testid="restore-registered-model-modal">
+      <ModalHeader title="Restore model?" titleIconVariant="warning" />
+      <ModalBody>
+        <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
+        registered models list.
+      </ModalBody>
+      <ModalFooter>
         <DashboardModalFooter
           onCancel={onClose}
           onSubmit={onConfirm}
@@ -54,11 +55,7 @@ export const RestoreRegisteredModelModal: React.FC<RestoreRegisteredModelModalPr
           alertTitle="Error"
           isSubmitDisabled={isSubmitting}
         />
-      }
-      data-testid="restore-registered-model-modal"
-    >
-      <b>{registeredModelName}</b> and all of its versions will be restored and returned to the
-      registered models list.
+      </ModalFooter>
     </Modal>
   );
 };

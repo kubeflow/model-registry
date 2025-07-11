@@ -1,6 +1,15 @@
 import * as React from 'react';
-import { Flex, FlexItem, Stack, StackItem, TextInput } from '@patternfly/react-core';
-import { Modal } from '@patternfly/react-core/deprecated';
+import {
+  Flex,
+  FlexItem,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Stack,
+  StackItem,
+  TextInput,
+} from '@patternfly/react-core';
 import { DashboardModalFooter } from 'mod-arch-shared';
 import { useNotification } from '~/app/hooks/useNotification';
 
@@ -43,13 +52,36 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
   }, [onSubmit, onClose, notification, registeredModelName]);
 
   return (
-    <Modal
-      isOpen
-      title="Archive model?"
-      titleIconVariant="warning"
-      variant="small"
-      onClose={onClose}
-      footer={
+    <Modal isOpen variant="small" onClose={onClose} data-testid="archive-registered-model-modal">
+      <ModalHeader title="Archive model?" titleIconVariant="warning" />
+      <ModalBody>
+        <Stack hasGutter>
+          <StackItem>
+            <b>{registeredModelName}</b> and all of its versions will be archived and unavailable
+            for use unless it is restored.
+          </StackItem>
+          <StackItem>
+            <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
+              <FlexItem>
+                Type <strong>{registeredModelName}</strong> to confirm archiving:
+              </FlexItem>
+              <TextInput
+                id="confirm-archive-input"
+                data-testid="confirm-archive-input"
+                aria-label="confirm archive input"
+                value={confirmInputValue}
+                onChange={(_e, newValue) => setConfirmInputValue(newValue)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !isDisabled) {
+                    onConfirm();
+                  }
+                }}
+              />
+            </Flex>
+          </StackItem>
+        </Stack>
+      </ModalBody>
+      <ModalFooter>
         <DashboardModalFooter
           onCancel={onClose}
           onSubmit={onConfirm}
@@ -59,34 +91,7 @@ export const ArchiveRegisteredModelModal: React.FC<ArchiveRegisteredModelModalPr
           error={error}
           alertTitle="Error"
         />
-      }
-      data-testid="archive-registered-model-modal"
-    >
-      <Stack hasGutter>
-        <StackItem>
-          <b>{registeredModelName}</b> and all of its versions will be archived and unavailable for
-          use unless it is restored.
-        </StackItem>
-        <StackItem>
-          <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
-            <FlexItem>
-              Type <strong>{registeredModelName}</strong> to confirm archiving:
-            </FlexItem>
-            <TextInput
-              id="confirm-archive-input"
-              data-testid="confirm-archive-input"
-              aria-label="confirm archive input"
-              value={confirmInputValue}
-              onChange={(_e, newValue) => setConfirmInputValue(newValue)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && !isDisabled) {
-                  onConfirm();
-                }
-              }}
-            />
-          </Flex>
-        </StackItem>
-      </Stack>
+      </ModalFooter>
     </Modal>
   );
 };
