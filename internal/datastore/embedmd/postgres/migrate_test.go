@@ -55,8 +55,8 @@ func TestMain(m *testing.M) {
 		ctx,
 		"postgres:15",
 		cont_postgres.WithUsername("postgres"),
-		cont_postgres.WithPassword("postgres"),
-		cont_postgres.WithDatabase("test"),
+		cont_postgres.WithPassword("testpass"),
+		cont_postgres.WithDatabase("testdb"),
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")),
 	)
 	if err != nil {

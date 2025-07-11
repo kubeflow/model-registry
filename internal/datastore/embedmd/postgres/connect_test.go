@@ -44,29 +44,15 @@ func TestPostgresDBConnector_Connect_Insecure(t *testing.T) {
 		err = db.Raw("SELECT 1").Scan(&result).Error
 		require.NoError(t, err)
 		assert.Equal(t, 1, result)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("EmptySSLConfig", func(t *testing.T) {
 		dsn := fmt.Sprintf("host=%s port=%s user=postgres password=testpass dbname=testdb sslmode=disable",
 			host, port.Port())
-		connector := &postgres.PostgresDBConnector{
-			DSN:       dsn,
-			TLSConfig: &_tls.TLSConfig{},
-		}
-
+		connector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{})
 		db, err := connector.Connect()
 		require.NoError(t, err)
 		assert.NotNil(t, db)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("URLFormatDSN", func(t *testing.T) {
@@ -83,11 +69,6 @@ func TestPostgresDBConnector_Connect_Insecure(t *testing.T) {
 		err = db.Raw("SELECT 1").Scan(&result).Error
 		require.NoError(t, err)
 		assert.Equal(t, 1, result)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 }
 
@@ -409,11 +390,6 @@ func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 		err = db.Raw("SELECT name FROM test_ssl WHERE id = 1").Scan(&name).Error
 		require.NoError(t, err)
 		assert.Equal(t, "ssl_test", name)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 }
 
