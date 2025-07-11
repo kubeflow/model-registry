@@ -1,5 +1,9 @@
 IMG_VERSION ?= latest
-BUILD_IMAGE ?= true
+IMG_REGISTRY ?= ghcr.io
+IMG_ORG ?= kubeflow
+IMG_NAME ?= model-registry/job/async-upload
+IMG ?= $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):$(IMG_VERSION)
+BUILD_IMAGE ?= true # whether to build the MR server image
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
@@ -24,8 +28,8 @@ deploy-local-registry:
 
 .PHONY: dev-load-image
 dev-load-image:
-	docker buildx build --load -t kubeflow/model-registry-async-job:local .
-	kind load docker-image kubeflow/model-registry-async-job:local
+	docker buildx build --load -t $(IMG) .
+	kind load docker-image $(IMG)
 
 .PHONY: test
 test:
