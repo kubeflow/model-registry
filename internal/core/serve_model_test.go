@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -13,28 +12,27 @@ import (
 )
 
 func TestUpsertServeModel(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		// Create prerequisites: registered model, serving environment, model version, and inference service
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -42,7 +40,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create serve model
@@ -54,7 +52,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -73,20 +71,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "update-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "update-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "update-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -94,7 +92,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create first
@@ -105,7 +103,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_NEW),
 		}
 
-		created, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		created, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -119,7 +117,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE),
 		}
 
-		updated, err := service.UpsertServeModel(update, createdInfSvc.Id)
+		updated, err := _service.UpsertServeModel(update, createdInfSvc.Id)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -134,20 +132,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "custom-props-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "custom-props-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "custom-props-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -155,7 +153,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		customProps := map[string]openapi.MetadataValue{
@@ -188,7 +186,7 @@ func TestUpsertServeModel(t *testing.T) {
 			CustomProperties: &customProps,
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -212,20 +210,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "minimal-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "minimal-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "minimal-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -233,7 +231,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		input := &openapi.ServeModel{
@@ -242,7 +240,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -253,7 +251,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 	t.Run("nil serve model error", func(t *testing.T) {
 		inferenceServiceId := "1"
-		result, err := service.UpsertServeModel(nil, &inferenceServiceId)
+		result, err := _service.UpsertServeModel(nil, &inferenceServiceId)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -265,20 +263,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "unicode-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "unicode-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "unicode-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -286,7 +284,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		unicodeName := "服务模型-тест-サービス-🚀"
@@ -298,7 +296,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -313,20 +311,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "special-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "special-chars-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "special-chars-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -334,7 +332,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		specialName := "test-serve-model!@#$%^&*()_+-=[]{}|;':\",./<>?"
@@ -346,7 +344,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_NEW),
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -361,20 +359,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "mixed-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "mixed-chars-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "mixed-chars-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -382,7 +380,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		mixedName := "服务-test!@#-тест_123-🚀"
@@ -394,7 +392,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE),
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -409,20 +407,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "nil-state-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "nil-state-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "nil-state-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -430,7 +428,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create serve model with nil LastKnownState
@@ -442,7 +440,7 @@ func TestUpsertServeModel(t *testing.T) {
 			LastKnownState: nil, // Explicitly set to nil
 		}
 
-		result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -461,20 +459,20 @@ func TestUpsertServeModel(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "pagination-isolated-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "pagination-isolated-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "pagination-isolated-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -482,7 +480,7 @@ func TestUpsertServeModel(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create 15 serve models to test pagination
@@ -496,7 +494,7 @@ func TestUpsertServeModel(t *testing.T) {
 				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			}
 
-			result, err := service.UpsertServeModel(input, createdInfSvc.Id)
+			result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 			require.NoError(t, err)
 			require.NotNil(t, result.Id)
 			createdServeModels = append(createdServeModels, *result.Id)
@@ -504,7 +502,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Test first page with page size 5
 		pageSize := int32(5)
-		firstPageResult, err := service.GetServeModels(api.ListOptions{
+		firstPageResult, err := _service.GetServeModels(api.ListOptions{
 			PageSize: &pageSize,
 		}, createdInfSvc.Id)
 
@@ -520,7 +518,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Test second page if there's a next page token
 		if firstPageResult.NextPageToken != "" {
-			secondPageResult, err := service.GetServeModels(api.ListOptions{
+			secondPageResult, err := _service.GetServeModels(api.ListOptions{
 				PageSize:      &pageSize,
 				NextPageToken: &firstPageResult.NextPageToken,
 			}, createdInfSvc.Id)
@@ -543,7 +541,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Test larger page size to get more serve models
 		largePageSize := int32(100)
-		largePageResult, err := service.GetServeModels(api.ListOptions{
+		largePageResult, err := _service.GetServeModels(api.ListOptions{
 			PageSize: &largePageSize,
 		}, createdInfSvc.Id)
 
@@ -569,7 +567,7 @@ func TestUpsertServeModel(t *testing.T) {
 		// Test ordering by name
 		orderBy := "name"
 		sortOrder := "ASC"
-		orderedResult, err := service.GetServeModels(api.ListOptions{
+		orderedResult, err := _service.GetServeModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrder,
@@ -583,7 +581,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Test descending order
 		sortOrderDesc := "DESC"
-		orderedDescResult, err := service.GetServeModels(api.ListOptions{
+		orderedDescResult, err := _service.GetServeModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrderDesc,
@@ -596,28 +594,27 @@ func TestUpsertServeModel(t *testing.T) {
 }
 
 func TestGetServeModelById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name: "get-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "get-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "get-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -625,7 +622,7 @@ func TestGetServeModelById(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// First create a serve model to retrieve
@@ -637,12 +634,12 @@ func TestGetServeModelById(t *testing.T) {
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 		}
 
-		created, err := service.UpsertServeModel(input, createdInfSvc.Id)
+		created, err := _service.UpsertServeModel(input, createdInfSvc.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the serve model by ID
-		result, err := service.GetServeModelById(*created.Id)
+		result, err := _service.GetServeModelById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -654,7 +651,7 @@ func TestGetServeModelById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetServeModelById("invalid")
+		result, err := _service.GetServeModelById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -662,7 +659,7 @@ func TestGetServeModelById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetServeModelById("99999")
+		result, err := _service.GetServeModelById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -671,28 +668,27 @@ func TestGetServeModelById(t *testing.T) {
 }
 
 func TestGetServeModels(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name: "list-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "list-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "list-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -700,7 +696,7 @@ func TestGetServeModels(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create multiple serve models for listing
@@ -727,7 +723,7 @@ func TestGetServeModels(t *testing.T) {
 
 		var createdIds []string
 		for _, srvModel := range testServeModels {
-			created, err := service.UpsertServeModel(srvModel, createdInfSvc.Id)
+			created, err := _service.UpsertServeModel(srvModel, createdInfSvc.Id)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -738,7 +734,7 @@ func TestGetServeModels(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetServeModels(listOptions, nil)
+		result, err := _service.GetServeModels(listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -763,20 +759,20 @@ func TestGetServeModels(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "filter-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "filter-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "filter-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService1 := &openapi.InferenceService{
@@ -784,7 +780,7 @@ func TestGetServeModels(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc1, err := service.UpsertInferenceService(inferenceService1)
+		createdInfSvc1, err := _service.UpsertInferenceService(inferenceService1)
 		require.NoError(t, err)
 
 		inferenceService2 := &openapi.InferenceService{
@@ -792,7 +788,7 @@ func TestGetServeModels(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc2, err := service.UpsertInferenceService(inferenceService2)
+		createdInfSvc2, err := _service.UpsertInferenceService(inferenceService2)
 		require.NoError(t, err)
 
 		// Create serve models in different inference services
@@ -801,7 +797,7 @@ func TestGetServeModels(t *testing.T) {
 			ModelVersionId: *createdVersion.Id,
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
-		created1, err := service.UpsertServeModel(srvModel1, createdInfSvc1.Id)
+		created1, err := _service.UpsertServeModel(srvModel1, createdInfSvc1.Id)
 		require.NoError(t, err)
 
 		srvModel2 := &openapi.ServeModel{
@@ -809,7 +805,7 @@ func TestGetServeModels(t *testing.T) {
 			ModelVersionId: *createdVersion.Id,
 			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 		}
-		_, err = service.UpsertServeModel(srvModel2, createdInfSvc2.Id)
+		_, err = _service.UpsertServeModel(srvModel2, createdInfSvc2.Id)
 		require.NoError(t, err)
 
 		// List serve models filtered by inference service
@@ -818,7 +814,7 @@ func TestGetServeModels(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetServeModels(listOptions, createdInfSvc1.Id)
+		result, err := _service.GetServeModels(listOptions, createdInfSvc1.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -840,20 +836,20 @@ func TestGetServeModels(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "pagination-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "pagination-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "pagination-test-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -861,7 +857,7 @@ func TestGetServeModels(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create several serve models for pagination testing
@@ -872,7 +868,7 @@ func TestGetServeModels(t *testing.T) {
 				ModelVersionId: *createdVersion.Id,
 				LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
 			}
-			_, err := service.UpsertServeModel(srvModel, createdInfSvc.Id)
+			_, err := _service.UpsertServeModel(srvModel, createdInfSvc.Id)
 			require.NoError(t, err)
 		}
 
@@ -886,7 +882,7 @@ func TestGetServeModels(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetServeModels(listOptions, nil)
+		result, err := _service.GetServeModels(listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -898,7 +894,7 @@ func TestGetServeModels(t *testing.T) {
 		invalidId := "invalid"
 		listOptions := api.ListOptions{}
 
-		result, err := service.GetServeModels(listOptions, &invalidId)
+		result, err := _service.GetServeModels(listOptions, &invalidId)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -907,8 +903,7 @@ func TestGetServeModels(t *testing.T) {
 }
 
 func TestServeModelRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create prerequisites
@@ -916,14 +911,14 @@ func TestServeModelRoundTrip(t *testing.T) {
 			Name:        "roundtrip-registered-model",
 			Description: apiutils.Of("Roundtrip test registered model"),
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name:        "roundtrip-serving-env",
 			Description: apiutils.Of("Roundtrip test serving environment"),
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
@@ -931,7 +926,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 			Description:       apiutils.Of("Roundtrip test model version"),
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -940,7 +935,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create a serve model with all fields
@@ -953,12 +948,12 @@ func TestServeModelRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertServeModel(original, createdInfSvc.Id)
+		created, err := _service.UpsertServeModel(original, createdInfSvc.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetServeModelById(*created.Id)
+		retrieved, err := _service.GetServeModelById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -973,7 +968,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.LastKnownState = apiutils.Of(openapi.EXECUTIONSTATE_COMPLETE)
 
-		updated, err := service.UpsertServeModel(retrieved, createdInfSvc.Id)
+		updated, err := _service.UpsertServeModel(retrieved, createdInfSvc.Id)
 		require.NoError(t, err)
 
 		// Verify update
@@ -982,7 +977,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 		assert.Equal(t, openapi.EXECUTIONSTATE_COMPLETE, *updated.LastKnownState)
 
 		// Get again to verify persistence
-		final, err := service.GetServeModelById(*created.Id)
+		final, err := _service.GetServeModelById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, openapi.EXECUTIONSTATE_COMPLETE, *final.LastKnownState)
@@ -993,20 +988,20 @@ func TestServeModelRoundTrip(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "roundtrip-custom-props-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "roundtrip-custom-props-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:              "roundtrip-custom-props-model-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -1014,7 +1009,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInfSvc, err := service.UpsertInferenceService(inferenceService)
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		customProps := map[string]openapi.MetadataValue{
@@ -1038,12 +1033,12 @@ func TestServeModelRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertServeModel(original, createdInfSvc.Id)
+		created, err := _service.UpsertServeModel(original, createdInfSvc.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetServeModelById(*created.Id)
+		retrieved, err := _service.GetServeModelById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify custom properties
@@ -1074,7 +1069,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 		}
 		retrieved.CustomProperties = &updatedProps
 
-		updated, err := service.UpsertServeModel(retrieved, createdInfSvc.Id)
+		updated, err := _service.UpsertServeModel(retrieved, createdInfSvc.Id)
 		require.NoError(t, err)
 
 		// Verify updated custom properties

@@ -22,16 +22,15 @@ func getModelVersionTypeID(t *testing.T, db *gorm.DB) int64 {
 }
 
 func TestModelVersionRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Get the actual ModelVersion type ID from the database
-	typeID := getModelVersionTypeID(t, db)
-	repo := service.NewModelVersionRepository(db, typeID)
+	typeID := getModelVersionTypeID(t, sharedDB)
+	repo := service.NewModelVersionRepository(sharedDB, typeID)
 
 	// Also get RegisteredModel type ID for creating parent models
-	registeredModelTypeID := getRegisteredModelTypeID(t, db)
-	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
+	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, registeredModelTypeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a parent registered model

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -13,8 +12,7 @@ import (
 )
 
 func TestUpsertRegisteredModel(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
@@ -25,7 +23,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -46,7 +44,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Description: apiutils.Of("Original description"),
 		}
 
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -59,7 +57,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED),
 		}
 
-		updated, err := service.UpsertRegisteredModel(update)
+		updated, err := _service.UpsertRegisteredModel(update)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -98,7 +96,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			CustomProperties: &customProps,
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -122,7 +120,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Name: "minimal-model",
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -131,7 +129,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 	})
 
 	t.Run("nil model error", func(t *testing.T) {
-		result, err := service.UpsertRegisteredModel(nil)
+		result, err := _service.UpsertRegisteredModel(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -148,7 +146,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       nil, // Explicitly set to nil
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -170,7 +168,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Owner:       apiutils.Of("用户-пользователь-ユーザー"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -188,7 +186,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -207,7 +205,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -228,7 +226,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
-			result, err := service.UpsertRegisteredModel(input)
+			result, err := _service.UpsertRegisteredModel(input)
 			require.NoError(t, err)
 			require.NotNil(t, result.Id)
 			createdModels = append(createdModels, *result.Id)
@@ -236,7 +234,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test first page with page size 5
 		pageSize := int32(5)
-		firstPageResult, err := service.GetRegisteredModels(api.ListOptions{
+		firstPageResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize: &pageSize,
 		})
 
@@ -247,7 +245,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test second page if there's a next page token
 		if firstPageResult.NextPageToken != "" {
-			secondPageResult, err := service.GetRegisteredModels(api.ListOptions{
+			secondPageResult, err := _service.GetRegisteredModels(api.ListOptions{
 				PageSize:      &pageSize,
 				NextPageToken: &firstPageResult.NextPageToken,
 			})
@@ -270,7 +268,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test larger page size to get more models
 		largePageSize := int32(100)
-		largePageResult, err := service.GetRegisteredModels(api.ListOptions{
+		largePageResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize: &largePageSize,
 		})
 
@@ -296,7 +294,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		// Test ordering by name
 		orderBy := "name"
 		sortOrder := "ASC"
-		orderedResult, err := service.GetRegisteredModels(api.ListOptions{
+		orderedResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrder,
@@ -310,7 +308,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test descending order
 		sortOrderDesc := "DESC"
-		orderedDescResult, err := service.GetRegisteredModels(api.ListOptions{
+		orderedDescResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrderDesc,
@@ -323,8 +321,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModelById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// First create a model to retrieve
@@ -335,12 +332,12 @@ func TestGetRegisteredModelById(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the model by ID
-		result, err := service.GetRegisteredModelById(*created.Id)
+		result, err := _service.GetRegisteredModelById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -352,7 +349,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelById("invalid")
+		result, err := _service.GetRegisteredModelById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -360,7 +357,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelById("99999")
+		result, err := _service.GetRegisteredModelById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -369,22 +366,21 @@ func TestGetRegisteredModelById(t *testing.T) {
 }
 
 func TestGetRegisteredModelByInferenceService(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name: "inference-test-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a serving environment
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "test-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service
@@ -393,11 +389,11 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Get registered model by inference service
-		result, err := service.GetRegisteredModelByInferenceService(*createdInference.Id)
+		result, err := _service.GetRegisteredModelByInferenceService(*createdInference.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -406,7 +402,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 	})
 
 	t.Run("invalid inference service id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByInferenceService("invalid")
+		result, err := _service.GetRegisteredModelByInferenceService("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -414,7 +410,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 	})
 
 	t.Run("non-existent inference service", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByInferenceService("99999")
+		result, err := _service.GetRegisteredModelByInferenceService("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -422,20 +418,19 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 }
 
 func TestGetRegisteredModelByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name:       "params-test-model",
 			ExternalId: apiutils.Of("params-ext-123"),
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
 		// Get by name
 		modelName := "params-test-model"
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -448,12 +443,12 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 			Name:       "params-ext-test-model",
 			ExternalId: apiutils.Of("params-unique-ext-456"),
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
 		// Get by external ID
 		externalId := "params-unique-ext-456"
-		result, err := service.GetRegisteredModelByParams(nil, &externalId)
+		result, err := _service.GetRegisteredModelByParams(nil, &externalId)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -462,7 +457,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByParams(nil, nil)
+		result, err := _service.GetRegisteredModelByParams(nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -471,7 +466,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 
 	t.Run("no model found", func(t *testing.T) {
 		modelName := "nonexistent-model"
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -483,10 +478,10 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name: modelName,
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -496,8 +491,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 }
 
 func TestGetRegisteredModels(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple models for listing
@@ -509,7 +503,7 @@ func TestGetRegisteredModels(t *testing.T) {
 
 		var createdIds []string
 		for _, model := range testModels {
-			created, err := service.UpsertRegisteredModel(model)
+			created, err := _service.UpsertRegisteredModel(model)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -520,7 +514,7 @@ func TestGetRegisteredModels(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetRegisteredModels(listOptions)
+		result, err := _service.GetRegisteredModels(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -547,7 +541,7 @@ func TestGetRegisteredModels(t *testing.T) {
 				Name:       "pagination-model-" + string(rune('A'+i)),
 				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 			}
-			_, err := service.UpsertRegisteredModel(model)
+			_, err := _service.UpsertRegisteredModel(model)
 			require.NoError(t, err)
 		}
 
@@ -561,7 +555,7 @@ func TestGetRegisteredModels(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetRegisteredModels(listOptions)
+		result, err := _service.GetRegisteredModels(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -571,8 +565,7 @@ func TestGetRegisteredModels(t *testing.T) {
 }
 
 func TestRegisteredModelRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a model with all fields
@@ -585,12 +578,12 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertRegisteredModel(original)
+		created, err := _service.UpsertRegisteredModel(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetRegisteredModelById(*created.Id)
+		retrieved, err := _service.GetRegisteredModelById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -605,7 +598,7 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.State = apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED)
 
-		updated, err := service.UpsertRegisteredModel(retrieved)
+		updated, err := _service.UpsertRegisteredModel(retrieved)
 		require.NoError(t, err)
 
 		// Verify update
@@ -614,7 +607,7 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *updated.State)
 
 		// Get again to verify persistence
-		final, err := service.GetRegisteredModelById(*created.Id)
+		final, err := _service.GetRegisteredModelById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *final.State)

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestUpsertArtifact(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create model artifact", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -35,7 +33,7 @@ func TestUpsertArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -67,7 +65,7 @@ func TestUpsertArtifact(t *testing.T) {
 			DocArtifact: docArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -88,7 +86,7 @@ func TestUpsertArtifact(t *testing.T) {
 			Uri:  apiutils.Of("s3://bucket/original.pkl"),
 		}
 
-		created, err := service.UpsertModelArtifact(modelArtifact)
+		created, err := _service.UpsertModelArtifact(modelArtifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -96,7 +94,7 @@ func TestUpsertArtifact(t *testing.T) {
 		created.Uri = apiutils.Of("s3://bucket/updated.pkl")
 		created.Description = apiutils.Of("Updated description")
 
-		updated, err := service.UpsertModelArtifact(created)
+		updated, err := _service.UpsertModelArtifact(created)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -127,7 +125,7 @@ func TestUpsertArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result.ModelArtifact)
@@ -141,7 +139,7 @@ func TestUpsertArtifact(t *testing.T) {
 	})
 
 	t.Run("nil artifact error", func(t *testing.T) {
-		result, err := service.UpsertArtifact(nil)
+		result, err := _service.UpsertArtifact(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -151,7 +149,7 @@ func TestUpsertArtifact(t *testing.T) {
 	t.Run("invalid artifact type", func(t *testing.T) {
 		artifact := &openapi.Artifact{}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -171,7 +169,7 @@ func TestUpsertArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -182,7 +180,7 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.NotNil(t, result.ModelArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Equal(t, unicodeName, *retrieved.ModelArtifact.Name)
@@ -201,7 +199,7 @@ func TestUpsertArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -211,7 +209,7 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.NotNil(t, result.ModelArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Equal(t, specialName, *retrieved.ModelArtifact.Name)
@@ -230,7 +228,7 @@ func TestUpsertArtifact(t *testing.T) {
 			DocArtifact: docArtifact,
 		}
 
-		result, err := service.UpsertArtifact(artifact)
+		result, err := _service.UpsertArtifact(artifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -240,7 +238,7 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.NotNil(t, result.DocArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.DocArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.DocArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.DocArtifact)
 		assert.Equal(t, mixedName, *retrieved.DocArtifact.Name)
@@ -261,7 +259,7 @@ func TestUpsertArtifact(t *testing.T) {
 				ModelArtifact: modelArtifact,
 			}
 
-			result, err := service.UpsertArtifact(artifact)
+			result, err := _service.UpsertArtifact(artifact)
 			require.NoError(t, err)
 			createdArtifacts = append(createdArtifacts, *result.ModelArtifact.Id)
 		}
@@ -277,7 +275,7 @@ func TestUpsertArtifact(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := service.GetArtifacts(listOptions, nil)
+		firstPage, err := _service.GetArtifacts(listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -312,7 +310,7 @@ func TestUpsertArtifact(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := service.GetArtifacts(listOptions, nil)
+			secondPage, err := _service.GetArtifacts(listOptions, nil)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -342,7 +340,7 @@ func TestUpsertArtifact(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := service.GetArtifacts(listOptions, nil)
+		allItems, err := _service.GetArtifacts(listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
@@ -374,7 +372,7 @@ func TestUpsertArtifact(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := service.GetArtifacts(listOptions, nil)
+		descPage, err := _service.GetArtifacts(listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -401,22 +399,20 @@ func TestUpsertArtifact(t *testing.T) {
 }
 
 func TestUpsertModelVersionArtifact(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
-
+	cleanupTestData(t, sharedDB)
 	t.Run("successful create with model version", func(t *testing.T) {
 		// First create a registered model and model version
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-model-for-artifact",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:        "v1.0",
 			Description: apiutils.Of("Version 1.0"),
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create artifact associated with model version
@@ -429,7 +425,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		result, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -449,7 +445,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertModelVersionArtifact(artifact, "invalid")
+		result, err := _service.UpsertModelVersionArtifact(artifact, "invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -461,13 +457,13 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "unicode-test-model-for-artifact",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0-unicode",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
@@ -482,7 +478,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		result, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -493,7 +489,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		assert.NotNil(t, result.ModelArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Contains(t, *retrieved.ModelArtifact.Name, unicodeName)
@@ -504,13 +500,13 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "special-chars-test-model-for-artifact",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0-special",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Test with various special characters
@@ -525,7 +521,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		result, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -535,7 +531,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		assert.NotNil(t, result.ModelArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Contains(t, *retrieved.ModelArtifact.Name, specialName)
@@ -546,13 +542,13 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "mixed-chars-test-model-for-artifact",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0-mixed",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Test with mixed unicode and special characters
@@ -567,7 +563,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		result, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -577,7 +573,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		assert.NotNil(t, result.ModelArtifact.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetArtifactById(*result.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*result.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Contains(t, *retrieved.ModelArtifact.Name, mixedName)
@@ -588,13 +584,13 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "paging-test-model-for-artifacts",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0-paging",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create 15 model version artifacts for pagination testing
@@ -611,7 +607,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 				ModelArtifact: modelArtifact,
 			}
 
-			result, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			result, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 			require.NoError(t, err)
 			createdArtifacts = append(createdArtifacts, *result.ModelArtifact.Id)
 		}
@@ -627,7 +623,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		firstPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -655,7 +651,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestArtifacts) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+			secondPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -676,7 +672,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		allItems, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test artifacts")
@@ -703,7 +699,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		descPage, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -728,8 +724,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 }
 
 func TestGetArtifactById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get model artifact", func(t *testing.T) {
 		// Create a model artifact first
@@ -743,12 +738,12 @@ func TestGetArtifactById(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		created, err := service.UpsertArtifact(artifact)
+		created, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.ModelArtifact.Id)
 
 		// Get the artifact by ID
-		result, err := service.GetArtifactById(*created.ModelArtifact.Id)
+		result, err := _service.GetArtifactById(*created.ModelArtifact.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -771,12 +766,12 @@ func TestGetArtifactById(t *testing.T) {
 			DocArtifact: docArtifact,
 		}
 
-		created, err := service.UpsertArtifact(artifact)
+		created, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.DocArtifact.Id)
 
 		// Get the artifact by ID
-		result, err := service.GetArtifactById(*created.DocArtifact.Id)
+		result, err := _service.GetArtifactById(*created.DocArtifact.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -788,7 +783,7 @@ func TestGetArtifactById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetArtifactById("invalid")
+		result, err := _service.GetArtifactById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -796,7 +791,7 @@ func TestGetArtifactById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetArtifactById("99999")
+		result, err := _service.GetArtifactById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -804,21 +799,20 @@ func TestGetArtifactById(t *testing.T) {
 }
 
 func TestGetArtifactByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by name and model version", func(t *testing.T) {
 		// Create registered model and model version
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-model-for-params",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create artifact with model version
@@ -831,11 +825,11 @@ func TestGetArtifactByParams(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		created, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		created, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 		require.NoError(t, err)
 
 		// Get by name and model version ID
-		result, err := service.GetArtifactByParams(apiutils.Of("params-test-artifact"), createdVersion.Id, nil)
+		result, err := _service.GetArtifactByParams(apiutils.Of("params-test-artifact"), createdVersion.Id, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -854,11 +848,11 @@ func TestGetArtifactByParams(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		created, err := service.UpsertArtifact(artifact)
+		created, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 
 		// Get by external ID
-		result, err := service.GetArtifactByParams(nil, nil, apiutils.Of("ext-params-123"))
+		result, err := _service.GetArtifactByParams(nil, nil, apiutils.Of("ext-params-123"))
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -868,7 +862,7 @@ func TestGetArtifactByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetArtifactByParams(nil, nil, nil)
+		result, err := _service.GetArtifactByParams(nil, nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -876,7 +870,7 @@ func TestGetArtifactByParams(t *testing.T) {
 	})
 
 	t.Run("artifact not found", func(t *testing.T) {
-		result, err := service.GetArtifactByParams(nil, nil, apiutils.Of("non-existent"))
+		result, err := _service.GetArtifactByParams(nil, nil, apiutils.Of("non-existent"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -885,8 +879,7 @@ func TestGetArtifactByParams(t *testing.T) {
 }
 
 func TestGetArtifacts(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list all artifacts", func(t *testing.T) {
 		// Create multiple artifacts
@@ -912,7 +905,7 @@ func TestGetArtifacts(t *testing.T) {
 		}
 
 		for _, artifact := range artifacts {
-			_, err := service.UpsertArtifact(artifact)
+			_, err := _service.UpsertArtifact(artifact)
 			require.NoError(t, err)
 		}
 
@@ -921,7 +914,7 @@ func TestGetArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := service.GetArtifacts(listOptions, nil)
+		result, err := _service.GetArtifacts(listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -935,13 +928,13 @@ func TestGetArtifacts(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-model-for-list",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create artifacts for this model version
@@ -952,7 +945,7 @@ func TestGetArtifacts(t *testing.T) {
 					Uri:  apiutils.Of("s3://bucket/version" + string(rune('1'+i)) + ".pkl"),
 				},
 			}
-			_, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			_, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 			require.NoError(t, err)
 		}
 
@@ -961,7 +954,7 @@ func TestGetArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		result, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -971,7 +964,7 @@ func TestGetArtifacts(t *testing.T) {
 	t.Run("invalid model version id", func(t *testing.T) {
 		listOptions := api.ListOptions{}
 
-		result, err := service.GetArtifacts(listOptions, apiutils.Of("invalid"))
+		result, err := _service.GetArtifacts(listOptions, apiutils.Of("invalid"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -980,8 +973,7 @@ func TestGetArtifacts(t *testing.T) {
 }
 
 func TestUpsertModelArtifact(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -992,7 +984,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 			ModelFormatVersion: apiutils.Of("2.8"),
 		}
 
-		result, err := service.UpsertModelArtifact(modelArtifact)
+		result, err := _service.UpsertModelArtifact(modelArtifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1005,7 +997,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 	})
 
 	t.Run("nil model artifact error", func(t *testing.T) {
-		result, err := service.UpsertModelArtifact(nil)
+		result, err := _service.UpsertModelArtifact(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1023,7 +1015,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 			ModelFormatVersion: apiutils.Of("2.8-测试"),
 		}
 
-		result, err := service.UpsertModelArtifact(modelArtifact)
+		result, err := _service.UpsertModelArtifact(modelArtifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1035,7 +1027,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelArtifactById(*result.Id)
+		retrieved, err := _service.GetModelArtifactById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, unicodeName, *retrieved.Name)
 		assert.Equal(t, "2.8-测试", *retrieved.ModelFormatVersion)
@@ -1052,7 +1044,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 			ModelFormatVersion: apiutils.Of("1.0!@#"),
 		}
 
-		result, err := service.UpsertModelArtifact(modelArtifact)
+		result, err := _service.UpsertModelArtifact(modelArtifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1064,7 +1056,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelArtifactById(*result.Id)
+		retrieved, err := _service.GetModelArtifactById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, specialName, *retrieved.Name)
 		assert.Equal(t, "format@#$%", *retrieved.ModelFormatName)
@@ -1081,7 +1073,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 			ModelFormatVersion: apiutils.Of("2.8!@#-тест"),
 		}
 
-		result, err := service.UpsertModelArtifact(modelArtifact)
+		result, err := _service.UpsertModelArtifact(modelArtifact)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1093,7 +1085,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelArtifactById(*result.Id)
+		retrieved, err := _service.GetModelArtifactById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, mixedName, *retrieved.Name)
 		assert.Equal(t, "tensorflow@#$%-测试", *retrieved.ModelFormatName)
@@ -1107,7 +1099,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 				Uri:  apiutils.Of(fmt.Sprintf("s3://bucket/paging-direct-model-%d.pkl", i+1)),
 			}
 
-			result, err := service.UpsertModelArtifact(modelArtifact)
+			result, err := _service.UpsertModelArtifact(modelArtifact)
 			require.NoError(t, err)
 			require.NotNil(t, result.Id)
 		}
@@ -1118,7 +1110,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := service.GetModelArtifacts(listOptions, nil)
+		firstPage, err := _service.GetModelArtifacts(listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.Equal(t, 5, len(firstPage.Items))
@@ -1126,7 +1118,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 
 		// Get second page
 		listOptions.NextPageToken = apiutils.Of(firstPage.NextPageToken)
-		secondPage, err := service.GetModelArtifacts(listOptions, nil)
+		secondPage, err := _service.GetModelArtifacts(listOptions, nil)
 		require.NoError(t, err)
 		require.NotNil(t, secondPage)
 		assert.GreaterOrEqual(t, len(secondPage.Items), 5)
@@ -1146,8 +1138,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 }
 
 func TestGetModelArtifactById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a model artifact
@@ -1156,12 +1147,12 @@ func TestGetModelArtifactById(t *testing.T) {
 			Uri:  apiutils.Of("s3://bucket/get-model.pkl"),
 		}
 
-		created, err := service.UpsertModelArtifact(modelArtifact)
+		created, err := _service.UpsertModelArtifact(modelArtifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		result, err := service.GetModelArtifactById(*created.Id)
+		result, err := _service.GetModelArtifactById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1181,12 +1172,12 @@ func TestGetModelArtifactById(t *testing.T) {
 			DocArtifact: docArtifact,
 		}
 
-		created, err := service.UpsertArtifact(artifact)
+		created, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.DocArtifact.Id)
 
 		// Try to get as model artifact
-		result, err := service.GetModelArtifactById(*created.DocArtifact.Id)
+		result, err := _service.GetModelArtifactById(*created.DocArtifact.Id)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1194,7 +1185,7 @@ func TestGetModelArtifactById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetModelArtifactById("99999")
+		result, err := _service.GetModelArtifactById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1202,27 +1193,26 @@ func TestGetModelArtifactById(t *testing.T) {
 }
 
 func TestGetModelArtifactByInferenceService(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create the full chain: RegisteredModel -> ModelVersion -> InferenceService -> ModelArtifact
 		registeredModel := &openapi.RegisteredModel{
 			Name: "inference-artifact-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "inference-artifact-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -1231,7 +1221,7 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			ModelVersionId:       createdVersion.Id,
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Create model artifact for the model version
@@ -1244,11 +1234,11 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 			ModelArtifact: modelArtifact,
 		}
 
-		_, err = service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		_, err = _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 		require.NoError(t, err)
 
 		// Get model artifact by inference service
-		result, err := service.GetModelArtifactByInferenceService(*createdInference.Id)
+		result, err := _service.GetModelArtifactByInferenceService(*createdInference.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1262,19 +1252,19 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "no-artifact-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "no-artifact-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		inferenceService := &openapi.InferenceService{
@@ -1283,11 +1273,11 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			ModelVersionId:       createdVersion.Id,
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Try to get model artifact
-		result, err := service.GetModelArtifactByInferenceService(*createdInference.Id)
+		result, err := _service.GetModelArtifactByInferenceService(*createdInference.Id)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1296,8 +1286,7 @@ func TestGetModelArtifactByInferenceService(t *testing.T) {
 }
 
 func TestGetModelArtifactByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by external id", func(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
@@ -1306,11 +1295,11 @@ func TestGetModelArtifactByParams(t *testing.T) {
 			Uri:        apiutils.Of("s3://bucket/params-model.pkl"),
 		}
 
-		created, err := service.UpsertModelArtifact(modelArtifact)
+		created, err := _service.UpsertModelArtifact(modelArtifact)
 		require.NoError(t, err)
 
 		// Get by external ID
-		result, err := service.GetModelArtifactByParams(nil, nil, apiutils.Of("model-params-ext-123"))
+		result, err := _service.GetModelArtifactByParams(nil, nil, apiutils.Of("model-params-ext-123"))
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1330,11 +1319,11 @@ func TestGetModelArtifactByParams(t *testing.T) {
 			DocArtifact: docArtifact,
 		}
 
-		_, err := service.UpsertArtifact(artifact)
+		_, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 
 		// Try to get as model artifact
-		result, err := service.GetModelArtifactByParams(nil, nil, apiutils.Of("doc-params-ext-123"))
+		result, err := _service.GetModelArtifactByParams(nil, nil, apiutils.Of("doc-params-ext-123"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1343,8 +1332,7 @@ func TestGetModelArtifactByParams(t *testing.T) {
 }
 
 func TestGetModelArtifacts(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list all model artifacts", func(t *testing.T) {
 		// Create multiple model artifacts
@@ -1353,7 +1341,7 @@ func TestGetModelArtifacts(t *testing.T) {
 				Name: apiutils.Of("list-model-artifact-" + string(rune('1'+i))),
 				Uri:  apiutils.Of("s3://bucket/model" + string(rune('1'+i)) + ".pkl"),
 			}
-			_, err := service.UpsertModelArtifact(modelArtifact)
+			_, err := _service.UpsertModelArtifact(modelArtifact)
 			require.NoError(t, err)
 		}
 
@@ -1362,7 +1350,7 @@ func TestGetModelArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := service.GetModelArtifacts(listOptions, nil)
+		result, err := _service.GetModelArtifacts(listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1376,13 +1364,13 @@ func TestGetModelArtifacts(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-model-for-model-artifacts",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name: "v1.0",
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create model artifacts for this model version
@@ -1396,7 +1384,7 @@ func TestGetModelArtifacts(t *testing.T) {
 				ModelArtifact: modelArtifact,
 			}
 
-			_, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			_, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 			require.NoError(t, err)
 		}
 
@@ -1405,7 +1393,7 @@ func TestGetModelArtifacts(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		result, err := service.GetModelArtifacts(listOptions, createdVersion.Id)
+		result, err := _service.GetModelArtifacts(listOptions, createdVersion.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -1415,7 +1403,7 @@ func TestGetModelArtifacts(t *testing.T) {
 	t.Run("invalid model version id", func(t *testing.T) {
 		listOptions := api.ListOptions{}
 
-		result, err := service.GetModelArtifacts(listOptions, apiutils.Of("invalid"))
+		result, err := _service.GetModelArtifacts(listOptions, apiutils.Of("invalid"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1424,8 +1412,7 @@ func TestGetModelArtifacts(t *testing.T) {
 }
 
 func TestArtifactRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create registered model and model version
@@ -1433,14 +1420,14 @@ func TestArtifactRoundTrip(t *testing.T) {
 			Name:        "roundtrip-model",
 			Description: apiutils.Of("Model for roundtrip test"),
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		modelVersion := &openapi.ModelVersion{
 			Name:        "v1.0",
 			Description: apiutils.Of("Version 1.0"),
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create model artifact
@@ -1460,12 +1447,12 @@ func TestArtifactRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		created, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.ModelArtifact.Id)
 
 		// Get by ID
-		retrieved, err := service.GetArtifactById(*created.ModelArtifact.Id)
+		retrieved, err := _service.GetArtifactById(*created.ModelArtifact.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.ModelArtifact)
 		assert.Equal(t, *created.ModelArtifact.Id, *retrieved.ModelArtifact.Id)
@@ -1483,7 +1470,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 		retrieved.ModelArtifact.Uri = apiutils.Of("s3://bucket/updated-roundtrip.pkl")
 		retrieved.ModelArtifact.State = apiutils.Of(openapi.ARTIFACTSTATE_DELETED)
 
-		updated, err := service.UpsertArtifact(retrieved)
+		updated, err := _service.UpsertArtifact(retrieved)
 		require.NoError(t, err)
 		require.NotNil(t, updated.ModelArtifact)
 		assert.Equal(t, *created.ModelArtifact.Id, *updated.ModelArtifact.Id)
@@ -1496,7 +1483,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 			PageSize: apiutils.Of(int32(10)),
 		}
 
-		artifacts, err := service.GetArtifacts(listOptions, createdVersion.Id)
+		artifacts, err := _service.GetArtifacts(listOptions, createdVersion.Id)
 		require.NoError(t, err)
 		require.NotNil(t, artifacts)
 		assert.Equal(t, 1, len(artifacts.Items))
@@ -1534,12 +1521,12 @@ func TestArtifactRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertModelArtifact(modelArtifact)
+		created, err := _service.UpsertModelArtifact(modelArtifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Verify custom properties
-		retrieved, err := service.GetModelArtifactById(*created.Id)
+		retrieved, err := _service.GetModelArtifactById(*created.Id)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.CustomProperties)
 
@@ -1570,7 +1557,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 
 		retrieved.CustomProperties = &newProps
 
-		updated, err := service.UpsertModelArtifact(retrieved)
+		updated, err := _service.UpsertModelArtifact(retrieved)
 		require.NoError(t, err)
 		require.NotNil(t, updated.CustomProperties)
 
@@ -1583,8 +1570,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 }
 
 func TestModelArtifactNilFieldsPreservation(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("nil fields preserved during model artifact upsert", func(t *testing.T) {
 		// Create model artifact with only required fields, leaving optional fields as nil
@@ -1608,7 +1594,7 @@ func TestModelArtifactNilFieldsPreservation(t *testing.T) {
 		}
 
 		// Create the artifact
-		created, err := service.UpsertModelArtifact(modelArtifact)
+		created, err := _service.UpsertModelArtifact(modelArtifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -1630,7 +1616,7 @@ func TestModelArtifactNilFieldsPreservation(t *testing.T) {
 		created.Uri = apiutils.Of("s3://bucket/updated.pkl")
 		// Keep all other optional fields as nil
 
-		updated, err := service.UpsertModelArtifact(created)
+		updated, err := _service.UpsertModelArtifact(created)
 		require.NoError(t, err)
 
 		// Verify nil fields are still preserved after update
@@ -1651,8 +1637,7 @@ func TestModelArtifactNilFieldsPreservation(t *testing.T) {
 }
 
 func TestDocArtifactNilFieldsPreservation(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("nil fields preserved during doc artifact upsert", func(t *testing.T) {
 		// Create doc artifact with only required fields, leaving optional fields as nil
@@ -1670,7 +1655,7 @@ func TestDocArtifactNilFieldsPreservation(t *testing.T) {
 		}
 
 		// Create the artifact
-		created, err := service.UpsertArtifact(artifact)
+		created, err := _service.UpsertArtifact(artifact)
 		require.NoError(t, err)
 		require.NotNil(t, created.DocArtifact.Id)
 
@@ -1682,7 +1667,7 @@ func TestDocArtifactNilFieldsPreservation(t *testing.T) {
 		created.DocArtifact.Uri = apiutils.Of("s3://bucket/updated-doc.pdf")
 		// Keep all other optional fields as nil
 
-		updated, err := service.UpsertArtifact(created)
+		updated, err := _service.UpsertArtifact(created)
 		require.NoError(t, err)
 
 		// Verify nil fields are still preserved after update

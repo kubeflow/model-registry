@@ -22,25 +22,24 @@ func getServeModelTypeID(t *testing.T, db *gorm.DB) int64 {
 }
 
 func TestServeModelRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Get the actual ServeModel type ID from the database
-	typeID := getServeModelTypeID(t, db)
-	repo := service.NewServeModelRepository(db, typeID)
+	typeID := getServeModelTypeID(t, sharedDB)
+	repo := service.NewServeModelRepository(sharedDB, typeID)
 
 	// Also get other type IDs for creating related entities
-	registeredModelTypeID := getRegisteredModelTypeID(t, db)
-	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
+	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, registeredModelTypeID)
 
-	modelVersionTypeID := getModelVersionTypeID(t, db)
-	modelVersionRepo := service.NewModelVersionRepository(db, modelVersionTypeID)
+	modelVersionTypeID := getModelVersionTypeID(t, sharedDB)
+	modelVersionRepo := service.NewModelVersionRepository(sharedDB, modelVersionTypeID)
 
-	inferenceServiceTypeID := getInferenceServiceTypeID(t, db)
-	inferenceServiceRepo := service.NewInferenceServiceRepository(db, inferenceServiceTypeID)
+	inferenceServiceTypeID := getInferenceServiceTypeID(t, sharedDB)
+	inferenceServiceRepo := service.NewInferenceServiceRepository(sharedDB, inferenceServiceTypeID)
 
-	servingEnvironmentTypeID := getServingEnvironmentTypeID(t, db)
-	servingEnvironmentRepo := service.NewServingEnvironmentRepository(db, servingEnvironmentTypeID)
+	servingEnvironmentTypeID := getServingEnvironmentTypeID(t, sharedDB)
+	servingEnvironmentRepo := service.NewServingEnvironmentRepository(sharedDB, servingEnvironmentTypeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a registered model

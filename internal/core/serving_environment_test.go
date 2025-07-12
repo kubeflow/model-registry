@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -13,8 +12,7 @@ import (
 )
 
 func TestUpsertServingEnvironment(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
@@ -23,7 +21,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			ExternalId:  apiutils.Of("serving-ext-123"),
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -42,7 +40,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			Description: apiutils.Of("Original description"),
 		}
 
-		created, err := service.UpsertServingEnvironment(input)
+		created, err := _service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -54,7 +52,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			ExternalId:  apiutils.Of("updated-ext-456"),
 		}
 
-		updated, err := service.UpsertServingEnvironment(update)
+		updated, err := _service.UpsertServingEnvironment(update)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -97,7 +95,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			CustomProperties: &customProps,
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -123,7 +121,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			Name: "minimal-serving-env",
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -132,7 +130,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 	})
 
 	t.Run("nil serving environment error", func(t *testing.T) {
-		result, err := service.UpsertServingEnvironment(nil)
+		result, err := _service.UpsertServingEnvironment(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -146,7 +144,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			Description: apiutils.Of("Unicode test environment with 中文, русский, 日本語, and emoji 🎯"),
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -163,7 +161,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -181,7 +179,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
 
-		result, err := service.UpsertServingEnvironment(input)
+		result, err := _service.UpsertServingEnvironment(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -201,7 +199,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
-			result, err := service.UpsertServingEnvironment(input)
+			result, err := _service.UpsertServingEnvironment(input)
 			require.NoError(t, err)
 			require.NotNil(t, result.Id)
 			createdEnvironments = append(createdEnvironments, *result.Id)
@@ -209,7 +207,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 
 		// Test first page with page size 5
 		pageSize := int32(5)
-		firstPageResult, err := service.GetServingEnvironments(api.ListOptions{
+		firstPageResult, err := _service.GetServingEnvironments(api.ListOptions{
 			PageSize: &pageSize,
 		})
 
@@ -220,7 +218,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 
 		// Test second page if there's a next page token
 		if firstPageResult.NextPageToken != "" {
-			secondPageResult, err := service.GetServingEnvironments(api.ListOptions{
+			secondPageResult, err := _service.GetServingEnvironments(api.ListOptions{
 				PageSize:      &pageSize,
 				NextPageToken: &firstPageResult.NextPageToken,
 			})
@@ -243,7 +241,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 
 		// Test larger page size to get more environments
 		largePageSize := int32(100)
-		largePageResult, err := service.GetServingEnvironments(api.ListOptions{
+		largePageResult, err := _service.GetServingEnvironments(api.ListOptions{
 			PageSize: &largePageSize,
 		})
 
@@ -269,7 +267,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		// Test ordering by name
 		orderBy := "name"
 		sortOrder := "ASC"
-		orderedResult, err := service.GetServingEnvironments(api.ListOptions{
+		orderedResult, err := _service.GetServingEnvironments(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrder,
@@ -283,7 +281,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 
 		// Test descending order
 		sortOrderDesc := "DESC"
-		orderedDescResult, err := service.GetServingEnvironments(api.ListOptions{
+		orderedDescResult, err := _service.GetServingEnvironments(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrderDesc,
@@ -296,8 +294,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 }
 
 func TestGetServingEnvironmentById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// First create a serving environment to retrieve
@@ -307,12 +304,12 @@ func TestGetServingEnvironmentById(t *testing.T) {
 			ExternalId:  apiutils.Of("get-ext-123"),
 		}
 
-		created, err := service.UpsertServingEnvironment(input)
+		created, err := _service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the serving environment by ID
-		result, err := service.GetServingEnvironmentById(*created.Id)
+		result, err := _service.GetServingEnvironmentById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -323,7 +320,7 @@ func TestGetServingEnvironmentById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetServingEnvironmentById("invalid")
+		result, err := _service.GetServingEnvironmentById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -331,7 +328,7 @@ func TestGetServingEnvironmentById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetServingEnvironmentById("99999")
+		result, err := _service.GetServingEnvironmentById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -340,20 +337,19 @@ func TestGetServingEnvironmentById(t *testing.T) {
 }
 
 func TestGetServingEnvironmentByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
 			Name:       "params-test-serving-env",
 			ExternalId: apiutils.Of("params-ext-123"),
 		}
-		created, err := service.UpsertServingEnvironment(input)
+		created, err := _service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
 
 		// Get by name
 		envName := "params-test-serving-env"
-		result, err := service.GetServingEnvironmentByParams(&envName, nil)
+		result, err := _service.GetServingEnvironmentByParams(&envName, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -366,12 +362,12 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 			Name:       "params-ext-test-serving-env",
 			ExternalId: apiutils.Of("params-unique-ext-456"),
 		}
-		created, err := service.UpsertServingEnvironment(input)
+		created, err := _service.UpsertServingEnvironment(input)
 		require.NoError(t, err)
 
 		// Get by external ID
 		externalId := "params-unique-ext-456"
-		result, err := service.GetServingEnvironmentByParams(nil, &externalId)
+		result, err := _service.GetServingEnvironmentByParams(nil, &externalId)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -380,7 +376,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetServingEnvironmentByParams(nil, nil)
+		result, err := _service.GetServingEnvironmentByParams(nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -389,7 +385,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 
 	t.Run("no environment found", func(t *testing.T) {
 		envName := "nonexistent-serving-env"
-		result, err := service.GetServingEnvironmentByParams(&envName, nil)
+		result, err := _service.GetServingEnvironmentByParams(&envName, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -398,8 +394,7 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 }
 
 func TestGetServingEnvironments(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple serving environments for listing
@@ -411,7 +406,7 @@ func TestGetServingEnvironments(t *testing.T) {
 
 		var createdIds []string
 		for _, env := range testEnvironments {
-			created, err := service.UpsertServingEnvironment(env)
+			created, err := _service.UpsertServingEnvironment(env)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -422,7 +417,7 @@ func TestGetServingEnvironments(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetServingEnvironments(listOptions)
+		result, err := _service.GetServingEnvironments(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -449,7 +444,7 @@ func TestGetServingEnvironments(t *testing.T) {
 				Name:       "pagination-serving-env-" + string(rune('A'+i)),
 				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 			}
-			_, err := service.UpsertServingEnvironment(env)
+			_, err := _service.UpsertServingEnvironment(env)
 			require.NoError(t, err)
 		}
 
@@ -463,7 +458,7 @@ func TestGetServingEnvironments(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetServingEnvironments(listOptions)
+		result, err := _service.GetServingEnvironments(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -473,8 +468,7 @@ func TestGetServingEnvironments(t *testing.T) {
 }
 
 func TestServingEnvironmentRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a serving environment with all fields
@@ -485,12 +479,12 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertServingEnvironment(original)
+		created, err := _service.UpsertServingEnvironment(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetServingEnvironmentById(*created.Id)
+		retrieved, err := _service.GetServingEnvironmentById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -503,7 +497,7 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.ExternalId = apiutils.Of("updated-ext-456")
 
-		updated, err := service.UpsertServingEnvironment(retrieved)
+		updated, err := _service.UpsertServingEnvironment(retrieved)
 		require.NoError(t, err)
 
 		// Verify update
@@ -512,7 +506,7 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		assert.Equal(t, "updated-ext-456", *updated.ExternalId)
 
 		// Get again to verify persistence
-		final, err := service.GetServingEnvironmentById(*created.Id)
+		final, err := _service.GetServingEnvironmentById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, "updated-ext-456", *final.ExternalId)
@@ -538,12 +532,12 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertServingEnvironment(original)
+		created, err := _service.UpsertServingEnvironment(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetServingEnvironmentById(*created.Id)
+		retrieved, err := _service.GetServingEnvironmentById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify custom properties
@@ -574,7 +568,7 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 		}
 		retrieved.CustomProperties = &updatedProps
 
-		updated, err := service.UpsertServingEnvironment(retrieved)
+		updated, err := _service.UpsertServingEnvironment(retrieved)
 		require.NoError(t, err)
 
 		// Verify updated custom properties

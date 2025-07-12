@@ -12,20 +12,19 @@ import (
 )
 
 func TestArtifactRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Get the actual type IDs from the database
-	modelArtifactTypeID := getModelArtifactTypeID(t, db)
-	docArtifactTypeID := getDocArtifactTypeID(t, db)
-	repo := service.NewArtifactRepository(db, modelArtifactTypeID, docArtifactTypeID)
+	modelArtifactTypeID := getModelArtifactTypeID(t, sharedDB)
+	docArtifactTypeID := getDocArtifactTypeID(t, sharedDB)
+	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID)
 
 	// Also get other type IDs for creating related entities
-	registeredModelTypeID := getRegisteredModelTypeID(t, db)
-	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
+	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, registeredModelTypeID)
 
-	modelVersionTypeID := getModelVersionTypeID(t, db)
-	modelVersionRepo := service.NewModelVersionRepository(db, modelVersionTypeID)
+	modelVersionTypeID := getModelVersionTypeID(t, sharedDB)
+	modelVersionRepo := service.NewModelVersionRepository(sharedDB, modelVersionTypeID)
 
 	// Create shared test data
 	registeredModel := &models.RegisteredModelImpl{
@@ -54,7 +53,7 @@ func TestArtifactRepository(t *testing.T) {
 
 	t.Run("TestGetByID", func(t *testing.T) {
 		// Create a model artifact using the model artifact repository
-		modelArtifactRepo := service.NewModelArtifactRepository(db, modelArtifactTypeID)
+		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
 		modelArtifact := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
 			Attributes: &models.ModelArtifactAttributes{
@@ -68,7 +67,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a doc artifact using the doc artifact repository
-		docArtifactRepo := service.NewDocArtifactRepository(db, docArtifactTypeID)
+		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(docArtifactTypeID)),
 			Attributes: &models.DocArtifactAttributes{
@@ -106,8 +105,8 @@ func TestArtifactRepository(t *testing.T) {
 
 	t.Run("TestList", func(t *testing.T) {
 		// Create multiple artifacts of both types using their respective repositories
-		modelArtifactRepo := service.NewModelArtifactRepository(db, modelArtifactTypeID)
-		docArtifactRepo := service.NewDocArtifactRepository(db, docArtifactTypeID)
+		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
+		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 
 		// Create model artifacts
 		modelArtifacts := []*models.ModelArtifactImpl{
@@ -278,8 +277,8 @@ func TestArtifactRepository(t *testing.T) {
 
 	t.Run("TestListOrdering", func(t *testing.T) {
 		// Create artifacts sequentially with time delays to ensure deterministic ordering
-		modelArtifactRepo := service.NewModelArtifactRepository(db, modelArtifactTypeID)
-		docArtifactRepo := service.NewDocArtifactRepository(db, docArtifactTypeID)
+		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
+		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 
 		// Create first artifact (model artifact)
 		artifact1 := &models.ModelArtifactImpl{
@@ -360,8 +359,8 @@ func TestArtifactRepository(t *testing.T) {
 
 	t.Run("TestListMixedTypes", func(t *testing.T) {
 		// Test that the unified repository correctly handles mixed artifact types
-		modelArtifactRepo := service.NewModelArtifactRepository(db, modelArtifactTypeID)
-		docArtifactRepo := service.NewDocArtifactRepository(db, docArtifactTypeID)
+		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
+		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 
 		// Create artifacts with similar names but different types
 		modelArtifact := &models.ModelArtifactImpl{
@@ -418,8 +417,8 @@ func TestArtifactRepository(t *testing.T) {
 
 	t.Run("TestListWithoutModelVersion", func(t *testing.T) {
 		// Test listing artifacts that are not attributed to any model version
-		modelArtifactRepo := service.NewModelArtifactRepository(db, modelArtifactTypeID)
-		docArtifactRepo := service.NewDocArtifactRepository(db, docArtifactTypeID)
+		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
+		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 
 		// Create standalone artifacts (without model version attribution)
 		standaloneModelArtifact := &models.ModelArtifactImpl{

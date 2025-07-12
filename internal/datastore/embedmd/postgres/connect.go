@@ -15,15 +15,16 @@ import (
 )
 
 const (
-	// postgresMaxRetries is the maximum number of attempts to retry PostgreSQL connection.
-	postgresMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
+	// postgresMaxRetriesDefault is the maximum number of attempts to retry PostgreSQL connection.
+	postgresMaxRetriesDefault = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 type PostgresDBConnector struct {
-	DSN       string
-	TLSConfig *_tls.TLSConfig
-	db        *gorm.DB
+	DSN          string
+	TLSConfig    *_tls.TLSConfig
+	db           *gorm.DB
 	connectMutex sync.Mutex
+	maxRetries   int
 }
 
 func NewPostgresDBConnector(
@@ -31,9 +32,16 @@ func NewPostgresDBConnector(
 	tlsConfig *_tls.TLSConfig,
 ) *PostgresDBConnector {
 	return &PostgresDBConnector{
-		DSN:       dsn,
-		TLSConfig: tlsConfig,
+		DSN:        dsn,
+		TLSConfig:  tlsConfig,
+		maxRetries: postgresMaxRetriesDefault,
 	}
+}
+
+func (c *PostgresDBConnector) WithMaxRetries(maxRetries int) *PostgresDBConnector {
+	c.maxRetries = maxRetries
+
+	return c
 }
 
 func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
@@ -57,8 +65,8 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 		}
 	}
 
-	for i := range postgresMaxRetries {
-		glog.V(2).Infof("Attempting to connect with DSN: %q (attempt %d/%d)", dsn, i+1, postgresMaxRetries)
+	for i := range c.maxRetries {
+		glog.V(2).Infof("Attempting to connect with DSN: %q (attempt %d/%d)", dsn, i+1, c.maxRetries)
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger:         logger.Default.LogMode(logger.Silent),
 			TranslateError: true,
@@ -67,7 +75,7 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 			break
 		}
 
-		glog.Warningf("Retrying connection to PostgreSQL (attempt %d/%d): %v", i+1, postgresMaxRetries, err)
+		glog.Warningf("Retrying connection to PostgreSQL (attempt %d/%d): %v", i+1, c.maxRetries, err)
 
 		time.Sleep(time.Duration(i+1) * time.Second)
 	}
@@ -82,7 +90,6 @@ func (c *PostgresDBConnector) Connect() (*gorm.DB, error) {
 	return db, nil
 }
 
-
 func (c *PostgresDBConnector) DB() *gorm.DB {
 	return c.db
 }
@@ -91,12 +98,12 @@ func (c *PostgresDBConnector) needsTLSConfig() bool {
 	if c.TLSConfig == nil {
 		return false
 	}
-	
+
 	// Log warning if cipher configuration is specified (not supported by PostgreSQL)
 	if c.TLSConfig.Cipher != "" {
 		glog.Warningf("SSL cipher configuration is not supported for PostgreSQL connections, ignoring cipher: %s", c.TLSConfig.Cipher)
 	}
-	
+
 	return c.TLSConfig.CertPath != "" || c.TLSConfig.KeyPath != "" || c.TLSConfig.RootCertPath != "" || c.TLSConfig.CAPath != "" || c.TLSConfig.VerifyServerCert
 }
 
