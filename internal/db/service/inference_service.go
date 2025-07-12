@@ -142,13 +142,9 @@ func mapDataLayerToInferenceService(infSvcCtx schema.Context, propertiesCtx []sc
 		}
 	}
 
-	if len(properties) > 0 {
-		inferenceServiceModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		inferenceServiceModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	inferenceServiceModel.Properties = &properties
+	inferenceServiceModel.CustomProperties = &customProperties
 
 	return inferenceServiceModel
 }

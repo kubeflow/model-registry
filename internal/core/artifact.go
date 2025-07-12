@@ -363,8 +363,7 @@ func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, er
 	return b.getArtifact(id, false)
 }
 
-func (b *ModelRegistryService) getArtifactsByParams(artifactName *string, parentResourceId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {
-	artToReturn := &openapi.Artifact{}
+func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentResourceId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {
 
 	if artifactName == nil && parentResourceId == nil && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
@@ -395,25 +394,16 @@ func (b *ModelRegistryService) getArtifactsByParams(artifactName *string, parent
 		return nil, fmt.Errorf("multiple %sartifacts found for name=%v, parentResourceId=%v, externalId=%v: %w", artifactType, apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
-	if artifacts.Items[0].ModelArtifact != nil {
-		modelArtifact, err := b.mapper.MapToModelArtifact(*artifacts.Items[0].ModelArtifact)
-		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-		}
-		artToReturn.ModelArtifact = modelArtifact
-	} else {
-		docArtifact, err := b.mapper.MapToDocArtifact(*artifacts.Items[0].DocArtifact)
-		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-		}
-		artToReturn.DocArtifact = docArtifact
+	mappedArtifact, err := b.mapper.MapToArtifact(artifacts.Items[0])
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	return artToReturn, nil
+	return mappedArtifact, nil
 }
 
 func (b *ModelRegistryService) GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error) {
-	return b.getArtifactsByParams(artifactName, parentResourceId, externalId, "")
+	return b.getArtifactByParams(artifactName, parentResourceId, externalId, "")
 }
 
 func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions api.ListOptions, parentResourceId *string) (*openapi.ArtifactList, error) {
@@ -430,6 +420,12 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 		parentResourceIDPtr = &convertedIdInt32
 	}
 
+	// Convert artifactType parameter to string if provided
+	var artifactTypeStr *string
+	if artifactType != "" {
+		artifactTypeStr = (*string)(&artifactType)
+	}
+
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{
 		Pagination: models.Pagination{
 			PageSize:      listOptions.PageSize,
@@ -438,6 +434,7 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 			NextPageToken: listOptions.NextPageToken,
 		},
 		ParentResourceID: parentResourceIDPtr,
+		ArtifactType:     artifactTypeStr,
 	})
 	if err != nil {
 		return nil, err
@@ -448,19 +445,11 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 	}
 
 	for _, artifact := range artifacts.Items {
-		if artifact.ModelArtifact != nil {
-			modelArtifact, err := b.mapper.MapToModelArtifact(*artifact.ModelArtifact)
-			if err != nil {
-				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-			}
-			artifactsList.Items = append(artifactsList.Items, openapi.Artifact{ModelArtifact: modelArtifact})
-		} else {
-			docArtifact, err := b.mapper.MapToDocArtifact(*artifact.DocArtifact)
-			if err != nil {
-				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-			}
-			artifactsList.Items = append(artifactsList.Items, openapi.Artifact{DocArtifact: docArtifact})
+		mappedArtifact, err := b.mapper.MapToArtifact(artifact)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		artifactsList.Items = append(artifactsList.Items, *mappedArtifact)
 	}
 
 	artifactsList.NextPageToken = artifacts.NextPageToken
@@ -521,7 +510,7 @@ func (b *ModelRegistryService) GetModelArtifactByInferenceService(inferenceServi
 }
 
 func (b *ModelRegistryService) GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error) {
-	art, err := b.getArtifactsByParams(artifactName, parentResourceId, externalId, "model")
+	art, err := b.getArtifactByParams(artifactName, parentResourceId, externalId, "model")
 	if err != nil {
 		return nil, err
 	}

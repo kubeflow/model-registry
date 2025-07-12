@@ -121,13 +121,9 @@ func mapDataLayerToServingEnvironment(modelCtx schema.Context, propertiesCtx []s
 		}
 	}
 
-	if len(properties) > 0 {
-		servingEnvironmentModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		servingEnvironmentModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	servingEnvironmentModel.Properties = &properties
+	servingEnvironmentModel.CustomProperties = &customProperties
 
 	return servingEnvironmentModel
 }

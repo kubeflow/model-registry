@@ -924,7 +924,7 @@ func TestGetArtifacts(t *testing.T) {
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.GreaterOrEqual(t, len(result.Items), 3)
+		assert.GreaterOrEqual(t, len(result.Items), 2)
 		assert.NotNil(t, result.Size)
 		assert.Equal(t, int32(10), result.PageSize)
 	})
@@ -1687,5 +1687,422 @@ func TestDocArtifactNilFieldsPreservation(t *testing.T) {
 		assert.Equal(t, "s3://bucket/updated-doc.pdf", *updated.DocArtifact.Uri)
 		assert.Nil(t, updated.DocArtifact.Description)
 		assert.Nil(t, updated.DocArtifact.ExternalId)
+	})
+}
+
+func TestArtifactTypeFiltering(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Setup: Create a registered model, model version, and experiment + experiment run
+	registeredModel := &openapi.RegisteredModel{
+		Name: "artifact-type-test-model",
+	}
+	createdModel, err := service.UpsertRegisteredModel(registeredModel)
+	require.NoError(t, err)
+
+	modelVersion := &openapi.ModelVersion{
+		Name: "v1.0",
+	}
+	createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+	require.NoError(t, err)
+
+	experiment := &openapi.Experiment{
+		Name: "artifact-type-test-experiment",
+	}
+	createdExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	experimentRun := &openapi.ExperimentRun{
+		Name: apiutils.Of("artifact-type-test-run"),
+	}
+	createdExperimentRun, err := service.UpsertExperimentRun(experimentRun, createdExperiment.Id)
+	require.NoError(t, err)
+
+	// Create one artifact of each type for general testing
+	t.Run("setup artifacts", func(t *testing.T) {
+		// Create ModelArtifact
+		modelArtifact := &openapi.Artifact{
+			ModelArtifact: &openapi.ModelArtifact{
+				Name: apiutils.Of("test-model-artifact"),
+				Uri:  apiutils.Of("s3://bucket/model.pkl"),
+			},
+		}
+		_, err := service.UpsertArtifact(modelArtifact)
+		require.NoError(t, err)
+
+		// Create DocArtifact
+		docArtifact := &openapi.Artifact{
+			DocArtifact: &openapi.DocArtifact{
+				Name: apiutils.Of("test-doc-artifact"),
+				Uri:  apiutils.Of("s3://bucket/doc.pdf"),
+			},
+		}
+		_, err = service.UpsertArtifact(docArtifact)
+		require.NoError(t, err)
+
+		// Create DataSet
+		dataSet := &openapi.Artifact{
+			DataSet: &openapi.DataSet{
+				Name: apiutils.Of("test-dataset-artifact"),
+				Uri:  apiutils.Of("s3://bucket/dataset.csv"),
+			},
+		}
+		_, err = service.UpsertArtifact(dataSet)
+		require.NoError(t, err)
+
+		// Create Metric
+		metric := &openapi.Artifact{
+			Metric: &openapi.Metric{
+				Name:  apiutils.Of("test-metric-artifact"),
+				Value: apiutils.Of(0.95),
+			},
+		}
+		_, err = service.UpsertArtifact(metric)
+		require.NoError(t, err)
+
+		// Create Parameter
+		parameter := &openapi.Artifact{
+			Parameter: &openapi.Parameter{
+				Name:  apiutils.Of("test-parameter-artifact"),
+				Value: apiutils.Of("param-value"),
+			},
+		}
+		_, err = service.UpsertArtifact(parameter)
+		require.NoError(t, err)
+	})
+
+	// Test all artifact types for GetArtifacts (general endpoint)
+	t.Run("GetArtifacts endpoint filtering", func(t *testing.T) {
+		testCases := []struct {
+			name         string
+			artifactType openapi.ArtifactTypeQueryParam
+			expectField  string
+		}{
+			{"model-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, "ModelArtifact"},
+			{"doc-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, "DocArtifact"},
+			{"dataset-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT, "DataSet"},
+			{"metric filter", openapi.ARTIFACTTYPEQUERYPARAM_METRIC, "Metric"},
+			{"parameter filter", openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, "Parameter"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				listOptions := api.ListOptions{
+					PageSize: apiutils.Of(int32(100)),
+				}
+
+				result, err := service.GetArtifacts(tc.artifactType, listOptions, nil)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+
+				// Should have at least one artifact of the specified type
+				assert.GreaterOrEqual(t, len(result.Items), 1, "Should find at least one artifact of type %s", tc.artifactType)
+
+				// Verify all returned artifacts are of the correct type
+				for i, artifact := range result.Items {
+					switch tc.expectField {
+					case "ModelArtifact":
+						assert.NotNil(t, artifact.ModelArtifact, "Artifact %d should be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DocArtifact":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.NotNil(t, artifact.DocArtifact, "Artifact %d should be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DataSet":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.NotNil(t, artifact.DataSet, "Artifact %d should be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Metric":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.NotNil(t, artifact.Metric, "Artifact %d should be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Parameter":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.NotNil(t, artifact.Parameter, "Artifact %d should be Parameter", i)
+					}
+				}
+			})
+		}
+
+		// Test empty filter returns all types
+		t.Run("no filter returns all types", func(t *testing.T) {
+			listOptions := api.ListOptions{
+				PageSize: apiutils.Of(int32(100)),
+			}
+
+			result, err := service.GetArtifacts("", listOptions, nil)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Should have at least 5 artifacts (ModelArtifact, DocArtifact, DataSet, Metric, Parameter)
+			assert.GreaterOrEqual(t, len(result.Items), 5, "Should find artifacts of all types when no filter is applied")
+		})
+	})
+
+	// Create artifacts specifically associated with model version
+	t.Run("setup model version artifacts", func(t *testing.T) {
+		// Create different types of artifacts for the model version
+		artifacts := []*openapi.Artifact{
+			{
+				ModelArtifact: &openapi.ModelArtifact{
+					Name: apiutils.Of("mv-model-artifact"),
+					Uri:  apiutils.Of("s3://bucket/mv-model.pkl"),
+				},
+			},
+			{
+				DocArtifact: &openapi.DocArtifact{
+					Name: apiutils.Of("mv-doc-artifact"),
+					Uri:  apiutils.Of("s3://bucket/mv-doc.pdf"),
+				},
+			},
+			{
+				DataSet: &openapi.DataSet{
+					Name: apiutils.Of("mv-dataset-artifact"),
+					Uri:  apiutils.Of("s3://bucket/mv-dataset.csv"),
+				},
+			},
+			{
+				Metric: &openapi.Metric{
+					Name:  apiutils.Of("mv-metric-artifact"),
+					Value: apiutils.Of(0.95),
+				},
+			},
+			{
+				Parameter: &openapi.Parameter{
+					Name:  apiutils.Of("mv-parameter-artifact"),
+					Value: apiutils.Of("mv-param-value"),
+				},
+			},
+		}
+
+		for _, artifact := range artifacts {
+			_, err := service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+			require.NoError(t, err)
+		}
+	})
+
+	// Test all artifact types for GetArtifacts with model version (scoped endpoint)
+	t.Run("GetArtifacts with model version filtering", func(t *testing.T) {
+		testCases := []struct {
+			name         string
+			artifactType openapi.ArtifactTypeQueryParam
+			expectField  string
+			expectCount  int
+		}{
+			{"model-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, "ModelArtifact", 1},
+			{"doc-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, "DocArtifact", 1},
+			{"dataset-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT, "DataSet", 1},
+			{"metric filter", openapi.ARTIFACTTYPEQUERYPARAM_METRIC, "Metric", 1},
+			{"parameter filter", openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, "Parameter", 1},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				listOptions := api.ListOptions{
+					PageSize: apiutils.Of(int32(100)),
+				}
+
+				result, err := service.GetArtifacts(tc.artifactType, listOptions, createdVersion.Id)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+
+				assert.Equal(t, tc.expectCount, len(result.Items), "Should find exactly %d artifacts of type %s for this model version", tc.expectCount, tc.artifactType)
+
+				// Verify all returned artifacts are of the correct type (if any)
+				for i, artifact := range result.Items {
+					switch tc.expectField {
+					case "ModelArtifact":
+						assert.NotNil(t, artifact.ModelArtifact, "Artifact %d should be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DocArtifact":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.NotNil(t, artifact.DocArtifact, "Artifact %d should be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DataSet":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.NotNil(t, artifact.DataSet, "Artifact %d should be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Metric":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.NotNil(t, artifact.Metric, "Artifact %d should be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Parameter":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.NotNil(t, artifact.Parameter, "Artifact %d should be Parameter", i)
+					}
+				}
+			})
+		}
+	})
+
+	// Create artifacts specifically associated with experiment run
+	t.Run("setup experiment run artifacts", func(t *testing.T) {
+		// Create different types of artifacts for the experiment run
+		artifacts := []*openapi.Artifact{
+			{
+				ModelArtifact: &openapi.ModelArtifact{
+					Name: apiutils.Of("er-model-artifact"),
+					Uri:  apiutils.Of("s3://bucket/er-model.pkl"),
+				},
+			},
+			{
+				DocArtifact: &openapi.DocArtifact{
+					Name: apiutils.Of("er-doc-artifact"),
+					Uri:  apiutils.Of("s3://bucket/er-doc.pdf"),
+				},
+			},
+			{
+				DataSet: &openapi.DataSet{
+					Name: apiutils.Of("er-dataset-artifact"),
+					Uri:  apiutils.Of("s3://bucket/er-dataset.csv"),
+				},
+			},
+			{
+				Metric: &openapi.Metric{
+					Name:  apiutils.Of("er-metric-artifact"),
+					Value: apiutils.Of(0.85),
+				},
+			},
+			{
+				Parameter: &openapi.Parameter{
+					Name:  apiutils.Of("er-parameter-artifact"),
+					Value: apiutils.Of("er-param-value"),
+				},
+			},
+		}
+
+		for _, artifact := range artifacts {
+			_, err := service.UpsertExperimentRunArtifact(artifact, *createdExperimentRun.Id)
+			require.NoError(t, err)
+		}
+	})
+
+	// Test all artifact types for GetExperimentRunArtifacts (scoped endpoint)
+	t.Run("GetExperimentRunArtifacts filtering", func(t *testing.T) {
+		testCases := []struct {
+			name         string
+			artifactType openapi.ArtifactTypeQueryParam
+			expectField  string
+			expectCount  int
+		}{
+			{"model-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, "ModelArtifact", 1},
+			{"doc-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, "DocArtifact", 1},
+			{"dataset-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT, "DataSet", 1},
+			{"metric filter", openapi.ARTIFACTTYPEQUERYPARAM_METRIC, "Metric", 1},
+			{"parameter filter", openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, "Parameter", 1},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				listOptions := api.ListOptions{
+					PageSize: apiutils.Of(int32(100)),
+				}
+
+				result, err := service.GetExperimentRunArtifacts(tc.artifactType, listOptions, createdExperimentRun.Id)
+				require.NoError(t, err)
+				require.NotNil(t, result)
+
+				assert.Equal(t, tc.expectCount, len(result.Items), "Should find exactly %d artifacts of type %s for this experiment run", tc.expectCount, tc.artifactType)
+
+				// Verify all returned artifacts are of the correct type (if any)
+				for i, artifact := range result.Items {
+					switch tc.expectField {
+					case "ModelArtifact":
+						assert.NotNil(t, artifact.ModelArtifact, "Artifact %d should be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DocArtifact":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.NotNil(t, artifact.DocArtifact, "Artifact %d should be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "DataSet":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.NotNil(t, artifact.DataSet, "Artifact %d should be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Metric":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.NotNil(t, artifact.Metric, "Artifact %d should be Metric", i)
+						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
+					case "Parameter":
+						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
+						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
+						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
+						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
+						assert.NotNil(t, artifact.Parameter, "Artifact %d should be Parameter", i)
+					}
+				}
+			})
+		}
+	})
+
+	// Test edge cases
+	t.Run("edge cases", func(t *testing.T) {
+		t.Run("invalid artifact type", func(t *testing.T) {
+			listOptions := api.ListOptions{
+				PageSize: apiutils.Of(int32(100)),
+			}
+
+			result, err := service.GetArtifacts("invalid-artifact-type", listOptions, nil)
+			assert.Error(t, err)
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "unsupported artifact type")
+		})
+
+		t.Run("empty result with valid filter", func(t *testing.T) {
+			// Create a new model version with no artifacts
+			emptyModel := &openapi.RegisteredModel{
+				Name: "empty-test-model",
+			}
+			createdEmptyModel, err := service.UpsertRegisteredModel(emptyModel)
+			require.NoError(t, err)
+
+			emptyModelVersion := &openapi.ModelVersion{
+				Name: "v1.0",
+			}
+			createdEmptyVersion, err := service.UpsertModelVersion(emptyModelVersion, createdEmptyModel.Id)
+			require.NoError(t, err)
+
+			listOptions := api.ListOptions{
+				PageSize: apiutils.Of(int32(100)),
+			}
+
+			result, err := service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdEmptyVersion.Id)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, 0, len(result.Items), "Should find no artifacts for empty model version")
+		})
 	})
 }

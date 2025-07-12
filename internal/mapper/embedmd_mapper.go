@@ -288,3 +288,39 @@ func (e *EmbedMDMapper) MapToParameter(parameter models.Parameter) (*openapi.Par
 		CustomProperties: parameter.GetCustomProperties(),
 	})
 }
+
+func (e *EmbedMDMapper) MapToArtifact(artifact models.Artifact) (*openapi.Artifact, error) {
+	if artifact.ModelArtifact != nil {
+		modelArtifact, err := e.MapToModelArtifact(*artifact.ModelArtifact)
+		if err != nil {
+			return nil, err
+		}
+		return &openapi.Artifact{ModelArtifact: modelArtifact}, nil
+	} else if artifact.DocArtifact != nil {
+		docArtifact, err := e.MapToDocArtifact(*artifact.DocArtifact)
+		if err != nil {
+			return nil, err
+		}
+		return &openapi.Artifact{DocArtifact: docArtifact}, nil
+	} else if artifact.DataSet != nil {
+		dataSet, err := e.MapToDataSet(*artifact.DataSet)
+		if err != nil {
+			return nil, err
+		}
+		return &openapi.Artifact{DataSet: dataSet}, nil
+	} else if artifact.Metric != nil {
+		metric, err := e.MapToMetricFromMetric(*artifact.Metric)
+		if err != nil {
+			return nil, err
+		}
+		return &openapi.Artifact{Metric: metric}, nil
+	} else if artifact.Parameter != nil {
+		parameter, err := e.MapToParameter(*artifact.Parameter)
+		if err != nil {
+			return nil, err
+		}
+		return &openapi.Artifact{Parameter: parameter}, nil
+	}
+
+	return nil, fmt.Errorf("unknown artifact type")
+}

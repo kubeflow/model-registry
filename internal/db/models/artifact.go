@@ -28,6 +28,7 @@ type ArtifactListOptions struct {
 	Name             *string
 	ExternalID       *string
 	ParentResourceID *int32
+	ArtifactType     *string
 }
 
 type Artifact struct {

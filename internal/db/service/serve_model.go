@@ -137,13 +137,9 @@ func mapDataLayerToServeModel(serveModel schema.Execution, properties []schema.E
 		}
 	}
 
-	if len(modelProperties) > 0 {
-		serveModelModel.Properties = &modelProperties
-	}
-
-	if len(customProperties) > 0 {
-		serveModelModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	serveModelModel.Properties = &modelProperties
+	serveModelModel.CustomProperties = &customProperties
 
 	return serveModelModel
 }

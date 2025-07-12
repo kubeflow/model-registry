@@ -143,13 +143,9 @@ func mapDataLayerToMetricHistory(metricHistory schema.Artifact, artProperties []
 		}
 	}
 
-	if len(properties) > 0 {
-		metricHistoryModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		metricHistoryModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	metricHistoryModel.Properties = &properties
+	metricHistoryModel.CustomProperties = &customProperties
 
 	return metricHistoryModel
 }

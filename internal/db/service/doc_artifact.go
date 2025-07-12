@@ -132,13 +132,9 @@ func mapDataLayerToDocArtifact(docArtifact schema.Artifact, artProperties []sche
 		}
 	}
 
-	if len(properties) > 0 {
-		docArtifactModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		docArtifactModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	docArtifactModel.Properties = &properties
+	docArtifactModel.CustomProperties = &customProperties
 
 	return docArtifactModel
 }

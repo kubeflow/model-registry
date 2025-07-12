@@ -121,13 +121,9 @@ func mapDataLayerToExperiment(expCtx schema.Context, propertiesCtx []schema.Cont
 		}
 	}
 
-	if len(properties) > 0 {
-		experimentModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		experimentModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	experimentModel.Properties = &properties
+	experimentModel.CustomProperties = &customProperties
 
 	return experimentModel
 }

@@ -121,13 +121,9 @@ func mapDataLayerToRegisteredModel(modelCtx schema.Context, propertiesCtx []sche
 		}
 	}
 
-	if len(properties) > 0 {
-		registeredModelModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		registeredModelModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	registeredModelModel.Properties = &properties
+	registeredModelModel.CustomProperties = &customProperties
 
 	return registeredModelModel
 }

@@ -137,13 +137,9 @@ func mapDataLayerToModelVersion(modelVersionCtx schema.Context, propertiesCtx []
 		}
 	}
 
-	if len(properties) > 0 {
-		modelVersionModel.Properties = &properties
-	}
-
-	if len(customProperties) > 0 {
-		modelVersionModel.CustomProperties = &customProperties
-	}
+	// Always set Properties and CustomProperties, even if empty
+	modelVersionModel.Properties = &properties
+	modelVersionModel.CustomProperties = &customProperties
 
 	return modelVersionModel
 }

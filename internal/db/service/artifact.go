@@ -7,6 +7,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 	"gorm.io/gorm"
 )
 
@@ -73,6 +74,15 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
 
+	// Filter by artifact type if specified
+	if listOptions.ArtifactType != nil {
+		typeID, err := r.getTypeIDFromArtifactType(*listOptions.ArtifactType)
+		if err != nil {
+			return nil, fmt.Errorf("invalid artifact type %s: %w", *listOptions.ArtifactType, err)
+		}
+		query = query.Where("Artifact.type_id = ?", typeID)
+	}
+
 	if listOptions.ParentResourceID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
 			Where("Attribution.context_id = ?", listOptions.ParentResourceID).
@@ -137,6 +147,24 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	list.Size = int32(len(artifacts))
 
 	return &list, nil
+}
+
+// getTypeIDFromArtifactType maps artifact type strings to their corresponding type IDs
+func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) (int64, error) {
+	switch artifactType {
+	case string(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT):
+		return r.modelArtifactTypeID, nil
+	case string(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT):
+		return r.docArtifactTypeID, nil
+	case string(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT):
+		return r.dataSetTypeID, nil
+	case string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC):
+		return r.metricTypeID, nil
+	case string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER):
+		return r.parameterTypeID, nil
+	default:
+		return 0, fmt.Errorf("unsupported artifact type: %s", artifactType)
+	}
 }
 
 func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact, properties []schema.ArtifactProperty) (models.Artifact, error) {
