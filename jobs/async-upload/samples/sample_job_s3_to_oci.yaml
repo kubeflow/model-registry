@@ -17,7 +17,7 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 stringData:
   .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "base64(username:password)","email": "user@example.com"}}}'
-  ACCESS_TYPE: "Push,Pull"
+  ACCESS_TYPE: '["Push,Pull"]'
   OCI_HOST: distribution-registry-test-service.default.svc.cluster.local:5001
 ---
 apiVersion: batch/v1
