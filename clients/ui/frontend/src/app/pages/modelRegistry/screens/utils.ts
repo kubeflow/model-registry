@@ -45,7 +45,7 @@ export const mergeUpdatedLabels = (
   return customPropertiesCopy;
 };
 
-// Retrieves the customProperties that are not special (_RegisteredFrom) or labels (they have a defined string_value).
+// Retrieves the customProperties that are not special (_registeredFrom) or labels (they have a defined string_value).
 export const getProperties = <T extends ModelRegistryCustomProperties>(
   customProperties: T,
 ): ModelRegistryStringCustomProperties => {
