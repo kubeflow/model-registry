@@ -47,7 +47,7 @@ class Artifact(BaseResourceModel, ABC):
     """
 
     name: str | None = None
-    uri: str
+    uri: str | None = None
     state: ArtifactState = ArtifactState.UNKNOWN
 
     @classmethod
@@ -105,7 +105,6 @@ class DocArtifact(Artifact):
     @override
     def from_basemodel(cls, source: DocArtifactBaseModel) -> DocArtifact:
         assert source.name
-        assert source.uri
         assert source.state
         return cls(
             id=source.id,
@@ -189,7 +188,6 @@ class ModelArtifact(Artifact):
     def from_basemodel(cls, source: ModelArtifactBaseModel) -> ModelArtifact:
         """Create a new ModelArtifact object from a BaseModel object."""
         assert source.name
-        assert source.uri
         assert source.state
         return cls(
             id=source.id,
