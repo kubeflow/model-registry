@@ -73,7 +73,7 @@ spec:
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
               value: "/opt/creds/destination/.dockerconfigjson"
             - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE
-              value: "alpine:latest"
+              value: "busybox:latest"
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID
