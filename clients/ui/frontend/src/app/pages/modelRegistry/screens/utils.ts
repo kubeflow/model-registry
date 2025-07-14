@@ -3,6 +3,7 @@ import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField
 import {
   ModelRegistry,
   ModelRegistryCustomProperties,
+  ModelRegistryCustomProperty,
   ModelRegistryMetadataType,
   ModelRegistryStringCustomProperties,
   ModelVersion,
@@ -87,6 +88,20 @@ export const mergeUpdatedProperty = (
     };
   }
   return customPropertiesCopy;
+};
+
+export const getCustomPropString = <
+  T extends Record<string, ModelRegistryCustomProperty | undefined>,
+>(
+  customProperties: T,
+  key: string,
+): string => {
+  const prop = customProperties[key];
+
+  if (prop?.metadataType === 'MetadataStringValue') {
+    return prop.string_value;
+  }
+  return '';
 };
 
 export const filterModelVersions = (
@@ -183,4 +198,5 @@ export const isValidHttpUrl = (value: string): boolean => {
   }
 };
 
-export const isRedHatRegistryUri = (uri: string): boolean => uri.startsWith('oci://example.io/'); // TODO: Change this to a proper check
+export const isRedHatRegistryUri = (uri: string): boolean =>
+  uri.startsWith('oci://registry.redhat.io/');
