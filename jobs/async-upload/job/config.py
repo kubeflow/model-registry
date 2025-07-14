@@ -28,6 +28,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--source-aws-endpoint")
     # OCI registry
     p.add("--source-oci-uri")
+    p.add("--source-oci-registry")
     p.add("--source-oci-username")
     p.add("--source-oci-password")
 
@@ -43,6 +44,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--destination-aws-endpoint")
     # OCI registry
     p.add("--destination-oci-uri")
+    p.add("--destination-oci-registry")
     p.add("--destination-oci-username")
     p.add("--destination-oci-password")
 
@@ -152,11 +154,13 @@ def _load_oci_credentials(
         raise ValueError("Invalid docker config file")
 
     # Load the credentials from the docker config, the URI passed in via config is used as a key to find the correct credentials
-    auth = docker_config["auths"][store["uri"]]["auth"]
-    username, password = base64.b64decode(auth).decode("utf-8").split(":")
-    store["username"] = username
-    store["password"] = password
-    store["email"] = docker_config["auths"][store["uri"]]["email"]
+    registry = store["oci"]["registry"]
+    auth = docker_config["auths"][registry]["auth"]
+    # TODO: This might not be the correct way to parse this
+    username, password = auth.split(":")
+    store["oci"]["username"] = username
+    store["oci"]["password"] = password
+    store["oci"]["email"] = docker_config["auths"][registry]["email"]
 
 
 def _validate_oci_config(cfg: Dict[str, Any]) -> None:
@@ -166,7 +170,8 @@ def _validate_oci_config(cfg: Dict[str, Any]) -> None:
         raise ValueError("OCI password must be set")
     if cfg["oci"]["username"] is None and cfg["oci"]["password"] is not None:
         raise ValueError("OCI username must be set")
-
+    if cfg["oci"]["registry"] is None:
+        raise ValueError("OCI registry must be set")
     if cfg["oci"]["uri"] is None:
         raise ValueError("OCI URI must be set")
 
@@ -243,6 +248,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             },
             "oci": {
                 "uri": args.source_oci_uri,
+                "registry": args.source_oci_registry,
                 "username": None,
                 "password": None,
                 "email": None,
@@ -260,6 +266,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             },
             "oci": {
                 "uri": args.destination_oci_uri,
+                "registry": args.destination_oci_registry,
                 "username": None,
                 "password": None,
                 "email": None,

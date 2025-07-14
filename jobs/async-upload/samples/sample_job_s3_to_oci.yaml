@@ -65,6 +65,8 @@ spec:
               value: "oci"
             - name: MODEL_SYNC_DESTINATION_OCI_URI
               value: "oci://distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+            - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
+              value: "distribution-registry-test-service.default.svc.cluster.local:5001"
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
               value: "/opt/creds/destination"
 
