@@ -19,69 +19,69 @@ def _parser() -> cap.ArgumentParser:
     # --- source ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add("--source-type", choices=["s3", "oci"], default="s3")
-    p.add("--source-aws-bucket")
-    p.add("--source-aws-key")
-    p.add("--source-aws-region")
-    p.add("--source-aws-access-key-id")
-    p.add("--source-aws-secret-access-key")
-    p.add("--source-aws-endpoint")
+    p.add_argument("--source-type", choices=["s3", "oci"], default="s3")
+    p.add_argument("--source-aws-bucket")
+    p.add_argument("--source-aws-key")
+    p.add_argument("--source-aws-region")
+    p.add_argument("--source-aws-access-key-id")
+    p.add_argument("--source-aws-secret-access-key")
+    p.add_argument("--source-aws-endpoint")
     # OCI registry
-    p.add("--source-oci-uri")
-    p.add("--source-oci-registry")
-    p.add("--source-oci-username")
-    p.add("--source-oci-password")
+    p.add_argument("--source-oci-uri")
+    p.add_argument("--source-oci-registry")
+    p.add_argument("--source-oci-username")
+    p.add_argument("--source-oci-password")
 
     # --- destination ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add("--destination-type", choices=["s3", "oci"], default="oci")
-    p.add("--destination-aws-bucket")
-    p.add("--destination-aws-key")
-    p.add("--destination-aws-region")
-    p.add("--destination-aws-access-key-id")
-    p.add("--destination-aws-secret-access-key")
-    p.add("--destination-aws-endpoint")
+    p.add_argument("--destination-type", choices=["s3", "oci"], default="oci")
+    p.add_argument("--destination-aws-bucket")
+    p.add_argument("--destination-aws-key")
+    p.add_argument("--destination-aws-region")
+    p.add_argument("--destination-aws-access-key-id")
+    p.add_argument("--destination-aws-secret-access-key")
+    p.add_argument("--destination-aws-endpoint")
     # OCI registry
-    p.add("--destination-oci-uri")
-    p.add("--destination-oci-registry")
-    p.add("--destination-oci-username")
-    p.add("--destination-oci-password")
-    p.add("--destination-oci-base-image", default="busybox:latest")
+    p.add_argument("--destination-oci-uri")
+    p.add_argument("--destination-oci-registry")
+    p.add_argument("--destination-oci-username")
+    p.add_argument("--destination-oci-password")
+    p.add_argument("--destination-oci-base-image", default="busybox:latest")
 
     # --- model-registry model data ---
-    p.add("--model-id")
-    p.add("--model-version-id")
-    p.add("--model-artifact-id")
+    p.add_argument("--model-id")
+    p.add_argument("--model-version-id")
+    p.add_argument("--model-artifact-id")
 
     # --- model-storage configuration ---
-    p.add("--storage-path", default="/tmp/model-sync")
+    p.add_argument("--storage-path", default="/tmp/model-sync")
 
     # --- model-registry client ---
-    p.add("--registry-server-address")
-    p.add("--registry-port", default=443)
-    p.add("--registry-is-secure", default=True)
-    p.add("--registry-author")
-    p.add("--registry-user-token", default=None)
-    p.add("--registry-user-token-envvar", default=None)
-    p.add("--registry-custom-ca", default=None)
-    p.add("--registry-custom-ca-envvar", default=None)
-    p.add("--registry-log-level", default=logging.WARNING)
+    p.add_argument("--registry-server-address")
+    p.add_argument("--registry-port", default=443)
+    p.add_argument("--registry-is-secure", default=True)
+    p.add_argument("--registry-author")
+    p.add_argument("--registry-user-token", default=None)
+    p.add_argument("--registry-user-token-envvar", default=None)
+    p.add_argument("--registry-custom-ca", default=None)
+    p.add_argument("--registry-custom-ca-envvar", default=None)
+    p.add_argument("--registry-log-level", default=logging.WARNING)
 
     # TODO: The type of credential should be inferrable from the `type` specified in the source/destination
-    p.add(
+    p.add_argument(
         "--source-s3-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--destination-s3-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--source-oci-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--destination-oci-credentials-path",
         metavar="PATH",
     )
