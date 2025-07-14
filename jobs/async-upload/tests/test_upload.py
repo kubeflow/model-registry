@@ -43,7 +43,9 @@ class TestGetUploadParams:
                     "username": "test-user",
                     "password": "test-password",
                     "base_image": "foo-bar:latest",
+                    "enable_tls_verify": False,
                 },
+                "credentials_path": "/tmp/test-creds",
             },
             "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
             "storage": {"path": "/tmp/test-model"},
@@ -57,7 +59,7 @@ class TestGetUploadParams:
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username == "test-user"
         assert result.oci_password == "test-password"
-
+        
     def test_get_upload_params_unsupported_type(self):
         """Test _get_upload_params with unsupported destination type raises ValueError"""
         config = {"destination": {"type": "ftp"}}
@@ -101,7 +103,9 @@ class TestGetUploadParams:
                     "username": None,
                     "password": None,
                     "base_image": "foo-bar:latest",
+                    "enable_tls_verify": False,
                 },
+                "credentials_path": None,
             },
             "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
             "storage": {"path": "/tmp/test-model"},
@@ -129,7 +133,17 @@ class TestPerformUpload:
         mock_save_to_oci_registry.return_value = 'quay.io/example/oci/abc:def'
 
         config = {
-            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass", "base_image": "foo-bar:latest"}},
+            "destination": {
+                "type": "oci", 
+                "oci": {
+                    "uri": "quay.io/example/oci", 
+                    "username": "oci_user", 
+                    "password": "oci_pass", 
+                    "base_image": "foo-bar:latest",
+                    "enable_tls_verify": False,
+                },
+                "credentials_path": "/tmp/test-creds",
+            },
             "storage": {"path": "/tmp/test-model"},
             "model": {
                 "id": "abc",
@@ -183,7 +197,17 @@ class TestPerformUpload:
         )
 
         config = {
-            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass", "base_image": "foo-bar:latest"}},
+            "destination": {
+                "type": "oci", 
+                "oci": {
+                    "uri": "quay.io/example/oci", 
+                    "username": "oci_user", 
+                    "password": "oci_pass", 
+                    "base_image": "foo-bar:latest", 
+                    "enable_tls_verify": False,
+                },
+                "credentials_path": "/tmp/test-creds",
+            },
             "storage": {"path": "/tmp/test-model"},
             "model": {
                 "id": "abc",
