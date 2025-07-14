@@ -1,5 +1,5 @@
 # Build the model-registry binary
-FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi8/go-toolset:1.23 AS common
+FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi8/go-toolset:1.24.4 AS common
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -49,7 +49,7 @@ RUN yum remove -y nodejs npm
 RUN yum module -y reset nodejs
 RUN yum module -y enable nodejs:18
 # install npm and java for openapi-generator-cli
-RUN yum install -y nodejs npm java-11 python3
+RUN yum install -y nodejs npm java-11-headless python3
 
 RUN make deps
 
