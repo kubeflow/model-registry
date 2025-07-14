@@ -10,9 +10,9 @@ metadata:
     app.kubernetes.io/managed-by: kubectl
     component: model-registry-job
     modelregistry.kubeflow.org/job-type: async-upload
-    modelregistry.kubeflow.org/registered-model-id: "1"
-    modelregistry.kubeflow.org/model-version-id: "2"
-    modelregistry.kubeflow.org/model-artifact-id: "3"
+    modelregistry.kubeflow.org/model-sync-model-id: "1"
+    modelregistry.kubeflow.org/model-sync-model-version-id: "2"
+    modelregistry.kubeflow.org/model-sync-model-artifact-id: "3"
   annotations:
     modelregistry.kubeflow.org/description: "Asynchronous job for uploading models to Model Registry"
 spec:
@@ -23,9 +23,9 @@ spec:
         app.kubernetes.io/component: async-job
         component: model-registry-job
         modelregistry.kubeflow.org/job-type: async-upload
-        modelregistry.kubeflow.org/registered-model-id: "1"
-        modelregistry.kubeflow.org/model-version-id: "2"
-        modelregistry.kubeflow.org/model-artifact-id: "3"
+        modelregistry.kubeflow.org/model-sync-model-id: "1"
+        modelregistry.kubeflow.org/model-sync-model-version-id: "2"
+        modelregistry.kubeflow.org/model-sync-model-artifact-id: "3"
     spec:
       restartPolicy: Never
       containers:
