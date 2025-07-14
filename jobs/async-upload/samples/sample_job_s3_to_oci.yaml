@@ -11,8 +11,8 @@ metadata:
     component: model-registry-job
     modelregistry.kubeflow.org/job-type: async-upload
     modelregistry.kubeflow.org/model-sync-model-id: "1"
-    modelregistry.kubeflow.org/model-sync-model-version-id: "2"
-    modelregistry.kubeflow.org/model-sync-model-artifact-id: "3"
+    modelregistry.kubeflow.org/model-sync-model-version-id: "3"
+    modelregistry.kubeflow.org/model-sync-model-artifact-id: "6"
   annotations:
     modelregistry.kubeflow.org/description: "Asynchronous job for uploading models to Model Registry"
 spec:
@@ -24,8 +24,8 @@ spec:
         component: model-registry-job
         modelregistry.kubeflow.org/job-type: async-upload
         modelregistry.kubeflow.org/model-sync-model-id: "1"
-        modelregistry.kubeflow.org/model-sync-model-version-id: "2"
-        modelregistry.kubeflow.org/model-sync-model-artifact-id: "3"
+        modelregistry.kubeflow.org/model-sync-model-version-id: "3"
+        modelregistry.kubeflow.org/model-sync-model-artifact-id: "6"
     spec:
       restartPolicy: Never
       containers:
