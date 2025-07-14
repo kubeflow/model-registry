@@ -74,6 +74,8 @@ spec:
               value: "/opt/creds/destination/.dockerconfigjson"
             - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE
               value: "busybox:latest"
+            - name: MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY
+              value: "false"
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID

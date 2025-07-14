@@ -48,6 +48,9 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--destination-oci-username")
     p.add_argument("--destination-oci-password")
     p.add_argument("--destination-oci-base-image", default="busybox:latest")
+    # The `type` converter is needed here to support env-based booleans
+    # See: https://github.com/bw2/ConfigArgParse/tree/master?tab=readme-ov-file#special-values
+    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool) 
 
     # --- model-registry model data ---
     p.add_argument("--model-id")
@@ -222,6 +225,17 @@ def _validate_config(cfg: Dict[str, Any]) -> None:
     # Ensure the registry is valid
     _validate_registry_config(cfg["registry"])
 
+def str2bool(x):
+    """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
+    if isinstance(x, bool):
+        return x
+    val = x.lower()
+    if val in ("yes", "y", "true", "t", "1"):
+        return True
+    if val in ("no", "n", "false", "f", "0"):
+        return False
+    raise ValueError(f"Invalid boolean value: {x!r}")
+
 
 def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     """
@@ -254,6 +268,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "password": None,
                 "email": None,
             },
+            "credentials_path": args.source_oci_credentials_path,
         },
         "destination": {
             "type": args.destination_type,
@@ -272,7 +287,9 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "password": None,
                 "email": None,
                 "base_image": args.destination_oci_base_image,
+                "enable_tls_verify": args.destination_oci_enable_tls_verify,
             },
+            "credentials_path": args.destination_oci_credentials_path,
         },
         "model": {
             "id": args.model_id,

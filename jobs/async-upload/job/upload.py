@@ -21,6 +21,14 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
             region=destination_config["s3"]["region"],
         )
     elif destination_config["type"] == "oci":
+        push_args = []
+        # Note: These are all skopeo args, see: https://github.com/containers/skopeo/blob/main/docs/skopeo-copy.1.md
+        if not destination_config["oci"]["enable_tls_verify"]:
+            push_args.append("--dest-tls-verify=false")
+        if destination_config["credentials_path"]:
+            push_args.append("--authfile")
+            push_args.append(destination_config["credentials_path"])
+
         return OCIParams(
             base_image=destination_config["oci"]["base_image"],
             oci_ref=destination_config["oci"]["uri"],
@@ -29,9 +37,8 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
             oci_password=destination_config["oci"]["password"],
             # Same as the default backend, but with additional args included
             custom_oci_backend=utils._get_skopeo_backend(
-                push_args=["--dest-tls-verify=false"]
+                push_args=push_args
             ),
-
         )
     else:
         raise ValueError(f"Unsupported destination type: {destination_config['type']}")
