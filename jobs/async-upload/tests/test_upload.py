@@ -42,6 +42,7 @@ class TestGetUploadParams:
                     "uri": "quay.io/example/test:latest",
                     "username": "test-user",
                     "password": "test-password",
+                    "base_image": "foo-bar:latest",
                 },
             },
             "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
@@ -51,7 +52,7 @@ class TestGetUploadParams:
         result = _get_upload_params(config)
 
         assert isinstance(result, OCIParams)
-        assert result.base_image == "123"
+        assert result.base_image == "foo-bar:latest"
         assert result.oci_ref == "quay.io/example/test:latest"
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username == "test-user"
@@ -99,6 +100,7 @@ class TestGetUploadParams:
                     "uri": "quay.io/example/test:latest",
                     "username": None,
                     "password": None,
+                    "base_image": "foo-bar:latest",
                 },
             },
             "model": {"id": "abc", "version_id": "def", "artifact_id": "123"},
@@ -108,7 +110,7 @@ class TestGetUploadParams:
         result = _get_upload_params(config)
 
         assert isinstance(result, OCIParams)
-        assert result.base_image == "123"
+        assert result.base_image == "foo-bar:latest"
         assert result.oci_ref == "quay.io/example/test:latest"
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username is None
@@ -127,7 +129,7 @@ class TestPerformUpload:
         mock_save_to_oci_registry.return_value = 'quay.io/example/oci/abc:def'
 
         config = {
-            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass"}},
+            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass", "base_image": "foo-bar:latest"}},
             "storage": {"path": "/tmp/test-model"},
             "model": {
                 "id": "abc",
@@ -181,7 +183,7 @@ class TestPerformUpload:
         )
 
         config = {
-            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass"}},
+            "destination": {"type": "oci", "oci": {"uri": "quay.io/example/oci", "username": "oci_user", "password": "oci_pass", "base_image": "foo-bar:latest"}},
             "storage": {"path": "/tmp/test-model"},
             "model": {
                 "id": "abc",

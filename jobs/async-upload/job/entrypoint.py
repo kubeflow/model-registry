@@ -47,7 +47,7 @@ async def main() -> None:
         # Upload the model to the destination
         uri = perform_upload(config)
 
-        update_model_artifact_uri(uri, client, config)
+        await update_model_artifact_uri(uri, client, config)
 
     except ValueError as e:
         logger.error(f"Configuration error: {str(e)}")

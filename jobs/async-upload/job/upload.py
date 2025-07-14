@@ -1,7 +1,7 @@
-from dataclasses import asdict
+from dataclasses import asdict, fields
 from typing import Any, Dict
+from model_registry import utils
 from model_registry.utils import OCIParams, S3Params, save_to_oci_registry
-
 
 def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
     """
@@ -22,11 +22,16 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
         )
     elif destination_config["type"] == "oci":
         return OCIParams(
-            base_image=config["model"]["artifact_id"],
+            base_image=destination_config["oci"]["base_image"],
             oci_ref=destination_config["oci"]["uri"],
             dest_dir=config["storage"]["path"],
             oci_username=destination_config["oci"]["username"],
             oci_password=destination_config["oci"]["password"],
+            # Same as the default backend, but with additional args included
+            custom_oci_backend=utils._get_skopeo_backend(
+                push_args=["--dest-tls-verify=false"]
+            ),
+
         )
     else:
         raise ValueError(f"Unsupported destination type: {destination_config['type']}")
@@ -47,8 +52,8 @@ def perform_upload(config: Dict[str, Any]) -> str:
         raise ValueError("S3 upload destination is not supported")
     elif isinstance(upload_params, OCIParams):
         uri = save_to_oci_registry(
-            **asdict(upload_params),
-            model_files_path=model_files_path,
+            **{field.name: getattr(upload_params, field.name) for field in fields(upload_params)},
+            model_files_path=model_files_path
         )
     else:
         raise ValueError("Unsupported destination type")

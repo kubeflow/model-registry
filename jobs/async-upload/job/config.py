@@ -47,6 +47,7 @@ def _parser() -> cap.ArgumentParser:
     p.add("--destination-oci-registry")
     p.add("--destination-oci-username")
     p.add("--destination-oci-password")
+    p.add("--destination-oci-base-image", default="busybox:latest")
 
     # --- model-registry model data ---
     p.add("--model-id")
@@ -157,7 +158,7 @@ def _load_oci_credentials(
     registry = store["oci"]["registry"]
     auth = docker_config["auths"][registry]["auth"]
     # TODO: This might not be the correct way to parse this
-    username, password = auth.split(":")
+    username, password = auth.split(":") if auth else (None, None)
     store["oci"]["username"] = username
     store["oci"]["password"] = password
     store["oci"]["email"] = docker_config["auths"][registry]["email"]
@@ -270,6 +271,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "username": None,
                 "password": None,
                 "email": None,
+                "base_image": args.destination_oci_base_image,
             },
         },
         "model": {

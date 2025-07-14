@@ -16,7 +16,7 @@ metadata:
   name: my-oci-credentials
 type: kubernetes.io/dockerconfigjson
 stringData:
-  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "base64(username:password)","email": "user@example.com"}}}'
+  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "","email": "user@example.com"}}}'
   ACCESS_TYPE: '["Push,Pull"]'
   OCI_HOST: distribution-registry-test-service.default.svc.cluster.local:5001
 ---
@@ -67,11 +67,13 @@ spec:
             - name: MODEL_SYNC_DESTINATION_TYPE
               value: "oci"
             - name: MODEL_SYNC_DESTINATION_OCI_URI
-              value: "oci://distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+              value: "distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
             - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
               value: "distribution-registry-test-service.default.svc.cluster.local:5001"
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
               value: "/opt/creds/destination/.dockerconfigjson"
+            - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE
+              value: "alpine:latest"
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID
