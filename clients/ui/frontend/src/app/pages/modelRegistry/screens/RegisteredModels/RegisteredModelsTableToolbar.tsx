@@ -40,7 +40,7 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
   return (
     <Toolbar data-testid="registered-models-table-toolbar" clearAllFilters={onClearAllFilters}>
       <ToolbarContent>
-        <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+        <Flex>
           <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
             {tableToggleGroupItems}
           </ToolbarToggleGroup>
