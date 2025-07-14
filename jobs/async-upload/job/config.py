@@ -112,7 +112,7 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     for file in p.glob("*"):
         if file.is_file():
             if file.name.startswith("AWS_"):
-                # Converts a file with name AWS_ACCESS_KEY_ID to aws_access_key_id
+                # Converts a file with name AWS_ACCESS_KEY_ID to access_key_id
                 key_name = file.name.lower().replace("aws_", "")
                 store["s3"][key_name] = file.read_text()
             else:
@@ -239,7 +239,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
-                "endpoint": None,
+                "endpoint_url": None,
             },
             "oci": {
                 "uri": args.source_oci_uri,
@@ -256,7 +256,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
-                "endpoint": None,
+                "endpoint_url": None,
             },
             "oci": {
                 "uri": args.destination_oci_uri,
@@ -315,7 +315,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     if args.source_aws_secret_access_key:
         cfg["source"]["s3"]["secret_access_key"] = args.source_aws_secret_access_key
     if args.source_aws_endpoint:
-        cfg["source"]["s3"]["endpoint"] = args.source_aws_endpoint
+        cfg["source"]["s3"]["endpoint_url"] = args.source_aws_endpoint
 
     if args.destination_aws_bucket:
         cfg["destination"]["s3"]["bucket"] = args.destination_aws_bucket
@@ -330,7 +330,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             args.destination_aws_secret_access_key
         )
     if args.destination_aws_endpoint:
-        cfg["destination"]["s3"]["endpoint"] = args.destination_aws_endpoint
+        cfg["destination"]["s3"]["endpoint_url"] = args.destination_aws_endpoint
 
     if args.source_oci_uri:
         cfg["source"]["oci"]["uri"] = args.source_oci_uri

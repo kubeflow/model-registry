@@ -15,7 +15,7 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
         return S3Params(
             bucket_name=destination_config["s3"]["bucket"],
             s3_prefix=destination_config["s3"]["key"],
-            endpoint_url=destination_config["s3"]["endpoint"],
+            endpoint_url=destination_config["s3"]["endpoint_url"],
             access_key_id=destination_config["s3"]["access_key_id"],
             secret_access_key=destination_config["s3"]["secret_access_key"],
             region=destination_config["s3"]["region"],

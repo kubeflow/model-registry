@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
     source_config = config["source"]["s3"]
     s3_client, _ = _connect_to_s3(
-        source_config["endpoint"],
+        source_config["endpoint_url"],
         source_config["access_key_id"],
         source_config["secret_access_key"],
         source_config["region"],
