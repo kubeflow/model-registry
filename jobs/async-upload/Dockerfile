@@ -6,6 +6,11 @@ FROM registry.access.redhat.com/ubi9/python-312-minimal AS base
 
 USER 0
 
+# Install skopeo for Push/Pull of container images to integrate with Model Registry py client and Olot.
+RUN microdnf update -y && \
+    microdnf install -y skopeo && \
+    microdnf clean all
+
 # security/env hardening
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
