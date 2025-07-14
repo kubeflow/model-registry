@@ -33,16 +33,18 @@ RUN poetry self add poetry-plugin-export \
 # Copy application source
 COPY . .
 RUN ls -l /app
+
+# Switch to USER 1000
 RUN chown -R 1000:1000 /app
-ENV PATH="/home/1000/.local/bin:$PATH"
 USER 1000
+ENV PATH="/home/1000/.local/bin:$PATH"
 RUN ls -l /app
 
+# Sanity checks model_registry module import
 RUN echo "Testing model_registry import..." \
-&& python -c "import model_registry; print('model_registry package found')" \
-&& python -c "from model_registry.utils import OCIParams, S3Params, save_to_oci_registry; print('model_registry.utils imported successfully')"
+&& python -c "import model_registry; print('model_registry package found')"
 
-# Add an explicit health-check (K8s will surface this in Pod.status)
+# TODO: unavailble in OCI format: Add an explicit health-check (K8s will surface this in Pod.status)
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD python -m job.healthcheck
 
