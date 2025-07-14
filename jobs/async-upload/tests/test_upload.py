@@ -15,7 +15,7 @@ class TestGetUploadParams:
                 "s3": {
                     "bucket": "test-bucket",
                     "key": "test-key",
-                    "endpoint": "https://s3.amazonaws.com",
+                    "endpoint_url": "https://s3.amazonaws.com",
                     "access_key_id": "test-access-key",
                     "secret_access_key": "test-secret-key",
                     "region": "us-east-1",
@@ -72,7 +72,7 @@ class TestGetUploadParams:
                 "s3": {
                     "bucket": "test-bucket",
                     "key": "test-key",
-                    "endpoint": None,
+                    "endpoint_url": None,
                     "access_key_id": None,
                     "secret_access_key": None,
                     "region": None,
