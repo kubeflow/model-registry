@@ -5,7 +5,7 @@ import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
-import { ModelRegistryTableRowStatus } from '../ModelRegistryTableRowStatus';
+import { ModelRegistryTableRowStatus } from '~/app/pages/settings/ModelRegistryTableRowStatus';
 
 describe('ModelRegistryTableRowStatus', () => {
   it('renders "Unavailable" status with correct popover for Istio and Gateway conditions', async () => {

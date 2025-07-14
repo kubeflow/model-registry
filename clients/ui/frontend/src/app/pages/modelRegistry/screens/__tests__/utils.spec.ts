@@ -24,7 +24,7 @@ import {
   isValidHttpUrl,
   isRedHatRegistryUri,
   getCustomPropString,
-} from '../utils';
+} from '~/app/pages/modelRegistry/screens/utils';
 
 describe('getLabels', () => {
   it('should return an empty array when customProperties is empty', () => {
