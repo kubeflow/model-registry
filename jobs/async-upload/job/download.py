@@ -1,8 +1,11 @@
 from typing import Any, Dict
 import os
+import logging
 
 from model_registry import ModelRegistry
 from model_registry.utils import _connect_to_s3
+
+logger = logging.getLogger(__name__)
 
 
 def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
@@ -32,7 +35,7 @@ def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
             local_path = os.path.join(config["storage"]["path"], relative)
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
             s3_client.download_file(bucket_name, key, local_path)
-            print(f"Downloaded s3://{bucket_name}/{key} → {local_path}")
+            logger.info(f"Downloaded s3://{bucket_name}/{key} → {local_path}")
 
 
 def perform_download(client: ModelRegistry, config: Dict[str, Any]):

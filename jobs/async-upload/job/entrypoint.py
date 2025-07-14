@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import sys
 
 from job.upload import perform_upload
 from .config import get_config
@@ -11,10 +13,15 @@ from .mr_client import (
 from .download import perform_download
 
 # Configure logging
+log_level = os.getenv('LOGLEVEL', logging.INFO)
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True
 )
 logger = logging.getLogger(__name__)
+
+# Test logging configuration immediately
+logger.info("Logging configuration initialized successfully")
 
 
 async def main() -> None:
@@ -22,18 +29,13 @@ async def main() -> None:
     Main entrypoint for the async upload job.
     Validates source and destination credentials before proceeding.
     """
+    logger.info("Starting async upload job...")
     try:
         # Get complete configuration
         config = get_config()
+        logger.info("Configuration loaded successfully")
 
         client = validate_and_get_model_registry_client(config)
-
-        logger.info(
-            f"Source: {config['source']['type'].upper()} storage at {config['source'].get('endpoint') or 'default endpoint'}"
-        )
-        logger.info(
-            f"Destination: {config['destination']['type'].upper()} storage at {config['destination'].get('endpoint') or 'default endpoint'}"
-        )
 
         # Queue up model registration
         await set_artifact_pending(client, config)

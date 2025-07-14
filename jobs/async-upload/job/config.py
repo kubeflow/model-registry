@@ -6,6 +6,7 @@ import configargparse as cap
 from typing import Any, Dict, Mapping
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
 
 def _parser() -> cap.ArgumentParser:
     """Parse command line arguments and config files"""
@@ -100,6 +101,8 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     These keys are loaded into the config store
     """
 
+    logger.info(f"Loading S3 credentials from {path} for {side}")
+
     # Validate the path is a directory
     p = Path(path).expanduser()
     if not p.is_dir():
@@ -135,7 +138,7 @@ def _load_oci_credentials(
     }
     ```
     """
-
+    logger.info(f"Loading OCI credentials from {path} for {side}")
     # Validate the path is a file
     p = Path(path).expanduser()
     if not p.is_file():
@@ -345,4 +348,41 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
 
     _validate_config(cfg)
 
+    # Log the configuration (with sensitive values sanitized)
+    sanitized_cfg = _sanitize_config_for_logging(cfg)
+    logger.debug("Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
+
     return cfg
+
+
+def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Create a sanitized copy of the config for logging purposes, masking sensitive values.
+    """
+    import copy
+    sanitized = copy.deepcopy(cfg)
+    
+    # Mask sensitive S3 credentials
+    if sanitized["source"]["s3"]["secret_access_key"]:
+        sanitized["source"]["s3"]["secret_access_key"] = "***"
+    if sanitized["source"]["s3"]["access_key_id"]:
+        sanitized["source"]["s3"]["access_key_id"] = "***"
+    
+    if sanitized["destination"]["s3"]["secret_access_key"]:
+        sanitized["destination"]["s3"]["secret_access_key"] = "***"
+    if sanitized["destination"]["s3"]["access_key_id"]:
+        sanitized["destination"]["s3"]["access_key_id"] = "***"
+    
+    # Mask sensitive OCI credentials
+    if sanitized["source"]["oci"]["password"]:
+        sanitized["source"]["oci"]["password"] = "***"
+    if sanitized["destination"]["oci"]["password"]:
+        sanitized["destination"]["oci"]["password"] = "***"
+    
+    # Mask sensitive registry credentials
+    if sanitized["registry"]["user_token"]:
+        sanitized["registry"]["user_token"] = "***"
+    if sanitized["registry"]["custom_ca"]:
+        sanitized["registry"]["custom_ca"] = "***"
+    
+    return sanitized

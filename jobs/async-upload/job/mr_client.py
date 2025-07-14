@@ -11,7 +11,7 @@ def validate_and_get_model_registry_client(config: Dict[str, Any]) -> ModelRegis
     Validates the model registry client configuration and returns a ModelRegistry client.
     """
     client_config = config["registry"]
-    logger.info(f"Creating ModelRegistry client with config: {client_config}")
+    logger.debug(f"Creating ModelRegistry client with config: {client_config}")
     return ModelRegistry(
         server_address=client_config["server_address"],
         port=client_config["port"],
