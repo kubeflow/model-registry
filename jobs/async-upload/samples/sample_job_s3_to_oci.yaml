@@ -17,7 +17,7 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 stringData:
   .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "base64(username:password)","email": "user@example.com"}}}'
-  ACCESS_TYPE: ["Push", "Pull"]
+  ACCESS_TYPE: "Push,Pull"
   OCI_HOST: distribution-registry-test-service.default.svc.cluster.local:5001
 ---
 apiVersion: batch/v1
@@ -34,6 +34,9 @@ spec:
         - name: destination-credentials
           secret:
             secretName: my-oci-credentials
+            items:
+              - key: .dockerconfigjson
+                path: .dockerconfigjson
       restartPolicy: Never
       containers:
         - name: async-upload
@@ -68,7 +71,7 @@ spec:
             - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
               value: "distribution-registry-test-service.default.svc.cluster.local:5001"
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
-              value: "/opt/creds/destination"
+              value: "/opt/creds/destination/.dockerconfigjson"
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID
