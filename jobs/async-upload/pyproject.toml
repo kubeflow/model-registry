@@ -10,10 +10,10 @@ packages = [{include = "job"}]
 python = ">=3.9,<4.0"
 configargparse = ">=1.7.1,<2.0.0"
 model-registry = { version = ">=0.2.19,<0.3.0", extras = ["boto3", "olot"] }
-aiohttp = "^3.12.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3.5,<9.0.0"
+aiohttp = "^3.12.12"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
