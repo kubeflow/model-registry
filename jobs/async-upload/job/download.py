@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
+    logger.debug("🔍 Downloading model from S3...")
+    logger.debug("🔍 Source config: %s", config["source"]["s3"])
     source_config = config["source"]["s3"]
     s3_client, _ = _connect_to_s3(
         source_config["endpoint_url"],
@@ -34,11 +36,14 @@ def download_from_s3(client: ModelRegistry, config: Dict[str, Any]):
             relative = os.path.relpath(key, prefix)
             local_path = os.path.join(config["storage"]["path"], relative)
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            logger.info(f"⏳ Downloading s3://{bucket_name}/{key} → {local_path}")
             s3_client.download_file(bucket_name, key, local_path)
-            logger.info(f"Downloaded s3://{bucket_name}/{key} → {local_path}")
+            logger.info(f"☑️ Downloaded s3://{bucket_name}/{key} → {local_path}")
+    logger.debug("✅ Model files downloaded from S3")
 
 
 def perform_download(client: ModelRegistry, config: Dict[str, Any]):
+    logger.info("📥 Downloading model from source...")
     # Download the model from the defined source
     if config["source"]["type"] == "s3":
         download_from_s3(client, config)
@@ -47,3 +52,4 @@ def perform_download(client: ModelRegistry, config: Dict[str, Any]):
         raise ValueError("OCI source is not supported yet")
     else:
         raise ValueError(f"Unsupported source type: {config['source']['type']}")
+    logger.info("✅ Model downloaded from source")

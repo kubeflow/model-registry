@@ -107,7 +107,7 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     These keys are loaded into the config store
     """
 
-    logger.info(f"Loading S3 credentials from {path} for {side}")
+    logger.info(f"🔍 Loading S3 credentials from {path} for {side}")
 
     # Validate the path is a directory
     p = Path(path).expanduser()
@@ -144,7 +144,7 @@ def _load_oci_credentials(
     }
     ```
     """
-    logger.info(f"Loading OCI credentials from {path} for {side}")
+    logger.info(f"🔍 Loading OCI credentials from {path} for {side}")
     # Validate the path is a file
     p = Path(path).expanduser()
     if not p.is_file():
@@ -248,6 +248,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     4. Default values
     """
     args = _parser().parse_args(argv)
+    logger.debug("🔍 Command-line arguments: %s", args)
 
     # Initialize config with command-line arguments and defaults
     cfg = {
@@ -373,10 +374,11 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
         cfg["destination"]["oci"]["password"] = args.destination_oci_password
 
     _validate_config(cfg)
+    logger.info("📦 Configuration loaded successfully")
 
     # Log the configuration (with sensitive values sanitized)
     sanitized_cfg = _sanitize_config_for_logging(cfg)
-    logger.debug("Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
+    logger.debug("🔍 Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
 
     return cfg
 

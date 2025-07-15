@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Test logging configuration immediately
-logger.info("Logging configuration initialized successfully")
+logger.info("📝 Logging configuration initialized successfully")
 
 
 async def main() -> None:
@@ -29,11 +29,10 @@ async def main() -> None:
     Main entrypoint for the async upload job.
     Validates source and destination credentials before proceeding.
     """
-    logger.info("Starting async upload job...")
+    logger.info("🚀 Starting async upload job...")
     try:
         # Get complete configuration
         config = get_config()
-        logger.info("Configuration loaded successfully")
 
         client = validate_and_get_model_registry_client(config)
 
@@ -55,6 +54,7 @@ async def main() -> None:
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
         raise
+    logger.info("🏁 Job completed successfully")
 
 
 if __name__ == "__main__":  # pragma: no cover
