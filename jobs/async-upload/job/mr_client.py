@@ -11,7 +11,7 @@ def validate_and_get_model_registry_client(config: Dict[str, Any]) -> ModelRegis
     Validates the model registry client configuration and returns a ModelRegistry client.
     """
     client_config = config["registry"]
-    logger.info(f"Creating ModelRegistry client with config: {client_config}")
+    logger.debug(f"Creating ModelRegistry client with config: {client_config}")
     return ModelRegistry(
         server_address=client_config["server_address"],
         port=client_config["port"],
@@ -41,15 +41,16 @@ async def set_artifact_pending(
 
 
 
-def update_model_artifact_uri(
+async def update_model_artifact_uri(
     uri: str, client: ModelRegistry, config: Dict[str, Any]
 ) -> None:
-    artifact = client.get_model_artifact(
-        config["model"]["name"], config["model"]["version_name"]
-    )
+    artifact = await client._api.get_model_artifact_by_id(config['model']['artifact_id'])
+
     if artifact is None:
-        raise ValueError(f"Artifact {config['model']['name']}/{config['model']['version_name']} not found, was it deleted since starting this job?")
+        raise ValueError(f"Artifact {config['model']['artifact_id']} not found")
     
+
     # Set the state of the artifact to LIVE and set the URI
-    artifact.update(state=ArtifactState.LIVE, uri=uri)
-    client.update(artifact)
+    artifact.state=ArtifactState.LIVE
+    artifact.uri=uri
+    await client._api.upsert_model_artifact(artifact)
