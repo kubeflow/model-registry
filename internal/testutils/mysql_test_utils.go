@@ -29,7 +29,7 @@ func SetupSharedMySQL() error {
 		ctx := context.Background()
 
 		// Use MySQL 8.0 with the specialized module for better reliability
-		mysqlContainer, err := cont_mysql.Run(ctx, "mysql:8.0",
+		mysqlContainer, err := cont_mysql.Run(ctx, "mysql:8.3",
 			cont_mysql.WithDatabase("test"),
 			cont_mysql.WithUsername("root"),
 			cont_mysql.WithPassword("root"),
