@@ -1,7 +1,10 @@
 from dataclasses import asdict, fields
+import logging
 from typing import Any, Dict
 from model_registry import utils
 from model_registry.utils import OCIParams, S3Params, save_to_oci_registry
+
+logger = logging.getLogger(__name__)
 
 def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
     """
@@ -10,6 +13,7 @@ def _get_upload_params(config: Dict[str, Any]) -> S3Params | OCIParams:
     Args:
         config: Configuration dictionary
     """
+    logger.debug("🔍 Getting upload params for destination type: %s", config["destination"]["type"])
     destination_config = config["destination"]
     if destination_config["type"] == "s3":
         return S3Params(
@@ -54,7 +58,9 @@ def perform_upload(config: Dict[str, Any]) -> str:
     model_files_path = config["storage"]["path"]
 
     upload_params = _get_upload_params(config)
+    logger.debug("🔍 Upload params: %s", upload_params)
 
+    logger.info("📤 Uploading model to destination...")
     if isinstance(upload_params, S3Params):
         raise ValueError("S3 upload destination is not supported")
     elif isinstance(upload_params, OCIParams):
@@ -65,4 +71,5 @@ def perform_upload(config: Dict[str, Any]) -> str:
     else:
         raise ValueError("Unsupported destination type")
 
+    logger.info("✅ Model uploaded to destination: %s", uri)
     return uri
