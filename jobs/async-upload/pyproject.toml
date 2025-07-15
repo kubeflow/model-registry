@@ -13,7 +13,7 @@ model-registry = { version = ">=0.2.19,<0.3.0", extras = ["boto3", "olot"] }
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3.5,<9.0.0"
-aiohttp = "^3.12.12"
+aiohttp = "^3.12.14"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
