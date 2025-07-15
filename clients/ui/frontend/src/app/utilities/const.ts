@@ -8,6 +8,7 @@ const POLL_INTERVAL = process.env.POLL_INTERVAL ? parseInt(process.env.POLL_INTE
 const KUBEFLOW_USERNAME = process.env.KUBEFLOW_USERNAME || 'user@example.com';
 const IMAGE_DIR = process.env.IMAGE_DIR || 'images';
 const LOGO_LIGHT = process.env.LOGO || 'logo-light-theme.svg';
+const MANDATORY_NAMESPACE = process.env.MANDATORY_NAMESPACE || undefined;
 const URL_PREFIX = '/model-registry';
 const BFF_API_VERSION = 'v1';
 
@@ -21,6 +22,7 @@ export {
   URL_PREFIX,
   DEPLOYMENT_MODE,
   BFF_API_VERSION,
+  MANDATORY_NAMESPACE,
 };
 
 export const FindAdministratorOptions = [
