@@ -37,7 +37,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: async-upload
-          image: kubeflow/model-registry-async-job:local
+          image: ghcr.io/kubeflow/model-registry/job/async-upload:latest
           volumeMounts:
             - name: source-credentials
               readOnly: true
