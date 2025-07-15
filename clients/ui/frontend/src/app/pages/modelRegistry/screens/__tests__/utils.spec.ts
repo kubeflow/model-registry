@@ -22,9 +22,10 @@ import {
   filterRegisteredModels,
   sortModelVersionsByCreateTime,
   isValidHttpUrl,
-  isRedHatRegistryUri,
   getCustomPropString,
+  isCompanyUri,
 } from '~/app/pages/modelRegistry/screens/utils';
+import { COMPANY_URI } from '~/app/utilities/const';
 
 describe('getLabels', () => {
   it('should return an empty array when customProperties is empty', () => {
@@ -457,12 +458,12 @@ describe('isValidHttpUrl', () => {
   });
 });
 
-describe('isRedHatRegistryUri', () => {
-  it('should return true for RedHat registry URI', () => {
-    expect(isRedHatRegistryUri('oci://registry.redhat.io/test/test')).toBe(true);
+describe('isCompanyUri', () => {
+  it('should return true for company registry URI', () => {
+    expect(isCompanyUri(`${COMPANY_URI}/test/test`)).toBe(true);
   });
 
-  it('should return false for non-RedHat registry URI', () => {
-    expect(isValidHttpUrl('http://example.com')).toBe(true);
+  it('should return false for non-company registry URI', () => {
+    expect(isCompanyUri(`${COMPANY_URI}1/test/test`)).toBe(false);
   });
 });

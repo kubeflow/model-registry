@@ -9,6 +9,7 @@ import {
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
+import { COMPANY_URI } from '~/app/utilities/const';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -198,5 +199,4 @@ export const isValidHttpUrl = (value: string): boolean => {
   }
 };
 
-export const isRedHatRegistryUri = (uri: string): boolean =>
-  uri.startsWith('oci://registry.redhat.io/');
+export const isCompanyUri = (uri: string): boolean => uri.startsWith(`${COMPANY_URI}/`);
