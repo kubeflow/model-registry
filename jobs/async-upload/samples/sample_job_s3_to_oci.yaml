@@ -37,7 +37,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: async-upload
-          image: kubeflow/model-registry-async-job:local
+          image: quay.io/opendatahub/model-registry-job-async-upload
           volumeMounts:
             - name: source-credentials
               readOnly: true
