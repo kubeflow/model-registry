@@ -40,6 +40,7 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
   return (
     <Toolbar data-testid="registered-models-table-toolbar" clearAllFilters={onClearAllFilters}>
       <ToolbarContent>
+        {/* TODO: Remove this Flex after the ToolbarContent can center the children elements */}
         <Flex>
           <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
             {tableToggleGroupItems}

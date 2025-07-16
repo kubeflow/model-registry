@@ -133,6 +133,7 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
         toolbarContent={
           <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={resetFilters}>
             <ToolbarContent>
+              {/* TODO: Remove this Flex after the ToolbarContent can center the children elements */}
               <Flex>
                 <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
                   <ToolbarGroup variant="filter-group">
