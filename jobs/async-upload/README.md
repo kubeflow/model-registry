@@ -14,7 +14,7 @@ docker build \
   -t quay.io/<org>/async-upload-job:$(git rev-parse --short HEAD) .
 
 # 2 – Push to your registry
-docker push quay.io/<org>/async-upload-job:<tag>
+docker push quay.io/<org>/model-registry-job-async-upload:<tag>
 
 # TODO: Run locally...
 ```

@@ -15,7 +15,7 @@ on:
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub
-  IMG_NAME: model-registry/job/async-upload
+  IMG_NAME: model-registry-job-async-upload
   REGISTRY_USER: ${{ secrets.QUAY_USERNAME }}
   REGISTRY_PWD: ${{ secrets.QUAY_PASSWORD }}
 
