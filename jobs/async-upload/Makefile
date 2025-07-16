@@ -1,7 +1,7 @@
 IMG_VERSION ?= latest
 IMG_REGISTRY ?= ghcr.io
 IMG_ORG ?= kubeflow
-IMG_NAME ?= model-registry/job/async-upload
+IMG_NAME ?= model-registry-job-async-upload
 IMG ?= $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):$(IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
 
