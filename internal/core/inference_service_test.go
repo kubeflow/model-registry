@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -14,21 +13,20 @@ import (
 )
 
 func TestUpsertInferenceService(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		// Create prerequisites: registered model and serving environment
 		registeredModel := &openapi.RegisteredModel{
 			Name: "test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create inference service
@@ -41,7 +39,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Runtime:              apiutils.Of("tensorflow"),
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -61,13 +59,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "update-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "update-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create first
@@ -78,7 +76,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 		}
 
-		created, err := service.UpsertInferenceService(input)
+		created, err := _service.UpsertInferenceService(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -93,7 +91,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Runtime:              apiutils.Of("pytorch"),
 		}
 
-		updated, err := service.UpsertInferenceService(update)
+		updated, err := _service.UpsertInferenceService(update)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -108,13 +106,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "custom-props-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "custom-props-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		customProps := map[string]openapi.MetadataValue{
@@ -147,7 +145,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			CustomProperties:     &customProps,
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -171,13 +169,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "minimal-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "minimal-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
@@ -186,7 +184,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -197,7 +195,7 @@ func TestUpsertInferenceService(t *testing.T) {
 	})
 
 	t.Run("nil inference service error", func(t *testing.T) {
-		result, err := service.UpsertInferenceService(nil)
+		result, err := _service.UpsertInferenceService(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -209,13 +207,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "nil-state-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "nil-state-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create inference service with nil DesiredState and other optional fields
@@ -229,7 +227,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			DesiredState:         nil, // Explicitly set to nil
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -250,13 +248,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "unicode-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "unicode-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
@@ -269,7 +267,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Runtime:              apiutils.Of("tensorflow"),
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -280,7 +278,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		retrieved, err := _service.GetInferenceServiceById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, unicodeName, *retrieved.Name)
 	})
@@ -290,13 +288,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "special-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "special-chars-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Test with various special characters
@@ -309,7 +307,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Runtime:              apiutils.Of("pytorch"),
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -318,7 +316,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		retrieved, err := _service.GetInferenceServiceById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, specialName, *retrieved.Name)
 	})
@@ -328,13 +326,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "mixed-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "mixed-chars-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Test with mixed unicode and special characters
@@ -347,7 +345,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Runtime:              apiutils.Of("onnx"),
 		}
 
-		result, err := service.UpsertInferenceService(input)
+		result, err := _service.UpsertInferenceService(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -356,7 +354,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetInferenceServiceById(*result.Id)
+		retrieved, err := _service.GetInferenceServiceById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, mixedName, *retrieved.Name)
 	})
@@ -366,13 +364,13 @@ func TestUpsertInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "paging-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "paging-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create 15 inference services for pagination testing
@@ -387,7 +385,7 @@ func TestUpsertInferenceService(t *testing.T) {
 				Runtime:              apiutils.Of("tensorflow"),
 			}
 
-			result, err := service.UpsertInferenceService(input)
+			result, err := _service.UpsertInferenceService(input)
 			require.NoError(t, err)
 			createdServices = append(createdServices, *result.Id)
 		}
@@ -403,7 +401,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := service.GetInferenceServices(listOptions, nil, nil)
+		firstPage, err := _service.GetInferenceServices(listOptions, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -425,7 +423,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestServices) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := service.GetInferenceServices(listOptions, nil, nil)
+			secondPage, err := _service.GetInferenceServices(listOptions, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -446,7 +444,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := service.GetInferenceServices(listOptions, nil, nil)
+		allItems, err := _service.GetInferenceServices(listOptions, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test inference services")
@@ -471,7 +469,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := service.GetInferenceServices(listOptions, nil, nil)
+		descPage, err := _service.GetInferenceServices(listOptions, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -487,21 +485,20 @@ func TestUpsertInferenceService(t *testing.T) {
 }
 
 func TestGetInferenceServiceById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name: "get-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "get-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// First create an inference service to retrieve
@@ -514,12 +511,12 @@ func TestGetInferenceServiceById(t *testing.T) {
 			Runtime:              apiutils.Of("tensorflow"),
 		}
 
-		created, err := service.UpsertInferenceService(input)
+		created, err := _service.UpsertInferenceService(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the inference service by ID
-		result, err := service.GetInferenceServiceById(*created.Id)
+		result, err := _service.GetInferenceServiceById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -531,7 +528,7 @@ func TestGetInferenceServiceById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetInferenceServiceById("invalid")
+		result, err := _service.GetInferenceServiceById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -539,7 +536,7 @@ func TestGetInferenceServiceById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetInferenceServiceById("99999")
+		result, err := _service.GetInferenceServiceById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -548,21 +545,20 @@ func TestGetInferenceServiceById(t *testing.T) {
 }
 
 func TestGetInferenceServiceByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by name and parent resource id", func(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name: "params-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "params-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
@@ -571,12 +567,12 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		created, err := service.UpsertInferenceService(input)
+		created, err := _service.UpsertInferenceService(input)
 		require.NoError(t, err)
 
 		// Get by name and parent resource ID
 		serviceName := "params-test-inference-service"
-		result, err := service.GetInferenceServiceByParams(&serviceName, createdEnv.Id, nil)
+		result, err := _service.GetInferenceServiceByParams(&serviceName, createdEnv.Id, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -589,13 +585,13 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "params-ext-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "params-ext-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		input := &openapi.InferenceService{
@@ -604,12 +600,12 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		created, err := service.UpsertInferenceService(input)
+		created, err := _service.UpsertInferenceService(input)
 		require.NoError(t, err)
 
 		// Get by external ID
 		externalId := "params-unique-ext-456"
-		result, err := service.GetInferenceServiceByParams(nil, nil, &externalId)
+		result, err := _service.GetInferenceServiceByParams(nil, nil, &externalId)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -618,7 +614,7 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetInferenceServiceByParams(nil, nil, nil)
+		result, err := _service.GetInferenceServiceByParams(nil, nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -628,7 +624,7 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 	t.Run("no inference service found", func(t *testing.T) {
 		serviceName := "nonexistent-inference-service"
 		parentResourceId := "999"
-		result, err := service.GetInferenceServiceByParams(&serviceName, &parentResourceId, nil)
+		result, err := _service.GetInferenceServiceByParams(&serviceName, &parentResourceId, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -637,21 +633,20 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 }
 
 func TestGetInferenceServices(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name: "list-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "list-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create multiple inference services for listing
@@ -681,7 +676,7 @@ func TestGetInferenceServices(t *testing.T) {
 
 		var createdIds []string
 		for _, infSvc := range testInferenceServices {
-			created, err := service.UpsertInferenceService(infSvc)
+			created, err := _service.UpsertInferenceService(infSvc)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -692,7 +687,7 @@ func TestGetInferenceServices(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetInferenceServices(listOptions, nil, nil)
+		result, err := _service.GetInferenceServices(listOptions, nil, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -717,19 +712,19 @@ func TestGetInferenceServices(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "filter-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv1 := &openapi.ServingEnvironment{
 			Name: "filter-test-serving-env-1",
 		}
-		createdEnv1, err := service.UpsertServingEnvironment(servingEnv1)
+		createdEnv1, err := _service.UpsertServingEnvironment(servingEnv1)
 		require.NoError(t, err)
 
 		servingEnv2 := &openapi.ServingEnvironment{
 			Name: "filter-test-serving-env-2",
 		}
-		createdEnv2, err := service.UpsertServingEnvironment(servingEnv2)
+		createdEnv2, err := _service.UpsertServingEnvironment(servingEnv2)
 		require.NoError(t, err)
 
 		// Create inference services in different serving environments
@@ -738,7 +733,7 @@ func TestGetInferenceServices(t *testing.T) {
 			ServingEnvironmentId: *createdEnv1.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		created1, err := service.UpsertInferenceService(infSvc1)
+		created1, err := _service.UpsertInferenceService(infSvc1)
 		require.NoError(t, err)
 
 		infSvc2 := &openapi.InferenceService{
@@ -746,7 +741,7 @@ func TestGetInferenceServices(t *testing.T) {
 			ServingEnvironmentId: *createdEnv2.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		_, err = service.UpsertInferenceService(infSvc2)
+		_, err = _service.UpsertInferenceService(infSvc2)
 		require.NoError(t, err)
 
 		// List inference services filtered by serving environment
@@ -755,7 +750,7 @@ func TestGetInferenceServices(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetInferenceServices(listOptions, createdEnv1.Id, nil)
+		result, err := _service.GetInferenceServices(listOptions, createdEnv1.Id, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -777,13 +772,13 @@ func TestGetInferenceServices(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "runtime-filter-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "runtime-filter-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create inference services with different runtimes
@@ -793,7 +788,7 @@ func TestGetInferenceServices(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 			Runtime:              apiutils.Of("tensorflow"),
 		}
-		createdTensorflow, err := service.UpsertInferenceService(infSvcTensorflow)
+		createdTensorflow, err := _service.UpsertInferenceService(infSvcTensorflow)
 		require.NoError(t, err)
 
 		infSvcPytorch := &openapi.InferenceService{
@@ -802,7 +797,7 @@ func TestGetInferenceServices(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 			Runtime:              apiutils.Of("pytorch"),
 		}
-		_, err = service.UpsertInferenceService(infSvcPytorch)
+		_, err = _service.UpsertInferenceService(infSvcPytorch)
 		require.NoError(t, err)
 
 		// List inference services filtered by runtime
@@ -812,7 +807,7 @@ func TestGetInferenceServices(t *testing.T) {
 		}
 		runtime := "tensorflow"
 
-		result, err := service.GetInferenceServices(listOptions, nil, &runtime)
+		result, err := _service.GetInferenceServices(listOptions, nil, &runtime)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -834,13 +829,13 @@ func TestGetInferenceServices(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "pagination-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "pagination-test-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create several inference services for pagination testing
@@ -851,7 +846,7 @@ func TestGetInferenceServices(t *testing.T) {
 				ServingEnvironmentId: *createdEnv.Id,
 				RegisteredModelId:    *createdModel.Id,
 			}
-			_, err := service.UpsertInferenceService(infSvc)
+			_, err := _service.UpsertInferenceService(infSvc)
 			require.NoError(t, err)
 		}
 
@@ -865,7 +860,7 @@ func TestGetInferenceServices(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetInferenceServices(listOptions, nil, nil)
+		result, err := _service.GetInferenceServices(listOptions, nil, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -877,7 +872,7 @@ func TestGetInferenceServices(t *testing.T) {
 		invalidId := "invalid"
 		listOptions := api.ListOptions{}
 
-		result, err := service.GetInferenceServices(listOptions, &invalidId, nil)
+		result, err := _service.GetInferenceServices(listOptions, &invalidId, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -886,8 +881,7 @@ func TestGetInferenceServices(t *testing.T) {
 }
 
 func TestInferenceServiceRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create prerequisites
@@ -895,14 +889,14 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 			Name:        "roundtrip-registered-model",
 			Description: apiutils.Of("Roundtrip test registered model"),
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name:        "roundtrip-serving-env",
 			Description: apiutils.Of("Roundtrip test serving environment"),
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service with all fields
@@ -916,12 +910,12 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertInferenceService(original)
+		created, err := _service.UpsertInferenceService(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetInferenceServiceById(*created.Id)
+		retrieved, err := _service.GetInferenceServiceById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -937,7 +931,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.Runtime = apiutils.Of("pytorch")
 
-		updated, err := service.UpsertInferenceService(retrieved)
+		updated, err := _service.UpsertInferenceService(retrieved)
 		require.NoError(t, err)
 
 		// Verify update
@@ -946,7 +940,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		assert.Equal(t, "pytorch", *updated.Runtime)
 
 		// Get again to verify persistence
-		final, err := service.GetInferenceServiceById(*created.Id)
+		final, err := _service.GetInferenceServiceById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, "pytorch", *final.Runtime)
@@ -957,13 +951,13 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "roundtrip-custom-props-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "roundtrip-custom-props-serving-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		customProps := map[string]openapi.MetadataValue{
@@ -987,12 +981,12 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertInferenceService(original)
+		created, err := _service.UpsertInferenceService(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetInferenceServiceById(*created.Id)
+		retrieved, err := _service.GetInferenceServiceById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify custom properties
@@ -1023,7 +1017,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 		}
 		retrieved.CustomProperties = &updatedProps
 
-		updated, err := service.UpsertInferenceService(retrieved)
+		updated, err := _service.UpsertInferenceService(retrieved)
 		require.NoError(t, err)
 
 		// Verify updated custom properties

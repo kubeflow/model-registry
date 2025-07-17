@@ -18,28 +18,10 @@ import (
 	_tls "github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_postgres "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestPostgresDBConnector_Connect_Insecure(t *testing.T) {
 	ctx := context.Background()
-
-	// Start PostgreSQL container without SSL
-	postgresContainer, err := cont_postgres.Run(
-		ctx,
-		"postgres:15-alpine",
-		cont_postgres.WithUsername("postgres"),
-		cont_postgres.WithPassword("testpass"),
-		cont_postgres.WithDatabase("testdb"),
-		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")),
-	)
-	require.NoError(t, err)
-	defer func() {
-		err := testcontainers.TerminateContainer(postgresContainer)
-		require.NoError(t, err)
-	}()
 
 	// Get connection details
 	host, err := postgresContainer.Host(ctx)
@@ -62,29 +44,15 @@ func TestPostgresDBConnector_Connect_Insecure(t *testing.T) {
 		err = db.Raw("SELECT 1").Scan(&result).Error
 		require.NoError(t, err)
 		assert.Equal(t, 1, result)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("EmptySSLConfig", func(t *testing.T) {
 		dsn := fmt.Sprintf("host=%s port=%s user=postgres password=testpass dbname=testdb sslmode=disable",
 			host, port.Port())
-		connector := &postgres.PostgresDBConnector{
-			DSN:       dsn,
-			TLSConfig: &_tls.TLSConfig{},
-		}
-
+		connector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{})
 		db, err := connector.Connect()
 		require.NoError(t, err)
 		assert.NotNil(t, db)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("URLFormatDSN", func(t *testing.T) {
@@ -101,11 +69,6 @@ func TestPostgresDBConnector_Connect_Insecure(t *testing.T) {
 		err = db.Raw("SELECT 1").Scan(&result).Error
 		require.NoError(t, err)
 		assert.Equal(t, 1, result)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 }
 
@@ -195,12 +158,12 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	caCertPath, _, _, _, clientCertPath, clientKeyPath := generateTestCertificates(t, tempDir)
 
 	t.Run("BuildDSNWithSSLMode_KeyValue", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -210,12 +173,12 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithSSLMode_URL", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "postgres://postgres:password@localhost:5432/test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"postgres://postgres:password@localhost:5432/test",
+			&_tls.TLSConfig{
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -224,14 +187,14 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithCertificates_KeyValue", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				CertPath:     clientCertPath,
 				KeyPath:      clientKeyPath,
 				RootCertPath: caCertPath,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -242,14 +205,14 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithCertificates_URL", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "postgres://postgres:password@localhost:5432/test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"postgres://postgres:password@localhost:5432/test",
+			&_tls.TLSConfig{
 				CertPath:     clientCertPath,
 				KeyPath:      clientKeyPath,
 				RootCertPath: caCertPath,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -265,12 +228,12 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithCAPath", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				CAPath: caCertPath,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -279,12 +242,12 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithQueryParams_URL", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "postgres://postgres:password@localhost:5432/test?connect_timeout=10",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"postgres://postgres:password@localhost:5432/test?connect_timeout=10",
+			&_tls.TLSConfig{
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -293,12 +256,12 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithExistingSSLMode", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test sslmode=disable",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test sslmode=disable",
+			&_tls.TLSConfig{
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -309,13 +272,13 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 	})
 
 	t.Run("BuildDSNWithCipherSuites_Warning", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				Cipher:           "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		// This should succeed but log a warning
 		dsn, err := connector.BuildDSNWithTLS()
@@ -329,22 +292,6 @@ func TestPostgresDBConnector_DSNBuilding(t *testing.T) {
 
 func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 	ctx := context.Background()
-
-	// Start PostgreSQL container with SSL capabilities
-	// Note: Setting up full SSL in testcontainers is complex, so we'll test the DSN building primarily
-	postgresContainer, err := cont_postgres.Run(
-		ctx,
-		"postgres:15-alpine",
-		cont_postgres.WithUsername("postgres"),
-		cont_postgres.WithPassword("testpass"),
-		cont_postgres.WithDatabase("testdb"),
-		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")),
-	)
-	require.NoError(t, err)
-	defer func() {
-		err := testcontainers.TerminateContainer(postgresContainer)
-		require.NoError(t, err)
-	}()
 
 	host, err := postgresContainer.Host(ctx)
 	require.NoError(t, err)
@@ -363,7 +310,7 @@ func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 			host, port.Port())
 		connector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{
 			RootCertPath: caCertPath,
-		})
+		}).WithMaxRetries(1)
 
 		// Build DSN to verify it's constructed correctly
 		builtDSN, err := connector.BuildDSNWithTLS()
@@ -383,7 +330,7 @@ func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 			CertPath:     clientCertPath,
 			KeyPath:      clientKeyPath,
 			RootCertPath: caCertPath,
-		})
+		}).WithMaxRetries(1)
 
 		// Build DSN to verify it's constructed correctly
 		builtDSN, err := connector.BuildDSNWithTLS()
@@ -402,7 +349,7 @@ func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 		connector := postgres.NewPostgresDBConnector(dsn, &_tls.TLSConfig{
 			VerifyServerCert: true,
 			RootCertPath:     caCertPath,
-		})
+		}).WithMaxRetries(1)
 
 		// Build DSN to verify it's constructed correctly
 		builtDSN, err := connector.BuildDSNWithTLS()
@@ -443,22 +390,17 @@ func TestPostgresDBConnector_Connect_Secure(t *testing.T) {
 		err = db.Raw("SELECT name FROM test_ssl WHERE id = 1").Scan(&name).Error
 		require.NoError(t, err)
 		assert.Equal(t, "ssl_test", name)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 }
 
 func TestPostgresDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidURLFormat", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "://invalid-url-format",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"://invalid-url-format",
+			&_tls.TLSConfig{
 				VerifyServerCert: true,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		if err != nil {
@@ -471,12 +413,12 @@ func TestPostgresDBConnector_Connect_ErrorCases(t *testing.T) {
 	})
 
 	t.Run("NonExistentCertFile", func(t *testing.T) {
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				RootCertPath: "/nonexistent/cert.pem",
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		// DSN building should succeed even with non-existent files
@@ -503,13 +445,13 @@ func TestPostgresDBConnector_Connect_ErrorCases(t *testing.T) {
 		err = os.WriteFile(invalidKeyPath, []byte("invalid key"), 0600)
 		require.NoError(t, err)
 
-		connector := &postgres.PostgresDBConnector{
-			DSN: "host=localhost port=5432 user=postgres dbname=test",
-			TLSConfig: &_tls.TLSConfig{
+		connector := postgres.NewPostgresDBConnector(
+			"host=localhost port=5432 user=postgres dbname=test",
+			&_tls.TLSConfig{
 				CertPath: invalidCertPath,
 				KeyPath:  invalidKeyPath,
 			},
-		}
+		).WithMaxRetries(1)
 
 		dsn, err := connector.BuildDSNWithTLS()
 		require.NoError(t, err)
@@ -659,4 +601,4 @@ func generateTestCertificates(t *testing.T, tempDir string) (caCertPath, caKeyPa
 	require.NoError(t, err)
 
 	return
-} 
+}

@@ -1,12 +1,13 @@
 package kubernetes
 
 type ServiceDetails struct {
-	Name        string
-	DisplayName string
-	Description string
-	ClusterIP   string
-	HTTPPort    int32
-	IsHTTPS     bool
+	Name                string
+	DisplayName         string
+	Description         string
+	ClusterIP           string
+	HTTPPort            int32
+	IsHTTPS             bool
+	ExternalAddressRest string
 }
 
 type RequestIdentity struct {

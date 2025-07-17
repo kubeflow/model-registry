@@ -25,7 +25,7 @@ func (app *App) GetAllModelRegistriesHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	registries, err := app.repositories.ModelRegistry.GetAllModelRegistries(r.Context(), client, namespace)
+	registries, err := app.repositories.ModelRegistry.GetAllModelRegistriesWithMode(r.Context(), client, namespace, app.config.DeploymentMode.IsFederatedMode())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -25,7 +25,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, string, func()) {
 
 	mysqlContainer, err := cont_mysql.Run(
 		ctx,
-		"mysql:5.7",
+		"mysql:8",
 		cont_mysql.WithUsername("root"),
 		cont_mysql.WithPassword("root"),
 		cont_mysql.WithDatabase("test"),

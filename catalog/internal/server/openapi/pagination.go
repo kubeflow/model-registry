@@ -3,47 +3,98 @@ package openapi
 import (
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/converter"
-	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
-func buildPagination(pageSize string, orderBy string, sortOrder string, nextPageToken string) (*models.Pagination, error) {
-	var pageSizeInt32 *int32
+type paginator[T model.Sortable] struct {
+	PageSize  int32
+	OrderBy   model.OrderByField
+	SortOrder model.SortOrder
+	cursor    *stringCursor
+}
+
+func newPaginator[T model.Sortable](pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (*paginator[T], error) {
+	if orderBy != "" && !orderBy.IsValid() {
+		return nil, fmt.Errorf("unsupported order by field: %s", orderBy)
+	}
+	if sortOrder != "" && !sortOrder.IsValid() {
+		return nil, fmt.Errorf("unsupported sort order field: %s", sortOrder)
+	}
+
+	p := &paginator[T]{
+		PageSize:  10, // Default page size
+		OrderBy:   orderBy,
+		SortOrder: sortOrder,
+	}
+
 	if pageSize != "" {
-		conv, err := converter.StringToInt32(pageSize)
+		pageSize64, err := strconv.ParseInt(pageSize, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("error converting page size to int32: %w", err)
 		}
-		pageSizeInt32 = &conv
-	} else {
-		defaultPageSize := int32(10)
-		pageSizeInt32 = &defaultPageSize
+		p.PageSize = int32(pageSize64)
 	}
 
-	var orderByString *string
-	if orderBy != "" {
-		orderByString = &orderBy
-	}
-
-	var sortOrderString *string
-	if sortOrder != "" {
-		sortOrderString = &sortOrder
-	}
-
-	var nextPageTokenParam *string
 	if nextPageToken != "" {
-		nextPageTokenParam = &nextPageToken
+		p.cursor = decodeStringCursor(nextPageToken)
 	}
 
-	return &models.Pagination{
-		PageSize:      pageSizeInt32,
-		OrderBy:       orderByString,
-		SortOrder:     sortOrderString,
-		NextPageToken: nextPageTokenParam,
-	}, nil
+	return p, nil
+}
+
+func (p *paginator[T]) Token() string {
+	if p == nil || p.cursor == nil {
+		return ""
+	}
+	return p.cursor.String()
+}
+
+func (p *paginator[T]) Paginate(items []T) ([]T, *paginator[T]) {
+	startIndex := 0
+	if p.cursor != nil {
+		for i, item := range items {
+			itemValue := item.SortValue(p.OrderBy)
+			id := item.SortValue(model.ORDERBYFIELD_ID)
+			if id != "" && id == p.cursor.ID && itemValue == p.cursor.Value {
+				startIndex = i + 1
+				break
+			}
+		}
+	}
+
+	if startIndex >= len(items) {
+		return []T{}, nil
+	}
+
+	var pagedItems []T
+	var next *paginator[T]
+
+	endIndex := startIndex + int(p.PageSize)
+	if endIndex > len(items) {
+		endIndex = len(items)
+	}
+	pagedItems = items[startIndex:endIndex]
+
+	if endIndex < len(items) {
+		lastItem := pagedItems[len(pagedItems)-1]
+		lastItemID := lastItem.SortValue(model.ORDERBYFIELD_ID)
+		if lastItemID != "" {
+			next = &paginator[T]{
+				PageSize:  p.PageSize,
+				OrderBy:   p.OrderBy,
+				SortOrder: p.SortOrder,
+				cursor: &stringCursor{
+					Value: lastItem.SortValue(p.OrderBy),
+					ID:    lastItemID,
+				},
+			}
+		}
+	}
+
+	return pagedItems, next
 }
 
 type stringCursor struct {
@@ -51,84 +102,22 @@ type stringCursor struct {
 	ID    string
 }
 
-func encodeStringCursor(c stringCursor) string {
+func (c *stringCursor) String() string {
 	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.Value, c.ID)))
 }
 
-func decodeStringCursor(encoded string) (stringCursor, error) {
+func decodeStringCursor(encoded string) *stringCursor {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return stringCursor{}, err
+		// Show the first page on a bad token.
+		return nil
 	}
 	parts := strings.SplitN(string(decoded), ":", 2)
 	if len(parts) != 2 {
-		return stringCursor{}, fmt.Errorf("invalid cursor format")
+		return nil
 	}
-	return stringCursor{
+	return &stringCursor{
 		Value: parts[0],
 		ID:    parts[1],
-	}, nil
-}
-
-func paginateSources(items []model.CatalogSource, pagination *models.Pagination) ([]model.CatalogSource, string) {
-	startIndex := 0
-	if pagination.GetNextPageToken() != "" {
-		cursor, err := decodeStringCursor(pagination.GetNextPageToken())
-		if err == nil {
-			for i, item := range items {
-				var itemValue string
-				switch model.OrderByField(strings.ToUpper(pagination.GetOrderBy())) {
-				case model.ORDERBYFIELD_ID, "":
-					if item.Id != "" {
-						itemValue = item.Id
-					}
-				case model.ORDERBYFIELD_NAME:
-					if item.Name != "" {
-						itemValue = item.Name
-					}
-				}
-				if item.Id != "" && item.Id == cursor.ID && itemValue == cursor.Value {
-					startIndex = i + 1
-					break
-				}
-			}
-		}
 	}
-
-	var pagedItems []model.CatalogSource
-	var newNextPageToken string
-
-	if startIndex < len(items) {
-		limit := int(pagination.GetPageSize())
-		endIndex := startIndex + limit
-		if endIndex > len(items) {
-			endIndex = len(items)
-		}
-		pagedItems = items[startIndex:endIndex]
-
-		if endIndex < len(items) {
-			lastItem := pagedItems[len(pagedItems)-1]
-			var lastItemValue string
-			switch model.OrderByField(strings.ToUpper(pagination.GetOrderBy())) {
-			case model.ORDERBYFIELD_ID, "":
-				if lastItem.Id != "" {
-					lastItemValue = lastItem.Id
-				}
-			case model.ORDERBYFIELD_NAME:
-				if lastItem.Name != "" {
-					lastItemValue = lastItem.Name
-				}
-			}
-			if lastItem.Id != "" {
-				newNextPageToken = encodeStringCursor(stringCursor{
-					Value: lastItemValue,
-					ID:    lastItem.Id,
-				})
-			}
-		}
-	} else {
-		pagedItems = []model.CatalogSource{}
-	}
-
-	return pagedItems, newNextPageToken
 }
