@@ -3,6 +3,7 @@
 from unittest.mock import Mock
 
 from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
+from .conftest import get_testdata_dir
 
 
 class TestAsyncLogging:
@@ -10,8 +11,9 @@ class TestAsyncLogging:
 
     def test_log_batch_async(self):
         """Test log_batch_async method."""
+        testdata_dir = get_testdata_dir()
         store = ModelRegistryTrackingStore(
-            "modelregistry://localhost:8080", "file:///tmp"
+            "modelregistry://localhost:8080", f"file://{testdata_dir}"
         )
 
         # Mock the async logging queue
@@ -40,8 +42,9 @@ class TestAsyncLogging:
 
     def test_end_async_logging(self):
         """Test end_async_logging method."""
+        testdata_dir = get_testdata_dir()
         store = ModelRegistryTrackingStore(
-            "modelregistry://localhost:8080", "file:///tmp"
+            "modelregistry://localhost:8080", f"file://{testdata_dir}"
         )
 
         # Mock the async logging queue
