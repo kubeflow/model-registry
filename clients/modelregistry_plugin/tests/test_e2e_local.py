@@ -1,23 +1,23 @@
 """
 End-to-end tests for ModelRegistryTrackingStore with local Model Registry server.
 
-This test suite starts a local Model Registry server with MLMD backend using SQLite
+This test suite starts a local Model Registry server with EmbedMD backend using MySQL
 and runs comprehensive tests against it. This provides a self-contained testing
 environment that doesn't require external dependencies.
 """
 
 import logging
-import os
 import pytest
 import time
 import uuid
 import subprocess
-import tempfile
 import shutil
 import signal
 import sys
 from pathlib import Path
 from unittest.mock import patch
+
+from .conftest import create_temp_dir
 from mlflow.entities import (
     Experiment,
     Run,
@@ -29,8 +29,7 @@ from mlflow.entities import (
     LifecycleStage,
     ExperimentTag,
 )
-from testcontainers.core.container import DockerContainer
-from testcontainers.core.waiting_utils import wait_for_logs
+from testcontainers.mysql import MySqlContainer
 
 # Mock the API client to avoid actual HTTP requests
 with patch("modelregistry_plugin.api_client.requests.Session.request") as mock_request:
@@ -41,88 +40,49 @@ logger = logging.getLogger(__name__)
 
 
 class LocalModelRegistryServer:
-    """Manages a local Model Registry server with MLMD backend using testcontainers."""
+    """Manages a local Model Registry server with EmbedMD backend using testcontainers."""
 
     def __init__(self, temp_dir: Path):
         self.temp_dir = temp_dir
-        self.mlmd_container = None
+        self.mysql_container = None
         self.model_registry_process = None
-        self.mlmd_port = 9090
+        self.mysql_port = 3306
         self.model_registry_port = 8080
-        self.mlmd_db_path = temp_dir / "metadata.sqlite.db"
-        self.conn_config_path = temp_dir / "conn_config.pb"
+        self.mysql_dsn = None
 
-    def setup_mlmd_config(self):
-        """Create MLMD connection configuration for SQLite."""
-        # Ensure the temp directory exists and is world-writable
-        self.temp_dir.mkdir(parents=True, exist_ok=True)
-        os.chmod(self.temp_dir, 0o777)
-
-        db_path = self.temp_dir / "metadata.sqlite.db"
-        conn_config_content = """connection_config {
-  sqlite {
-    filename_uri: '/tmp/shared/metadata.sqlite.db'
-    connection_mode: READWRITE_OPENCREATE
-  }
-}
-"""
-        with open(self.conn_config_path, "w") as f:
-            f.write(conn_config_content)
-
-        # Ensure the config file has proper permissions
-        os.chmod(self.conn_config_path, 0o644)
-
-        logger.info(f"📁 Created MLMD config at: {self.conn_config_path}")
-        logger.info(f"📁 Database will be created at: {db_path}")
-
-    def start_mlmd_server(self):
-        """Start the MLMD server using testcontainers."""
+    def start_mysql_server(self):
+        """Start the MySQL server using testcontainers."""
         try:
-            # Use absolute path for Docker volume mount
-            temp_dir_abs = str(self.temp_dir.absolute())
+            logger.info("🐳 Starting MySQL server for EmbedMD...")
 
-            logger.info(
-                f"🐳 Starting MLMD server with volume mount: {temp_dir_abs}:/tmp/shared"
-            )
-
-            # Create MLMD container using testcontainers
-            self.mlmd_container = (
-                DockerContainer(
-                    image="gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0"
-                )
-                .with_exposed_ports(8080)
-                .with_volume_mapping(temp_dir_abs, "/tmp/shared", mode="rw")
-                .with_env(
-                    "METADATA_STORE_SERVER_CONFIG_FILE", "/tmp/shared/conn_config.pb"
-                )
+            # Create MySQL container using testcontainers MySQL module
+            self.mysql_container = MySqlContainer(
+                image="mysql:8.3",
+                username="root",
+                root_password="root",
+                password="root",
+                dbname="model_registry",
             )
 
             # Start the container
-            self.mlmd_container.start()
+            self.mysql_container.start()
 
-            # Wait for MLMD server to be ready
-            try:
-                wait_for_logs(self.mlmd_container, "Server listening on", timeout=30)
-            except Exception as e:
-                # If wait fails, get container logs for debugging
-                logger.error("❌ MLMD server didn't start properly. Container logs:")
-                logger.error(self.mlmd_container.get_logs())
-                raise RuntimeError(f"MLMD server failed to start: {e}")
+            # Get connection details
+            self.mysql_port = self.mysql_container.get_exposed_port(3306)
+            self.mysql_dsn = f"root:root@tcp(localhost:{self.mysql_port})/model_registry?charset=utf8mb4&parseTime=True&loc=Local"
 
-            # Get the mapped port
-            self.mlmd_port = self.mlmd_container.get_exposed_port(8080)
-
-            logger.info(f"✅ MLMD server started on port {self.mlmd_port}")
+            logger.info(f"✅ MySQL server started on port {self.mysql_port}")
+            logger.info(f"📁 MySQL DSN: {self.mysql_dsn}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to start MLMD server: {e}")
-            if self.mlmd_container:
+            logger.error(f"❌ Failed to start MySQL server: {e}")
+            if self.mysql_container:
                 try:
                     logger.error("🐳 Container logs:")
-                    logger.error(self.mlmd_container.get_logs())
-                    self.mlmd_container.stop()
+                    logger.error(self.mysql_container.get_logs())
+                    self.mysql_container.stop()
                 except Exception as cleanup_error:
-                    logger.error(f"❌ Error during MLMD cleanup: {cleanup_error}")
+                    logger.error(f"❌ Error during MySQL cleanup: {cleanup_error}")
             raise
 
     def start_model_registry_server(self):
@@ -132,7 +92,7 @@ class LocalModelRegistryServer:
             project_root = Path(__file__).parent.parent.parent.parent
 
             logger.info(
-                f"🚀 Starting Model Registry server with Go, connecting to MLMD on localhost:{self.mlmd_port}"
+                f"🚀 Starting Model Registry server with Go, connecting to MySQL on localhost:{self.mysql_port}"
             )
 
             # Start Model Registry server using Go command
@@ -142,17 +102,14 @@ class LocalModelRegistryServer:
                     "run",
                     "main.go",
                     "proxy",
-                    "0.0.0.0",
                     "--hostname",
                     "0.0.0.0",
                     "--port",
                     str(self.model_registry_port),
-                    "--mlmd-hostname",
-                    "localhost",
-                    "--mlmd-port",
-                    str(self.mlmd_port),
-                    "--datastore-type",
-                    "mlmd",
+                    "--embedmd-database-type",
+                    "mysql",
+                    "--embedmd-database-dsn",
+                    self.mysql_dsn,
                 ],
                 cwd=project_root,
                 stdout=subprocess.PIPE,
@@ -180,14 +137,11 @@ class LocalModelRegistryServer:
             raise
 
     def start(self):
-        """Start both MLMD and Model Registry servers."""
+        """Start both MySQL and Model Registry servers."""
         logger.info("🚀 Starting local Model Registry test environment...")
 
-        # Setup MLMD configuration
-        self.setup_mlmd_config()
-
         # Start servers
-        self.start_mlmd_server()
+        self.start_mysql_server()
         self.start_model_registry_server()
 
         # Wait a bit more for everything to be ready
@@ -275,18 +229,18 @@ class LocalModelRegistryServer:
             except Exception as e:
                 logger.error(f"  ❌ Error stopping Model Registry server: {e}")
 
-        # Stop MLMD container
-        if self.mlmd_container:
+        # Stop MySQL container
+        if self.mysql_container:
             try:
-                logger.info("  🐳 Stopping MLMD container...")
-                self.mlmd_container.stop()
-                logger.info("  ✅ MLMD container stopped")
+                logger.info("  🐳 Stopping MySQL container...")
+                self.mysql_container.stop()
+                logger.info("  ✅ MySQL container stopped")
             except Exception as e:
-                logger.error(f"  ❌ Error stopping MLMD container: {e}")
+                logger.error(f"  ❌ Error stopping MySQL container: {e}")
 
         # Reset references
         self.model_registry_process = None
-        self.mlmd_container = None
+        self.mysql_container = None
 
         logger.info("✅ Local Model Registry test environment stopped.")
 
@@ -338,9 +292,8 @@ class TestModelRegistryTrackingStoreE2ELocal:
     @pytest.fixture(scope="class")
     def local_server(self):
         """Start and manage a local Model Registry server."""
-        # Create temporary directory for test data under /tmp for Docker compatibility
-        # TODO switch to a temp directory in the module directory
-        temp_dir = Path(tempfile.mkdtemp(dir="/tmp", prefix="model_registry_e2e_"))
+        # Create temporary directory for test data in testdata directory for Docker compatibility
+        temp_dir = create_temp_dir(prefix="model_registry_e2e_")
 
         server = LocalModelRegistryServer(temp_dir)
 
@@ -708,7 +661,7 @@ class TestModelRegistryTrackingStoreE2ELocal:
                 f"   Accuracy history: {len(accuracy_history)} values, Loss history: {len(loss_history)} values"
             )
             logger.info(
-                "   Both metrics are sorted by (timestamp, step) as per MLMD specification"
+                "   Both metrics are sorted by (timestamp, step) as per EmbedMD specification"
             )
 
             # Test bulk metric history API for specific steps

@@ -14,7 +14,6 @@ import contextlib
 import logging
 import math
 import os
-import tempfile
 import time
 import uuid
 from collections.abc import Generator
@@ -33,6 +32,8 @@ from mlflow.tracking import MlflowClient
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+
+from .conftest import create_temp_file
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -176,7 +177,7 @@ class TestModelRegistryTrackingStoreE2E:
             mlflow.sklearn.log_model(model, "model", input_example=X_test[:1])
 
             # Log dataset as artifact
-            dataset_path = tempfile.mktemp(suffix=".csv")
+            dataset_path = create_temp_file(suffix=".csv")
             sample_dataset.to_csv(dataset_path, index=False)
             mlflow.log_artifact(dataset_path, "dataset")
 
@@ -208,8 +209,7 @@ class TestModelRegistryTrackingStoreE2E:
         accuracy_history = mlflow_client.get_metric_history(run_id, "accuracy")
         assert len(accuracy_history) == 5  # Should have 5 accuracy values
 
-        # Cleanup
-        os.unlink(dataset_path)
+        # Cleanup handled by session-level fixture
 
     def test_log_dataset_inputs(
         self, experiment_id: str, sample_dataset: pd.DataFrame
@@ -217,7 +217,7 @@ class TestModelRegistryTrackingStoreE2E:
         """Test logging dataset inputs using MLflow."""
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create a temporary dataset file
-            dataset_path = tempfile.mktemp(suffix=".csv")
+            dataset_path = create_temp_file(suffix=".csv")
             sample_dataset.to_csv(dataset_path, index=False)
 
             # Log dataset as artifact
@@ -241,8 +241,7 @@ class TestModelRegistryTrackingStoreE2E:
             len(sample_dataset.columns)
         )
 
-        # Cleanup
-        os.unlink(dataset_path)
+        # Cleanup handled by session-level fixture
 
     def test_log_multiple_datasets(self, experiment_id: str) -> None:
         """Test logging multiple datasets using MLflow."""
@@ -259,7 +258,7 @@ class TestModelRegistryTrackingStoreE2E:
                 datasets.append(df)
 
                 # Save to temporary file
-                dataset_path = tempfile.mktemp(suffix=f"_dataset_{i}.csv")
+                dataset_path = create_temp_file(suffix=f"_dataset_{i}.csv")
                 df.to_csv(dataset_path, index=False)
 
                 # Log dataset
@@ -406,7 +405,7 @@ class TestModelRegistryTrackingStoreE2E:
             mlflow.log_metric("validation_accuracy", 0.92, step=1)
 
             # Log dataset as input
-            dataset_path = tempfile.mktemp(suffix=".csv")
+            dataset_path = create_temp_file(suffix=".csv")
             sample_dataset.to_csv(dataset_path, index=False)
             mlflow.log_artifact(dataset_path, "input_dataset")
 
@@ -431,8 +430,7 @@ class TestModelRegistryTrackingStoreE2E:
         assert retrieved_run.data.metrics["training_accuracy"] == 0.95
         assert retrieved_run.data.tags["pipeline_stage"] == "training"
 
-        # Cleanup
-        os.unlink(dataset_path)
+        # Cleanup handled by session-level fixture
 
     def test_experiment_lifecycle(self, experiment_name: str) -> None:
         """Test experiment lifecycle operations using MLflow."""
@@ -634,7 +632,7 @@ class TestModelRegistryTrackingStoreE2E:
             text_content = (
                 "This is a test artifact file.\nIt contains multiple lines.\n"
             )
-            text_path = tempfile.mktemp(suffix=".txt")
+            text_path = create_temp_file(suffix=".txt")
             with open(text_path, "w") as f:
                 f.write(text_content)
 
@@ -643,7 +641,7 @@ class TestModelRegistryTrackingStoreE2E:
 
             # Create a JSON file
             json_content = '{"key": "value", "number": 42, "list": [1, 2, 3]}'
-            json_path = tempfile.mktemp(suffix=".json")
+            json_path = create_temp_file(suffix=".json")
             with open(json_path, "w") as f:
                 f.write(json_content)
 
@@ -652,9 +650,7 @@ class TestModelRegistryTrackingStoreE2E:
 
             run_id = run.info.run_id
 
-        # Cleanup temp files
-        os.unlink(text_path)
-        os.unlink(json_path)
+        # Cleanup handled by session-level fixture
 
         # Verify artifacts were logged (we can't easily verify artifact content via MLflow API)
         # but we can verify the run was created successfully
@@ -724,7 +720,7 @@ class TestModelRegistryTrackingStoreE2E:
         # Create a run with dataset artifacts
         with mlflow.start_run(experiment_id=experiment_id) as run:
             # Create and log a dataset
-            dataset_path = tempfile.mktemp(suffix=".csv")
+            dataset_path = create_temp_file(suffix=".csv")
             test_data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
             test_data.to_csv(dataset_path, index=False)
 
@@ -744,8 +740,7 @@ class TestModelRegistryTrackingStoreE2E:
             # Verify datasets were found (implementation may vary)
             assert isinstance(datasets, list)
 
-        # Cleanup
-        os.unlink(dataset_path)
+        # Cleanup handled by session-level fixture
 
     def test_log_logged_model_params(
         self,
