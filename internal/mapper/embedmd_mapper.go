@@ -37,10 +37,11 @@ func (e *EmbedMDMapper) MapFromRegisteredModel(registeredModel *openapi.Register
 	})
 }
 
-func (e *EmbedMDMapper) MapFromModelVersion(modelVersion *openapi.ModelVersion) (models.ModelVersion, error) {
+func (e *EmbedMDMapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, parentResourceId *string) (models.ModelVersion, error) {
 	return e.openAPIConverter.ConvertModelVersion(&converter.OpenAPIModelWrapper[openapi.ModelVersion]{
-		TypeId: e.typesMap[defaults.ModelVersionTypeName],
-		Model:  modelVersion,
+		TypeId:           e.typesMap[defaults.ModelVersionTypeName],
+		Model:            modelVersion,
+		ParentResourceId: parentResourceId,
 	})
 }
 
@@ -59,24 +60,27 @@ func (e *EmbedMDMapper) MapFromInferenceService(inferenceService *openapi.Infere
 	})
 }
 
-func (e *EmbedMDMapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact) (models.ModelArtifact, error) {
+func (e *EmbedMDMapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *string) (models.ModelArtifact, error) {
 	return e.openAPIConverter.ConvertModelArtifact(&converter.OpenAPIModelWrapper[openapi.ModelArtifact]{
-		TypeId: e.typesMap[defaults.ModelArtifactTypeName],
-		Model:  modelArtifact,
+		TypeId:           e.typesMap[defaults.ModelArtifactTypeName],
+		Model:            modelArtifact,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (e *EmbedMDMapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact) (models.DocArtifact, error) {
+func (e *EmbedMDMapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact, parentResourceId *string) (models.DocArtifact, error) {
 	return e.openAPIConverter.ConvertDocArtifact(&converter.OpenAPIModelWrapper[openapi.DocArtifact]{
-		TypeId: e.typesMap[defaults.DocArtifactTypeName],
-		Model:  docArtifact,
+		TypeId:           e.typesMap[defaults.DocArtifactTypeName],
+		Model:            docArtifact,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (e *EmbedMDMapper) MapFromServeModel(serveModel *openapi.ServeModel) (models.ServeModel, error) {
+func (e *EmbedMDMapper) MapFromServeModel(serveModel *openapi.ServeModel, parentResourceId *string) (models.ServeModel, error) {
 	return e.openAPIConverter.ConvertServeModel(&converter.OpenAPIModelWrapper[openapi.ServeModel]{
-		TypeId: e.typesMap[defaults.ServeModelTypeName],
-		Model:  serveModel,
+		TypeId:           e.typesMap[defaults.ServeModelTypeName],
+		Model:            serveModel,
+		ParentResourceId: parentResourceId,
 	})
 }
 
@@ -87,24 +91,27 @@ func (e *EmbedMDMapper) MapFromExperiment(experiment *openapi.Experiment) (model
 	})
 }
 
-func (e *EmbedMDMapper) MapFromExperimentRun(experimentRun *openapi.ExperimentRun) (models.ExperimentRun, error) {
+func (e *EmbedMDMapper) MapFromExperimentRun(experimentRun *openapi.ExperimentRun, parentResourceId *string) (models.ExperimentRun, error) {
 	return e.openAPIConverter.ConvertExperimentRun(&converter.OpenAPIModelWrapper[openapi.ExperimentRun]{
-		TypeId: e.typesMap[defaults.ExperimentRunTypeName],
-		Model:  experimentRun,
+		TypeId:           e.typesMap[defaults.ExperimentRunTypeName],
+		Model:            experimentRun,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (e *EmbedMDMapper) MapFromMetric(metric *openapi.Metric) (models.Metric, error) {
+func (e *EmbedMDMapper) MapFromMetric(metric *openapi.Metric, parentResourceId *string) (models.Metric, error) {
 	return e.openAPIConverter.ConvertMetric(&converter.OpenAPIModelWrapper[openapi.Metric]{
-		TypeId: e.typesMap[defaults.MetricTypeName],
-		Model:  metric,
+		TypeId:           e.typesMap[defaults.MetricTypeName],
+		Model:            metric,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (e *EmbedMDMapper) MapFromParameter(parameter *openapi.Parameter) (models.Parameter, error) {
+func (e *EmbedMDMapper) MapFromParameter(parameter *openapi.Parameter, parentResourceId *string) (models.Parameter, error) {
 	return e.openAPIConverter.ConvertParameter(&converter.OpenAPIModelWrapper[openapi.Parameter]{
-		TypeId: e.typesMap[defaults.ParameterTypeName],
-		Model:  parameter,
+		TypeId:           e.typesMap[defaults.ParameterTypeName],
+		Model:            parameter,
+		ParentResourceId: parentResourceId,
 	})
 }
 

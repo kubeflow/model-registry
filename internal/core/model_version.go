@@ -36,12 +36,10 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 		modelVersion.RegisteredModelId = *registeredModelId
 	}
 
-	model, err := b.mapper.MapFromModelVersion(modelVersion)
+	model, err := b.mapper.MapFromModelVersion(modelVersion, registeredModelId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	modelVersion.Name = converter.PrefixWhenOwned(&modelVersion.RegisteredModelId, modelVersion.Name)
 
 	savedModel, err := b.modelVersionRepository.Save(model)
 	if err != nil {

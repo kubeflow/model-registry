@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -23,12 +22,8 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 		return nil, fmt.Errorf("invalid artifact pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
 
-	// If parentResourceId is nil, we need to generate a new UUID for the parent resource ID for the name prefixing,
-	// the id will still be nil when invoking the Save method so that the attribution is created only when needed.
-	if parentResourceId == nil {
-		uuid := uuid.New().String()
-		parentResourceId = &uuid
-	} else {
+	// Only convert parentResourceId to int32 if it's provided
+	if parentResourceId != nil {
 		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
@@ -39,7 +34,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id != nil {
-			existing, err := b.getArtifact(*ma.Id, true)
+			existing, err := b.getArtifact(*ma.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
 			}
@@ -54,17 +49,9 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			ma = &withNotEditable
-		} else {
-			name := ""
-			if ma.Name != nil {
-				name = *ma.Name
-			}
-
-			prefixedName := converter.PrefixWhenOwned(parentResourceId, name)
-			ma.Name = &prefixedName
 		}
 
-		modelArtifact, err := b.mapper.MapFromModelArtifact(ma)
+		modelArtifact, err := b.mapper.MapFromModelArtifact(ma, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -86,7 +73,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 		return artToReturn, nil
 	} else if da := artifact.DocArtifact; da != nil {
 		if da.Id != nil {
-			existing, err := b.getArtifact(*da.Id, true)
+			existing, err := b.getArtifact(*da.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
 			}
@@ -101,17 +88,9 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			da = &withNotEditable
-		} else {
-			name := ""
-			if da.Name != nil {
-				name = *da.Name
-			}
-
-			prefixedName := converter.PrefixWhenOwned(parentResourceId, name)
-			da.Name = &prefixedName
 		}
 
-		docArtifact, err := b.mapper.MapFromDocArtifact(da)
+		docArtifact, err := b.mapper.MapFromDocArtifact(da, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -134,7 +113,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 	} else if ds := artifact.DataSet; ds != nil {
 		// Handle DataSet artifacts using embedmd converters
 		if ds.Id != nil {
-			existing, err := b.getArtifact(*ds.Id, true)
+			existing, err := b.getArtifact(*ds.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a dataset artifact: %w", *ds.Id, api.ErrBadRequest)
 			}
@@ -149,14 +128,6 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			ds = &withNotEditable
-		} else {
-			name := ""
-			if ds.Name != nil {
-				name = *ds.Name
-			}
-
-			prefixedName := converter.PrefixWhenOwned(parentResourceId, name)
-			ds.Name = &prefixedName
 		}
 
 		dataSetEntity, err := b.mapper.MapFromDataSet(ds)
@@ -182,7 +153,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 	} else if me := artifact.Metric; me != nil {
 		// Handle metric artifacts using embedmd converters
 		if me.Id != nil {
-			existing, err := b.getArtifact(*me.Id, true)
+			existing, err := b.getArtifact(*me.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a metric artifact: %w", *me.Id, api.ErrBadRequest)
 			}
@@ -197,20 +168,9 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			me = &withNotEditable
-		} else {
-			name := ""
-			if me.Name != nil {
-				name = *me.Name
-			}
-
-			// Only prefix the name if we're in a parent resource context (model version or experiment run)
-			if parentResourceId != nil && parentResourceIDPtr != nil {
-				prefixedName := converter.PrefixWhenOwned(parentResourceId, name)
-				me.Name = &prefixedName
-			}
 		}
 
-		metricEntity, err := b.mapper.MapFromMetric(me)
+		metricEntity, err := b.mapper.MapFromMetric(me, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -233,7 +193,7 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 	} else if pa := artifact.Parameter; pa != nil {
 		// ADD PARAMETER SUPPORT using embedmd converters
 		if pa.Id != nil {
-			existing, err := b.getArtifact(*pa.Id, true)
+			existing, err := b.getArtifact(*pa.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a parameter artifact: %w", *pa.Id, api.ErrBadRequest)
 			}
@@ -248,20 +208,9 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			pa = &withNotEditable
-		} else {
-			name := ""
-			if pa.Name != nil {
-				name = *pa.Name
-			}
-
-			// Only prefix the name if we're in a parent resource context (model version or experiment run)
-			if parentResourceId != nil && parentResourceIDPtr != nil {
-				prefixedName := converter.PrefixWhenOwned(parentResourceId, name)
-				pa.Name = &prefixedName
-			}
 		}
 
-		parameterEntity, err := b.mapper.MapFromParameter(pa)
+		parameterEntity, err := b.mapper.MapFromParameter(pa, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -294,7 +243,7 @@ func (b *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*open
 	return b.upsertArtifact(artifact, nil)
 }
 
-func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*openapi.Artifact, error) {
+func (b *ModelRegistryService) getArtifact(id string) (*openapi.Artifact, error) {
 	artToReturn := &openapi.Artifact{}
 	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
@@ -338,29 +287,11 @@ func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*opena
 		artToReturn.Parameter = toReturn
 	}
 
-	if preserveName {
-		if artifact.ModelArtifact != nil {
-			artToReturn.ModelArtifact.Name = (*artifact.ModelArtifact).GetAttributes().Name
-		}
-		if artifact.DocArtifact != nil {
-			artToReturn.DocArtifact.Name = (*artifact.DocArtifact).GetAttributes().Name
-		}
-		if artifact.DataSet != nil {
-			artToReturn.DataSet.Name = (*artifact.DataSet).GetAttributes().Name
-		}
-		if artifact.Metric != nil {
-			artToReturn.Metric.Name = (*artifact.Metric).GetAttributes().Name
-		}
-		if artifact.Parameter != nil {
-			artToReturn.Parameter.Name = (*artifact.Parameter).GetAttributes().Name
-		}
-	}
-
 	return artToReturn, nil
 }
 
 func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
-	return b.getArtifact(id, false)
+	return b.getArtifact(id)
 }
 
 func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentResourceId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {

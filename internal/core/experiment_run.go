@@ -55,15 +55,9 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 		}
 
 		experimentRun = &withNotEditable
-	} else {
-		// Create new experiment run - prefix the name with the experiment ID
-		if experimentRun.Name != nil {
-			prefixedName := converter.PrefixWhenOwned(experimentId, *experimentRun.Name)
-			experimentRun.Name = &prefixedName
-		}
 	}
 
-	experimentRunEntity, err := b.mapper.MapFromExperimentRun(experimentRun)
+	experimentRunEntity, err := b.mapper.MapFromExperimentRun(experimentRun, experimentId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}

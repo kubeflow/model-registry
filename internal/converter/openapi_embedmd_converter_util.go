@@ -7,6 +7,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -316,21 +317,22 @@ func MapModelVersionPropertiesEmbedMD(source *openapi.ModelVersion) (*[]models.P
 }
 
 // MapModelVersionAttributesEmbedMD maps ModelVersion attributes to specific embedmd properties
-func MapModelVersionAttributesEmbedMD(source *openapi.ModelVersion) (*models.ModelVersionAttributes, error) {
+func MapModelVersionAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ModelVersion]) (*models.ModelVersionAttributes, error) {
 	attributes := &models.ModelVersionAttributes{}
 
-	if source != nil {
-		attributes.Name = &source.Name
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapModelVersionNameEmbedMD(source)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -463,21 +465,21 @@ func MapInferenceServicePropertiesEmbedMD(source *openapi.InferenceService) (*[]
 	return &props, nil
 }
 
-func MapInferenceServiceAttributesEmbedMD(source *openapi.InferenceService) (*models.InferenceServiceAttributes, error) {
+func MapInferenceServiceAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.InferenceService]) (*models.InferenceServiceAttributes, error) {
 	attributes := &models.InferenceServiceAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+	if source != nil && source.Model != nil {
+		attributes.Name = MapInferenceServiceNameEmbedMD(source)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -578,32 +580,33 @@ func MapModelArtifactPropertiesEmbedMD(source *openapi.ModelArtifact) (*[]models
 	return &props, nil
 }
 
-func MapModelArtifactAttributesEmbedMD(source *openapi.ModelArtifact) (*models.ModelArtifactAttributes, error) {
+func MapModelArtifactAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ModelArtifact]) (*models.ModelArtifactAttributes, error) {
 	attributes := &models.ModelArtifactAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapModelArtifactNameEmbedMD(source)
 
-		attributes.URI = source.Uri
+		attributes.URI = source.Model.Uri
 
-		if source.State != nil {
-			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+		if source.Model.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.Model.State)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+				return nil, fmt.Errorf("invalid state: %s", string(*source.Model.State))
 			}
 			attributes.State = &state
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -633,32 +636,33 @@ func MapDocArtifactPropertiesEmbedMD(source *openapi.DocArtifact) (*[]models.Pro
 	return &props, nil
 }
 
-func MapDocArtifactAttributesEmbedMD(source *openapi.DocArtifact) (*models.DocArtifactAttributes, error) {
+func MapDocArtifactAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.DocArtifact]) (*models.DocArtifactAttributes, error) {
 	attributes := &models.DocArtifactAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapDocArtifactNameEmbedMD(source)
 
-		attributes.URI = source.Uri
+		attributes.URI = source.Model.Uri
 
-		if source.State != nil {
-			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+		if source.Model.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.Model.State)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+				return nil, fmt.Errorf("invalid state: %s", string(*source.Model.State))
 			}
 			attributes.State = &state
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -703,35 +707,35 @@ func MapServeModelPropertiesEmbedMD(source *openapi.ServeModel) (*[]models.Prope
 	return &props, nil
 }
 
-func MapServeModelAttributesEmbedMD(source *openapi.ServeModel) (*models.ServeModelAttributes, error) {
+func MapServeModelAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ServeModel]) (*models.ServeModelAttributes, error) {
 	attributes := &models.ServeModelAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
+	if source != nil && source.Model != nil {
+		attributes.Name = MapServeModelNameEmbedMD(source)
 
-		if source.LastKnownState != nil {
-			lastKnownState, ok := models.Execution_State_name[models.Execution_State_value[string(*source.LastKnownState)]]
+		if source.Model.LastKnownState != nil {
+			lastKnownState, ok := models.Execution_State_name[models.Execution_State_value[string(*source.Model.LastKnownState)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid last known state: %s", string(*source.LastKnownState))
+				return nil, fmt.Errorf("invalid last known state: %s", string(*source.Model.LastKnownState))
 			}
 			attributes.LastKnownState = &lastKnownState
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
 
 		attributes.LastUpdateTimeSinceEpoch = lastUpdateTime
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 	}
 
 	return attributes, nil
@@ -876,21 +880,22 @@ func MapExperimentRunPropertiesEmbedMD(source *openapi.ExperimentRun) (*[]models
 }
 
 // MapExperimentRunAttributesEmbedMD maps ExperimentRun attributes to specific embedmd properties
-func MapExperimentRunAttributesEmbedMD(source *openapi.ExperimentRun) (*models.ExperimentRunAttributes, error) {
+func MapExperimentRunAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*models.ExperimentRunAttributes, error) {
 	attributes := &models.ExperimentRunAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapExperimentRunNameEmbedMD(source)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -963,32 +968,33 @@ func MapDataSetPropertiesEmbedMD(source *openapi.DataSet) (*[]models.Properties,
 }
 
 // MapDataSetAttributesEmbedMD maps DataSet attributes to specific embedmd properties
-func MapDataSetAttributesEmbedMD(source *openapi.DataSet) (*models.DataSetAttributes, error) {
+func MapDataSetAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.DataSet]) (*models.DataSetAttributes, error) {
 	attributes := &models.DataSetAttributes{}
 
 	if source != nil {
-		attributes.Name = source.Name
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapDataSetNameEmbedMD(source)
 
-		attributes.URI = source.Uri
+		attributes.URI = source.Model.Uri
 
-		if source.State != nil {
-			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+		if source.Model.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.Model.State)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+				return nil, fmt.Errorf("invalid state: %s", string(*source.Model.State))
 			}
 			attributes.State = &state
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -1046,33 +1052,34 @@ func MapMetricPropertiesEmbedMD(source *openapi.Metric) (*[]models.Properties, e
 }
 
 // MapMetricAttributesEmbedMD maps Metric attributes to specific embedmd properties
-func MapMetricAttributesEmbedMD(source *openapi.Metric) (*models.MetricAttributes, error) {
+func MapMetricAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.Metric]) (*models.MetricAttributes, error) {
 	attributes := &models.MetricAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapMetricNameEmbedMD(source)
 
 		// Note: Metric artifacts don't have a URI field in the OpenAPI spec
 		attributes.URI = nil
 
-		if source.State != nil {
-			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+		if source.Model.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.Model.State)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+				return nil, fmt.Errorf("invalid state: %s", string(*source.Model.State))
 			}
 			attributes.State = &state
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -1122,33 +1129,34 @@ func MapParameterPropertiesEmbedMD(source *openapi.Parameter) (*[]models.Propert
 }
 
 // MapParameterAttributesEmbedMD maps Parameter attributes to specific embedmd properties
-func MapParameterAttributesEmbedMD(source *openapi.Parameter) (*models.ParameterAttributes, error) {
+func MapParameterAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.Parameter]) (*models.ParameterAttributes, error) {
 	attributes := &models.ParameterAttributes{}
 
-	if source != nil {
-		attributes.Name = source.Name
+	if source != nil && source.Model != nil {
+		// Use the name mapping function to ensure proper prefixing
+		attributes.Name = MapParameterNameEmbedMD(source)
 
 		// Note: Parameter artifacts don't have a URI field in the OpenAPI spec
 		attributes.URI = nil
 
-		if source.State != nil {
-			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.State)]]
+		if source.Model.State != nil {
+			state, ok := models.Artifact_State_name[models.Artifact_State_value[string(*source.Model.State)]]
 			if !ok {
-				return nil, fmt.Errorf("invalid state: %s", string(*source.State))
+				return nil, fmt.Errorf("invalid state: %s", string(*source.Model.State))
 			}
 			attributes.State = &state
 		}
 
-		createdTime, err := StringToInt64(source.CreateTimeSinceEpoch)
+		createdTime, err := StringToInt64(source.Model.CreateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "createTimeSinceEpoch")
 		}
 
-		attributes.ExternalID = source.ExternalId
+		attributes.ExternalID = source.Model.ExternalId
 
 		attributes.CreateTimeSinceEpoch = createdTime
 
-		lastUpdateTime, err := StringToInt64(source.LastUpdateTimeSinceEpoch)
+		lastUpdateTime, err := StringToInt64(source.Model.LastUpdateTimeSinceEpoch)
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to decode as int64 %w for key %s", api.ErrBadRequest, err, "lastUpdateTimeSinceEpoch")
 		}
@@ -1157,4 +1165,72 @@ func MapParameterAttributesEmbedMD(source *openapi.Parameter) (*models.Parameter
 	}
 
 	return attributes, nil
+}
+
+// NAME MAPPING FUNCTIONS FOR EMBEDMD (similar to MLMD pattern)
+
+// mapEntityNameWithUUIDGeneration is a generic helper that handles name prefixing and UUID generation
+// for entities that require both behaviors when names are not provided
+func mapEntityNameWithUUIDGeneration(parentResourceId *string, providedName *string) *string {
+	var entityName string
+	if providedName != nil {
+		entityName = *providedName
+	} else {
+		entityName = uuid.New().String()
+	}
+	return of(PrefixWhenOwned(parentResourceId, entityName))
+}
+
+// MapInferenceServiceNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapInferenceServiceNameEmbedMD(source *OpenAPIModelWrapper[openapi.InferenceService]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapServeModelNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapServeModelNameEmbedMD(source *OpenAPIModelWrapper[openapi.ServeModel]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapExperimentRunNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// either the parent resource id or a generated uuid. If not provided, autogenerate the name itself
+func MapExperimentRunNameEmbedMD(source *OpenAPIModelWrapper[openapi.ExperimentRun]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapModelVersionNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// either the parent resource id or a generated uuid
+func MapModelVersionNameEmbedMD(source *OpenAPIModelWrapper[openapi.ModelVersion]) *string {
+	return of(PrefixWhenOwned(source.ParentResourceId, (*source).Model.Name))
+}
+
+// MapModelArtifactNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapModelArtifactNameEmbedMD(source *OpenAPIModelWrapper[openapi.ModelArtifact]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapDocArtifactNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapDocArtifactNameEmbedMD(source *OpenAPIModelWrapper[openapi.DocArtifact]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapDataSetNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapDataSetNameEmbedMD(source *OpenAPIModelWrapper[openapi.DataSet]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapMetricNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapMetricNameEmbedMD(source *OpenAPIModelWrapper[openapi.Metric]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
+}
+
+// MapParameterNameEmbedMD maps the user-provided name into EmbedMD one, i.e., prefixing it with
+// the parent resource id. If not provided, autogenerate the name itself
+func MapParameterNameEmbedMD(source *OpenAPIModelWrapper[openapi.Parameter]) *string {
+	return mapEntityNameWithUUIDGeneration(source.ParentResourceId, (*source).Model.Name)
 }

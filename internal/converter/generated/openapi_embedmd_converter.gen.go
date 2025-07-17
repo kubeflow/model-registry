@@ -32,7 +32,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDataSet(source *converter.OpenAPI
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsDataSetAttributes, err := converter.MapDataSetAttributesEmbedMD((*source).Model)
+		pModelsDataSetAttributes, err := converter.MapDataSetAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -75,7 +75,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDocArtifact(source *converter.Ope
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsDocArtifactAttributes, err := converter.MapDocArtifactAttributesEmbedMD((*source).Model)
+		pModelsDocArtifactAttributes, err := converter.MapDocArtifactAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -161,7 +161,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperimentRun(source *converter.O
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsExperimentRunAttributes, err := converter.MapExperimentRunAttributesEmbedMD((*source).Model)
+		pModelsExperimentRunAttributes, err := converter.MapExperimentRunAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -204,7 +204,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertInferenceService(source *converte
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsInferenceServiceAttributes, err := converter.MapInferenceServiceAttributesEmbedMD((*source).Model)
+		pModelsInferenceServiceAttributes, err := converter.MapInferenceServiceAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -247,7 +247,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertMetric(source *converter.OpenAPIM
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsMetricAttributes, err := converter.MapMetricAttributesEmbedMD((*source).Model)
+		pModelsMetricAttributes, err := converter.MapMetricAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -290,7 +290,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelArtifact(source *converter.O
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsModelArtifactAttributes, err := converter.MapModelArtifactAttributesEmbedMD((*source).Model)
+		pModelsModelArtifactAttributes, err := converter.MapModelArtifactAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -333,7 +333,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelVersion(source *converter.Op
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsModelVersionAttributes, err := converter.MapModelVersionAttributesEmbedMD((*source).Model)
+		pModelsModelVersionAttributes, err := converter.MapModelVersionAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -376,7 +376,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertParameter(source *converter.OpenA
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsParameterAttributes, err := converter.MapParameterAttributesEmbedMD((*source).Model)
+		pModelsParameterAttributes, err := converter.MapParameterAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
@@ -462,7 +462,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertServeModel(source *converter.Open
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
 		modelsBaseEntity.TypeID = pInt32
-		pModelsServeModelAttributes, err := converter.MapServeModelAttributesEmbedMD((*source).Model)
+		pModelsServeModelAttributes, err := converter.MapServeModelAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}

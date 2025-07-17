@@ -42,15 +42,6 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	name := ""
-
-	if infSvc.GetAttributes().Name != nil {
-		name = *infSvc.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
-	infSvc.GetAttributes().Name = &prefixedName
-
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {

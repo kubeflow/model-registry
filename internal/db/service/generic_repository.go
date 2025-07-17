@@ -208,18 +208,30 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 	schemaEntity := r.config.EntityToSchema(entity)
 	var finalProperties []TProp
 
+	// Determine if this is a new entity or an update
+	isNewEntity := r.config.IsNewEntity != nil && r.config.IsNewEntity(entity)
+
 	// Set timestamps
 	r.setLastUpdateTime(&schemaEntity, now)
-	if r.config.IsNewEntity != nil && r.config.IsNewEntity(entity) {
+	if isNewEntity {
 		r.setCreateTime(&schemaEntity, now)
 	}
 
 	hasCustomProperties := r.config.HasCustomProperties != nil && r.config.HasCustomProperties(entity)
 
 	err := r.config.DB.Transaction(func(tx *gorm.DB) error {
-		// Save main entity
-		if err := tx.Save(&schemaEntity).Error; err != nil {
-			return fmt.Errorf("error saving %s: %w", r.config.EntityName, err)
+		// Save main entity with smart field handling
+		if isNewEntity {
+			// For new entities, save all fields
+			if err := tx.Save(&schemaEntity).Error; err != nil {
+				return fmt.Errorf("error saving %s: %w", r.config.EntityName, err)
+			}
+		} else {
+			// For updates, omit non-updatable fields
+			omitFields := r.getNonUpdatableFields(schemaEntity)
+			if err := tx.Omit(omitFields...).Save(&schemaEntity).Error; err != nil {
+				return fmt.Errorf("error saving %s: %w", r.config.EntityName, err)
+			}
 		}
 
 		// Handle parent relationship if applicable
@@ -544,6 +556,28 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getLastUpdateTim
 	default:
 		return 0
 	}
+}
+
+// getNonUpdatableFields returns the list of fields that should be omitted during updates
+func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getNonUpdatableFields(entity TSchema) []string {
+	var omitFields []string
+
+	switch any(entity).(type) {
+	case schema.Artifact:
+		// Non-updatable fields for artifacts: id, name, type_id, create_time_since_epoch
+		omitFields = []string{"id", "name", "type_id", "create_time_since_epoch"}
+	case schema.Context:
+		// Non-updatable fields for contexts: id, name, type_id, create_time_since_epoch
+		omitFields = []string{"id", "name", "type_id", "create_time_since_epoch"}
+	case schema.Execution:
+		// Non-updatable fields for executions: id, name, type_id, create_time_since_epoch
+		omitFields = []string{"id", "name", "type_id", "create_time_since_epoch"}
+	default:
+		// Default case: omit common non-updatable fields
+		omitFields = []string{"id", "name", "type_id", "create_time_since_epoch"}
+	}
+
+	return omitFields
 }
 
 // Shared mapping functions for common property conversions

@@ -771,7 +771,8 @@ func (s *ModelRegistryServiceAPIService) UpdateExperimentRun(ctx context.Context
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
-	result, err := s.coreApi.UpsertExperimentRun(&update, nil)
+	// Extract experiment ID from existing run for the upsert call
+	result, err := s.coreApi.UpsertExperimentRun(&update, &existing.ExperimentId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
