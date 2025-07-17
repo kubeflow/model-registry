@@ -45,6 +45,7 @@ def destination_oci_env_vars():
     vars = {
         "type": "oci",
         "oci_uri": "quay.io/example/oci",
+        "oci_registry": "quay.io",
         "oci_username": "oci_username_env",
         "oci_password": "oci_password_env",
     }
@@ -202,6 +203,8 @@ def test_params_based_config():
             "oci",
             "--source-oci-uri",
             "quay.io/example/params",
+            "--source-oci-registry",
+            "quay.io",
             "--destination-type",
             "s3",
             "--destination-aws-bucket",

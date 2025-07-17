@@ -22,19 +22,18 @@ func getDocArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
 }
 
 func TestDocArtifactRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Get the actual DocArtifact type ID from the database
-	typeID := getDocArtifactTypeID(t, db)
-	repo := service.NewDocArtifactRepository(db, typeID)
+	typeID := getDocArtifactTypeID(t, sharedDB)
+	repo := service.NewDocArtifactRepository(sharedDB, typeID)
 
 	// Also get other type IDs for creating related entities
-	registeredModelTypeID := getRegisteredModelTypeID(t, db)
-	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
+	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, registeredModelTypeID)
 
-	modelVersionTypeID := getModelVersionTypeID(t, db)
-	modelVersionRepo := service.NewModelVersionRepository(db, modelVersionTypeID)
+	modelVersionTypeID := getModelVersionTypeID(t, sharedDB)
+	modelVersionRepo := service.NewModelVersionRepository(sharedDB, modelVersionTypeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a registered model and model version for attribution

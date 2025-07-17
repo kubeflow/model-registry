@@ -6,6 +6,9 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -44,8 +47,82 @@ func (y *yamlCatalogImpl) GetModel(ctx context.Context, name string) (*model.Cat
 }
 
 func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
-	//TODO implement me
-	panic("implement me")
+	y.modelsLock.RLock()
+	defer y.modelsLock.RUnlock()
+
+	var filteredModels []*model.CatalogModel
+	for _, ym := range y.models {
+		cm := ym.CatalogModel
+		if params.Query != "" {
+			query := strings.ToLower(params.Query)
+			// Check if query matches name, description, tasks, provider, or libraryName
+			if !strings.Contains(strings.ToLower(cm.Name), query) &&
+				!strings.Contains(strings.ToLower(cm.GetDescription()), query) &&
+				!strings.Contains(strings.ToLower(cm.GetProvider()), query) &&
+				!strings.Contains(strings.ToLower(cm.GetLibraryName()), query) {
+
+				// Check tasks
+				foundInTasks := false
+				for _, task := range cm.GetTasks() { // Use GetTasks() for nil safety
+					if strings.Contains(strings.ToLower(task), query) {
+						foundInTasks = true
+						break
+					}
+				}
+				if !foundInTasks {
+					continue // Skip if no match in any searchable field
+				}
+			}
+		}
+		filteredModels = append(filteredModels, &cm)
+	}
+
+	// Sort the filtered models
+	sort.Slice(filteredModels, func(i, j int) bool {
+		a := filteredModels[i]
+		b := filteredModels[j]
+
+		var less bool
+		switch params.OrderBy {
+		case model.ORDERBYFIELD_CREATE_TIME:
+			// Convert CreateTimeSinceEpoch (string) to int64 for comparison
+			// Handle potential nil or conversion errors by treating as 0
+			aTime, _ := strconv.ParseInt(a.GetCreateTimeSinceEpoch(), 10, 64)
+			bTime, _ := strconv.ParseInt(b.GetCreateTimeSinceEpoch(), 10, 64)
+			less = aTime < bTime
+		case model.ORDERBYFIELD_LAST_UPDATE_TIME:
+			// Convert LastUpdateTimeSinceEpoch (string) to int64 for comparison
+			// Handle potential nil or conversion errors by treating as 0
+			aTime, _ := strconv.ParseInt(a.GetLastUpdateTimeSinceEpoch(), 10, 64)
+			bTime, _ := strconv.ParseInt(b.GetLastUpdateTimeSinceEpoch(), 10, 64)
+			less = aTime < bTime
+		case model.ORDERBYFIELD_NAME:
+			fallthrough
+		default:
+			// Fallback to name sort if an unknown sort field is provided
+			less = strings.Compare(a.Name, b.Name) < 0
+		}
+
+		if params.SortOrder == model.SORTORDER_DESC {
+			return !less
+		}
+		return less
+	})
+
+	count := len(filteredModels)
+	if count > math.MaxInt32 {
+		count = math.MaxInt32
+	}
+
+	list := model.CatalogModelList{
+		Items:    make([]model.CatalogModel, count),
+		PageSize: int32(count),
+		Size:     int32(count),
+	}
+	for i := range list.Items {
+		list.Items[i] = *filteredModels[i]
+	}
+	return list, nil // Return the struct value directly
 }
 
 func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {

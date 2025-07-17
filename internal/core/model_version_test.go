@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestUpsertModelVersion(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful create", func(t *testing.T) {
 		// First create a registered model
@@ -23,7 +21,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			Name:        "test-registered-model",
 			Description: apiutils.Of("Test registered model for version"),
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 		require.NotNil(t, createdModel.Id)
 
@@ -37,7 +35,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -57,7 +55,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "update-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version
@@ -67,7 +65,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		created, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		created, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -81,7 +79,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		updated, err := service.UpsertModelVersion(updateVersion, createdModel.Id)
+		updated, err := _service.UpsertModelVersion(updateVersion, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -96,7 +94,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "custom-props-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		customProps := map[string]openapi.MetadataValue{
@@ -128,7 +126,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			CustomProperties:  &customProps,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -152,7 +150,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "minimal-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		inputVersion := &openapi.ModelVersion{
@@ -160,7 +158,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -170,7 +168,7 @@ func TestUpsertModelVersion(t *testing.T) {
 	})
 
 	t.Run("nil model version error", func(t *testing.T) {
-		result, err := service.UpsertModelVersion(nil, apiutils.Of("1"))
+		result, err := _service.UpsertModelVersion(nil, apiutils.Of("1"))
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -182,7 +180,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "nil-fields-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create model version with nil optional fields
@@ -195,7 +193,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -215,7 +213,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "unicode-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
@@ -227,7 +225,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -239,7 +237,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelVersionById(*result.Id)
+		retrieved, err := _service.GetModelVersionById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, unicodeName, retrieved.Name)
 		assert.Equal(t, "测试作者-тестовый автор-テスト作者", *retrieved.Author)
@@ -250,7 +248,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "special-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Test with various special characters
@@ -262,7 +260,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -272,7 +270,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelVersionById(*result.Id)
+		retrieved, err := _service.GetModelVersionById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, specialName, retrieved.Name)
 		assert.Equal(t, "author@#$%^&*()", *retrieved.Author)
@@ -283,7 +281,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "mixed-chars-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Test with mixed unicode and special characters
@@ -295,7 +293,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -305,7 +303,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.NotNil(t, result.Id)
 
 		// Verify we can retrieve it by ID
-		retrieved, err := service.GetModelVersionById(*result.Id)
+		retrieved, err := _service.GetModelVersionById(*result.Id)
 		require.NoError(t, err)
 		assert.Equal(t, mixedName, retrieved.Name)
 		assert.Equal(t, "作者@#$%-автор!@#-作者()🚀", *retrieved.Author)
@@ -316,7 +314,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "paging-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create 15 model versions for pagination testing
@@ -330,7 +328,7 @@ func TestUpsertModelVersion(t *testing.T) {
 				RegisteredModelId: *createdModel.Id,
 			}
 
-			result, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+			result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 			require.NoError(t, err)
 			createdVersions = append(createdVersions, *result.Id)
 		}
@@ -346,7 +344,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		}
 
 		// Get first page
-		firstPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+		firstPage, err := _service.GetModelVersions(listOptions, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, firstPage)
 		assert.LessOrEqual(t, len(firstPage.Items), 5, "First page should have at most 5 items")
@@ -368,7 +366,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		if firstPage.NextPageToken != "" && len(firstPageTestVersions) > 0 {
 			// Get second page using next page token
 			listOptions.NextPageToken = &firstPage.NextPageToken
-			secondPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+			secondPage, err := _service.GetModelVersions(listOptions, createdModel.Id)
 			require.NoError(t, err)
 			require.NotNil(t, secondPage)
 			assert.LessOrEqual(t, len(secondPage.Items), 5, "Second page should have at most 5 items")
@@ -389,7 +387,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		allItems, err := service.GetModelVersions(listOptions, createdModel.Id)
+		allItems, err := _service.GetModelVersions(listOptions, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, allItems)
 		assert.GreaterOrEqual(t, len(allItems.Items), 15, "Should have at least our 15 test model versions")
@@ -414,7 +412,7 @@ func TestUpsertModelVersion(t *testing.T) {
 			SortOrder: &descOrder,
 		}
 
-		descPage, err := service.GetModelVersions(listOptions, createdModel.Id)
+		descPage, err := _service.GetModelVersions(listOptions, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, descPage)
 		assert.LessOrEqual(t, len(descPage.Items), 5, "Desc page should have at most 5 items")
@@ -430,15 +428,14 @@ func TestUpsertModelVersion(t *testing.T) {
 }
 
 func TestGetModelVersionById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name: "get-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version
@@ -450,12 +447,12 @@ func TestGetModelVersionById(t *testing.T) {
 			RegisteredModelId: *createdModel.Id,
 		}
 
-		created, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		created, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the version by ID
-		result, err := service.GetModelVersionById(*created.Id)
+		result, err := _service.GetModelVersionById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -468,7 +465,7 @@ func TestGetModelVersionById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetModelVersionById("invalid")
+		result, err := _service.GetModelVersionById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -476,7 +473,7 @@ func TestGetModelVersionById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetModelVersionById("99999")
+		result, err := _service.GetModelVersionById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -485,15 +482,14 @@ func TestGetModelVersionById(t *testing.T) {
 }
 
 func TestGetModelVersionByInferenceService(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get with specific model version", func(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name: "inference-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version
@@ -501,14 +497,14 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 			Name:              "inference-test-version",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion, err := service.UpsertModelVersion(modelVersion, createdModel.Id)
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create a serving environment
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "inference-test-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service with specific model version
@@ -518,11 +514,11 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 			ModelVersionId:       createdVersion.Id,
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Get model version by inference service
-		result, err := service.GetModelVersionByInferenceService(*createdInference.Id)
+		result, err := _service.GetModelVersionByInferenceService(*createdInference.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -535,7 +531,7 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "latest-version-test-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create multiple model versions
@@ -543,21 +539,21 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 			Name:              "version-1",
 			RegisteredModelId: *createdModel.Id,
 		}
-		_, err = service.UpsertModelVersion(version1, createdModel.Id)
+		_, err = _service.UpsertModelVersion(version1, createdModel.Id)
 		require.NoError(t, err)
 
 		version2 := &openapi.ModelVersion{
 			Name:              "version-2",
 			RegisteredModelId: *createdModel.Id,
 		}
-		createdVersion2, err := service.UpsertModelVersion(version2, createdModel.Id)
+		createdVersion2, err := _service.UpsertModelVersion(version2, createdModel.Id)
 		require.NoError(t, err)
 
 		// Create a serving environment
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "latest-version-test-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service without specific model version (should get latest)
@@ -567,11 +563,11 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 			RegisteredModelId:    *createdModel.Id,
 			// ModelVersionId is nil, should get latest
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Get model version by inference service (should return latest)
-		result, err := service.GetModelVersionByInferenceService(*createdInference.Id)
+		result, err := _service.GetModelVersionByInferenceService(*createdInference.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -581,7 +577,7 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 	})
 
 	t.Run("invalid inference service id", func(t *testing.T) {
-		result, err := service.GetModelVersionByInferenceService("invalid")
+		result, err := _service.GetModelVersionByInferenceService("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -589,7 +585,7 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 	})
 
 	t.Run("non-existent inference service", func(t *testing.T) {
-		result, err := service.GetModelVersionByInferenceService("99999")
+		result, err := _service.GetModelVersionByInferenceService("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -597,15 +593,14 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 }
 
 func TestGetModelVersionByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful get by name and registered model id", func(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name: "params-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version
@@ -614,12 +609,12 @@ func TestGetModelVersionByParams(t *testing.T) {
 			ExternalId:        apiutils.Of("params-ext-123"),
 			RegisteredModelId: *createdModel.Id,
 		}
-		created, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		created, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Get by name and registered model ID
 		versionName := "params-test-version"
-		result, err := service.GetModelVersionByParams(&versionName, createdModel.Id, nil)
+		result, err := _service.GetModelVersionByParams(&versionName, createdModel.Id, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -633,7 +628,7 @@ func TestGetModelVersionByParams(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "params-ext-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version
@@ -642,12 +637,12 @@ func TestGetModelVersionByParams(t *testing.T) {
 			ExternalId:        apiutils.Of("params-unique-ext-456"),
 			RegisteredModelId: *createdModel.Id,
 		}
-		created, err := service.UpsertModelVersion(inputVersion, createdModel.Id)
+		created, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
 		require.NoError(t, err)
 
 		// Get by external ID
 		externalId := "params-unique-ext-456"
-		result, err := service.GetModelVersionByParams(nil, nil, &externalId)
+		result, err := _service.GetModelVersionByParams(nil, nil, &externalId)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -657,7 +652,7 @@ func TestGetModelVersionByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetModelVersionByParams(nil, nil, nil)
+		result, err := _service.GetModelVersionByParams(nil, nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -667,7 +662,7 @@ func TestGetModelVersionByParams(t *testing.T) {
 	t.Run("no version found", func(t *testing.T) {
 		versionName := "nonexistent-version"
 		registeredModelId := "999"
-		result, err := service.GetModelVersionByParams(&versionName, &registeredModelId, nil)
+		result, err := _service.GetModelVersionByParams(&versionName, &registeredModelId, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -676,15 +671,14 @@ func TestGetModelVersionByParams(t *testing.T) {
 }
 
 func TestGetModelVersions(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name: "list-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create multiple model versions
@@ -696,7 +690,7 @@ func TestGetModelVersions(t *testing.T) {
 
 		var createdIds []string
 		for _, version := range versions {
-			created, err := service.UpsertModelVersion(version, createdModel.Id)
+			created, err := _service.UpsertModelVersion(version, createdModel.Id)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -707,7 +701,7 @@ func TestGetModelVersions(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetModelVersions(listOptions, createdModel.Id)
+		result, err := _service.GetModelVersions(listOptions, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -733,20 +727,20 @@ func TestGetModelVersions(t *testing.T) {
 			registeredModel := &openapi.RegisteredModel{
 				Name: "all-versions-model-" + string(rune('A'+i)),
 			}
-			createdModel, err := service.UpsertRegisteredModel(registeredModel)
+			createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 			require.NoError(t, err)
 
 			version := &openapi.ModelVersion{
 				Name:              "all-versions-version-" + string(rune('A'+i)),
 				RegisteredModelId: *createdModel.Id,
 			}
-			_, err = service.UpsertModelVersion(version, createdModel.Id)
+			_, err = _service.UpsertModelVersion(version, createdModel.Id)
 			require.NoError(t, err)
 		}
 
 		// List all versions (no registered model filter)
 		listOptions := api.ListOptions{}
-		result, err := service.GetModelVersions(listOptions, nil)
+		result, err := _service.GetModelVersions(listOptions, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -758,7 +752,7 @@ func TestGetModelVersions(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "pagination-test-registered-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create several versions for pagination testing
@@ -768,7 +762,7 @@ func TestGetModelVersions(t *testing.T) {
 				ExternalId:        apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 				RegisteredModelId: *createdModel.Id,
 			}
-			_, err := service.UpsertModelVersion(version, createdModel.Id)
+			_, err := _service.UpsertModelVersion(version, createdModel.Id)
 			require.NoError(t, err)
 		}
 
@@ -782,7 +776,7 @@ func TestGetModelVersions(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetModelVersions(listOptions, createdModel.Id)
+		result, err := _service.GetModelVersions(listOptions, createdModel.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -794,7 +788,7 @@ func TestGetModelVersions(t *testing.T) {
 		invalidId := "invalid"
 		listOptions := api.ListOptions{}
 
-		result, err := service.GetModelVersions(listOptions, &invalidId)
+		result, err := _service.GetModelVersions(listOptions, &invalidId)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -803,8 +797,7 @@ func TestGetModelVersions(t *testing.T) {
 }
 
 func TestModelVersionRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a registered model
@@ -812,7 +805,7 @@ func TestModelVersionRoundTrip(t *testing.T) {
 			Name:        "roundtrip-registered-model",
 			Description: apiutils.Of("Roundtrip test registered model"),
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a model version with all fields
@@ -826,12 +819,12 @@ func TestModelVersionRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertModelVersion(originalVersion, createdModel.Id)
+		created, err := _service.UpsertModelVersion(originalVersion, createdModel.Id)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetModelVersionById(*created.Id)
+		retrieved, err := _service.GetModelVersionById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -847,7 +840,7 @@ func TestModelVersionRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.State = apiutils.Of(openapi.MODELVERSIONSTATE_ARCHIVED)
 
-		updated, err := service.UpsertModelVersion(retrieved, createdModel.Id)
+		updated, err := _service.UpsertModelVersion(retrieved, createdModel.Id)
 		require.NoError(t, err)
 
 		// Verify update
@@ -856,7 +849,7 @@ func TestModelVersionRoundTrip(t *testing.T) {
 		assert.Equal(t, openapi.MODELVERSIONSTATE_ARCHIVED, *updated.State)
 
 		// Get again to verify persistence
-		final, err := service.GetModelVersionById(*created.Id)
+		final, err := _service.GetModelVersionById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, openapi.MODELVERSIONSTATE_ARCHIVED, *final.State)

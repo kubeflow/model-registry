@@ -6,6 +6,7 @@ import configargparse as cap
 from typing import Any, Dict, Mapping
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
 
 def _parser() -> cap.ArgumentParser:
     """Parse command line arguments and config files"""
@@ -18,66 +19,72 @@ def _parser() -> cap.ArgumentParser:
     # --- source ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add("--source-type", choices=["s3", "oci"], default="s3")
-    p.add("--source-aws-bucket")
-    p.add("--source-aws-key")
-    p.add("--source-aws-region")
-    p.add("--source-aws-access-key-id")
-    p.add("--source-aws-secret-access-key")
-    p.add("--source-aws-endpoint")
+    p.add_argument("--source-type", choices=["s3", "oci"], default="s3")
+    p.add_argument("--source-aws-bucket")
+    p.add_argument("--source-aws-key")
+    p.add_argument("--source-aws-region")
+    p.add_argument("--source-aws-access-key-id")
+    p.add_argument("--source-aws-secret-access-key")
+    p.add_argument("--source-aws-endpoint")
     # OCI registry
-    p.add("--source-oci-uri")
-    p.add("--source-oci-username")
-    p.add("--source-oci-password")
+    p.add_argument("--source-oci-uri")
+    p.add_argument("--source-oci-registry")
+    p.add_argument("--source-oci-username")
+    p.add_argument("--source-oci-password")
 
     # --- destination ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add("--destination-type", choices=["s3", "oci"], default="oci")
-    p.add("--destination-aws-bucket")
-    p.add("--destination-aws-key")
-    p.add("--destination-aws-region")
-    p.add("--destination-aws-access-key-id")
-    p.add("--destination-aws-secret-access-key")
-    p.add("--destination-aws-endpoint")
+    p.add_argument("--destination-type", choices=["s3", "oci"], default="oci")
+    p.add_argument("--destination-aws-bucket")
+    p.add_argument("--destination-aws-key")
+    p.add_argument("--destination-aws-region")
+    p.add_argument("--destination-aws-access-key-id")
+    p.add_argument("--destination-aws-secret-access-key")
+    p.add_argument("--destination-aws-endpoint")
     # OCI registry
-    p.add("--destination-oci-uri")
-    p.add("--destination-oci-username")
-    p.add("--destination-oci-password")
+    p.add_argument("--destination-oci-uri")
+    p.add_argument("--destination-oci-registry")
+    p.add_argument("--destination-oci-username")
+    p.add_argument("--destination-oci-password")
+    p.add_argument("--destination-oci-base-image", default="busybox:latest")
+    # The `type` converter is needed here to support env-based booleans
+    # See: https://github.com/bw2/ConfigArgParse/tree/master?tab=readme-ov-file#special-values
+    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool) 
 
     # --- model-registry model data ---
-    p.add("--model-id")
-    p.add("--model-version-id")
-    p.add("--model-artifact-id")
+    p.add_argument("--model-id")
+    p.add_argument("--model-version-id")
+    p.add_argument("--model-artifact-id")
 
     # --- model-storage configuration ---
-    p.add("--storage-path", default="/tmp/model-sync")
+    p.add_argument("--storage-path", default="/tmp/model-sync")
 
     # --- model-registry client ---
-    p.add("--registry-server-address")
-    p.add("--registry-port", default=443)
-    p.add("--registry-is-secure", default=True)
-    p.add("--registry-author")
-    p.add("--registry-user-token", default=None)
-    p.add("--registry-user-token-envvar", default=None)
-    p.add("--registry-custom-ca", default=None)
-    p.add("--registry-custom-ca-envvar", default=None)
-    p.add("--registry-log-level", default=logging.WARNING)
+    p.add_argument("--registry-server-address")
+    p.add_argument("--registry-port", default=443)
+    p.add_argument("--registry-is-secure", default=True)
+    p.add_argument("--registry-author")
+    p.add_argument("--registry-user-token", default=None)
+    p.add_argument("--registry-user-token-envvar", default=None)
+    p.add_argument("--registry-custom-ca", default=None)
+    p.add_argument("--registry-custom-ca-envvar", default=None)
+    p.add_argument("--registry-log-level", default=logging.WARNING)
 
     # TODO: The type of credential should be inferrable from the `type` specified in the source/destination
-    p.add(
+    p.add_argument(
         "--source-s3-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--destination-s3-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--source-oci-credentials-path",
         metavar="PATH",
     )
-    p.add(
+    p.add_argument(
         "--destination-oci-credentials-path",
         metavar="PATH",
     )
@@ -100,6 +107,8 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     These keys are loaded into the config store
     """
 
+    logger.info(f"🔍 Loading S3 credentials from {path} for {side}")
+
     # Validate the path is a directory
     p = Path(path).expanduser()
     if not p.is_dir():
@@ -109,7 +118,7 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     for file in p.glob("*"):
         if file.is_file():
             if file.name.startswith("AWS_"):
-                # Converts a file with name AWS_ACCESS_KEY_ID to aws_access_key_id
+                # Converts a file with name AWS_ACCESS_KEY_ID to access_key_id
                 key_name = file.name.lower().replace("aws_", "")
                 store["s3"][key_name] = file.read_text()
             else:
@@ -135,7 +144,7 @@ def _load_oci_credentials(
     }
     ```
     """
-
+    logger.info(f"🔍 Loading OCI credentials from {path} for {side}")
     # Validate the path is a file
     p = Path(path).expanduser()
     if not p.is_file():
@@ -149,11 +158,13 @@ def _load_oci_credentials(
         raise ValueError("Invalid docker config file")
 
     # Load the credentials from the docker config, the URI passed in via config is used as a key to find the correct credentials
-    auth = docker_config["auths"][store["uri"]]["auth"]
-    username, password = base64.b64decode(auth).decode("utf-8").split(":")
-    store["username"] = username
-    store["password"] = password
-    store["email"] = docker_config["auths"][store["uri"]]["email"]
+    registry = store["oci"]["registry"]
+    auth = docker_config["auths"][registry]["auth"]
+    # TODO: This might not be the correct way to parse this
+    username, password = auth.split(":") if auth else (None, None)
+    store["oci"]["username"] = username
+    store["oci"]["password"] = password
+    store["oci"]["email"] = docker_config["auths"][registry]["email"]
 
 
 def _validate_oci_config(cfg: Dict[str, Any]) -> None:
@@ -163,7 +174,8 @@ def _validate_oci_config(cfg: Dict[str, Any]) -> None:
         raise ValueError("OCI password must be set")
     if cfg["oci"]["username"] is None and cfg["oci"]["password"] is not None:
         raise ValueError("OCI username must be set")
-
+    if cfg["oci"]["registry"] is None:
+        raise ValueError("OCI registry must be set")
     if cfg["oci"]["uri"] is None:
         raise ValueError("OCI URI must be set")
 
@@ -213,6 +225,17 @@ def _validate_config(cfg: Dict[str, Any]) -> None:
     # Ensure the registry is valid
     _validate_registry_config(cfg["registry"])
 
+def str2bool(x):
+    """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
+    if isinstance(x, bool):
+        return x
+    val = x.lower()
+    if val in ("yes", "y", "true", "t", "1"):
+        return True
+    if val in ("no", "n", "false", "f", "0"):
+        return False
+    raise ValueError(f"Invalid boolean value: {x!r}")
+
 
 def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     """
@@ -225,6 +248,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     4. Default values
     """
     args = _parser().parse_args(argv)
+    logger.debug("🔍 Command-line arguments: %s", args)
 
     # Initialize config with command-line arguments and defaults
     cfg = {
@@ -236,14 +260,16 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
-                "endpoint": None,
+                "endpoint_url": None,
             },
             "oci": {
                 "uri": args.source_oci_uri,
+                "registry": args.source_oci_registry,
                 "username": None,
                 "password": None,
                 "email": None,
             },
+            "credentials_path": args.source_oci_credentials_path,
         },
         "destination": {
             "type": args.destination_type,
@@ -253,14 +279,18 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
                 "region": None,
                 "access_key_id": None,
                 "secret_access_key": None,
-                "endpoint": None,
+                "endpoint_url": None,
             },
             "oci": {
                 "uri": args.destination_oci_uri,
+                "registry": args.destination_oci_registry,
                 "username": None,
                 "password": None,
                 "email": None,
+                "base_image": args.destination_oci_base_image,
+                "enable_tls_verify": args.destination_oci_enable_tls_verify,
             },
+            "credentials_path": args.destination_oci_credentials_path,
         },
         "model": {
             "id": args.model_id,
@@ -312,7 +342,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     if args.source_aws_secret_access_key:
         cfg["source"]["s3"]["secret_access_key"] = args.source_aws_secret_access_key
     if args.source_aws_endpoint:
-        cfg["source"]["s3"]["endpoint"] = args.source_aws_endpoint
+        cfg["source"]["s3"]["endpoint_url"] = args.source_aws_endpoint
 
     if args.destination_aws_bucket:
         cfg["destination"]["s3"]["bucket"] = args.destination_aws_bucket
@@ -327,7 +357,7 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
             args.destination_aws_secret_access_key
         )
     if args.destination_aws_endpoint:
-        cfg["destination"]["s3"]["endpoint"] = args.destination_aws_endpoint
+        cfg["destination"]["s3"]["endpoint_url"] = args.destination_aws_endpoint
 
     if args.source_oci_uri:
         cfg["source"]["oci"]["uri"] = args.source_oci_uri
@@ -344,5 +374,43 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
         cfg["destination"]["oci"]["password"] = args.destination_oci_password
 
     _validate_config(cfg)
+    logger.info("📦 Configuration loaded successfully")
+
+    # Log the configuration (with sensitive values sanitized)
+    sanitized_cfg = _sanitize_config_for_logging(cfg)
+    logger.debug("🔍 Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
 
     return cfg
+
+
+def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Create a sanitized copy of the config for logging purposes, masking sensitive values.
+    """
+    import copy
+    sanitized = copy.deepcopy(cfg)
+    
+    # Mask sensitive S3 credentials
+    if sanitized["source"]["s3"]["secret_access_key"]:
+        sanitized["source"]["s3"]["secret_access_key"] = "***"
+    if sanitized["source"]["s3"]["access_key_id"]:
+        sanitized["source"]["s3"]["access_key_id"] = "***"
+    
+    if sanitized["destination"]["s3"]["secret_access_key"]:
+        sanitized["destination"]["s3"]["secret_access_key"] = "***"
+    if sanitized["destination"]["s3"]["access_key_id"]:
+        sanitized["destination"]["s3"]["access_key_id"] = "***"
+    
+    # Mask sensitive OCI credentials
+    if sanitized["source"]["oci"]["password"]:
+        sanitized["source"]["oci"]["password"] = "***"
+    if sanitized["destination"]["oci"]["password"]:
+        sanitized["destination"]["oci"]["password"] = "***"
+    
+    # Mask sensitive registry credentials
+    if sanitized["registry"]["user_token"]:
+        sanitized["registry"]["user_token"] = "***"
+    if sanitized["registry"]["custom_ca"]:
+        sanitized["registry"]["custom_ca"] = "***"
+    
+    return sanitized

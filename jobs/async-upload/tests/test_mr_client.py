@@ -14,6 +14,7 @@ def minimal_env_source_dest_vars():
     vars = {
         "type": "oci",
         "oci_uri": "quay.io/example/oci",
+        "oci_registry": "quay.io",
         "oci_username": "oci_username_env",
         "oci_password": "oci_password_env",
     }
