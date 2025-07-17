@@ -22,7 +22,8 @@ func TestArtifactRepository(t *testing.T) {
 	dataSetTypeID := getDataSetTypeID(t, sharedDB)
 	metricTypeID := getMetricTypeID(t, sharedDB)
 	parameterTypeID := getParameterTypeID(t, sharedDB)
-	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID, dataSetTypeID, metricTypeID, parameterTypeID)
+	metricHistoryTypeID := getMetricHistoryTypeID(t, sharedDB)
+	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID, dataSetTypeID, metricTypeID, parameterTypeID, metricHistoryTypeID)
 
 	// Also get other type IDs for creating related entities
 	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)

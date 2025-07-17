@@ -110,7 +110,6 @@ func mapMetricHistoryToArtifactProperties(metricHistory models.MetricHistory, ar
 
 func mapDataLayerToMetricHistory(metricHistory schema.Artifact, artProperties []schema.ArtifactProperty) models.MetricHistory {
 	var state *string
-	metricHistoryType := models.MetricHistoryType
 	if metricHistory.State != nil {
 		metricState := models.Artifact_State_name[*metricHistory.State]
 		state = &metricState
@@ -124,7 +123,7 @@ func mapDataLayerToMetricHistory(metricHistory schema.Artifact, artProperties []
 			ExternalID:               metricHistory.ExternalID,
 			URI:                      metricHistory.URI,
 			State:                    state,
-			ArtifactType:             &metricHistoryType,
+			ArtifactType:             apiutils.StrPtr(models.MetricHistoryType),
 			CreateTimeSinceEpoch:     &metricHistory.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &metricHistory.LastUpdateTimeSinceEpoch,
 		},

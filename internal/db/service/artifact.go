@@ -20,9 +20,10 @@ type ArtifactRepositoryImpl struct {
 	dataSetTypeID       int64
 	metricTypeID        int64
 	parameterTypeID     int64
+	metricHistoryTypeID int64
 }
 
-func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTypeID int64, dataSetTypeID int64, metricTypeID int64, parameterTypeID int64) models.ArtifactRepository {
+func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTypeID int64, dataSetTypeID int64, metricTypeID int64, parameterTypeID int64, metricHistoryTypeID int64) models.ArtifactRepository {
 	return &ArtifactRepositoryImpl{
 		db:                  db,
 		modelArtifactTypeID: modelArtifactTypeID,
@@ -30,6 +31,7 @@ func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTy
 		dataSetTypeID:       dataSetTypeID,
 		metricTypeID:        metricTypeID,
 		parameterTypeID:     parameterTypeID,
+		metricHistoryTypeID: metricHistoryTypeID,
 	}
 }
 
@@ -67,6 +69,9 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	artifactsArt := []schema.Artifact{}
 
 	query := r.db.Model(&schema.Artifact{})
+
+	// Exclude metric history records - they should only be returned via metric history endpoints
+	query = query.Where("type_id != ?", r.metricHistoryTypeID)
 
 	if listOptions.Name != nil {
 		query = query.Where("name = ?", listOptions.Name)
@@ -187,7 +192,8 @@ func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact
 		parameter := mapDataLayerToParameter(artifact, properties)
 		artToReturn.Parameter = &parameter
 	default:
-		return models.Artifact{}, fmt.Errorf("invalid artifact type: %d", artifact.TypeID)
+		return models.Artifact{}, fmt.Errorf("invalid artifact type: %d (expected: modelArtifact=%d, docArtifact=%d, dataSet=%d, metric=%d, parameter=%d, metricHistory=%d [filtered])",
+			artifact.TypeID, r.modelArtifactTypeID, r.docArtifactTypeID, r.dataSetTypeID, r.metricTypeID, r.parameterTypeID, r.metricHistoryTypeID)
 	}
 
 	return artToReturn, nil

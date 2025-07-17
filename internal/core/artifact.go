@@ -168,6 +168,24 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			me = &withNotEditable
+		} else {
+			// For new metrics (no ID), check if a metric with the same name already exists
+			// in the same parent context - similar to MLMD behavior
+			if parentResourceId != nil && me.Name != nil {
+				existing, err := b.getArtifactByParams(me.Name, parentResourceId, nil, string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC))
+				if err == nil && existing != nil && existing.Metric != nil {
+					// Metric with same name exists, update it instead of creating new one
+					withNotEditable, err := b.mapper.UpdateExistingMetric(converter.NewOpenapiUpdateWrapper(existing.Metric, me))
+					if err != nil {
+						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+					}
+					me = &withNotEditable
+				} else if api.IgnoreNotFound(err) != nil {
+					// Only return error if it's not a "not found" error
+					return nil, fmt.Errorf("error checking for existing metric: %w", err)
+				}
+				// If not found, continue with creating new metric
+			}
 		}
 
 		metricEntity, err := b.mapper.MapFromMetric(me, parentResourceId)
@@ -208,6 +226,24 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			}
 
 			pa = &withNotEditable
+		} else {
+			// For new parameters (no ID), check if a parameter with the same name already exists
+			// in the same parent context - similar to metric behavior
+			if parentResourceId != nil && pa.Name != nil {
+				existing, err := b.getArtifactByParams(pa.Name, parentResourceId, nil, "parameter")
+				if err == nil && existing != nil && existing.Parameter != nil {
+					// Parameter with same name exists, update it instead of creating new one
+					withNotEditable, err := b.mapper.UpdateExistingParameter(converter.NewOpenapiUpdateWrapper(existing.Parameter, pa))
+					if err != nil {
+						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+					}
+					pa = &withNotEditable
+				} else if api.IgnoreNotFound(err) != nil {
+					// Only return error if it's not a "not found" error
+					return nil, fmt.Errorf("error checking for existing parameter: %w", err)
+				}
+				// If not found, continue with creating new parameter
+			}
 		}
 
 		parameterEntity, err := b.mapper.MapFromParameter(pa, parentResourceId)

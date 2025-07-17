@@ -90,7 +90,38 @@ func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
 
 	glog.Infof("Types retrieved")
 
-	artifactRepository := service.NewArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName])
+	// Add debug logging to see what types are actually available
+	glog.V(2).Infof("DEBUG: Available types in typesMap:")
+	for typeName, typeID := range typesMap {
+		glog.V(2).Infof("  %s = %d", typeName, typeID)
+	}
+
+	// Validate that all required types are registered
+	requiredTypes := []string{
+		defaults.ModelArtifactTypeName,
+		defaults.DocArtifactTypeName,
+		defaults.DataSetTypeName,
+		defaults.MetricTypeName,
+		defaults.ParameterTypeName,
+		defaults.MetricHistoryTypeName,
+		defaults.RegisteredModelTypeName,
+		defaults.ModelVersionTypeName,
+		defaults.ServingEnvironmentTypeName,
+		defaults.InferenceServiceTypeName,
+		defaults.ServeModelTypeName,
+		defaults.ExperimentTypeName,
+		defaults.ExperimentRunTypeName,
+	}
+
+	for _, requiredType := range requiredTypes {
+		if _, exists := typesMap[requiredType]; !exists {
+			return nil, fmt.Errorf("required type '%s' not found in database. Please ensure all migrations have been applied", requiredType)
+		}
+	}
+
+	glog.Infof("All required types validated successfully")
+
+	artifactRepository := service.NewArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
 	modelArtifactRepository := service.NewModelArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepository := service.NewDocArtifactRepository(connectedDB, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepository := service.NewRegisteredModelRepository(connectedDB, typesMap[defaults.RegisteredModelTypeName])

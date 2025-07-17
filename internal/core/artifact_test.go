@@ -2000,6 +2000,21 @@ func TestArtifactTypeFiltering(t *testing.T) {
 			_, err := service.UpsertExperimentRunArtifact(artifact, *createdExperimentRun.Id)
 			require.NoError(t, err)
 		}
+
+		// Create multiple metric values to generate metric history records
+		metricName := "er-accuracy-history"
+		values := []float64{0.1, 0.5, 0.8, 0.95}
+		for i, value := range values {
+			metricArtifact := &openapi.Artifact{
+				Metric: &openapi.Metric{
+					Name:        apiutils.Of(metricName),
+					Value:       apiutils.Of(value),
+					Description: apiutils.Of(fmt.Sprintf("Accuracy step %d", i+1)),
+				},
+			}
+			_, err := service.UpsertExperimentRunArtifact(metricArtifact, *createdExperimentRun.Id)
+			require.NoError(t, err)
+		}
 	})
 
 	// Test all artifact types for GetExperimentRunArtifacts (scoped endpoint)
@@ -2013,7 +2028,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 			{"model-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, "ModelArtifact", 1},
 			{"doc-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT, "DocArtifact", 1},
 			{"dataset-artifact filter", openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT, "DataSet", 1},
-			{"metric filter", openapi.ARTIFACTTYPEQUERYPARAM_METRIC, "Metric", 1},
+			{"metric filter", openapi.ARTIFACTTYPEQUERYPARAM_METRIC, "Metric", 2},
 			{"parameter filter", openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, "Parameter", 1},
 		}
 
@@ -2105,4 +2120,207 @@ func TestArtifactTypeFiltering(t *testing.T) {
 			assert.Equal(t, 0, len(result.Items), "Should find no artifacts for empty model version")
 		})
 	})
+
+	// Test that metric history records are NOT returned as artifacts
+	t.Run("metric history filtering", func(t *testing.T) {
+		// Verify that GetExperimentRunArtifacts does NOT return metric history records
+		listOptions := api.ListOptions{
+			PageSize: apiutils.Of(int32(100)),
+		}
+
+		result, err := service.GetExperimentRunArtifacts("", listOptions, createdExperimentRun.Id)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Count artifacts by type - should have exactly 6 artifacts:
+		// 1 ModelArtifact, 1 DocArtifact, 1 DataSet, 2 Metrics (er-metric-artifact + er-accuracy-history), 1 Parameter
+		// NOTE: Should NOT have 4 additional metric history records
+		var modelCount, docCount, datasetCount, metricCount, parameterCount int
+		metricNames := make([]string, 0)
+
+		for _, artifact := range result.Items {
+			switch {
+			case artifact.ModelArtifact != nil:
+				modelCount++
+			case artifact.DocArtifact != nil:
+				docCount++
+			case artifact.DataSet != nil:
+				datasetCount++
+			case artifact.Metric != nil:
+				metricCount++
+				metricNames = append(metricNames, *artifact.Metric.Name)
+			case artifact.Parameter != nil:
+				parameterCount++
+			}
+		}
+
+		assert.Equal(t, 1, modelCount, "Should have exactly 1 ModelArtifact")
+		assert.Equal(t, 1, docCount, "Should have exactly 1 DocArtifact")
+		assert.Equal(t, 1, datasetCount, "Should have exactly 1 DataSet")
+		assert.Equal(t, 2, metricCount, "Should have exactly 2 Metrics (not 6 with history records)")
+		assert.Equal(t, 1, parameterCount, "Should have exactly 1 Parameter")
+
+		// Verify the metric names are the expected ones (current metrics, not history)
+		expectedMetricNames := []string{"er-metric-artifact", "er-accuracy-history"}
+		assert.ElementsMatch(t, expectedMetricNames, metricNames, "Should only have current metric artifacts, not history records")
+
+		// Total should be 6 artifacts, not 10 (6 + 4 history records)
+		assert.Equal(t, 6, len(result.Items), "Should have exactly 6 artifacts total (no metric history records)")
+
+		// Verify metric history is still accessible via dedicated endpoint
+		metricName := "er-accuracy-history"
+		metricHistory, err := service.GetExperimentRunMetricHistory(&metricName, nil, api.ListOptions{}, createdExperimentRun.Id)
+		require.NoError(t, err)
+		require.NotNil(t, metricHistory)
+
+		// Should have all 4 history values
+		assert.Equal(t, 4, len(metricHistory.Items), "Metric history endpoint should return all 4 history records")
+
+		// Verify values are correct
+		expectedValues := []float64{0.1, 0.5, 0.8, 0.95}
+		for i, historyItem := range metricHistory.Items {
+			assert.Equal(t, expectedValues[i], *historyItem.Metric.Value,
+				fmt.Sprintf("History item %d should have value %f", i, expectedValues[i]))
+		}
+	})
+}
+
+func TestEmbedMDMetricDuplicateHandling(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create experiment
+	experiment := &openapi.Experiment{
+		Name:        "test-experiment-duplicate-metrics",
+		Description: apiutils.Of("Test experiment for duplicate metric handling"),
+	}
+	savedExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create experiment run
+	experimentRun := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-duplicate-metrics"),
+		Description: apiutils.Of("Test experiment run for duplicate metric handling"),
+	}
+	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
+	require.NoError(t, err)
+
+	// Create first metric
+	firstMetric := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("accuracy"),
+			Value:       apiutils.Of(0.85),
+			Timestamp:   apiutils.Of("1234567890"),
+			Step:        apiutils.Of(int64(1)),
+			Description: apiutils.Of("First accuracy measurement"),
+		},
+	}
+
+	// Upsert the first metric
+	firstResult, err := service.UpsertExperimentRunArtifact(firstMetric, *savedExperimentRun.Id)
+	require.NoError(t, err, "error creating first metric")
+	require.NotNil(t, firstResult.Metric)
+	firstMetricId := firstResult.Metric.Id
+
+	// Create second metric with same name but different value
+	secondMetric := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("accuracy"), // Same name as first metric
+			Value:       apiutils.Of(0.92),       // Different value
+			Timestamp:   apiutils.Of("1234567900"),
+			Step:        apiutils.Of(int64(2)),
+			Description: apiutils.Of("Updated accuracy measurement"),
+		},
+	}
+
+	// Upsert the second metric - should update the existing one
+	secondResult, err := service.UpsertExperimentRunArtifact(secondMetric, *savedExperimentRun.Id)
+	require.NoError(t, err, "error creating/updating second metric")
+	require.NotNil(t, secondResult.Metric)
+
+	// Verify that it's the same metric ID (updated, not created new)
+	assert.Equal(t, firstMetricId, secondResult.Metric.Id, "should update existing metric, not create new one")
+
+	// Verify the value was updated
+	assert.Equal(t, 0.92, *secondResult.Metric.Value, "metric value should be updated")
+	assert.Equal(t, "Updated accuracy measurement", *secondResult.Metric.Description, "metric description should be updated")
+
+	// Verify only one metric exists for this experiment run
+	artifacts, err := service.GetExperimentRunArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_METRIC, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int32(1), artifacts.Size, "should have only one metric artifact")
+	assert.Equal(t, 1, len(artifacts.Items), "should have only one metric in results")
+
+	// Verify it's the updated metric
+	retrievedMetric := artifacts.Items[0].Metric
+	assert.Equal(t, "accuracy", *retrievedMetric.Name)
+	assert.Equal(t, 0.92, *retrievedMetric.Value)
+}
+
+func TestEmbedMDParameterDuplicateHandling(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create experiment
+	experiment := &openapi.Experiment{
+		Name:        "test-experiment-duplicate-parameters",
+		Description: apiutils.Of("Test experiment for duplicate parameter handling"),
+	}
+	savedExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create experiment run
+	experimentRun := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-duplicate-parameters"),
+		Description: apiutils.Of("Test experiment run for duplicate parameter handling"),
+	}
+	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
+	require.NoError(t, err)
+
+	// Create first parameter
+	firstParameter := &openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:        apiutils.Of("learning_rate"),
+			Value:       apiutils.Of("0.01"),
+			Description: apiutils.Of("Initial learning rate"),
+		},
+	}
+
+	// Upsert the first parameter
+	firstResult, err := service.UpsertExperimentRunArtifact(firstParameter, *savedExperimentRun.Id)
+	require.NoError(t, err, "error creating first parameter")
+	require.NotNil(t, firstResult.Parameter)
+	firstParameterId := firstResult.Parameter.Id
+
+	// Create second parameter with same name but different value
+	secondParameter := &openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:        apiutils.Of("learning_rate"), // Same name as first parameter
+			Value:       apiutils.Of("0.001"),         // Different value
+			Description: apiutils.Of("Updated learning rate"),
+		},
+	}
+
+	// Upsert the second parameter - should update the existing one
+	secondResult, err := service.UpsertExperimentRunArtifact(secondParameter, *savedExperimentRun.Id)
+	require.NoError(t, err, "error creating/updating second parameter")
+	require.NotNil(t, secondResult.Parameter)
+
+	// Verify that it's the same parameter ID (updated, not created new)
+	assert.Equal(t, firstParameterId, secondResult.Parameter.Id, "should update existing parameter, not create new one")
+
+	// Verify the value was updated
+	assert.Equal(t, "0.001", *secondResult.Parameter.Value, "parameter value should be updated")
+	assert.Equal(t, "Updated learning rate", *secondResult.Parameter.Description, "parameter description should be updated")
+
+	// Verify only one parameter exists for this experiment run
+	artifacts, err := service.GetExperimentRunArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int32(1), artifacts.Size, "should have only one parameter artifact")
+	assert.Equal(t, 1, len(artifacts.Items), "should have only one parameter in results")
+
+	// Verify it's the updated parameter
+	retrievedParameter := artifacts.Items[0].Parameter
+	assert.Equal(t, "learning_rate", *retrievedParameter.Name)
+	assert.Equal(t, "0.001", *retrievedParameter.Value)
 }

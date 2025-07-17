@@ -104,7 +104,6 @@ func mapParameterToArtifactProperties(parameter models.Parameter, artifactID int
 
 func mapDataLayerToParameter(parameter schema.Artifact, artProperties []schema.ArtifactProperty) models.Parameter {
 	var state *string
-	parameterType := models.ParameterType
 
 	if parameter.State != nil {
 		parameterState := models.Artifact_State_name[*parameter.State]
@@ -118,7 +117,7 @@ func mapDataLayerToParameter(parameter schema.Artifact, artProperties []schema.A
 			Name:                     parameter.Name,
 			URI:                      parameter.URI,
 			State:                    state,
-			ArtifactType:             &parameterType,
+			ArtifactType:             apiutils.StrPtr(models.ParameterType),
 			ExternalID:               parameter.ExternalID,
 			CreateTimeSinceEpoch:     &parameter.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &parameter.LastUpdateTimeSinceEpoch,

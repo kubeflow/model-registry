@@ -69,7 +69,7 @@ func createModelRegistryService(t *testing.T, db *gorm.DB) *core.ModelRegistrySe
 	typesMap := getTypeIDs(t, db)
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(db, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName])
+	artifactRepo := service.NewArtifactRepository(db, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
 	modelArtifactRepo := service.NewModelArtifactRepository(db, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepo := service.NewDocArtifactRepository(db, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepo := service.NewRegisteredModelRepository(db, typesMap[defaults.RegisteredModelTypeName])

@@ -1,8 +1,6 @@
 package models
 
 var (
-	SupportedArtifactTypes = []string{ModelArtifactType, DocArtifactType, DataSetType, MetricType, ParameterType}
-
 	Artifact_State_name = map[int32]string{
 		0: "UNKNOWN",
 		1: "PENDING",
