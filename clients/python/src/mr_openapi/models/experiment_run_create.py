@@ -18,12 +18,13 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
+from mr_openapi.models.experiment_run_state import ExperimentRunState
+from mr_openapi.models.experiment_run_status import ExperimentRunStatus
 from mr_openapi.models.metadata_value import MetadataValue
-from mr_openapi.models.model_version_state import ModelVersionState
 
 
-class ModelVersion(BaseModel):
-    """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
+class ExperimentRunCreate(BaseModel):
+    """Represents an ExperimentRun belonging to an Experiment."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -36,36 +37,37 @@ class ModelVersion(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
-    )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
-    registered_model_id: StrictStr = Field(
-        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
-    )
-    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
-    create_time_since_epoch: StrictStr | None = Field(
+    name: StrictStr | None = Field(
         default=None,
-        description="Output only. Create time of the resource in millisecond since epoch.",
-        alias="createTimeSinceEpoch",
+        description="The client provided name of the experiment run. It must be unique among all the ExperimentRuns of the same type within a Model Registry instance and cannot be changed once set.",
     )
-    last_update_time_since_epoch: StrictStr | None = Field(
+    end_time_since_epoch: StrictStr | None = Field(
         default=None,
-        description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
-        alias="lastUpdateTimeSinceEpoch",
+        description="End time of the actual experiment run in milliseconds since epoch. Different from lastUpdateTimeSinceEpoch, which is registry resource update time.",
+        alias="endTimeSinceEpoch",
+    )
+    status: ExperimentRunStatus | None = None
+    state: ExperimentRunState | None = None
+    owner: StrictStr | None = Field(default=None, description="Experiment run owner id or name.")
+    experiment_id: StrictStr = Field(
+        description="ID of the `Experiment` to which this experiment run belongs.", alias="experimentId"
+    )
+    start_time_since_epoch: StrictStr | None = Field(
+        default=None,
+        description="Start time of the experiment run in milliseconds since epoch. Different from createTimeSinceEpoch, which is registry resource creation time.",
+        alias="startTimeSinceEpoch",
     )
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
         "name",
+        "endTimeSinceEpoch",
+        "status",
         "state",
-        "author",
-        "registeredModelId",
-        "id",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
+        "owner",
+        "experimentId",
+        "startTimeSinceEpoch",
     ]
 
     model_config = ConfigDict(
@@ -85,7 +87,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of ModelVersion from a JSON string."""
+        """Create an instance of ExperimentRunCreate from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -97,13 +99,8 @@ class ModelVersion(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "create_time_since_epoch",
-            "last_update_time_since_epoch",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -121,7 +118,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of ModelVersion from a dict."""
+        """Create an instance of ExperimentRunCreate from a dict."""
         if obj is None:
             return None
 
@@ -138,11 +135,11 @@ class ModelVersion(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
+                "endTimeSinceEpoch": obj.get("endTimeSinceEpoch"),
+                "status": obj.get("status"),
                 "state": obj.get("state"),
-                "author": obj.get("author"),
-                "registeredModelId": obj.get("registeredModelId"),
-                "id": obj.get("id"),
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "owner": obj.get("owner"),
+                "experimentId": obj.get("experimentId"),
+                "startTimeSinceEpoch": obj.get("startTimeSinceEpoch"),
             }
         )

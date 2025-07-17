@@ -18,12 +18,13 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
+from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.metadata_value import MetadataValue
-from mr_openapi.models.model_version_state import ModelVersionState
+from mr_openapi.models.parameter_type import ParameterType
 
 
-class ModelVersion(BaseModel):
-    """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
+class Parameter(BaseModel):
+    """A parameter representing a configuration parameter used in model training or execution."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -36,13 +37,8 @@ class ModelVersion(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
-    )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
-    registered_model_id: StrictStr = Field(
-        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
+    name: StrictStr | None = Field(
+        default=None, description='The name/key of the parameter (e.g., "learning_rate", "batch_size", "epochs").'
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
     create_time_since_epoch: StrictStr | None = Field(
@@ -55,17 +51,22 @@ class ModelVersion(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    artifact_type: StrictStr | None = Field(default="parameter", alias="artifactType")
+    value: StrictStr | None = Field(default=None, description="The value of the parameter.")
+    parameter_type: ParameterType | None = Field(default=None, alias="parameterType")
+    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
         "name",
-        "state",
-        "author",
-        "registeredModelId",
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "artifactType",
+        "value",
+        "parameterType",
+        "state",
     ]
 
     model_config = ConfigDict(
@@ -85,7 +86,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of ModelVersion from a JSON string."""
+        """Create an instance of Parameter from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -121,7 +122,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of ModelVersion from a dict."""
+        """Create an instance of Parameter from a dict."""
         if obj is None:
             return None
 
@@ -138,11 +139,12 @@ class ModelVersion(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "state": obj.get("state"),
-                "author": obj.get("author"),
-                "registeredModelId": obj.get("registeredModelId"),
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "parameter",
+                "value": obj.get("value"),
+                "parameterType": obj.get("parameterType"),
+                "state": obj.get("state"),
             }
         )

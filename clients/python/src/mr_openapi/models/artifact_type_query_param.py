@@ -16,18 +16,19 @@ from enum import Enum
 from typing_extensions import Self
 
 
-class OrderByField(str, Enum):
-    """Supported fields for ordering result entities."""
+class ArtifactTypeQueryParam(str, Enum):
+    """Supported artifact types for querying."""
 
     """
     allowed enum values
     """
-    CREATE_TIME = "CREATE_TIME"
-    LAST_UPDATE_TIME = "LAST_UPDATE_TIME"
-    ID = "ID"
-    NAME = "NAME"
+    MODEL_MINUS_ARTIFACT = "model-artifact"
+    DOC_MINUS_ARTIFACT = "doc-artifact"
+    DATASET_MINUS_ARTIFACT = "dataset-artifact"
+    METRIC = "metric"
+    PARAMETER = "parameter"
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of OrderByField from a JSON string."""
+        """Create an instance of ArtifactTypeQueryParam from a JSON string."""
         return cls(json.loads(json_str))

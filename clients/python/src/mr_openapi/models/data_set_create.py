@@ -18,12 +18,12 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
+from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.metadata_value import MetadataValue
-from mr_openapi.models.model_version_state import ModelVersionState
 
 
-class ModelVersion(BaseModel):
-    """Represents a ModelVersion belonging to a RegisteredModel."""  # noqa: E501
+class DataSetCreate(BaseModel):
+    """A dataset artifact to be created."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -36,36 +36,42 @@ class ModelVersion(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
-        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
-    )
-    state: ModelVersionState | None = None
-    author: StrictStr | None = Field(default=None, description="Name of the author.")
-    registered_model_id: StrictStr = Field(
-        description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
-    )
-    id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
-    create_time_since_epoch: StrictStr | None = Field(
+    name: StrictStr | None = Field(
         default=None,
-        description="Output only. Create time of the resource in millisecond since epoch.",
-        alias="createTimeSinceEpoch",
+        description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
-    last_update_time_since_epoch: StrictStr | None = Field(
+    artifact_type: StrictStr | None = Field(default="dataset-artifact", alias="artifactType")
+    digest: StrictStr | None = Field(default=None, description="A unique hash or identifier for the dataset content.")
+    source_type: StrictStr | None = Field(
         default=None,
-        description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
-        alias="lastUpdateTimeSinceEpoch",
+        description='The type of data source (e.g., "s3", "hdfs", "local", "database").',
+        alias="sourceType",
     )
+    source: StrictStr | None = Field(
+        default=None, description="The location or connection string for the dataset source."
+    )
+    var_schema: StrictStr | None = Field(
+        default=None, description="JSON schema or description of the dataset structure.", alias="schema"
+    )
+    profile: StrictStr | None = Field(default=None, description="Statistical profile or summary of the dataset.")
+    uri: StrictStr | None = Field(
+        default=None,
+        description="The uniform resource identifier of the physical dataset. May be empty if there is no physical dataset.",
+    )
+    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
         "externalId",
         "name",
+        "artifactType",
+        "digest",
+        "sourceType",
+        "source",
+        "schema",
+        "profile",
+        "uri",
         "state",
-        "author",
-        "registeredModelId",
-        "id",
-        "createTimeSinceEpoch",
-        "lastUpdateTimeSinceEpoch",
     ]
 
     model_config = ConfigDict(
@@ -85,7 +91,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of ModelVersion from a JSON string."""
+        """Create an instance of DataSetCreate from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -97,13 +103,8 @@ class ModelVersion(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
         """
-        excluded_fields: set[str] = {
-            "create_time_since_epoch",
-            "last_update_time_since_epoch",
-        }
+        excluded_fields: set[str] = set()
 
         _dict = self.model_dump(
             by_alias=True,
@@ -121,7 +122,7 @@ class ModelVersion(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of ModelVersion from a dict."""
+        """Create an instance of DataSetCreate from a dict."""
         if obj is None:
             return None
 
@@ -138,11 +139,13 @@ class ModelVersion(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
+                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "dataset-artifact",
+                "digest": obj.get("digest"),
+                "sourceType": obj.get("sourceType"),
+                "source": obj.get("source"),
+                "schema": obj.get("schema"),
+                "profile": obj.get("profile"),
+                "uri": obj.get("uri"),
                 "state": obj.get("state"),
-                "author": obj.get("author"),
-                "registeredModelId": obj.get("registeredModelId"),
-                "id": obj.get("id"),
-                "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
-                "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
             }
         )
