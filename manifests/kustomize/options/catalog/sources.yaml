@@ -4,3 +4,9 @@ catalogs:
   type: yaml
   properties:
     yamlCatalogPath: sample-catalog.yaml
+- name: Red Hat Ecosystem Catalog
+  id: rhec
+  type: rhec
+  properties:
+    yamlCatalogPath: sample-rhec.yaml
+

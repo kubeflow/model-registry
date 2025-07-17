@@ -15,3 +15,4 @@ configMapGenerator:
   files:
   - sources.yaml=sources.yaml
   - sample-catalog.yaml=sample-catalog.yaml
+  - sample-rhec.yaml=sample-rhec.yaml
