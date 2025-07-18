@@ -17,20 +17,20 @@ To regenerate the client, you will need to have `genqlient` installed. You can i
 go install github.com/Khan/genqlient
 ```
 
-Once installed, you can generate the client by running the following command from the root of the project:
+Once installed, you can generate the client by running the following command from the `catalog` directory:
 
 ```bash
-~/go/bin/genqlient catalog/internal/catalog/genqlient/genqlient.yaml
+make gen/graphql
 ```
 
 This will generate the `generated.go` file in the current directory.
 
 ### Downloading the Schema
 
-The `schema.graphql` file can be updated by downloading the latest version from the Red Hat Ecosystem Catalog API. You can do this using the `get-graphql-schema` tool:
+The `schema.graphql` file can be updated by downloading the latest version from the Red Hat Ecosystem Catalog API. You can do this by running the following command from the `catalog` directory:
 
 ```bash
-npx get-graphql-schema https://catalog.redhat.com/api/containers/graphql/ > catalog/internal/catalog/genqlient/queries/schema.graphql
+make download/graphql-schema
 ```
 
 This will download the schema and save it to the correct location. After updating the schema, you should regenerate the client to ensure it is up to date. 

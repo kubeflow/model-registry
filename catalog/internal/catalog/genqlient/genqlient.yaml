@@ -1,8 +1,8 @@
 # genqlient.yaml
 schema: queries/schema.graphql
 operations:
-  - "queries/*.graphql"
-  - "!queries/schema.graphql"
+  - "queries/find_repository_images.graphql"
+  - "queries/get_repository.graphql"
 generated: generated.go
 package: genqlient
 bindings:

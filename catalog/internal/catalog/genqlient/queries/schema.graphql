@@ -2,86 +2,33 @@ directive @parse_federated_response_many on FIELD_DEFINITION | OBJECT
 
 directive @parse_federated_response_single on FIELD_DEFINITION | OBJECT
 
-directive @data_load_args_object_federated(
-  local_keys: [String]
-  types: [String]
-  query: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_load_args_object_federated(local_keys: [String], types: [String], query: String) on FIELD_DEFINITION | OBJECT
 
 directive @resolve_federated_field(query: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_get_original(
-  schema: String
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_get_original(schema: String, query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_get_one(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_get_one(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_get_one_aggregate(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_get_one_aggregate(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_get_many_paginated(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_get_many_paginated(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_get_many_paginated_aggregate(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_get_many_paginated_aggregate(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
-directive @request_started(
-  schema: String
-  hide_unencrypted_logs: String
-  no_obj_log: String
-  federated_gql_error: String
-) on FIELD_DEFINITION | OBJECT
+directive @request_started(schema: String, hide_unencrypted_logs: String, no_obj_log: String, federated_gql_error: String) on FIELD_DEFINITION | OBJECT
 
-directive @request_ended(
-  schema: String
-  hide_unencrypted_logs: String
-) on FIELD_DEFINITION | OBJECT
+directive @request_ended(schema: String, hide_unencrypted_logs: String) on FIELD_DEFINITION | OBJECT
 
-directive @auth_rbac(
-  roles: [String]
-  oidc_roles: [String]
-) on FIELD_DEFINITION | OBJECT
+directive @auth_rbac(roles: [String], oidc_roles: [String]) on FIELD_DEFINITION | OBJECT
 
 directive @auth_jwt_or_api_key_required on FIELD_DEFINITION | OBJECT
 
-directive @data_decompression(
-  schema: String
-  format: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_decompression(schema: String, format: String) on FIELD_DEFINITION | OBJECT
 
-directive @data_retype_argument(
-  names: [String]
-  types: [String]
-) on FIELD_DEFINITION | OBJECT
+directive @data_retype_argument(names: [String], types: [String]) on FIELD_DEFINITION | OBJECT
 
-directive @data_get_argument_from_parent(
-  paths: [[String]]
-  names: [String]
-) on FIELD_DEFINITION | OBJECT
+directive @data_get_argument_from_parent(paths: [[String]], names: [String]) on FIELD_DEFINITION | OBJECT
 
 directive @data_load_args on FIELD_DEFINITION | OBJECT
 
@@ -97,126 +44,49 @@ directive @reference_entity(functions: [String]) on FIELD_DEFINITION | OBJECT
 
 directive @inaccessible on FIELD_DEFINITION | OBJECT
 
-directive @serialize(
-  schema: String
-  format: String
-  decrypt: String
-) on FIELD_DEFINITION | OBJECT
+directive @serialize(schema: String, format: String, decrypt: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_create_one(
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_create_one(collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_update_one(
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_update_one(query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_replace_one(
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_replace_one(query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_delete_one(
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_delete_one(query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_one_to_one(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_one_to_one(path: String, template: String, query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_one_to_one_check(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_one_to_one_check(path: String, template: String, query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_one_to_many(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-  path_to_iterated_keys: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_one_to_many(path: String, template: String, query: String, collection: String, database: String, path_to_iterated_keys: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_one_to_many_check(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-  path_to_iterated_keys: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_one_to_many_check(path: String, template: String, query: String, collection: String, database: String, path_to_iterated_keys: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_many_to_one(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_many_to_one(path: String, template: String, query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_embed_many_to_one_check(
-  path: String
-  template: String
-  query: String
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_embed_many_to_one_check(path: String, template: String, query: String, collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
 directive @validate(schema: String, action: String) on FIELD_DEFINITION | OBJECT
 
-directive @deserialize(
-  schema: String
-  load_many: String
-  wrapped_data: String
-  encrypt: String
-) on FIELD_DEFINITION | OBJECT
+directive @deserialize(schema: String, load_many: String, wrapped_data: String, encrypt: String) on FIELD_DEFINITION | OBJECT
 
 directive @meta_add_obj on FIELD_DEFINITION | OBJECT
 
-directive @data_add_automatic_fields(
-  action: String
-  schema: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_add_automatic_fields(action: String, schema: String) on FIELD_DEFINITION | OBJECT
 
-directive @data_add_history_fields(
-  action: String
-  schema: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_add_history_fields(action: String, schema: String) on FIELD_DEFINITION | OBJECT
 
-directive @data_compression(
-  schema: String
-  action: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_compression(schema: String, action: String) on FIELD_DEFINITION | OBJECT
 
-directive @data_decompression_original(
-  schema: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_decompression_original(schema: String) on FIELD_DEFINITION | OBJECT
 
 directive @data_auto_fields_payload on FIELD_DEFINITION | OBJECT
 
 directive @data_mock_input on FIELD_DEFINITION | OBJECT
 
-directive @data_merge_original_update(
-  schema: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_merge_original_update(schema: String) on FIELD_DEFINITION | OBJECT
 
-directive @data_merge_original_replace(
-  schema: String
-) on FIELD_DEFINITION | OBJECT
+directive @data_merge_original_replace(schema: String) on FIELD_DEFINITION | OBJECT
 
 directive @data_exclude_read_only(schema: String) on FIELD_DEFINITION | OBJECT
 
@@ -228,11 +98,7 @@ directive @pre_write(functions: [String]) on FIELD_DEFINITION | OBJECT
 
 directive @post_write(functions: [String]) on FIELD_DEFINITION | OBJECT
 
-directive @check_unique_fields(
-  has_to_be_unique: [[String]]
-  collection: String
-  database: String
-) on FIELD_DEFINITION | OBJECT
+directive @check_unique_fields(has_to_be_unique: [[String]], collection: String, database: String) on FIELD_DEFINITION | OBJECT
 
 directive @mongodb_transaction_start on FIELD_DEFINITION | OBJECT
 
@@ -258,44 +124,17 @@ directive @post(url: String) on FIELD_DEFINITION
 
 directive @edges on FIELD_DEFINITION
 
-directive @mongodb_custom_find_images_by_manifest_external(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_custom_find_images_by_manifest_external(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
-directive @mongodb_custom_find_images_by_manifest_internal(
-  schema: String
-  query: String
-  collection: String
-  database: String
-  fsm_enabled: String
-) on FIELD_DEFINITION | OBJECT
+directive @mongodb_custom_find_images_by_manifest_internal(schema: String, query: String, collection: String, database: String, fsm_enabled: String) on FIELD_DEFINITION | OBJECT
 
 directive @load_field_metadata on FIELD_DEFINITION
 
-directive @proxy_get(
-  host: String
-  path: String
-  method: String
-  query: String
-) on FIELD_DEFINITION | OBJECT
+directive @proxy_get(host: String, path: String, method: String, query: String) on FIELD_DEFINITION | OBJECT
 
-directive @proxy_delete(
-  host: String
-  path: String
-  method: String
-  query: String
-) on FIELD_DEFINITION | OBJECT
+directive @proxy_delete(host: String, path: String, method: String, query: String) on FIELD_DEFINITION | OBJECT
 
-directive @proxy_post(
-  host: String
-  path: String
-  method: String
-  query: String
-) on FIELD_DEFINITION | OBJECT
+directive @proxy_post(host: String, path: String, method: String, query: String) on FIELD_DEFINITION | OBJECT
 
 directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
 
@@ -307,13 +146,9 @@ directive @external on FIELD_DEFINITION
 
 directive @extends on OBJECT | INTERFACE
 
-"""
-Exposes a URL that specifies the behavior of this scalar.
-"""
+"""Exposes a URL that specifies the behavior of this scalar."""
 directive @specifiedBy(
-  """
-  The URL that specifies the behavior of this scalar.
-  """
+  """The URL that specifies the behavior of this scalar."""
   url: String!
 ) on SCALAR
 
@@ -327,9 +162,7 @@ type _Service {
   sdl: String
 }
 
-"""
-Specific information from the CSV requested by customer.
-"""
+"""Specific information from the CSV requested by customer."""
 type ALMExample {
   api_version: String
   kind: String
@@ -376,9 +209,7 @@ input ALMExampleListIndexFilter {
   index: Int
 }
 
-"""
-API key stored in Loki.
-"""
+"""API key stored in Loki."""
 type ApiKey {
   id: Int
   description: String
@@ -414,14 +245,10 @@ input ApiKeyOrgIDWithDescriptionRequestInput {
 }
 
 type ApiKeyResp {
-  """
-  Generated API key.
-  """
+  """Generated API key."""
   api_key: String
 
-  """
-  API key data.
-  """
+  """API key data."""
   key_data: ApiKey
 }
 
@@ -449,28 +276,18 @@ input BooleanFilter {
   ne: Boolean
 }
 
-"""
-Brew Build System related metadata.
-"""
+"""Brew Build System related metadata."""
 type Brew {
-  """
-  Unique and immutable Brew build ID.
-  """
+  """Unique and immutable Brew build ID."""
   build: String
 
-  """
-  Timestamp from Brew when the image has been succesfully built.
-  """
+  """Timestamp from Brew when the image has been succesfully built."""
   completion_date: DateTime
 
-  """
-  Multi-Arch primary key.
-  """
+  """Multi-Arch primary key."""
   nvra: String
 
-  """
-  A package name in Brew.
-  """
+  """A package name in Brew."""
   package: String
 }
 
@@ -487,34 +304,22 @@ input BrewFilter {
   not: BrewFilter
 }
 
-"""
-Brew Build System related metadata.
-"""
+"""Brew Build System related metadata."""
 input BrewInput {
-  """
-  Unique and immutable Brew build ID.
-  """
+  """Unique and immutable Brew build ID."""
   build: String
 
-  """
-  Timestamp from Brew when the image has been succesfully built.
-  """
+  """Timestamp from Brew when the image has been succesfully built."""
   completion_date: DateTime
 
-  """
-  Multi-Arch primary key.
-  """
+  """Multi-Arch primary key."""
   nvra: String
 
-  """
-  A package name in Brew.
-  """
+  """A package name in Brew."""
   package: String
 }
 
-"""
-Contain Certification project data.
-"""
+"""Contain Certification project data."""
 type CertificationProject {
   """
   Value is derived from last_update_date field during when the certification
@@ -522,9 +327,7 @@ type CertificationProject {
   """
   certification_date: DateTime
 
-  """
-  Tracks history for the `certification_level` field
-  """
+  """Tracks history for the `certification_level` field"""
   certification_level_history: FieldHistoryString
 
   """
@@ -534,47 +337,31 @@ type CertificationProject {
   """
   certification_level: String
 
-  """
-  Tracks history for the `certification_status` field
-  """
+  """Tracks history for the `certification_status` field"""
   certification_status_history: FieldHistoryString
 
-  """
-  Certification Status.
-  """
+  """Certification Status."""
   certification_status: String
 
-  """
-  Certification User.
-  """
+  """Certification User."""
   certification_user: Int
 
-  """
-  Contacts for certification project.
-  """
+  """Contacts for certification project."""
   contacts: [CertProjectContacts]
   container: CertProjectContainer
 
-  """
-  Configuration specific to Helm Chart projects.
-  """
+  """Configuration specific to Helm Chart projects."""
   helm_chart: CertProjectHelmChart
   marketplace: CertProjectMarketplace
 
-  """
-  The owner provided name of the certification project.
-  """
+  """The owner provided name of the certification project."""
   name: String
   non_container: CertProjectNonContainer
 
-  """
-  Operator Distribution.
-  """
+  """Operator Distribution."""
   operator_distribution: String
 
-  """
-  Configuration specific to OpenStack projects.
-  """
+  """Configuration specific to OpenStack projects."""
   openstack: CertProjectOpenStack
 
   """
@@ -582,36 +369,24 @@ type CertificationProject {
   """
   org_id: Int
 
-  """
-  Unique identifier for the product listing.
-  """
+  """Unique identifier for the product listing."""
   product_listings: [ObjectID]
 
-  """
-  Status of the certification project.
-  """
+  """Status of the certification project."""
   project_status: String
 
-  """
-  Who published the certification project.
-  """
+  """Who published the certification project."""
   published_by: String
   redhat: CertProjectRedhat
   self_certification: CertProjectSelfCertification
 
-  """
-  Special certifications specific to the certification platform
-  """
+  """Special certifications specific to the certification platform"""
   badges: [String]
 
-  """
-  Certification project type.
-  """
+  """Certification project type."""
   type: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -619,50 +394,26 @@ type CertificationProject {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
-  """
-  SSO username from the JWT - who created the entry or null if no JWT.
-  """
+  """SSO username from the JWT - who created the entry or null if no JWT."""
   created_on_behalf_of: String
 
-  """
-  SSO username from the JWT - who updated the entry or null if no JWT.
-  """
+  """SSO username from the JWT - who updated the entry or null if no JWT."""
   updated_on_behalf_of: String
   edges: CertificationProjectEdges
 }
 
 type CertificationProjectEdges {
-  """
-  Get a vendor by Company Org ID.
-  """
+  """Get a vendor by Company Org ID."""
   vendor(org_id: Int): ContainerVendorResponse
 
-  """
-  Get product listings for certification project using its ID.
-  """
-  product_listings(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get product listings for certification project using its ID."""
+  product_listings(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get container image by ID of associated certification project.
-  """
-  images(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """Get container image by ID of associated certification project."""
+  images(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 }
 
 input CertificationProjectFilter {
@@ -705,9 +456,7 @@ input CertificationProjectFilter {
   not: CertificationProjectFilter
 }
 
-"""
-Contain Certification project data.
-"""
+"""Contain Certification project data."""
 input CertificationProjectInput {
   """
   Value is derived from last_update_date field during when the certification
@@ -715,9 +464,7 @@ input CertificationProjectInput {
   """
   certification_date: DateTime
 
-  """
-  Tracks history for the `certification_level` field
-  """
+  """Tracks history for the `certification_level` field"""
   certification_level_history: FieldHistoryStringInput
 
   """
@@ -727,47 +474,31 @@ input CertificationProjectInput {
   """
   certification_level: String
 
-  """
-  Tracks history for the `certification_status` field
-  """
+  """Tracks history for the `certification_status` field"""
   certification_status_history: FieldHistoryStringInput
 
-  """
-  Certification Status.
-  """
+  """Certification Status."""
   certification_status: String
 
-  """
-  Certification User.
-  """
+  """Certification User."""
   certification_user: Int
 
-  """
-  Contacts for certification project.
-  """
+  """Contacts for certification project."""
   contacts: [CertProjectContactsInput]
   container: CertProjectContainerInput
 
-  """
-  Configuration specific to Helm Chart projects.
-  """
+  """Configuration specific to Helm Chart projects."""
   helm_chart: CertProjectHelmChartInput
   marketplace: CertProjectMarketplaceInput
 
-  """
-  The owner provided name of the certification project.
-  """
+  """The owner provided name of the certification project."""
   name: String
   non_container: CertProjectNonContainerInput
 
-  """
-  Operator Distribution.
-  """
+  """Operator Distribution."""
   operator_distribution: String
 
-  """
-  Configuration specific to OpenStack projects.
-  """
+  """Configuration specific to OpenStack projects."""
   openstack: CertProjectOpenStackInput
 
   """
@@ -775,36 +506,24 @@ input CertificationProjectInput {
   """
   org_id: Int
 
-  """
-  Unique identifier for the product listing.
-  """
+  """Unique identifier for the product listing."""
   product_listings: [ObjectID]
 
-  """
-  Status of the certification project.
-  """
+  """Status of the certification project."""
   project_status: String
 
-  """
-  Who published the certification project.
-  """
+  """Who published the certification project."""
   published_by: String
   redhat: CertProjectRedhatInput
   self_certification: CertProjectSelfCertificationInput
 
-  """
-  Special certifications specific to the certification platform
-  """
+  """Special certifications specific to the certification platform"""
   badges: [String]
 
-  """
-  Certification project type.
-  """
+  """Certification project type."""
   type: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -812,19 +531,13 @@ input CertificationProjectInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
-  """
-  SSO username from the JWT - who created the entry or null if no JWT.
-  """
+  """SSO username from the JWT - who created the entry or null if no JWT."""
   created_on_behalf_of: String
 
-  """
-  SSO username from the JWT - who updated the entry or null if no JWT.
-  """
+  """SSO username from the JWT - who updated the entry or null if no JWT."""
   updated_on_behalf_of: String
 }
 
@@ -845,59 +558,37 @@ type CertificationProjectResponse {
 Contains the logs from the preflight test results from operator pipelines project
 """
 type CertProjectArtifact {
-  """
-  Cert Project Identifier.
-  """
+  """Cert Project Identifier."""
   cert_project: ObjectID
 
-  """
-  Content version.
-  """
+  """Content version."""
   version: String
 
-  """
-  The operator package name of the cert project artifact.
-  """
+  """The operator package name of the cert project artifact."""
   operator_package_name: String
 
-  """
-  The cert project hashed content.
-  """
+  """The cert project hashed content."""
   certification_hash: String
 
-  """
-  Identifier of container image collection.
-  """
+  """Identifier of container image collection."""
   image_id: ObjectID
 
-  """
-  Base64 encoded the cert project artifact content.
-  """
+  """Base64 encoded the cert project artifact content."""
   content: Base64EncodedString
 
-  """
-  The content type associated with the content type.
-  """
+  """The content type associated with the content type."""
   content_type: String
 
-  """
-  The file name associated with the content test results.
-  """
+  """The file name associated with the content test results."""
   filename: String
 
-  """
-  File size in bytes.
-  """
+  """File size in bytes."""
   file_size: Int64
 
-  """
-  URL to the Github pull request associated with with cert project.
-  """
+  """URL to the Github pull request associated with with cert project."""
   pull_request_url: URI
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -905,9 +596,7 @@ type CertProjectArtifact {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -918,14 +607,10 @@ type CertProjectArtifact {
 }
 
 type CertProjectArtifactEdges {
-  """
-  Get certification project using its ID.
-  """
+  """Get certification project using its ID."""
   cert_project(id: ObjectIDFilterScalar): CertificationProjectResponse
 
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   container_image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -956,59 +641,37 @@ input CertProjectArtifactFilter {
 Contains the logs from the preflight test results from operator pipelines project
 """
 input CertProjectArtifactInput {
-  """
-  Cert Project Identifier.
-  """
+  """Cert Project Identifier."""
   cert_project: ObjectID
 
-  """
-  Content version.
-  """
+  """Content version."""
   version: String
 
-  """
-  The operator package name of the cert project artifact.
-  """
+  """The operator package name of the cert project artifact."""
   operator_package_name: String
 
-  """
-  The cert project hashed content.
-  """
+  """The cert project hashed content."""
   certification_hash: String
 
-  """
-  Identifier of container image collection.
-  """
+  """Identifier of container image collection."""
   image_id: ObjectID
 
-  """
-  Base64 encoded the cert project artifact content.
-  """
+  """Base64 encoded the cert project artifact content."""
   content: Base64EncodedString
 
-  """
-  The content type associated with the content type.
-  """
+  """The content type associated with the content type."""
   content_type: String
 
-  """
-  The file name associated with the content test results.
-  """
+  """The file name associated with the content test results."""
   filename: String
 
-  """
-  File size in bytes.
-  """
+  """File size in bytes."""
   file_size: Int64
 
-  """
-  URL to the Github pull request associated with with cert project.
-  """
+  """URL to the Github pull request associated with with cert project."""
   pull_request_url: URI
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -1016,9 +679,7 @@ input CertProjectArtifactInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -1040,9 +701,7 @@ type CertProjectArtifactResponse {
   error: ResponseError
 }
 
-"""
-Contact info.
-"""
+"""Contact info."""
 type CertProjectContacts {
   email_address: Email
   type: String
@@ -1066,9 +725,7 @@ input CertProjectContactsFilter {
   not: CertProjectContactsFilter
 }
 
-"""
-Contact info.
-"""
+"""Contact info."""
 input CertProjectContactsInput {
   email_address: Email
   type: String
@@ -1091,23 +748,17 @@ input CertProjectContactsListIndexFilter {
   index: Int
 }
 
-"""
-Container related information.
-"""
+"""Container related information."""
 type CertProjectContainer {
   """
   Indicates if the registry is air-gapped and its tags should not be synced.
   """
   airgap_registry: Boolean
 
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
-  """
-  Once a container is certified it is automatically published.
-  """
+  """Once a container is certified it is automatically published."""
   auto_publish: Boolean
 
   """
@@ -1115,19 +766,13 @@ type CertProjectContainer {
   """
   build_categories: String
 
-  """
-  Distribution approval obtained.
-  """
+  """Distribution approval obtained."""
   distribution_approval: Boolean
 
-  """
-  Distribution method.
-  """
+  """Distribution method."""
   distribution_method: String
 
-  """
-  ID of the project in for ISV repositories.
-  """
+  """ID of the project in for ISV repositories."""
   isv_pid: String
 
   """
@@ -1140,24 +785,16 @@ type CertProjectContainer {
   """
   docker_config_json: OpenPGPEncrypted
 
-  """
-  OS Content Type.
-  """
+  """OS Content Type."""
   os_content_type: String
 
-  """
-  Passed RH Cert.
-  """
+  """Passed RH Cert."""
   passed_rhcert: Boolean
 
-  """
-  A container needs to run in a privileged state.
-  """
+  """A container needs to run in a privileged state."""
   privileged: Boolean
 
-  """
-  Flag that indicates that project is using Red Hat hosted registry.
-  """
+  """Flag that indicates that project is using Red Hat hosted registry."""
   hosted_registry: Boolean
 
   """
@@ -1175,18 +812,16 @@ type CertProjectContainer {
   """
   registry_override_instruct: String
 
-  """
-  Release category.
-  """
+  """Release category."""
   release_category: String
 
   """
   Path to the container repository as found in the registry.
-
+  
   Examples:
   path/to/repository
   repository
-
+  
   This field can only be edited when there are no published containers.
   It is only applicable for projects with an 'external' distribution method.
   """
@@ -1201,24 +836,17 @@ type CertProjectContainer {
   """
   This should represent your product (or the component if your product consists of multiple containers)
   and a major version. For example, you could use names like jboss-server7, or agent5.
-
+  
   This value is only editable when there are no published containers in this project.
   It is only applicable for projects that do not have the 'external' distribution method.
   """
   repository_name: String
 
-  """
-  Short description of the container.
-  """
+  """Short description of the container."""
   short_description: String
 
-  """
-  Supported Platforms.
-  """
-  support_platforms: [String]
-    @deprecated(
-      reason: "The field was deprecated since the Catalog is no longer displaying this information to users."
-    )
+  """Supported Platforms."""
+  support_platforms: [String] @deprecated(reason: "The field was deprecated since the Catalog is no longer displaying this information to users.")
 
   """
   Container type.
@@ -1226,17 +854,13 @@ type CertProjectContainer {
   """
   type: String
 
-  """
-  GitHub users authorized to submit a certification pull request.
-  """
+  """GitHub users authorized to submit a certification pull request."""
   github_usernames: [String]
   edges: CertProjectContainerEdges
 }
 
 type CertProjectContainerEdges {
-  """
-  Get a repository by registry and path (product line/image name).
-  """
+  """Get a repository by registry and path (product line/image name)."""
   repository(registry: String, repository: String): ContainerRepositoryResponse
 }
 
@@ -1276,23 +900,17 @@ input CertProjectContainerFilter {
   not: CertProjectContainerFilter
 }
 
-"""
-Container related information.
-"""
+"""Container related information."""
 input CertProjectContainerInput {
   """
   Indicates if the registry is air-gapped and its tags should not be synced.
   """
   airgap_registry: Boolean
 
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
-  """
-  Once a container is certified it is automatically published.
-  """
+  """Once a container is certified it is automatically published."""
   auto_publish: Boolean
 
   """
@@ -1300,19 +918,13 @@ input CertProjectContainerInput {
   """
   build_categories: String
 
-  """
-  Distribution approval obtained.
-  """
+  """Distribution approval obtained."""
   distribution_approval: Boolean
 
-  """
-  Distribution method.
-  """
+  """Distribution method."""
   distribution_method: String
 
-  """
-  ID of the project in for ISV repositories.
-  """
+  """ID of the project in for ISV repositories."""
   isv_pid: String
 
   """
@@ -1325,24 +937,16 @@ input CertProjectContainerInput {
   """
   docker_config_json: OpenPGPEncrypted
 
-  """
-  OS Content Type.
-  """
+  """OS Content Type."""
   os_content_type: String
 
-  """
-  Passed RH Cert.
-  """
+  """Passed RH Cert."""
   passed_rhcert: Boolean
 
-  """
-  A container needs to run in a privileged state.
-  """
+  """A container needs to run in a privileged state."""
   privileged: Boolean
 
-  """
-  Flag that indicates that project is using Red Hat hosted registry.
-  """
+  """Flag that indicates that project is using Red Hat hosted registry."""
   hosted_registry: Boolean
 
   """
@@ -1360,18 +964,16 @@ input CertProjectContainerInput {
   """
   registry_override_instruct: String
 
-  """
-  Release category.
-  """
+  """Release category."""
   release_category: String
 
   """
   Path to the container repository as found in the registry.
-
+  
   Examples:
   path/to/repository
   repository
-
+  
   This field can only be edited when there are no published containers.
   It is only applicable for projects with an 'external' distribution method.
   """
@@ -1386,15 +988,13 @@ input CertProjectContainerInput {
   """
   This should represent your product (or the component if your product consists of multiple containers)
   and a major version. For example, you could use names like jboss-server7, or agent5.
-
+  
   This value is only editable when there are no published containers in this project.
   It is only applicable for projects that do not have the 'external' distribution method.
   """
   repository_name: String
 
-  """
-  Short description of the container.
-  """
+  """Short description of the container."""
   short_description: String
 
   """
@@ -1403,24 +1003,16 @@ input CertProjectContainerInput {
   """
   type: String
 
-  """
-  GitHub users authorized to submit a certification pull request.
-  """
+  """GitHub users authorized to submit a certification pull request."""
   github_usernames: [String]
 }
 
-"""
-Helm chart related information.
-"""
+"""Helm chart related information."""
 type CertProjectHelmChart {
-  """
-  How your Helm Chart is distributed.
-  """
+  """How your Helm Chart is distributed."""
   distribution_method: String
 
-  """
-  The Helm Chart name as it will appear in GitHub.
-  """
+  """The Helm Chart name as it will appear in GitHub."""
   chart_name: String
 
   """
@@ -1428,44 +1020,28 @@ type CertProjectHelmChart {
   """
   repository: URI
 
-  """
-  Instructions for users to access an externally distributed Helm Chart.
-  """
+  """Instructions for users to access an externally distributed Helm Chart."""
   distribution_instructions: String
 
-  """
-  Base64 encoded PGP public key. Used to sign result submissions.
-  """
+  """Base64 encoded PGP public key. Used to sign result submissions."""
   public_pgp_key: Base64EncodedString
 
-  """
-  URL to the user submitted github pull request for this project.
-  """
+  """URL to the user submitted github pull request for this project."""
   github_pull_request: URI
 
-  """
-  Short description of the Helm Chart.
-  """
+  """Short description of the Helm Chart."""
   short_description: String
 
-  """
-  Long description of the Helm Chart.
-  """
+  """Long description of the Helm Chart."""
   long_description: String
 
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
-  """
-  OCP versions for this Helm Chart.
-  """
+  """OCP versions for this Helm Chart."""
   ocp_versions: [String]
 
-  """
-  GitHub users authorized to submit a certification pull request.
-  """
+  """GitHub users authorized to submit a certification pull request."""
   github_usernames: [String]
 }
 
@@ -1492,18 +1068,12 @@ input CertProjectHelmChartFilter {
   not: CertProjectHelmChartFilter
 }
 
-"""
-Helm chart related information.
-"""
+"""Helm chart related information."""
 input CertProjectHelmChartInput {
-  """
-  How your Helm Chart is distributed.
-  """
+  """How your Helm Chart is distributed."""
   distribution_method: String
 
-  """
-  The Helm Chart name as it will appear in GitHub.
-  """
+  """The Helm Chart name as it will appear in GitHub."""
   chart_name: String
 
   """
@@ -1511,54 +1081,34 @@ input CertProjectHelmChartInput {
   """
   repository: URI
 
-  """
-  Instructions for users to access an externally distributed Helm Chart.
-  """
+  """Instructions for users to access an externally distributed Helm Chart."""
   distribution_instructions: String
 
-  """
-  Base64 encoded PGP public key. Used to sign result submissions.
-  """
+  """Base64 encoded PGP public key. Used to sign result submissions."""
   public_pgp_key: Base64EncodedString
 
-  """
-  URL to the user submitted github pull request for this project.
-  """
+  """URL to the user submitted github pull request for this project."""
   github_pull_request: URI
 
-  """
-  Short description of the Helm Chart.
-  """
+  """Short description of the Helm Chart."""
   short_description: String
 
-  """
-  Long description of the Helm Chart.
-  """
+  """Long description of the Helm Chart."""
   long_description: String
 
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
-  """
-  OCP versions for this Helm Chart.
-  """
+  """OCP versions for this Helm Chart."""
   ocp_versions: [String]
 
-  """
-  GitHub users authorized to submit a certification pull request.
-  """
+  """GitHub users authorized to submit a certification pull request."""
   github_usernames: [String]
 }
 
-"""
-Contain status and related metadata of a certProject image request.
-"""
+"""Contain status and related metadata of a certProject image request."""
 type CertProjectImageRequest {
-  """
-  Unique identifier for the certification project.
-  """
+  """Unique identifier for the certification project."""
   cert_project: ObjectID
 
   """
@@ -1566,9 +1116,7 @@ type CertProjectImageRequest {
   """
   image_id: ObjectID
 
-  """
-  Images referenced by the manifest_list_digest.
-  """
+  """Images referenced by the manifest_list_digest."""
   images: [SingleArchImage]
 
   """
@@ -1583,9 +1131,7 @@ type CertProjectImageRequest {
   """
   operation: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -1593,9 +1139,7 @@ type CertProjectImageRequest {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -1603,27 +1147,19 @@ type CertProjectImageRequest {
   """
   org_id: Int
 
-  """
-  The request status
-  """
+  """The request status"""
   status: String
 
-  """
-  An explanatory message to a request status.
-  """
+  """An explanatory message to a request status."""
   status_message: String
   edges: CertProjectImageRequestEdges
 }
 
 type CertProjectImageRequestEdges {
-  """
-  Get certification project using its ID.
-  """
+  """Get certification project using its ID."""
   cert_project(id: ObjectIDFilterScalar): CertificationProjectResponse
 
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -1649,13 +1185,9 @@ input CertProjectImageRequestFilter {
   not: CertProjectImageRequestFilter
 }
 
-"""
-Contain status and related metadata of a certProject image request.
-"""
+"""Contain status and related metadata of a certProject image request."""
 input CertProjectImageRequestInput {
-  """
-  Unique identifier for the certification project.
-  """
+  """Unique identifier for the certification project."""
   cert_project: ObjectID
 
   """
@@ -1663,9 +1195,7 @@ input CertProjectImageRequestInput {
   """
   image_id: ObjectID
 
-  """
-  Images referenced by the manifest_list_digest.
-  """
+  """Images referenced by the manifest_list_digest."""
   images: [SingleArchImageInput]
 
   """
@@ -1680,9 +1210,7 @@ input CertProjectImageRequestInput {
   """
   operation: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -1690,9 +1218,7 @@ input CertProjectImageRequestInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -1700,14 +1226,10 @@ input CertProjectImageRequestInput {
   """
   org_id: Int
 
-  """
-  The request status
-  """
+  """The request status"""
   status: String
 
-  """
-  An explanatory message to a request status.
-  """
+  """An explanatory message to a request status."""
   status_message: String
 }
 
@@ -1724,9 +1246,7 @@ type CertProjectImageRequestResponse {
   error: ResponseError
 }
 
-"""
-Marketplace related information.
-"""
+"""Marketplace related information."""
 type CertProjectMarketplace {
   enablement_status: String
   enablement_url: URI
@@ -1747,9 +1267,7 @@ input CertProjectMarketplaceFilter {
   not: CertProjectMarketplaceFilter
 }
 
-"""
-Marketplace related information.
-"""
+"""Marketplace related information."""
 input CertProjectMarketplaceInput {
   enablement_status: String
   enablement_url: URI
@@ -1757,9 +1275,7 @@ input CertProjectMarketplaceInput {
   published: Boolean
 }
 
-"""
-Non-container project info.
-"""
+"""Non-container project info."""
 type CertProjectNonContainer {
   source_system_id: String
 }
@@ -1774,20 +1290,14 @@ input CertProjectNonContainerFilter {
   not: CertProjectNonContainerFilter
 }
 
-"""
-Non-container project info.
-"""
+"""Non-container project info."""
 input CertProjectNonContainerInput {
   source_system_id: String
 }
 
-"""
-OpenStack related information.
-"""
+"""OpenStack related information."""
 type CertProjectOpenStack {
-  """
-  OpenStack service type for test suite selection
-  """
+  """OpenStack service type for test suite selection"""
   service: String
 }
 
@@ -1801,38 +1311,24 @@ input CertProjectOpenStackFilter {
   not: CertProjectOpenStackFilter
 }
 
-"""
-OpenStack related information.
-"""
+"""OpenStack related information."""
 input CertProjectOpenStackInput {
-  """
-  OpenStack service type for test suite selection
-  """
+  """OpenStack service type for test suite selection"""
   service: String
 }
 
-"""
-Red Hat projects related information.
-"""
+"""Red Hat projects related information."""
 type CertProjectRedhat {
-  """
-  Red Hat Product ID.
-  """
+  """Red Hat Product ID."""
   product_id: Int
 
-  """
-  Red Hat product name.
-  """
+  """Red Hat product name."""
   product_name: String
 
-  """
-  Red Hat Product Version.
-  """
+  """Red Hat Product Version."""
   product_version: String
 
-  """
-  Red Hat Product Version.
-  """
+  """Red Hat Product Version."""
   product_version_id: Int
 }
 
@@ -1849,68 +1345,42 @@ input CertProjectRedhatFilter {
   not: CertProjectRedhatFilter
 }
 
-"""
-Red Hat projects related information.
-"""
+"""Red Hat projects related information."""
 input CertProjectRedhatInput {
-  """
-  Red Hat Product ID.
-  """
+  """Red Hat Product ID."""
   product_id: Int
 
-  """
-  Red Hat product name.
-  """
+  """Red Hat product name."""
   product_name: String
 
-  """
-  Red Hat Product Version.
-  """
+  """Red Hat Product Version."""
   product_version: String
 
-  """
-  Red Hat Product Version.
-  """
+  """Red Hat Product Version."""
   product_version_id: Int
 }
 
-"""
-Red Hat projects related information.
-"""
+"""Red Hat projects related information."""
 type CertProjectSelfCertification {
-  """
-  Application Profiler.
-  """
+  """Application Profiler."""
   app_profiler: Boolean
 
-  """
-  Application Runs on App Type.
-  """
+  """Application Runs on App Type."""
   app_runs_on_app_type: Boolean
 
-  """
-  Whether the Self Certification Evidence URL requires a customer login.
-  """
+  """Whether the Self Certification Evidence URL requires a customer login."""
   auth_login: Boolean
 
-  """
-  Self Certification Evidence URL.
-  """
+  """Self Certification Evidence URL."""
   certification_url: URI
 
-  """
-  Can Commercially Support on App Type.
-  """
+  """Can Commercially Support on App Type."""
   comm_support_on_app_type: Boolean
 
-  """
-  Self Certification Requested.
-  """
+  """Self Certification Requested."""
   requested: Boolean
 
-  """
-  TsaNET Member.
-  """
+  """TsaNET Member."""
   tsanet_member: Boolean
 }
 
@@ -1930,108 +1400,66 @@ input CertProjectSelfCertificationFilter {
   not: CertProjectSelfCertificationFilter
 }
 
-"""
-Red Hat projects related information.
-"""
+"""Red Hat projects related information."""
 input CertProjectSelfCertificationInput {
-  """
-  Application Profiler.
-  """
+  """Application Profiler."""
   app_profiler: Boolean
 
-  """
-  Application Runs on App Type.
-  """
+  """Application Runs on App Type."""
   app_runs_on_app_type: Boolean
 
-  """
-  Whether the Self Certification Evidence URL requires a customer login.
-  """
+  """Whether the Self Certification Evidence URL requires a customer login."""
   auth_login: Boolean
 
-  """
-  Self Certification Evidence URL.
-  """
+  """Self Certification Evidence URL."""
   certification_url: URI
 
-  """
-  Can Commercially Support on App Type.
-  """
+  """Can Commercially Support on App Type."""
   comm_support_on_app_type: Boolean
 
-  """
-  Self Certification Requested.
-  """
+  """Self Certification Requested."""
   requested: Boolean
 
-  """
-  TsaNET Member.
-  """
+  """TsaNET Member."""
   tsanet_member: Boolean
 }
 
-"""
-Contain certification test results of related certProject
-"""
+"""Contain certification test results of related certProject"""
 type CertProjectTestResult {
-  """
-  Unique identifier for the certification project.
-  """
+  """Unique identifier for the certification project."""
   cert_project: ObjectID
 
-  """
-  Hashed content for the certification project.
-  """
+  """Hashed content for the certification project."""
   certification_hash: String
 
-  """
-  Image associated with the test result.
-  """
+  """Image associated with the test result."""
   image: String
 
-  """
-  Operator package name associated with the test result.
-  """
+  """Operator package name associated with the test result."""
   operator_package_name: String
 
-  """
-  Whether or not the test has passed overall.
-  """
+  """Whether or not the test has passed overall."""
   passed: Boolean
 
-  """
-  Identifier of container image collection.
-  """
+  """Identifier of container image collection."""
   image_id: ObjectID
 
-  """
-  The test results stored in lists based on result status.
-  """
+  """The test results stored in lists based on result status."""
   results: Results
 
-  """
-  The test library of the test result.
-  """
+  """The test library of the test result."""
   test_library: TestLibrary
 
-  """
-  Version associated with the content tested.
-  """
+  """Version associated with the content tested."""
   version: String
 
-  """
-  Pull request of certification test results
-  """
+  """Pull request of certification test results"""
   pull_request: PullRequest
 
-  """
-  A platform where tests were executed.
-  """
+  """A platform where tests were executed."""
   tested_on: TestedOn
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -2039,9 +1467,7 @@ type CertProjectTestResult {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -2052,14 +1478,10 @@ type CertProjectTestResult {
 }
 
 type CertProjectTestResultEdges {
-  """
-  Get certification project using its ID.
-  """
+  """Get certification project using its ID."""
   cert_project(id: ObjectIDFilterScalar): CertificationProjectResponse
 
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   container_image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -2087,68 +1509,42 @@ input CertProjectTestResultFilter {
   not: CertProjectTestResultFilter
 }
 
-"""
-Contain certification test results of related certProject
-"""
+"""Contain certification test results of related certProject"""
 input CertProjectTestResultInput {
-  """
-  Unique identifier for the certification project.
-  """
+  """Unique identifier for the certification project."""
   cert_project: ObjectID
 
-  """
-  Hashed content for the certification project.
-  """
+  """Hashed content for the certification project."""
   certification_hash: String
 
-  """
-  Image associated with the test result.
-  """
+  """Image associated with the test result."""
   image: String
 
-  """
-  Operator package name associated with the test result.
-  """
+  """Operator package name associated with the test result."""
   operator_package_name: String
 
-  """
-  Whether or not the test has passed overall.
-  """
+  """Whether or not the test has passed overall."""
   passed: Boolean
 
-  """
-  Identifier of container image collection.
-  """
+  """Identifier of container image collection."""
   image_id: ObjectID
 
-  """
-  The test results stored in lists based on result status.
-  """
+  """The test results stored in lists based on result status."""
   results: ResultsInput
 
-  """
-  The test library of the test result.
-  """
+  """The test library of the test result."""
   test_library: TestLibraryInput
 
-  """
-  Version associated with the content tested.
-  """
+  """Version associated with the content tested."""
   version: String
 
-  """
-  Pull request of certification test results
-  """
+  """Pull request of certification test results"""
   pull_request: PullRequestInput
 
-  """
-  A platform where tests were executed.
-  """
+  """A platform where tests were executed."""
   tested_on: TestedOnInput
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -2156,9 +1552,7 @@ input CertProjectTestResultInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -2255,9 +1649,7 @@ type ContainerFilePaginatedResponse {
 Grades are describing security risk with containers that Red Hat provides through the Red Hat Ecosystem Catalog.
 """
 type ContainerGrades {
-  """
-  Image architecture.
-  """
+  """Image architecture."""
   architecture: String
 
   """
@@ -2270,27 +1662,19 @@ type ContainerGrades {
   """
   freshness_grades: [FreshnessGrade]
 
-  """
-  Unique identifier for image.
-  """
+  """Unique identifier for image."""
   image_id: String
 
-  """
-  A date when current grade drops.
-  """
+  """A date when current grade drops."""
   next_drop_date: DateTime
 
-  """
-  Name of floating tag associated with the image.
-  """
+  """Name of floating tag associated with the image."""
   tag: String
   edges: ContainerGradesEdges
 }
 
 type ContainerGradesEdges {
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -2299,28 +1683,18 @@ type ContainerGradesListResponse {
   error: ResponseError
 }
 
-"""
-Information about the state of grading of particular image.
-"""
+"""Information about the state of grading of particular image."""
 type ContainerGrading {
-  """
-  The request status
-  """
+  """The request status"""
   status: String
 
-  """
-  An explanatory message to a request status.
-  """
+  """An explanatory message to a request status."""
   status_message: String
 
-  """
-  Indication that check is ignored or not during a publication process
-  """
+  """Indication that check is ignored or not during a publication process"""
   exception_approved: Boolean
 
-  """
-  Description and reference to a Jira ticket with an approved exception
-  """
+  """Description and reference to a Jira ticket with an approved exception"""
   exception_approved_description: String
 }
 
@@ -2337,34 +1711,22 @@ input ContainerGradingFilter {
   not: ContainerGradingFilter
 }
 
-"""
-Information about the state of grading of particular image.
-"""
+"""Information about the state of grading of particular image."""
 input ContainerGradingInput {
-  """
-  The request status
-  """
+  """The request status"""
   status: String
 
-  """
-  An explanatory message to a request status.
-  """
+  """An explanatory message to a request status."""
   status_message: String
 
-  """
-  Indication that check is ignored or not during a publication process
-  """
+  """Indication that check is ignored or not during a publication process"""
   exception_approved: Boolean
 
-  """
-  Description and reference to a Jira ticket with an approved exception
-  """
+  """Description and reference to a Jira ticket with an approved exception"""
   exception_approved_description: String
 }
 
-"""
-Metadata about images contained in RedHat and ISV repositories
-"""
+"""Metadata about images contained in RedHat and ISV repositories"""
 type ContainerImage {
   """
   The field contains an architecture for which the container image was built
@@ -2374,9 +1736,7 @@ type ContainerImage {
   """
   architecture: String
 
-  """
-  Brew related metadata.
-  """
+  """Brew related metadata."""
   brew: Brew
 
   """
@@ -2384,9 +1744,7 @@ type ContainerImage {
   """
   cloud_service: Boolean
 
-  """
-  Information about the state of grading of particular image.
-  """
+  """Information about the state of grading of particular image."""
   container_grades: ContainerGrading
 
   """
@@ -2426,14 +1784,10 @@ type ContainerImage {
   """
   parsed_data: ParsedData
 
-  """
-  Published repositories associated with the container image.
-  """
+  """Published repositories associated with the container image."""
   repositories: [ContainerImageRepo]
 
-  """
-  Indication if the image was certified.
-  """
+  """Indication if the image was certified."""
   certified: Boolean
 
   """
@@ -2465,9 +1819,7 @@ type ContainerImage {
   """
   sum_layer_size_bytes: Int64
 
-  """
-  Field for multiarch primary key
-  """
+  """Field for multiarch primary key"""
   top_layer_id: String
 
   """
@@ -2476,14 +1828,10 @@ type ContainerImage {
   """
   uncompressed_top_layer_id: String
 
-  """
-  Raw image configuration, such as output from docker inspect.
-  """
+  """Raw image configuration, such as output from docker inspect."""
   raw_config: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -2491,9 +1839,7 @@ type ContainerImage {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -2504,58 +1850,24 @@ type ContainerImage {
 }
 
 type ContainerImageEdges {
-  """
-  Get the RPM manifest for an image
-  """
+  """Get the RPM manifest for an image"""
   rpm_manifest(id: String): ContainerImageRPMManifestResponse
 
   """
   Get a list of image vulnerabilities associated with an image. Exclude total for improved performance.
   """
-  vulnerabilities(
-    id: String
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerImageVulnerabilityFilter
-  ): ContainerImageVulnerabilityPaginatedResponse
+  vulnerabilities(id: String, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerImageVulnerabilityFilter): ContainerImageVulnerabilityPaginatedResponse
 
-  """
-  Get test results by container image id
-  """
-  test_results(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectTestResultFilter
-  ): CertProjectTestResultPaginatedResponse
+  """Get test results by container image id"""
+  test_results(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectTestResultFilter): CertProjectTestResultPaginatedResponse
 
-  """
-  Get artifacts by container image id
-  """
-  artifacts(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectArtifactFilter
-  ): CertProjectArtifactPaginatedResponse
+  """Get artifacts by container image id"""
+  artifacts(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectArtifactFilter): CertProjectArtifactPaginatedResponse
 
-  """
-  Get image requests using its image id.
-  """
-  requests(
-    id: ObjectIDFilterScalar
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: CertProjectImageRequestFilter
-  ): CertProjectImageRequestPaginatedResponse
+  """Get image requests using its image id."""
+  requests(id: ObjectIDFilterScalar, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: CertProjectImageRequestFilter): CertProjectImageRequestPaginatedResponse
 
-  """
-  Get certification project using Red Hat Connect project ID.
-  """
+  """Get certification project using Red Hat Connect project ID."""
   cert_project(pid: String): CertificationProjectResponse
 }
 
@@ -2601,9 +1913,7 @@ input ContainerImageFilter {
   not: ContainerImageFilter
 }
 
-"""
-Metadata about images contained in RedHat and ISV repositories
-"""
+"""Metadata about images contained in RedHat and ISV repositories"""
 input ContainerImageInput {
   """
   The field contains an architecture for which the container image was built
@@ -2613,9 +1923,7 @@ input ContainerImageInput {
   """
   architecture: String
 
-  """
-  Brew related metadata.
-  """
+  """Brew related metadata."""
   brew: BrewInput
 
   """
@@ -2623,9 +1931,7 @@ input ContainerImageInput {
   """
   cloud_service: Boolean
 
-  """
-  Information about the state of grading of particular image.
-  """
+  """Information about the state of grading of particular image."""
   container_grades: ContainerGradingInput
 
   """
@@ -2665,14 +1971,10 @@ input ContainerImageInput {
   """
   parsed_data: ParsedDataInput
 
-  """
-  Published repositories associated with the container image.
-  """
+  """Published repositories associated with the container image."""
   repositories: [ContainerImageRepoInput]
 
-  """
-  Indication if the image was certified.
-  """
+  """Indication if the image was certified."""
   certified: Boolean
 
   """
@@ -2704,9 +2006,7 @@ input ContainerImageInput {
   """
   sum_layer_size_bytes: Int64
 
-  """
-  Field for multiarch primary key
-  """
+  """Field for multiarch primary key"""
   top_layer_id: String
 
   """
@@ -2715,14 +2015,10 @@ input ContainerImageInput {
   """
   uncompressed_top_layer_id: String
 
-  """
-  Raw image configuration, such as output from docker inspect.
-  """
+  """Raw image configuration, such as output from docker inspect."""
   raw_config: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -2730,9 +2026,7 @@ input ContainerImageInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 
   """
@@ -2741,18 +2035,12 @@ input ContainerImageInput {
   org_id: Int
 }
 
-"""
-List of container images per manifest list digest
-"""
+"""List of container images per manifest list digest"""
 type ContainerImageManifestDigest {
-  """
-  Manifest list digest for multiarch images.
-  """
+  """Manifest list digest for multiarch images."""
   manifest_list_digest: String
 
-  """
-  List of images for given manifest list digest.
-  """
+  """List of images for given manifest list digest."""
   images: [ContainerImage]
 }
 
@@ -2773,9 +2061,7 @@ type ContainerImagePaginatedResponse {
 }
 
 type ContainerImageRepo {
-  """
-  Store information about image comparison.
-  """
+  """Store information about image comparison."""
   comparison: ContainerImageRepoComparison
 
   """
@@ -2788,24 +2074,16 @@ type ContainerImageRepo {
   """
   image_advisory_id: String
 
-  """
-  Available for multiarch images.
-  """
+  """Available for multiarch images."""
   manifest_list_digest: String
 
-  """
-  Available for single arch images.
-  """
+  """Available for single arch images."""
   manifest_schema2_digest: String
 
-  """
-  Indicate if the image has been published to the container catalog.
-  """
+  """Indicate if the image has been published to the container catalog."""
   published: Boolean
 
-  """
-  Date the image was published to the container catalog.
-  """
+  """Date the image was published to the container catalog."""
   published_date: DateTime
 
   """
@@ -2816,52 +2094,34 @@ type ContainerImageRepo {
   """
   push_date: DateTime
 
-  """
-  Hostname of the registry where the repository can be accessed.
-  """
+  """Hostname of the registry where the repository can be accessed."""
   registry: String
 
-  """
-  Repository name.
-  """
+  """Repository name."""
   repository: String
 
-  """
-  Image signing info.
-  """
+  """Image signing info."""
   signatures: [SignatureInfo]
 
-  """
-  List of container tags assigned to this layer.
-  """
+  """List of container tags assigned to this layer."""
   tags: [ContainerImageRepoTag]
   edges: ContainerImageRepoEdges
 }
 
 type ContainerImageRepoComparison {
-  """
-  Mapping of a NVRA to multiple advisories IDs.
-  """
+  """Mapping of a NVRA to multiple advisories IDs."""
   advisory_rpm_mapping: [ContainerImageRepoComparisonMapping]
 
-  """
-  Reason why 'with_nvr' is or is not null.
-  """
+  """Reason why 'with_nvr' is or is not null."""
   reason: String
 
-  """
-  Human readable reason.
-  """
+  """Human readable reason."""
   reason_text: String
 
-  """
-  List of rpms grouped by category (new, remove, upgrade, downgrade).
-  """
+  """List of rpms grouped by category (new, remove, upgrade, downgrade)."""
   rpms: ContainerImageRepoComparisonRPMs
 
-  """
-  NVR of image which this image was compared with.
-  """
+  """NVR of image which this image was compared with."""
   with_nvr: String
 }
 
@@ -2882,41 +2142,27 @@ input ContainerImageRepoComparisonFilter {
 }
 
 input ContainerImageRepoComparisonInput {
-  """
-  Mapping of a NVRA to multiple advisories IDs.
-  """
+  """Mapping of a NVRA to multiple advisories IDs."""
   advisory_rpm_mapping: [ContainerImageRepoComparisonMappingInput]
 
-  """
-  Reason why 'with_nvr' is or is not null.
-  """
+  """Reason why 'with_nvr' is or is not null."""
   reason: String
 
-  """
-  Human readable reason.
-  """
+  """Human readable reason."""
   reason_text: String
 
-  """
-  List of rpms grouped by category (new, remove, upgrade, downgrade).
-  """
+  """List of rpms grouped by category (new, remove, upgrade, downgrade)."""
   rpms: ContainerImageRepoComparisonRPMsInput
 
-  """
-  NVR of image which this image was compared with.
-  """
+  """NVR of image which this image was compared with."""
   with_nvr: String
 }
 
 type ContainerImageRepoComparisonMapping {
-  """
-  Content advisory ID.
-  """
+  """Content advisory ID."""
   advisory_ids: [String]
 
-  """
-  NVRA of the RPM related to advisories.
-  """
+  """NVRA of the RPM related to advisories."""
   nvra: String
 }
 
@@ -2940,14 +2186,10 @@ input ContainerImageRepoComparisonMappingFilter {
 }
 
 input ContainerImageRepoComparisonMappingInput {
-  """
-  Content advisory ID.
-  """
+  """Content advisory ID."""
   advisory_ids: [String]
 
-  """
-  NVRA of the RPM related to advisories.
-  """
+  """NVRA of the RPM related to advisories."""
   nvra: String
 }
 
@@ -2970,24 +2212,16 @@ input ContainerImageRepoComparisonMappingListIndexFilter {
 }
 
 type ContainerImageRepoComparisonRPMs {
-  """
-  List of NVRA which were downgraded in this image.
-  """
+  """List of NVRA which were downgraded in this image."""
   downgrade: [String]
 
-  """
-  List of NVRA which were added to this image.
-  """
+  """List of NVRA which were added to this image."""
   new: [String]
 
-  """
-  List of NVRA which were removed in this image.
-  """
+  """List of NVRA which were removed in this image."""
   remove: [String]
 
-  """
-  List of NVRA which were upgraded in this image.
-  """
+  """List of NVRA which were upgraded in this image."""
   upgrade: [String]
 }
 
@@ -3009,24 +2243,16 @@ input ContainerImageRepoComparisonRPMsFilter {
 }
 
 input ContainerImageRepoComparisonRPMsInput {
-  """
-  List of NVRA which were downgraded in this image.
-  """
+  """List of NVRA which were downgraded in this image."""
   downgrade: [String]
 
-  """
-  List of NVRA which were added to this image.
-  """
+  """List of NVRA which were added to this image."""
   new: [String]
 
-  """
-  List of NVRA which were removed in this image.
-  """
+  """List of NVRA which were removed in this image."""
   remove: [String]
 
-  """
-  List of NVRA which were upgraded in this image.
-  """
+  """List of NVRA which were upgraded in this image."""
   upgrade: [String]
 }
 
@@ -3037,9 +2263,7 @@ type ContainerImageRepoEdges {
   """
   image_advisory(id: String): RedHatContainerAdvisoryResponse
 
-  """
-  Get a repository by registry and path (product line/image name).
-  """
+  """Get a repository by registry and path (product line/image name)."""
   repository(registry: String, repository: String): ContainerRepositoryResponse
 }
 
@@ -3077,9 +2301,7 @@ input ContainerImageRepoFilter {
 }
 
 input ContainerImageRepoInput {
-  """
-  Store information about image comparison.
-  """
+  """Store information about image comparison."""
   comparison: ContainerImageRepoComparisonInput
 
   """
@@ -3092,24 +2314,16 @@ input ContainerImageRepoInput {
   """
   image_advisory_id: String
 
-  """
-  Available for multiarch images.
-  """
+  """Available for multiarch images."""
   manifest_list_digest: String
 
-  """
-  Available for single arch images.
-  """
+  """Available for single arch images."""
   manifest_schema2_digest: String
 
-  """
-  Indicate if the image has been published to the container catalog.
-  """
+  """Indicate if the image has been published to the container catalog."""
   published: Boolean
 
-  """
-  Date the image was published to the container catalog.
-  """
+  """Date the image was published to the container catalog."""
   published_date: DateTime
 
   """
@@ -3120,24 +2334,16 @@ input ContainerImageRepoInput {
   """
   push_date: DateTime
 
-  """
-  Hostname of the registry where the repository can be accessed.
-  """
+  """Hostname of the registry where the repository can be accessed."""
   registry: String
 
-  """
-  Repository name.
-  """
+  """Repository name."""
   repository: String
 
-  """
-  Image signing info.
-  """
+  """Image signing info."""
   signatures: [SignatureInfoInput]
 
-  """
-  List of container tags assigned to this layer.
-  """
+  """List of container tags assigned to this layer."""
   tags: [ContainerImageRepoTagInput]
 }
 
@@ -3176,14 +2382,10 @@ input ContainerImageRepoListIndexFilter {
 type ContainerImageRepoTag {
   added_date: DateTime
 
-  """
-  Available when manifest_schema2_digest is not. All legacy images.
-  """
+  """Available when manifest_schema2_digest is not. All legacy images."""
   manifest_schema1_digest: String
 
-  """
-  The name of the tag.
-  """
+  """The name of the tag."""
   name: String
 
   """
@@ -3215,14 +2417,10 @@ input ContainerImageRepoTagFilter {
 input ContainerImageRepoTagInput {
   added_date: DateTime
 
-  """
-  Available when manifest_schema2_digest is not. All legacy images.
-  """
+  """Available when manifest_schema2_digest is not. All legacy images."""
   manifest_schema1_digest: String
 
-  """
-  The name of the tag.
-  """
+  """The name of the tag."""
   name: String
 
   """
@@ -3259,20 +2457,14 @@ type ContainerImageResponse {
 A containerImageRPMManifest contains all the RPM packages for a given containerImage
 """
 type ContainerImageRPMManifest {
-  """
-  The foreign key to containerImage._id.
-  """
+  """The foreign key to containerImage._id."""
   image_id: String
   object_type: String
 
-  """
-  Content manifest of this image. RPM content included in the image.
-  """
+  """Content manifest of this image. RPM content included in the image."""
   rpms: [RpmsItems]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -3280,17 +2472,13 @@ type ContainerImageRPMManifest {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: ContainerImageRPMManifestEdges
 }
 
 type ContainerImageRPMManifestEdges {
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -3298,20 +2486,14 @@ type ContainerImageRPMManifestEdges {
 A containerImageRPMManifest contains all the RPM packages for a given containerImage
 """
 input ContainerImageRPMManifestInput {
-  """
-  The foreign key to containerImage._id.
-  """
+  """The foreign key to containerImage._id."""
   image_id: String
   object_type: String
 
-  """
-  Content manifest of this image. RPM content included in the image.
-  """
+  """Content manifest of this image. RPM content included in the image."""
   rpms: [RpmsItemsInput]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -3319,9 +2501,7 @@ input ContainerImageRPMManifestInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -3334,14 +2514,10 @@ type ContainerImageRPMManifestResponse {
 Information if there is an existing exception for the test_results, given by certOps resulting in successful certification.
 """
 type ContainerImageTestException {
-  """
-  Indication that check is ignored or not during a publication process
-  """
+  """Indication that check is ignored or not during a publication process"""
   exception_approved: Boolean
 
-  """
-  Description and reference to a Jira ticket with an approved exception
-  """
+  """Description and reference to a Jira ticket with an approved exception"""
   exception_approved_description: String
 }
 
@@ -3360,34 +2536,22 @@ input ContainerImageTestExceptionFilter {
 Information if there is an existing exception for the test_results, given by certOps resulting in successful certification.
 """
 input ContainerImageTestExceptionInput {
-  """
-  Indication that check is ignored or not during a publication process
-  """
+  """Indication that check is ignored or not during a publication process"""
   exception_approved: Boolean
 
-  """
-  Description and reference to a Jira ticket with an approved exception
-  """
+  """Description and reference to a Jira ticket with an approved exception"""
   exception_approved_description: String
 }
 
-"""
-Vulnerability present in the content that is installed in the image.
-"""
+"""Vulnerability present in the content that is installed in the image."""
 type ContainerImageVulnerability {
-  """
-  Advisory identifier.
-  """
+  """Advisory identifier."""
   advisory_id: String
 
-  """
-  Advisory type (RHSA, RHBA, ...).
-  """
+  """Advisory type (RHSA, RHBA, ...)."""
   advisory_type: String
 
-  """
-  ID of the CVE.
-  """
+  """ID of the CVE."""
   cve_id: String
   object_type: String
 
@@ -3396,24 +2560,16 @@ type ContainerImageVulnerability {
   """
   packages: [ContainerImageVulnerabilityPackage]
 
-  """
-  List of packages affected by this CVE.
-  """
+  """List of packages affected by this CVE."""
   affected_packages: [ContainerImageVulnerabilityAffectedPackage]
 
-  """
-  Date the CVE was made public.
-  """
+  """Date the CVE was made public."""
   public_date: String
 
-  """
-  CVE severity.
-  """
+  """CVE severity."""
   severity: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -3421,34 +2577,22 @@ type ContainerImageVulnerability {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
-"""
-Information about package affected by the CVE.
-"""
+"""Information about package affected by the CVE."""
 type ContainerImageVulnerabilityAffectedPackage {
-  """
-  The name of the package.
-  """
+  """The name of the package."""
   name: String
 
-  """
-  Package version.
-  """
+  """Package version."""
   version: String
 
-  """
-  Package architecture.
-  """
+  """Package architecture."""
   arch: String
 
-  """
-  Package type.
-  """
+  """Package type."""
   package_type: String
 }
 
@@ -3515,18 +2659,14 @@ input ContainerImageVulnerabilityFilter {
   not: ContainerImageVulnerabilityFilter
 }
 
-"""
-The image that fixes the vulnerability.
-"""
+"""The image that fixes the vulnerability."""
 type ContainerImageVulnerabilityFixedByImage {
-  """
-  The _id of the image that fixes the vulnerability.
-  """
+  """The _id of the image that fixes the vulnerability."""
   id: String
 
   """
   The data is denormalized to not require lookup in UI.
-
+  
   RISK: could get out of sync with real refrenced data.
   """
   repositories: [ContainerImageVulnerabilityFixedByRepository]
@@ -3534,9 +2674,7 @@ type ContainerImageVulnerabilityFixedByImage {
 }
 
 type ContainerImageVulnerabilityFixedByImageEdges {
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -3600,18 +2738,12 @@ input ContainerImageVulnerabilityFixedByRepositoryListIndexFilter {
   index: Int
 }
 
-"""
-Package information applicable to this CVE.
-"""
+"""Package information applicable to this CVE."""
 type ContainerImageVulnerabilityPackage {
-  """
-  The next image that fixes this vulnerability.
-  """
+  """The next image that fixes this vulnerability."""
   fixed_by_image: ContainerImageVulnerabilityFixedByImage
 
-  """
-  The source RPM that contains the fix.
-  """
+  """The source RPM that contains the fix."""
   srpm_nevra: String
 
   """
@@ -3709,13 +2841,9 @@ input ContainerImageVulnerabilityTagListIndexFilter {
   index: Int
 }
 
-"""
-Contains metadata associated with Red Hat and ISV repositories
-"""
+"""Contains metadata associated with Red Hat and ISV repositories"""
 type ContainerRepository {
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
   """
@@ -3723,9 +2851,7 @@ type ContainerRepository {
   """
   architectures: [String]
 
-  """
-  Denote which tags to be used for auto-rebuilding processes.
-  """
+  """Denote which tags to be used for auto-rebuilding processes."""
   auto_rebuild_tags: [String]
 
   """
@@ -3749,9 +2875,7 @@ type ContainerRepository {
   """
   content_stream_tags: [String]
 
-  """
-  Description of the repository.
-  """
+  """Description of the repository."""
   description: String
   display_data: RepositoryDisplayData
 
@@ -3774,30 +2898,20 @@ type ContainerRepository {
   """
   engineering_ids: [String]
 
-  """
-  Flag indicating which team has opted-in to use the File Based Catalog.
-  """
+  """Flag indicating which team has opted-in to use the File Based Catalog."""
   fbc_opt_in: Boolean
   eol_date: DateTime
 
-  """
-  Date until the freshness grades for this repository are unknown.
-  """
+  """Date until the freshness grades for this repository are unknown."""
   freshness_grades_unknown_until_date: DateTime
 
-  """
-  Defines  whether a repository contains multiple image streams.
-  """
+  """Defines  whether a repository contains multiple image streams."""
   includes_multiple_content_streams: Boolean
 
-  """
-  Designates whether a repository is community-supported.
-  """
+  """Designates whether a repository is community-supported."""
   is_community_supported: Boolean
 
-  """
-  ID of the project in for ISV repositories.
-  """
+  """ID of the project in for ISV repositories."""
   isv_pid: String
 
   """
@@ -3805,19 +2919,13 @@ type ContainerRepository {
   """
   metadata_source: String
 
-  """
-  Set of metrics about the repository.
-  """
+  """Set of metrics about the repository."""
   metrics: RepositoryMetrics
 
-  """
-  Namespace of the repository.
-  """
+  """Namespace of the repository."""
   namespace: String
 
-  """
-  Repository is intended for non-production use only.
-  """
+  """Repository is intended for non-production use only."""
   non_production_only: Boolean
   object_type: String
 
@@ -3826,19 +2934,13 @@ type ContainerRepository {
   """
   privileged_images_allowed: Boolean
 
-  """
-  ID of the project in PRM. Only for ISV repositories.
-  """
+  """ID of the project in PRM. Only for ISV repositories."""
   prm_project_id: String
 
-  """
-  List of unique identifiers for the product listings.
-  """
+  """List of unique identifiers for the product listings."""
   product_listings: [ObjectID]
 
-  """
-  Map repositories to specific product versions.
-  """
+  """Map repositories to specific product versions."""
   product_versions: [String]
   protected_for_pull: Boolean
 
@@ -3852,9 +2954,7 @@ type ContainerRepository {
   """
   published: Boolean
 
-  """
-  Hostname of the registry where the repository can be accessed.
-  """
+  """Hostname of the registry where the repository can be accessed."""
   registry: String
 
   """
@@ -3862,19 +2962,13 @@ type ContainerRepository {
   """
   registry_target: String
 
-  """
-  The release categories of a repository.
-  """
+  """The release categories of a repository."""
   release_categories: [String]
 
-  """
-  Defines repository to point to in case this one is deprecated.
-  """
+  """Defines repository to point to in case this one is deprecated."""
   replaced_by_repository_name: String
 
-  """
-  Combination of image repository and namespace.
-  """
+  """Combination of image repository and namespace."""
   repository: String
 
   """
@@ -3884,9 +2978,7 @@ type ContainerRepository {
   """
   requires_terms: Boolean
 
-  """
-  Describes what the image can be run on.
-  """
+  """Describes what the image can be run on."""
   runs_on: RepositoryRunsOn
 
   """
@@ -3896,19 +2988,13 @@ type ContainerRepository {
   """
   source_container_image_enabled: Boolean
 
-  """
-  The support levels of a repository.
-  """
+  """The support levels of a repository."""
   support_levels: [String]
 
-  """
-  Total size of all images in bytes.
-  """
+  """Total size of all images in bytes."""
   total_size_bytes: Int64
 
-  """
-  Total size of all uncompressed images in bytes.
-  """
+  """Total size of all uncompressed images in bytes."""
   total_uncompressed_size_bytes: Int64
 
   """
@@ -3921,19 +3007,13 @@ type ContainerRepository {
   """
   use_latest: Boolean
 
-  """
-  Label of the vendor that owns this repository.
-  """
+  """Label of the vendor that owns this repository."""
   vendor_label: String
 
-  """
-  Marketplace related information.
-  """
+  """Marketplace related information."""
   marketplace: ContainerRepositoryMarketplace
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -3941,76 +3021,34 @@ type ContainerRepository {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: ContainerRepositoryEdges
 }
 
 type ContainerRepositoryEdges {
-  """
-  Get certification project using Red Hat Connect project ID.
-  """
+  """Get certification project using Red Hat Connect project ID."""
   certification_project(pid: String): CertificationProjectResponse
 
-  """
-  List images for a repository. Exclude total for improved performance.
-  """
-  images(
-    registry: String
-    repository: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """List images for a repository. Exclude total for improved performance."""
+  images(registry: String, repository: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Find product listings associated with repository.
-  """
-  product_listings(
-    registry: String
-    repository: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Find product listings associated with repository."""
+  product_listings(registry: String, repository: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  List operator bundles for a repository.
-  """
-  operator_bundles(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    registry: String
-    repository: String
-    filter: OperatorBundleFilter
-  ): OperatorBundlePaginatedResponse
+  """List operator bundles for a repository."""
+  operator_bundles(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], registry: String, repository: String, filter: OperatorBundleFilter): OperatorBundlePaginatedResponse
 
-  """
-  Get a repository by registry and path (product line/image name).
-  """
-  replaced_by_repository(
-    registry: String
-    repository: String
-  ): ContainerRepositoryResponse
+  """Get a repository by registry and path (product line/image name)."""
+  replaced_by_repository(registry: String, repository: String): ContainerRepositoryResponse
 
-  """
-  Get a vendor by label.
-  """
+  """Get a vendor by label."""
   vendor(label: String): ContainerVendorResponse
 }
 
-"""
-Contains metadata associated with Red Hat and ISV repositories
-"""
+"""Contains metadata associated with Red Hat and ISV repositories"""
 type ContainerRepositoryFederated {
-  """
-  The application categories (types).
-  """
+  """The application categories (types)."""
   application_categories: [String]
 
   """
@@ -4018,9 +3056,7 @@ type ContainerRepositoryFederated {
   """
   architectures: [String]
 
-  """
-  Denote which tags to be used for auto-rebuilding processes.
-  """
+  """Denote which tags to be used for auto-rebuilding processes."""
   auto_rebuild_tags: [String]
 
   """
@@ -4044,9 +3080,7 @@ type ContainerRepositoryFederated {
   """
   content_stream_tags: [String]
 
-  """
-  Description of the repository.
-  """
+  """Description of the repository."""
   description: String
   display_data: RepositoryDisplayData
 
@@ -4069,30 +3103,20 @@ type ContainerRepositoryFederated {
   """
   engineering_ids: [String]
 
-  """
-  Flag indicating which team has opted-in to use the File Based Catalog.
-  """
+  """Flag indicating which team has opted-in to use the File Based Catalog."""
   fbc_opt_in: Boolean
   eol_date: DateTime
 
-  """
-  Date until the freshness grades for this repository are unknown.
-  """
+  """Date until the freshness grades for this repository are unknown."""
   freshness_grades_unknown_until_date: DateTime
 
-  """
-  Defines  whether a repository contains multiple image streams.
-  """
+  """Defines  whether a repository contains multiple image streams."""
   includes_multiple_content_streams: Boolean
 
-  """
-  Designates whether a repository is community-supported.
-  """
+  """Designates whether a repository is community-supported."""
   is_community_supported: Boolean
 
-  """
-  ID of the project in for ISV repositories.
-  """
+  """ID of the project in for ISV repositories."""
   isv_pid: String
 
   """
@@ -4100,19 +3124,13 @@ type ContainerRepositoryFederated {
   """
   metadata_source: String
 
-  """
-  Set of metrics about the repository.
-  """
+  """Set of metrics about the repository."""
   metrics: RepositoryMetrics
 
-  """
-  Namespace of the repository.
-  """
+  """Namespace of the repository."""
   namespace: String
 
-  """
-  Repository is intended for non-production use only.
-  """
+  """Repository is intended for non-production use only."""
   non_production_only: Boolean
   object_type: String
 
@@ -4121,19 +3139,13 @@ type ContainerRepositoryFederated {
   """
   privileged_images_allowed: Boolean
 
-  """
-  ID of the project in PRM. Only for ISV repositories.
-  """
+  """ID of the project in PRM. Only for ISV repositories."""
   prm_project_id: String
 
-  """
-  List of unique identifiers for the product listings.
-  """
+  """List of unique identifiers for the product listings."""
   product_listings: [ObjectID]
 
-  """
-  Map repositories to specific product versions.
-  """
+  """Map repositories to specific product versions."""
   product_versions: [String]
   protected_for_pull: Boolean
 
@@ -4147,9 +3159,7 @@ type ContainerRepositoryFederated {
   """
   published: Boolean
 
-  """
-  Hostname of the registry where the repository can be accessed.
-  """
+  """Hostname of the registry where the repository can be accessed."""
   registry: String
 
   """
@@ -4157,19 +3167,13 @@ type ContainerRepositoryFederated {
   """
   registry_target: String
 
-  """
-  The release categories of a repository.
-  """
+  """The release categories of a repository."""
   release_categories: [String]
 
-  """
-  Defines repository to point to in case this one is deprecated.
-  """
+  """Defines repository to point to in case this one is deprecated."""
   replaced_by_repository_name: String
 
-  """
-  Combination of image repository and namespace.
-  """
+  """Combination of image repository and namespace."""
   repository: String
 
   """
@@ -4179,9 +3183,7 @@ type ContainerRepositoryFederated {
   """
   requires_terms: Boolean
 
-  """
-  Describes what the image can be run on.
-  """
+  """Describes what the image can be run on."""
   runs_on: RepositoryRunsOn
 
   """
@@ -4191,19 +3193,13 @@ type ContainerRepositoryFederated {
   """
   source_container_image_enabled: Boolean
 
-  """
-  The support levels of a repository.
-  """
+  """The support levels of a repository."""
   support_levels: [String]
 
-  """
-  Total size of all images in bytes.
-  """
+  """Total size of all images in bytes."""
   total_size_bytes: Int64
 
-  """
-  Total size of all uncompressed images in bytes.
-  """
+  """Total size of all uncompressed images in bytes."""
   total_uncompressed_size_bytes: Int64
 
   """
@@ -4216,24 +3212,16 @@ type ContainerRepositoryFederated {
   """
   use_latest: Boolean
 
-  """
-  Label of the vendor that owns this repository.
-  """
+  """Label of the vendor that owns this repository."""
   vendor_label: String
 
-  """
-  Marketplace related information.
-  """
+  """Marketplace related information."""
   marketplace: ContainerRepositoryMarketplace
 
-  """
-  List of products that are part of the product listing.
-  """
+  """List of products that are part of the product listing."""
   products: [Product]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -4241,9 +3229,7 @@ type ContainerRepositoryFederated {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -4329,9 +3315,7 @@ input ContainerRepositoryFilter {
   not: ContainerRepositoryFilter
 }
 
-"""
-Marketplace related information.
-"""
+"""Marketplace related information."""
 type ContainerRepositoryMarketplace {
   listing_url: URI
 }
@@ -4359,15 +3343,11 @@ type ContainerRepositoryResponse {
   error: ResponseError
 }
 
-"""
-Object for GraphQL response
-"""
+"""Object for GraphQL response"""
 type ContainerSignatureExternal {
   signature_data: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -4375,9 +3355,7 @@ type ContainerSignatureExternal {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -4408,34 +3386,22 @@ The tag history stores a list of image that still have or used to have the given
 type ContainerTagHistory {
   object_type: String
 
-  """
-  Hostname of the registry where the repository can be accessed.
-  """
+  """Hostname of the registry where the repository can be accessed."""
   registry: String
 
-  """
-  Repository name.
-  """
+  """Repository name."""
   repository: String
 
-  """
-  The image tag name.
-  """
+  """The image tag name."""
   tag: String
 
-  """
-  The tag type i.e. for floating or persistent.
-  """
+  """The tag type i.e. for floating or persistent."""
   tag_type: String
 
-  """
-  Array with the tag history information.
-  """
+  """Array with the tag history information."""
   history: [History]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -4443,9 +3409,7 @@ type ContainerTagHistory {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: ContainerTagHistoryEdges
 }
@@ -4454,13 +3418,7 @@ type ContainerTagHistoryEdges {
   """
   Get images for tag history that have or used to have the tag. Exclude total for improved performance.
   """
-  images(
-    id: ObjectIDFilterScalar
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  images(id: ObjectIDFilterScalar, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerImageFilter): ContainerImagePaginatedResponse
 }
 
 input ContainerTagHistoryFilter {
@@ -4496,15 +3454,11 @@ type ContainerTagHistoryResponse {
   error: ResponseError
 }
 
-"""
-Stores information about a Vendor
-"""
+"""Stores information about a Vendor"""
 type ContainerVendor {
   allow_hosted_container_registry: Boolean
 
-  """
-  URL to the vendor's main website.
-  """
+  """URL to the vendor's main website."""
   company_url: URI
 
   """
@@ -4513,44 +3467,30 @@ type ContainerVendor {
   contact: ContainerVendorContact
   description: String
 
-  """
-  MDM (Master Data Management) identifier.
-  """
+  """MDM (Master Data Management) identifier."""
   mdm_id: String
 
-  """
-  Company node ID from Red Hat Connect.
-  """
+  """Company node ID from Red Hat Connect."""
   drupal_company_id: Int
 
-  """
-  The industry / vertical the vendor belongs to.
-  """
+  """The industry / vertical the vendor belongs to."""
   industries: [String]
   label: String
 
-  """
-  A flag that determines if vendor label can be changed.
-  """
+  """A flag that determines if vendor label can be changed."""
   label_locked: Boolean
   logo_url: URI
   name: String
   object_type: String
 
-  """
-  Indicate that the vendor has been published.
-  """
+  """Indicate that the vendor has been published."""
   published: Boolean
   registry_urls: [String]
 
-  """
-  RSS feed for vendor.
-  """
+  """RSS feed for vendor."""
   rss_feed_url: URI
 
-  """
-  Token for outbound namespace for pulling published marketplace images.
-  """
+  """Token for outbound namespace for pulling published marketplace images."""
   service_account_token: String
   social_media_links: [ContainerVendorSocialMediaLinks]
 
@@ -4559,9 +3499,7 @@ type ContainerVendor {
   """
   org_id: Int
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -4569,98 +3507,48 @@ type ContainerVendor {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: ContainerVendorEdges
 }
 
-"""
-Contact information
-"""
+"""Contact information"""
 type ContainerVendorContact {
-  """
-  General contact email address.
-  """
+  """General contact email address."""
   email: String
 
-  """
-  General contact phone number.
-  """
+  """General contact phone number."""
   phone: String
 }
 
-"""
-Contact information
-"""
+"""Contact information"""
 input ContainerVendorContactInput {
-  """
-  General contact email address.
-  """
+  """General contact email address."""
   email: String
 
-  """
-  General contact phone number.
-  """
+  """General contact phone number."""
   phone: String
 }
 
 type ContainerVendorEdges {
-  """
-  Get the product listings for a vendor by Company Org ID.
-  """
-  product_listings_org_id(
-    org_id: Int
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get the product listings for a vendor by Company Org ID."""
+  product_listings_org_id(org_id: Int, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get the product listings for a vendor by label.
-  """
-  product_listings_label(
-    label: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get the product listings for a vendor by label."""
+  product_listings_label(label: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get certification projects for a vendor by Company Org ID.
-  """
-  certification_projects(
-    org_id: Int
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertificationProjectFilter
-  ): CertificationProjectPaginatedResponse
+  """Get certification projects for a vendor by Company Org ID."""
+  certification_projects(org_id: Int, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertificationProjectFilter): CertificationProjectPaginatedResponse
 
-  """
-  Get the repositories for a vendor label.
-  """
-  repositories(
-    label: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryPaginatedResponse
+  """Get the repositories for a vendor label."""
+  repositories(label: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryPaginatedResponse
 }
 
-"""
-Stores information about a Vendor
-"""
+"""Stores information about a Vendor"""
 input ContainerVendorInput {
   allow_hosted_container_registry: Boolean
 
-  """
-  URL to the vendor's main website.
-  """
+  """URL to the vendor's main website."""
   company_url: URI
 
   """
@@ -4669,44 +3557,30 @@ input ContainerVendorInput {
   contact: ContainerVendorContactInput
   description: String
 
-  """
-  MDM (Master Data Management) identifier.
-  """
+  """MDM (Master Data Management) identifier."""
   mdm_id: String
 
-  """
-  Company node ID from Red Hat Connect.
-  """
+  """Company node ID from Red Hat Connect."""
   drupal_company_id: Int
 
-  """
-  The industry / vertical the vendor belongs to.
-  """
+  """The industry / vertical the vendor belongs to."""
   industries: [String]
   label: String
 
-  """
-  A flag that determines if vendor label can be changed.
-  """
+  """A flag that determines if vendor label can be changed."""
   label_locked: Boolean
   logo_url: URI
   name: String
   object_type: String
 
-  """
-  Indicate that the vendor has been published.
-  """
+  """Indicate that the vendor has been published."""
   published: Boolean
   registry_urls: [String]
 
-  """
-  RSS feed for vendor.
-  """
+  """RSS feed for vendor."""
   rss_feed_url: URI
 
-  """
-  Token for outbound namespace for pulling published marketplace images.
-  """
+  """Token for outbound namespace for pulling published marketplace images."""
   service_account_token: String
   social_media_links: [ContainerVendorSocialMediaLinksInput]
 
@@ -4715,9 +3589,7 @@ input ContainerVendorInput {
   """
   org_id: Int
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -4725,9 +3597,7 @@ input ContainerVendorInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -4736,48 +3606,30 @@ type ContainerVendorResponse {
   error: ResponseError
 }
 
-"""
-Social media links.
-"""
+"""Social media links."""
 type ContainerVendorSocialMediaLinks {
-  """
-  The name of the social media provider.
-  """
+  """The name of the social media provider."""
   name: String
 
-  """
-  The URL to the social media site for the vendor.
-  """
+  """The URL to the social media site for the vendor."""
   url: URI
 }
 
-"""
-Social media links.
-"""
+"""Social media links."""
 input ContainerVendorSocialMediaLinksInput {
-  """
-  The name of the social media provider.
-  """
+  """The name of the social media provider."""
   name: String
 
-  """
-  The URL to the social media site for the vendor.
-  """
+  """The URL to the social media site for the vendor."""
   url: URI
 }
 
-"""
-CVE fixed by an advisory.
-"""
+"""CVE fixed by an advisory."""
 type CVE {
-  """
-  Unique identifier of the issue in the issue tracking system.
-  """
+  """Unique identifier of the issue in the issue tracking system."""
   id: String
 
-  """
-  Publicly accessible URL of the issue information.
-  """
+  """Publicly accessible URL of the issue information."""
   url: URI
 }
 
@@ -4848,9 +3700,7 @@ Usage: In (Filtering)
 """
 scalar DateTimeFilterScalar
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 type Descriptions {
   long: String
 
@@ -4873,9 +3723,7 @@ input DescriptionsFilter {
   not: DescriptionsFilter
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 input DescriptionsInput {
   long: String
 
@@ -4919,9 +3767,7 @@ input EmailFilter {
   regex: String
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 type FAQSItems {
   answer: String
   question: String
@@ -4945,9 +3791,7 @@ input FAQSItemsFilter {
   not: FAQSItemsFilter
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 input FAQSItemsInput {
   answer: String
   question: String
@@ -4970,9 +3814,7 @@ input FAQSItemsListIndexFilter {
   index: Int
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 type FeaturesItems {
   description: String
   title: String
@@ -4996,9 +3838,7 @@ input FeaturesItemsFilter {
   not: FeaturesItemsFilter
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 input FeaturesItemsInput {
   description: String
   title: String
@@ -5021,9 +3861,7 @@ input FeaturesItemsListIndexFilter {
   index: Int
 }
 
-"""
-Tracks changes to a field.
-"""
+"""Tracks changes to a field."""
 type FieldHistoryBoolean {
   history: [FieldHistoryDetailBoolean]
 }
@@ -5040,30 +3878,20 @@ input FieldHistoryBooleanFilter {
   not: FieldHistoryBooleanFilter
 }
 
-"""
-Tracks changes to a field.
-"""
+"""Tracks changes to a field."""
 input FieldHistoryBooleanInput {
   history: [FieldHistoryDetailBooleanInput]
 }
 
-"""
-Represents a single change to a field.
-"""
+"""Represents a single change to a field."""
 type FieldHistoryDetailBoolean {
-  """
-  Date of change.
-  """
+  """Date of change."""
   date: DateTime
 
-  """
-  User who made the change.
-  """
+  """User who made the change."""
   updated_by: String
 
-  """
-  Value that the field was changed to.
-  """
+  """Value that the field was changed to."""
   value: Boolean
 }
 
@@ -5086,23 +3914,15 @@ input FieldHistoryDetailBooleanFilter {
   not: FieldHistoryDetailBooleanFilter
 }
 
-"""
-Represents a single change to a field.
-"""
+"""Represents a single change to a field."""
 input FieldHistoryDetailBooleanInput {
-  """
-  Date of change.
-  """
+  """Date of change."""
   date: DateTime
 
-  """
-  User who made the change.
-  """
+  """User who made the change."""
   updated_by: String
 
-  """
-  Value that the field was changed to.
-  """
+  """Value that the field was changed to."""
   value: Boolean
 }
 
@@ -5124,23 +3944,15 @@ input FieldHistoryDetailBooleanListIndexFilter {
   index: Int
 }
 
-"""
-Represents a single change to a field.
-"""
+"""Represents a single change to a field."""
 type FieldHistoryDetailString {
-  """
-  Date of change.
-  """
+  """Date of change."""
   date: DateTime
 
-  """
-  User who made the change.
-  """
+  """User who made the change."""
   updated_by: String
 
-  """
-  Value that the field was changed to.
-  """
+  """Value that the field was changed to."""
   value: String
 }
 
@@ -5163,23 +3975,15 @@ input FieldHistoryDetailStringFilter {
   not: FieldHistoryDetailStringFilter
 }
 
-"""
-Represents a single change to a field.
-"""
+"""Represents a single change to a field."""
 input FieldHistoryDetailStringInput {
-  """
-  Date of change.
-  """
+  """Date of change."""
   date: DateTime
 
-  """
-  User who made the change.
-  """
+  """User who made the change."""
   updated_by: String
 
-  """
-  Value that the field was changed to.
-  """
+  """Value that the field was changed to."""
   value: String
 }
 
@@ -5201,9 +4005,7 @@ input FieldHistoryDetailStringListIndexFilter {
   index: Int
 }
 
-"""
-Tracks changes to a field.
-"""
+"""Tracks changes to a field."""
 type FieldHistoryString {
   history: [FieldHistoryDetailString]
 }
@@ -5220,30 +4022,22 @@ input FieldHistoryStringFilter {
   not: FieldHistoryStringFilter
 }
 
-"""
-Tracks changes to a field.
-"""
+"""Tracks changes to a field."""
 input FieldHistoryStringInput {
   history: [FieldHistoryDetailStringInput]
 }
 
-"""
-Descriptor of the field in the GraphQL schema.
-"""
+"""Descriptor of the field in the GraphQL schema."""
 type FieldMetadata {
   """
   A list of possible values for a field. Empty list indicates that field accepts arbitrary value.
   """
   enum_values: [String]
 
-  """
-  Indicates minimum length of the string field value.
-  """
+  """Indicates minimum length of the string field value."""
   min_length_value: Int
 
-  """
-  Indicates maximum length of the string field value.
-  """
+  """Indicates maximum length of the string field value."""
   max_length_value: Int
 
   """
@@ -5266,14 +4060,10 @@ type FieldMetadata {
   """
   is_required: Boolean
 
-  """
-  Indicates if field is read-only and cannot be changed.
-  """
+  """Indicates if field is read-only and cannot be changed."""
   is_read_only: Boolean
 
-  """
-  Indicates if field value can be set as null.
-  """
+  """Indicates if field value can be set as null."""
   is_nullable: Boolean
 
   """
@@ -5281,14 +4071,10 @@ type FieldMetadata {
   """
   is_type_of: String
 
-  """
-  Returns the description of the field.
-  """
+  """Returns the description of the field."""
   description_value: String
 
-  """
-  Indicates if field value is compressed at rest.
-  """
+  """Indicates if field value is compressed at rest."""
   is_compressed: Boolean
 
   """
@@ -5298,19 +4084,13 @@ type FieldMetadata {
   """
   subfields: [String]
 
-  """
-  List specific field. Indicates minimum number of items in the list.
-  """
+  """List specific field. Indicates minimum number of items in the list."""
   min_items_value: Int
 
-  """
-  List specific field. Indicates maximum number of items in the list.
-  """
+  """List specific field. Indicates maximum number of items in the list."""
   max_items_value: Int
 
-  """
-  The items field represent the value of field's items status.
-  """
+  """The items field represent the value of field's items status."""
   has_list_items_of_type: String
 }
 
@@ -5330,9 +4110,7 @@ input FloatFilter {
   out: [Float]
 }
 
-"""
-Object with all log forwarder statuses
-"""
+"""Object with all log forwarder statuses"""
 type Forwarders {
   fluentd: ForwarderStatusInfo
 }
@@ -5341,13 +4119,9 @@ type ForwarderStatus {
   forwarders: Forwarders
 }
 
-"""
-Splunk forwarder status information
-"""
+"""Splunk forwarder status information"""
 type ForwarderStatusInfo {
-  """
-  Forwarder status
-  """
+  """Forwarder status"""
   status: Boolean
 }
 
@@ -5356,9 +4130,7 @@ type ForwarderStatusResponse {
   error: ResponseError
 }
 
-"""
-Grade based on applicable updates and time provided by PST CVE engine.
-"""
+"""Grade based on applicable updates and time provided by PST CVE engine."""
 type FreshnessGrade {
   """
   Date after which the grade is no longer valid. See start_date for when the
@@ -5367,14 +4139,10 @@ type FreshnessGrade {
   """
   end_date: DateTime
 
-  """
-  The grade.
-  """
+  """The grade."""
   grade: String
 
-  """
-  Date when the grade was added by the vulnerability engine.
-  """
+  """Date when the grade was added by the vulnerability engine."""
   creation_date: DateTime
 
   """
@@ -5403,9 +4171,7 @@ input FreshnessGradeFilter {
   not: FreshnessGradeFilter
 }
 
-"""
-Grade based on applicable updates and time provided by PST CVE engine.
-"""
+"""Grade based on applicable updates and time provided by PST CVE engine."""
 input FreshnessGradeInput {
   """
   Date after which the grade is no longer valid. See start_date for when the
@@ -5414,14 +4180,10 @@ input FreshnessGradeInput {
   """
   end_date: DateTime
 
-  """
-  The grade.
-  """
+  """The grade."""
   grade: String
 
-  """
-  Date when the grade was added by the vulnerability engine.
-  """
+  """Date when the grade was added by the vulnerability engine."""
   creation_date: DateTime
 
   """
@@ -5453,14 +4215,10 @@ input FreshnessGradeListIndexFilter {
 Images that participated in the evaluation of the current image's security grade.
 """
 type GradesImageIds {
-  """
-  Id of the image.
-  """
+  """Id of the image."""
   id: String
 
-  """
-  Architecture of the image.
-  """
+  """Architecture of the image."""
   arch: String
   edges: GradesImageIdsEdges
 }
@@ -5469,13 +4227,7 @@ type GradesImageIdsEdges {
   """
   Get a list of image vulnerabilities associated with an image. Exclude total for improved performance.
   """
-  vulnerabilities(
-    id: String
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerImageVulnerabilityFilter
-  ): ContainerImageVulnerabilityPaginatedResponse
+  vulnerabilities(id: String, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerImageVulnerabilityFilter): ContainerImageVulnerabilityPaginatedResponse
 }
 
 input GradesImageIdsElemMatchFilter {
@@ -5513,19 +4265,13 @@ input GradesImageIdsListIndexFilter {
   index: Int
 }
 
-"""
-Array with the tag history information.
-"""
+"""Array with the tag history information."""
 type History {
-  """
-  Unique immutable build identifier in the brew build system.
-  """
+  """Unique immutable build identifier in the brew build system."""
   brew_build: String
   end_date: DateTime
 
-  """
-  The date for when the tag for the given docker_image_digest starts.
-  """
+  """The date for when the tag for the given docker_image_digest starts."""
   start_date: DateTime
 }
 
@@ -5597,23 +4343,15 @@ input IntFilter {
   out: [Int]
 }
 
-"""
-Issue fixed by an advisory.
-"""
+"""Issue fixed by an advisory."""
 type Issue {
-  """
-  Unique identifier of the issue in the issue tracking system.
-  """
+  """Unique identifier of the issue in the issue tracking system."""
   id: String
 
-  """
-  Hostname of the issue tracking system used.
-  """
+  """Hostname of the issue tracking system used."""
   issue_tracker: String
 
-  """
-  Publicly accessible URL of the issue information.
-  """
+  """Publicly accessible URL of the issue information."""
   url: URI
 }
 
@@ -5654,18 +4392,12 @@ input IssueListIndexFilter {
   index: Int
 }
 
-"""
-Image label.
-"""
+"""Image label."""
 type Label {
-  """
-  The name of the label
-  """
+  """The name of the label"""
   name: String
 
-  """
-  Value of the label.
-  """
+  """Value of the label."""
   value: String
 }
 
@@ -5687,18 +4419,12 @@ input LabelFilter {
   not: LabelFilter
 }
 
-"""
-Image label.
-"""
+"""Image label."""
 input LabelInput {
-  """
-  The name of the label
-  """
+  """The name of the label"""
   name: String
 
-  """
-  Value of the label.
-  """
+  """Value of the label."""
   value: String
 }
 
@@ -5831,216 +4557,96 @@ Usage: In and Out (Input, Output)
 """
 scalar LowercaseString
 
-"""
-Status object for a mongoDB database
-"""
+"""Status object for a mongoDB database"""
 type MongoDBStatus {
-  """
-  Name of the database
-  """
+  """Name of the database"""
   name: String
 
-  """
-  Indicates if database can be reached.
-  """
+  """Indicates if database can be reached."""
   reachable: Boolean
 }
 
-"""
-Status of mongoDB databases Pyxis depends on.
-"""
+"""Status of mongoDB databases Pyxis depends on."""
 type MongoStatusGQL {
   mongodb_databases: [MongoDBStatus]
 }
 
 type Mutation {
-  """
-  Create image.
-  """
+  """Create image."""
   create_image(input: ContainerImageInput): ContainerImageResponse
 
-  """
-  Update/Patch image.
-  """
-  update_image(
-    id: ObjectIDFilterScalar
-    input: ContainerImageInput
-  ): ContainerImageResponse
+  """Update/Patch image."""
+  update_image(id: ObjectIDFilterScalar, input: ContainerImageInput): ContainerImageResponse
 
-  """
-  Replace image.
-  """
-  replace_image(
-    id: ObjectIDFilterScalar
-    input: ContainerImageInput
-  ): ContainerImageResponse
+  """Replace image."""
+  replace_image(id: ObjectIDFilterScalar, input: ContainerImageInput): ContainerImageResponse
 
-  """
-  Replace container image by manifest digest.
-  """
-  replace_image_by_manifest_digest_registry_and_repository(
-    registry: String
-    repository: String
-    manifest_digest: String
-    input: ContainerImageInput
-  ): ContainerImageResponse
+  """Replace container image by manifest digest."""
+  replace_image_by_manifest_digest_registry_and_repository(registry: String, repository: String, manifest_digest: String, input: ContainerImageInput): ContainerImageResponse
 
-  """
-  Update container image by manifest digest.
-  """
-  update_image_by_manifest_digest_registry_and_repository(
-    registry: String
-    repository: String
-    manifest_digest: String
-    input: ContainerImageInput
-  ): ContainerImageResponse
+  """Update container image by manifest digest."""
+  update_image_by_manifest_digest_registry_and_repository(registry: String, repository: String, manifest_digest: String, input: ContainerImageInput): ContainerImageResponse
 
-  """
-  Update/Patch a RPM manifest by ID.
-  """
-  update_image_rpm_manifest(
-    id: ObjectIDFilterScalar
-    input: ContainerImageRPMManifestInput
-  ): ContainerImageRPMManifestResponse
+  """Update/Patch a RPM manifest by ID."""
+  update_image_rpm_manifest(id: ObjectIDFilterScalar, input: ContainerImageRPMManifestInput): ContainerImageRPMManifestResponse
 
-  """
-  Replace/Put a RPM Manifest by ID.
-  """
-  replace_image_rpm_manifest(
-    id: ObjectIDFilterScalar
-    input: ContainerImageRPMManifestInput
-  ): ContainerImageRPMManifestResponse
+  """Replace/Put a RPM Manifest by ID."""
+  replace_image_rpm_manifest(id: ObjectIDFilterScalar, input: ContainerImageRPMManifestInput): ContainerImageRPMManifestResponse
 
-  """
-  Create a new RPM manifest for an image.
-  """
-  create_image_rpm_manifest(
-    id: String
-    input: ContainerImageRPMManifestInput
-  ): ContainerImageRPMManifestResponse
+  """Create a new RPM manifest for an image."""
+  create_image_rpm_manifest(id: String, input: ContainerImageRPMManifestInput): ContainerImageRPMManifestResponse
 
-  """
-  Create a certification project image request
-  """
-  create_certification_project_image_request(
-    id: ObjectIDFilterScalar
-    input: CertProjectImageRequestInput
-  ): CertProjectImageRequestResponse
+  """Create a certification project image request"""
+  create_certification_project_image_request(id: ObjectIDFilterScalar, input: CertProjectImageRequestInput): CertProjectImageRequestResponse
 
-  """
-  Partially update a vendor.
-  """
-  update_vendor(
-    id: ObjectIDFilterScalar
-    input: ContainerVendorInput
-  ): ContainerVendorResponse
+  """Partially update a vendor."""
+  update_vendor(id: ObjectIDFilterScalar, input: ContainerVendorInput): ContainerVendorResponse
 
-  """
-  Create a certification project.
-  """
-  create_certification_project(
-    input: CertificationProjectInput
-  ): CertificationProjectResponse
+  """Create a certification project."""
+  create_certification_project(input: CertificationProjectInput): CertificationProjectResponse
 
-  """
-  Partially update a certification project.
-  """
-  update_certification_project(
-    id: ObjectIDFilterScalar
-    input: CertificationProjectInput
-  ): CertificationProjectResponse
+  """Partially update a certification project."""
+  update_certification_project(id: ObjectIDFilterScalar, input: CertificationProjectInput): CertificationProjectResponse
 
-  """
-  Update a certification project.
-  """
-  replace_certification_project(
-    id: ObjectIDFilterScalar
-    input: CertificationProjectInput
-  ): CertificationProjectResponse
+  """Update a certification project."""
+  replace_certification_project(id: ObjectIDFilterScalar, input: CertificationProjectInput): CertificationProjectResponse
 
-  """
-  Replace product listing.
-  """
-  replace_product_listing(
-    id: ObjectIDFilterScalar
-    input: ProductListingInput
-  ): ProductListingResponse
+  """Replace product listing."""
+  replace_product_listing(id: ObjectIDFilterScalar, input: ProductListingInput): ProductListingResponse
 
-  """
-  Update product listing.
-  """
-  update_product_listing(
-    id: ObjectIDFilterScalar
-    input: ProductListingInput
-  ): ProductListingResponse
+  """Update product listing."""
+  update_product_listing(id: ObjectIDFilterScalar, input: ProductListingInput): ProductListingResponse
 
-  """
-  Create product listing.
-  """
+  """Create product listing."""
   create_product_listing(input: ProductListingInput): ProductListingResponse
 
-  """
-  Create product validation.
-  """
-  create_product_validation(
-    input: ProductValidationInput
-  ): ProductValidationResponse
+  """Create product validation."""
+  create_product_validation(input: ProductValidationInput): ProductValidationResponse
 
-  """
-  Update product validation.
-  """
-  update_product_validation(
-    id: ObjectIDFilterScalar
-    input: ProductValidationInput
-  ): ProductValidationResponse
+  """Update product validation."""
+  update_product_validation(id: ObjectIDFilterScalar, input: ProductValidationInput): ProductValidationResponse
 
-  """
-  Replace product validation.
-  """
-  replace_product_validation(
-    id: ObjectIDFilterScalar
-    input: ProductValidationInput
-  ): ProductValidationResponse
+  """Replace product validation."""
+  replace_product_validation(id: ObjectIDFilterScalar, input: ProductValidationInput): ProductValidationResponse
 
-  """
-  Create an API key.
-  """
-  create_api_key(
-    input: ApiKeyOrgIDWithDescriptionRequestInput
-  ): ApiKeyRespResponse
+  """Create an API key."""
+  create_api_key(input: ApiKeyOrgIDWithDescriptionRequestInput): ApiKeyRespResponse
 
-  """
-  Delete API key.
-  """
+  """Delete API key."""
   delete_api_key(key_id: Int, org_id: Int): ApiKeyResponse
 
-  """
-  Create a certification project test result
-  """
-  create_certification_project_test_result(
-    id: ObjectIDFilterScalar
-    input: CertProjectTestResultInput
-  ): CertProjectTestResultResponse
+  """Create a certification project test result"""
+  create_certification_project_test_result(id: ObjectIDFilterScalar, input: CertProjectTestResultInput): CertProjectTestResultResponse
 
-  """
-  Update/Patch certification project test result
-  """
-  update_certification_project_test_result(
-    id: ObjectIDFilterScalar
-    input: CertProjectTestResultInput
-  ): CertProjectTestResultResponse
+  """Update/Patch certification project test result"""
+  update_certification_project_test_result(id: ObjectIDFilterScalar, input: CertProjectTestResultInput): CertProjectTestResultResponse
 
-  """
-  Create a certification project artifact
-  """
-  create_certification_project_artifact(
-    id: ObjectIDFilterScalar
-    input: CertProjectArtifactInput
-  ): CertProjectArtifactResponse
+  """Create a certification project artifact"""
+  create_certification_project_artifact(id: ObjectIDFilterScalar, input: CertProjectArtifactInput): CertProjectArtifactResponse
 }
 
 """
-Scalar is ensuring that user sets correct value for NULL
+Scalar is ensuring that user sets correct value for NULL 
 in filters, differing between absent field and field
 with NULL value (eq or ne NULL). Validation is happening
 on GraphQL layer.
@@ -6072,7 +4678,7 @@ input ObjectIDFilter {
 }
 
 """
-Scalar used in filters and arguments for ObjectID.
+Scalar used in filters and arguments for ObjectID. 
 Validates and retypes from string to ObjectID.
 Using pymongo ObjectId in GraphQL layer.
 
@@ -6099,13 +4705,13 @@ input ObjectIDListIndexFilter {
 }
 
 """
-Scalar is responsible for encrypting and decrypting user input.
+Scalar is responsible for encrypting and decrypting user input. 
 This is happening on the Marshmallow layer during serialization
 and deserialization for specific mutations (encoding) and queries
 (decoding), for users with appropriate permissions.
 
 Scope: Pyxis subgraph
-Usage: In and Out (Input, Output)
+Usage: In and Out (Input, Output) 
 """
 scalar OpenPGPEncrypted
 
@@ -6115,9 +4721,7 @@ metadata associated with an operator. A bundle is meant to represent a specific
 version of an operator.
 """
 type OperatorBundle {
-  """
-  Specific information from the CSV requested by customer.
-  """
+  """Specific information from the CSV requested by customer."""
   alm_examples: [ALMExample]
 
   """
@@ -6141,19 +4745,13 @@ type OperatorBundle {
   """
   bundle: String
 
-  """
-  Pullspec of the operator bundle e.g. quay.io/foo/bar@sha256:digest.
-  """
+  """Pullspec of the operator bundle e.g. quay.io/foo/bar@sha256:digest."""
   bundle_path: String
 
-  """
-  Digest from the bundle_path.
-  """
+  """Digest from the bundle_path."""
   bundle_path_digest: String
 
-  """
-  Specific information from the CSV requested by customer.
-  """
+  """Specific information from the CSV requested by customer."""
   capabilities: [String]
 
   """
@@ -6161,14 +4759,10 @@ type OperatorBundle {
   """
   channel_name: String
 
-  """
-  Full name of the package. Usually consists of package_name.version.
-  """
+  """Full name of the package. Usually consists of package_name.version."""
   csv_name: String
 
-  """
-  A public name to identify the Operator.
-  """
+  """A public name to identify the Operator."""
   csv_display_name: String
 
   """
@@ -6176,19 +4770,13 @@ type OperatorBundle {
   """
   csv_description: String
 
-  """
-  Short description of the CRD and operator functionality.
-  """
+  """Short description of the CRD and operator functionality."""
   csv_metadata_description: String
 
-  """
-  Indicate if the bundle is in an index image.
-  """
+  """Indicate if the bundle is in an index image."""
   in_index_img: Boolean
 
-  """
-  Specific information from the CSV requested by customer.
-  """
+  """Specific information from the CSV requested by customer."""
   install_modes: [OperatorBundleInstallMode]
 
   """
@@ -6201,19 +4789,13 @@ type OperatorBundle {
   """
   latest_in_channel: Boolean
 
-  """
-  Specific OCP version for this bundle, e.g. \"4.5\".
-  """
+  """Specific OCP version for this bundle, e.g. \"4.5\"."""
   ocp_version: SemVer
 
-  """
-  Organization as understood by iib, e.g. \"redhat-marketplace\".
-  """
+  """Organization as understood by iib, e.g. \"redhat-marketplace\"."""
   organization: String
 
-  """
-  The name of the operator, e.g. \"amq-streams\".
-  """
+  """The name of the operator, e.g. \"amq-streams\"."""
   package: String
 
   """
@@ -6221,29 +4803,19 @@ type OperatorBundle {
   """
   provided_apis: [ProvidedAPIsItems]
 
-  """
-  Specific information from the CSV requested by customer.
-  """
+  """Specific information from the CSV requested by customer."""
   related_images: [RelatedImagesItems]
 
-  """
-  Where this bundle was collected from, e.g. \"quay.io/foo/bar:v4.5\".
-  """
+  """Where this bundle was collected from, e.g. \"quay.io/foo/bar:v4.5\"."""
   source_index_container_path: String
 
-  """
-  The operator version for this bundle
-  """
+  """The operator version for this bundle"""
   version: SemVer
 
-  """
-  Original version of the bundle, used to recognize semver validity.
-  """
+  """Original version of the bundle, used to recognize semver validity."""
   version_original: String
 
-  """
-  Name of operator which the bundle replaces.
-  """
+  """Name of operator which the bundle replaces."""
   replaces: String
 
   """
@@ -6251,19 +4823,13 @@ type OperatorBundle {
   """
   skips: [String]
 
-  """
-  String describing skipped versions.
-  """
+  """String describing skipped versions."""
   skip_range: String
 
-  """
-  String describing bundle provider
-  """
+  """String describing bundle provider"""
   provider: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -6271,9 +4837,7 @@ type OperatorBundle {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -6393,9 +4957,7 @@ input OperatorBundleFilter {
   not: OperatorBundleFilter
 }
 
-"""
-Specific information from the CSV requested by customer.
-"""
+"""Specific information from the CSV requested by customer."""
 type OperatorBundleInstallMode {
   supported: Boolean
   type: String
@@ -6445,20 +5007,14 @@ type OperatorBundlePaginatedResponse {
 }
 
 type OperatorBundlesItems {
-  """
-  Bundle unique identifier
-  """
+  """Bundle unique identifier"""
   _id: ObjectID
 
-  """
-  Bundle package name
-  """
+  """Bundle package name"""
   package: String
   capabilities: [String]
 
-  """
-  Specific OCP version for this bundle, e.g. \"4.5\".
-  """
+  """Specific OCP version for this bundle, e.g. \"4.5\"."""
   ocp_version: SemVer
 
   """
@@ -6494,20 +5050,14 @@ input OperatorBundlesItemsFilter {
 }
 
 input OperatorBundlesItemsInput {
-  """
-  Bundle unique identifier
-  """
+  """Bundle unique identifier"""
   _id: ObjectID
 
-  """
-  Bundle package name
-  """
+  """Bundle package name"""
   package: String
   capabilities: [String]
 
-  """
-  Specific OCP version for this bundle, e.g. \"4.5\".
-  """
+  """Specific OCP version for this bundle, e.g. \"4.5\"."""
   ocp_version: SemVer
 
   """
@@ -6545,14 +5095,10 @@ input OperatorBundlesItemsListIndexFilter {
 List of operator indices from which operator bundle metadata are extracted to operatorBundles collection.
 """
 type OperatorIndex {
-  """
-  OCP version, e.g. 4.5.
-  """
+  """OCP version, e.g. 4.5."""
   ocp_version: SemVer
 
-  """
-  Organization, as understood by iib, e.g. redhat-marketplace.
-  """
+  """Organization, as understood by iib, e.g. redhat-marketplace."""
   organization: String
 
   """
@@ -6560,14 +5106,10 @@ type OperatorIndex {
   """
   path: String
 
-  """
-  The date till the index image is valid
-  """
+  """The date till the index image is valid"""
   end_of_life: DateTime
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -6575,9 +5117,7 @@ type OperatorIndex {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -6615,9 +5155,7 @@ type OperatorPackage {
   package_name: String
   source: String
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -6625,28 +5163,14 @@ type OperatorPackage {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: OperatorPackageEdges
 }
 
 type OperatorPackageEdges {
-  """
-  Get operator bundles.
-  """
-  operator_bundle(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    organization: String
-    ocp_version: String
-    channel_name: String
-    package: String
-    latest_ocp_version: Boolean
-    filter: OperatorBundleFilter
-  ): OperatorBundlePaginatedResponse
+  """Get operator bundles."""
+  operator_bundle(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], organization: String, ocp_version: String, channel_name: String, package: String, latest_ocp_version: Boolean, filter: OperatorBundleFilter): OperatorBundlePaginatedResponse
 }
 
 input OperatorPackageFilter {
@@ -6698,49 +5222,33 @@ type ParsedData {
   docker_image_digest: String
   docker_image_id: String
 
-  """
-  Version of docker reported by 'docker inspect' for this image.
-  """
+  """Version of docker reported by 'docker inspect' for this image."""
   docker_version: String
   env_variables: [String]
   image_id: String
   labels: [Label]
 
-  """
-  Layer digests from the image.
-  """
+  """Layer digests from the image."""
   layers: [String]
   os: String
   ports: String
 
-  """
-  Repositories defined within an image as reported by yum command.
-  """
+  """Repositories defined within an image as reported by yum command."""
   repos: [ParsedDataRepo]
 
-  """
-  Size of this image as reported by image metadata.
-  """
+  """Size of this image as reported by image metadata."""
   size: Int64
 
-  """
-  Information about uncompressed layer sizes.
-  """
+  """Information about uncompressed layer sizes."""
   uncompressed_layer_sizes: [UncompressedLayerSize]
 
-  """
-  Uncompressed images size in bytes (sum of uncompressed layers size).
-  """
+  """Uncompressed images size in bytes (sum of uncompressed layers size)."""
   uncompressed_size_bytes: Int64
 
-  """
-  The user on the images.
-  """
+  """The user on the images."""
   user: String
 
-  """
-  Virtual size of this image as reported by image metadata.
-  """
+  """Virtual size of this image as reported by image metadata."""
   virtual_size: Int64
 }
 
@@ -6796,49 +5304,33 @@ input ParsedDataInput {
   docker_image_digest: String
   docker_image_id: String
 
-  """
-  Version of docker reported by 'docker inspect' for this image.
-  """
+  """Version of docker reported by 'docker inspect' for this image."""
   docker_version: String
   env_variables: [String]
   image_id: String
   labels: [LabelInput]
 
-  """
-  Layer digests from the image.
-  """
+  """Layer digests from the image."""
   layers: [String]
   os: String
   ports: String
 
-  """
-  Repositories defined within an image as reported by yum command.
-  """
+  """Repositories defined within an image as reported by yum command."""
   repos: [ParsedDataRepoInput]
 
-  """
-  Size of this image as reported by image metadata.
-  """
+  """Size of this image as reported by image metadata."""
   size: Int64
 
-  """
-  Information about uncompressed layer sizes.
-  """
+  """Information about uncompressed layer sizes."""
   uncompressed_layer_sizes: [UncompressedLayerSizeInput]
 
-  """
-  Uncompressed images size in bytes (sum of uncompressed layers size).
-  """
+  """Uncompressed images size in bytes (sum of uncompressed layers size)."""
   uncompressed_size_bytes: Int64
 
-  """
-  The user on the images.
-  """
+  """The user on the images."""
   user: String
 
-  """
-  Virtual size of this image as reported by image metadata.
-  """
+  """Virtual size of this image as reported by image metadata."""
   virtual_size: Int64
 }
 
@@ -6912,9 +5404,7 @@ input ParsedDataRepoListIndexFilter {
 }
 
 type Product {
-  """
-  Engineering id of the product.
-  """
+  """Engineering id of the product."""
   itProductServiceId: ID
 }
 
@@ -6928,9 +5418,7 @@ the Ecosystem Catalog so anyone can know that it is offered.
 type ProductListing {
   category: String
 
-  """
-  List of unique identifiers for the certification project.
-  """
+  """List of unique identifiers for the certification project."""
   cert_projects: [ObjectID]
 
   """
@@ -6938,61 +5426,39 @@ type ProductListing {
   """
   contacts: [ContactsItems]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   descriptions: Descriptions
 
-  """
-  Company node ID from Red Hat Connect. Read only.
-  """
+  """Company node ID from Red Hat Connect. Read only."""
   drupal_company_id: Int
 
-  """
-  FAQ section for the catalog page.
-  """
+  """FAQ section for the catalog page."""
   faqs: [FAQSItems]
 
-  """
-  Features section for the catalog page.
-  """
+  """Features section for the catalog page."""
   features: [FeaturesItems]
 
-  """
-  Indicates if the listing is eligible to be featured in Catalog.
-  """
+  """Indicates if the listing is eligible to be featured in Catalog."""
   focus_product: Boolean
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   functional_categories: [String]
 
-  """
-  Information related to helm chart product listing.
-  """
+  """Information related to helm chart product listing."""
   helm_chart: ProductListingHelmChart
   legal: Legal
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   linked_resources: [LinkedResourcesItems]
   logo: Logo
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   name: String
 
-  """
-  Tracks history for the `published` field
-  """
+  """Tracks history for the `published` field"""
   published_history: FieldHistoryBoolean
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   published: Boolean
 
   """
@@ -7007,29 +5473,19 @@ type ProductListing {
   deleted: Boolean
   quick_start_configuration: QuickStartConfiguration
 
-  """
-  List of unique identifiers for the repository.
-  """
+  """List of unique identifiers for the repository."""
   repositories: [ObjectID]
 
-  """
-  List of search aliases for Solr.
-  """
+  """List of search aliases for Solr."""
   search_aliases: [SearchAliasesItems]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   support: Support
 
-  """
-  List of target platforms for the product listing.
-  """
+  """List of target platforms for the product listing."""
   target_platforms: [String]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   type: String
   vendor_label: String
   operator_bundles: [OperatorBundlesItems]
@@ -7052,9 +5508,7 @@ type ProductListing {
   """
   certification_badges_exclude: [String]
 
-  """
-  Tracks history for the `certification_level` field
-  """
+  """Tracks history for the `certification_level` field"""
   certification_level_history: FieldHistoryString
 
   """
@@ -7064,9 +5518,7 @@ type ProductListing {
   """
   certification_level: String
 
-  """
-  List of industries to which the product listing belongs.
-  """
+  """List of industries to which the product listing belongs."""
   industries: [String]
 
   """
@@ -7086,9 +5538,7 @@ type ProductListing {
   """
   last_published_certification_date: DateTime
 
-  """
-  Data about all related approved Red Hat validations.
-  """
+  """Data about all related approved Red Hat validations."""
   product_validations_data: ProductValidationsData
 
   """
@@ -7096,9 +5546,7 @@ type ProductListing {
   """
   org_id: Int
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -7106,40 +5554,20 @@ type ProductListing {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
   edges: ProductListingEdges
 }
 
 type ProductListingEdges {
-  """
-  Vendor associated with the product listing.
-  """
+  """Vendor associated with the product listing."""
   vendor: ContainerVendorResponse
 
-  """
-  Get certification projects associated with product listing.
-  """
-  cert_projects(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertificationProjectFilter
-  ): CertificationProjectPaginatedResponse
+  """Get certification projects associated with product listing."""
+  cert_projects(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertificationProjectFilter): CertificationProjectPaginatedResponse
 
-  """
-  Get product validations by product listing _id.
-  """
-  product_validations(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductValidationFilter
-  ): ProductValidationPaginatedResponse
+  """Get product validations by product listing _id."""
+  product_validations(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductValidationFilter): ProductValidationPaginatedResponse
 }
 
 """
@@ -7152,9 +5580,7 @@ the Ecosystem Catalog so anyone can know that it is offered.
 type ProductListingFederated {
   category: String
 
-  """
-  List of unique identifiers for the certification project.
-  """
+  """List of unique identifiers for the certification project."""
   cert_projects: [ObjectID]
 
   """
@@ -7162,61 +5588,39 @@ type ProductListingFederated {
   """
   contacts: [ContactsItems]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   descriptions: Descriptions
 
-  """
-  Company node ID from Red Hat Connect. Read only.
-  """
+  """Company node ID from Red Hat Connect. Read only."""
   drupal_company_id: Int
 
-  """
-  FAQ section for the catalog page.
-  """
+  """FAQ section for the catalog page."""
   faqs: [FAQSItems]
 
-  """
-  Features section for the catalog page.
-  """
+  """Features section for the catalog page."""
   features: [FeaturesItems]
 
-  """
-  Indicates if the listing is eligible to be featured in Catalog.
-  """
+  """Indicates if the listing is eligible to be featured in Catalog."""
   focus_product: Boolean
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   functional_categories: [String]
 
-  """
-  Information related to helm chart product listing.
-  """
+  """Information related to helm chart product listing."""
   helm_chart: ProductListingHelmChart
   legal: Legal
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   linked_resources: [LinkedResourcesItems]
   logo: Logo
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   name: String
 
-  """
-  Tracks history for the `published` field
-  """
+  """Tracks history for the `published` field"""
   published_history: FieldHistoryBoolean
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   published: Boolean
 
   """
@@ -7231,29 +5635,19 @@ type ProductListingFederated {
   deleted: Boolean
   quick_start_configuration: QuickStartConfiguration
 
-  """
-  List of unique identifiers for the repository.
-  """
+  """List of unique identifiers for the repository."""
   repositories: [ObjectID]
 
-  """
-  List of search aliases for Solr.
-  """
+  """List of search aliases for Solr."""
   search_aliases: [SearchAliasesItems]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   support: Support
 
-  """
-  List of target platforms for the product listing.
-  """
+  """List of target platforms for the product listing."""
   target_platforms: [String]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   type: String
   vendor_label: String
   operator_bundles: [OperatorBundlesItems]
@@ -7276,9 +5670,7 @@ type ProductListingFederated {
   """
   certification_badges_exclude: [String]
 
-  """
-  Tracks history for the `certification_level` field
-  """
+  """Tracks history for the `certification_level` field"""
   certification_level_history: FieldHistoryString
 
   """
@@ -7288,9 +5680,7 @@ type ProductListingFederated {
   """
   certification_level: String
 
-  """
-  List of industries to which the product listing belongs.
-  """
+  """List of industries to which the product listing belongs."""
   industries: [String]
 
   """
@@ -7316,9 +5706,7 @@ type ProductListingFederated {
   """
   functional_info: PublicProductListingFunctionalInfo
 
-  """
-  Data about all related approved Red Hat validations.
-  """
+  """Data about all related approved Red Hat validations."""
   product_validations_data: ProductValidationsData
 
   """
@@ -7326,9 +5714,7 @@ type ProductListingFederated {
   """
   org_id: Int
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -7336,9 +5722,7 @@ type ProductListingFederated {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -7424,21 +5808,15 @@ input ProductListingFilter {
 }
 
 type ProductListingHelmChart {
-  """
-  OCP versions for this helm chart.
-  """
+  """OCP versions for this helm chart."""
   ocp_versions: [String]
 
-  """
-  Helm chart specific information.
-  """
+  """Helm chart specific information."""
   charts: [ProductListingHelmChartDetail]
 }
 
 type ProductListingHelmChartDetail {
-  """
-  Helm chart name.
-  """
+  """Helm chart name."""
   chart_name: String
 }
 
@@ -7460,9 +5838,7 @@ input ProductListingHelmChartDetailFilter {
 }
 
 input ProductListingHelmChartDetailInput {
-  """
-  Helm chart name.
-  """
+  """Helm chart name."""
   chart_name: String
 }
 
@@ -7497,14 +5873,10 @@ input ProductListingHelmChartFilter {
 }
 
 input ProductListingHelmChartInput {
-  """
-  OCP versions for this helm chart.
-  """
+  """OCP versions for this helm chart."""
   ocp_versions: [String]
 
-  """
-  Helm chart specific information.
-  """
+  """Helm chart specific information."""
   charts: [ProductListingHelmChartDetailInput]
 }
 
@@ -7518,9 +5890,7 @@ the Ecosystem Catalog so anyone can know that it is offered.
 input ProductListingInput {
   category: String
 
-  """
-  List of unique identifiers for the certification project.
-  """
+  """List of unique identifiers for the certification project."""
   cert_projects: [ObjectID]
 
   """
@@ -7528,61 +5898,39 @@ input ProductListingInput {
   """
   contacts: [ContactsItemsInput]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   descriptions: DescriptionsInput
 
-  """
-  Company node ID from Red Hat Connect. Read only.
-  """
+  """Company node ID from Red Hat Connect. Read only."""
   drupal_company_id: Int
 
-  """
-  FAQ section for the catalog page.
-  """
+  """FAQ section for the catalog page."""
   faqs: [FAQSItemsInput]
 
-  """
-  Features section for the catalog page.
-  """
+  """Features section for the catalog page."""
   features: [FeaturesItemsInput]
 
-  """
-  Indicates if the listing is eligible to be featured in Catalog.
-  """
+  """Indicates if the listing is eligible to be featured in Catalog."""
   focus_product: Boolean
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   functional_categories: [String]
 
-  """
-  Information related to helm chart product listing.
-  """
+  """Information related to helm chart product listing."""
   helm_chart: ProductListingHelmChartInput
   legal: LegalInput
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   linked_resources: [LinkedResourcesItemsInput]
   logo: LogoInput
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   name: String
 
-  """
-  Tracks history for the `published` field
-  """
+  """Tracks history for the `published` field"""
   published_history: FieldHistoryBooleanInput
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   published: Boolean
 
   """
@@ -7597,29 +5945,19 @@ input ProductListingInput {
   deleted: Boolean
   quick_start_configuration: QuickStartConfigurationInput
 
-  """
-  List of unique identifiers for the repository.
-  """
+  """List of unique identifiers for the repository."""
   repositories: [ObjectID]
 
-  """
-  List of search aliases for Solr.
-  """
+  """List of search aliases for Solr."""
   search_aliases: [SearchAliasesItemsInput]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   support: SupportInput
 
-  """
-  List of target platforms for the product listing.
-  """
+  """List of target platforms for the product listing."""
   target_platforms: [String]
 
-  """
-  This field is required when the product listing is published.
-  """
+  """This field is required when the product listing is published."""
   type: String
   vendor_label: String
   operator_bundles: [OperatorBundlesItemsInput]
@@ -7642,9 +5980,7 @@ input ProductListingInput {
   """
   certification_badges_exclude: [String]
 
-  """
-  Tracks history for the `certification_level` field
-  """
+  """Tracks history for the `certification_level` field"""
   certification_level_history: FieldHistoryStringInput
 
   """
@@ -7654,9 +5990,7 @@ input ProductListingInput {
   """
   certification_level: String
 
-  """
-  List of industries to which the product listing belongs.
-  """
+  """List of industries to which the product listing belongs."""
   industries: [String]
 
   """
@@ -7676,9 +6010,7 @@ input ProductListingInput {
   """
   last_published_certification_date: DateTime
 
-  """
-  Data about all related approved Red Hat validations.
-  """
+  """Data about all related approved Red Hat validations."""
   product_validations_data: ProductValidationsDataInput
 
   """
@@ -7686,9 +6018,7 @@ input ProductListingInput {
   """
   org_id: Int
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -7696,9 +6026,7 @@ input ProductListingInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -7720,9 +6048,7 @@ Product Validation stores data related to partner validation of their product.
 Lists affinity to Red Hat products and its versions the product claims to support.
 """
 type ProductValidation {
-  """
-  Product Listing Identifier.
-  """
+  """Product Listing Identifier."""
   product_listing: ObjectID
 
   """
@@ -7743,9 +6069,7 @@ type ProductValidation {
   """
   redhat_affinity: [RedHatProductAffinity]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -7758,9 +6082,7 @@ type ProductValidation {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -7788,9 +6110,7 @@ Product Validation stores data related to partner validation of their product.
 Lists affinity to Red Hat products and its versions the product claims to support.
 """
 input ProductValidationInput {
-  """
-  Product Listing Identifier.
-  """
+  """Product Listing Identifier."""
   product_listing: ObjectID
 
   """
@@ -7811,9 +6131,7 @@ input ProductValidationInput {
   """
   redhat_affinity: [RedHatProductAffinityInput]
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -7826,9 +6144,7 @@ input ProductValidationInput {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -7845,13 +6161,9 @@ type ProductValidationResponse {
   error: ResponseError
 }
 
-"""
-Data about all related approved Red Hat validations.
-"""
+"""Data about all related approved Red Hat validations."""
 type ProductValidationsData {
-  """
-  List of all related approved Red Hat validations.
-  """
+  """List of all related approved Red Hat validations."""
   validations: [ValidationItems]
 }
 
@@ -7867,13 +6179,9 @@ input ProductValidationsDataFilter {
   not: ProductValidationsDataFilter
 }
 
-"""
-Data about all related approved Red Hat validations.
-"""
+"""Data about all related approved Red Hat validations."""
 input ProductValidationsDataInput {
-  """
-  List of all related approved Red Hat validations.
-  """
+  """List of all related approved Red Hat validations."""
   validations: [ValidationItemsInput]
 }
 
@@ -7927,29 +6235,19 @@ input ProvidedAPIsItemsListIndexFilter {
 }
 
 type PublicProductListingFunctionalInfo {
-  """
-  Product listing ID
-  """
+  """Product listing ID"""
   productListingId: String
 }
 
-"""
-Pull request of certification test results.
-"""
+"""Pull request of certification test results."""
 type PullRequest {
-  """
-  Pull request URL
-  """
+  """Pull request URL"""
   url: URI
 
-  """
-  Pull request identifier
-  """
+  """Pull request identifier"""
   id: Int
 
-  """
-  Pull request status
-  """
+  """Pull request status"""
   status: String
 }
 
@@ -7965,30 +6263,20 @@ input PullRequestFilter {
   not: PullRequestFilter
 }
 
-"""
-Pull request of certification test results.
-"""
+"""Pull request of certification test results."""
 input PullRequestInput {
-  """
-  Pull request URL
-  """
+  """Pull request URL"""
   url: URI
 
-  """
-  Pull request identifier
-  """
+  """Pull request identifier"""
   id: Int
 
-  """
-  Pull request status
-  """
+  """Pull request status"""
   status: String
 }
 
 type Query {
-  """
-  Get basic availability response.
-  """
+  """Get basic availability response."""
   get_ping: String
 
   """
@@ -7996,301 +6284,104 @@ type Query {
   """
   get_status: StatusGQL
 
-  """
-  Get Mongo DB availability response.
-  """
+  """Get Mongo DB availability response."""
   get_mongo: MongoStatusGQL
 
-  """
-  Get Mongo DB availability response.
-  """
+  """Get Mongo DB availability response."""
   get_logs: ForwarderStatusResponse
 
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   get_image(id: ObjectIDFilterScalar): ContainerImageResponse
 
-  """
-  Get container images. Exclude total for improved performance.
-  """
-  find_images(
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """Get container images. Exclude total for improved performance."""
+  find_images(sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Get all images by Brew NVR. Exclude total for improved performance.
-  """
-  find_images_by_nvr(
-    nvr: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """Get all images by Brew NVR. Exclude total for improved performance."""
+  find_images_by_nvr(nvr: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Get container image by manifest digest.
-  """
-  get_image_by_manifest_digest_registry_and_repository(
-    registry: String
-    repository: String
-    manifest_digest: String
-  ): ContainerImageResponse
+  """Get container image by manifest digest."""
+  get_image_by_manifest_digest_registry_and_repository(registry: String, repository: String, manifest_digest: String): ContainerImageResponse
 
-  """
-  List images for a repository. Exclude total for improved performance.
-  """
-  find_repository_images_by_registry_path(
-    registry: String
-    repository: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """List images for a repository. Exclude total for improved performance."""
+  find_repository_images_by_registry_path(registry: String, repository: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  List images for a repository + tag.
-  """
-  find_repository_images_by_registry_path_tag(
-    registry: String
-    repository: String
-    tag: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """List images for a repository + tag."""
+  find_repository_images_by_registry_path_tag(registry: String, repository: String, tag: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Get files for an image.
-  """
-  find_image_files(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerFileFilter
-  ): ContainerFilePaginatedResponse
+  """Get files for an image."""
+  find_image_files(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerFileFilter): ContainerFilePaginatedResponse
 
   """
   Get multi-arch container images grouped by manifest_list_digest by
   certification project id. Note that filtering and sorting is applied before
   aggregating by manifest_list_digest. Pagination is applied after aggregation.
   """
-  find_certification_projects_images_by_digest(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImageManifestDigestPaginatedResponse
+  find_certification_projects_images_by_digest(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImageManifestDigestPaginatedResponse
 
-  """
-  Get all tag histories. Exclude total for improved performance.
-  """
-  find_tag_histories(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerTagHistoryFilter
-  ): ContainerTagHistoryPaginatedResponse
+  """Get all tag histories. Exclude total for improved performance."""
+  find_tag_histories(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerTagHistoryFilter): ContainerTagHistoryPaginatedResponse
 
-  """
-  Get a tag history by ID.
-  """
+  """Get a tag history by ID."""
   get_tag_history(id: ObjectIDFilterScalar): ContainerTagHistoryResponse
 
-  """
-  Get a tag history by tag name.
-  """
-  get_tag_history_by_tag_name(
-    registry: String
-    repository: String
-    tag: String
-  ): ContainerTagHistoryResponse
+  """Get a tag history by tag name."""
+  get_tag_history_by_tag_name(registry: String, repository: String, tag: String): ContainerTagHistoryResponse
 
   """
   Get images for tag history that have or used to have the tag. Exclude total for improved performance.
   """
-  find_tag_history_images(
-    id: ObjectIDFilterScalar
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  find_tag_history_images(id: ObjectIDFilterScalar, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Get a certification project image request
-  """
-  get_certification_image_request_by_id(
-    id: ObjectIDFilterScalar
-  ): CertProjectImageRequestResponse
+  """Get a certification project image request"""
+  get_certification_image_request_by_id(id: ObjectIDFilterScalar): CertProjectImageRequestResponse
 
-  """
-  Get many certification project image requests
-  """
-  get_certification_image_requests(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: CertProjectImageRequestFilter
-  ): CertProjectImageRequestPaginatedResponse
+  """Get many certification project image requests"""
+  get_certification_image_requests(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: CertProjectImageRequestFilter): CertProjectImageRequestPaginatedResponse
 
-  """
-  Get certification project image requests using its cert project ID.
-  """
-  get_certification_image_requests_by_cert_project_id(
-    id: ObjectIDFilterScalar
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: CertProjectImageRequestFilter
-  ): CertProjectImageRequestPaginatedResponse
+  """Get certification project image requests using its cert project ID."""
+  get_certification_image_requests_by_cert_project_id(id: ObjectIDFilterScalar, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: CertProjectImageRequestFilter): CertProjectImageRequestPaginatedResponse
 
-  """
-  Get image requests using its image id.
-  """
-  get_certification_image_requests_by_image_id(
-    id: ObjectIDFilterScalar
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: CertProjectImageRequestFilter
-  ): CertProjectImageRequestPaginatedResponse
+  """Get image requests using its image id."""
+  get_certification_image_requests_by_image_id(id: ObjectIDFilterScalar, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: CertProjectImageRequestFilter): CertProjectImageRequestPaginatedResponse
 
-  """
-  Get a certification project test result
-  """
-  get_cert_project_test_result(
-    id: ObjectIDFilterScalar
-  ): CertProjectTestResultResponse
+  """Get a certification project test result"""
+  get_cert_project_test_result(id: ObjectIDFilterScalar): CertProjectTestResultResponse
 
-  """
-  Get many certification project test results by cert project ID
-  """
-  get_cert_project_test_results(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectTestResultFilter
-  ): CertProjectTestResultPaginatedResponse
+  """Get many certification project test results by cert project ID"""
+  get_cert_project_test_results(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectTestResultFilter): CertProjectTestResultPaginatedResponse
 
-  """
-  Get many certification project test results
-  """
-  find_cert_project_test_results_by_id(
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectTestResultFilter
-  ): CertProjectTestResultPaginatedResponse
+  """Get many certification project test results"""
+  find_cert_project_test_results_by_id(sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectTestResultFilter): CertProjectTestResultPaginatedResponse
 
-  """
-  Get test results by container image id
-  """
-  get_test_results_by_image_id(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectTestResultFilter
-  ): CertProjectTestResultPaginatedResponse
+  """Get test results by container image id"""
+  get_test_results_by_image_id(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectTestResultFilter): CertProjectTestResultPaginatedResponse
 
-  """
-  Get a certification project artifact
-  """
-  get_cert_project_artifact(
-    id: ObjectIDFilterScalar
-  ): CertProjectArtifactResponse
+  """Get a certification project artifact"""
+  get_cert_project_artifact(id: ObjectIDFilterScalar): CertProjectArtifactResponse
 
-  """
-  Get a certification project artifacts
-  """
-  get_cert_project_artifacts(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectArtifactFilter
-  ): CertProjectArtifactPaginatedResponse
+  """Get a certification project artifacts"""
+  get_cert_project_artifacts(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectArtifactFilter): CertProjectArtifactPaginatedResponse
 
-  """
-  Get artifacts by container image id
-  """
-  get_certification_artifacts_by_image_id(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertProjectArtifactFilter
-  ): CertProjectArtifactPaginatedResponse
+  """Get artifacts by container image id"""
+  get_certification_artifacts_by_image_id(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertProjectArtifactFilter): CertProjectArtifactPaginatedResponse
 
-  """
-  List operator bundles for a repository.
-  """
-  find_repository_operator_bundles_by_registry_path(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    registry: String
-    repository: String
-    filter: OperatorBundleFilter
-  ): OperatorBundlePaginatedResponse
+  """List operator bundles for a repository."""
+  find_repository_operator_bundles_by_registry_path(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], registry: String, repository: String, filter: OperatorBundleFilter): OperatorBundlePaginatedResponse
 
-  """
-  Get operator bundles.
-  """
-  find_operator_bundles(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    organization: String
-    ocp_version: String
-    channel_name: String
-    package: String
-    latest_ocp_version: Boolean
-    filter: OperatorBundleFilter
-  ): OperatorBundlePaginatedResponse
+  """Get operator bundles."""
+  find_operator_bundles(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], organization: String, ocp_version: String, channel_name: String, package: String, latest_ocp_version: Boolean, filter: OperatorBundleFilter): OperatorBundlePaginatedResponse
 
-  """
-  Get operator package by ID.
-  """
+  """Get operator package by ID."""
   get_operator_package(id: ObjectIDFilterScalar): OperatorPackageResponse
 
-  """
-  Get a list of operator packages.
-  """
-  find_operator_packages(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: OperatorPackageFilter
-  ): OperatorPackagePaginatedResponse
+  """Get a list of operator packages."""
+  find_operator_packages(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: OperatorPackageFilter): OperatorPackagePaginatedResponse
 
-  """
-  Get operator index by ID.
-  """
+  """Get operator index by ID."""
   get_operator_index(id: ObjectIDFilterScalar): OperatorIndexResponse
 
-  """
-  Get a list of operator indexes.
-  """
-  find_operator_indices(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    organization: String
-    ocp_version: String
-    ocp_versions_range: String
-    filter: OperatorIndexFilter
-  ): OperatorIndexPaginatedResponse
+  """Get a list of operator indexes."""
+  find_operator_indices(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], organization: String, ocp_version: String, ocp_versions_range: String, filter: OperatorIndexFilter): OperatorIndexPaginatedResponse
 
   """
   Get Red Hat advisory by ID.
@@ -8302,384 +6393,143 @@ type Query {
   Get container Red Hat advisories.
   You only have access to advisories that are already shipped.
   """
-  find_advisories(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: RedHatContainerAdvisoryFilter
-  ): RedHatContainerAdvisoryPaginatedResponse
+  find_advisories(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: RedHatContainerAdvisoryFilter): RedHatContainerAdvisoryPaginatedResponse
 
-  """
-  Find container signature data by index.
-  """
-  find_signature_data_by_index(
-    non_zero_index: Int
-    manifest_digest: String
-    repository: String
-    sort_by: [SortBy]
-    filter: ContainerSignatureExternalFilter
-  ): ContainerSignatureExternalPaginatedResponse
+  """Find container signature data by index."""
+  find_signature_data_by_index(non_zero_index: Int, manifest_digest: String, repository: String, sort_by: [SortBy], filter: ContainerSignatureExternalFilter): ContainerSignatureExternalPaginatedResponse
 
-  """
-  Get an RPM manifest by ID
-  """
+  """Get an RPM manifest by ID"""
   get_rpm_manifest(id: ObjectIDFilterScalar): ContainerImageRPMManifestResponse
 
-  """
-  Get the RPM manifest for an image
-  """
+  """Get the RPM manifest for an image"""
   get_image_rpm_manifest(id: String): ContainerImageRPMManifestResponse
 
-  """
-  Get a repository by ID.
-  """
+  """Get a repository by ID."""
   get_repository(id: ObjectIDFilterScalar): ContainerRepositoryResponse
 
-  """
-  Get all repositories.
-  """
-  find_repositories(
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryPaginatedResponse
+  """Get all repositories."""
+  find_repositories(sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryPaginatedResponse
 
-  """
-  Get a repository by registry and path (product line/image name).
-  """
-  get_repository_by_registry_path(
-    registry: String
-    repository: String
-  ): ContainerRepositoryResponse
+  """Get a repository by registry and path (product line/image name)."""
+  get_repository_by_registry_path(registry: String, repository: String): ContainerRepositoryResponse
 
-  """
-  Get all repositories belonging to product listing.
-  """
-  find_product_listing_repositories(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryPaginatedResponse
+  """Get all repositories belonging to product listing."""
+  find_product_listing_repositories(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryPaginatedResponse
 
-  """
-  Get the certification project for a repository.
-  """
-  get_repository_project_certification_by_registry_path(
-    registry: String
-    repository: String
-  ): CertificationProjectResponse
+  """Get the certification project for a repository."""
+  get_repository_project_certification_by_registry_path(registry: String, repository: String): CertificationProjectResponse
 
-  """
-  Get a repository by ID.
-  """
+  """Get a repository by ID."""
   repository(id: ObjectIDFilterScalar): ContainerRepositoryFederated
 
-  """
-  Get all repositories.
-  """
-  repositories(
-    sortBy: [SortBy]
-    page: Int = 0
-    first: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryFederatedConnection
+  """Get all repositories."""
+  repositories(sortBy: [SortBy], page: Int = 0, first: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryFederatedConnection
 
-  """
-  Get a repository by registry and path (product line/image name).
-  """
-  repository_by_registry(
-    registry: String
-    repository: String
-  ): ContainerRepositoryFederated
+  """Get a repository by registry and path (product line/image name)."""
+  repository_by_registry(registry: String, repository: String): ContainerRepositoryFederated
 
-  """
-  Get all repositories belonging to product listing.
-  """
-  repositories_for_product_listing(
-    id: ObjectIDFilterScalar
-    sortBy: [SortBy]
-    page: Int = 0
-    first: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryFederatedConnection
+  """Get all repositories belonging to product listing."""
+  repositories_for_product_listing(id: ObjectIDFilterScalar, sortBy: [SortBy], page: Int = 0, first: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryFederatedConnection
 
-  """
-  Get all container repositories owned by the team.
-  """
-  repositories_by_team_id(
-    id: String
-    sortBy: [SortBy]
-    page: Int = 0
-    first: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryFederatedConnection
+  """Get all container repositories owned by the team."""
+  repositories_by_team_id(id: String, sortBy: [SortBy], page: Int = 0, first: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryFederatedConnection
 
-  """
-  Get a vendor by ID.
-  """
+  """Get a vendor by ID."""
   get_vendor(id: ObjectIDFilterScalar): ContainerVendorResponse
 
-  """
-  Get a vendor by Company Org ID.
-  """
+  """Get a vendor by Company Org ID."""
   get_vendor_by_org_id(org_id: Int): ContainerVendorResponse
 
-  """
-  Get a vendor by label.
-  """
+  """Get a vendor by label."""
   get_vendor_by_label(label: String): ContainerVendorResponse
 
-  """
-  Get the vendor for a repository.
-  """
-  get_repository_vendor_by_registry_path(
-    registry: String
-    repository: String
-  ): ContainerVendorResponse
+  """Get the vendor for a repository."""
+  get_repository_vendor_by_registry_path(registry: String, repository: String): ContainerVendorResponse
 
-  """
-  Get the product listings for a vendor by Company Org ID.
-  """
-  find_vendor_product_listings_by_org_id(
-    org_id: Int
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get the product listings for a vendor by Company Org ID."""
+  find_vendor_product_listings_by_org_id(org_id: Int, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get certification projects for a vendor by Company Org ID.
-  """
-  find_vendor_certification_projects_by_org_id(
-    org_id: Int
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertificationProjectFilter
-  ): CertificationProjectPaginatedResponse
+  """Get certification projects for a vendor by Company Org ID."""
+  find_vendor_certification_projects_by_org_id(org_id: Int, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertificationProjectFilter): CertificationProjectPaginatedResponse
 
-  """
-  Get the repositories for a vendor label.
-  """
-  find_vendor_repositories_by_label(
-    label: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerRepositoryFilter
-  ): ContainerRepositoryPaginatedResponse
+  """Get the repositories for a vendor label."""
+  find_vendor_repositories_by_label(label: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerRepositoryFilter): ContainerRepositoryPaginatedResponse
 
-  """
-  Get the product listings for a vendor by label.
-  """
-  find_vendor_product_listings_by_label(
-    label: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get the product listings for a vendor by label."""
+  find_vendor_product_listings_by_label(label: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get an image vulnerability by ID.
-  """
-  get_image_vulnerability(
-    id: ObjectIDFilterScalar
-  ): ContainerImageVulnerabilityResponse
+  """Get an image vulnerability by ID."""
+  get_image_vulnerability(id: ObjectIDFilterScalar): ContainerImageVulnerabilityResponse
 
   """
   Get a list of image vulnerabilities associated with an image. Exclude total for improved performance.
   """
-  find_image_vulnerabilities(
-    id: String
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ContainerImageVulnerabilityFilter
-  ): ContainerImageVulnerabilityPaginatedResponse
+  find_image_vulnerabilities(id: String, page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ContainerImageVulnerabilityFilter): ContainerImageVulnerabilityPaginatedResponse
 
-  """
-  Get certification project using its ID.
-  """
-  get_certification_project(
-    id: ObjectIDFilterScalar
-  ): CertificationProjectResponse
+  """Get certification project using its ID."""
+  get_certification_project(id: ObjectIDFilterScalar): CertificationProjectResponse
 
-  """
-  Get certification project using Red Hat Connect project ID.
-  """
+  """Get certification project using Red Hat Connect project ID."""
   get_certification_project_by_pid(pid: String): CertificationProjectResponse
 
-  """
-  Get registry secrets for certification project using its ID.
-  """
-  get_registry_secrets_by_certification_id(
-    id: ObjectIDFilterScalar
-  ): RegistrySecretsResponse
+  """Get registry secrets for certification project using its ID."""
+  get_registry_secrets_by_certification_id(id: ObjectIDFilterScalar): RegistrySecretsResponse
 
-  """
-  Get product listings for certification project using its ID.
-  """
-  find_certification_projects_product_listings(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get product listings for certification project using its ID."""
+  find_certification_projects_product_listings(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get container image by ID of associated certification project.
-  """
-  find_certification_projects_images(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ContainerImageFilter
-  ): ContainerImagePaginatedResponse
+  """Get container image by ID of associated certification project."""
+  find_certification_projects_images(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ContainerImageFilter): ContainerImagePaginatedResponse
 
-  """
-  Get all product listings.
-  """
-  find_product_listings(
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get all product listings."""
+  find_product_listings(sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get a product listing.
-  """
+  """Get a product listing."""
   get_product_listing(id: ObjectIDFilterScalar): ProductListingResponse
 
-  """
-  Get all product listings associated with repository.
-  """
-  find_repository_product_listings(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Get all product listings associated with repository."""
+  find_repository_product_listings(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get certification projects associated with product listing.
-  """
-  find_product_listing_certification_projects(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: CertificationProjectFilter
-  ): CertificationProjectPaginatedResponse
+  """Get certification projects associated with product listing."""
+  find_product_listing_certification_projects(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: CertificationProjectFilter): CertificationProjectPaginatedResponse
 
-  """
-  Find product listings associated with repository.
-  """
-  find_repository_product_listings_by_registry_path(
-    registry: String
-    repository: String
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  """Find product listings associated with repository."""
+  find_repository_product_listings_by_registry_path(registry: String, repository: String, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductListingFilter): ProductListingPaginatedResponse
 
   """
   Get the product listings for a given org id and a name that either matches the product name or the attached project name.
   """
-  find_product_listings_by_name_org_id(
-    org_id: Int
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    name: String
-    filter: ProductListingFilter
-  ): ProductListingPaginatedResponse
+  find_product_listings_by_name_org_id(org_id: Int, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, name: String, filter: ProductListingFilter): ProductListingPaginatedResponse
 
-  """
-  Get a product validation.
-  """
+  """Get a product validation."""
   get_product_validation(id: ObjectIDFilterScalar): ProductValidationResponse
 
-  """
-  Get all product validations.
-  """
-  find_product_validations(
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductValidationFilter
-  ): ProductValidationPaginatedResponse
+  """Get all product validations."""
+  find_product_validations(sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductValidationFilter): ProductValidationPaginatedResponse
 
-  """
-  Get product validations by product listing _id.
-  """
-  find_product_validations_by_product_listing_id(
-    id: ObjectIDFilterScalar
-    sort_by: [SortBy]
-    page: Int = 0
-    page_size: Int = 50
-    filter: ProductValidationFilter
-  ): ProductValidationPaginatedResponse
+  """Get product validations by product listing _id."""
+  find_product_validations_by_product_listing_id(id: ObjectIDFilterScalar, sort_by: [SortBy], page: Int = 0, page_size: Int = 50, filter: ProductValidationFilter): ProductValidationPaginatedResponse
 
-  """
-  Get a product listing.
-  """
+  """Get a product listing."""
   product_listing(id: ObjectIDFilterScalar): ProductListingFederated
 
-  """
-  Get all product listings.
-  """
-  product_listings(
-    sortBy: [SortBy]
-    page: Int = 0
-    first: Int = 50
-    filter: ProductListingFilter
-  ): ProductListingFederatedConnection
+  """Get all product listings."""
+  product_listings(sortBy: [SortBy], page: Int = 0, first: Int = 50, filter: ProductListingFilter): ProductListingFederatedConnection
 
-  """
-  Get a list of API keys associated with the given ORG ID.
-  """
+  """Get a list of API keys associated with the given ORG ID."""
   get_key(org_id: Int): ApiKeyListResponse
 
-  """
-  List container grades for a repository.
-  """
-  find_repository_grades_by_registry_path(
-    registry: String
-    repository: String
-  ): ContainerGradesListResponse
+  """List container grades for a repository."""
+  find_repository_grades_by_registry_path(registry: String, repository: String): ContainerGradesListResponse
 
-  """
-  List all tools.
-  """
-  find_tools(
-    page: Int = 0
-    page_size: Int = 50
-    sort_by: [SortBy]
-    filter: ToolFilter
-  ): ToolPaginatedResponse
+  """List all tools."""
+  find_tools(page: Int = 0, page_size: Int = 50, sort_by: [SortBy], filter: ToolFilter): ToolPaginatedResponse
 
-  """
-  Get a tool by ID.
-  """
+  """Get a tool by ID."""
   get_tool(id: ObjectIDFilterScalar): ToolResponse
 
-  """
-  Access Pyxis Central Schema field metadata.
-  """
-  get_field_metadata(
-    type_name: String
-    field_name: String = ""
-  ): FieldMetadataResponse
+  """Access Pyxis Central Schema field metadata."""
+  get_field_metadata(type_name: String, field_name: String = ""): FieldMetadataResponse
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
@@ -8713,64 +6563,40 @@ input QuickStartConfigurationInput {
   default_deploy_instructions: Boolean
 }
 
-"""
-Advisory associated with RH container image.
-"""
+"""Advisory associated with RH container image."""
 type RedHatContainerAdvisory {
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: String
 
-  """
-  The content type of advisory. i.e. for CONTAINER or RPM.
-  """
+  """The content type of advisory. i.e. for CONTAINER or RPM."""
   content_type: String
 
-  """
-  Advisory description.
-  """
+  """Advisory description."""
   description: String
   object_type: String
 
-  """
-  Severity of the advisory.
-  """
+  """Severity of the advisory."""
   severity: String
 
-  """
-  The date the image advisory shipped.
-  """
+  """The date the image advisory shipped."""
   ship_date: DateTime
 
-  """
-  The solution of the advisory.
-  """
+  """The solution of the advisory."""
   solution: String
 
-  """
-  Short summary of the advisory.
-  """
+  """Short summary of the advisory."""
   synopsis: String
 
-  """
-  Topic of the advisory.
-  """
+  """Topic of the advisory."""
   topic: String
 
-  """
-  The type of advisory. i.e. for RHSA:2016-1001 the type is 'RHSA'.
-  """
+  """The type of advisory. i.e. for RHSA:2016-1001 the type is 'RHSA'."""
   type: String
 
-  """
-  Array of CVEs fixed by this advisory.
-  """
+  """Array of CVEs fixed by this advisory."""
   cves: [CVE]
 
-  """
-  Array of issues fixed by this advisory.
-  """
+  """Array of issues fixed by this advisory."""
   issues: [Issue]
 
   """
@@ -8778,9 +6604,7 @@ type RedHatContainerAdvisory {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -8828,19 +6652,13 @@ type RedHatContainerAdvisoryResponse {
 Stores data about single Red Hat product and its versions partner claims to support.
 """
 type RedHatProductAffinity {
-  """
-  ID of the Red Hat product.
-  """
+  """ID of the Red Hat product."""
   id: Int
 
-  """
-  Full Red Hat product name.
-  """
+  """Full Red Hat product name."""
   name: String
 
-  """
-  Short version of Rer Hat product name, e.g. RHEL
-  """
+  """Short version of Rer Hat product name, e.g. RHEL"""
   short_name: String
 
   """
@@ -8848,9 +6666,7 @@ type RedHatProductAffinity {
   """
   support_future_versions: Boolean
 
-  """
-  List of versions of the Red Hat product supported by partner product.
-  """
+  """List of versions of the Red Hat product supported by partner product."""
   versions: [RedHatProductVersion]
 }
 
@@ -8881,19 +6697,13 @@ input RedHatProductAffinityFilter {
 Stores data about single Red Hat product and its versions partner claims to support.
 """
 input RedHatProductAffinityInput {
-  """
-  ID of the Red Hat product.
-  """
+  """ID of the Red Hat product."""
   id: Int
 
-  """
-  Full Red Hat product name.
-  """
+  """Full Red Hat product name."""
   name: String
 
-  """
-  Short version of Rer Hat product name, e.g. RHEL
-  """
+  """Short version of Rer Hat product name, e.g. RHEL"""
   short_name: String
 
   """
@@ -8901,9 +6711,7 @@ input RedHatProductAffinityInput {
   """
   support_future_versions: Boolean
 
-  """
-  List of versions of the Red Hat product supported by partner product.
-  """
+  """List of versions of the Red Hat product supported by partner product."""
   versions: [RedHatProductVersionInput]
 }
 
@@ -8929,13 +6737,9 @@ input RedHatProductAffinityListIndexFilter {
   index: Int
 }
 
-"""
-Details about Red Hat product.
-"""
+"""Details about Red Hat product."""
 type RedHatProductItems {
-  """
-  Red Hat product name.
-  """
+  """Red Hat product name."""
   name: String
 
   """
@@ -8943,9 +6747,7 @@ type RedHatProductItems {
   """
   support_future_versions: Boolean
 
-  """
-  List of versions of the Red Hat product supported by partner product.
-  """
+  """List of versions of the Red Hat product supported by partner product."""
   versions: [String]
 }
 
@@ -8969,13 +6771,9 @@ input RedHatProductItemsFilter {
   not: RedHatProductItemsFilter
 }
 
-"""
-Details about Red Hat product.
-"""
+"""Details about Red Hat product."""
 input RedHatProductItemsInput {
-  """
-  Red Hat product name.
-  """
+  """Red Hat product name."""
   name: String
 
   """
@@ -8983,9 +6781,7 @@ input RedHatProductItemsInput {
   """
   support_future_versions: Boolean
 
-  """
-  List of versions of the Red Hat product supported by partner product.
-  """
+  """List of versions of the Red Hat product supported by partner product."""
   versions: [String]
 }
 
@@ -9008,18 +6804,12 @@ input RedHatProductItemsListIndexFilter {
   index: Int
 }
 
-"""
-Version of the Red Hat product.
-"""
+"""Version of the Red Hat product."""
 type RedHatProductVersion {
-  """
-  ID of the Red Hat product version.
-  """
+  """ID of the Red Hat product version."""
   id: Int
 
-  """
-  Red Hat product version name.
-  """
+  """Red Hat product version name."""
   name: String
 }
 
@@ -9041,18 +6831,12 @@ input RedHatProductVersionFilter {
   not: RedHatProductVersionFilter
 }
 
-"""
-Version of the Red Hat product.
-"""
+"""Version of the Red Hat product."""
 input RedHatProductVersionInput {
-  """
-  ID of the Red Hat product version.
-  """
+  """ID of the Red Hat product version."""
   id: Int
 
-  """
-  Red Hat product version name.
-  """
+  """Red Hat product version name."""
   name: String
 }
 
@@ -9073,18 +6857,12 @@ input RedHatProductVersionListIndexFilter {
   index: Int
 }
 
-"""
-Registry credentials.
-"""
+"""Registry credentials."""
 type RegistryCredentials {
-  """
-  Container registry username.
-  """
+  """Container registry username."""
   username: OpenPGPEncrypted
 
-  """
-  Container registry password.
-  """
+  """Container registry password."""
   password: OpenPGPEncrypted
 }
 
@@ -9099,24 +6877,16 @@ input RegistryCredentialsFilter {
   not: RegistryCredentialsFilter
 }
 
-"""
-Registry credentials.
-"""
+"""Registry credentials."""
 input RegistryCredentialsInput {
-  """
-  Container registry username.
-  """
+  """Container registry username."""
   username: OpenPGPEncrypted
 
-  """
-  Container registry password.
-  """
+  """Container registry password."""
   password: OpenPGPEncrypted
 }
 
-"""
-Registry credentials.
-"""
+"""Registry credentials."""
 type RegistrySecrets {
   registry_credentials: RegistryCredentials
 
@@ -9131,9 +6901,7 @@ type RegistrySecretsResponse {
   error: ResponseError
 }
 
-"""
-Specific information from the CSV requested by customer.
-"""
+"""Specific information from the CSV requested by customer."""
 type RelatedImagesItems {
   digest: String
   image: String
@@ -9182,14 +6950,10 @@ Content stream grades associated with an image tag and ids of images that
 participated in the evaluation of the current image's security grade.
 """
 type RepositoryContentStreamGrades {
-  """
-  Name of floating tag associated with the image.
-  """
+  """Name of floating tag associated with the image."""
   tag: String
 
-  """
-  Current image security grade.
-  """
+  """Current image security grade."""
   grade: String
 
   """
@@ -9239,33 +7003,21 @@ input RepositoryContentStreamGradesListIndexFilter {
   index: Int
 }
 
-"""
-Display data for Catalog.
-"""
+"""Display data for Catalog."""
 type RepositoryDisplayData {
-  """
-  The long description of the repository.
-  """
+  """The long description of the repository."""
   long_description: String
 
-  """
-  Markdown for the long description of the repository.
-  """
+  """Markdown for the long description of the repository."""
   long_description_markdown: String
 
-  """
-  The repository name.
-  """
+  """The repository name."""
   name: String
 
-  """
-  The io_openshift_tags.
-  """
+  """The io_openshift_tags."""
   openshift_tags: String
 
-  """
-  The short description of the repository.
-  """
+  """The short description of the repository."""
   short_description: String
 }
 
@@ -9283,23 +7035,15 @@ input RepositoryDisplayDataFilter {
   not: RepositoryDisplayDataFilter
 }
 
-"""
-Information about documentation link.
-"""
+"""Information about documentation link."""
 type RepositoryDocumentationLink {
-  """
-  Title of the link.
-  """
+  """Title of the link."""
   title: String
 
-  """
-  The type of collateral.
-  """
+  """The type of collateral."""
   type: String
 
-  """
-  The URL for the documentation.
-  """
+  """The URL for the documentation."""
   url: URI
 }
 
@@ -9340,18 +7084,14 @@ input RepositoryDocumentationLinkListIndexFilter {
   index: Int
 }
 
-"""
-Metrics information.
-"""
+"""Metrics information."""
 type RepositoryMetrics {
   """
   The date and time when these metrics were last updated for the repository.
   """
   last_update_date: DateTime
 
-  """
-  The number of pulls in the last 30 days for the repository.
-  """
+  """The number of pulls in the last 30 days for the repository."""
   pulls_in_last_30_days: Int
 }
 
@@ -9366,13 +7106,9 @@ input RepositoryMetricsFilter {
   not: RepositoryMetricsFilter
 }
 
-"""
-Describes what the image can be run on.
-"""
+"""Describes what the image can be run on."""
 type RepositoryRunsOn {
-  """
-  Can the image run on openshift_online.
-  """
+  """Can the image run on openshift_online."""
   openshift_online: Boolean
 }
 
@@ -9391,28 +7127,18 @@ type ResponseError {
   detail: String
 }
 
-"""
-The test results stored in lists based on result status.
-"""
+"""The test results stored in lists based on result status."""
 type Results {
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   failed: [TestResults]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   errors: [TestResults]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   passed: [TestResults]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   warning: [TestResults]
 }
 
@@ -9437,148 +7163,90 @@ input ResultsFilter {
   not: ResultsFilter
 }
 
-"""
-The test results stored in lists based on result status.
-"""
+"""The test results stored in lists based on result status."""
 input ResultsInput {
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   failed: [TestResultsInput]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   errors: [TestResultsInput]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   passed: [TestResultsInput]
 
-  """
-  Test results of cert project certification
-  """
+  """Test results of cert project certification"""
   warning: [TestResultsInput]
 }
 
-"""
-RPM content of an image.
-"""
+"""RPM content of an image."""
 type RpmsItems {
-  """
-  RPM architecture.
-  """
+  """RPM architecture."""
   architecture: String
 
-  """
-  GPG key used to sign the RPM.
-  """
+  """GPG key used to sign the RPM."""
   gpg: String
 
-  """
-  RPM name.
-  """
+  """RPM name."""
   name: String
 
-  """
-  RPM name, version, release, and architecture.
-  """
+  """RPM name, version, release, and architecture."""
   nvra: String
 
-  """
-  RPM release.
-  """
+  """RPM release."""
   release: String
 
-  """
-  Source RPM name.
-  """
+  """Source RPM name."""
   srpm_name: String
 
-  """
-  Source RPM NEVRA (name, epoch, version, release, architecture).
-  """
+  """Source RPM NEVRA (name, epoch, version, release, architecture)."""
   srpm_nevra: String
 
-  """
-  RPM summary.
-  """
+  """RPM summary."""
   summary: String
 
-  """
-  RPM version.
-  """
+  """RPM version."""
   version: String
 
-  """
-  RPM epoch.
-  """
+  """RPM epoch."""
   epoch: String
 
-  """
-  RPM module.
-  """
+  """RPM module."""
   module: String
 }
 
-"""
-RPM content of an image.
-"""
+"""RPM content of an image."""
 input RpmsItemsInput {
-  """
-  RPM architecture.
-  """
+  """RPM architecture."""
   architecture: String
 
-  """
-  GPG key used to sign the RPM.
-  """
+  """GPG key used to sign the RPM."""
   gpg: String
 
-  """
-  RPM name.
-  """
+  """RPM name."""
   name: String
 
-  """
-  RPM name, version, release, and architecture.
-  """
+  """RPM name, version, release, and architecture."""
   nvra: String
 
-  """
-  RPM release.
-  """
+  """RPM release."""
   release: String
 
-  """
-  Source RPM name.
-  """
+  """Source RPM name."""
   srpm_name: String
 
-  """
-  Source RPM NEVRA (name, epoch, version, release, architecture).
-  """
+  """Source RPM NEVRA (name, epoch, version, release, architecture)."""
   srpm_nevra: String
 
-  """
-  RPM summary.
-  """
+  """RPM summary."""
   summary: String
 
-  """
-  RPM version.
-  """
+  """RPM version."""
   version: String
 
-  """
-  RPM epoch.
-  """
+  """RPM epoch."""
   epoch: String
 
-  """
-  RPM module.
-  """
+  """RPM module."""
   module: String
 }
 
@@ -9663,14 +7331,10 @@ Usage: In (Filtering)
 scalar SemVerFilterScalar
 
 type SignatureInfo {
-  """
-  The long 16-byte gpg key id.
-  """
+  """The long 16-byte gpg key id."""
   key_long_id: String
 
-  """
-  List of image tags that are signed with the given key.
-  """
+  """List of image tags that are signed with the given key."""
   tags: [String]
 }
 
@@ -9694,14 +7358,10 @@ input SignatureInfoFilter {
 }
 
 input SignatureInfoInput {
-  """
-  The long 16-byte gpg key id.
-  """
+  """The long 16-byte gpg key id."""
   key_long_id: String
 
-  """
-  List of image tags that are signed with the given key.
-  """
+  """List of image tags that are signed with the given key."""
   tags: [String]
 }
 
@@ -9723,21 +7383,15 @@ input SignatureInfoListIndexFilter {
   index: Int
 }
 
-"""
-Single_arch image which is part of the manifest_list_digest
-"""
+"""Single_arch image which is part of the manifest_list_digest"""
 type SingleArchImage {
-  """
-  Unique identifier for the container image.
-  """
+  """Unique identifier for the container image."""
   image_id: ObjectID
   edges: SingleArchImageEdges
 }
 
 type SingleArchImageEdges {
-  """
-  Get container image by ID.
-  """
+  """Get container image by ID."""
   container_image(id: ObjectIDFilterScalar): ContainerImageResponse
 }
 
@@ -9758,13 +7412,9 @@ input SingleArchImageFilter {
   not: SingleArchImageFilter
 }
 
-"""
-Single_arch image which is part of the manifest_list_digest
-"""
+"""Single_arch image which is part of the manifest_list_digest"""
 input SingleArchImageInput {
-  """
-  Unique identifier for the container image.
-  """
+  """Unique identifier for the container image."""
   image_id: ObjectID
 }
 
@@ -9835,9 +7485,7 @@ input StringListIndexFilter {
   index: Int
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 type Support {
   description: String
   email_address: Email
@@ -9858,9 +7506,7 @@ input SupportFilter {
   not: SupportFilter
 }
 
-"""
-This field is required when the product listing is published.
-"""
+"""This field is required when the product listing is published."""
 input SupportInput {
   description: String
   email_address: Email
@@ -9868,9 +7514,7 @@ input SupportInput {
   url: URI
 }
 
-"""
-A platform where tests were executed.
-"""
+"""A platform where tests were executed."""
 type TestedOn {
   name: String
   version: String
@@ -9887,17 +7531,13 @@ input TestedOnFilter {
   not: TestedOnFilter
 }
 
-"""
-A platform where tests were executed.
-"""
+"""A platform where tests were executed."""
 input TestedOnInput {
   name: String
   version: String
 }
 
-"""
-The test library of the test result.
-"""
+"""The test library of the test result."""
 type TestLibrary {
   commit: String
   name: String
@@ -9916,18 +7556,14 @@ input TestLibraryFilter {
   not: TestLibraryFilter
 }
 
-"""
-The test library of the test result.
-"""
+"""The test library of the test result."""
 input TestLibraryInput {
   commit: String
   name: String
   version: String
 }
 
-"""
-The cert project pipeline test result.
-"""
+"""The cert project pipeline test result."""
 type TestResults {
   check_url: URI
   description: String
@@ -9961,9 +7597,7 @@ input TestResultsFilter {
   not: TestResultsFilter
 }
 
-"""
-The cert project pipeline test result.
-"""
+"""The cert project pipeline test result."""
 input TestResultsInput {
   check_url: URI
   description: String
@@ -10000,29 +7634,19 @@ input TestResultsListIndexFilter {
 Stores data about software tools, e.g. Preflight version. Read only external access. Used for supported version check.
 """
 type Tool {
-  """
-  Name of the tool.
-  """
+  """Name of the tool."""
   name: String
 
-  """
-  Tool version, e.g. 1.4.0
-  """
+  """Tool version, e.g. 1.4.0"""
   version: SemVer
 
-  """
-  Commit hash of the tool version.
-  """
+  """Commit hash of the tool version."""
   commit: String
 
-  """
-  Whether this tool version is enabled for testing.
-  """
+  """Whether this tool version is enabled for testing."""
   enabled_for_testing: Boolean
 
-  """
-  MongoDB unique _id
-  """
+  """MongoDB unique _id"""
   _id: ObjectID
 
   """
@@ -10030,9 +7654,7 @@ type Tool {
   """
   creation_date: DateTime
 
-  """
-  The date when the entry was last updated.
-  """
+  """The date when the entry was last updated."""
   last_update_date: DateTime
 }
 
@@ -10066,14 +7688,10 @@ type ToolResponse {
 }
 
 type UncompressedLayerSize {
-  """
-  The SHA256 layer ID.
-  """
+  """The SHA256 layer ID."""
   layer_id: String
 
-  """
-  The uncompressed layer size in bytes.
-  """
+  """The uncompressed layer size in bytes."""
   size_bytes: Int64
 }
 
@@ -10096,14 +7714,10 @@ input UncompressedLayerSizeFilter {
 }
 
 input UncompressedLayerSizeInput {
-  """
-  The SHA256 layer ID.
-  """
+  """The SHA256 layer ID."""
   layer_id: String
 
-  """
-  The uncompressed layer size in bytes.
-  """
+  """The uncompressed layer size in bytes."""
   size_bytes: Int64
 }
 
@@ -10148,18 +7762,12 @@ input URIFilter {
   regex: String
 }
 
-"""
-Details about approved Red Hat validation.
-"""
+"""Details about approved Red Hat validation."""
 type ValidationItems {
-  """
-  ID of productValidation.
-  """
+  """ID of productValidation."""
   _id: ObjectID
 
-  """
-  List of Red Hat products.
-  """
+  """List of Red Hat products."""
   redhat_products: [RedHatProductItems]
 }
 
@@ -10183,18 +7791,12 @@ input ValidationItemsFilter {
   not: ValidationItemsFilter
 }
 
-"""
-Details about approved Red Hat validation.
-"""
+"""Details about approved Red Hat validation."""
 input ValidationItemsInput {
-  """
-  ID of productValidation.
-  """
+  """ID of productValidation."""
   _id: ObjectID
 
-  """
-  List of Red Hat products.
-  """
+  """List of Red Hat products."""
   redhat_products: [RedHatProductItemsInput]
 }
 
@@ -10216,3 +7818,4 @@ input ValidationItemsListIndexFilter {
   condition: ValidationItemsFilter
   index: Int
 }
+
