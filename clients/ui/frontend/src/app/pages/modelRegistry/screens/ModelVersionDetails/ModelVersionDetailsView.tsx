@@ -16,8 +16,7 @@ import {
   DashboardDescriptionListGroup,
   InlineTruncatedClipboardCopy,
 } from 'mod-arch-shared';
-import { ModelVersion } from '~/app/types';
-import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
+import { ModelVersion, ModelArtifactList } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
@@ -30,28 +29,24 @@ type ModelVersionDetailsViewProps = {
   modelVersion: ModelVersion;
   isArchiveVersion?: boolean;
   refresh: () => void;
+  modelArtifacts: ModelArtifactList;
 };
 
 const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   modelVersion: mv,
   isArchiveVersion,
   refresh,
+  modelArtifacts,
 }) => {
-  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
-    useModelArtifactsByVersionId(mv.id);
-
   const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
   const storageFields = uriToStorageFields(modelArtifact?.uri || '');
-  const [registeredModel, registeredModelLoaded, registeredModelLoadError, refreshRegisteredModel] =
-    useRegisteredModelById(mv.registeredModelId);
+  const [registeredModel, registeredModelLoaded, registeredModelLoadError] = useRegisteredModelById(
+    mv.registeredModelId,
+  );
 
-  const loaded = modelArtifactsLoaded && registeredModelLoaded;
-  const loadError = modelArtifactsLoadError || registeredModelLoadError;
-  const refreshBoth = () => {
-    refreshModelArtifacts();
-    refreshRegisteredModel();
-  };
+  const loaded = registeredModelLoaded;
+  const loadError = registeredModelLoadError;
 
   if (!loaded) {
     return (
@@ -76,7 +71,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
       await updatePromise;
       if (registeredModel) {
         await bumpBothTimestamps(apiState.api, registeredModel, mv);
-        refreshBoth();
+        refresh();
       }
     } catch (error) {
       throw new Error(

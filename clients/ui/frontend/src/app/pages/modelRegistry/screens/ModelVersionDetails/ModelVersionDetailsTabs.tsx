@@ -8,7 +8,7 @@ import {
   ServingRuntimeKind,
   useModularArchContext,
 } from 'mod-arch-shared';
-import { ModelVersion } from '~/app/types';
+import { ModelVersion, ModelArtifactList } from '~/app/types';
 import { ModelVersionDetailsTabTitle, ModelVersionDetailsTab } from './const';
 import ModelVersionDetailsView from './ModelVersionDetailsView';
 import ModelVersionRegisteredDeploymentsView from './ModelVersionRegisteredDeploymentsView';
@@ -20,6 +20,7 @@ type ModelVersionDetailTabsProps = {
   servingRuntimes: FetchStateObject<ServingRuntimeKind[]>;
   isArchiveVersion?: boolean;
   refresh: () => void;
+  modelArtifacts: ModelArtifactList;
 };
 
 const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
@@ -29,6 +30,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   servingRuntimes,
   isArchiveVersion,
   refresh,
+  modelArtifacts,
 }) => {
   const navigate = useNavigate();
   const { config } = useModularArchContext();
@@ -56,6 +58,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
             modelVersion={mv}
             refresh={refresh}
             isArchiveVersion={isArchiveVersion}
+            modelArtifacts={modelArtifacts}
           />
         </PageSection>
       </Tab>

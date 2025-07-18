@@ -10,7 +10,7 @@ import {
   ActionListItem,
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router';
-import { ModelState, ModelVersion } from '~/app/types';
+import { ModelState, ModelVersion, ModelArtifactList } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ArchiveModelVersionModal } from '~/app/pages/modelRegistry/screens/components/ArchiveModelVersionModal';
@@ -20,6 +20,7 @@ interface ModelVersionsDetailsHeaderActionsProps {
   mv: ModelVersion;
   hasDeployment?: boolean;
   refresh: () => void;
+  modelArtifacts: ModelArtifactList;
 }
 
 const ModelVersionsDetailsHeaderActions: React.FC<ModelVersionsDetailsHeaderActionsProps> = ({
@@ -28,6 +29,8 @@ const ModelVersionsDetailsHeaderActions: React.FC<ModelVersionsDetailsHeaderActi
   // TODO: [Model Serving] Uncomment when model serving is available
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   refresh,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  modelArtifacts,
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
