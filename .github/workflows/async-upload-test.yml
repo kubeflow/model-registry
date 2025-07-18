@@ -73,4 +73,4 @@ jobs:
         env:
           IMG_VERSION: e2e
         run: |
-          make test-e2e-run-sample-job
+          make test-integration
