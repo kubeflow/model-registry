@@ -45,7 +45,11 @@ func TestParameterRepository(t *testing.T) {
 				},
 				{
 					Name:        "value",
-					StringValue: apiutils.Of("learning_rate=0.001"),
+					StringValue: apiutils.Of("0.001"),
+				},
+				{
+					Name:        "parameter_type",
+					StringValue: apiutils.Of("number"),
 				},
 			},
 			CustomProperties: &[]models.Properties{
@@ -68,6 +72,43 @@ func TestParameterRepository(t *testing.T) {
 		assert.Equal(t, "parameter", *saved.GetAttributes().ArtifactType)
 		assert.NotNil(t, saved.GetAttributes().CreateTimeSinceEpoch)
 		assert.NotNil(t, saved.GetAttributes().LastUpdateTimeSinceEpoch)
+
+		// Verify properties were saved
+		assert.NotNil(t, saved.GetProperties())
+		assert.Len(t, *saved.GetProperties(), 3) // description, value, parameter_type
+
+		// Verify specific properties
+		var foundDescription, foundValue, foundType bool
+		for _, prop := range *saved.GetProperties() {
+			switch prop.Name {
+			case "description":
+				foundDescription = true
+				assert.Equal(t, "Test parameter description", *prop.StringValue)
+			case "value":
+				foundValue = true
+				assert.Equal(t, "0.001", *prop.StringValue)
+			case "parameter_type":
+				foundType = true
+				assert.Equal(t, "number", *prop.StringValue)
+			}
+		}
+		assert.True(t, foundDescription, "description property should exist")
+		assert.True(t, foundValue, "value property should exist")
+		assert.True(t, foundType, "parameter_type property should exist")
+
+		// Verify custom properties were saved
+		assert.NotNil(t, saved.GetCustomProperties())
+		assert.Len(t, *saved.GetCustomProperties(), 1)
+
+		var foundCustomProp bool
+		for _, prop := range *saved.GetCustomProperties() {
+			if prop.Name == "custom-parameter-prop" {
+				foundCustomProp = true
+				assert.Equal(t, "custom-parameter-value", *prop.StringValue)
+				assert.True(t, prop.IsCustomProperty)
+			}
+		}
+		assert.True(t, foundCustomProp, "custom-parameter-prop should exist")
 
 		// Test updating the same parameter
 		parameter.ID = saved.GetID()
@@ -102,6 +143,21 @@ func TestParameterRepository(t *testing.T) {
 					Name:        "description",
 					StringValue: apiutils.Of("Parameter for get test"),
 				},
+				{
+					Name:        "value",
+					StringValue: apiutils.Of("0.005"),
+				},
+				{
+					Name:        "parameter_type",
+					StringValue: apiutils.Of("string"),
+				},
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:             "experiment-phase",
+					StringValue:      apiutils.Of("validation"),
+					IsCustomProperty: true,
+				},
 			},
 		}
 
@@ -118,6 +174,37 @@ func TestParameterRepository(t *testing.T) {
 		assert.Equal(t, "get-parameter-ext-123", *retrieved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/get-parameter.json", *retrieved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *retrieved.GetAttributes().State)
+
+		// Verify type-specific properties were retrieved
+		assert.NotNil(t, retrieved.GetProperties())
+		assert.Len(t, *retrieved.GetProperties(), 3)
+
+		var foundDescription, foundValue, foundType bool
+		for _, prop := range *retrieved.GetProperties() {
+			switch prop.Name {
+			case "description":
+				foundDescription = true
+				assert.Equal(t, "Parameter for get test", *prop.StringValue)
+			case "value":
+				foundValue = true
+				assert.Equal(t, "0.005", *prop.StringValue)
+			case "parameter_type":
+				foundType = true
+				assert.Equal(t, "string", *prop.StringValue)
+			}
+		}
+		assert.True(t, foundDescription, "description should be retrieved")
+		assert.True(t, foundValue, "value should be retrieved")
+		assert.True(t, foundType, "parameter_type should be retrieved")
+
+		// Verify custom properties were retrieved
+		assert.NotNil(t, retrieved.GetCustomProperties())
+		assert.Len(t, *retrieved.GetCustomProperties(), 1)
+
+		customProp := (*retrieved.GetCustomProperties())[0]
+		assert.Equal(t, "experiment-phase", customProp.Name)
+		assert.Equal(t, "validation", *customProp.StringValue)
+		assert.True(t, customProp.IsCustomProperty)
 
 		// Test retrieving non-existent ID
 		_, err = repo.GetByID(99999)

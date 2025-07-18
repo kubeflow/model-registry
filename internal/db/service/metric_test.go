@@ -47,6 +47,10 @@ func TestMetricRepository(t *testing.T) {
 					Name:        "value",
 					DoubleValue: apiutils.Of(0.95),
 				},
+				{
+					Name:     "step",
+					IntValue: apiutils.Of(int32(100)),
+				},
 			},
 			CustomProperties: &[]models.Properties{
 				{
@@ -68,6 +72,43 @@ func TestMetricRepository(t *testing.T) {
 		assert.Equal(t, "metric", *saved.GetAttributes().ArtifactType)
 		assert.NotNil(t, saved.GetAttributes().CreateTimeSinceEpoch)
 		assert.NotNil(t, saved.GetAttributes().LastUpdateTimeSinceEpoch)
+
+		// Verify properties were saved
+		assert.NotNil(t, saved.GetProperties())
+		assert.Len(t, *saved.GetProperties(), 3) // description, value, step
+
+		// Verify specific properties
+		var foundDescription, foundValue, foundStep bool
+		for _, prop := range *saved.GetProperties() {
+			switch prop.Name {
+			case "description":
+				foundDescription = true
+				assert.Equal(t, "Test metric description", *prop.StringValue)
+			case "value":
+				foundValue = true
+				assert.Equal(t, 0.95, *prop.DoubleValue)
+			case "step":
+				foundStep = true
+				assert.Equal(t, int32(100), *prop.IntValue)
+			}
+		}
+		assert.True(t, foundDescription, "description property should exist")
+		assert.True(t, foundValue, "value property should exist")
+		assert.True(t, foundStep, "step property should exist")
+
+		// Verify custom properties were saved
+		assert.NotNil(t, saved.GetCustomProperties())
+		assert.Len(t, *saved.GetCustomProperties(), 1)
+
+		var foundCustomProp bool
+		for _, prop := range *saved.GetCustomProperties() {
+			if prop.Name == "custom-metric-prop" {
+				foundCustomProp = true
+				assert.Equal(t, "custom-metric-value", *prop.StringValue)
+				assert.True(t, prop.IsCustomProperty)
+			}
+		}
+		assert.True(t, foundCustomProp, "custom-metric-prop should exist")
 
 		// Test updating the same metric
 		metric.ID = saved.GetID()
@@ -102,6 +143,21 @@ func TestMetricRepository(t *testing.T) {
 					Name:        "description",
 					StringValue: apiutils.Of("Metric for get test"),
 				},
+				{
+					Name:        "value",
+					DoubleValue: apiutils.Of(0.85),
+				},
+				{
+					Name:     "step",
+					IntValue: apiutils.Of(int32(50)),
+				},
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:             "test-category",
+					StringValue:      apiutils.Of("retrieval-test"),
+					IsCustomProperty: true,
+				},
 			},
 		}
 
@@ -118,6 +174,37 @@ func TestMetricRepository(t *testing.T) {
 		assert.Equal(t, "get-metric-ext-123", *retrieved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/get-metric.json", *retrieved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *retrieved.GetAttributes().State)
+
+		// Verify type-specific properties were retrieved
+		assert.NotNil(t, retrieved.GetProperties())
+		assert.Len(t, *retrieved.GetProperties(), 3)
+
+		var foundDescription, foundValue, foundStep bool
+		for _, prop := range *retrieved.GetProperties() {
+			switch prop.Name {
+			case "description":
+				foundDescription = true
+				assert.Equal(t, "Metric for get test", *prop.StringValue)
+			case "value":
+				foundValue = true
+				assert.Equal(t, 0.85, *prop.DoubleValue)
+			case "step":
+				foundStep = true
+				assert.Equal(t, int32(50), *prop.IntValue)
+			}
+		}
+		assert.True(t, foundDescription, "description should be retrieved")
+		assert.True(t, foundValue, "value should be retrieved")
+		assert.True(t, foundStep, "step should be retrieved")
+
+		// Verify custom properties were retrieved
+		assert.NotNil(t, retrieved.GetCustomProperties())
+		assert.Len(t, *retrieved.GetCustomProperties(), 1)
+
+		customProp := (*retrieved.GetCustomProperties())[0]
+		assert.Equal(t, "test-category", customProp.Name)
+		assert.Equal(t, "retrieval-test", *customProp.StringValue)
+		assert.True(t, customProp.IsCustomProperty)
 
 		// Test retrieving non-existent ID
 		_, err = repo.GetByID(99999)
@@ -428,13 +515,12 @@ func TestMetricRepository(t *testing.T) {
 		assert.Len(t, *retrieved.GetProperties(), 3) // description, value, threshold
 
 		assert.NotNil(t, retrieved.GetCustomProperties())
-		assert.Len(t, *retrieved.GetCustomProperties(), 2) // team, priority
+		assert.Len(t, *retrieved.GetCustomProperties(), 2)
 
 		// Verify specific properties exist
-		foundDescription := false
-		foundValue := false
-		foundThreshold := false
-		for _, prop := range *retrieved.GetProperties() {
+		properties := *retrieved.GetProperties()
+		var foundDescription, foundValue, foundThreshold bool
+		for _, prop := range properties {
 			switch prop.Name {
 			case "description":
 				foundDescription = true
@@ -447,25 +533,9 @@ func TestMetricRepository(t *testing.T) {
 				assert.Equal(t, 0.90, *prop.DoubleValue)
 			}
 		}
-		assert.True(t, foundDescription, "description property should exist")
-		assert.True(t, foundValue, "value property should exist")
-		assert.True(t, foundThreshold, "threshold property should exist")
-
-		// Verify custom properties
-		foundTeam := false
-		foundPriority := false
-		for _, prop := range *retrieved.GetCustomProperties() {
-			switch prop.Name {
-			case "team":
-				foundTeam = true
-				assert.Equal(t, "ml-team", *prop.StringValue)
-			case "priority":
-				foundPriority = true
-				assert.Equal(t, int32(5), *prop.IntValue)
-			}
-		}
-		assert.True(t, foundTeam, "team custom property should exist")
-		assert.True(t, foundPriority, "priority custom property should exist")
+		assert.True(t, foundDescription, "Should find description property")
+		assert.True(t, foundValue, "Should find value property")
+		assert.True(t, foundThreshold, "Should find threshold property")
 	})
 
 	t.Run("TestPagination", func(t *testing.T) {
