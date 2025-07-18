@@ -256,7 +256,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest bin/genqlient
+deps: bin/protoc bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest bin/genqlient
 
 .PHONY: vendor
 vendor:
