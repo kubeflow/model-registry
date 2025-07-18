@@ -61,11 +61,19 @@ test-e2e-cleanup:
 		rm -f .port-forwards.pid; \
 	fi
 
-.PHONY: test-e2e-run-sample-job
-test-e2e-run-sample-job: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
-	@echo "Running sample job..."
-	CONTAINER_IMAGE_URI=$(IMG) ./samples/setup-and-apply-job.sh
+.PHONY: test-integration
+test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
+	@echo "Starting test-integration"
+	-$(MAKE) test-integration-run; STATUS=$$?
 	$(MAKE) test-e2e-cleanup
+	@exit $$STATUS
+
+.PHONY: test-integration-run
+test-integration-run:
+	@echo "Ensuring all extras are installed..."
+	poetry install --all-extras --with integration
+	@echo "Running integration tests..."
+	CONTAINER_IMAGE_URI=$(IMG) poetry run pytest --integration tests/integration/ -v
 
 .PHONY: install
 install:
