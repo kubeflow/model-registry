@@ -300,15 +300,15 @@ lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
-test: gen bin/envtest
+test: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/...
 
 .PHONY: test-nocache
-test-nocache: gen bin/envtest
+test-nocache: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -count=1
 
 .PHONY: test-cover
-test-cover: gen bin/envtest
+test-cover: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 
