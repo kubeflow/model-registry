@@ -126,8 +126,6 @@ func newRhecModel(repoData *genqlient.GetRepositoryResponse, imageData genqlient
 	readme := repoData.Get_repository_by_registry_path.Data.Display_data.Long_description
 	provider := repoData.Get_repository_by_registry_path.Data.Vendor_label
 
-	TEMPPOINTERPLACEHOLDER := " "
-
 	var maturity *string
 	if len(repoData.Get_repository_by_registry_path.Data.Release_categories) > 0 {
 		maturityStr := repoData.Get_repository_by_registry_path.Data.Release_categories[0]
@@ -154,10 +152,10 @@ func newRhecModel(repoData *genqlient.GetRepositoryResponse, imageData genqlient
 			Language:                 []string{},
 			Tasks:                    tasks,
 			Provider:                 &provider,
-			Logo:                     &TEMPPOINTERPLACEHOLDER,
-			License:                  &TEMPPOINTERPLACEHOLDER,
-			LicenseLink:              &TEMPPOINTERPLACEHOLDER,
-			LibraryName:              &TEMPPOINTERPLACEHOLDER,
+			Logo:                     nil,
+			License:                  nil,
+			LicenseLink:              nil,
+			LibraryName:              nil,
 			SourceId:                 &sourceId,
 		},
 		Artifacts: []*openapi.CatalogModelArtifact{
