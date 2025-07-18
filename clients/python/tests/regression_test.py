@@ -145,7 +145,7 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_mo
     assert response.status_code == 400
     assert response.json() == {
         "code": "Bad Request",
-        "message": "json: unknown field \"ext_id\"",
+        "message": 'json: unknown field "ext_id"',
     }
 
 
