@@ -22,10 +22,10 @@ from mr_openapi import (
 )
 from mr_openapi import (
     ArtifactState,
-    ModelArtifactCreate,
-    ModelArtifactUpdate,
     DocArtifactCreate,
     DocArtifactUpdate,
+    ModelArtifactCreate,
+    ModelArtifactUpdate,
 )
 from mr_openapi import (
     DocArtifact as DocArtifactBaseModel,

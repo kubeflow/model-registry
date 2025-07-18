@@ -1,14 +1,13 @@
 import os
 from itertools import islice
-import urllib
 
-from model_registry.types.artifacts import DocArtifact
 import pytest
 import requests
 
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
+from model_registry.types.artifacts import DocArtifact
 
 from .extras.async_task_runner import AsyncTaskRunner
 
@@ -1113,7 +1112,7 @@ async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_mod
         description="Lorem ipsum dolor sit amet",
     )
     assert rm.id
-    
+
     rm.description = "New description"
     client.update(rm)
     assert rm.description == "New description"
