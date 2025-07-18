@@ -176,7 +176,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         title="Version details"
         description={
           isFirstVersion
-            ? 'Configure details for the first version of this model.'
+            ? 'Provide version details that apply to only this model version.'
             : 'Configure details for the version of this model.'
         }
       >
