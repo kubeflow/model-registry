@@ -258,9 +258,9 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 			dsn += "?tls=custom"
 		}
 		connector := mysql.NewMySQLDBConnector(dsn, &_tls.TLSConfig{
-				Cipher:           "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-				VerifyServerCert: false,
-			})
+			Cipher:           "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+			VerifyServerCert: false,
+		})
 
 		db, err := connector.Connect()
 		require.NoError(t, err)
@@ -290,8 +290,8 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 
 	t.Run("NonExistentCertFile", func(t *testing.T) {
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
-				RootCertPath: "/nonexistent/cert.pem",
-			})
+			RootCertPath: "/nonexistent/cert.pem",
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -314,9 +314,9 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		require.NoError(t, err)
 
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
-				CertPath: invalidCertPath,
-				KeyPath:  invalidKeyPath,
-			})
+			CertPath: invalidCertPath,
+			KeyPath:  invalidKeyPath,
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -334,8 +334,8 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		require.NoError(t, err)
 
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
-				RootCertPath: invalidRootCertPath,
-			})
+			RootCertPath: invalidRootCertPath,
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)

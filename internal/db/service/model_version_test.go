@@ -297,7 +297,7 @@ func TestModelVersionRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test ordering by CREATE_TIME
-		pageSize := int32(10)
+		pageSize := int32(100) // Increased page size to ensure all test entities are included
 		listOptions := models.ModelVersionListOptions{
 			Pagination: models.Pagination{
 				OrderBy: apiutils.Of("CREATE_TIME"),
