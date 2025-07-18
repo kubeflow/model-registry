@@ -17,6 +17,7 @@ jobs:
   prepare:
     uses: ./.github/workflows/prepare.yml
   build:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
