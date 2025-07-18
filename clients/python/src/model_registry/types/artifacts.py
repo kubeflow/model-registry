@@ -24,6 +24,8 @@ from mr_openapi import (
     ArtifactState,
     ModelArtifactCreate,
     ModelArtifactUpdate,
+    DocArtifactCreate,
+    DocArtifactUpdate,
 )
 from mr_openapi import (
     DocArtifact as DocArtifactBaseModel,
@@ -87,11 +89,23 @@ class DocArtifact(Artifact):
 
     @override
     def create(self, **kwargs) -> Any:
-        raise NotImplementedError
+        """Create a new DocArtifactCreate object."""
+        return DocArtifactCreate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "custom_properties")),
+            artifactType="doc-artifact",
+            **kwargs,
+        )
 
     @override
     def update(self, **kwargs) -> Any:
-        raise NotImplementedError
+        """Create a new DocArtifactUpdate object."""
+        return DocArtifactUpdate(
+            customProperties=self._map_custom_properties(),
+            **self._props_as_dict(exclude=("id", "name", "custom_properties")),
+            artifactType="doc-artifact",
+            **kwargs,
+        )
 
     @override
     def as_basemodel(self) -> DocArtifactBaseModel:
