@@ -4,6 +4,7 @@ IMG_ORG ?= kubeflow
 IMG_NAME ?= model-registry/job/async-upload
 IMG ?= $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):$(IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
+CLUSTER_NAME ?= mr-e2e
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
@@ -29,7 +30,7 @@ deploy-local-registry:
 .PHONY: dev-load-image
 dev-load-image:
 	docker buildx build --load -t $(IMG) .
-	kind load docker-image $(IMG) -n mr-e2e
+	kind load docker-image $(IMG) -n $(CLUSTER_NAME)
 
 .PHONY: test
 test:
@@ -59,6 +60,20 @@ test-e2e-cleanup:
 		kill $$(cat .port-forwards.pid) || true; \
 		rm -f .port-forwards.pid; \
 	fi
+
+.PHONY: test-integration
+test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
+	@echo "Starting test-integration"
+	-$(MAKE) test-integration-run; STATUS=$$?
+	$(MAKE) test-e2e-cleanup
+	@exit $$STATUS
+
+.PHONY: test-integration-run
+test-integration-run:
+	@echo "Ensuring all extras are installed..."
+	poetry install --all-extras --with integration
+	@echo "Running integration tests..."
+	CONTAINER_IMAGE_URI=$(IMG) poetry run pytest --integration tests/integration/ -v
 
 .PHONY: install
 install:
