@@ -10,12 +10,14 @@ Regression tests for Model Registry
 
 *** Test Cases ***
 As a MLOps engineer if I try to store a malformed RegisteredModel I get a structured error message
+    # MIGRATED to test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message in pytest
     ${rm}   Create Dictionary  name="model"  ext_id=123
     ${err}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/registered_models    json=&{rm}    expected_status=400
     ${rm_err}   Create Dictionary  code=Bad Request  message=json: unknown field "ext_id"
           And Should be equal    ${rm_err}    ${err.json()}
 
 As a MLOps engineer if I try to store a malformed ModelVersion I get a structured error message
+    # MIGRATED to test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version_i_get_a_structured_error_message in pytest
     ${rId}  Given I create a RegisteredModel having    name=${name}
     ${mv}   Create Dictionary   registeredModelId=${rId}
     ${err}    POST    url=http://${MR_HOST}:${MR_PORT}/api/model_registry/v1alpha3/model_versions    json=&{mv}    expected_status=422
