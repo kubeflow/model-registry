@@ -1,6 +1,6 @@
 PROJECT_BIN := $(CURDIR)/../bin
 OPENAPI_GENERATOR := $(PROJECT_BIN)/openapi-generator-cli
-GENQLIENT_BIN ?= ~/go/bin/genqlient
+GENQLIENT_BIN ?= $(PROJECT_BIN)/genqlient
 GENQLIENT_CONFIG := internal/catalog/genqlient/genqlient.yaml
 GENQLIENT_OUTPUT := internal/catalog/genqlient/generated.go
 GENQLIENT_SOURCES := $(wildcard internal/catalog/genqlient/queries/*.graphql)
@@ -24,8 +24,8 @@ pkg/openapi/client.go: ../api/openapi/catalog.yaml
 .PHONY: gen/graphql
 gen/graphql: $(GENQLIENT_OUTPUT)
 
-$(GENQLIENT_OUTPUT): $(GENQLIENT_CONFIG) $(GENQLIENT_SOURCES)
-	$(GENQLIENT_BIN) $(GENQLIENT_CONFIG)
+$(GENQLIENT_OUTPUT): $(GENQLIENT_CONFIG) $(GENQLIENT_SOURCES) $(PROJECT_BIN)/genqlient
+	$(GENQLIENT_BIN) --config $(GENQLIENT_CONFIG)
 
 .PHONY: download/graphql-schema
 download/graphql-schema:

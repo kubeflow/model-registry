@@ -11,13 +11,7 @@ This directory contains the necessary files to generate a type-safe Go GraphQL c
 
 ### Generating the Client
 
-To regenerate the client, you will need to have `genqlient` installed. You can install it by running:
-
-```bash
-go install github.com/Khan/genqlient
-```
-
-Once installed, you can generate the client by running the following command from the `catalog` directory:
+To regenerate the client, you will first need to ensure the required tools are installed by running `make deps` from the project root. Once the tools are installed, you can generate the client by running the following command from the `catalog` directory:
 
 ```bash
 make gen/graphql

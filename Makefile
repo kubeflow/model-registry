@@ -229,6 +229,10 @@ GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
 	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
+GENQLIENT ?= ${PROJECT_BIN}/genqlient
+bin/genqlient:
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/Khan/genqlient@v0.7.0
+
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
 bin/openapi-generator-cli:
@@ -252,7 +256,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
+deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest bin/genqlient
 
 .PHONY: vendor
 vendor:
