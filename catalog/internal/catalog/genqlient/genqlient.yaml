@@ -1,0 +1,10 @@
+# genqlient.yaml
+schema: queries/schema.graphql
+operations:
+  - "queries/*.graphql"
+  - "!queries/schema.graphql"
+generated: generated.go
+package: genqlient
+bindings:
+  DateTime:
+    type: time.Time 

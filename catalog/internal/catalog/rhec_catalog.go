@@ -2,27 +2,27 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
-	"os"
-	"path/filepath"
-	"strings"
+	"net/http"
 	"sync"
+	"time"
 
+	"github.com/Khan/genqlient/graphql"
 	"github.com/golang/glog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	graphQL "github.com/shurcooL/graphql"
-	"k8s.io/apimachinery/pkg/util/yaml"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/genqlient"
+	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	models "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
 type rhecModel struct {
-	model.CatalogModel `yaml:",inline"`
-	Artifacts          []*model.CatalogModelArtifact `yaml:"artifacts"`
+	models.CatalogModel `yaml:",inline"`
+	Artifacts           []*openapi.CatalogModelArtifact `yaml:"artifacts"`
 }
 
-// rhecCatalogConfig defines the structure of the RHEC catalog configuration file (ex. sample-rhec.yaml).
+// rhecCatalogConfig defines the structure of the RHEC catalog configuration.
 type rhecCatalogConfig struct {
-	Source string `yaml:"source"`
 	Models []struct {
 		Repository string `yaml:"repository"`
 	} `yaml:"models"`
@@ -35,7 +35,7 @@ type rhecCatalogImpl struct {
 
 var _ CatalogSourceProvider = &rhecCatalogImpl{}
 
-func (r *rhecCatalogImpl) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+func (r *rhecCatalogImpl) GetModel(ctx context.Context, name string) (*openapi.CatalogModel, error) {
 	r.modelsLock.RLock()
 	defer r.modelsLock.RUnlock()
 
@@ -47,11 +47,11 @@ func (r *rhecCatalogImpl) GetModel(ctx context.Context, name string) (*model.Cat
 	return &cp, nil
 }
 
-func (r *rhecCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
+func (r *rhecCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (openapi.CatalogModelList, error) {
 	r.modelsLock.RLock()
 	defer r.modelsLock.RUnlock()
 
-	items := make([]model.CatalogModel, 0, len(r.models))
+	items := make([]openapi.CatalogModel, 0, len(r.models))
 	for _, rm := range r.models {
 		items = append(items, rm.CatalogModel)
 	}
@@ -61,7 +61,7 @@ func (r *rhecCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 		count = math.MaxInt32
 	}
 
-	return model.CatalogModelList{
+	return openapi.CatalogModelList{
 		Items:         items,
 		PageSize:      int32(count),
 		Size:          int32(count),
@@ -69,7 +69,7 @@ func (r *rhecCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	}, nil
 }
 
-func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {
+func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogModelArtifactList, error) {
 	r.modelsLock.RLock()
 	defer r.modelsLock.RUnlock()
 
@@ -83,8 +83,8 @@ func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 		count = math.MaxInt32
 	}
 
-	list := model.CatalogModelArtifactList{
-		Items:    make([]model.CatalogModelArtifact, count),
+	list := openapi.CatalogModelArtifactList{
+		Items:    make([]openapi.CatalogModelArtifact, count),
 		PageSize: int32(count),
 		Size:     int32(count),
 	}
@@ -94,25 +94,7 @@ func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 	return &list, nil
 }
 
-var getRepositoryQuery struct {
-	GetRepositoryResponse struct {
-		Error struct {
-			Detail graphQL.String `graphql:"detail"`
-			Status graphQL.String `graphql:"status"`
-		} `graphql:"error"`
-		Data struct {
-			CreationDate      graphQL.String   `graphql:"creation_date"`
-			LastUpdateDate    graphQL.String   `graphql:"last_update_date"`
-			ReleaseCategories []graphQL.String `graphql:"release_categories"`
-			VendorLabel       graphQL.String   `graphql:"vendor_label"`
-			DisplayData       struct {
-				ShortDescription graphQL.String `graphql:"short_description"`
-				LongDescription  graphQL.String `graphql:"long_description"`
-			} `graphql:"display_data"`
-		} `graphql:"data"`
-	} `graphql:"get_repository_by_registry_path(registry: $registry, repository: $repository)"`
-}
-
+// todo: remove mapping
 // 		CreateTimeSinceEpoch:      			repo.creation_date
 // 		LastUpdateTimeSinceEpoch: 			repo.last_update_date
 // 		Description: 						repo.RepositoryDisplayData.short_description
@@ -136,146 +118,129 @@ var getRepositoryQuery struct {
 // 		oci://registry.redhat.io/rhelai1/modelcar-granite-7b-redhat-lab:1.4.0
 // }
 
-var findRepositoryImagesQuery struct {
-	FindRepositoryImagesResponse struct {
-		Error []struct {
-			Detail graphQL.String `graphql:"detail"`
-			Status graphQL.String `graphql:"status"`
-		} `graphql:"error"`
-		Total graphQL.Int `graphql:"total"`
-		Data  []struct {
-			CreationDate   graphQL.String `graphql:"creation_date"`
-			LastUpdateDate graphQL.String `graphql:"last_update_date"`
-			Repositories   []struct {
-				Registry graphQL.String `graphql:"registry"`
-				Tags     []struct {
-					Name graphQL.String `graphql:"name"`
-				} `graphql:"tags"`
-			} `graphql:"repositories"`
-			ParsedData struct {
-				Labels []struct {
-					Name  graphQL.String `graphql:"name"`
-					Value graphQL.String `graphql:"value"`
-				} `graphql:"labels"`
-			} `graphql:"parsed_data"`
-		} `graphql:"data"`
-	} `graphql:"find_repository_images_by_registry_path(registry: $registry, repository: $repository, sort_by: [{ field: \"creation_date\", order: DESC }])"`
+func fetchRepository(ctx context.Context, client graphql.Client, repository string) (*genqlient.GetRepositoryResponse, error) {
+	resp, err := genqlient.GetRepository(ctx, client, "registry.access.redhat.com", repository)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query rhec repository: %w", err)
+	}
+
+	if err := resp.Get_repository_by_registry_path.Error; err.Detail != "" || err.Status != 0 {
+		return nil, fmt.Errorf("rhec repository query error: detail: %s, status: %d", err.Detail, err.Status)
+	}
+	return resp, nil
 }
 
-func (r *rhecCatalogImpl) load(path string) error {
-	fileBytes, err := os.ReadFile(path)
+func fetchRepositoryImages(ctx context.Context, client graphql.Client, repository string) ([]genqlient.FindRepositoryImagesFind_repository_images_by_registry_pathContainerImagePaginatedResponseDataContainerImage, error) {
+	resp, err := genqlient.FindRepositoryImages(ctx, client, "registry.access.redhat.com", repository)
 	if err != nil {
-		return fmt.Errorf("failed to read %s file: %w", path, err)
+		return nil, fmt.Errorf("failed to query rhec images: %w", err)
 	}
 
-	var contents rhecCatalogConfig
-	if err = yaml.UnmarshalStrict(fileBytes, &contents); err != nil {
-		return fmt.Errorf("failed to parse %s file: %w", path, err)
+	if err := resp.Find_repository_images_by_registry_path.Error; err.Detail != "" || err.Status != 0 {
+		return nil, fmt.Errorf("rhec images query error: detail: %s, status: %d", err.Detail, err.Status)
+	}
+	return resp.Find_repository_images_by_registry_path.Data, nil
+}
+
+func newRhecModel(repoData *genqlient.GetRepositoryResponse, imageData genqlient.FindRepositoryImagesFind_repository_images_by_registry_pathContainerImagePaginatedResponseDataContainerImage, imageTagName, repositoryName string) *rhecModel {
+
+	sourceId := "rhec"
+	createTime := repoData.Get_repository_by_registry_path.Data.Creation_date.Format(time.RFC3339)
+	lastUpdateTime := repoData.Get_repository_by_registry_path.Data.Last_update_date.Format(time.RFC3339)
+	description := repoData.Get_repository_by_registry_path.Data.Display_data.Short_description
+	readme := repoData.Get_repository_by_registry_path.Data.Display_data.Long_description
+	provider := repoData.Get_repository_by_registry_path.Data.Vendor_label
+
+	TEMPPOINTERPLACEHOLDER := " "
+
+	var maturity *string
+	if len(repoData.Get_repository_by_registry_path.Data.Release_categories) > 0 {
+		maturityStr := repoData.Get_repository_by_registry_path.Data.Release_categories[0]
+		maturity = &maturityStr
 	}
 
-	graphQLClient := graphQL.NewClient("https://catalog.redhat.com/api/containers/graphql/", nil)
+	var tasks []string
+	for _, label := range imageData.Parsed_data.Labels {
+		tasks = append(tasks, label.Value)
+	}
+	imageCreationDate := imageData.Creation_date.Format(time.RFC3339)
+	imageLastUpdateDate := imageData.Last_update_date.Format(time.RFC3339)
 
-	models := make(map[string]*rhecModel, len(contents.Models))
-	for _, m := range contents.Models {
-		queryVariables := map[string]any{
-			"registry":   graphQL.String("registry.access.redhat.com"),
-			"repository": graphQL.String(m.Repository),
+	modelName := repositoryName + ":" + imageTagName
+
+	return &rhecModel{
+		CatalogModel: openapi.CatalogModel{
+			Name:                     modelName,
+			CreateTimeSinceEpoch:     &createTime,
+			LastUpdateTimeSinceEpoch: &lastUpdateTime,
+			Description:              &description,
+			Readme:                   &readme,
+			Maturity:                 maturity,
+			Language:                 []string{},
+			Tasks:                    tasks,
+			Provider:                 &provider,
+			Logo:                     &TEMPPOINTERPLACEHOLDER,
+			License:                  &TEMPPOINTERPLACEHOLDER,
+			LicenseLink:              &TEMPPOINTERPLACEHOLDER,
+			LibraryName:              &TEMPPOINTERPLACEHOLDER,
+			SourceId:                 &sourceId,
+		},
+		Artifacts: []*openapi.CatalogModelArtifact{
+			{
+				Uri:                      "registry.redhat.io/" + repositoryName + ":" + imageTagName,
+				CreateTimeSinceEpoch:     &imageCreationDate,
+				LastUpdateTimeSinceEpoch: &imageLastUpdateDate,
+			},
+		},
+	}
+}
+
+func (r *rhecCatalogImpl) load(modelsList []any) error {
+	graphqlClient := graphql.NewClient("https://catalog.redhat.com/api/containers/graphql/", http.DefaultClient)
+	ctx := context.Background()
+
+	models := make(map[string]*rhecModel)
+	for _, modelEntry := range modelsList {
+		modelMap, ok := modelEntry.(map[string]any)
+		if !ok {
+			glog.Warningf("skipping invalid entry in 'models' list")
+			continue
 		}
-		err := graphQLClient.Query(context.Background(), &getRepositoryQuery, queryVariables)
+		repo, ok := modelMap["repository"].(string)
+		if !ok {
+			glog.Warningf("skipping model with missing or invalid 'repository'")
+			continue
+		}
+
+		repoData, err := fetchRepository(ctx, graphqlClient, repo)
 		if err != nil {
-			return fmt.Errorf("failed to query rhec repository: %w", err)
+			return err
 		}
 
-		if getRepositoryQuery.GetRepositoryResponse.Error.Detail != "" || getRepositoryQuery.GetRepositoryResponse.Error.Status != "" {
-			return fmt.Errorf("rhec repository query error: detail: %s, status: %s", getRepositoryQuery.GetRepositoryResponse.Error.Detail, getRepositoryQuery.GetRepositoryResponse.Error.Status)
-		}
-
-		sourceId := "rhec"
-		createTime := string(getRepositoryQuery.GetRepositoryResponse.Data.CreationDate)
-		lastUpdateTime := string(getRepositoryQuery.GetRepositoryResponse.Data.LastUpdateDate)
-		description := string(getRepositoryQuery.GetRepositoryResponse.Data.DisplayData.ShortDescription)
-		readme := string(getRepositoryQuery.GetRepositoryResponse.Data.DisplayData.LongDescription)
-		provider := string(getRepositoryQuery.GetRepositoryResponse.Data.VendorLabel)
-
-		TEMPPOINTERPLACEHOLDER := " "
-
-		var maturity *string
-		if len(getRepositoryQuery.GetRepositoryResponse.Data.ReleaseCategories) > 0 {
-			maturityStr := string(getRepositoryQuery.GetRepositoryResponse.Data.ReleaseCategories[0])
-			maturity = &maturityStr
-		}
-
-		err = graphQLClient.Query(context.Background(), &findRepositoryImagesQuery, queryVariables)
+		imagesData, err := fetchRepositoryImages(ctx, graphqlClient, repo)
 		if err != nil {
-			return fmt.Errorf("failed to query rhec images: %w", err)
+			return err
 		}
 
-		if len(findRepositoryImagesQuery.FindRepositoryImagesResponse.Error) > 0 {
-			var errorStrings []string
-			for _, err := range findRepositoryImagesQuery.FindRepositoryImagesResponse.Error {
-				errorStrings = append(errorStrings, fmt.Sprintf("detail: %s, status: %s", err.Detail, err.Status))
-			}
-			return fmt.Errorf("rhec images query errors: %s", strings.Join(errorStrings, "; "))
-		}
-
-		for _, image := range findRepositoryImagesQuery.FindRepositoryImagesResponse.Data {
-			var tasks []string
-			for _, label := range image.ParsedData.Labels {
-				tasks = append(tasks, string(label.Value))
-			}
-			imageCreationDate := string(image.CreationDate)
-			imageLastUpdateDate := string(image.LastUpdateDate)
-
+		for _, image := range imagesData {
 			for _, imageRepository := range image.Repositories {
 				for _, imageTag := range imageRepository.Tags {
-
-					models[m.Repository+":"+string(imageTag.Name)] = &rhecModel{
-						CatalogModel: model.CatalogModel{
-							Name:                     m.Repository + ":" + string(imageTag.Name),
-							CreateTimeSinceEpoch:     &createTime,
-							LastUpdateTimeSinceEpoch: &lastUpdateTime,
-							Description:              &description,
-							Readme:                   &readme,
-							Maturity:                 maturity,
-							Language:                 []string{},
-							Tasks:                    tasks,
-							Provider:                 &provider,
-							Logo:                     &TEMPPOINTERPLACEHOLDER,
-							License:                  &TEMPPOINTERPLACEHOLDER,
-							LicenseLink:              &TEMPPOINTERPLACEHOLDER,
-							LibraryName:              &TEMPPOINTERPLACEHOLDER,
-							SourceId:                 &sourceId,
-						},
-						Artifacts: []*model.CatalogModelArtifact{
-							{
-								Uri:                      "registry.redhat.io" + "/" + m.Repository + ":" + string(imageTag.Name),
-								CreateTimeSinceEpoch:     &imageCreationDate,
-								LastUpdateTimeSinceEpoch: &imageLastUpdateDate,
-							},
-						},
-					}
-
-					//todo: remove logging for test
-					glog.Infof("RHEC response: %+v", getRepositoryQuery)
-					updatedModel := models[m.Repository+":"+string(imageTag.Name)]
-					maturityVal := "nil"
-					if updatedModel.Maturity != nil {
-						maturityVal = *updatedModel.Maturity
-					}
-
-					glog.Infof("updated model: Name=%s, CreateTime=%s, LastUpdate=%s, Description=%s, Readme=%s, Provider=%s, Maturity=%s",
-						updatedModel.Name,
-						*updatedModel.CreateTimeSinceEpoch,
-						*updatedModel.LastUpdateTimeSinceEpoch,
-						*updatedModel.Description,
-						*updatedModel.Readme,
-						*updatedModel.Provider,
-						maturityVal,
-					)
+					tagName := imageTag.Name
+					fullModelName := repo + ":" + tagName
+					model := newRhecModel(repoData, image, tagName, repo)
+					models[fullModelName] = model
+					glog.Infof("loaded rhec model: %s", model.Name)
 				}
 			}
-
 		}
+	}
+
+	modelsJSON, err := json.MarshalIndent(models, "", "  ")
+	if err != nil {
+		glog.Warningf("could not marshal models to json for logging: %v", err)
+		glog.Infof("models: %+v", models) // Fallback
+	} else {
+		glog.Infof("models: \n%s", string(modelsJSON))
 	}
 
 	r.modelsLock.Lock()
@@ -285,43 +250,27 @@ func (r *rhecCatalogImpl) load(path string) error {
 	return nil
 }
 
-const rhecCatalogPath = "yamlCatalogPath"
-
 func newRhecCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
-	rhecModelFile, exists := source.Properties[rhecCatalogPath].(string)
-	if !exists || rhecModelFile == "" {
-		return nil, fmt.Errorf("missing %s string property", rhecCatalogPath)
+	modelsData, ok := source.Properties["models"]
+	if !ok {
+		return nil, fmt.Errorf("missing 'models' property for rhec catalog")
 	}
 
-	rhecModelFile, err := filepath.Abs(rhecModelFile)
+	modelsList, ok := modelsData.([]any)
+	if !ok {
+		return nil, fmt.Errorf("'models' property should be a list")
+	}
+
+	r := &rhecCatalogImpl{
+		models: make(map[string]*rhecModel),
+	}
+
+	err := r.load(modelsList)
 	if err != nil {
-		return nil, fmt.Errorf("abs: %w", err)
+		return nil, fmt.Errorf("error loading rhec catalog: %w", err)
 	}
 
-	p := &rhecCatalogImpl{}
-	err = p.load(rhecModelFile)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		changes, err := getMonitor().Path(rhecModelFile)
-		if err != nil {
-			glog.Errorf("unable to watch RHEC catalog file: %v", err)
-			return
-		}
-
-		for range changes {
-			glog.Infof("Reloading RHEC catalog %s", rhecModelFile)
-
-			err = p.load(rhecModelFile)
-			if err != nil {
-				glog.Errorf("unable to load RHEC catalog: %v", err)
-			}
-		}
-	}()
-
-	return p, nil
+	return r, nil
 }
 
 func init() {

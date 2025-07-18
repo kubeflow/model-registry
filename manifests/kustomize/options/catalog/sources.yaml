@@ -8,5 +8,6 @@ catalogs:
   id: rhec
   type: rhec
   properties:
-    yamlCatalogPath: sample-rhec.yaml
+    models:
+    - repository: rhelai1/modelcar-granite-7b-starter
 
