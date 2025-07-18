@@ -33,7 +33,7 @@ type ApiFindModelsRequest struct {
 	nextPageToken *string
 }
 
-// Filter models by source. If not provided, models from all sources are returned. If multiple sources are provided, models from any of the sources are returned.
+// Filter models by source. This parameter is currently required and may only be specified once.
 func (r ApiFindModelsRequest) Source(source string) ApiFindModelsRequest {
 	r.source = &source
 	return r
@@ -107,10 +107,11 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-
-	if r.source != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "source", r.source, "")
+	if r.source == nil {
+		return localVarReturnValue, nil, reportError("source is required and must be specified")
 	}
+
+	parameterAddToHeaderOrQuery(localVarQueryParams, "source", r.source, "")
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "")
 	}

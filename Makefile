@@ -201,9 +201,6 @@ clean/odh:
 bin/protoc:
 	./scripts/install_protoc.sh
 
-bin/go-enum:
-	GOBIN=$(PROJECT_BIN) ${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
-
 bin/protoc-gen-go:
 	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
 

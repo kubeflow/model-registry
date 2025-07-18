@@ -1,5 +1,5 @@
 # Build the model-registry binary
-FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi8/go-toolset:1.23 AS common
+FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:1.24.4 AS common
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -31,7 +31,7 @@ USER root
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o model-registry
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS dev-build
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS dev-build
 
 WORKDIR /
 COPY --from=dev /workspace/model-registry .
@@ -49,7 +49,7 @@ RUN yum remove -y nodejs npm
 RUN yum module -y reset nodejs
 RUN yum module -y enable nodejs:18
 # install npm and java for openapi-generator-cli
-RUN yum install -y nodejs npm java-11 python3
+RUN yum install -y nodejs npm java-11-headless python3
 
 RUN make deps
 
@@ -64,7 +64,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} make build/compil
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 WORKDIR /
 # copy the registry binary
 COPY --from=builder /workspace/model-registry .

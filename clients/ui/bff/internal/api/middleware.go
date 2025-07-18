@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 
@@ -102,7 +103,7 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			return
 		}
 
-		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistry(r.Context(), client, namespace, modelRegistryID)
+		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistryWithMode(r.Context(), client, namespace, modelRegistryID, app.config.DeploymentMode.IsFederatedMode())
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
@@ -111,8 +112,9 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 
 		// If we are in dev mode, we need to resolve the server address to the local host
 		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
-		if app.config.DevMode {
-			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort), modelRegistry.IsHTTPS)
+		// If you are in federated mode, we do not want to override the server address.
+		if app.config.DevMode && !app.config.DeploymentMode.IsFederatedMode() {
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort), modelRegistry.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for
@@ -127,7 +129,21 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			}
 		}
 
-		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL)
+		// Prepare headers for the REST client
+		headers := http.Header{}
+
+		// If using user token authentication, extract and forward the authorization header
+		if app.config.AuthMethod == config.AuthMethodUser {
+			identity, ok := r.Context().Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+			if ok && identity != nil && identity.Token != "" {
+				// Always send as "Authorization: Bearer <token>" regardless of incoming header format
+				// The identity.Token already has any prefix removed by ExtractRequestIdentity
+				authHeaderValue := "Bearer " + identity.Token
+				headers.Set("Authorization", authHeaderValue)
+			}
+		}
+
+		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL, headers)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
 			return

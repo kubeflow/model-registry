@@ -2,6 +2,7 @@ all: install tidy
 
 IMG_VERSION ?= latest
 IMG ?= ghcr.io/kubeflow/model-registry/server:${IMG_VERSION}
+BUILD_IMAGE ?= true # whether to build the MR server image
 
 .PHONY: install
 install:
@@ -16,7 +17,11 @@ clean:
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
-	cd ../../ && IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)"  && LOCAL=1 ./scripts/deploy_on_kind.sh
+	cd ../../ && \
+	$(if $(filter true,$(BUILD_IMAGE)),\
+		IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
+	) \
+	LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio

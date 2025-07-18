@@ -5,6 +5,7 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
+  Flex,
   MenuToggle,
   MenuToggleElement,
   Toolbar,
@@ -132,101 +133,98 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
         toolbarContent={
           <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={resetFilters}>
             <ToolbarContent>
-              <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
-                <ToolbarGroup variant="filter-group">
-                  <ToolbarFilter
-                    labels={search === '' ? [] : [search]}
-                    deleteLabel={resetFilters}
-                    deleteLabelGroup={resetFilters}
-                    categoryName={searchType}
-                  >
-                    <SimpleSelect
-                      dataTestId="model-versions-table-filter"
-                      options={searchTypes.map((key) => ({
-                        key,
-                        label: key,
-                      }))}
-                      value={searchType}
-                      toggleProps={{ style: { minWidth: '150px' } }}
-                      onChange={(newSearchType) => {
-                        const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
-                        if (newSearchTypeInput !== null) {
-                          setSearchType(newSearchTypeInput);
-                        }
-                      }}
-                      icon={<FilterIcon />}
-                    />
-                  </ToolbarFilter>
-                  <ToolbarItem>
-                    <ThemeAwareSearchInput
-                      value={search}
-                      onChange={setSearch}
-                      onClear={resetFilters}
-                      placeholder={`Find by ${searchType.toLowerCase()}`}
-                      fieldLabel={`Find by ${searchType.toLowerCase()}`}
-                      className="toolbar-fieldset-wrapper"
-                      style={{ minWidth: '200px' }}
-                      data-testid="model-versions-table-search"
-                    />
-                  </ToolbarItem>
-                </ToolbarGroup>
+              {/* TODO: Remove this Flex after the ToolbarContent can center the children elements */}
+              <Flex>
+                <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+                  <ToolbarGroup variant="filter-group">
+                    <ToolbarFilter
+                      labels={search === '' ? [] : [search]}
+                      deleteLabel={resetFilters}
+                      deleteLabelGroup={resetFilters}
+                      categoryName={searchType}
+                    >
+                      <SimpleSelect
+                        dataTestId="model-versions-table-filter"
+                        options={searchTypes.map((key) => ({
+                          key,
+                          label: key,
+                        }))}
+                        value={searchType}
+                        toggleProps={{ style: { minWidth: '150px' } }}
+                        onChange={(newSearchType) => {
+                          const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
+                          if (newSearchTypeInput !== null) {
+                            setSearchType(newSearchTypeInput);
+                          }
+                        }}
+                        icon={<FilterIcon />}
+                      />
+                    </ToolbarFilter>
+                    <ToolbarItem>
+                      <ThemeAwareSearchInput
+                        value={search}
+                        onChange={setSearch}
+                        onClear={resetFilters}
+                        placeholder={`Find by ${searchType.toLowerCase()}`}
+                        fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                        className="toolbar-fieldset-wrapper"
+                        style={{ minWidth: '200px' }}
+                        data-testid="model-versions-table-search"
+                      />
+                    </ToolbarItem>
+                  </ToolbarGroup>
+                </ToolbarToggleGroup>
 
                 {!isArchiveModel && (
-                  <>
-                    <ToolbarGroup>
-                      <ToolbarItem>
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            navigate(
-                              registerVersionForModelUrl(rm.id, preferredModelRegistry?.name),
-                            );
-                          }}
-                        >
-                          Register new version
-                        </Button>
-                      </ToolbarItem>
-                      <ToolbarItem>
-                        <Dropdown
-                          isOpen={isArchivedModelVersionKebabOpen}
-                          onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
-                          onOpenChange={(isOpen: boolean) =>
-                            setIsArchivedModelVersionKebabOpen(isOpen)
-                          }
-                          toggle={(tr: React.Ref<MenuToggleElement>) => (
-                            <MenuToggle
-                              data-testid="model-versions-table-kebab-action"
-                              ref={tr}
-                              variant="plain"
-                              onClick={() =>
-                                setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
-                              }
-                              isExpanded={isArchivedModelVersionKebabOpen}
-                              aria-label="View archived versions"
-                            >
-                              <EllipsisVIcon />
-                            </MenuToggle>
-                          )}
-                          shouldFocusToggleOnSelect
-                          popperProps={{ appendTo: 'inline' }}
-                        >
-                          <DropdownList>
-                            <DropdownItem
-                              onClick={() =>
-                                navigate(
-                                  modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name),
-                                )
-                              }
-                            >
-                              View archived versions
-                            </DropdownItem>
-                          </DropdownList>
-                        </Dropdown>
-                      </ToolbarItem>
-                    </ToolbarGroup>
-                  </>
+                  <ToolbarGroup>
+                    <ToolbarItem>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
+                        }}
+                      >
+                        Register new version
+                      </Button>
+                    </ToolbarItem>
+                    <ToolbarItem>
+                      <Dropdown
+                        isOpen={isArchivedModelVersionKebabOpen}
+                        onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
+                        onOpenChange={(isOpen: boolean) =>
+                          setIsArchivedModelVersionKebabOpen(isOpen)
+                        }
+                        toggle={(tr: React.Ref<MenuToggleElement>) => (
+                          <MenuToggle
+                            data-testid="model-versions-table-kebab-action"
+                            ref={tr}
+                            variant="plain"
+                            onClick={() =>
+                              setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
+                            }
+                            isExpanded={isArchivedModelVersionKebabOpen}
+                            aria-label="View archived versions"
+                          >
+                            <EllipsisVIcon />
+                          </MenuToggle>
+                        )}
+                        shouldFocusToggleOnSelect
+                        popperProps={{ appendTo: 'inline' }}
+                      >
+                        <DropdownList>
+                          <DropdownItem
+                            onClick={() =>
+                              navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
+                            }
+                          >
+                            View archived versions
+                          </DropdownItem>
+                        </DropdownList>
+                      </Dropdown>
+                    </ToolbarItem>
+                  </ToolbarGroup>
                 )}
-              </ToolbarToggleGroup>
+              </Flex>
             </ToolbarContent>
           </Toolbar>
         }

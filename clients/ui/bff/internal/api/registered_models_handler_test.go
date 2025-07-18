@@ -85,7 +85,19 @@ var _ = Describe("TestGetRegisteredModelHandler", func() {
 		It("get all model versions for registered model", func() {
 			By("get to registered models versions")
 			data := mocks.GetModelVersionListMock()
-			expected := ModelVersionListEnvelope{Data: &data}
+			filtered := openapi.ModelVersionList{
+				Items:         []openapi.ModelVersion{},
+				NextPageToken: data.NextPageToken,
+				PageSize:      data.PageSize,
+				Size:          0,
+			}
+			for _, mv := range data.Items {
+				if mv.RegisteredModelId == "1" {
+					filtered.Items = append(filtered.Items, mv)
+				}
+			}
+			filtered.Size = int32(len(filtered.Items))
+			expected := ModelVersionListEnvelope{Data: &filtered}
 
 			requestIdentity := kubernetes.RequestIdentity{
 				UserID: "user@example.com",
