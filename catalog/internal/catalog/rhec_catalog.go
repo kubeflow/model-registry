@@ -2,7 +2,6 @@ package catalog
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -93,30 +92,6 @@ func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*opena
 	}
 	return &list, nil
 }
-
-// todo: remove mapping
-// 		CreateTimeSinceEpoch:      			repo.creation_date
-// 		LastUpdateTimeSinceEpoch: 			repo.last_update_date
-// 		Description: 						repo.RepositoryDisplayData.short_description
-// 		Readme:								repo.RepositoryDisplayData.long_description
-// 		Maturity:							repo.release_categories (returns list, take first?)
-// 		Language:							????????
-// 		Tasks:								image.parseddata.labels[].name
-// 		Provider:							repo.vendor_label
-// 		Logo:								???????
-// 		License:							???????
-// 		LicenseLink:						???????
-// 		LibraryName:						???????
-// 		CustomProperties:					???????
-// 		SourceId:							rhec
-//      Name:								repository (this is the full rhelai1/model-name-blah) + tag
-
-// type CatalogModelArtifact struct {
-//     CreateTimeSinceEpoch: image.creation_date
-//     LastUpdateTimeSinceEpoch: image.last_update_date
-//     Uri: "registry.redhat.io" + "/" + repository (rhelai/model-name-blah) + ":" + image.tags[each].name
-// 		oci://registry.redhat.io/rhelai1/modelcar-granite-7b-redhat-lab:1.4.0
-// }
 
 func fetchRepository(ctx context.Context, client graphql.Client, repository string) (*genqlient.GetRepositoryResponse, error) {
 	resp, err := genqlient.GetRepository(ctx, client, "registry.access.redhat.com", repository)
@@ -229,18 +204,9 @@ func (r *rhecCatalogImpl) load(modelsList []any) error {
 					fullModelName := repo + ":" + tagName
 					model := newRhecModel(repoData, image, tagName, repo)
 					models[fullModelName] = model
-					glog.Infof("loaded rhec model: %s", model.Name)
 				}
 			}
 		}
-	}
-
-	modelsJSON, err := json.MarshalIndent(models, "", "  ")
-	if err != nil {
-		glog.Warningf("could not marshal models to json for logging: %v", err)
-		glog.Infof("models: %+v", models) // Fallback
-	} else {
-		glog.Infof("models: \n%s", string(modelsJSON))
 	}
 
 	r.modelsLock.Lock()
