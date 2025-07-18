@@ -1114,7 +1114,7 @@ async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_mod
     assert rm.id
 
     rm.description = "New description"
-    client.update(rm)
+    rm =client.update(rm)
     assert rm.description == "New description"
     assert rm.owner == "me"
 
@@ -1175,5 +1175,4 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
 
     da = await mr_api.upsert_model_version_artifact(DocArtifact(uri="https://README.md"), mv.id)
     assert da
-    print(da)
     assert da.uri == "https://README.md"
