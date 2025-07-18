@@ -44,6 +44,7 @@ jobs:
         if: env.BUILD_CONTEXT == 'tag'
         run: |
           echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - uses: ./.github/workflows/prepare.yml
       - name: Build and Push Image
         shell: bash
         run: ./scripts/build_deploy.sh
