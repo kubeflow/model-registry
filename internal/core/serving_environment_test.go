@@ -12,7 +12,8 @@ import (
 )
 
 func TestUpsertServingEnvironment(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
@@ -294,7 +295,8 @@ func TestUpsertServingEnvironment(t *testing.T) {
 }
 
 func TestGetServingEnvironmentById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// First create a serving environment to retrieve
@@ -337,7 +339,8 @@ func TestGetServingEnvironmentById(t *testing.T) {
 }
 
 func TestGetServingEnvironmentByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.ServingEnvironment{
@@ -394,7 +397,8 @@ func TestGetServingEnvironmentByParams(t *testing.T) {
 }
 
 func TestGetServingEnvironments(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple serving environments for listing
@@ -468,7 +472,8 @@ func TestGetServingEnvironments(t *testing.T) {
 }
 
 func TestServingEnvironmentRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a serving environment with all fields

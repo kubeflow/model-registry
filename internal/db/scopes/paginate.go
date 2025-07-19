@@ -95,11 +95,24 @@ func decodeCursor(token string) (*cursor, error) {
 func buildWhereClause(cursor *cursor, orderBy string, sortOrder string, tablePrefix string) string {
 	// Add table prefix to column names if provided
 	idColumn := "id"
-	orderByColumn := orderBy
+	orderByColumn := ""
+
+	// Map orderBy to actual column name first
+	if orderBy != "" {
+		switch orderBy {
+		case "CREATE_TIME":
+			orderByColumn = "create_time_since_epoch"
+		case "LAST_UPDATE_TIME":
+			orderByColumn = "last_update_time_since_epoch"
+		default:
+			orderByColumn = models.DefaultOrderBy
+		}
+	}
+
 	if tablePrefix != "" {
 		idColumn = tablePrefix + ".id"
-		if orderBy != "" {
-			orderByColumn = tablePrefix + "." + orderBy
+		if orderByColumn != "" {
+			orderByColumn = tablePrefix + "." + orderByColumn
 		}
 	}
 

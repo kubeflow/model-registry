@@ -15,37 +15,29 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	_tls "github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
 func TestMySQLDBConnector_Connect_Insecure(t *testing.T) {
-	ctx := context.Background()
-
-	// Test basic connection without SSL
+	// Use the shared MySQL container for basic connection test
 	t.Run("BasicConnection", func(t *testing.T) {
-		dsn := mysqlContainer.MustConnectionString(ctx)
-		connector := mysql.NewMySQLDBConnector(dsn, &_tls.TLSConfig{})
-
-		db, err := connector.Connect()
-		require.NoError(t, err)
-		assert.NotNil(t, db)
+		db, cleanup := testutils.GetSharedMySQLDB(t)
+		defer cleanup()
 
 		// Test that we can perform a simple query
 		var result int
-		err = db.Raw("SELECT 1").Scan(&result).Error
+		err := db.Raw("SELECT 1").Scan(&result).Error
 		require.NoError(t, err)
 		assert.Equal(t, 1, result)
-
-		// Clean up
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
 	})
 
 	t.Run("EmptySSLConfig", func(t *testing.T) {
-		dsn := mysqlContainer.MustConnectionString(ctx)
+		dsn := testutils.GetSharedMySQLDSN(t)
 		connector := mysql.NewMySQLDBConnector(dsn, &_tls.TLSConfig{})
 
 		db, err := connector.Connect()
@@ -138,6 +130,24 @@ func TestMySQLDBConnector_TLSConfigValidation(t *testing.T) {
 
 func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 	ctx := context.Background()
+
+	// Start MySQL container with SSL enabled using built-in SSL support
+	mysqlContainer, err := cont_mysql.Run(
+		ctx,
+		"mysql:8.3",
+		cont_mysql.WithUsername("root"),
+		cont_mysql.WithPassword("testpass"),
+		cont_mysql.WithDatabase("testdb"),
+		// Enable SSL with default certificates
+		testcontainers.WithEnv(map[string]string{
+			"MYSQL_ROOT_HOST": "%",
+		}),
+	)
+	require.NoError(t, err)
+	defer func() {
+		err := testcontainers.TerminateContainer(mysqlContainer)
+		require.NoError(t, err)
+	}()
 
 	baseDSN := mysqlContainer.MustConnectionString(ctx)
 
@@ -271,7 +281,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 
 func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidDSN", func(t *testing.T) {
-		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{}).WithMaxRetries(1)
+		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -281,7 +291,7 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("NonExistentCertFile", func(t *testing.T) {
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
 			RootCertPath: "/nonexistent/cert.pem",
-		}).WithMaxRetries(1)
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -306,7 +316,7 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
 			CertPath: invalidCertPath,
 			KeyPath:  invalidKeyPath,
-		}).WithMaxRetries(1)
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
@@ -325,7 +335,7 @@ func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 
 		connector := mysql.NewMySQLDBConnector("root:pass@tcp(localhost:3306)/test", &_tls.TLSConfig{
 			RootCertPath: invalidRootCertPath,
-		}).WithMaxRetries(1)
+		})
 
 		db, err := connector.Connect()
 		assert.Error(t, err)
