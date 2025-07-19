@@ -36,6 +36,15 @@ func newVisitor(t *testing.T, _ *ast.File) visitor {
 			"ModelArtifact": {
 				obj: openapi.ModelArtifact{},
 			},
+			"DataSet": {
+				obj: openapi.DataSet{},
+			},
+			"Metric": {
+				obj: openapi.Metric{},
+			},
+			"Parameter": {
+				obj: openapi.Parameter{},
+			},
 			"ServingEnvironment": {
 				obj: openapi.ServingEnvironment{},
 			},
@@ -47,6 +56,12 @@ func newVisitor(t *testing.T, _ *ast.File) visitor {
 			},
 			"Artifact": {
 				obj: openapi.Artifact{},
+			},
+			"Experiment": {
+				obj: openapi.Experiment{},
+			},
+			"ExperimentRun": {
+				obj: openapi.ExperimentRun{},
 			},
 		},
 	}

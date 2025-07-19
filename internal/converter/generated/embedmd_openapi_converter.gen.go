@@ -12,6 +12,39 @@ import (
 
 type EmbedMDToOpenAPIConverterImpl struct{}
 
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertDataSet(source *models.BaseEntity[models.DataSetAttributes]) (*openapi.DataSet, error) {
+	var pOpenapiDataSet *openapi.DataSet
+	if source != nil {
+		var openapiDataSet openapi.DataSet
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue, err := converter.MapEmbedMDCustomProperties((*(*source).CustomProperties))
+			if err != nil {
+				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+			}
+			openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		openapiDataSet.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiDataSet.ExternalId = converter.MapEmbedMDExternalIDDataSet((*source).Attributes)
+		openapiDataSet.Name = converter.MapEmbedMDNameDataSet((*source).Attributes)
+		openapiDataSet.Id = converter.Int32ToString((*source).ID)
+		openapiDataSet.CreateTimeSinceEpoch = converter.MapEmbedMDCreateTimeSinceEpochDataSet((*source).Attributes)
+		openapiDataSet.LastUpdateTimeSinceEpoch = converter.MapEmbedMDLastUpdateTimeSinceEpochDataSet((*source).Attributes)
+		openapiDataSet.ArtifactType = converter.MapEmbedMDArtifactTypeDataSet((*source).Attributes)
+		openapiDataSet.Digest = converter.MapEmbedMDPropertyDigest((*source).Properties)
+		openapiDataSet.SourceType = converter.MapEmbedMDPropertySourceType((*source).Properties)
+		openapiDataSet.Source = converter.MapEmbedMDPropertySource((*source).Properties)
+		openapiDataSet.Schema = converter.MapEmbedMDPropertySchema((*source).Properties)
+		openapiDataSet.Profile = converter.MapEmbedMDPropertyProfile((*source).Properties)
+		openapiDataSet.Uri = converter.MapEmbedMDURIDataSet((*source).Attributes)
+		pOpenapiArtifactState, err := converter.MapEmbedMDStateDataSet((*source).Attributes)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiDataSet.State = pOpenapiArtifactState
+		pOpenapiDataSet = &openapiDataSet
+	}
+	return pOpenapiDataSet, nil
+}
 func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.BaseEntity[models.DocArtifactAttributes]) (*openapi.DocArtifact, error) {
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
@@ -39,6 +72,72 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.BaseEn
 		pOpenapiDocArtifact = &openapiDocArtifact
 	}
 	return pOpenapiDocArtifact, nil
+}
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertExperiment(source *models.BaseEntity[models.ExperimentAttributes]) (*openapi.Experiment, error) {
+	var pOpenapiExperiment *openapi.Experiment
+	if source != nil {
+		var openapiExperiment openapi.Experiment
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue, err := converter.MapEmbedMDCustomProperties((*(*source).CustomProperties))
+			if err != nil {
+				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+			}
+			openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		openapiExperiment.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiExperiment.ExternalId = converter.MapEmbedMDExternalIDExperiment((*source).Attributes)
+		openapiExperiment.Name = converter.MapEmbedMDNameExperiment((*source).Attributes)
+		openapiExperiment.Id = converter.Int32ToString((*source).ID)
+		openapiExperiment.CreateTimeSinceEpoch = converter.MapEmbedMDCreateTimeSinceEpochExperiment((*source).Attributes)
+		openapiExperiment.LastUpdateTimeSinceEpoch = converter.MapEmbedMDLastUpdateTimeSinceEpochExperiment((*source).Attributes)
+		openapiExperiment.Owner = converter.MapEmbedMDOwner((*source).Properties)
+		pOpenapiExperimentState, err := converter.MapEmbedMDStateExperiment((*source).Properties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperiment.State = pOpenapiExperimentState
+		pOpenapiExperiment = &openapiExperiment
+	}
+	return pOpenapiExperiment, nil
+}
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertExperimentRun(source *models.BaseEntity[models.ExperimentRunAttributes]) (*openapi.ExperimentRun, error) {
+	var pOpenapiExperimentRun *openapi.ExperimentRun
+	if source != nil {
+		var openapiExperimentRun openapi.ExperimentRun
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue, err := converter.MapEmbedMDCustomProperties((*(*source).CustomProperties))
+			if err != nil {
+				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+			}
+			openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		openapiExperimentRun.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiExperimentRun.ExternalId = converter.MapEmbedMDExternalIDExperimentRun((*source).Attributes)
+		openapiExperimentRun.Name = converter.MapEmbedMDNameExperimentRun((*source).Attributes)
+		openapiExperimentRun.EndTimeSinceEpoch = converter.MapEmbedMDPropertyEndTimeSinceEpochExperimentRun((*source).Properties)
+		pOpenapiExperimentRunStatus, err := converter.MapEmbedMDPropertyStatusExperimentRun((*source).Properties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field Status: %w", err)
+		}
+		openapiExperimentRun.Status = pOpenapiExperimentRunStatus
+		pOpenapiExperimentRunState, err := converter.MapEmbedMDStateExperimentRun((*source).Properties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperimentRun.State = pOpenapiExperimentRunState
+		openapiExperimentRun.Owner = converter.MapEmbedMDOwner((*source).Properties)
+		xstring, err := converter.MapEmbedMDPropertyExperimentIdExperimentRun((*source).Properties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ExperimentId: %w", err)
+		}
+		openapiExperimentRun.ExperimentId = xstring
+		openapiExperimentRun.StartTimeSinceEpoch = converter.MapEmbedMDPropertyStartTimeSinceEpochExperimentRun((*source).Properties)
+		openapiExperimentRun.Id = converter.Int32ToString((*source).ID)
+		openapiExperimentRun.CreateTimeSinceEpoch = converter.MapEmbedMDCreateTimeSinceEpochExperimentRun((*source).Attributes)
+		openapiExperimentRun.LastUpdateTimeSinceEpoch = converter.MapEmbedMDLastUpdateTimeSinceEpochExperimentRun((*source).Attributes)
+		pOpenapiExperimentRun = &openapiExperimentRun
+	}
+	return pOpenapiExperimentRun, nil
 }
 func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.BaseEntity[models.InferenceServiceAttributes]) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
@@ -69,6 +168,36 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.B
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
+}
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertMetric(source *models.BaseEntity[models.MetricAttributes]) (*openapi.Metric, error) {
+	var pOpenapiMetric *openapi.Metric
+	if source != nil {
+		var openapiMetric openapi.Metric
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue, err := converter.MapEmbedMDCustomProperties((*(*source).CustomProperties))
+			if err != nil {
+				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+			}
+			openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		openapiMetric.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiMetric.ExternalId = converter.MapEmbedMDExternalIDMetric((*source).Attributes)
+		openapiMetric.Name = converter.MapEmbedMDNameMetric((*source).Attributes)
+		openapiMetric.Id = converter.Int32ToString((*source).ID)
+		openapiMetric.CreateTimeSinceEpoch = converter.MapEmbedMDCreateTimeSinceEpochMetric((*source).Attributes)
+		openapiMetric.LastUpdateTimeSinceEpoch = converter.MapEmbedMDLastUpdateTimeSinceEpochMetric((*source).Attributes)
+		openapiMetric.ArtifactType = converter.MapEmbedMDArtifactTypeMetric((*source).Attributes)
+		openapiMetric.Value = converter.MapEmbedMDPropertyValueMetric((*source).Properties)
+		openapiMetric.Timestamp = converter.MapEmbedMDPropertyTimestampMetric((*source).Properties)
+		openapiMetric.Step = converter.MapEmbedMDPropertyStepMetric((*source).Properties)
+		pOpenapiArtifactState, err := converter.MapEmbedMDStateMetric((*source).Attributes)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiMetric.State = pOpenapiArtifactState
+		pOpenapiMetric = &openapiMetric
+	}
+	return pOpenapiMetric, nil
 }
 func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelArtifact(source *models.BaseEntity[models.ModelArtifactAttributes]) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
@@ -135,6 +264,39 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelVersion(source *models.BaseE
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
+}
+func (c *EmbedMDToOpenAPIConverterImpl) ConvertParameter(source *models.BaseEntity[models.ParameterAttributes]) (*openapi.Parameter, error) {
+	var pOpenapiParameter *openapi.Parameter
+	if source != nil {
+		var openapiParameter openapi.Parameter
+		if (*source).CustomProperties != nil {
+			mapStringOpenapiMetadataValue, err := converter.MapEmbedMDCustomProperties((*(*source).CustomProperties))
+			if err != nil {
+				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+			}
+			openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+		}
+		openapiParameter.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiParameter.ExternalId = converter.MapEmbedMDExternalIDParameter((*source).Attributes)
+		openapiParameter.Name = converter.MapEmbedMDNameParameter((*source).Attributes)
+		openapiParameter.Id = converter.Int32ToString((*source).ID)
+		openapiParameter.CreateTimeSinceEpoch = converter.MapEmbedMDCreateTimeSinceEpochParameter((*source).Attributes)
+		openapiParameter.LastUpdateTimeSinceEpoch = converter.MapEmbedMDLastUpdateTimeSinceEpochParameter((*source).Attributes)
+		openapiParameter.ArtifactType = converter.MapEmbedMDArtifactTypeParameter((*source).Attributes)
+		openapiParameter.Value = converter.MapEmbedMDPropertyValueParameter((*source).Properties)
+		pOpenapiParameterType, err := converter.MapEmbedMDPropertyParameterTypeParameter((*source).Properties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ParameterType: %w", err)
+		}
+		openapiParameter.ParameterType = pOpenapiParameterType
+		pOpenapiArtifactState, err := converter.MapEmbedMDStateParameter((*source).Attributes)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiParameter.State = pOpenapiArtifactState
+		pOpenapiParameter = &openapiParameter
+	}
+	return pOpenapiParameter, nil
 }
 func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.BaseEntity[models.RegisteredModelAttributes]) (*openapi.RegisteredModel, error) {
 	var pOpenapiRegisteredModel *openapi.RegisteredModel
