@@ -8,4 +8,6 @@ kubectl apply -k . -n NAMESPACE
 
 Replace `NAMESPACE` with your desired Kubernetes namespace.
 
-Update `sources.yaml` and `sample-catalog.yaml` to configure catalog models.
+To configure customized models, update `sources.yaml` and `sample-catalog.yaml`.
+
+To add Red Hat Ecosystem Catalog models, update `sources.yaml` and add each path as a separate repository under `models`.
