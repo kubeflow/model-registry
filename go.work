@@ -3,5 +3,4 @@ go 1.24.4
 use (
 	.
 	./pkg/openapi
-	./gorm-gen
 )
