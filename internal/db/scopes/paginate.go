@@ -25,9 +25,9 @@ var allowedOrderByColumns = map[string]string{
 }
 
 // Allowed sort orders to prevent SQL injection
-var allowedSortOrders = map[string]bool{
-	"ASC":  true,
-	"DESC": true,
+var allowedSortOrders = map[string]string{
+	"ASC":  models.SortOrderAsc,
+	"DESC": models.SortOrderDesc,
 }
 
 // isValidTablePrefix validates table prefix to prevent SQL injection
@@ -64,9 +64,9 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 
 			sanitizedSortOrder := models.DefaultSortOrder
 
-			// Validate and sanitize sortOrder
-			if !allowedSortOrders[sortOrder] {
-				sanitizedSortOrder = models.DefaultSortOrder
+			// Validate and sanitize so
+			if so, ok := allowedSortOrders[sortOrder]; ok {
+				sanitizedSortOrder = so
 			}
 
 			db = db.Order(fmt.Sprintf("%s %s", sanitizedOrderBy, sanitizedSortOrder))
@@ -130,18 +130,19 @@ func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder str
 	}
 
 	// Validate sort order
-	if !allowedSortOrders[sortOrder] {
-		sortOrder = models.DefaultSortOrder
+	sanitizedSortOrder := models.DefaultSortOrder
+	if so, ok := allowedSortOrders[sortOrder]; ok {
+		sanitizedSortOrder = so
 	}
 
 	if orderBy == "" {
-		if sortOrder == "ASC" {
+		if sanitizedSortOrder == "ASC" {
 			return db.Where(idColumn+" > ?", cursor.ID)
 		}
 		return db.Where(idColumn+" < ?", cursor.ID)
 	}
 
-	if sortOrder == "ASC" {
+	if sanitizedSortOrder == "ASC" {
 		return db.Where("("+orderByColumn+" > ? OR ("+orderByColumn+" = ? AND "+idColumn+" > ?))",
 			cursor.Value, cursor.Value, cursor.ID)
 	}

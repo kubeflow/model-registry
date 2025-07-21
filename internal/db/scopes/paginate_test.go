@@ -148,44 +148,44 @@ func TestSortOrderValidation(t *testing.T) {
 	tests := []struct {
 		name        string
 		sortOrder   string
-		expected    bool
+		expected    string
 		description string
 	}{
 		{
 			name:        "Valid ASC sort order",
 			sortOrder:   "ASC",
-			expected:    true,
+			expected:    "ASC",
 			description: "ASC should be valid",
 		},
 		{
 			name:        "Valid DESC sort order",
 			sortOrder:   "DESC",
-			expected:    true,
+			expected:    "DESC",
 			description: "DESC should be valid",
 		},
 		{
 			name:        "Invalid sort order",
 			sortOrder:   "INVALID",
-			expected:    false,
-			description: "INVALID should be rejected",
+			expected:    "",
+			description: "INVALID should be rejected and default to empty",
 		},
 		{
 			name:        "SQL injection in sort order",
 			sortOrder:   "ASC; DROP TABLE users; --",
-			expected:    false,
-			description: "SQL injection attempt should be rejected",
+			expected:    "",
+			description: "SQL injection attempt should be rejected and default to empty",
 		},
 		{
 			name:        "Lowercase asc",
 			sortOrder:   "asc",
-			expected:    false,
-			description: "Lowercase asc should be rejected (case sensitive)",
+			expected:    "",
+			description: "Lowercase asc should be rejected and default to empty",
 		},
 		{
 			name:        "Empty sort order",
 			sortOrder:   "",
-			expected:    false,
-			description: "Empty sort order should be rejected",
+			expected:    "",
+			description: "Empty sort order should be rejected and default to empty",
 		},
 	}
 
