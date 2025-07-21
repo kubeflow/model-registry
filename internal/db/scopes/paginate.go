@@ -62,13 +62,14 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 				sanitizedOrderBy = models.DefaultOrderBy
 			}
 
+			sanitizedSortOrder := models.DefaultSortOrder
+
 			// Validate and sanitize sortOrder
 			if !allowedSortOrders[sortOrder] {
-				sortOrder = models.DefaultSortOrder
+				sanitizedSortOrder = models.DefaultSortOrder
 			}
 
-			orderClause := fmt.Sprintf("%s %s", sanitizedOrderBy, sortOrder)
-			db = db.Order(orderClause)
+			db = db.Order(fmt.Sprintf("%s %s", sanitizedOrderBy, sanitizedSortOrder))
 		}
 
 		if nextPageToken != "" {
