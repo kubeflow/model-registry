@@ -6,23 +6,15 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getDocArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.DocArtifactTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find DocArtifact type")
-	return int64(typeRecord.ID)
-}
-
 func TestDocArtifactRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual DocArtifact type ID from the database
 	typeID := getDocArtifactTypeID(t, sharedDB)
@@ -99,6 +91,8 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact.ID = saved.GetID()
 		docArtifact.GetAttributes().Name = apiutils.Of("updated-doc-artifact")
 		docArtifact.GetAttributes().State = apiutils.Of("PENDING")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		docArtifact.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(docArtifact, savedModelVersion.GetID())
 		require.NoError(t, err)
@@ -249,10 +243,8 @@ func TestDocArtifactRepository(t *testing.T) {
 		result, err = repo.List(listOptions)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		if len(result.Items) > 0 {
-			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-doc-artifact-1", *result.Items[0].GetAttributes().Name)
-		}
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "list-doc-artifact-1", *result.Items[0].GetAttributes().Name)
 
 		// Test listing by external ID
 		listOptions = models.DocArtifactListOptions{
@@ -263,14 +255,12 @@ func TestDocArtifactRepository(t *testing.T) {
 		result, err = repo.List(listOptions)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		if len(result.Items) > 0 {
-			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-doc-artifact-ext-2", *result.Items[0].GetAttributes().ExternalID)
-		}
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "list-doc-artifact-ext-2", *result.Items[0].GetAttributes().ExternalID)
 
 		// Test listing by model version ID
 		listOptions = models.DocArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -355,7 +345,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test ordering by CREATE_TIME
-		pageSize := int32(10)
+		pageSize := int32(100) // Increased page size to ensure all test entities are included
 		listOptions := models.DocArtifactListOptions{
 			Pagination: models.Pagination{
 				OrderBy: apiutils.Of("CREATE_TIME"),
@@ -394,7 +384,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("standalone-doc-artifact"),
+				Name:         apiutils.Of("standalone-doc-artifact-without-mv"),
 				URI:          apiutils.Of("s3://bucket/standalone-doc.pdf"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("doc-artifact"),
@@ -411,13 +401,13 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "standalone-doc-artifact", *saved.GetAttributes().Name)
+		assert.Equal(t, "standalone-doc-artifact-without-mv", *saved.GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/standalone-doc.pdf", *saved.GetAttributes().URI)
 
 		// Verify it can be retrieved
 		retrieved, err := repo.GetByID(*saved.GetID())
 		require.NoError(t, err)
-		assert.Equal(t, "standalone-doc-artifact", *retrieved.GetAttributes().Name)
+		assert.Equal(t, "standalone-doc-artifact-without-mv", *retrieved.GetAttributes().Name)
 	})
 
 	t.Run("TestSaveWithProperties", func(t *testing.T) {

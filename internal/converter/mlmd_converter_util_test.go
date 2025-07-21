@@ -346,8 +346,7 @@ func TestMapModelArtifactName(t *testing.T) {
 			Name: nil,
 		},
 	})
-	assertion.NotNil(name)
-	assertion.Regexp("parent:.*", *name)
+	assertion.Nil(name) // should return nil to support patch requests without name
 
 	name = MapModelArtifactName(&OpenAPIModelWrapper[openapi.ModelArtifact]{
 		TypeId: 123,
@@ -405,8 +404,7 @@ func TestMapDocArtifactName(t *testing.T) {
 			Name: nil,
 		},
 	})
-	assertion.NotNil(name)
-	assertion.Regexp("parent:.*", *name)
+	assertion.Nil(name) // support nil name for updates
 
 	name = MapDocArtifactName(&OpenAPIModelWrapper[openapi.DocArtifact]{
 		TypeId: 123,
@@ -841,7 +839,7 @@ func TestMapInferenceServiceProperties(t *testing.T) {
 	// invalid int
 	_, err = MapInferenceServiceProperties(&openapi.InferenceService{RegisteredModelId: "aa"})
 	assertion.NotNil(err)
-	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"aa\": invalid syntax", err.Error())
+	assertion.Equal("invalid numeric string: strconv.ParseInt: parsing \"aa\": invalid syntax", err.Error())
 }
 
 func TestMapServeModelType(t *testing.T) {
@@ -872,7 +870,7 @@ func TestMapServeModelProperties(t *testing.T) {
 	// model version id must be a valid numeric
 	_, err = MapServeModelProperties(&openapi.ServeModel{ModelVersionId: "bb"})
 	assertion.NotNil(err)
-	assertion.Equal("invalid numeric string: strconv.Atoi: parsing \"bb\": invalid syntax", err.Error())
+	assertion.Equal("invalid numeric string: strconv.ParseInt: parsing \"bb\": invalid syntax", err.Error())
 }
 
 func TestMapServingEnvironmentProperties(t *testing.T) {

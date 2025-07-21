@@ -13,7 +13,7 @@ import (
 // SERVE MODEL
 
 func (suite *CoreTestSuite) TestCreateServeModel() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -77,7 +77,7 @@ func (suite *CoreTestSuite) TestCreateServeModel() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateServeModelFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -120,7 +120,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateServeModelFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateServeModelFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -154,7 +154,7 @@ func (suite *CoreTestSuite) TestCreateServeModelFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateServeModel() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -216,7 +216,7 @@ func (suite *CoreTestSuite) TestUpdateServeModel() {
 }
 
 func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -263,7 +263,7 @@ func (suite *CoreTestSuite) TestUpdateServeModelFailure() {
 }
 
 func (suite *CoreTestSuite) TestGetServeModelById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -310,7 +310,7 @@ func (suite *CoreTestSuite) TestGetServeModelById() {
 }
 
 func (suite *CoreTestSuite) TestGetServeModels() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
