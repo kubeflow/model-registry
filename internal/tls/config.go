@@ -113,17 +113,18 @@ func parseCipherSuites(cipherStr string) ([]uint16, error) {
 		"TLS_CHACHA20_POLY1305_SHA256":                  tls.TLS_CHACHA20_POLY1305_SHA256,
 	}
 
-	for _, insecureCipher := range tls.InsecureCipherSuites() {
-		if insecureCipher.Name == cipherStr {
-			return nil, fmt.Errorf("selected cipher suite is insecure: %s", insecureCipher.Name)
-		}
-	}
-
 	var cipherSuites []uint16
 	ciphers := strings.Split(strings.TrimSpace(cipherStr), ":")
 
 	for _, cipher := range ciphers {
 		cipher = strings.TrimSpace(cipher)
+
+		for _, insecureCipher := range tls.InsecureCipherSuites() {
+			if insecureCipher.Name == cipher {
+				return nil, fmt.Errorf("selected cipher suite is insecure: %s", insecureCipher.Name)
+			}
+		}
+
 		if cipherID, exists := cipherMap[cipher]; exists {
 			cipherSuites = append(cipherSuites, cipherID)
 		} else {
