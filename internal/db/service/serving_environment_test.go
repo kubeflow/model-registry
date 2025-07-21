@@ -22,12 +22,11 @@ func getServingEnvironmentTypeID(t *testing.T, db *gorm.DB) int64 {
 }
 
 func TestServingEnvironmentRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+	cleanupTestData(t, sharedDB)
 
 	// Get the actual ServingEnvironment type ID from the database
-	typeID := getServingEnvironmentTypeID(t, db)
-	repo := service.NewServingEnvironmentRepository(db, typeID)
+	typeID := getServingEnvironmentTypeID(t, sharedDB)
+	repo := service.NewServingEnvironmentRepository(sharedDB, typeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// Test creating a new serving environment

@@ -10,6 +10,7 @@ These User Story(-ies) are defined in the PM document
 
 *** Test Cases ***
 As a MLOps engineer I would like to store Model name
+    # MIGRATED to test_register_new in pytest
     ${rId}  Given I create a RegisteredModel having    name=${name}
     ${vId}  And I create a child ModelVersion having    registeredModelID=${rId}    name=v1
     ${aId}  And I create a child ModelArtifact having    modelversionId=${vId}  uri=s3://12345
@@ -22,6 +23,7 @@ As a MLOps engineer I would like to store Model name
           And Should be equal    ${r["uri"]}    s3://12345
 
 As a MLOps engineer I would like to store a description of the model
+    # MIGRATED to test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_model in pytest
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}
     Set To Dictionary    ${model_version}    description=consectetur adipiscing elit
     Set To Dictionary    ${model_artifact}    description=sed do eiusmod tempor incididunt
@@ -42,6 +44,7 @@ As a MLOps engineer I would like to store a description of the model
           And Should be equal    ${r["description"]}    sed do eiusmod tempor incididunt
 
 As a MLOps engineer I would like to update a description of the model
+    # MIGRATED to test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_model in pytest
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}  owner=me
     ${rId}  Given I create a RegisteredModel    payload=${registered_model}
     &{registered_model_update}  Create dictionary    description=New description
@@ -51,6 +54,7 @@ As a MLOps engineer I would like to update a description of the model
           And Should be equal    ${r["owner"]}    me
 
 As a MLOps engineer I would like to store a longer documentation for the model
+    # MIGRATED to test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model in pytest
     Set To Dictionary    ${registered_model}    description=Lorem ipsum dolor sit amet  name=${name}
     Set To Dictionary    ${model_version}    description=consectetur adipiscing elit
     Set To Dictionary    ${model_artifact}    description=sed do eiusmod tempor incididunt

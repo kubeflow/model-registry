@@ -44,7 +44,7 @@ class ModelRegistrySettings {
     cy.testA11y();
   }
 
-  private findHeading() {
+  findHeading() {
     cy.findByTestId('app-page-title').should('exist');
     cy.findByTestId('app-page-title').contains('Model Registry Settings');
   }
@@ -57,9 +57,9 @@ class ModelRegistrySettings {
     return cy.findByTestId('mr-settings-empty-state');
   }
 
-  // findCreateButton() {
-  //   return cy.findByText('Create model registry');
-  // }
+  findCreateButton() {
+    return cy.findByText('Create model registry');
+  }
 
   findFormField(selector: FormFieldSelector) {
     return cy.get(selector);
@@ -87,7 +87,11 @@ class ModelRegistrySettings {
   }
 
   findSubmitButton() {
-    return cy.findByTestId('modal-submit-button');
+    return cy.contains('button', 'Create');
+  }
+
+  findCancelButton() {
+    return cy.findByTestId('modal-cancel-button');
   }
 
   findTable() {
@@ -110,6 +114,10 @@ class ModelRegistrySettings {
 
   findConfirmDeleteNameInput() {
     return cy.findByTestId('confirm-delete-input');
+  }
+
+  findManagePermissionsTooltip() {
+    return cy.get('[data-testid="manage-permissions-tooltip"]');
   }
 }
 
