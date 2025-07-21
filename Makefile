@@ -152,14 +152,14 @@ stop/postgres:
 gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
-	cd gorm-gen && go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
+	cd gorm-gen && GOWORK=off go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
 
 # generate the gorm structs for PostgreSQL
 .PHONY: gen/gorm/postgres
 gen/gorm/postgres: bin/golang-migrate start/postgres
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
-	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
+	cd gorm-gen && GOWORK=off go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)
