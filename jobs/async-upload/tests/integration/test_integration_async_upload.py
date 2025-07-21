@@ -194,47 +194,28 @@ def wait_for_job_completion(
 
 
 def upload_to_minio(file_path: str, bucket: str, key: str) -> None:
-    """Upload file to MinIO using direct HTTP calls."""
-    import hmac
-    import hashlib
-    import base64
-    from datetime import datetime
+    """Upload file to MinIO using boto3."""
+    import boto3
+    from botocore.exceptions import ClientError
     
     # MinIO credentials (hardcoded for this test)
     access_key = "minioadmin"
     secret_key = "minioadmin"
     
-    # Create signature for AWS S3 API
-    resource_path = f"/{bucket}/{key}"
-    date_str = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+    # Create S3 client configured for MinIO
+    s3_client = boto3.client(
+        's3',
+        endpoint_url='http://localhost:9000',
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name='us-east-1'  # MinIO doesn't care about region but boto3 requires it
+    )
     
-    content_type = "application/octet-stream"
-    
-    string_to_sign = f"PUT\n\n{content_type}\n{date_str}\n{resource_path}"
-    
-    signature = base64.b64encode(
-        hmac.new(
-            secret_key.encode(),
-            string_to_sign.encode(),
-            hashlib.sha1
-        ).digest()
-    ).decode()
-    
-    # Upload the file
-    with open(file_path, "rb") as f:
-        response = requests.put(
-            f"http://localhost:9000{resource_path}",
-            data=f,
-            headers={
-                "Host": "localhost:9000",
-                "Date": date_str,
-                "Content-Type": content_type,
-                "Authorization": f"AWS {access_key}:{signature}"
-            }
-        )
-    
-    if response.status_code not in [200, 201]:
-        raise Exception(f"Failed to upload to MinIO: {response.status_code} {response.text}")
+    try:
+        # Upload the file
+        s3_client.upload_file(file_path, bucket, key)
+    except ClientError as e:
+        raise Exception(f"Failed to upload to MinIO: {e}")
 
 
 @pytest.mark.integration
