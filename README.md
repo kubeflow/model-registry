@@ -173,14 +173,14 @@ When shutting down the docker compose, you might want to clean-up the SQLite db 
 
 The following diagram illustrates testing strategy for the several components in Model Registry project:
 
-![](/docs/Model%20Registry%20Testing%20areas.png)
+![](/docs/Model%20Registry%20Testing%20areas.drawio.png)
 
 Go layers components are tested with Unit Tests written in Go, as well as Integration Tests leveraging Testcontainers.
 This allows to verify the expected "Core layer" of logical data mapping developed and implemented in Go, matches technical expectations.
 
 Python client is also tested with Unit Tests and Integration Tests written in Python.
 
-End-to-end testing is developed with Pytest and Robot Framework; this higher-lever layer of testing is used to demonstrate *User Stories* from high level perspective.
+End-to-end testing is developed with KinD and Pytest; this higher-lever layer of testing is used to demonstrate *User Stories* from high level perspective.
 
 ## FAQ
 
