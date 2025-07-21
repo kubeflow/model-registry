@@ -1,12 +1,14 @@
 ## Using Genqlient with the Red Hat Ecosystem Catalog
 
-This directory contains the necessary files to generate a type-safe Go GraphQL client for the Red Hat Ecosystem Catalog using [genqlient](https://github.com/Khan/genqlient).
+The Genqlient is used to retrieve metadata from a CatalogSource, in this case the Red Hat Ecosystem Catalog (RHEC), for the Model Catalog based on GraphQL queries to the RHEC API.
+
+This directory contains the necessary files to generate a type-safe Go GraphQL client for the RHEC using [genqlient](https://github.com/Khan/genqlient).
 
 ### File Structure
 
 -   `genqlient.yaml`: The configuration file for `genqlient`. It specifies the location of the GraphQL schema, the directory containing the GraphQL queries, and the output file for the generated code.
 -   `queries/`: This directory contains the GraphQL schema and query files.
-    -   `schema.graphql`: The GraphQL schema for the Red Hat Ecosystem Catalog API.
+    -   `schema.graphql`: The GraphQL schema for the RHEC API.
     -   `*.graphql`: Files containing the GraphQL queries.
 
 ### Generating the Client
@@ -21,7 +23,7 @@ This will generate the `generated.go` file in the current directory.
 
 ### Downloading the Schema
 
-The `schema.graphql` file can be updated by downloading the latest version from the Red Hat Ecosystem Catalog API. You can do this by running the following command from the `catalog` directory:
+The `schema.graphql` file can be updated by downloading the latest version from the RHEC API. You can do this by running the following command from the `catalog` directory:
 
 ```bash
 make download/graphql-schema
