@@ -3,6 +3,7 @@ package scopes
 import (
 	"encoding/base64"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,6 +14,30 @@ import (
 type cursor struct {
 	ID    int32
 	Value string
+}
+
+// Allowed column names for orderBy to prevent SQL injection
+var allowedOrderByColumns = map[string]string{
+	"ID":               "id",
+	"CREATE_TIME":      "create_time_since_epoch",
+	"LAST_UPDATE_TIME": "last_update_time_since_epoch",
+	"id":               "id", // default fallback
+}
+
+// Allowed sort orders to prevent SQL injection
+var allowedSortOrders = map[string]bool{
+	"ASC":  true,
+	"DESC": true,
+}
+
+// isValidTablePrefix validates table prefix to prevent SQL injection
+func isValidTablePrefix(tablePrefix string) bool {
+	if tablePrefix == "" {
+		return true
+	}
+	// Only allow alphanumeric characters and underscores, common table naming convention
+	matched, _ := regexp.MatchString(`^[a-zA-Z_][a-zA-Z0-9_]*$`, tablePrefix)
+	return matched
 }
 
 func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
@@ -31,38 +56,25 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 		}
 
 		if orderBy != "" && sortOrder != "" {
-			orderByStr := ""
-			sortOrderStr := ""
-
-			switch orderBy {
-			case "CREATE_TIME":
-				orderByStr = "create_time_since_epoch"
-			case "LAST_UPDATE_TIME":
-				orderByStr = "last_update_time_since_epoch"
-			default:
-				orderByStr = models.DefaultOrderBy
+			// Validate and sanitize orderBy
+			sanitizedOrderBy, ok := allowedOrderByColumns[orderBy]
+			if !ok {
+				sanitizedOrderBy = models.DefaultOrderBy
 			}
 
-			switch sortOrder {
-			case "ASC":
-				sortOrderStr = "ASC"
-			case "DESC":
-				sortOrderStr = "DESC"
-			default:
-				sortOrderStr = models.DefaultSortOrder
+			// Validate and sanitize sortOrder
+			if !allowedSortOrders[sortOrder] {
+				sortOrder = models.DefaultSortOrder
 			}
 
-			orderClause := fmt.Sprintf("%s %s", orderByStr, sortOrderStr)
+			orderClause := fmt.Sprintf("%s %s", sanitizedOrderBy, sortOrder)
 			db = db.Order(orderClause)
 		}
 
 		if nextPageToken != "" {
 			decodedCursor, err := decodeCursor(nextPageToken)
 			if err == nil {
-				whereClause := buildWhereClause(decodedCursor, orderBy, sortOrder, tablePrefix)
-				if whereClause != "" {
-					db = db.Where(whereClause)
-				}
+				db = buildWhereClause(db, decodedCursor, orderBy, sortOrder, tablePrefix)
 			}
 		}
 
@@ -92,30 +104,48 @@ func decodeCursor(token string) (*cursor, error) {
 	}, nil
 }
 
-func buildWhereClause(cursor *cursor, orderBy string, sortOrder string, tablePrefix string) string {
-	// Add table prefix to column names if provided
+// buildWhereClause now returns a *gorm.DB with properly parameterized queries instead of raw SQL strings
+func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder string, tablePrefix string) *gorm.DB {
+	// Validate table prefix to prevent SQL injection
+	if !isValidTablePrefix(tablePrefix) {
+		// If invalid table prefix, ignore it and use no prefix
+		tablePrefix = ""
+	}
+
+	// Build column names with proper validation
 	idColumn := "id"
-	orderByColumn := orderBy
 	if tablePrefix != "" {
 		idColumn = tablePrefix + ".id"
-		if orderBy != "" {
-			orderByColumn = tablePrefix + "." + orderBy
-		}
+	}
+
+	// Validate and get the actual column name for orderBy
+	orderByColumn, ok := allowedOrderByColumns[orderBy]
+	if !ok {
+		orderByColumn = models.DefaultOrderBy
+	}
+
+	if tablePrefix != "" && orderByColumn != "" {
+		orderByColumn = tablePrefix + "." + orderByColumn
+	}
+
+	// Validate sort order
+	if !allowedSortOrders[sortOrder] {
+		sortOrder = models.DefaultSortOrder
 	}
 
 	if orderBy == "" {
 		if sortOrder == "ASC" {
-			return fmt.Sprintf("%s > %d", idColumn, cursor.ID)
+			return db.Where(idColumn+" > ?", cursor.ID)
 		}
-		return fmt.Sprintf("%s < %d", idColumn, cursor.ID)
+		return db.Where(idColumn+" < ?", cursor.ID)
 	}
 
 	if sortOrder == "ASC" {
-		return fmt.Sprintf("(%s > '%s' OR (%s = '%s' AND %s > %d))",
-			orderByColumn, cursor.Value, orderByColumn, cursor.Value, idColumn, cursor.ID)
+		return db.Where("("+orderByColumn+" > ? OR ("+orderByColumn+" = ? AND "+idColumn+" > ?))",
+			cursor.Value, cursor.Value, cursor.ID)
 	}
-	return fmt.Sprintf("(%s < '%s' OR (%s = '%s' AND %s < %d))",
-		orderByColumn, cursor.Value, orderByColumn, cursor.Value, idColumn, cursor.ID)
+	return db.Where("("+orderByColumn+" < ? OR ("+orderByColumn+" = ? AND "+idColumn+" < ?))",
+		cursor.Value, cursor.Value, cursor.ID)
 }
 
 func CreateNextPageToken(id int32, value string) string {
