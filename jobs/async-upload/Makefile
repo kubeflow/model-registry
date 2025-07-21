@@ -73,7 +73,7 @@ test-integration-run:
 	@echo "Ensuring all extras are installed..."
 	poetry install --all-extras --with integration
 	@echo "Running integration tests..."
-	CONTAINER_IMAGE_URI=$(IMG) poetry run pytest --integration tests/integration/ -v
+	CONTAINER_IMAGE_URI=$(IMG) poetry run pytest --integration tests/integration/ -vs
 
 .PHONY: install
 install:

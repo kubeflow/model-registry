@@ -67,96 +67,102 @@ def model_registry_client():
     return ModelRegistry(host, port, author="integration-test", is_secure=False)
 
 
-def apply_job_with_patches(base_job_path: str, patches: Dict[str, Any], k8s_client) -> None:
-    """Apply job with patches using pure Python approach."""
-    # Load the base job YAML
-    with open(base_job_path) as f:
-        job_docs = list(yaml.safe_load_all(f))
+def apply_job_with_strategic_merge(
+    rm_id: str,
+    mv_id: str, 
+    ma_id: str,
+    job_name: str,
+    container_image_uri: str,
+    k8s_client
+) -> str:
+    """Apply job using Kustomize strategic merge patches."""
+    import subprocess
+    import tempfile
+    import time
     
-    # Apply patches to each document
-    for doc in job_docs:
-        if doc and doc.get("kind"):
-            # Only apply patches to Job resources
-            if doc.get("kind") == "Job":
-                # Apply patches using Python dict operations
-                for patch_path, patch_value in patches.items():
-                    apply_patch_to_dict(doc, patch_path, patch_value)
-            
-            # Apply the resource using kubernetes client
-            apply_resource(doc, k8s_client)
+    # Strategic merge patch template - only patch the image and env vars, keep original job name
+    patch_template = f"""apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-async-upload-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: async-upload
+        image: {container_image_uri}
+        env:
+        - name: MODEL_SYNC_MODEL_ID
+          value: "{rm_id}"
+        - name: MODEL_SYNC_MODEL_VERSION_ID
+          value: "{mv_id}"
+        - name: MODEL_SYNC_MODEL_ARTIFACT_ID
+          value: "{ma_id}"
+"""
+
+    # Get the path to the sample job file
+    base_job_path = Path(__file__).parent.parent.parent / "samples" / "sample_job_s3_to_oci.yaml"
+    
+    # Kustomization template using relative path and modern patches syntax
+    kustomization_template = """apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- sample_job_s3_to_oci.yaml
+
+patches:
+- path: patch.yaml
+  target:
+    kind: Job
+    name: my-async-upload-job
+"""
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        
+        # Copy the base job file into temp directory
+        import shutil
+        base_job_copy = temp_path / "sample_job_s3_to_oci.yaml"
+        shutil.copy2(base_job_path, base_job_copy)
+        
+        # Write the patch file
+        patch_file = temp_path / "patch.yaml"
+        with open(patch_file, "w") as f:
+            f.write(patch_template)
+        
+        # Write the kustomization file
+        kustomize_file = temp_path / "kustomization.yaml"  
+        with open(kustomize_file, "w") as f:
+            f.write(kustomization_template)
+        
+        # Delete existing job if it exists (Jobs are immutable)
+        delete_result = subprocess.run(
+            ["kubectl", "delete", "job", "my-async-upload-job", "-n", "default", "--ignore-not-found=true"],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if delete_result.returncode == 0:
+            print(f"Deleted existing job: {delete_result.stdout.strip()}")
+            # Wait a moment for deletion to complete
+            time.sleep(3)
+        
+        # Apply resources using kubectl apply -k
+        result = subprocess.run(
+            ["kubectl", "apply", "-k", "."],
+            capture_output=True,
+            text=True,
+            cwd=temp_path,
+            check=False
+        )
+        
+        if result.returncode != 0:
+            raise Exception(f"kubectl apply failed: {result.stderr}")
+        
+        # Return the original job name since we're not changing it
+        return "my-async-upload-job"
 
 
-def apply_patch_to_dict(doc: Dict[str, Any], path: str, value: Any) -> None:
-    """Apply a single patch to a dictionary using JSONPath-style path."""
-    # Convert JSONPath to Python dict navigation
-    # Example: "/metadata/name" -> ["metadata", "name"]
-    # Example: "/spec/template/spec/containers/0/image" -> navigate to containers[0].image
-    path_parts = [part for part in path.split("/") if part]
-    
-    # Navigate to the parent of the target
-    current: Any = doc
-    for part in path_parts[:-1]:
-        # Check if part is a numeric index (for arrays)
-        if part.isdigit():
-            # It's an array index
-            index = int(part)
-            current = current[index]
-        else:
-            # It's a dictionary key
-            if part not in current:
-                current[part] = {}
-            current = current[part]
-    
-    # Set the final value
-    final_key = path_parts[-1]
-    
-    # Check if final key is a numeric index
-    if final_key.isdigit():
-        index = int(final_key)
-        current[index] = value
-    else:
-        current[final_key] = value
-
-
-def apply_resource(resource: Dict[str, Any], k8s_client) -> None:
-    """Apply a single Kubernetes resource."""
-    try:
-        from kubernetes.dynamic import DynamicClient
-    except ImportError:
-        pytest.skip("kubernetes.dynamic not available")
-    
-    dyn_client = DynamicClient(k8s_client)
-    
-    # Get the API version and kind
-    api_version = resource.get("apiVersion", "v1")
-    kind = resource.get("kind")
-    name = resource["metadata"]["name"]
-    namespace = resource["metadata"].get("namespace", "default")
-    
-    # Create the resource
-    api_resource = dyn_client.resources.get(api_version=api_version, kind=kind)
-    
-    # For Jobs, delete existing one first to avoid conflicts
-    if kind == "Job":
-        try:
-            api_resource.delete(name=name, namespace=namespace)
-            time.sleep(2)  # Wait for deletion to complete
-        except Exception:
-            pass  # Ignore errors if job doesn't exist
-    
-    # Apply the resource
-    try:
-        api_resource.create(body=resource)
-    except Exception as e:
-        if hasattr(e, 'status') and getattr(e, 'status', None) == 409:  # Conflict - resource already exists
-            # For non-Job resources, just ignore if they already exist
-            if kind != "Job":
-                print(f"Resource {kind}/{name} already exists, skipping...")
-                return
-            else:
-                raise  # Jobs should have been deleted above, so this is unexpected
-        else:
-            raise
 
 
 def wait_for_job_completion(
@@ -290,27 +296,22 @@ def test_async_upload_integration(
         key = f"my-model/mnist-8.onnx"
         upload_to_minio(str(model_file), bucket, key)
         
-        # Step 3: Prepare job patches
-        print("Preparing job patches...")
-        base_job_path = Path(__file__).parent.parent.parent / "samples" / "sample_job_s3_to_oci.yaml"
-        
-        # Define patches to apply to the job
-        patches = {
-            "/metadata/name": job_name,
-            "/spec/template/spec/containers/0/image": container_image_uri,
-            "/spec/template/spec/containers/0/env/12/value": rm.id,
-            "/spec/template/spec/containers/0/env/13/value": mv.id,
-            "/spec/template/spec/containers/0/env/14/value": ma.id,
-        }
-        
-        # Step 4: Apply resources (job cleanup is handled automatically)
+        # Step 3: Apply the job with patches
         print("Applying resources...")
+        actual_job_name = apply_job_with_strategic_merge(
+            rm_id=rm.id,
+            mv_id=mv.id,
+            ma_id=ma.id,
+            job_name=job_name,
+            container_image_uri=container_image_uri,
+            k8s_client=k8s_client
+        )
         
-        # Step 5: Apply the job with patches
-        apply_job_with_patches(str(base_job_path), patches, k8s_client)
+        # Use the actual job name returned from kustomize
+        if actual_job_name:
+            job_name = actual_job_name
         
-        # Step 6: Wait for job completion
-        print("Waiting for job completion...")
+        print(f"Waiting for job completion: {job_name}")
         success = wait_for_job_completion(job_name, namespace, k8s_batch_client, timeout_seconds=600)
         
         if not success:
@@ -337,7 +338,7 @@ def test_async_upload_integration(
         print("Validating final artifact state...")
         
         # Wait a bit for the artifact to be updated
-        time.sleep(5)
+        time.sleep(2)
         
         # Fetch the updated artifact
         updated_ma = model_registry_client.get_model_artifact(model_name, "v1.0.0")
@@ -352,7 +353,12 @@ def test_async_upload_integration(
         
         # Clean up the job
         try:
-            k8s_batch_client.delete_namespaced_job(name=job_name, namespace=namespace)
+            import subprocess
+            subprocess.run(
+                ["kubectl", "delete", "job", job_name, "-n", namespace],
+                capture_output=True,
+                check=False
+            )
         except Exception:
             pass  # Ignore cleanup errors
         
