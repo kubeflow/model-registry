@@ -36,8 +36,9 @@ class ModelVersion(BaseResourceModel):
 
     Attributes:
         name: Name of this version.
-        author: Author of the model version.
-        description: Description of the object.
+        author: Author of this model version.
+        state: Status of this model version.
+        description: Description of this object.
         external_id: Customizable ID. Has to be unique among instances of the same type.
         artifacts: Artifacts associated with this version.
     """
@@ -45,6 +46,7 @@ class ModelVersion(BaseResourceModel):
     name: str
     author: str | None = None
     state: ModelVersionState = ModelVersionState.LIVE
+    registered_model_id: str | None = None
 
     @override
     def create(self, *, registered_model_id: str, **kwargs) -> ModelVersionCreate:  # type: ignore[override]
@@ -75,6 +77,7 @@ class ModelVersion(BaseResourceModel):
             author=source.author,
             description=source.description,
             external_id=source.external_id,
+            registered_model_id=source.registered_model_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
             custom_properties=cls._unmap_custom_properties(source.custom_properties)

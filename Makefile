@@ -152,14 +152,14 @@ stop/postgres:
 gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
-	cd gorm-gen && go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
+	cd gorm-gen && GOWORK=off go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
 
 # generate the gorm structs for PostgreSQL
 .PHONY: gen/gorm/postgres
 gen/gorm/postgres: bin/golang-migrate start/postgres
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
-	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
+	cd gorm-gen && GOWORK=off go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)
@@ -200,9 +200,6 @@ clean/odh:
 
 bin/protoc:
 	./scripts/install_protoc.sh
-
-bin/go-enum:
-	GOBIN=$(PROJECT_BIN) ${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
 
 bin/protoc-gen-go:
 	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
@@ -252,7 +249,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
+deps: bin/protoc bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
 
 .PHONY: vendor
 vendor:
@@ -303,15 +300,15 @@ lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
-test: gen bin/envtest
+test: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/...
 
 .PHONY: test-nocache
-test-nocache: gen bin/envtest
+test-nocache: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -count=1
 
 .PHONY: test-cover
-test-cover: gen bin/envtest
+test-cover: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 

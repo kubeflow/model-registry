@@ -19,8 +19,11 @@ env:
   DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
   DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
 jobs:
+  prepare:
+    uses: ./.github/workflows/prepare.yml
   build-image:
     runs-on: ubuntu-latest
+    needs: prepare
     steps:
       # Assign context variable for various action contexts (tag, main, CI)
       - name: Assigning tag context

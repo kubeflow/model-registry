@@ -16,9 +16,6 @@ __debug*
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Go workspace file
-go.work
-
 # Idea files
 .idea
 
