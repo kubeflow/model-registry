@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate, Title } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import {
   InferenceServiceKind,
@@ -90,15 +90,15 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      title={mv?.name}
-      headerAction={
-        mvLoaded &&
-        mv && (
-          <Flex
-            spaceItems={{ default: 'spaceItemsMd' }}
-            alignItems={{ default: 'alignItemsFlexStart' }}
-          >
-            <FlexItem style={{ width: '300px' }}>
+      title={
+        <Flex alignItems={{ default: 'alignItemsCenter' }}>
+          <FlexItem>
+            <Title headingLevel="h1" size="xl">
+              {rm?.name || 'Loading...'}
+            </Title>
+          </FlexItem>
+          <FlexItem>
+            {mv && (
               <ModelVersionSelector
                 rmId={rmId}
                 selection={mv}
@@ -106,15 +106,18 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
                   navigate(modelVersionUrl(modelVersionId, rmId, preferredModelRegistry?.name))
                 }
               />
-            </FlexItem>
-            <FlexItem>
-              <ModelVersionsDetailsHeaderActions
-                mv={mv}
-                hasDeployment={inferenceServices.data.length > 0}
-                refresh={refresh}
-              />
-            </FlexItem>
-          </Flex>
+            )}
+          </FlexItem>
+        </Flex>
+      }
+      headerAction={
+        mvLoaded &&
+        mv && (
+          <ModelVersionsDetailsHeaderActions
+            mv={mv}
+            hasDeployment={inferenceServices.data.length > 0}
+            refresh={refresh}
+          />
         )
       }
       description={<Truncate content={mv?.description || ''} />}
