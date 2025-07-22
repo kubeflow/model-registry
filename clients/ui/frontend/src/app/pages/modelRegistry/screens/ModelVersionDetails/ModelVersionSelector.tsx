@@ -19,6 +19,8 @@ import {
   Label,
 >>>>>>> 7ad51d9 (improving the version selector in version details)
 } from '@patternfly/react-core';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
@@ -26,8 +28,6 @@ import { filterLiveVersions } from '~/app/utils';
 import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 =======
 import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 >>>>>>> 7ad51d9 (improving the version selector in version details)
 
@@ -53,6 +53,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
   const liveModelVersions = filterLiveVersions(modelVersions.items);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const latestVersion = liveModelVersions.reduce<ModelVersion | null>((latest, current) => {
     if (
       latest === null ||
@@ -66,6 +67,12 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
   const latestVersion = modelVersions.items.reduce((latest, current) =>
     Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
     modelVersions.items[0]
+=======
+  const latestVersion = modelVersions.items.reduce(
+    (latest, current) =>
+      Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
+    modelVersions.items[0],
+>>>>>>> 56365a8 (version details version selector)
   );
 >>>>>>> 7ad51d9 (improving the version selector in version details)
 
