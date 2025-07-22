@@ -13,12 +13,12 @@ import {
   Button,
   Label,
 } from '@patternfly/react-core';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
 import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
 type ModelVersionSelectorProps = {
@@ -42,9 +42,10 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
   const liveModelVersions = filterLiveVersions(modelVersions.items);
-  const latestVersion = modelVersions.items.reduce((latest, current) =>
-    Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
-    modelVersions.items[0]
+  const latestVersion = modelVersions.items.reduce(
+    (latest, current) =>
+      Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
+    modelVersions.items[0],
   );
 
   const menuListItems = liveModelVersions

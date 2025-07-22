@@ -1,6 +1,13 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate, Title } from '@patternfly/react-core';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  Flex,
+  FlexItem,
+  Truncate,
+  Title,
+} from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import {
   InferenceServiceKind,
