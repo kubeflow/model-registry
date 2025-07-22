@@ -1,0 +1,21 @@
+query GetRepository($registry: String!, $repository: String!) {
+  get_repository_by_registry_path(
+    registry: $registry
+    repository: $repository
+  ) {
+    error {
+      detail
+      status
+    }
+    data {
+      creation_date
+      last_update_date
+      release_categories
+      vendor_label
+      display_data {
+        short_description
+        long_description
+      }
+    }
+  }
+}
