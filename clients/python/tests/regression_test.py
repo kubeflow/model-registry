@@ -4,6 +4,8 @@ import requests
 from model_registry import ModelRegistry
 from model_registry.types.artifacts import ModelArtifact
 
+from .conftest import REGISTRY_HOST, REGISTRY_PORT
+
 
 @pytest.mark.e2e
 def test_create_tagged_version(client: ModelRegistry):
@@ -101,6 +103,7 @@ async def test_create_standalone_model_artifact(client: ModelRegistry):
     mv_ma = await client._api.upsert_model_version_artifact(new_ma, mv.id)
     assert mv_ma.id == new_ma.id
 
+
 @pytest.mark.e2e
 async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     """Patching Artifacts makes the model registry server panic.
@@ -125,10 +128,46 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     assert ma.id
 
     payload = { "modelFormatName": "foo", "artifactType": "model-artifact" }
-    from .conftest import REGISTRY_HOST, REGISTRY_PORT
     response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.id
     assert ma.model_format_name == "foo"
+
+
+@pytest.mark.e2e
+async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message(client: ModelRegistry):
+    """As a MLOps engineer if I try to store a malformed RegisteredModel I get a structured error message
+    """
+    payload = { "name": "test_model", "ext_id": 123 }
+    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/registered_models", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    assert response.status_code == 400
+    assert response.json() == {
+        "code": "Bad Request",
+        "message": 'json: unknown field "ext_id"',
+    }
+
+
+@pytest.mark.e2e
+async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version_i_get_a_structured_error_message(client: ModelRegistry):
+    """As a MLOps engineer if I try to store a malformed ModelVersion I get a structured error message
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "https://acme.org/something",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+
+    payload = { "registeredModelId": rm.id }
+    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_versions", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    assert response.status_code == 422
+    assert response.json() == {
+        "code": "Bad Request",
+        "message": "required field 'name' is zero value.",
+    }
