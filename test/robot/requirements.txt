@@ -1,3 +1,0 @@
-robotframework
-robotframework-requests
-pyyaml
