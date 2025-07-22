@@ -1,16 +1,22 @@
-IMG_VERSION ?= latest
-IMG_REGISTRY ?= ghcr.io
-IMG_ORG ?= kubeflow
-IMG_NAME ?= model-registry/job/async-upload
-IMG ?= $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):$(IMG_VERSION)
+JOB_IMG_VERSION ?= latest
+JOB_IMG_REGISTRY ?= ghcr.io
+JOB_IMG_ORG ?= kubeflow
+JOB_IMG_NAME ?= model-registry/job/async-upload
+JOB_IMG ?= $(JOB_IMG_REGISTRY)/$(JOB_IMG_ORG)/$(JOB_IMG_NAME):$(JOB_IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
 CLUSTER_NAME ?= mr-e2e
+
+# MR Server Params
+IMG_VERSION ?= latest
+IMG ?= ghcr.io/kubeflow/model-registry/server:$(IMG_VERSION)
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
 	cd ../../ && \
 	$(if $(filter true,$(BUILD_IMAGE)),\
-		IMG_VERSION=${IMG_VERSION} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
+		IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
+	,\
+		docker pull $(IMG) && \
 	) \
 	LOCAL=1 ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
@@ -29,8 +35,8 @@ deploy-local-registry:
 
 .PHONY: dev-load-image
 dev-load-image:
-	docker buildx build --load -t $(IMG) .
-	kind load docker-image $(IMG) -n $(CLUSTER_NAME)
+	docker buildx build --load -t $(JOB_IMG) .
+	kind load docker-image $(JOB_IMG) -n $(CLUSTER_NAME)
 
 .PHONY: test
 test:
@@ -73,7 +79,7 @@ test-integration-run:
 	@echo "Ensuring all extras are installed..."
 	poetry install --all-extras --with integration
 	@echo "Running integration tests..."
-	CONTAINER_IMAGE_URI=$(IMG) poetry run pytest --integration tests/integration/ -vs
+	CONTAINER_IMAGE_URI=$(JOB_IMG) poetry run pytest --integration tests/integration/ -vs
 
 .PHONY: install
 install:
