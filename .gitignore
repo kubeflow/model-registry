@@ -24,6 +24,9 @@ __debug*
 model-registry
 metadata.sqlite.db
 
+# Temporary files for running the project
+.port-forwards.pid
+
 # Ignore go vendor and code coverage files
 vendor
 coverage.*
