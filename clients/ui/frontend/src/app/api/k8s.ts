@@ -248,7 +248,7 @@ export const deleteRoleBinding =
       throw new Error('Invalid response format');
     });
 
-//TODO : migrate this to shared library
+//TODO : migrate thuis to shared library
 export const addOwnerReference = <R extends K8sResourceCommon>(
   resource: R,
   owner?: K8sResourceCommon,

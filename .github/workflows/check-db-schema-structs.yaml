@@ -1,11 +1,11 @@
 name: Check DB schema structs
 on:
   pull_request:
-  push:
-    branches:
-      - 'main'
-    tags:
-      - 'v*'
+    paths:
+      - ".github/workflows/**"
+      - "internal/db/schema/**"
+      - "internal/datastore/embedmd/mysql/migrations/**"
+      - "internal/datastore/embedmd/postgres/migrations/**"
 jobs:
   check-mysql-schema-structs:
     runs-on: ubuntu-latest

@@ -41,12 +41,13 @@ func Int64ToString(id *int64) *string {
 
 // StringToInt32 converts string-based numeric value (a OpenAPI string literal consisting only of digits) to int32 if numeric, otherwise return error
 func StringToInt32(idString string) (int32, error) {
-	idInt, err := strconv.ParseInt(idString, 10, 32)
+	idInt, err := strconv.Atoi(idString)
 	if err != nil {
 		return 0, err
 	}
 
-	return int32(idInt), nil
+	idInt32 := int32(idInt)
+	return idInt32, nil
 }
 
 // MapOpenAPICustomProperties maps OpenAPI custom properties model to MLMD one

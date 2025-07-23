@@ -1,4 +1,5 @@
 from __future__ import annotations
+import base64
 import json
 import logging
 import configargparse as cap
@@ -6,7 +7,6 @@ from typing import Any, Dict, Mapping
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-
 
 def _parser() -> cap.ArgumentParser:
     """Parse command line arguments and config files"""
@@ -19,8 +19,7 @@ def _parser() -> cap.ArgumentParser:
     # --- source ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add_argument("--source-type", choices=["s3", "oci", "uri"], default="s3")
-    p.add_argument("--source-uri")
+    p.add_argument("--source-type", choices=["s3", "oci"], default="s3")
     p.add_argument("--source-aws-bucket")
     p.add_argument("--source-aws-key")
     p.add_argument("--source-aws-region")
@@ -51,7 +50,7 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--destination-oci-base-image", default="busybox:latest")
     # The `type` converter is needed here to support env-based booleans
     # See: https://github.com/bw2/ConfigArgParse/tree/master?tab=readme-ov-file#special-values
-    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool)
+    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool) 
 
     # --- model-registry model data ---
     p.add_argument("--model-id")
@@ -191,11 +190,6 @@ def _validate_s3_config(cfg: Dict[str, Any]) -> None:
         raise ValueError("S3 key must be set")
 
 
-def _validate_uri_config(cfg: Dict[str, Any]) -> None:
-    if not ("uri" in cfg and isinstance(cfg["uri"], str)):
-        raise ValueError("uri must be set to a string")
-
-
 def _validate_model_config(cfg: Dict[str, Any]) -> None:
     """Validates the model config is valid"""
     if cfg["id"] is None or cfg["version_id"] is None or cfg["artifact_id"] is None:
@@ -214,8 +208,6 @@ def _validate_store(cfg: Dict[str, Any]) -> None:
         _validate_s3_config(cfg)
     elif cfg["type"] == "oci":
         _validate_oci_config(cfg)
-    elif cfg["type"] == "uri":
-        _validate_uri_config(cfg)
     else:
         raise ValueError("Source type must be set")
 
@@ -232,7 +224,6 @@ def _validate_config(cfg: Dict[str, Any]) -> None:
 
     # Ensure the registry is valid
     _validate_registry_config(cfg["registry"])
-
 
 def str2bool(x):
     """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
@@ -340,7 +331,6 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
 
     # TODO: Maybe clean this up, its a little manual
     # Override with command-line arguments if provided. configargparse will prioritize CLI > ENV
-    cfg["source"]["uri"] = args.source_uri
     if args.source_aws_bucket:
         cfg["source"]["s3"]["bucket"] = args.source_aws_bucket
     if args.source_aws_key:
@@ -398,30 +388,29 @@ def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
     Create a sanitized copy of the config for logging purposes, masking sensitive values.
     """
     import copy
-
     sanitized = copy.deepcopy(cfg)
-
+    
     # Mask sensitive S3 credentials
     if sanitized["source"]["s3"]["secret_access_key"]:
         sanitized["source"]["s3"]["secret_access_key"] = "***"
     if sanitized["source"]["s3"]["access_key_id"]:
         sanitized["source"]["s3"]["access_key_id"] = "***"
-
+    
     if sanitized["destination"]["s3"]["secret_access_key"]:
         sanitized["destination"]["s3"]["secret_access_key"] = "***"
     if sanitized["destination"]["s3"]["access_key_id"]:
         sanitized["destination"]["s3"]["access_key_id"] = "***"
-
+    
     # Mask sensitive OCI credentials
     if sanitized["source"]["oci"]["password"]:
         sanitized["source"]["oci"]["password"] = "***"
     if sanitized["destination"]["oci"]["password"]:
         sanitized["destination"]["oci"]["password"] = "***"
-
+    
     # Mask sensitive registry credentials
     if sanitized["registry"]["user_token"]:
         sanitized["registry"]["user_token"] = "***"
     if sanitized["registry"]["custom_ca"]:
         sanitized["registry"]["custom_ca"] = "***"
-
+    
     return sanitized

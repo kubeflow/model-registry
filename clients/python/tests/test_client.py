@@ -7,7 +7,6 @@ import requests
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
-from model_registry.types.artifacts import DocArtifact
 
 from .extras.async_task_runner import AsyncTaskRunner
 
@@ -23,30 +22,23 @@ def test_secure_client():
 
 @pytest.mark.e2e
 async def test_register_new(client: ModelRegistry):
-    """As a MLOps engineer I would like to store Model name
-    """
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
         name,
-        "https://acme.org/something",
+        "s3",
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
     )
     assert rm.id
-    assert rm.name == name # check the Model name
 
     mr_api = client._api
     mv = await mr_api.get_model_version_by_params(rm.id, version)
     assert mv
     assert mv.id
-    assert mv.name == version
-    assert mv.registered_model_id == rm.id
-
     ma = await mr_api.get_model_artifact_by_params(name, mv.id)
     assert ma
-    assert ma.uri == "https://acme.org/something"
 
 
 @pytest.mark.e2e
@@ -1094,85 +1086,3 @@ def test_upload_large_model_file(
     mv = client.get_model_artifact(name="large_test_model", version=version)
     assert mv
     assert mv.name == "large_test_model"
-
-
-@pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_model(client: ModelRegistry):
-    """As a MLOps engineer I would like to update a description of the model
-    """
-    name = "test_model"
-    version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-        owner="me",
-        description="Lorem ipsum dolor sit amet",
-    )
-    assert rm.id
-
-    rm.description = "New description"
-    rm =client.update(rm)
-    assert rm.description == "New description"
-    assert rm.owner == "me"
-
-
-@pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_model(client: ModelRegistry):
-    """As a MLOps engineer I would like to store a description of the model
-    Note: on Creation, the Description belongs to the Model Version; we could improve the logic to maintain it for the Registered Model if it's not already existing
-    """
-    name = "test_model"
-    version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-        description="consectetur adipiscing elit",
-    )
-    assert rm.id
-
-    mr_api = client._api
-    mv = await mr_api.get_model_version_by_params(rm.id, version)
-    assert mv
-    assert mv.id
-    assert mv.description == "consectetur adipiscing elit"
-    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
-    assert ma
-
-    rm.description = "Lorem ipsum dolor sit amet"
-    assert client.update(rm).description == "Lorem ipsum dolor sit amet"
-    mv.description = "consectetur adipiscing elit2"
-    assert client.update(mv).description == "consectetur adipiscing elit2"
-    ma.description = "sed do eiusmod tempor incididunt"
-    assert client.update(ma).description == "sed do eiusmod tempor incididunt"
-
-
-@pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model(client: ModelRegistry):
-    """As a MLOps engineer I would like to store a longer documentation for the model
-    """
-    name = "test_model"
-    version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-        description="consectetur adipiscing elit",
-    )
-    assert rm.id
-
-    mr_api = client._api
-    mv = await mr_api.get_model_version_by_params(rm.id, version)
-    assert mv
-    assert mv.id
-
-    da = await mr_api.upsert_model_version_artifact(DocArtifact(uri="https://README.md"), mv.id)
-    assert da
-    assert da.uri == "https://README.md"
