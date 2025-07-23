@@ -698,13 +698,10 @@ class ModelRegistryAPIClient:
             artifact: Artifact to upsert.
         """
         async with self.get_client() as client:
-            return cast(
-                ArtifactT,
-                Artifact.validate_artifact(
-                    await client.upsert_experiment_run_artifact(
-                        experimentrun_id=experiment_run_id, artifact=artifact.wrap()
-                    )
-                ),
+            return Artifact.validate_artifact(
+                await client.upsert_experiment_run_artifact(
+                    experimentrun_id=experiment_run_id, artifact=artifact.wrap()
+                )
             )
 
     @overload

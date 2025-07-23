@@ -1,7 +1,6 @@
 import json
 import threading
 
-from model_registry.types.experiments import Experiment
 import pytest
 
 from model_registry import ModelRegistry, utils
