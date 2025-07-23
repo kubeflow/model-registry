@@ -17,6 +17,16 @@ on:
       - ".github/workflows/**"
 
 env:
+  # Async Job
+  JOB_IMG_REGISTRY: ghcr.io
+  JOB_IMG_ORG: kubeflow
+  JOB_IMG_NAME: model-registry/job/async-upload
+  JOB_IMG_VERSION: cicd
+  # MR Server
+  IMG_REGISTRY: ghcr.io
+  IMG_ORG: kubeflow
+  IMG_REPO: model-registry/server
+  IMG_VERSION: cicd
   PUSH_IMAGE: false
 
 jobs:
@@ -45,9 +55,6 @@ jobs:
           set -x
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Run E2E tests
-        env:
-          IMG_VERSION: e2e
-          IMG: ghcr.io/kubeflow/model-registry/server:e2e
         run: |
           make test-e2e
   job-test:

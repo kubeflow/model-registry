@@ -15,10 +15,8 @@ deploy-latest-mr:
 	cd ../../ && \
 	$(if $(filter true,$(BUILD_IMAGE)),\
 		IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
-	,\
-		docker pull $(IMG) && \
 	) \
-	LOCAL=1 ./scripts/deploy_on_kind.sh
+	LOCAL=1 IMG=${IMG} ./scripts/deploy_on_kind.sh
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio
