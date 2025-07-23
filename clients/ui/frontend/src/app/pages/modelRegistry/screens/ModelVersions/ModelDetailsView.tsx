@@ -100,14 +100,14 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
             </Content>
           </DashboardDescriptionListGroup>
           <DashboardDescriptionListGroup
-            title="Last modified at"
+            title="Last modified"
             isEmpty={!rm.lastUpdateTimeSinceEpoch}
             contentWhenEmpty="Unknown"
           >
             <ModelTimestamp timeSinceEpoch={rm.lastUpdateTimeSinceEpoch} />
           </DashboardDescriptionListGroup>
           <DashboardDescriptionListGroup
-            title="Created at"
+            title="Created"
             isEmpty={!rm.createTimeSinceEpoch}
             contentWhenEmpty="Unknown"
           >
