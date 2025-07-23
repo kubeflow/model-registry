@@ -19,7 +19,7 @@ def _parser() -> cap.ArgumentParser:
     # --- source ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add_argument("--source-type", choices=["s3", "oci", "hf"], default="s3")
+    p.add_argument("--source-type", choices=["s3", "oci", "uri"], default="s3")
     p.add_argument("--source-uri")
     p.add_argument("--source-aws-bucket")
     p.add_argument("--source-aws-key")
@@ -191,7 +191,7 @@ def _validate_s3_config(cfg: Dict[str, Any]) -> None:
         raise ValueError("S3 key must be set")
 
 
-def _validate_hf_config(cfg: Dict[str, Any]) -> None:
+def _validate_uri_config(cfg: Dict[str, Any]) -> None:
     if not ("uri" in cfg and isinstance(cfg["uri"], str)):
         raise ValueError("uri must be set to a string")
 
@@ -214,8 +214,8 @@ def _validate_store(cfg: Dict[str, Any]) -> None:
         _validate_s3_config(cfg)
     elif cfg["type"] == "oci":
         _validate_oci_config(cfg)
-    elif cfg["type"] == "hf":
-        _validate_hf_config(cfg)
+    elif cfg["type"] == "uri":
+        _validate_uri_config(cfg)
     else:
         raise ValueError("Source type must be set")
 

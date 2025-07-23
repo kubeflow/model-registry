@@ -80,8 +80,12 @@ def perform_download(client: ModelRegistry, config: Dict[str, Any]):
     source_type = config["source"]["type"]
     if source_type == "s3":
         download_from_s3(client, config)
-    elif source_type == "hf" or config["source"]["uri"].startswith(HF_URI_PREFIX):
-        download_from_hf(config["source"]["uri"], config["storage"]["path"])
+    elif source_type == "uri":
+        uri = config["source"]["uri"]
+        if uri.startswith(HF_URI_PREFIX):
+            download_from_hf(config["source"]["uri"], config["storage"]["path"])
+        else:
+            raise ValueError(f"Unsupported URI format: {uri}")
     elif source_type == "oci":
         # TODO: Implement the OCI download logic here
         raise ValueError("OCI source is not supported yet")
