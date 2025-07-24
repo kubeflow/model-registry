@@ -5,4 +5,4 @@ const (
 	DatabaseTypeMySQL = "mysql"
 	// DatabaseTypePostgres represents PostgreSQL database type
 	DatabaseTypePostgres = "postgres"
-) 
+)

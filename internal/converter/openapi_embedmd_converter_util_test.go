@@ -456,23 +456,28 @@ func TestMapModelVersionAttributesEmbedMD(t *testing.T) {
 	nowStr := strconv.FormatInt(now, 10)
 	name := "test"
 	externalId := "test"
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
 
 	testCases := []struct {
 		name     string
-		source   *openapi.ModelVersion
+		source   *OpenAPIModelWrapper[openapi.ModelVersion]
 		expected *models.ModelVersionAttributes
 		wantErr  bool
 	}{
 		{
 			name: "test model version attributes",
-			source: &openapi.ModelVersion{
-				Name:                     name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
+			source: &OpenAPIModelWrapper[openapi.ModelVersion]{
+				Model: &openapi.ModelVersion{
+					Name:                     name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.ModelVersionAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -732,24 +737,29 @@ func TestMapInferenceServiceAttributesEmbedMD(t *testing.T) {
 	now := time.Now().Unix()
 	nowStr := strconv.FormatInt(now, 10)
 	name := "test"
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
 	externalId := "test"
 
 	testCases := []struct {
 		name     string
-		source   *openapi.InferenceService
+		source   *OpenAPIModelWrapper[openapi.InferenceService]
 		expected *models.InferenceServiceAttributes
 		wantErr  bool
 	}{
 		{
 			name: "test inference service attributes",
-			source: &openapi.InferenceService{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
+			source: &OpenAPIModelWrapper[openapi.InferenceService]{
+				Model: &openapi.InferenceService{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.InferenceServiceAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -919,25 +929,30 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 	externalId := "test"
 	state := openapi.ARTIFACTSTATE_LIVE
 	uri := "test"
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
 
 	testCases := []struct {
 		name     string
-		source   *openapi.ModelArtifact
+		source   *OpenAPIModelWrapper[openapi.ModelArtifact]
 		expected *models.ModelArtifactAttributes
 		wantErr  bool
 	}{
 		{
 			name: "test model artifact attributes",
-			source: &openapi.ModelArtifact{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				State:                    &state,
-				Uri:                      &uri,
+			source: &OpenAPIModelWrapper[openapi.ModelArtifact]{
+				Model: &openapi.ModelArtifact{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    &state,
+					Uri:                      &uri,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.ModelArtifactAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -948,16 +963,19 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 		},
 		{
 			name: "test model artifact attributes with nil state",
-			source: &openapi.ModelArtifact{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				State:                    nil, // nil state should remain nil
-				Uri:                      &uri,
+			source: &OpenAPIModelWrapper[openapi.ModelArtifact]{
+				Model: &openapi.ModelArtifact{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    nil, // nil state should remain nil
+					Uri:                      &uri,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.ModelArtifactAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -1059,25 +1077,30 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 	externalId := "test"
 	state := openapi.ARTIFACTSTATE_LIVE
 	uri := "test"
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
 
 	testCases := []struct {
 		name     string
-		source   *openapi.DocArtifact
+		source   *OpenAPIModelWrapper[openapi.DocArtifact]
 		expected *models.DocArtifactAttributes
 		wantErr  bool
 	}{
 		{
 			name: "test doc artifact attributes",
-			source: &openapi.DocArtifact{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				State:                    &state,
-				Uri:                      &uri,
+			source: &OpenAPIModelWrapper[openapi.DocArtifact]{
+				Model: &openapi.DocArtifact{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    &state,
+					Uri:                      &uri,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.DocArtifactAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -1088,16 +1111,19 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 		},
 		{
 			name: "test doc artifact attributes with nil state",
-			source: &openapi.DocArtifact{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				State:                    nil, // nil state should remain nil
-				Uri:                      &uri,
+			source: &OpenAPIModelWrapper[openapi.DocArtifact]{
+				Model: &openapi.DocArtifact{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    nil, // nil state should remain nil
+					Uri:                      &uri,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.DocArtifactAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -1213,24 +1239,29 @@ func TestMapServeModelAttributesEmbedMD(t *testing.T) {
 	name := "test"
 	externalId := "test"
 	lastKnownState := openapi.EXECUTIONSTATE_RUNNING
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
 
 	testCases := []struct {
 		name     string
-		source   *openapi.ServeModel
+		source   *OpenAPIModelWrapper[openapi.ServeModel]
 		expected *models.ServeModelAttributes
 		wantErr  bool
 	}{
 		{
 			name: "test serve model attributes",
-			source: &openapi.ServeModel{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				LastKnownState:           &lastKnownState,
+			source: &OpenAPIModelWrapper[openapi.ServeModel]{
+				Model: &openapi.ServeModel{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					LastKnownState:           &lastKnownState,
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.ServeModelAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -1240,15 +1271,18 @@ func TestMapServeModelAttributesEmbedMD(t *testing.T) {
 		},
 		{
 			name: "test serve model attributes with nil last known state",
-			source: &openapi.ServeModel{
-				Name:                     &name,
-				CreateTimeSinceEpoch:     &nowStr,
-				LastUpdateTimeSinceEpoch: &nowStr,
-				ExternalId:               &externalId,
-				LastKnownState:           nil, // nil state should remain nil
+			source: &OpenAPIModelWrapper[openapi.ServeModel]{
+				Model: &openapi.ServeModel{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					LastKnownState:           nil, // nil state should remain nil
+				},
+				ParentResourceId: &parentResourceId,
 			},
 			expected: &models.ServeModelAttributes{
-				Name:                     &name,
+				Name:                     &expectedPrefixedName,
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
@@ -1261,6 +1295,202 @@ func TestMapServeModelAttributesEmbedMD(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := MapServeModelAttributesEmbedMD(tc.source)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			}
+		})
+	}
+}
+
+func TestMapExperimentRunAttributesEmbedMD(t *testing.T) {
+	now := time.Now().Unix()
+	nowStr := strconv.FormatInt(now, 10)
+	name := "test"
+	externalId := "test"
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
+
+	testCases := []struct {
+		name     string
+		source   *OpenAPIModelWrapper[openapi.ExperimentRun]
+		expected *models.ExperimentRunAttributes
+		wantErr  bool
+	}{
+		{
+			name: "test experiment run attributes",
+			source: &OpenAPIModelWrapper[openapi.ExperimentRun]{
+				Model: &openapi.ExperimentRun{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+				},
+				ParentResourceId: &parentResourceId,
+			},
+			expected: &models.ExperimentRunAttributes{
+				Name:                     &expectedPrefixedName,
+				CreateTimeSinceEpoch:     &now,
+				LastUpdateTimeSinceEpoch: &now,
+				ExternalID:               &externalId,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := MapExperimentRunAttributesEmbedMD(tc.source)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			}
+		})
+	}
+}
+
+func TestMapMetricAttributesEmbedMD(t *testing.T) {
+	now := time.Now().Unix()
+	nowStr := strconv.FormatInt(now, 10)
+	name := "test"
+	externalId := "test"
+	state := openapi.ARTIFACTSTATE_LIVE
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
+
+	testCases := []struct {
+		name     string
+		source   *OpenAPIModelWrapper[openapi.Metric]
+		expected *models.MetricAttributes
+		wantErr  bool
+	}{
+		{
+			name: "test metric attributes",
+			source: &OpenAPIModelWrapper[openapi.Metric]{
+				Model: &openapi.Metric{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    &state,
+				},
+				ParentResourceId: &parentResourceId,
+			},
+			expected: &models.MetricAttributes{
+				Name:                     &expectedPrefixedName,
+				CreateTimeSinceEpoch:     &now,
+				LastUpdateTimeSinceEpoch: &now,
+				ExternalID:               &externalId,
+				State:                    of(string(state)),
+				URI:                      nil, // Metric artifacts don't have URI
+			},
+			wantErr: false,
+		},
+		{
+			name: "test metric attributes with nil state",
+			source: &OpenAPIModelWrapper[openapi.Metric]{
+				Model: &openapi.Metric{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    nil,
+				},
+				ParentResourceId: &parentResourceId,
+			},
+			expected: &models.MetricAttributes{
+				Name:                     &expectedPrefixedName,
+				CreateTimeSinceEpoch:     &now,
+				LastUpdateTimeSinceEpoch: &now,
+				ExternalID:               &externalId,
+				State:                    nil,
+				URI:                      nil,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := MapMetricAttributesEmbedMD(tc.source)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			}
+		})
+	}
+}
+
+func TestMapParameterAttributesEmbedMD(t *testing.T) {
+	now := time.Now().Unix()
+	nowStr := strconv.FormatInt(now, 10)
+	name := "test"
+	externalId := "test"
+	state := openapi.ARTIFACTSTATE_LIVE
+	parentResourceId := "test-parent-id"
+	expectedPrefixedName := "test-parent-id:test"
+
+	testCases := []struct {
+		name     string
+		source   *OpenAPIModelWrapper[openapi.Parameter]
+		expected *models.ParameterAttributes
+		wantErr  bool
+	}{
+		{
+			name: "test parameter attributes",
+			source: &OpenAPIModelWrapper[openapi.Parameter]{
+				Model: &openapi.Parameter{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    &state,
+				},
+				ParentResourceId: &parentResourceId,
+			},
+			expected: &models.ParameterAttributes{
+				Name:                     &expectedPrefixedName,
+				CreateTimeSinceEpoch:     &now,
+				LastUpdateTimeSinceEpoch: &now,
+				ExternalID:               &externalId,
+				State:                    of(string(state)),
+				URI:                      nil, // Parameter artifacts don't have URI
+			},
+			wantErr: false,
+		},
+		{
+			name: "test parameter attributes with nil state",
+			source: &OpenAPIModelWrapper[openapi.Parameter]{
+				Model: &openapi.Parameter{
+					Name:                     &name,
+					CreateTimeSinceEpoch:     &nowStr,
+					LastUpdateTimeSinceEpoch: &nowStr,
+					ExternalId:               &externalId,
+					State:                    nil,
+				},
+				ParentResourceId: &parentResourceId,
+			},
+			expected: &models.ParameterAttributes{
+				Name:                     &expectedPrefixedName,
+				CreateTimeSinceEpoch:     &now,
+				LastUpdateTimeSinceEpoch: &now,
+				ExternalID:               &externalId,
+				State:                    nil,
+				URI:                      nil,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := MapParameterAttributesEmbedMD(tc.source)
 			if tc.wantErr {
 				assert.Error(t, err)
 			} else {

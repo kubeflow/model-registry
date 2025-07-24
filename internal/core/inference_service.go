@@ -25,7 +25,7 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
+		withNotEditable, err := b.mapper.UpdateExistingInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -41,15 +41,6 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	name := ""
-
-	if infSvc.GetAttributes().Name != nil {
-		name = *infSvc.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
-	infSvc.GetAttributes().Name = &prefixedName
 
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
 	if err != nil {

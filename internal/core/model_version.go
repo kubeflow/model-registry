@@ -25,7 +25,7 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+		withNotEditable, err := b.mapper.UpdateExistingModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -36,12 +36,10 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 		modelVersion.RegisteredModelId = *registeredModelId
 	}
 
-	model, err := b.mapper.MapFromModelVersion(modelVersion)
+	model, err := b.mapper.MapFromModelVersion(modelVersion, registeredModelId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	modelVersion.Name = converter.PrefixWhenOwned(&modelVersion.RegisteredModelId, modelVersion.Name)
 
 	savedModel, err := b.modelVersionRepository.Save(model)
 	if err != nil {
