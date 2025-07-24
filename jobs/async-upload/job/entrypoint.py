@@ -58,12 +58,12 @@ async def main() -> None:
         await set_artifact_pending(client, config.model)
 
         # Download the model from the defined source
-        perform_download(client, config)
+        perform_download(config)
 
         # Upload the model to the destination
         uri = perform_upload(config)
 
-        await update_model_artifact_uri(uri, client, config)
+        await update_model_artifact_uri(uri, client, config.model)
 
     except BaseException as e:
         record_error(e)

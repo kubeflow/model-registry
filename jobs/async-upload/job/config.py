@@ -6,7 +6,9 @@ from typing import Any, Dict
 from pathlib import Path
 
 from .models import (
-    AsyncUploadConfig, 
+    AsyncUploadConfig,
+    OCIStorageConfig,
+    S3StorageConfig, 
     SourceConfig, 
     DestinationConfig, 
     ModelConfig, 
@@ -15,7 +17,8 @@ from .models import (
     S3Config,
     OCIConfig,
     SourceType,
-    DestinationType
+    DestinationType,
+    URISourceConfig
 )
 
 logger = logging.getLogger(__name__)
@@ -206,72 +209,82 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     """
     args = _parser().parse_args(argv)
     logger.debug("🔍 Command-line arguments: %s", args)
+ 
+    # Create source config based on type
+    if args.source_type == "s3":
+        s3_config = S3Config(
+            bucket=args.source_aws_bucket,
+            key=args.source_aws_key,
+            region=args.source_aws_region,
+            access_key_id=args.source_aws_access_key_id,
+            secret_access_key=args.source_aws_secret_access_key,
+            endpoint_url=args.source_aws_endpoint,
+        )
+        # Load credentials from files, if provided
+        if args.source_s3_credentials_path:
+            _load_s3_credentials(args.source_s3_credentials_path, s3_config)
+        source_config = S3StorageConfig(
+            **s3_config.model_dump(),
+            credentials_path=args.source_s3_credentials_path
+        )
+    elif args.source_type == "oci":
+        source_config = OCIStorageConfig(
+            uri=args.source_oci_uri,
+            registry=args.source_oci_registry,
+            username=args.source_oci_username,
+            password=args.source_oci_password,
+            email=None,
+            credentials_path=args.source_oci_credentials_path
+        )
+        # Load credentials from files, if provided
+        if args.source_oci_credentials_path:
+            _load_oci_credentials(args.source_oci_credentials_path, source_config)
 
-    # Initialize config dictionaries for easier manipulation before model creation
-    source_s3_data = S3Config(
-        bucket=args.source_aws_bucket,
-        key=args.source_aws_key,
-        region=args.source_aws_region,
-        access_key_id=args.source_aws_access_key_id,
-        secret_access_key=args.source_aws_secret_access_key,
-        endpoint_url=args.source_aws_endpoint,
-    )
-    
-    source_oci_data = OCIConfig(
-        uri=args.source_oci_uri,
-        registry=args.source_oci_registry,
-        username=args.source_oci_username,
-        password=args.source_oci_password,
-        email=None,
-    )
-    
-    destination_s3_data = S3Config(
-        bucket=args.destination_aws_bucket,
-        key=args.destination_aws_key,
-        region=args.destination_aws_region,
-        access_key_id=args.destination_aws_access_key_id,
-        secret_access_key=args.destination_aws_secret_access_key,
-        endpoint_url=args.destination_aws_endpoint,
-    )
-    
-    destination_oci_data = OCIConfig(
-        uri=args.destination_oci_uri,
-        registry=args.destination_oci_registry,
-        username=args.destination_oci_username,
-        password=args.destination_oci_password,
-        email=None,
-        base_image=args.destination_oci_base_image,
-        enable_tls_verify=args.destination_oci_enable_tls_verify,
-    )
+    elif args.source_type == "uri":
+        source_config = URISourceConfig(
+            uri=args.source_uri,
+            credentials_path=None
+        )
+    else:
+        raise ValueError(f"Unsupported source type: {args.source_type}")
 
-    # Load source credentials from files, if provided
-    if args.source_s3_credentials_path:
-        _load_s3_credentials(args.source_s3_credentials_path, source_s3_data)
-    elif args.source_oci_credentials_path:
-        _load_oci_credentials(args.source_oci_credentials_path, source_oci_data)
+    # Create destination config based on type
+    if args.destination_type == "s3":
+        destination_config = S3StorageConfig(
+            bucket=args.destination_aws_bucket,
+            key=args.destination_aws_key,
+            region=args.destination_aws_region,
+            access_key_id=args.destination_aws_access_key_id,
+            secret_access_key=args.destination_aws_secret_access_key,
+            endpoint_url=args.destination_aws_endpoint,
+            credentials_path=args.destination_s3_credentials_path
+        )
+        # Load credentials from files, if provided
+        if args.destination_s3_credentials_path:
+            _load_s3_credentials(args.destination_s3_credentials_path, destination_config)
+    elif args.destination_type == "oci":
+        destination_config = OCIStorageConfig(
+            uri=args.destination_oci_uri,
+            registry=args.destination_oci_registry,
+            username=args.destination_oci_username,
+            password=args.destination_oci_password,
+            email=None,
+            base_image=args.destination_oci_base_image,
+            enable_tls_verify=args.destination_oci_enable_tls_verify,
+            credentials_path=args.destination_oci_credentials_path
+        )
+        # Load credentials from files, if provided
+        if args.destination_oci_credentials_path:
+            _load_oci_credentials(args.destination_oci_credentials_path, destination_config)
 
-    # Load destination credentials from files, if provided
-    if args.destination_s3_credentials_path:
-        _load_s3_credentials(args.destination_s3_credentials_path, destination_s3_data)
-    elif args.destination_oci_credentials_path:
-        _load_oci_credentials(args.destination_oci_credentials_path, destination_oci_data)
+    else:
+        raise ValueError(f"Unsupported destination type: {args.destination_type}")
 
     # Create model instances
     try:
         config = AsyncUploadConfig(
-            source=SourceConfig(
-                type=SourceType(args.source_type),
-                uri=args.source_uri,
-                s3=source_s3_data,
-                oci=source_oci_data,
-                credentials_path=args.source_oci_credentials_path,
-            ),
-            destination=DestinationConfig(
-                type=DestinationType(args.destination_type),
-                s3=destination_s3_data,
-                oci=destination_oci_data,
-                credentials_path=args.destination_oci_credentials_path,
-            ),
+            source=source_config,
+            destination=destination_config,
             model=ModelConfig(
                 id=args.model_id,
                 version_id=args.model_version_id,

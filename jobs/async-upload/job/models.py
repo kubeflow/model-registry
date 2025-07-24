@@ -21,25 +21,24 @@ class DestinationType(StrEnum):
     OCI = "oci"
 
 
+class BaseStorageConfig(BaseModel):
+    """Base configuration for storage types."""
+    credentials_path: str | None = None
+
+
 class S3Config(BaseModel):
     """S3 storage configuration."""
-    bucket: str | None = None
-    key: str | None = None
+    bucket: str
+    key: str
     region: str | None = None
     access_key_id: str | None = None
     secret_access_key: str | None = None
     endpoint_url: str | None = None
 
-    @model_validator(mode='after')
-    def validate_s3_required_fields(self) -> 'S3Config':
-        """Validate that required S3 fields are present when S3 is used."""
-        # This validation will be called by the parent models when needed
-        return self
-
 
 class OCIConfig(BaseModel):
     """OCI registry configuration."""
-    uri: str | None = None
+    uri: str
     registry: str | None = None
     username: str | None = None
     password: str | None = None
@@ -55,49 +54,43 @@ class OCIConfig(BaseModel):
         return self
 
 
-Source = S3Config | OCIConfig
-
-
-class SourceConfig(BaseModel):
-    """Source configuration for model artifacts."""
-    type: SourceType
-    uri: str | None = None  # For URI type sources
-    s3: S3Config = Field(default_factory=S3Config)
-    oci: OCIConfig = Field(default_factory=OCIConfig)
-    credentials_path: str | None = None
-
+class S3StorageConfig(BaseStorageConfig, S3Config):
+    """S3 storage configuration with validation - can be used for both source and destination."""
+    
     @model_validator(mode='after')
-    def validate_source_config(self) -> 'SourceConfig':
-        """Validate source configuration based on type."""
-        if self.type == SourceType.S3:
-            if not all([self.s3.access_key_id, self.s3.secret_access_key, self.s3.bucket, self.s3.key]):
-                raise ValueError("S3 credentials (access_key_id, secret_access_key), bucket, and key must be set for S3 sources")
-        elif self.type == SourceType.OCI:
-            if not all([self.oci.registry, self.oci.uri]):
-                raise ValueError("OCI registry and URI must be set for OCI sources")
-        elif self.type == SourceType.URI:
-            if not self.uri:
-                raise ValueError("URI must be set for URI type sources")
+    def validate_s3_storage(self) -> 'S3StorageConfig':
+        """Validate that required S3 fields are present."""
+        if not all([self.access_key_id, self.secret_access_key, self.bucket, self.key]):
+            raise ValueError("S3 credentials (access_key_id, secret_access_key), bucket, and key must be set")
         return self
 
 
-class DestinationConfig(BaseModel):
-    """Destination configuration for model artifacts."""
-    type: DestinationType
-    s3: S3Config = Field(default_factory=S3Config)
-    oci: OCIConfig = Field(default_factory=OCIConfig)
-    credentials_path: str | None = None
-
+class OCIStorageConfig(BaseStorageConfig, OCIConfig):
+    """OCI storage configuration with validation - can be used for both source and destination."""
+    
     @model_validator(mode='after')
-    def validate_destination_config(self) -> 'DestinationConfig':
-        """Validate destination configuration based on type."""
-        if self.type == DestinationType.S3:
-            if not all([self.s3.access_key_id, self.s3.secret_access_key, self.s3.bucket, self.s3.key]):
-                raise ValueError("S3 credentials (access_key_id, secret_access_key), bucket, and key must be set for S3 destinations")
-        elif self.type == DestinationType.OCI:
-            if not all([self.oci.registry, self.oci.uri]):
-                raise ValueError("OCI registry and URI must be set for OCI destinations")
+    def validate_oci_storage(self) -> 'OCIStorageConfig':
+        """Validate that required OCI fields are present."""
+        if not all([self.registry, self.uri]):
+            raise ValueError("OCI registry and URI must be set")
         return self
+
+
+class URISourceConfig(BaseStorageConfig):
+    """URI source configuration - only used for sources, not destinations."""
+    uri: str
+    
+    @model_validator(mode='after')
+    def validate_uri_source(self) -> 'URISourceConfig':
+        """Validate that URI is present."""
+        if not self.uri:
+            raise ValueError("URI must be set for URI type sources")
+        return self
+
+
+# Union types for source and destination configurations - this enables isinstance() checks
+SourceConfig = Union[S3StorageConfig, OCIStorageConfig, URISourceConfig]
+DestinationConfig = Union[S3StorageConfig, OCIStorageConfig]
 
 
 class ModelConfig(BaseModel):
