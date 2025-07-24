@@ -67,6 +67,11 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       </FormGroup>
       <FormGroup label="Model description" fieldId="model-description">
         <FormFieldset component={modelDescriptionInput} field="Model Description" />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem>Enter a brief summary of the model&apos;s key details.</HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
     </FormSection>
   );
