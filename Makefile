@@ -34,7 +34,7 @@ BUILD_PATH ?= .
 ifdef IMG
 	IMG := ${IMG}
 else ifdef IMG_REGISTRY
-    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}:${IMG_VERSION}
+    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
 else
     IMG := ${IMG_ORG}/${IMG_REPO}
 endif
@@ -338,7 +338,7 @@ endif
 # build docker image
 .PHONY: image/build
 image/build:
-	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG} $(ARGS)
+	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) $(ARGS)
 
 # build docker image using buildx
 # PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
