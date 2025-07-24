@@ -1,2 +1,2 @@
 .port-forwards.pid
-venv
+./venv
