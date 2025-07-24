@@ -28,8 +28,8 @@ class BaseStorageConfig(BaseModel):
 
 class S3Config(BaseModel):
     """S3 storage configuration."""
-    bucket: str
-    key: str
+    bucket: str | None = None
+    key: str | None = None
     region: str | None = None
     access_key_id: str | None = None
     secret_access_key: str | None = None

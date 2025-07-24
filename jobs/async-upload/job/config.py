@@ -326,27 +326,32 @@ def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     sanitized = copy.deepcopy(cfg)
 
-    # Mask sensitive S3 credentials
-    if sanitized["source"]["s3"]["secret_access_key"]:
-        sanitized["source"]["s3"]["secret_access_key"] = "***"
-    if sanitized["source"]["s3"]["access_key_id"]:
-        sanitized["source"]["s3"]["access_key_id"] = "***"
+    # Mask sensitive S3 credentials in source
+    if "source" in sanitized:
+        source = sanitized["source"]
+        if "secret_access_key" in source and source["secret_access_key"]:
+            source["secret_access_key"] = "***"
+        if "access_key_id" in source and source["access_key_id"]:
+            source["access_key_id"] = "***"
+        if "password" in source and source["password"]:
+            source["password"] = "***"
 
-    if sanitized["destination"]["s3"]["secret_access_key"]:
-        sanitized["destination"]["s3"]["secret_access_key"] = "***"
-    if sanitized["destination"]["s3"]["access_key_id"]:
-        sanitized["destination"]["s3"]["access_key_id"] = "***"
-
-    # Mask sensitive OCI credentials
-    if sanitized["source"]["oci"]["password"]:
-        sanitized["source"]["oci"]["password"] = "***"
-    if sanitized["destination"]["oci"]["password"]:
-        sanitized["destination"]["oci"]["password"] = "***"
+    # Mask sensitive credentials in destination  
+    if "destination" in sanitized:
+        destination = sanitized["destination"]
+        if "secret_access_key" in destination and destination["secret_access_key"]:
+            destination["secret_access_key"] = "***"
+        if "access_key_id" in destination and destination["access_key_id"]:
+            destination["access_key_id"] = "***"
+        if "password" in destination and destination["password"]:
+            destination["password"] = "***"
 
     # Mask sensitive registry credentials
-    if sanitized["registry"]["user_token"]:
-        sanitized["registry"]["user_token"] = "***"
-    if sanitized["registry"]["custom_ca"]:
-        sanitized["registry"]["custom_ca"] = "***"
+    if "registry" in sanitized:
+        registry = sanitized["registry"]
+        if "user_token" in registry and registry["user_token"]:
+            registry["user_token"] = "***"
+        if "custom_ca" in registry and registry["custom_ca"]:
+            registry["custom_ca"] = "***"
 
     return sanitized

@@ -4,7 +4,7 @@ from unittest.mock import Mock, call, patch
 from job.download import download_from_s3
 from job.config import get_config
 from job.mr_client import validate_and_get_model_registry_client
-
+from job.models import S3StorageConfig
 
 @pytest.fixture
 def minimal_env_source_dest_vars():
@@ -63,18 +63,18 @@ def test_download_from_s3(minimal_env_source_dest_vars):
     config = get_config([])
 
     # sanity-check config
-    assert config["source"]["type"] == "s3"
-    assert config["source"]["s3"]["bucket"] == "test-bucket"
-    assert config["source"]["s3"]["key"] == "test-key"
+    assert isinstance(config.source, S3StorageConfig)
+    assert config.source.bucket == "test-bucket"
+    assert config.source.key == "test-key"
 
     # use whatever path came back in config
-    storage_path = config["storage"]["path"]
+    storage_path = config.storage.path
     assert storage_path == "/tmp/model-sync"
 
     # mock out ModelRegistry so validate_and_get_model_registry_client returns a dummy client
     with patch("job.mr_client.ModelRegistry") as mock_registry_class:
         mock_registry_class.return_value = Mock()
-        client = validate_and_get_model_registry_client(config)
+        client = validate_and_get_model_registry_client(config.registry)
 
     # now patch _connect_to_s3 and os.makedirs
     with patch("job.download._connect_to_s3") as mock_connect, \
@@ -98,7 +98,7 @@ def test_download_from_s3(minimal_env_source_dest_vars):
         mock_s3.get_paginator.return_value = mock_paginator
 
         # call under test
-        download_from_s3(client, config)
+        download_from_s3(config.source, config.storage.path)
 
         # ensure _connect_to_s3 got all args including multipart settings
         mock_connect.assert_called_once_with(
@@ -156,7 +156,7 @@ def test_download_from_s3_with_region(minimal_env_source_dest_vars):
     with patch("job.mr_client.ModelRegistry") as mock_registry_class:
         mock_client = Mock()
         mock_registry_class.return_value = mock_client
-        client = validate_and_get_model_registry_client(config)
+        client = validate_and_get_model_registry_client(config.registry)
 
     # Mock the S3 client and _connect_to_s3 function
     with patch("job.download._connect_to_s3") as mock_connect, \
@@ -178,7 +178,7 @@ def test_download_from_s3_with_region(minimal_env_source_dest_vars):
         mock_s3_client.get_paginator.return_value = mock_paginator
 
         # Call the function under test
-        download_from_s3(client, config)
+        download_from_s3(config.source, config.storage.path)
 
         # Verify _connect_to_s3 was called with correct parameters including region
         mock_connect.assert_called_once_with(
@@ -201,7 +201,7 @@ def test_download_from_s3_connection_error(minimal_env_source_dest_vars):
     with patch("job.mr_client.ModelRegistry") as mock_registry_class:
         mock_client = Mock()
         mock_registry_class.return_value = mock_client
-        client = validate_and_get_model_registry_client(config)
+        client = validate_and_get_model_registry_client(config.registry)
 
         # Mock _connect_to_s3 to raise an exception
         with patch("job.download._connect_to_s3") as mock_connect:
@@ -209,7 +209,7 @@ def test_download_from_s3_connection_error(minimal_env_source_dest_vars):
 
             # Test that the exception is propagated
             with pytest.raises(Exception, match="Connection failed"):
-                download_from_s3(client, config)
+                download_from_s3(config.source, config.storage.path)
 
 
 def test_download_from_s3_download_error(minimal_env_source_dest_vars):
@@ -221,7 +221,7 @@ def test_download_from_s3_download_error(minimal_env_source_dest_vars):
     with patch("job.mr_client.ModelRegistry") as mock_registry_class:
         mock_client = Mock()
         mock_registry_class.return_value = mock_client
-        client = validate_and_get_model_registry_client(config)
+        client = validate_and_get_model_registry_client(config.registry)
 
     # Mock the S3 client, paginator, and _connect_to_s3 function
     with patch("job.download._connect_to_s3") as mock_connect, \
@@ -245,4 +245,4 @@ def test_download_from_s3_download_error(minimal_env_source_dest_vars):
 
         # Now the loop will hit download_file and propagate our exception
         with pytest.raises(Exception, match="Download failed"):
-            download_from_s3(client, config)
+            download_from_s3(config.source, config.storage.path)
