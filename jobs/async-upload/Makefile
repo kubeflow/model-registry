@@ -6,9 +6,9 @@ JOB_IMG ?= $(JOB_IMG_REGISTRY)/$(JOB_IMG_ORG)/$(JOB_IMG_NAME):$(JOB_IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
 CLUSTER_NAME ?= mr-e2e
 
-# MR Server Params 
+# MR Server Params
 IMG_VERSION ?= latest
-IMG ?= ghcr.io/kubeflow/model-registry/server:$(IMG_VERSION)
+IMG ?= ghcr.io/kubeflow/model-registry/server # keep consistent with root Makefile and ci/GHA
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
