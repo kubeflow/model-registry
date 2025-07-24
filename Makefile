@@ -31,7 +31,9 @@ IMG_REPO ?= model-registry
 # container image build path
 BUILD_PATH ?= .
 # container image
-ifdef IMG_REGISTRY
+ifdef IMG
+	IMG := ${IMG}
+else ifdef IMG_REGISTRY
     IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
 else
     IMG := ${IMG_ORG}/${IMG_REPO}
