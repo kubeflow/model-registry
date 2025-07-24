@@ -34,7 +34,7 @@ BUILD_PATH ?= .
 ifdef IMG
 	IMG := ${IMG}
 else ifdef IMG_REGISTRY
-    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}:${IMG_VERSION}
+    IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
 else
     IMG := ${IMG_ORG}/${IMG_REPO}
 endif
