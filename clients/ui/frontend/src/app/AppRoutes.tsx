@@ -4,7 +4,9 @@ import { NotFound } from 'mod-arch-shared';
 import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from '~/app/pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from '~/app/pages/modelRegistry/ModelRegistryRoutes';
-import useUser from '~/app/hooks/useUser';
+import ModelCatalogPage from './pages/modelCatalog/screens/ModelCatalogPage';
+import { ModelCatalogContextProvider } from './context/modelCatalog/ModelCatalogContext';
+import useUser from './hooks/useUser';
 
 export const useAdminSettings = (): NavDataItem[] => {
   const { clusterAdmin } = useUser();
@@ -26,6 +28,10 @@ export const useNavData = (): NavDataItem[] => [
     label: 'Model Registry',
     path: '/model-registry',
   },
+  {
+    label: 'Model Catalog',
+    path: '/model-catalog',
+  },
   ...useAdminSettings(),
 ];
 
@@ -36,6 +42,14 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/model-registry" replace />} />
       <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
+      <Route
+        path="/model-catalog"
+        element={
+          <ModelCatalogContextProvider>
+            <ModelCatalogPage />
+          </ModelCatalogContextProvider>
+        }
+      />
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode*/}
       {clusterAdmin && (
