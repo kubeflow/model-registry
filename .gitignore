@@ -52,3 +52,6 @@ istio-*
 
 # VSCode files
 .vscode/
+
+# Python
+venv/
