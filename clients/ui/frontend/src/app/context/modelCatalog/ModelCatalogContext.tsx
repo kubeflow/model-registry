@@ -66,7 +66,7 @@ const mockModelCatalogSources: ModelCatalogSource[] = [
         license: 'Apache 2.0',
         metrics: {
           top1Accuracy: 0.774,
-          top5Accuracy: 0.934,
+          top6Accuracy: 0.934,
         },
       },
     ],
