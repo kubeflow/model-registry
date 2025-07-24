@@ -52,10 +52,10 @@ async def main() -> None:
         except Exception as e:
             raise RuntimeError("Failed to get config") from e
 
-        client = validate_and_get_model_registry_client(config)
+        client = validate_and_get_model_registry_client(config.registry)
 
         # Queue up model registration
-        await set_artifact_pending(client, config)
+        await set_artifact_pending(client, config.model)
 
         # Download the model from the defined source
         perform_download(client, config)

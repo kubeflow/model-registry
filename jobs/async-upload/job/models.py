@@ -4,7 +4,7 @@ Configuration models for the async upload job using Pydantic for type safety and
 from __future__ import annotations
 from enum import StrEnum
 import logging
-from typing import Any
+from typing import Any, Union
 from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
@@ -53,6 +53,9 @@ class OCIConfig(BaseModel):
         if (self.username is None) != (self.password is None):
             raise ValueError("Both OCI username and password must be set together or both be None")
         return self
+
+
+Source = S3Config | OCIConfig
 
 
 class SourceConfig(BaseModel):
