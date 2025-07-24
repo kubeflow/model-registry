@@ -37,7 +37,7 @@
     "@babel/preset-typescript": "^7.21.5",
     "@cypress/code-coverage": "^3.14.1",
     "@cypress/webpack-preprocessor": "^6.0.4",
-    "@module-federation/enhanced": "^0.13.1",
+    "@module-federation/enhanced": "^0.17.0",
     "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.1.7",
     "@mui/types": "^7.2.20",
