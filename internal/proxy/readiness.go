@@ -43,7 +43,7 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 
 		var result struct {
 			Version int64
-			Dirty   int
+			Dirty   bool
 		}
 
 		query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
@@ -52,7 +52,7 @@ func ReadinessHandler(datastore datastore.Datastore) http.Handler {
 			return
 		}
 
-		if result.Dirty != 0 {
+		if result.Dirty {
 			http.Error(w, "database schema is in dirty state", http.StatusServiceUnavailable)
 			return
 		}
