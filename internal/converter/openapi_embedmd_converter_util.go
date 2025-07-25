@@ -7,6 +7,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -140,7 +141,7 @@ func MapRegisteredModelPropertiesEmbedMD(source *openapi.RegisteredModel) (*[]mo
 			props = append(props, models.Properties{
 				Name:             "state",
 				IsCustomProperty: false,
-				StringValue:      of(string(*source.State)),
+				StringValue:      apiutils.Of(string(*source.State)),
 			})
 		}
 
@@ -285,7 +286,7 @@ func MapModelVersionPropertiesEmbedMD(source *openapi.ModelVersion) (*[]models.P
 			props = append(props, models.Properties{
 				Name:             "state",
 				IsCustomProperty: false,
-				StringValue:      of(string(*source.State)),
+				StringValue:      apiutils.Of(string(*source.State)),
 			})
 		}
 
@@ -415,7 +416,7 @@ func MapInferenceServicePropertiesEmbedMD(source *openapi.InferenceService) (*[]
 			props = append(props, models.Properties{
 				Name:             "desired_state",
 				IsCustomProperty: false,
-				StringValue:      of(string(*source.DesiredState)),
+				StringValue:      apiutils.Of(string(*source.DesiredState)),
 			})
 		}
 

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/stretchr/testify/assert"
 )
 
 // visitor
@@ -145,6 +146,10 @@ var (
 	overrideNotEditableMethodPattern *regexp.Regexp = regexp.MustCompile(`OverrideNotEditableFor(?P<entity>\w+)`)
 	ignoreDirectivePattern           *regexp.Regexp = regexp.MustCompile(`// goverter:ignore (?P<fields>.+)`)
 )
+
+func setup(t *testing.T) *assert.Assertions {
+	return assert.New(t)
+}
 
 func TestOverrideNotEditableFields(t *testing.T) {
 	_ = setup(t)
