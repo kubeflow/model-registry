@@ -312,7 +312,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     logger.info("📦 Configuration loaded successfully")
 
     # Log the configuration (with sensitive values sanitized)
-    sanitized_cfg = _sanitize_config_for_logging(config.to_dict())
+    sanitized_cfg = _sanitize_config_for_logging(config.model_dump())
     logger.debug("🔍 Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
 
     return config
