@@ -10,6 +10,7 @@ import {
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
+import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelState } from '~/app/types';
 import { modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import ModelVersionDetailsTabs from '~/app/pages/modelRegistry/screens/ModelVersionDetails/ModelVersionDetailsTabs';
@@ -31,6 +32,8 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
+  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
+    useModelArtifactsByVersionId(mvId);
   const navigate = useNavigate();
 
   const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
@@ -45,6 +48,14 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     refresh: () => {},
   };
+
+  const refresh = React.useCallback(() => {
+    refreshModelVersion();
+    refreshModelArtifacts();
+  }, [refreshModelVersion, refreshModelArtifacts]);
+
+  const loaded = mvLoaded && modelArtifactsLoaded;
+  const loadError = mvLoadError || modelArtifactsLoadError;
 
   useEffect(() => {
     if (rm?.state === ModelState.LIVE && mv?.id) {
@@ -82,8 +93,8 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
         </Tooltip>
       }
       description={<Truncate content={mv?.description || ''} />}
-      loadError={mvLoadError}
-      loaded={mvLoaded}
+      loadError={loadError}
+      loaded={loaded}
       provideChildrenPadding
     >
       {mv !== null && (
@@ -93,7 +104,8 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
           modelVersion={mv}
           inferenceServices={inferenceServices}
           servingRuntimes={servingRuntimes}
-          refresh={refreshModelVersion}
+          refresh={refresh}
+          modelArtifacts={modelArtifacts}
         />
       )}
     </ApplicationsPage>
