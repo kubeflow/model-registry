@@ -2,7 +2,6 @@
 
 import json
 import os
-import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -73,32 +72,45 @@ def apply_job_with_strategic_merge(
     ma_id: str,
     job_name: str,
     container_image_uri: str,
-    k8s_client
+    k8s_client,
+    env,
+    tmp_path,
 ) -> str:
     """Apply job using Kustomize strategic merge patches."""
     import subprocess
-    import tempfile
     import time
-    
+
+    patch_env = {
+        "MODEL_SYNC_MODEL_ID": rm_id,
+        "MODEL_SYNC_MODEL_VERSION_ID": mv_id,
+        "MODEL_SYNC_MODEL_ARTIFACT_ID": ma_id,
+        **env,
+    }
+    patch_env_list = [{"name": name, "value": value} for name, value in patch_env.items()]
+
     # Strategic merge patch template - only patch the image and env vars, keep original job name
-    patch_template = f"""apiVersion: batch/v1
-kind: Job
-metadata:
-  name: my-async-upload-job
-spec:
-  template:
-    spec:
-      containers:
-      - name: async-upload
-        image: {container_image_uri}
-        env:
-        - name: MODEL_SYNC_MODEL_ID
-          value: "{rm_id}"
-        - name: MODEL_SYNC_MODEL_VERSION_ID
-          value: "{mv_id}"
-        - name: MODEL_SYNC_MODEL_ARTIFACT_ID
-          value: "{ma_id}"
-"""
+    patch_obj = {
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "metadata": {"name": "my-async-upload-job"},
+        "spec": {
+            "template": {
+                "spec": {
+                    "containers": [
+                        {
+                            "name": "async-upload",
+                            "image": "ghcr.io/kubeflow/model-registry/job/async-upload:e2e",
+                            "env": patch_env_list,
+                        }
+                    ]
+                }
+            }
+        },
+    }
+
+    # patch_env = patch_obj['spec']['template']['spec']['containers'][0]['env']
+
+    patch_template = yaml.safe_dump(patch_obj, sort_keys=False)
 
     # Get the path to the sample job file
     base_job_path = Path(__file__).parent.parent.parent / "samples" / "sample_job_s3_to_oci.yaml"
@@ -117,50 +129,50 @@ patches:
     name: my-async-upload-job
 """
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
-        
-        # Copy the base job file into temp directory
-        import shutil
-        base_job_copy = temp_path / "sample_job_s3_to_oci.yaml"
-        shutil.copy2(base_job_path, base_job_copy)
-        
-        # Write the patch file
-        patch_file = temp_path / "patch.yaml"
-        with open(patch_file, "w") as f:
-            f.write(patch_template)
-        
-        # Write the kustomization file
-        kustomize_file = temp_path / "kustomization.yaml"  
-        with open(kustomize_file, "w") as f:
-            f.write(kustomization_template)
-        
-        # Delete existing job if it exists (Jobs are immutable)
-        delete_result = subprocess.run(
-            ["kubectl", "delete", "job", "my-async-upload-job", "-n", "default", "--ignore-not-found=true"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        if delete_result.returncode == 0:
-            print(f"Deleted existing job: {delete_result.stdout.strip()}")
-            # Wait a moment for deletion to complete
-            time.sleep(3)
-        
-        # Apply resources using kubectl apply -k
-        result = subprocess.run(
-            ["kubectl", "apply", "-k", "."],
-            capture_output=True,
-            text=True,
-            cwd=temp_path,
-            check=False
-        )
-        
-        if result.returncode != 0:
-            raise Exception(f"kubectl apply failed: {result.stderr}")
-        
-        # Return the original job name since we're not changing it
-        return "my-async-upload-job"
+    manifest_dir = tmp_path / 'templates'
+    manifest_dir.mkdir()
+    
+    # Copy the base job file into temp directory
+    import shutil
+    base_job_copy = manifest_dir / "sample_job_s3_to_oci.yaml"
+    shutil.copy2(base_job_path, base_job_copy)
+    
+    # Write the patch file
+    patch_file = manifest_dir / "patch.yaml"
+    with open(patch_file, "w") as f:
+        f.write(patch_template)
+    
+    # Write the kustomization file
+    kustomize_file = manifest_dir / "kustomization.yaml"  
+    with open(kustomize_file, "w") as f:
+        f.write(kustomization_template)
+    
+    # Delete existing job if it exists (Jobs are immutable)
+    delete_result = subprocess.run(
+        ["kubectl", "delete", "job", "my-async-upload-job", "-n", "default", "--ignore-not-found=true"],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    if delete_result.returncode == 0:
+        print(f"Deleted existing job: {delete_result.stdout.strip()}")
+        # Wait a moment for deletion to complete
+        time.sleep(3)
+    
+    # Apply resources using kubectl apply -k
+    result = subprocess.run(
+        ["kubectl", "apply", "-k", "."],
+        capture_output=True,
+        text=True,
+        cwd=manifest_dir,
+        check=False
+    )
+    
+    if result.returncode != 0:
+        raise Exception(f"kubectl apply failed: {result.stderr}")
+    
+    # Return the original job name since we're not changing it
+    return "my-async-upload-job"
 
 
 
@@ -224,8 +236,48 @@ def upload_to_minio(file_path: str, bucket: str, key: str) -> None:
         raise Exception(f"Failed to upload to MinIO: {e}")
 
 
+def _setup_s3(tmp_path):
+    model_dirpath = tmp_path / "model"
+    model_filepath = model_dirpath / "mnist-8.onnx"
+
+    # Download the model
+    response = requests.get(
+        "https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx"
+    )
+    response.raise_for_status()
+
+    model_dirpath.mkdir()
+    with open(model_filepath, "wb") as f:
+        f.write(response.content)
+
+    print("Uploading to MinIO...")
+    bucket = "default"
+    key = f"my-model/mnist-8.onnx"
+    upload_to_minio(str(model_filepath), bucket, key)
+
+
+@pytest.mark.parametrize("setup,env", [
+    (
+        None,
+        {
+            "MODEL_SYNC_SOURCE_TYPE": "uri",
+            "MODEL_SYNC_SOURCE_URI": "https://huggingface.co/sadhaklal/logistic-regression-iris/resolve/main/pytorch_model.bin",
+        },
+    ),
+    (
+        _setup_s3,
+        {
+            "MODEL_SYNC_SOURCE_TYPE": "s3",
+            "MODEL_SYNC_SOURCE_AWS_KEY": "my-model",
+            "MODEL_SYNC_SOURCE_S3_CREDENTIALS_PATH": "/opt/creds/source",
+        },
+    ),
+])
 @pytest.mark.integration
 def test_async_upload_integration(
+    setup,
+    env,
+    tmp_path,
     k8s_client,
     k8s_batch_client,
     k8s_core_client,
@@ -240,6 +292,11 @@ def test_async_upload_integration(
     4. Waits for job completion
     5. Validates the final artifact state
     """
+
+    # TODO use yield fixtures for setup/teardown
+    # https://docs.pytest.org/en/6.2.x/fixture.html#yield-fixtures-recommended
+    if setup is not None:
+        setup(tmp_path)
     
     # Configuration
     mr_host_url = os.environ.get("MR_HOST_URL", "http://localhost:8080")
@@ -279,87 +336,74 @@ def test_async_upload_integration(
     
     # Step 2: Download and upload ONNX model
     print("Downloading ONNX model...")
-    with tempfile.TemporaryDirectory() as temp_dir:
-        model_file = Path(temp_dir) / "mnist-8.onnx"
-        
-        # Download the model
-        response = requests.get(
-            "https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx"
-        )
-        response.raise_for_status()
-        
-        with open(model_file, "wb") as f:
-            f.write(response.content)
-        
-        print("Uploading to MinIO...")
-        bucket = "default"
-        key = f"my-model/mnist-8.onnx"
-        upload_to_minio(str(model_file), bucket, key)
-        
-        # Step 3: Apply the job with patches
-        print("Applying resources...")
-        actual_job_name = apply_job_with_strategic_merge(
-            rm_id=rm.id,
-            mv_id=mv.id,
-            ma_id=ma.id,
-            job_name=job_name,
-            container_image_uri=container_image_uri,
-            k8s_client=k8s_client
-        )
-        
-        # Use the actual job name returned from kustomize
-        if actual_job_name:
-            job_name = actual_job_name
-        
-        print(f"Waiting for job completion: {job_name}")
-        success = wait_for_job_completion(job_name, namespace, k8s_batch_client, timeout_seconds=600)
-        
-        if not success:
-            # Get job logs for debugging
-            try:
-                pods = k8s_core_client.list_namespaced_pod(
-                    namespace=namespace,
-                    label_selector=f"job-name={job_name}"
-                )
-                for pod in pods.items:
-                    logs = k8s_core_client.read_namespaced_pod_log(
-                        name=pod.metadata.name,
-                        namespace=namespace
-                    )
-                    print(f"Pod {pod.metadata.name} logs:\n{logs}")
-            except Exception as e:
-                print(f"Could not get pod logs: {e}")
-            
-            pytest.fail("Job did not complete successfully")
-        
-        print("Job completed successfully!")
-        
-        # Step 7: Validate the final artifact state
-        print("Validating final artifact state...")
-        
-        # Wait a bit for the artifact to be updated
-        time.sleep(2)
-        
-        # Fetch the updated artifact
-        updated_ma = model_registry_client.get_model_artifact(model_name, "v1.0.0")
-        assert updated_ma
-        
-        # Validate the artifact was updated correctly
-        assert updated_ma.uri != "PLACEHOLDER", f"URI was not updated: {updated_ma.uri}"
-        assert updated_ma.state == ArtifactState.LIVE, f"State was not updated to LIVE: {updated_ma.state}"
-        
-        print(f"✅ Artifact URI updated to: {updated_ma.uri}")
-        print(f"✅ Artifact state updated to: {updated_ma.state}")
-        
-        # Clean up the job
+
+    # Step 3: Apply the job with patches
+    print("Applying resources...")
+    actual_job_name = apply_job_with_strategic_merge(
+        rm_id=rm.id,
+        mv_id=mv.id,
+        ma_id=ma.id,
+        job_name=job_name,
+        container_image_uri=container_image_uri,
+        k8s_client=k8s_client,
+        env=env,
+        tmp_path=tmp_path,
+    )
+    
+    # Use the actual job name returned from kustomize
+    if actual_job_name:
+        job_name = actual_job_name
+    
+    print(f"Waiting for job completion: {job_name}")
+    success = wait_for_job_completion(job_name, namespace, k8s_batch_client, timeout_seconds=600)
+    
+    if not success:
+        # Get job logs for debugging
         try:
-            import subprocess
-            subprocess.run(
-                ["kubectl", "delete", "job", job_name, "-n", namespace],
-                capture_output=True,
-                check=False
+            pods = k8s_core_client.list_namespaced_pod(
+                namespace=namespace,
+                label_selector=f"job-name={job_name}"
             )
-        except Exception:
-            pass  # Ignore cleanup errors
+            for pod in pods.items:
+                logs = k8s_core_client.read_namespaced_pod_log(
+                    name=pod.metadata.name,
+                    namespace=namespace
+                )
+                print(f"Pod {pod.metadata.name} logs:\n{logs}")
+        except Exception as e:
+            print(f"Could not get pod logs: {e}")
         
-        print("Integration test completed successfully!") 
+        pytest.fail("Job did not complete successfully")
+    
+    print("Job completed successfully!")
+    
+    # Step 7: Validate the final artifact state
+    print("Validating final artifact state...")
+    # TODO compare resulting OCI image model files with expected
+    
+    # Wait a bit for the artifact to be updated
+    time.sleep(2)
+    
+    # Fetch the updated artifact
+    updated_ma = model_registry_client.get_model_artifact(model_name, "v1.0.0")
+    assert updated_ma
+    
+    # Validate the artifact was updated correctly
+    assert updated_ma.uri != "PLACEHOLDER", f"URI was not updated: {updated_ma.uri}"
+    assert updated_ma.state == ArtifactState.LIVE, f"State was not updated to LIVE: {updated_ma.state}"
+    
+    print(f"✅ Artifact URI updated to: {updated_ma.uri}")
+    print(f"✅ Artifact state updated to: {updated_ma.state}")
+    
+    # Clean up the job
+    try:
+        import subprocess
+        subprocess.run(
+            ["kubectl", "delete", "job", job_name, "-n", namespace],
+            capture_output=True,
+            check=False
+        )
+    except Exception:
+        pass  # Ignore cleanup errors
+    
+    print("Integration test completed successfully!") 
