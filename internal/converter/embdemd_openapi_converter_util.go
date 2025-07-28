@@ -791,7 +791,7 @@ func MapEmbedMDURIDataSet(source *models.DataSetAttributes) *string {
 }
 
 func MapEmbedMDArtifactTypeDataSet(source *models.DataSetAttributes) *string {
-	return of("dataset-artifact")
+	return apiutils.Of("dataset-artifact")
 }
 
 func MapEmbedMDExternalIDDataSet(source *models.DataSetAttributes) *string {
@@ -820,7 +820,7 @@ func MapEmbedMDStateDataSet(source *models.DataSetAttributes) (*openapi.Artifact
 
 // Metric mapping functions
 func MapEmbedMDArtifactTypeMetric(source *models.MetricAttributes) *string {
-	return of("metric")
+	return apiutils.Of("metric")
 }
 
 func MapEmbedMDExternalIDMetric(source *models.MetricAttributes) *string {
@@ -913,7 +913,7 @@ func MapEmbedMDPropertyParameterTypeParameter(source *[]models.Properties) (*ope
 
 // Parameter mapping functions
 func MapEmbedMDArtifactTypeParameter(source *models.ParameterAttributes) *string {
-	return of("parameter")
+	return apiutils.Of("parameter")
 }
 
 func MapEmbedMDExternalIDParameter(source *models.ParameterAttributes) *string {
