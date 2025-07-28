@@ -1386,7 +1386,7 @@ func TestMapMetricAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      nil, // Metric artifacts don't have URI
 			},
 			wantErr: false,
@@ -1460,7 +1460,7 @@ func TestMapParameterAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      nil, // Parameter artifacts don't have URI
 			},
 			wantErr: false,
