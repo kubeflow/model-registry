@@ -27,7 +27,7 @@ class BaseStorageConfig(BaseModel):
 
 
 class S3Config(BaseModel):
-    """S3 storage configuration."""
+    """Basic S3 storage configuration. To be used as an intermediary model for the S3StorageConfig, allowing for additional values to be overlaid until the final config is created and validated via the S3StorageConfig model."""
     bucket: str | None = None
     key: str | None = None
     region: str | None = None
@@ -37,7 +37,7 @@ class S3Config(BaseModel):
 
 
 class OCIConfig(BaseModel):
-    """OCI registry configuration."""
+    """Basic OCI registry configuration. To be used as an intermediary model for the OCIStorageConfig, allowing for additional values to be overlaid until the final config is created and validated via the OCIStorageConfig model."""
     uri: str
     registry: str | None = None
     username: str | None = None
