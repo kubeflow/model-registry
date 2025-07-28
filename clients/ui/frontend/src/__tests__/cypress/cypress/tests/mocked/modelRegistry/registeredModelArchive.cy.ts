@@ -176,7 +176,7 @@ describe('Model archive list', () => {
     registeredModelArchive.findArchiveModelBreadcrumbItem().contains('Archived models');
     const archiveModelRow = registeredModelArchive.getRow('model 2');
     archiveModelRow.findName().contains('model 2').click();
-    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive/2/versions');
+    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive/2/overview');
     cy.findByTestId('app-page-title').should('have.text', 'model 2Archived');
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive');
@@ -264,14 +264,14 @@ describe('Model archive list', () => {
       .should(be.sortDescending);
   });
 
-  it('Opens the detail page when we select "View Details" from action menu', () => {
+  it('Opens the detail page when we select "Overview" from action menu', () => {
     initIntercepts({});
     registeredModelArchive.visit();
     const archiveModelRow = registeredModelArchive.getRow('model 2');
-    archiveModelRow.findKebabAction('View details').click();
+    archiveModelRow.findKebabAction('Overview').click();
     cy.location('pathname').should(
       'be.equals',
-      '/model-registry/modelregistry-sample/registeredModels/archive/2/details',
+      '/model-registry/modelregistry-sample/registeredModels/archive/2/overview',
     );
   });
 });
