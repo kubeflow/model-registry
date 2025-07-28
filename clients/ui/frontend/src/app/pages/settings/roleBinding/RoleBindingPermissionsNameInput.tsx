@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextInput } from '@patternfly/react-core';
 import { RoleBindingSubject, TypeaheadSelect } from 'mod-arch-shared';
-import { ProjectKind } from '~/app/shared/components/types';
+import { useProjects } from '~/app/hooks/useProjects';
 import { RoleBindingPermissionsRBType } from './types';
 import { namespaceToProjectDisplayName } from './utils';
 
@@ -24,8 +24,8 @@ const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNameInputP
   typeAhead,
   isProjectSubject,
 }) => {
-  // TODO: We don't have project context yet - might need to move the project-context part to shared library
-  const projects: ProjectKind[] = [];
+  const [projects] = useProjects();
+
   if (!typeAhead) {
     return (
       <TextInput

@@ -24,6 +24,7 @@ import {
   RoleBindingSubject,
 } from 'mod-arch-shared';
 import useUser from '~/app/hooks/useUser';
+import { useProjects } from '~/app/hooks/useProjects';
 import { ProjectKind } from '~/app/shared/components/types';
 import {
   castRoleBindingPermissionsRoleType,
@@ -40,8 +41,6 @@ import RoleBindingPermissionsChangeModal from './RoleBindingPermissionsChangeMod
 type RoleBindingPermissionsTableRowProps = {
   roleBindingObject?: RoleBindingKind;
   subjectKind: RoleBindingSubject['kind'];
-  isEditing: boolean;
-  isAdding: boolean;
   defaultRoleBindingName?: string;
   permissionOptions: {
     type: RoleBindingPermissionsRoleType;
@@ -49,8 +48,10 @@ type RoleBindingPermissionsTableRowProps = {
   }[];
   typeAhead?: string[];
   isProjectSubject?: boolean;
-  onChange: (name: string, roleType: RoleBindingPermissionsRoleType) => void;
-  onCancel: () => void;
+  isEditing?: boolean;
+  isAdding?: boolean;
+  onChange?: (subjectName: string, roleRefName: string) => void;
+  onCancel?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -77,8 +78,8 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
   onEdit,
   onDelete,
 }) => {
-  // TODO: We don't have project context yet - might need to move the project-context part to shared library
-  const projects: ProjectKind[] = React.useMemo(() => [], []);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [projects, projectsLoaded] = useProjects();
   const currentUser = useUser();
   const isCurrentUserBeingChanged = isCurrentUserChanging(obj, currentUser.userId);
   const [roleBindingName, setRoleBindingName] = React.useState(() => {
@@ -193,7 +194,7 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
                         setShowModal(true);
                       } else {
                         setIsLoading(true);
-                        onChange(
+                        onChange?.(
                           isProjectSubject
                             ? `system:serviceaccounts:${projectDisplayNameToNamespace(
                                 roleBindingName,
@@ -215,7 +216,7 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
                     isDisabled={isLoading}
                     icon={<TimesIcon />}
                     onClick={() => {
-                      onCancel();
+                      onCancel?.();
                     }}
                   />
                 </SplitItem>
@@ -262,12 +263,12 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
           onClose={() => {
             setShowModal(false);
             if (isEditing) {
-              onCancel();
+              onCancel?.();
             }
           }}
           onEdit={() => {
             setIsLoading(true);
-            onChange(
+            onChange?.(
               isProjectSubject
                 ? `system:serviceaccounts:${projectDisplayNameToNamespace(
                     roleBindingName,
