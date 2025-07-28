@@ -11,6 +11,8 @@ import RedirectErrorState from '~/app/shared/components/RedirectErrorState';
 import {
   createModelRegistryRoleBindingWrapper,
   deleteModelRegistryRoleBindingWrapper,
+  createModelRegistryProjectRoleBinding,
+  deleteModelRegistryProjectRoleBinding,
 } from '~/app/pages/settings/roleBindingUtils';
 import { useGroups } from '~/app/hooks/useGroups';
 
@@ -23,8 +25,14 @@ const ModelRegistriesManagePermissions: React.FC = () => {
   const roleBindings = useModelRegistryRoleBindings(queryParams);
   const { mrName } = useParams<{ mrName: string }>();
   const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, queryParams);
+
   const filteredRoleBindings = roleBindings.data.filter(
     (rb: RoleBindingKind) => rb.metadata.labels?.['app.kubernetes.io/name'] === mrName,
+  );
+  const filteredProjectRoleBindings = roleBindings.data.filter(
+    (rb: RoleBindingKind) =>
+      rb.metadata.labels?.['app.kubernetes.io/name'] === mrName &&
+      rb.metadata.labels?.['app.kubernetes.io/component'] === 'model-registry-project-rbac',
   );
 
   React.useEffect(() => {
@@ -89,7 +97,26 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             roleRefName={`registry-user-${mrName ?? ''}`}
           />
         )}
-        {/* TODO: Projects tab */}
+        {activeTabKey === 1 && (
+          <RoleBindingPermissions
+            ownerReference={ownerReference}
+            roleBindingPermissionsRB={{ ...roleBindings, data: filteredProjectRoleBindings }}
+            groups={[]} // Projects don't use groups
+            createRoleBinding={createModelRegistryProjectRoleBinding}
+            deleteRoleBinding={deleteModelRegistryProjectRoleBinding}
+            projectName={modelRegistryNamespace}
+            permissionOptions={[
+              {
+                type: RoleBindingPermissionsRoleType.DEFAULT,
+                description: 'Default project access role',
+              },
+            ]}
+            description="Grant access to model registry for service accounts within specific projects."
+            roleRefKind="Role"
+            roleRefName={`registry-project-${mrName ?? ''}`}
+            isProjectSubject
+          />
+        )}
       </PageSection>
     </ApplicationsPage>
   );
