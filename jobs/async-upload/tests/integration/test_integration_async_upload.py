@@ -1,11 +1,9 @@
 """Integration tests for async-upload job functionality."""
 
-import json
 import os
 import time
 import uuid
 from pathlib import Path
-from typing import Dict, Any
 
 import pytest
 import requests
@@ -117,18 +115,14 @@ def apply_job_with_strategic_merge(
     base_job_path = Path(__file__).parent.parent.parent / "samples" / "sample_job_s3_to_oci.yaml"
 
     # Kustomization template using relative path and modern patches syntax
-    kustomization_template = """apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+    kustomization_obj = {
+        "apiVersion": "kustomize.config.k8s.io/v1beta1",
+        "kind": "Kustomization",
+        "resources": ["sample_job_s3_to_oci.yaml"],
+        "patches": [{"path": "patch.yaml", "target": {"kind": "Job", "name": "my-async-upload-job"}}],
+    }
 
-resources:
-- sample_job_s3_to_oci.yaml
-
-patches:
-- path: patch.yaml
-  target:
-    kind: Job
-    name: my-async-upload-job
-"""
+    kustomization_template = yaml.safe_dump(kustomization_obj)
 
     manifest_dir = tmp_path / "templates"
     manifest_dir.mkdir()
@@ -255,7 +249,7 @@ def _setup_s3(tmp_path):
 
     print("Uploading to MinIO...")
     bucket = "default"
-    key = f"my-model/mnist-8.onnx"
+    key = "my-model/mnist-8.onnx"
     upload_to_minio(str(model_filepath), bucket, key)
 
 
@@ -309,7 +303,6 @@ def test_async_upload_integration(
         setup(tmp_path)
 
     # Configuration
-    mr_host_url = os.environ.get("MR_HOST_URL", "http://localhost:8080")
     container_image_uri = os.environ.get(
         "CONTAINER_IMAGE_URI", "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
     )
