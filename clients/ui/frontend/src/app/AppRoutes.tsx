@@ -1,14 +1,11 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { NotFound } from 'mod-arch-shared';
-import { NavDataItem } from '~/app/standalone/types';
-import ModelRegistrySettingsRoutes from '~/app/pages/settings/ModelRegistrySettingsRoutes';
-import ModelRegistryRoutes from '~/app/pages/modelRegistry/ModelRegistryRoutes';
+import { NotFound, NavDataItem, useModularArchContext, DeploymentMode } from 'mod-arch-shared';
+import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
+import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogPage from './pages/modelCatalog/screens/ModelCatalogPage';
 import { ModelCatalogContextProvider } from './context/modelCatalog/ModelCatalogContext';
 import useUser from './hooks/useUser';
-import { useModularArchContext } from 'mod-arch-shared';
-import { DeploymentMode } from 'mod-arch-shared';
 
 export const useAdminSettings = (): NavDataItem[] => {
   const { clusterAdmin } = useUser();
