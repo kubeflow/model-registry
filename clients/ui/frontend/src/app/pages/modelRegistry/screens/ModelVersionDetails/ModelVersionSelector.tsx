@@ -12,6 +12,8 @@ import {
   Divider,
   Button,
   Label,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRightIcon } from '@patternfly/react-icons';
@@ -52,12 +54,10 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
     .filter((item) => !input || item.name.toLowerCase().includes(input.toString().toLowerCase()))
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
-        {mv.name}
-        {mv.id === latestVersion.id && (
-          <Label color="blue" style={{ marginLeft: 8 }}>
-            Latest
-          </Label>
-        )}
+        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+          <FlexItem>{mv.name}</FlexItem>
+          <FlexItem>{mv.id === latestVersion.id && <Label color="blue">Latest</Label>}</FlexItem>
+        </Flex>
       </MenuItem>
     ));
 
@@ -133,7 +133,6 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       }
       menu={menu}
       menuRef={menuRef}
-      popperProps={{ minWidth: '250px', maxWidth: 'none' }}
       onOpenChange={(open) => setOpen(open)}
     />
   );

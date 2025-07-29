@@ -86,6 +86,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
             )}
           />
           <BreadcrumbItem
+            data-testid="breadcrumb-model"
             render={() => (
               <Link to={registeredModelUrl(rmId, preferredModelRegistry?.name)}>
                 {rm?.name || 'Loading...'}

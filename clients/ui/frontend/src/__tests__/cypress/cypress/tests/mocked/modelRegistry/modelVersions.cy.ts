@@ -253,6 +253,7 @@ describe('Model Versions', () => {
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions/1/details');
     cy.findByTestId('app-page-title').should('contain.text', 'test');
     cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
+    cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions');
   });
