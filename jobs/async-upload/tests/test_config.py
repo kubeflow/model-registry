@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 from job.config import get_config
 
+from job.models import S3StorageConfig, OCIStorageConfig
+
 MR_PREFIX = "MODEL_SYNC"
 MR_SOURCE_PREFIX = "MODEL_SYNC_SOURCE"
 MR_DEST_PREFIX = "MODEL_SYNC_DESTINATION"
@@ -137,27 +139,16 @@ def test_s3_file_to_oci_env_config(
     )
 
     # Source credentials were not set, so they are None
-    assert config["source"]["type"] == "s3"
-    assert (
-        config["source"]["s3"]["access_key_id"] == expected_credentials["access_key_id"]
-    )
-    assert (
-        config["source"]["s3"]["secret_access_key"]
-        == expected_credentials["secret_access_key"]
-    )
-    assert config["source"]["s3"]["region"] == expected_credentials["region"]
-    assert config["source"]["s3"]["bucket"] == expected_credentials["bucket"]
+    assert isinstance(config.source, S3StorageConfig)
+    assert config.source.access_key_id == expected_credentials["access_key_id"]
+    assert config.source.secret_access_key == expected_credentials["secret_access_key"]
+    assert config.source.region == expected_credentials["region"]
+    assert config.source.bucket == expected_credentials["bucket"]
 
-    assert config["destination"]["type"] == "oci"
-    assert config["destination"]["oci"]["uri"] == destination_oci_env_vars["oci_uri"]
-    assert (
-        config["destination"]["oci"]["username"]
-        == destination_oci_env_vars["oci_username"]
-    )
-    assert (
-        config["destination"]["oci"]["password"]
-        == destination_oci_env_vars["oci_password"]
-    )
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.uri == destination_oci_env_vars["oci_uri"]
+    assert config.destination.username == destination_oci_env_vars["oci_username"]
+    assert config.destination.password == destination_oci_env_vars["oci_password"]
 
 
 def test_env_based_s3_to_oci_config(
@@ -166,33 +157,24 @@ def test_env_based_s3_to_oci_config(
     """Test configuration using environment variables"""
     config = get_config([])
 
-    assert config["source"]["type"] == "s3"
+    assert isinstance(config.source, S3StorageConfig)
+    assert config.source.access_key_id == source_s3_env_vars["aws_access_key_id"]
     assert (
-        config["source"]["s3"]["access_key_id"]
-        == source_s3_env_vars["aws_access_key_id"]
-    )
-    assert (
-        config["source"]["s3"]["secret_access_key"]
+        config.source.secret_access_key
         == source_s3_env_vars["aws_secret_access_key"]
     )
-    assert config["source"]["s3"]["region"] == source_s3_env_vars["aws_region"]
-    assert config["source"]["s3"]["bucket"] == source_s3_env_vars["aws_bucket"]
+    assert config.source.region == source_s3_env_vars["aws_region"]
+    assert config.source.bucket == source_s3_env_vars["aws_bucket"]
 
-    assert config["destination"]["type"] == "oci"
-    assert config["destination"]["oci"]["uri"] == destination_oci_env_vars["oci_uri"]
-    assert (
-        config["destination"]["oci"]["username"]
-        == destination_oci_env_vars["oci_username"]
-    )
-    assert (
-        config["destination"]["oci"]["password"]
-        == destination_oci_env_vars["oci_password"]
-    )
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.uri == destination_oci_env_vars["oci_uri"]
+    assert config.destination.username == destination_oci_env_vars["oci_username"]
+    assert config.destination.password == destination_oci_env_vars["oci_password"]
 
-    assert config["model"]["id"] == model_env_vars["model_id"]
-    assert config["model"]["version_id"] == model_env_vars["model_version_id"]
-    assert config["model"]["artifact_id"] == model_env_vars["model_artifact_id"]
-    assert config["registry"]["server_address"] == model_env_vars["registry_server_address"]
+    assert config.model.id == model_env_vars["model_id"]
+    assert config.model.version_id == model_env_vars["model_version_id"]
+    assert config.model.artifact_id == model_env_vars["model_artifact_id"]
+    assert config.registry.server_address == model_env_vars["registry_server_address"]
 
 
 def test_params_based_config():
@@ -228,15 +210,13 @@ def test_params_based_config():
         ]
     )
 
-    assert config["source"]["type"] == "oci"
-    assert config["source"]["oci"]["uri"] == "quay.io/example/params"
-    assert config["destination"]["type"] == "s3"
-    assert config["destination"]["s3"]["access_key_id"] == "destination_key_params"
-    assert (
-        config["destination"]["s3"]["secret_access_key"] == "destination_secret_params"
-    )
-    assert config["destination"]["s3"]["region"] == "eu-central-1"
-    assert config["destination"]["s3"]["bucket"] == "destination-bucket-params"
+    assert isinstance(config.source, OCIStorageConfig)
+    assert config.source.uri == "quay.io/example/params"
+    assert isinstance(config.destination, S3StorageConfig)
+    assert config.destination.access_key_id == "destination_key_params"
+    assert config.destination.secret_access_key == "destination_secret_params"
+    assert config.destination.region == "eu-central-1"
+    assert config.destination.bucket == "destination-bucket-params"
 
 
 def test_params_will_override_env_config(
@@ -273,11 +253,8 @@ def test_params_will_override_env_config(
         ]
     )
 
-    assert config["source"]["type"] == "s3"
-    assert config["source"]["s3"]["access_key_id"] == override_vars["aws_access_key_id"]
-    assert (
-        config["source"]["s3"]["secret_access_key"]
-        == override_vars["aws_secret_access_key"]
-    )
-    assert config["source"]["s3"]["region"] == override_vars["aws_region"]
-    assert config["source"]["s3"]["bucket"] == override_vars["aws_bucket"]
+    assert isinstance(config.source, S3StorageConfig)
+    assert config.source.access_key_id == override_vars["aws_access_key_id"]
+    assert config.source.secret_access_key == override_vars["aws_secret_access_key"]
+    assert config.source.region == override_vars["aws_region"]
+    assert config.source.bucket == override_vars["aws_bucket"]
