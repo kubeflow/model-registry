@@ -1,17 +1,5 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-<<<<<<< HEAD
-=======
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  Flex,
-  FlexItem,
-  Truncate,
-  Title,
-} from '@patternfly/react-core';
-import { Link } from 'react-router-dom';
->>>>>>> bfcdbd1 (version details version selector)
 import {
   Breadcrumb,
   BreadcrumbItem,

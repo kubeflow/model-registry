@@ -217,7 +217,11 @@ describe('Model version details', () => {
       );
       cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
+<<<<<<< HEAD
       cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
+=======
+      cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
+>>>>>>> 04cb7a3 (address comments)
     });
 
     it('should add a property', () => {

@@ -17,7 +17,12 @@ import {
 =======
   Button,
   Label,
+<<<<<<< HEAD
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+  Flex,
+  FlexItem,
+>>>>>>> 04cb7a3 (address comments)
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRightIcon } from '@patternfly/react-icons';
@@ -81,6 +86,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>{mv.name}</FlexItem>
           <FlexItem>
@@ -95,6 +101,12 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
           </Label>
         )}
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+          <FlexItem>{mv.name}</FlexItem>
+          <FlexItem>{mv.id === latestVersion.id && <Label color="blue">Latest</Label>}</FlexItem>
+        </Flex>
+>>>>>>> 04cb7a3 (address comments)
       </MenuItem>
     ));
 
@@ -199,9 +211,12 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       menu={menu}
       menuRef={menuRef}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       popperProps={{ minWidth: '250px', maxWidth: 'none' }}
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+>>>>>>> 04cb7a3 (address comments)
       onOpenChange={(open) => setOpen(open)}
     />
   );
