@@ -211,6 +211,7 @@ describe('Model version details', () => {
       );
       cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
+      cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
     });
 
     it('should add a property', () => {
