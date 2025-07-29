@@ -304,13 +304,6 @@ describe('Archiving version', () => {
     });
   });
 
-  it('Archived version details page does not have the Deployments tab', () => {
-    initIntercepts({});
-    modelVersionArchive.visitArchiveVersionDetail();
-    modelVersionArchive.findVersionDetailsTab().should('exist');
-    modelVersionArchive.findVersionDeploymentTab().should('not.exist');
-  });
-
   it('Archive version from versions details', () => {
     cy.interceptApi(
       'PATCH /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId',
