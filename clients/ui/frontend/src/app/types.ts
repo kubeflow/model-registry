@@ -1,4 +1,5 @@
 import { APIOptions } from 'mod-arch-shared';
+import { ModelSourceProperties } from '~/concepts/modelRegistry/types';
 
 export enum ModelState {
   LIVE = 'LIVE',
@@ -103,17 +104,18 @@ export type ModelRegistryBase = {
   customProperties: ModelRegistryCustomProperties;
 };
 
-export type ModelArtifact = ModelRegistryBase & {
-  uri?: string;
-  state?: ModelArtifactState;
-  author?: string;
-  modelFormatName?: string;
-  storageKey?: string;
-  storagePath?: string;
-  modelFormatVersion?: string;
-  serviceAccountName?: string;
-  artifactType: string;
-};
+export type ModelArtifact = ModelRegistryBase &
+  ModelSourceProperties & {
+    uri?: string;
+    state?: ModelArtifactState;
+    author?: string;
+    modelFormatName?: string;
+    storageKey?: string;
+    storagePath?: string;
+    modelFormatVersion?: string;
+    serviceAccountName?: string;
+    artifactType: string;
+  };
 
 export type ModelVersion = ModelRegistryBase & {
   state?: ModelState;
