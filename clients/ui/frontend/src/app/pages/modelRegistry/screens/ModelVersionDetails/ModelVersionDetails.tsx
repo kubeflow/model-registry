@@ -41,8 +41,11 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
+<<<<<<< HEAD
   const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
     useModelArtifactsByVersionId(mvId);
+=======
+>>>>>>> 982ab17 (type check error fix)
 
   const refresh = React.useCallback(() => {
     refreshModelVersion();
@@ -108,6 +111,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
         </Flex>
       }
       headerAction={
+<<<<<<< HEAD
         mvLoaded &&
         mv && (
           <ModelVersionsDetailsHeaderActions
@@ -116,12 +120,16 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
             modelArtifacts={modelArtifacts}
           />
         )
+=======
+        mvLoaded && mv && <ModelVersionsDetailsHeaderActions mv={mv} refresh={refresh} />
+>>>>>>> 982ab17 (type check error fix)
       }
       description={<Truncate content={mv?.description || ''} />}
       loadError={loadError}
       loaded={loaded}
       provideChildrenPadding
     >
+<<<<<<< HEAD
       {mv !== null && (
         <ModelVersionDetailsTabs
           tab={tab}
@@ -130,6 +138,9 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
           modelArtifacts={modelArtifacts}
         />
       )}
+=======
+      {mv !== null && <ModelVersionDetailsTabs tab={tab} modelVersion={mv} refresh={refresh} />}
+>>>>>>> 982ab17 (type check error fix)
     </ApplicationsPage>
   );
 };
