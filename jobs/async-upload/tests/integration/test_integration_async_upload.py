@@ -298,6 +298,10 @@ def test_async_upload_integration(
     4. Waits for job completion
     5. Validates the final artifact state
     """
+    env = env.copy()
+
+    if "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE" in os.environ:
+        env["MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE"] = os.environ["MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE"]
 
     # TODO use yield fixtures for setup/teardown
     # https://docs.pytest.org/en/6.2.x/fixture.html#yield-fixtures-recommended
