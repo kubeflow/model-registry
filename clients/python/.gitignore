@@ -6,5 +6,4 @@
 /.python-version
 __pycache__/
 venv/
-.port-forwards.pid
 .hypothesis/

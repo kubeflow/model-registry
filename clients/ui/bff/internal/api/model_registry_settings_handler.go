@@ -128,7 +128,7 @@ func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	}
 }
 
-func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
@@ -137,7 +137,20 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 	}
 
-	w.WriteHeader(200)
+	// This is a temporary fix to handle frontend error (as it is expecting ModelRegistryKind response) until we have a real implementation
+	modelId := ps.ByName(ModelRegistryId)
+	registry := createSampleModelRegistry(modelId, namespace)
+
+	modelRegistryRes := ModelRegistrySettingsEnvelope{
+		Data: registry,
+	}
+
+	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
 }
 
 // This function is a temporary function to create a sample model registry kind until we have a real implementation

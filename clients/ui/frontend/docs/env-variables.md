@@ -12,3 +12,5 @@ The following environment variables are used to configure the deployment and dev
   - The name of the product displayed in the UI.
 - `KUBEFLOW_USERNAME="user@example.com"`
   - The default username for the application. **DO NOT CHANGE THIS IF BFF IS SET IN MOCK MODE**.
+- `COMPANY_URI="oci://kubeflow.io"`
+  - The company URI used for the application.

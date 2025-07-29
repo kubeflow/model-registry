@@ -17,11 +17,17 @@ on:
       - ".github/workflows/**"
 
 env:
+  # Async Job
+  JOB_IMG_REGISTRY: ghcr.io
+  JOB_IMG_ORG: kubeflow
+  JOB_IMG_NAME: model-registry/job/async-upload
+  JOB_IMG_VERSION: cicd
+  # MR Server
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_NAME: model-registry/job/async-upload
+  IMG_REPO: model-registry/server
+  IMG_VERSION: cicd
   PUSH_IMAGE: false
-  BRANCH: ${{ github.base_ref }}
 
 jobs:
   py-test:
@@ -69,8 +75,6 @@ jobs:
         run: |
           set -x
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-      - name: Start KinD cluster and load images
+      - name: Execute Sample Job E2E test
         run: |
-          make deploy-latest-mr # this also starts the KinD cluster
-          make dev-load-image
-      # TODO: to be continued here
+          make test-integration

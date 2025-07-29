@@ -1,12 +1,28 @@
 from __future__ import annotations
-import base64
 import json
 import logging
 import configargparse as cap
-from typing import Any, Dict, Mapping
+from typing import Any, Dict
 from pathlib import Path
 
+from .models import (
+    AsyncUploadConfig,
+    OCIStorageConfig,
+    S3StorageConfig, 
+    SourceConfig, 
+    DestinationConfig, 
+    ModelConfig, 
+    StorageConfig, 
+    RegistryConfig,
+    S3Config,
+    OCIConfig,
+    SourceType,
+    DestinationType,
+    URISourceConfig
+)
+
 logger = logging.getLogger(__name__)
+
 
 def _parser() -> cap.ArgumentParser:
     """Parse command line arguments and config files"""
@@ -19,7 +35,8 @@ def _parser() -> cap.ArgumentParser:
     # --- source ---
     # s3
     # TODO: We should be able to infer the type from the credentials provided, therefore no default needed
-    p.add_argument("--source-type", choices=["s3", "oci"], default="s3")
+    p.add_argument("--source-type", choices=["s3", "oci", "uri"], default="s3")
+    p.add_argument("--source-uri")
     p.add_argument("--source-aws-bucket")
     p.add_argument("--source-aws-key")
     p.add_argument("--source-aws-region")
@@ -50,7 +67,7 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--destination-oci-base-image", default="busybox:latest")
     # The `type` converter is needed here to support env-based booleans
     # See: https://github.com/bw2/ConfigArgParse/tree/master?tab=readme-ov-file#special-values
-    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool) 
+    p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool)
 
     # --- model-registry model data ---
     p.add_argument("--model-id")
@@ -92,7 +109,7 @@ def _parser() -> cap.ArgumentParser:
     return p
 
 
-def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) -> None:
+def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
     """
     The path must be a folder, with a number of files that match a typical AWS config, ie - a Secret mounted to a pod with keys:
     - AWS_ACCESS_KEY_ID
@@ -100,19 +117,20 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
     - AWS_BUCKET
     - AWS_REGION
     - AWS_ENDPOINT_URL
-    - AWS_KEY
 
     These would be mounted as files with the names above and whose contents are the secret values.
 
     These keys are loaded into the config store
+
+    Mutates the `store` in-place
     """
 
-    logger.info(f"🔍 Loading S3 credentials from {path} for {side}")
+    logger.info(f"🔍 Loading S3 credentials from {path}")
 
     # Validate the path is a directory
     p = Path(path).expanduser()
     if not p.is_dir():
-        raise FileNotFoundError(f"{side}-credentials folder not found: {p}")
+        raise FileNotFoundError(f"credentials folder not found: {p}")
 
     # Load the credentials from the files
     for file in p.glob("*"):
@@ -120,13 +138,13 @@ def _load_s3_credentials(path: str | Path, store: Mapping[str, Any], side: str) 
             if file.name.startswith("AWS_"):
                 # Converts a file with name AWS_ACCESS_KEY_ID to access_key_id
                 key_name = file.name.lower().replace("aws_", "")
-                store["s3"][key_name] = file.read_text()
+                setattr(store, key_name, file.read_text())
             else:
                 raise ValueError(f"Invalid credential file name: {file.name}")
 
 
 def _load_oci_credentials(
-    path: str | Path, store: Mapping[str, Any], side: str
+    path: str | Path, store: OCIConfig
 ) -> None:
     """
     The path must point to a file which is a `.dockerconfigjson` file
@@ -144,11 +162,11 @@ def _load_oci_credentials(
     }
     ```
     """
-    logger.info(f"🔍 Loading OCI credentials from {path} for {side}")
+    logger.info(f"🔍 Loading OCI credentials from {path}")
     # Validate the path is a file
     p = Path(path).expanduser()
     if not p.is_file():
-        raise FileNotFoundError(f"{side}-credentials file not found: {p}")
+        raise FileNotFoundError(f"credentials file not found: {p}")
 
     # Load the credentials from the file
     docker_config = json.loads(p.read_text())
@@ -158,72 +176,14 @@ def _load_oci_credentials(
         raise ValueError("Invalid docker config file")
 
     # Load the credentials from the docker config, the URI passed in via config is used as a key to find the correct credentials
-    registry = store["oci"]["registry"]
+    registry = store.registry
     auth = docker_config["auths"][registry]["auth"]
     # TODO: This might not be the correct way to parse this
     username, password = auth.split(":") if auth else (None, None)
-    store["oci"]["username"] = username
-    store["oci"]["password"] = password
-    store["oci"]["email"] = docker_config["auths"][registry]["email"]
+    store.username = username
+    store.password = password
+    store.email = docker_config["auths"][registry]["email"]
 
-
-def _validate_oci_config(cfg: Dict[str, Any]) -> None:
-    """Validates the OCI config is valid"""
-    # if the username is set but the password is not (and vice-versa) throw an error
-    if cfg["oci"]["username"] is not None and cfg["oci"]["password"] is None:
-        raise ValueError("OCI password must be set")
-    if cfg["oci"]["username"] is None and cfg["oci"]["password"] is not None:
-        raise ValueError("OCI username must be set")
-    if cfg["oci"]["registry"] is None:
-        raise ValueError("OCI registry must be set")
-    if cfg["oci"]["uri"] is None:
-        raise ValueError("OCI URI must be set")
-
-
-def _validate_s3_config(cfg: Dict[str, Any]) -> None:
-    """Validates the S3 config is valid"""
-    if cfg["s3"]["access_key_id"] is None or cfg["s3"]["secret_access_key"] is None:
-        raise ValueError("S3 credentials must be set")
-    if cfg["s3"]["bucket"] is None:
-        raise ValueError("S3 bucket must be set")
-    if cfg["s3"]["key"] is None:
-        raise ValueError("S3 key must be set")
-
-
-def _validate_model_config(cfg: Dict[str, Any]) -> None:
-    """Validates the model config is valid"""
-    if cfg["id"] is None or cfg["version_id"] is None or cfg["artifact_id"] is None:
-        raise ValueError("Model ID, version ID and artifact ID must be set")
-
-
-def _validate_registry_config(cfg: Dict[str, Any]) -> None:
-    """Validates the registry config is valid"""
-    if cfg["server_address"] is None:
-        raise ValueError("Registry URL must be set")
-
-
-def _validate_store(cfg: Dict[str, Any]) -> None:
-    """Validates the store is valid"""
-    if cfg["type"] == "s3":
-        _validate_s3_config(cfg)
-    elif cfg["type"] == "oci":
-        _validate_oci_config(cfg)
-    else:
-        raise ValueError("Source type must be set")
-
-
-def _validate_config(cfg: Dict[str, Any]) -> None:
-    """Validates the config is has the credentials and locations needed to perform an async upload"""
-
-    # Ensure the source is valid
-    _validate_store(cfg["source"])
-    _validate_store(cfg["destination"])
-
-    # Ensure the model is valid
-    _validate_model_config(cfg["model"])
-
-    # Ensure the registry is valid
-    _validate_registry_config(cfg["registry"])
 
 def str2bool(x):
     """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
@@ -237,9 +197,9 @@ def str2bool(x):
     raise ValueError(f"Invalid boolean value: {x!r}")
 
 
-def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
+def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     """
-    Return a plain nested dict suitable for boto3 / skopeo / register_model.
+    Return a validated AsyncUploadConfig instance.
 
     Priority of the config is:
     1. Command-line arguments
@@ -249,138 +209,113 @@ def get_config(argv: list[str] | None = None) -> Dict[str, Any]:
     """
     args = _parser().parse_args(argv)
     logger.debug("🔍 Command-line arguments: %s", args)
-
-    # Initialize config with command-line arguments and defaults
-    cfg = {
-        "source": {
-            "type": args.source_type,
-            "s3": {
-                "bucket": None,
-                "key": None,
-                "region": None,
-                "access_key_id": None,
-                "secret_access_key": None,
-                "endpoint_url": None,
-            },
-            "oci": {
-                "uri": args.source_oci_uri,
-                "registry": args.source_oci_registry,
-                "username": None,
-                "password": None,
-                "email": None,
-            },
-            "credentials_path": args.source_oci_credentials_path,
-        },
-        "destination": {
-            "type": args.destination_type,
-            "s3": {
-                "bucket": None,
-                "key": None,
-                "region": None,
-                "access_key_id": None,
-                "secret_access_key": None,
-                "endpoint_url": None,
-            },
-            "oci": {
-                "uri": args.destination_oci_uri,
-                "registry": args.destination_oci_registry,
-                "username": None,
-                "password": None,
-                "email": None,
-                "base_image": args.destination_oci_base_image,
-                "enable_tls_verify": args.destination_oci_enable_tls_verify,
-            },
-            "credentials_path": args.destination_oci_credentials_path,
-        },
-        "model": {
-            "id": args.model_id,
-            "version_id": args.model_version_id,
-            "artifact_id": args.model_artifact_id,
-        },
-        "storage": {
-            "path": args.storage_path,
-        },
-        "registry": {
-            # These are the values required to instantiate a ModelRegistry client
-            "server_address": args.registry_server_address,
-            "port": args.registry_port,
-            "is_secure": args.registry_is_secure,
-            "author": args.registry_author,
-            "user_token": args.registry_user_token,
-            "user_token_envvar": args.registry_user_token_envvar,
-            "custom_ca": args.registry_custom_ca,
-            "custom_ca_envvar": args.registry_custom_ca_envvar,
-            "log_level": args.registry_log_level,
-        },
-    }
-
-    # Load credentials from files, if provided
-    if args.source_s3_credentials_path:
-        _load_s3_credentials(args.source_s3_credentials_path, cfg["source"], "source")
-    elif args.source_oci_credentials_path:
-        _load_oci_credentials(args.source_oci_credentials_path, cfg["source"], "source")
-
-    if args.destination_s3_credentials_path:
-        _load_s3_credentials(
-            args.destination_s3_credentials_path, cfg["destination"], "destination"
+ 
+    # Create source config based on type
+    if args.source_type == "s3":
+        s3_config = S3Config(
+            bucket=args.source_aws_bucket,
+            key=args.source_aws_key,
+            region=args.source_aws_region,
+            access_key_id=args.source_aws_access_key_id,
+            secret_access_key=args.source_aws_secret_access_key,
+            endpoint_url=args.source_aws_endpoint,
         )
-    elif args.destination_oci_credentials_path:
-        _load_oci_credentials(
-            args.destination_oci_credentials_path, cfg["destination"], "destination"
+        # Load credentials from files, if provided
+        if args.source_s3_credentials_path:
+            _load_s3_credentials(args.source_s3_credentials_path, s3_config)
+        source_config = S3StorageConfig(
+            **s3_config.model_dump(),
+            credentials_path=args.source_s3_credentials_path
         )
-
-    # TODO: Maybe clean this up, its a little manual
-    # Override with command-line arguments if provided. configargparse will prioritize CLI > ENV
-    if args.source_aws_bucket:
-        cfg["source"]["s3"]["bucket"] = args.source_aws_bucket
-    if args.source_aws_key:
-        cfg["source"]["s3"]["key"] = args.source_aws_key
-    if args.source_aws_region:
-        cfg["source"]["s3"]["region"] = args.source_aws_region
-    if args.source_aws_access_key_id:
-        cfg["source"]["s3"]["access_key_id"] = args.source_aws_access_key_id
-    if args.source_aws_secret_access_key:
-        cfg["source"]["s3"]["secret_access_key"] = args.source_aws_secret_access_key
-    if args.source_aws_endpoint:
-        cfg["source"]["s3"]["endpoint_url"] = args.source_aws_endpoint
-
-    if args.destination_aws_bucket:
-        cfg["destination"]["s3"]["bucket"] = args.destination_aws_bucket
-    if args.destination_aws_key:
-        cfg["destination"]["s3"]["key"] = args.destination_aws_key
-    if args.destination_aws_region:
-        cfg["destination"]["s3"]["region"] = args.destination_aws_region
-    if args.destination_aws_access_key_id:
-        cfg["destination"]["s3"]["access_key_id"] = args.destination_aws_access_key_id
-    if args.destination_aws_secret_access_key:
-        cfg["destination"]["s3"]["secret_access_key"] = (
-            args.destination_aws_secret_access_key
+    elif args.source_type == "oci":
+        source_config = OCIStorageConfig(
+            uri=args.source_oci_uri,
+            registry=args.source_oci_registry,
+            username=args.source_oci_username,
+            password=args.source_oci_password,
+            email=None,
+            credentials_path=args.source_oci_credentials_path
         )
-    if args.destination_aws_endpoint:
-        cfg["destination"]["s3"]["endpoint_url"] = args.destination_aws_endpoint
+        # Load credentials from files, if provided
+        if args.source_oci_credentials_path:
+            _load_oci_credentials(args.source_oci_credentials_path, source_config)
 
-    if args.source_oci_uri:
-        cfg["source"]["oci"]["uri"] = args.source_oci_uri
-    if args.source_oci_username:
-        cfg["source"]["oci"]["username"] = args.source_oci_username
-    if args.source_oci_password:
-        cfg["source"]["oci"]["password"] = args.source_oci_password
+    elif args.source_type == "uri":
+        source_config = URISourceConfig(
+            uri=args.source_uri,
+            credentials_path=None
+        )
+    else:
+        raise ValueError(f"Unsupported source type: {args.source_type}")
 
-    if args.destination_oci_uri:
-        cfg["destination"]["oci"]["uri"] = args.destination_oci_uri
-    if args.destination_oci_username:
-        cfg["destination"]["oci"]["username"] = args.destination_oci_username
-    if args.destination_oci_password:
-        cfg["destination"]["oci"]["password"] = args.destination_oci_password
+    # Create destination config based on type
+    if args.destination_type == "s3":
+        destination_config = S3StorageConfig(
+            bucket=args.destination_aws_bucket,
+            key=args.destination_aws_key,
+            region=args.destination_aws_region,
+            access_key_id=args.destination_aws_access_key_id,
+            secret_access_key=args.destination_aws_secret_access_key,
+            endpoint_url=args.destination_aws_endpoint,
+            credentials_path=args.destination_s3_credentials_path
+        )
+        # Load credentials from files, if provided
+        if args.destination_s3_credentials_path:
+            _load_s3_credentials(args.destination_s3_credentials_path, destination_config)
+    elif args.destination_type == "oci":
+        destination_config = OCIStorageConfig(
+            uri=args.destination_oci_uri,
+            registry=args.destination_oci_registry,
+            username=args.destination_oci_username,
+            password=args.destination_oci_password,
+            email=None,
+            base_image=args.destination_oci_base_image,
+            enable_tls_verify=args.destination_oci_enable_tls_verify,
+            credentials_path=args.destination_oci_credentials_path
+        )
+        # Load credentials from files, if provided
+        if args.destination_oci_credentials_path:
+            _load_oci_credentials(args.destination_oci_credentials_path, destination_config)
 
-    _validate_config(cfg)
+    else:
+        raise ValueError(f"Unsupported destination type: {args.destination_type}")
+
+    # Create model instances
+    try:
+        config = AsyncUploadConfig(
+            source=source_config,
+            destination=destination_config,
+            model=ModelConfig(
+                id=args.model_id,
+                version_id=args.model_version_id,
+                artifact_id=args.model_artifact_id,
+            ),
+            storage=StorageConfig(
+                path=args.storage_path,
+            ),
+            registry=RegistryConfig(
+                server_address=args.registry_server_address,
+                port=args.registry_port,
+                is_secure=args.registry_is_secure,
+                author=args.registry_author,
+                user_token=args.registry_user_token,
+                user_token_envvar=args.registry_user_token_envvar,
+                custom_ca=args.registry_custom_ca,
+                custom_ca_envvar=args.registry_custom_ca_envvar,
+                log_level=args.registry_log_level,
+            ),
+        )
+    except Exception as e:
+        logger.error("❌ Configuration validation failed: %s", e)
+        raise
+
     logger.info("📦 Configuration loaded successfully")
 
     # Log the configuration (with sensitive values sanitized)
-    sanitized_cfg = _sanitize_config_for_logging(cfg)
+    sanitized_cfg = _sanitize_config_for_logging(config.model_dump())
     logger.debug("🔍 Configuration loaded: %s", json.dumps(sanitized_cfg, indent=2))
 
-    return cfg
+    return config
 
 
 def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -388,29 +323,35 @@ def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
     Create a sanitized copy of the config for logging purposes, masking sensitive values.
     """
     import copy
+
     sanitized = copy.deepcopy(cfg)
-    
-    # Mask sensitive S3 credentials
-    if sanitized["source"]["s3"]["secret_access_key"]:
-        sanitized["source"]["s3"]["secret_access_key"] = "***"
-    if sanitized["source"]["s3"]["access_key_id"]:
-        sanitized["source"]["s3"]["access_key_id"] = "***"
-    
-    if sanitized["destination"]["s3"]["secret_access_key"]:
-        sanitized["destination"]["s3"]["secret_access_key"] = "***"
-    if sanitized["destination"]["s3"]["access_key_id"]:
-        sanitized["destination"]["s3"]["access_key_id"] = "***"
-    
-    # Mask sensitive OCI credentials
-    if sanitized["source"]["oci"]["password"]:
-        sanitized["source"]["oci"]["password"] = "***"
-    if sanitized["destination"]["oci"]["password"]:
-        sanitized["destination"]["oci"]["password"] = "***"
-    
+
+    # Mask sensitive S3 credentials in source
+    if "source" in sanitized:
+        source = sanitized["source"]
+        if "secret_access_key" in source and source["secret_access_key"]:
+            source["secret_access_key"] = "***"
+        if "access_key_id" in source and source["access_key_id"]:
+            source["access_key_id"] = "***"
+        if "password" in source and source["password"]:
+            source["password"] = "***"
+
+    # Mask sensitive credentials in destination  
+    if "destination" in sanitized:
+        destination = sanitized["destination"]
+        if "secret_access_key" in destination and destination["secret_access_key"]:
+            destination["secret_access_key"] = "***"
+        if "access_key_id" in destination and destination["access_key_id"]:
+            destination["access_key_id"] = "***"
+        if "password" in destination and destination["password"]:
+            destination["password"] = "***"
+
     # Mask sensitive registry credentials
-    if sanitized["registry"]["user_token"]:
-        sanitized["registry"]["user_token"] = "***"
-    if sanitized["registry"]["custom_ca"]:
-        sanitized["registry"]["custom_ca"] = "***"
-    
+    if "registry" in sanitized:
+        registry = sanitized["registry"]
+        if "user_token" in registry and registry["user_token"]:
+            registry["user_token"] = "***"
+        if "custom_ca" in registry and registry["custom_ca"]:
+            registry["custom_ca"] = "***"
+
     return sanitized

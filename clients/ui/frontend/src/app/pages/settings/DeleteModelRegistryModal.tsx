@@ -10,6 +10,7 @@ import {
   ModalFooter,
 } from '@patternfly/react-core';
 import { DashboardModalFooter, ModelRegistryKind } from 'mod-arch-shared';
+import { deleteModelRegistrySettings } from '~/app/api/k8s';
 
 type DeleteModelRegistryModalProps = {
   modelRegistry: ModelRegistryKind;
@@ -38,9 +39,10 @@ const DeleteModelRegistryModal: React.FC<DeleteModelRegistryModalProps> = ({
     setIsSubmitting(true);
     setError(undefined);
     try {
-      // TODO: implement when CRD endpoint is ready
-      // await deleteModelRegistryBackend(mr.metadata.name);
-      await refresh();
+      await deleteModelRegistrySettings('', {
+        namespace: mr.metadata.namespace,
+      })({}, mr, mr.metadata.name);
+      refresh();
       onBeforeClose();
     } catch (e) {
       if (e instanceof Error) {
