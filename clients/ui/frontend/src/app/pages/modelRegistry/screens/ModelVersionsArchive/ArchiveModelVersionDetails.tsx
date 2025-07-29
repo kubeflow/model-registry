@@ -1,12 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Button, Flex, FlexItem, Label, Content, Tooltip, Truncate } from '@patternfly/react-core';
-import {
-  InferenceServiceKind,
-  ServingRuntimeKind,
-  FetchStateObject,
-  ApplicationsPage,
-} from 'mod-arch-shared';
+import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
@@ -32,19 +27,6 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
   const navigate = useNavigate();
-
-  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
-  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
 
   useEffect(() => {
     if (rm?.state === ModelState.LIVE && mv?.id) {
@@ -91,8 +73,6 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
           isArchiveVersion
           tab={tab}
           modelVersion={mv}
-          inferenceServices={inferenceServices}
-          servingRuntimes={servingRuntimes}
           refresh={refreshModelVersion}
         />
       )}

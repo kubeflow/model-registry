@@ -9,12 +9,7 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import {
-  InferenceServiceKind,
-  ServingRuntimeKind,
-  FetchStateObject,
-  ApplicationsPage,
-} from 'mod-arch-shared';
+import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
@@ -45,19 +40,6 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
-
-  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
-  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
 
   const refresh = React.useCallback(() => {
     refreshModelVersion();
@@ -121,11 +103,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       headerAction={
         mvLoaded &&
         mv && (
-          <ModelVersionsDetailsHeaderActions
-            mv={mv}
-            hasDeployment={inferenceServices.data.length > 0}
-            refresh={refresh}
-          />
+          <ModelVersionsDetailsHeaderActions mv={mv} refresh={refresh} />
         )
       }
       description={<Truncate content={mv?.description || ''} />}
@@ -133,15 +111,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       loaded={mvLoaded}
       provideChildrenPadding
     >
-      {mv !== null && (
-        <ModelVersionDetailsTabs
-          tab={tab}
-          modelVersion={mv}
-          inferenceServices={inferenceServices}
-          servingRuntimes={servingRuntimes}
-          refresh={refresh}
-        />
-      )}
+      {mv !== null && <ModelVersionDetailsTabs tab={tab} modelVersion={mv} refresh={refresh} />}
     </ApplicationsPage>
   );
 };
