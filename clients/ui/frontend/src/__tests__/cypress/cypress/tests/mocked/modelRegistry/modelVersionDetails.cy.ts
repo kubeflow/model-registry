@@ -199,7 +199,7 @@ const initIntercepts = ({
 };
 
 describe('Model version details', () => {
-  describe('Details tab', () => {
+  describe('Overview tab', () => {
     beforeEach(() => {
       initIntercepts({});
       modelVersionDetails.visit();
