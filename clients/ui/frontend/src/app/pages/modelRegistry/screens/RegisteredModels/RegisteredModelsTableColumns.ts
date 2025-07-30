@@ -6,7 +6,13 @@ export const rmColumns: SortableData<RegisteredModel>[] = [
     field: 'model name',
     label: 'Model name',
     sortable: (a, b) => a.name.localeCompare(b.name),
-    width: 40,
+    width: 35,
+  },
+  {
+    field: 'latest version',
+    label: 'Latest version',
+    sortable: false,
+    width: 15,
   },
   {
     field: 'labels',

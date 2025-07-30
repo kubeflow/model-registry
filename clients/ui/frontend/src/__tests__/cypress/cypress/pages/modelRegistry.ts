@@ -30,6 +30,10 @@ class ModelRegistryTableRow extends TableRow {
     return this.find().findByTestId('description');
   }
 
+  findLatestVersion() {
+    return this.find().findByTestId('latest-version');
+  }
+
   findOwner() {
     return this.find().findByTestId('registered-model-owner');
   }

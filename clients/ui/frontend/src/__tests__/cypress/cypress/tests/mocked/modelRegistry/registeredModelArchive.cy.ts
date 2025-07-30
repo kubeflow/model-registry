@@ -245,6 +245,7 @@ describe('Model archive list', () => {
     labelModal.findCloseModal().click();
 
     // sort by Last modified
+    registeredModelArchive.findRegisteredModelsArchiveTableHeaderButton('Last modified').click();
     registeredModelArchive
       .findRegisteredModelsArchiveTableHeaderButton('Last modified')
       .should(be.sortAscending);
@@ -264,7 +265,18 @@ describe('Model archive list', () => {
       .should(be.sortDescending);
   });
 
-  it('Opens the detail page when we select "Overview" from action menu', () => {
+  it('latest version column', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    const archiveModelRow = registeredModelArchive.getRow('model 2');
+    archiveModelRow.findLatestVersion().contains('new model version');
+    archiveModelRow.findLatestVersion().click();
+    verifyRelativeURL(
+      `/model-registry/modelregistry-sample/registeredModels/archive/2/versions/1/details`,
+    );
+  });
+
+  it('Opens the detail page when we select "Overview" from action menu and verison list when we select "Versions', () => {
     initIntercepts({});
     registeredModelArchive.visit();
     const archiveModelRow = registeredModelArchive.getRow('model 2');
@@ -273,6 +285,9 @@ describe('Model archive list', () => {
       'be.equals',
       '/model-registry/modelregistry-sample/registeredModels/archive/2/overview',
     );
+    cy.go('back');
+    archiveModelRow.findKebabAction('Versions').click();
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/archive/2/versions`);
   });
 });
 
