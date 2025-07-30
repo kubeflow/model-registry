@@ -109,20 +109,21 @@ def download_from_http(uri: str, dest_dir: str) -> str:
     if filename == "":
         raise ValueError(f"No filename contained in URI: {uri}")
 
+    is_archive = True
+    match mimetype:
+        case "application/zip":
+            valid_content_types = ZIP_CONTENT_TYPES
+        case "application/x-tar":
+            valid_content_types = TAR_CONTENT_TYPES
+        case _:
+            valid_content_types = REGULAR_FILE_CONTENT_TYPES
+            is_archive = False
+
     # Use body content workflow to defer body download until response.raw is called
     # https://requests.readthedocs.io/en/latest/user/advanced/#body-content-workflow
     with requests.get(uri, stream=True) as response:
         response.raise_for_status()
 
-        is_archive = True
-        match mimetype:
-            case "application/zip":
-                valid_content_types = ZIP_CONTENT_TYPES
-            case "application/x-tar":
-                valid_content_types = TAR_CONTENT_TYPES
-            case _:
-                valid_content_types = REGULAR_FILE_CONTENT_TYPES
-                is_archive = False
         if not response.headers.get("Content-Type", "").startswith(valid_content_types):
             content_types_str = ", ".join(valid_content_types)
             logger.warning(
