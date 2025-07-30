@@ -100,13 +100,12 @@ func getFieldMappings() map[EntityType]map[string]FieldMapping {
 
 // isValidValueType checks if the provided value type is valid for MLMD filter queries
 func isValidValueType(valueType string) bool {
-	validTypes := map[string]bool{
-		"string_value": true,
-		"int_value":    true,
-		"double_value": true,
-		"bool_value":   true,
+	switch valueType {
+		case "string_value", "int_value", "double_value", "bool_value":
+			return true
+		default:
+			return false
 	}
-	return validTypes[valueType]
 }
 
 // unescapeDots converts escaped dots (\.) back to regular dots (.) in property names
