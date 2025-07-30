@@ -18,7 +18,7 @@ import { RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { modelVersionListUrl, modelVersionUrl } from '../routeUtils';
+import { modelVersionListUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 
 type ModelVersionsCardProps = {
   rm: RegisteredModel;
