@@ -1,18 +1,15 @@
-import json
 import logging
 import mimetypes
 import os
 import shutil
 import tarfile
 import zipfile
-from typing import Any, Dict
 from urllib.parse import urlparse
 
 import requests
-from model_registry import ModelRegistry
 from model_registry.utils import _connect_to_s3
 
-from .models import AsyncUploadConfig, OCIStorageConfig, S3StorageConfig, SourceConfig, URISourceConfig
+from .models import AsyncUploadConfig, OCIStorageConfig, S3StorageConfig, URISourceConfig
 
 logger = logging.getLogger(__name__)
 
@@ -112,17 +109,9 @@ def download_from_http(uri: str, dest_dir: str) -> str:
     if filename == "":
         raise ValueError(f"No filename contained in URI: {uri}")
 
-    # Get header information from host url
-    host_uri = url.hostname
-    headers_env_name = host_uri + HEADERS_SUFFIX
-    if headers_env_name in os.environ:
-        headers = json.loads(os.environ[headers_env_name])
-    else:
-        headers = {}
-
     # Use body content workflow to defer body download until response.raw is called
     # https://requests.readthedocs.io/en/latest/user/advanced/#body-content-workflow
-    with requests.get(uri, stream=True, headers=headers) as response:
+    with requests.get(uri, stream=True) as response:
         response.raise_for_status()
 
         is_archive = True
@@ -136,7 +125,7 @@ def download_from_http(uri: str, dest_dir: str) -> str:
                 is_archive = False
         if not response.headers.get("Content-Type", "").startswith(valid_content_types):
             content_types_str = ", ".join(valid_content_types)
-            raise RuntimeError(
+            logger.warning(
                 f"URI {uri} appears to have MIME type {mimetype} but did not respond with any of following for 'Content-Type': {content_types_str}"
             )
 
