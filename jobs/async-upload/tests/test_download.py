@@ -1,10 +1,22 @@
+import io
+import mimetypes
 import os
 import pytest
+import tarfile
+import zipfile
+from pathlib import Path
 from unittest.mock import Mock, call, patch
-from job.download import download_from_s3
+from job.download import download_from_s3, unpack_archive_file
 from job.config import get_config
 from job.mr_client import validate_and_get_model_registry_client
 from job.models import S3StorageConfig
+
+DUMMY_FILE_DATA = {
+    "file1.txt": b"test file 1",
+    "dir/file2.txt": b"abc",
+    "file3.log": b"123"
+}
+
 
 @pytest.fixture
 def minimal_env_source_dest_vars():
@@ -54,6 +66,52 @@ def minimal_env_source_dest_vars():
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
+
+
+@pytest.fixture
+def dummy_archive(request, tmp_path):
+    match request.param:
+        case "tar":
+            return create_dummy_tar(tmp_path / "dummy.tar", "w")
+        case "tar.gz":
+            return create_dummy_tar(tmp_path / "dummy.tar.gz", "w:gz")
+        case "zip":
+            return create_dummy_zip(tmp_path / "dummy.zip", "w")
+        case _:
+            raise ValueError(f"Unsupported archive type: {request.param}")
+
+
+def create_dummy_tar(path, mode):
+    with tarfile.open(path, mode) as f:
+        for filename, content in DUMMY_FILE_DATA.items():
+            file_data = io.BytesIO(content)
+            tarinfo = tarfile.TarInfo(name=filename)
+            tarinfo.size = len(content)
+            f.addfile(tarinfo, fileobj=file_data)
+    return path
+
+
+def create_dummy_zip(path, mode):
+    with zipfile.ZipFile(path, mode) as f:
+        for filename, content in DUMMY_FILE_DATA.items():
+            f.writestr(filename, content)
+    return path
+
+
+@pytest.mark.parametrize("dummy_archive", ["tar", "tar.gz", "zip"], indirect=True)
+def test_unpack_archive_file(dummy_archive, tmp_path):
+    dest_dir = tmp_path / "unpacked_archive"
+    mimetype = mimetypes.guess_type(dummy_archive)[0]
+    unpack_archive_file(dummy_archive, mimetype, dest_dir)
+
+    result = {}
+    for dirpath, _, filenames in os.walk(dest_dir):
+        for filename in filenames:
+            filepath = Path(dirpath) / filename
+            key = filepath.relative_to(dest_dir).as_posix()
+            contents = filepath.read_bytes()
+            result[key] = contents
+    assert result == DUMMY_FILE_DATA
 
 
 def test_download_from_s3(minimal_env_source_dest_vars):

@@ -3,6 +3,7 @@ import mimetypes
 import os
 import shutil
 import tarfile
+from typing import Union
 import zipfile
 from urllib.parse import urlparse
 
@@ -12,6 +13,8 @@ from model_registry.utils import _connect_to_s3
 from .models import AsyncUploadConfig, OCIStorageConfig, S3StorageConfig, URISourceConfig
 
 logger = logging.getLogger(__name__)
+
+PathType = Union[str, bytes, os.PathLike]
 
 HF_URI_PREFIX = "hf://"
 HTTP_URI_PREFIXES = ("http://", "https://")
@@ -136,11 +139,11 @@ def download_from_http(uri: str, dest_dir: str) -> str:
             shutil.copyfileobj(response.raw, dest_file)
 
     if is_archive:
-        dest_dir = _unpack_archive_file(dest_path, mimetype, dest_dir)
+        dest_dir = unpack_archive_file(dest_path, mimetype, dest_dir)
     return dest_dir
 
 
-def _unpack_archive_file(file_path: str, mimetype: str, dest_dir: str) -> str:
+def unpack_archive_file(file_path: PathType, mimetype: str, dest_dir: PathType) -> str:
     """
     adapted from kserve:
     https://github.com/kserve/kserve/blob/4edbb36c520c2e880842229bfc56b7f11d766822/python/storage/kserve_storage/kserve_storage.py#L773-L792
