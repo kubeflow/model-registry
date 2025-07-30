@@ -117,6 +117,82 @@ func NewModelRegistryHealthChecker(service api.ModelRegistryApi) *ModelRegistryH
 	}
 }
 
+// DirtySchemaHealthChecker checks if database schema is in a dirty state
+type DirtySchemaHealthChecker struct {
+	datastore datastore.Datastore
+}
+
+func NewDirtySchemaHealthChecker(datastore datastore.Datastore) *DirtySchemaHealthChecker {
+	return &DirtySchemaHealthChecker{
+		datastore: datastore,
+	}
+}
+
+func (d *DirtySchemaHealthChecker) Check() HealthCheck {
+	check := HealthCheck{
+		Name:    "dirty-schema",
+		Details: make(map[string]interface{}),
+	}
+
+	// Skip embedmd check for mlmd datastore
+	if d.datastore.Type != "embedmd" {
+		check.Status = "pass"
+		check.Message = "MLMD datastore - skipping dirty schema check"
+		check.Details["datastore_type"] = d.datastore.Type
+		return check
+	}
+
+	// Check DSN configuration
+	dsn := d.datastore.EmbedMD.DatabaseDSN
+	if dsn == "" {
+		check.Status = "fail"
+		check.Message = "database DSN not configured"
+		return check
+	}
+
+	// Check database connector
+	dbConnector, ok := db.GetConnector()
+	if !ok {
+		check.Status = "fail"
+		check.Message = "database connector not initialized"
+		return check
+	}
+
+	// Test database connection
+	database, err := dbConnector.Connect()
+	if err != nil {
+		check.Status = "fail"
+		check.Message = fmt.Sprintf("database connection error: %v", err)
+		return check
+	}
+
+	// Check schema migration state
+	var result struct {
+		Version int64
+		Dirty   bool
+	}
+
+	query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
+	if err := database.Raw(query).Scan(&result).Error; err != nil {
+		check.Status = "fail"
+		check.Message = fmt.Sprintf("schema_migrations query error: %v", err)
+		return check
+	}
+
+	check.Details["schema_version"] = result.Version
+	check.Details["schema_dirty"] = result.Dirty
+
+	if result.Dirty {
+		check.Status = "fail"
+		check.Message = "database schema is in dirty state"
+		return check
+	}
+
+	check.Status = "pass"
+	check.Message = "database schema is clean"
+	return check
+}
+
 func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
 		Name:    "model-registry",
@@ -259,56 +335,8 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 
 // ReadinessHandler is a readiness probe that requires schema_migrations.dirty to be false before allowing traffic.
 func ReadinessHandler(datastore datastore.Datastore) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// skip embedmd check for mlmd datastore
-		if datastore.Type != "embedmd" {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("OK"))
-			return
-		}
-
-		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		dsn := datastore.EmbedMD.DatabaseDSN
-		if dsn == "" {
-			http.Error(w, "database DSN not configured", http.StatusServiceUnavailable)
-			return
-		}
-
-		dbConnector, ok := db.GetConnector()
-		if !ok {
-			http.Error(w, "database connector not initialized", http.StatusServiceUnavailable)
-			return
-		}
-
-		database, err := dbConnector.Connect()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("database connection error: %v", err), http.StatusServiceUnavailable)
-			return
-		}
-
-		var result struct {
-			Version int64
-			Dirty   bool
-		}
-
-		query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
-		if err := database.Raw(query).Scan(&result).Error; err != nil {
-			http.Error(w, fmt.Sprintf("schema_migrations query error: %v", err), http.StatusServiceUnavailable)
-			return
-		}
-
-		if result.Dirty {
-			http.Error(w, "database schema is in dirty state", http.StatusServiceUnavailable)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
-	})
+	dirtySchemaChecker := NewDirtySchemaHealthChecker(datastore)
+	return GeneralReadinessHandler(datastore, dirtySchemaChecker)
 }
 
 func ReadyzHandler(datastore datastore.Datastore) http.Handler {
