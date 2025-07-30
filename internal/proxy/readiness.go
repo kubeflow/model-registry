@@ -327,14 +327,15 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 			if health.Status == "pass" {
 				_, _ = w.Write([]byte("OK"))
 			} else {
+				// Return the first failed check's error message
+				for _, check := range health.Checks {
+					if check.Status == "fail" {
+						_, _ = w.Write([]byte(check.Message))
+						return
+					}
+				}
 				_, _ = w.Write([]byte("FAIL"))
 			}
 		}
 	})
-}
-
-// ReadinessHandler is a readiness probe that requires schema_migrations.dirty to be false before allowing traffic.
-func ReadinessHandler(datastore datastore.Datastore) http.Handler {
-	dirtySchemaChecker := NewDirtySchemaHealthChecker(datastore)
-	return GeneralReadinessHandler(datastore, dirtySchemaChecker)
 }
