@@ -681,10 +681,15 @@ func (suite *CoreTestSuite) TestGetArtifactsByType() {
 	suite.Equalf(int32(1), allParameters.Size, "expected 1 artifacts: %v", err)
 
 	suite.Equal(*converter.Int64ToString(createdArtifactId1), *allModels.Items[0].ModelArtifact.Id)
+	suite.Equal(string(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT), *allModels.Items[0].ModelArtifact.ArtifactType)
 	suite.Equal(*converter.Int64ToString(createdArtifactId2), *allDocs.Items[0].DocArtifact.Id)
+	suite.Equal(string(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT), *allDocs.Items[0].DocArtifact.ArtifactType)
 	suite.Equal(*converter.Int64ToString(createdArtifactId3), *allDatasets.Items[0].DataSet.Id)
+	suite.Equal(string(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT), *allDatasets.Items[0].DataSet.ArtifactType)
 	suite.Equal(*converter.Int64ToString(createdArtifactId4), *allMetrics.Items[0].Metric.Id)
+	suite.Equal(string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC), *allMetrics.Items[0].Metric.ArtifactType)
 	suite.Equal(*converter.Int64ToString(createdArtifactId5), *allParameters.Items[0].Parameter.Id)
+	suite.Equal(string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER), *allParameters.Items[0].Parameter.ArtifactType)
 }
 
 // MODEL ARTIFACTS

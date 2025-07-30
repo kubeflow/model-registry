@@ -790,7 +790,7 @@ func MapEmbedMDURIDataSet(source *models.DataSetAttributes) *string {
 }
 
 func MapEmbedMDArtifactTypeDataSet(source *models.DataSetAttributes) *string {
-	return of("dataset")
+	return of("dataset-artifact")
 }
 
 func MapEmbedMDExternalIDDataSet(source *models.DataSetAttributes) *string {

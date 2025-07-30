@@ -1804,6 +1804,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 					switch tc.expectField {
 					case "ModelArtifact":
 						assert.NotNil(t, artifact.ModelArtifact, "Artifact %d should be ModelArtifact", i)
+						assert.Equal(t, string(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT), *artifact.ModelArtifact.ArtifactType)
 						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
 						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
 						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
@@ -1811,6 +1812,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 					case "DocArtifact":
 						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
 						assert.NotNil(t, artifact.DocArtifact, "Artifact %d should be DocArtifact", i)
+						assert.Equal(t, string(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT), *artifact.DocArtifact.ArtifactType)
 						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
 						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
 						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
@@ -1818,6 +1820,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
 						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
 						assert.NotNil(t, artifact.DataSet, "Artifact %d should be DataSet", i)
+						assert.Equal(t, string(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT), *artifact.DataSet.ArtifactType)
 						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
 						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
 					case "Metric":
@@ -1825,6 +1828,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 						assert.Nil(t, artifact.DocArtifact, "Artifact %d should not be DocArtifact", i)
 						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
 						assert.NotNil(t, artifact.Metric, "Artifact %d should be Metric", i)
+						assert.Equal(t, string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC), *artifact.Metric.ArtifactType)
 						assert.Nil(t, artifact.Parameter, "Artifact %d should not be Parameter", i)
 					case "Parameter":
 						assert.Nil(t, artifact.ModelArtifact, "Artifact %d should not be ModelArtifact", i)
@@ -1832,6 +1836,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 						assert.Nil(t, artifact.DataSet, "Artifact %d should not be DataSet", i)
 						assert.Nil(t, artifact.Metric, "Artifact %d should not be Metric", i)
 						assert.NotNil(t, artifact.Parameter, "Artifact %d should be Parameter", i)
+						assert.Equal(t, string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER), *artifact.Parameter.ArtifactType)
 					}
 				}
 			})
