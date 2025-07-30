@@ -65,19 +65,17 @@ func TestGetExperimentRunMetricHistory(t *testing.T) {
 	foundAccuracy := false
 	foundLoss := false
 	for _, item := range result.Items {
-		if item.Metric != nil {
-			switch *item.Metric.Name {
-			case "accuracy":
-				foundAccuracy = true
-				assert.Equal(t, 0.95, *item.Metric.Value)
-				assert.Equal(t, "1234567890", *item.Metric.Timestamp)
-				assert.Equal(t, int64(1), *item.Metric.Step)
-			case "loss":
-				foundLoss = true
-				assert.Equal(t, 0.05, *item.Metric.Value)
-				assert.Equal(t, "1234567891", *item.Metric.Timestamp)
-				assert.Equal(t, int64(2), *item.Metric.Step)
-			}
+		switch *item.Name {
+		case "accuracy":
+			foundAccuracy = true
+			assert.Equal(t, 0.95, *item.Value)
+			assert.Equal(t, "1234567890", *item.Timestamp)
+			assert.Equal(t, int64(1), *item.Step)
+		case "loss":
+			foundLoss = true
+			assert.Equal(t, 0.05, *item.Value)
+			assert.Equal(t, "1234567891", *item.Timestamp)
+			assert.Equal(t, int64(2), *item.Step)
 		}
 	}
 	assert.True(t, foundAccuracy, "should find accuracy metric")
@@ -132,8 +130,8 @@ func TestGetExperimentRunMetricHistoryWithNameFilter(t *testing.T) {
 	require.NoError(t, err, "error getting metric history with name filter")
 	assert.Equal(t, int32(1), result.Size, "should return 1 metric history record for accuracy")
 	assert.Equal(t, 1, len(result.Items), "should have 1 item in the result")
-	assert.Equal(t, "accuracy", *result.Items[0].Metric.Name)
-	assert.Equal(t, 0.95, *result.Items[0].Metric.Value)
+	assert.Equal(t, "accuracy", *result.Items[0].Name)
+	assert.Equal(t, 0.95, *result.Items[0].Value)
 }
 
 func TestInsertMetricHistory(t *testing.T) {
@@ -184,7 +182,7 @@ func TestInsertMetricHistory(t *testing.T) {
 	assert.Equal(t, 1, len(result.Items), "should have 1 item in the result")
 
 	// Verify the inserted metric properties
-	insertedMetric := result.Items[0].Metric
+	insertedMetric := &result.Items[0]
 	assert.Equal(t, "test_metric", *insertedMetric.Name)
 	assert.Equal(t, 42.5, *insertedMetric.Value)
 	assert.Equal(t, "1234567890", *insertedMetric.Timestamp)
@@ -248,7 +246,7 @@ func TestUpsertExperimentRunArtifactTriggersMetricHistory(t *testing.T) {
 	assert.Equal(t, int32(1), result.Size, "should have 1 metric history record created automatically")
 
 	// Verify the metric history has the correct properties
-	insertedMetric := result.Items[0].Metric
+	insertedMetric := &result.Items[0]
 	assert.Equal(t, "test_metric", *insertedMetric.Name)
 	assert.Equal(t, 42.5, *insertedMetric.Value)
 	assert.Equal(t, "1234567890", *insertedMetric.Timestamp)
@@ -381,7 +379,7 @@ func TestInsertMetricHistoryWithLastUpdateTime(t *testing.T) {
 	assert.Equal(t, int32(1), result.Size, "should have 1 metric history record")
 
 	// Verify the inserted metric has the correct name (should use last update time as timestamp)
-	insertedMetric := result.Items[0].Metric
+	insertedMetric := &result.Items[0]
 	assert.Equal(t, "test_metric_last_update", *insertedMetric.Name)
 	assert.Equal(t, 42.5, *insertedMetric.Value)
 }
@@ -426,18 +424,17 @@ func TestGetExperimentRunMetricHistoryReturnsCorrectArtifactType(t *testing.T) {
 	assert.Equal(t, 1, len(result.Items), "should have 1 item in the result")
 
 	// Verify the artifact type is 'metric' (not 'metric-history') for REST API compliance
-	retrievedArtifact := result.Items[0]
-	assert.NotNil(t, retrievedArtifact.Metric, "should return a metric artifact")
+	retrievedMetric := &result.Items[0]
 
 	// The key validation: ensure artifact type is "metric" for REST API, even though it's stored as "metric-history" internally
-	assert.Equal(t, "metric", *retrievedArtifact.Metric.ArtifactType, "artifact type should be 'metric' for REST API compliance")
+	assert.Equal(t, "metric", *retrievedMetric.ArtifactType, "artifact type should be 'metric' for REST API compliance")
 
 	// Verify other properties are correctly mapped
-	assert.Equal(t, "test_metric", *retrievedArtifact.Metric.Name)
-	assert.Equal(t, 0.95, *retrievedArtifact.Metric.Value)
-	assert.Equal(t, "1234567890", *retrievedArtifact.Metric.Timestamp)
-	assert.Equal(t, int64(1), *retrievedArtifact.Metric.Step)
-	assert.Equal(t, "Test metric for artifact type validation", *retrievedArtifact.Metric.Description)
+	assert.Equal(t, "test_metric", *retrievedMetric.Name)
+	assert.Equal(t, 0.95, *retrievedMetric.Value)
+	assert.Equal(t, "1234567890", *retrievedMetric.Timestamp)
+	assert.Equal(t, int64(1), *retrievedMetric.Step)
+	assert.Equal(t, "Test metric for artifact type validation", *retrievedMetric.Description)
 }
 
 func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
@@ -509,7 +506,7 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 
 	// Verify the returned metrics are from step 1
 	for _, item := range result.Items {
-		assert.Equal(t, int64(1), *item.Metric.Step, "all metrics should be from step 1")
+		assert.Equal(t, int64(1), *item.Step, "all metrics should be from step 1")
 	}
 
 	// Test filtering by multiple step IDs
@@ -522,7 +519,7 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 	// Verify the returned metrics are from steps 1 and 3
 	stepValues := make(map[int64]bool)
 	for _, item := range result.Items {
-		stepValues[*item.Metric.Step] = true
+		stepValues[*item.Step] = true
 	}
 	assert.True(t, stepValues[1], "should contain metrics from step 1")
 	assert.True(t, stepValues[3], "should contain metrics from step 3")
@@ -545,7 +542,7 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 
 	// Verify all returned metrics are accuracy metrics from steps 1 and 2
 	for _, item := range result.Items {
-		assert.Equal(t, "accuracy", *item.Metric.Name, "all metrics should be accuracy")
-		assert.True(t, *item.Metric.Step == 1 || *item.Metric.Step == 2, "all metrics should be from step 1 or 2")
+		assert.Equal(t, "accuracy", *item.Name, "all metrics should be accuracy")
+		assert.True(t, *item.Step == 1 || *item.Step == 2, "all metrics should be from step 1 or 2")
 	}
 }

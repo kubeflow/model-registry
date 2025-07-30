@@ -1537,7 +1537,7 @@ paths:
         - $ref: "#/components/parameters/nextPageToken"
       responses:
         "200":
-          $ref: "#/components/responses/ArtifactListResponse"
+          $ref: "#/components/responses/MetricListResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -2013,6 +2013,19 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    MetricList:
+      description: List of Metric entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `Metric` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/Metric"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
       allOf:
@@ -2470,6 +2483,12 @@ components:
           $ref: '#/components/links/SearchModelArtifactByName'
         SearchModelArtifactByParentResourceId:
           $ref: '#/components/links/SearchModelArtifactByParentResourceId'
+    MetricListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetricList"
+      description: A response containing a list of Metric entities.
     ModelArtifactResponse:
       content:
         application/json:

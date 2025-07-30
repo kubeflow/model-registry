@@ -17,7 +17,7 @@ import (
 )
 
 // GetExperimentRunMetricHistory retrieves metric history for an experiment run
-func (serv *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions api.ListOptions, experimentRunId *string) (*openapi.ArtifactList, error) {
+func (serv *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions api.ListOptions, experimentRunId *string) (*openapi.MetricList, error) {
 	// Validate experiment run exists
 	if experimentRunId == nil {
 		return nil, fmt.Errorf("experiment run ID is required: %w", api.ErrBadRequest)
@@ -66,8 +66,8 @@ func (serv *ModelRegistryService) GetExperimentRunMetricHistory(name *string, st
 		return nil, err
 	}
 
-	// Convert MLMD artifacts to OpenAPI artifacts
-	results := []openapi.Artifact{}
+	// Convert MLMD artifacts to OpenAPI metrics
+	results := []openapi.Metric{}
 	for _, artifact := range resp.Artifacts {
 		// Check if this is a metric history artifact
 		if *artifact.Type == serv.nameConfig.MetricHistoryTypeName {
@@ -79,14 +79,12 @@ func (serv *ModelRegistryService) GetExperimentRunMetricHistory(name *string, st
 			// remove timestamp suffix from name after the last __
 			lastIndex := strings.LastIndex(*mapped.Name, "__")
 			mapped.Name = apiutils.StrPtr((*mapped.Name)[:lastIndex])
-			results = append(results, openapi.Artifact{
-				Metric: mapped,
-			})
+			results = append(results, *mapped)
 		}
 	}
 
 	// Build response
-	toReturn := openapi.ArtifactList{
+	toReturn := openapi.MetricList{
 		NextPageToken: apiutils.ZeroIfNil(resp.NextPageToken),
 		PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
 		Size:          int32(len(results)),

@@ -210,7 +210,7 @@ func (b *ModelRegistryService) GetExperimentRunArtifacts(artifactType openapi.Ar
 	return b.GetArtifacts(artifactType, listOptions, experimentRunId)
 }
 
-func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions api.ListOptions, experimentRunId *string) (*openapi.ArtifactList, error) {
+func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions api.ListOptions, experimentRunId *string) (*openapi.MetricList, error) {
 
 	// Validate experiment run exists
 	if experimentRunId == nil {
@@ -256,8 +256,8 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 		return nil, err
 	}
 
-	// Convert metric history to OpenAPI artifacts
-	results := []openapi.Artifact{}
+	// Convert metric history to OpenAPI metrics
+	results := []openapi.Metric{}
 	for _, metricHistory := range metricHistories.Items {
 
 		mapped, err := b.mapper.MapToMetric(metricHistory)
@@ -274,13 +274,11 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 			}
 		}
 
-		results = append(results, openapi.Artifact{
-			Metric: mapped,
-		})
+		results = append(results, *mapped)
 	}
 
 	// Build response
-	toReturn := openapi.ArtifactList{
+	toReturn := openapi.MetricList{
 		NextPageToken: metricHistories.NextPageToken,
 		PageSize:      metricHistories.PageSize,
 		Size:          int32(len(results)),

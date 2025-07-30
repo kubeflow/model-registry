@@ -49,6 +49,7 @@ model_metadata_struct_value.go
 model_metadata_value.go
 model_metric.go
 model_metric_create.go
+model_metric_list.go
 model_metric_update.go
 model_model_artifact.go
 model_model_artifact_create.go

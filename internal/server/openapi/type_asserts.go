@@ -684,6 +684,33 @@ func AssertMetricCreateRequired(obj model.MetricCreate) error {
 	return nil
 }
 
+// AssertMetricListConstraints checks if the values respects the defined constraints
+func AssertMetricListConstraints(obj model.MetricList) error {
+	return nil
+}
+
+// AssertMetricListRequired checks if the required fields are not zero-ed
+func AssertMetricListRequired(obj model.MetricList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertMetricRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AssertMetricRequired checks if the required fields are not zero-ed
 func AssertMetricRequired(obj model.Metric) error {
 	return nil

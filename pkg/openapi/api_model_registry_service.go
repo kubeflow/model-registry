@@ -4885,7 +4885,7 @@ func (r ApiGetExperimentRunMetricHistoryRequest) NextPageToken(nextPageToken str
 	return r
 }
 
-func (r ApiGetExperimentRunMetricHistoryRequest) Execute() (*ArtifactList, *http.Response, error) {
+func (r ApiGetExperimentRunMetricHistoryRequest) Execute() (*MetricList, *http.Response, error) {
 	return r.ApiService.GetExperimentRunMetricHistoryExecute(r)
 }
 
@@ -4908,13 +4908,13 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx conte
 
 // Execute executes the request
 //
-//	@return ArtifactList
-func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r ApiGetExperimentRunMetricHistoryRequest) (*ArtifactList, *http.Response, error) {
+//	@return MetricList
+func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r ApiGetExperimentRunMetricHistoryRequest) (*MetricList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *ArtifactList
+		localVarReturnValue *MetricList
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelRegistryServiceAPIService.GetExperimentRunMetricHistory")

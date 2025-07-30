@@ -2179,7 +2179,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 		// Verify values are correct
 		expectedValues := []float64{0.1, 0.5, 0.8, 0.95}
 		for i, historyItem := range metricHistory.Items {
-			assert.Equal(t, expectedValues[i], *historyItem.Metric.Value,
+			assert.Equal(t, expectedValues[i], *historyItem.Value,
 				fmt.Sprintf("History item %d should have value %f", i, expectedValues[i]))
 		}
 	})

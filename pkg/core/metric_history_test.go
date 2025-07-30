@@ -55,19 +55,17 @@ func (suite *CoreTestSuite) TestGetExperimentRunMetricHistory() {
 	foundAccuracy := false
 	foundLoss := false
 	for _, item := range result.Items {
-		if item.Metric != nil {
-			switch *item.Metric.Name {
-			case "accuracy":
-				foundAccuracy = true
-				suite.Equal(0.95, *item.Metric.Value)
-				suite.Equal("1234567890", *item.Metric.Timestamp)
-				suite.Equal(int64(1), *item.Metric.Step)
-			case "loss":
-				foundLoss = true
-				suite.Equal(0.05, *item.Metric.Value)
-				suite.Equal("1234567891", *item.Metric.Timestamp)
-				suite.Equal(int64(2), *item.Metric.Step)
-			}
+		switch *item.Name {
+		case "accuracy":
+			foundAccuracy = true
+			suite.Equal(0.95, *item.Value)
+			suite.Equal("1234567890", *item.Timestamp)
+			suite.Equal(int64(1), *item.Step)
+		case "loss":
+			foundLoss = true
+			suite.Equal(0.05, *item.Value)
+			suite.Equal("1234567891", *item.Timestamp)
+			suite.Equal(int64(2), *item.Step)
 		}
 	}
 	suite.True(foundAccuracy, "should find accuracy metric")
@@ -109,7 +107,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunMetricHistoryWithNameFilter() {
 	suite.Nilf(err, "error getting metric history with name filter: %v", err)
 	suite.Equal(int32(1), result.Size, "should return 1 metric history record for accuracy")
 	suite.Equal(1, len(result.Items), "should have 1 item in the result")
-	suite.Equal("accuracy", *result.Items[0].Metric.Name)
+	suite.Equal("accuracy", *result.Items[0].Name)
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunMetricHistoryWithStepFilter() {
@@ -147,7 +145,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunMetricHistoryWithStepFilter() {
 	suite.Nilf(err, "error getting metric history with step filter: %v", err)
 	suite.Equal(int32(1), result.Size, "should return 1 metric history record for step 1")
 	suite.Equal(1, len(result.Items), "should have 1 item in the result")
-	suite.Equal(int64(1), *result.Items[0].Metric.Step)
+	suite.Equal(int64(1), *result.Items[0].Step)
 }
 
 func (suite *CoreTestSuite) TestGetExperimentRunMetricHistoryWithPagination() {
@@ -367,9 +365,7 @@ func (suite *CoreTestSuite) TestGetExperimentRunMetricHistoryWithMultipleSteps()
 	// Verify we got the correct steps
 	steps := make(map[int64]bool)
 	for _, item := range result.Items {
-		if item.Metric != nil {
-			steps[*item.Metric.Step] = true
-		}
+		steps[*item.Step] = true
 	}
 	suite.True(steps[1], "should have step 1")
 	suite.True(steps[3], "should have step 3")

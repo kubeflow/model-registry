@@ -390,7 +390,7 @@ paths:
         - $ref: "#/components/parameters/nextPageToken"
       responses:
         "200":
-          $ref: "#/components/responses/ArtifactListResponse"
+          $ref: "#/components/responses/MetricListResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -2266,6 +2266,19 @@ components:
             name:
               description: The name/key of the metric (e.g., "accuracy", "loss", "f1_score").
               type: string
+    MetricList:
+      description: List of Metric entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `Metric` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/Metric"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     MetricUpdate:
       description: A metric to be updated.
       allOf:
@@ -2762,6 +2775,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
+    MetricListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetricList"
+      description: A response containing a list of Metric entities.
     ModelArtifactListResponse:
       content:
         application/json:
