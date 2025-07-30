@@ -62,8 +62,8 @@ func TestReadinessHandler_NonEmbedMD(t *testing.T) {
 	ds := datastore.Datastore{
 		Type: "mlmd",
 	}
-	dirtySchemaChecker := NewDirtySchemaHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dirtySchemaChecker)
+	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	handler := GeneralReadinessHandler(ds, dbHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
@@ -93,8 +93,8 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 		},
 	}
 
-	dirtySchemaChecker := NewDirtySchemaHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dirtySchemaChecker)
+	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	handler := GeneralReadinessHandler(ds, dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
@@ -127,8 +127,8 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 		},
 	}
 
-	dirtySchemaChecker := NewDirtySchemaHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dirtySchemaChecker)
+	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	handler := GeneralReadinessHandler(ds, dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
