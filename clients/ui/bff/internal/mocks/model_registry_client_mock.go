@@ -33,6 +33,10 @@ func (m *ModelRegistryClientMock) GetRegisteredModel(_ mrserver.HTTPClientInterf
 		mockData := GetRegisteredModelMocks()[2]
 		return &mockData, nil
 	}
+	if id == "2" {
+		mockData := GetRegisteredModelMocks()[1]
+		return &mockData, nil
+	}
 	mockData := GetRegisteredModelMocks()[0]
 	return &mockData, nil
 }

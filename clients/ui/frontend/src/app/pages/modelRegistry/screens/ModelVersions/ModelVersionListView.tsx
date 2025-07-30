@@ -165,10 +165,10 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
                         value={search}
                         onChange={setSearch}
                         onClear={resetFilters}
-                        placeholder={`Find by ${searchType.toLowerCase()}`}
-                        fieldLabel={`Find by ${searchType.toLowerCase()}`}
+                        placeholder="Filter by name, description or label"
+                        fieldLabel="Filter by name, description or label"
                         className="toolbar-fieldset-wrapper"
-                        style={{ minWidth: '200px' }}
+                        style={{ minWidth: '270px' }}
                         data-testid="model-versions-table-search"
                       />
                     </ToolbarItem>

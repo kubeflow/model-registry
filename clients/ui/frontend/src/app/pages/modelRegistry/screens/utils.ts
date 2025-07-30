@@ -10,6 +10,7 @@ import {
   RegisteredModel,
 } from '~/app/types';
 import { COMPANY_URI } from '~/app/utilities/const';
+import { getLastCreatedItem } from '~/app/utils';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -200,3 +201,12 @@ export const isValidHttpUrl = (value: string): boolean => {
 };
 
 export const isCompanyUri = (uri: string): boolean => uri.startsWith(`${COMPANY_URI}/`);
+
+export const getLatestVersionForRegisteredModel = (
+  modelVersions: ModelVersion[],
+  rmId: string,
+): ModelVersion | undefined => {
+  const filteredVersions = modelVersions.filter((mv) => mv.registeredModelId === rmId);
+  const latestVersion = getLastCreatedItem(filteredVersions);
+  return latestVersion;
+};
