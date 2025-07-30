@@ -57,6 +57,23 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 		experimentRun = &withNotEditable
 	}
 
+	// Validate that EndTimeSinceEpoch is not less than StartTimeSinceEpoch
+	if experimentRun.EndTimeSinceEpoch != nil && experimentRun.StartTimeSinceEpoch != nil {
+		endTime, err := strconv.ParseInt(*experimentRun.EndTimeSinceEpoch, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid EndTimeSinceEpoch value: %v: %w", err, api.ErrBadRequest)
+		}
+
+		startTime, err := strconv.ParseInt(*experimentRun.StartTimeSinceEpoch, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid StartTimeSinceEpoch value: %v: %w", err, api.ErrBadRequest)
+		}
+
+		if endTime < startTime {
+			return nil, fmt.Errorf("EndTimeSinceEpoch (%d) cannot be less than StartTimeSinceEpoch (%d): %w", endTime, startTime, api.ErrBadRequest)
+		}
+	}
+
 	experimentRunEntity, err := b.mapper.MapFromExperimentRun(experimentRun, experimentId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)

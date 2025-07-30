@@ -123,6 +123,49 @@ func TestUpsertExperimentRun(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "experiment not found")
 	})
+
+	t.Run("error on EndTimeSinceEpoch less than StartTimeSinceEpoch", func(t *testing.T) {
+		experimentRun := &openapi.ExperimentRun{
+			Name:                apiutils.Of("test-run-time-validation"),
+			StartTimeSinceEpoch: apiutils.Of("1234567890"), // Start time is later
+			EndTimeSinceEpoch:   apiutils.Of("1234567000"), // End time is earlier (invalid)
+		}
+		_, err := service.UpsertExperimentRun(experimentRun, parentExperiment.Id)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "EndTimeSinceEpoch (1234567000) cannot be less than StartTimeSinceEpoch (1234567890)")
+	})
+
+	t.Run("successful update with valid timestamps", func(t *testing.T) {
+		// First create an experiment run
+		experimentRun := &openapi.ExperimentRun{
+			Name:                apiutils.Of("test-run-for-update"),
+			StartTimeSinceEpoch: apiutils.Of("1234567890"),
+		}
+		created, err := service.UpsertExperimentRun(experimentRun, parentExperiment.Id)
+		require.NoError(t, err)
+
+		// Update with valid end time
+		created.EndTimeSinceEpoch = apiutils.Of("1234568000") // End time is after start time
+		updated, err := service.UpsertExperimentRun(created, parentExperiment.Id)
+		require.NoError(t, err)
+		assert.Equal(t, "1234568000", *updated.EndTimeSinceEpoch)
+	})
+
+	t.Run("error on update with invalid EndTimeSinceEpoch", func(t *testing.T) {
+		// First create an experiment run
+		experimentRun := &openapi.ExperimentRun{
+			Name:                apiutils.Of("test-run-for-invalid-update"),
+			StartTimeSinceEpoch: apiutils.Of("1234567890"),
+		}
+		created, err := service.UpsertExperimentRun(experimentRun, parentExperiment.Id)
+		require.NoError(t, err)
+
+		// Try to update with invalid end time
+		created.EndTimeSinceEpoch = apiutils.Of("1234567000") // End time is before start time
+		_, err = service.UpsertExperimentRun(created, parentExperiment.Id)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "EndTimeSinceEpoch (1234567000) cannot be less than StartTimeSinceEpoch (1234567890)")
+	})
 }
 
 func TestGetExperimentRunById(t *testing.T) {
