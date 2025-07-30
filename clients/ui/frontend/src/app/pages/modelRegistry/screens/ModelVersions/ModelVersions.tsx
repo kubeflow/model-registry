@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Breadcrumb, BreadcrumbItem, Truncate } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
@@ -51,7 +51,6 @@ const ModelVersions: React.FC<ModelVersionsProps> = ({ tab, ...pageProps }) => {
       }
       title={rm?.name}
       headerAction={rm && <ModelVersionsHeaderActions hasDeployments={false} rm={rm} />}
-      description={<Truncate content={rm?.description || ''} />}
       loadError={loadError}
       loaded={loaded}
       provideChildrenPadding
