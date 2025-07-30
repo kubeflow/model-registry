@@ -6,7 +6,7 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { ModelRegistryMetadataType, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { modelVersionsCard } from '../../../pages/modelRegistryView/modelVersionsCard';
+import { modelVersionsCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionsCard';
 
 const mockRegisteredModelWithData = mockRegisteredModel({
   id: '1',
