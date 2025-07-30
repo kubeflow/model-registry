@@ -674,8 +674,7 @@ class ModelRegistry:
 
         # Ensure argument pairs are provided
         if not any([experiment_name, experiment_id, nested]):
-            msg = "Either experiment_name or experiment_id must be provided"
-            raise ValueError(msg)
+            experiment_name = generate_name("experiment")
 
         _parent_obj = {nested_tag: active_exp.run_id} if active_exp.active else {}
 
@@ -694,7 +693,7 @@ class ModelRegistry:
             exp = self.async_runner(
                 self._api.upsert_experiment(
                     Experiment(
-                        name=experiment_name or generate_name("experiment"),
+                        name=experiment_name,
                         owner=owner,
                     )
                 )
