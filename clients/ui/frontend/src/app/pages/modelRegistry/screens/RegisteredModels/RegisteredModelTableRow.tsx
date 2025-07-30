@@ -38,17 +38,15 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
 
   const actions: IAction[] = [
     {
-      title: 'View details',
+      title: 'Overview',
       onClick: () => {
-        if (isArchiveRow) {
-          navigate(
-            `${registeredModelArchiveUrl(preferredModelRegistry?.name)}/${rm.id}/${
-              ModelVersionsTab.DETAILS
-            }`,
-          );
-        } else {
-          navigate(`${rmUrl}/${ModelVersionsTab.DETAILS}`);
-        }
+        navigate(
+          isArchiveRow
+            ? `${registeredModelArchiveUrl(preferredModelRegistry?.name)}/${rm.id}/${
+                ModelVersionsTab.OVERVIEW
+              }`
+            : `${rmUrl}/${ModelVersionsTab.OVERVIEW}`,
+        );
       },
     },
     ...(isArchiveRow
