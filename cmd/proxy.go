@@ -12,6 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -46,11 +47,53 @@ hostname and port where it listens.`,
 	}
 )
 
+// ModelRegistryServiceHolder safely holds the model registry service
+type ModelRegistryServiceHolder struct {
+	mu      sync.RWMutex
+	service api.ModelRegistryApi
+}
+
+func (h *ModelRegistryServiceHolder) Set(service api.ModelRegistryApi) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.service = service
+}
+
+func (h *ModelRegistryServiceHolder) Get() api.ModelRegistryApi {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.service
+}
+
+// ConditionalModelRegistryHealthChecker checks model registry health only if service is available
+type ConditionalModelRegistryHealthChecker struct {
+	holder *ModelRegistryServiceHolder
+}
+
+func (c *ConditionalModelRegistryHealthChecker) Check() proxy.HealthCheck {
+	service := c.holder.Get()
+	if service == nil {
+		return proxy.HealthCheck{
+			Name:    "model-registry",
+			Status:  "fail",
+			Message: "model registry service not yet initialized",
+			Details: map[string]interface{}{
+				"service_ready": false,
+			},
+		}
+	}
+
+	checker := proxy.NewModelRegistryHealthChecker(service)
+	return checker.Check()
+}
+
 func runProxyServer(cmd *cobra.Command, args []string) error {
 	var (
 		ds datastore.Connector
 		wg sync.WaitGroup
 	)
+
+	serviceHolder := &ModelRegistryServiceHolder{}
 
 	router := proxy.NewDynamicRouter()
 
@@ -58,14 +101,20 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
-	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
+	mrHealthChecker := &ConditionalModelRegistryHealthChecker{holder: serviceHolder}
+	generalReadinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, mrHealthChecker)
 	readinessHandler := proxy.ReadinessHandler(proxyCfg.Datastore)
 
-	// route /readyz/isDirty to readinessHandler, all other paths to the dynamic router
+	// route /readyz/isDirty to readinessHandler, /readyz/health to general handler, all other paths to the dynamic router
 	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if strings.HasSuffix(r.URL.Path, "/readyz/isDirty") {
 			readinessHandler.ServeHTTP(w, r)
+			return
+		}
+
+		if strings.HasSuffix(r.URL.Path, "/readyz/health") {
+			generalReadinessHandler.ServeHTTP(w, r)
 			return
 		}
 
@@ -103,6 +152,9 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 			errChan <- fmt.Errorf("{{ALERT}} error connecting to datastore: %w", err)
 			return
 		}
+
+		// Set the model registry service in the holder for health checks
+		serviceHolder.Set(conn)
 
 		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(conn)
 		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)

@@ -65,11 +65,18 @@ spec:
             tcpSocket:
               port: http-api
             timeoutSeconds: 2
+          startupProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            httpGet:
+              path: /readyz/isDirty
+              port: http-api
+            timeoutSeconds: 2
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 20
             httpGet:
-              path: /readyz/isDirty
+              path: /readyz
               port: http-api
             timeoutSeconds: 2
           securityContext:
