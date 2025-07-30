@@ -49,14 +49,6 @@ const ModelRegistryRoutes: React.FC = () => {
               path={ModelVersionDetailsTab.DETAILS}
               element={<ModelVersionsDetails tab={ModelVersionDetailsTab.DETAILS} empty={false} />}
             />
-            {(isStandalone || isFederated) && (
-              <Route
-                path={ModelVersionDetailsTab.DEPLOYMENTS}
-                element={
-                  <ModelVersionsDetails tab={ModelVersionDetailsTab.DEPLOYMENTS} empty={false} />
-                }
-              />
-            )}
             <Route path="*" element={<Navigate to="." />} />
           </Route>
           <Route path="versions/archive">
