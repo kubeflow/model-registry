@@ -35,6 +35,12 @@ type DatabaseHealthChecker struct {
 	datastore datastore.Datastore
 }
 
+func NewDatabaseHealthChecker(datastore datastore.Datastore) *DatabaseHealthChecker {
+	return &DatabaseHealthChecker{
+		datastore: datastore,
+	}
+}
+
 func (d *DatabaseHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
 		Name:    "database",
@@ -206,16 +212,7 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 			Checks: make(map[string]HealthCheck),
 		}
 
-		// Always include database health check
-		dbChecker := &DatabaseHealthChecker{datastore: datastore}
-		dbCheck := dbChecker.Check()
-		health.Checks["database"] = dbCheck
-
-		if dbCheck.Status == "fail" {
-			health.Status = "fail"
-		}
-
-		// Run additional health checks
+		// Run health checks
 		for _, checker := range additionalCheckers {
 			check := checker.Check()
 			health.Checks[check.Name] = check

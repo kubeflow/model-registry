@@ -102,7 +102,8 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 	}))
 
 	mrHealthChecker := &ConditionalModelRegistryHealthChecker{holder: serviceHolder}
-	generalReadinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, mrHealthChecker)
+	dbHealthChecker := proxy.NewDatabaseHealthChecker(proxyCfg.Datastore)
+	generalReadinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, mrHealthChecker, dbHealthChecker)
 	readinessHandler := proxy.ReadinessHandler(proxyCfg.Datastore)
 
 	// route /readyz/isDirty to readinessHandler, /readyz/health to general handler, all other paths to the dynamic router
