@@ -419,3 +419,53 @@ func TestGeneralReadinessHandler_SimpleTextResponse_Failure(t *testing.T) {
 	// Should return the first failed check's error message
 	assert.Contains(t, rr.Body.String(), "database schema is in dirty state")
 }
+
+func TestDatabaseHealthChecker_EmptyDSN(t *testing.T) {
+	ds := datastore.Datastore{
+		Type: "embedmd",
+		EmbedMD: embedmd.EmbedMDConfig{
+			DatabaseType: "mysql",
+			DatabaseDSN:  "", // Empty DSN
+		},
+	}
+
+	checker := NewDatabaseHealthChecker(ds)
+	result := checker.Check()
+
+	assert.Equal(t, "database", result.Name)
+	assert.Equal(t, "fail", result.Status)
+	assert.Equal(t, "database DSN not configured", result.Message)
+}
+
+func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
+	// Test with both database and model registry failing
+	setDirtySchemaState(t)
+	defer cleanupSchemaState(t)
+
+	ds := createTestDatastore()
+
+	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	mrHealthChecker := NewModelRegistryHealthChecker(nil) // Nil service to make it fail
+	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+
+	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusServiceUnavailable, rr.Code)
+
+	var healthStatus HealthStatus
+	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
+	require.NoError(t, err)
+
+	assert.Equal(t, "fail", healthStatus.Status)
+
+	// Both checks should fail
+	dbCheck := healthStatus.Checks["database"]
+	assert.Equal(t, "fail", dbCheck.Status)
+
+	mrCheck := healthStatus.Checks["model-registry"]
+	assert.Equal(t, "fail", mrCheck.Status)
+}
