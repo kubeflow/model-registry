@@ -76,7 +76,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
             httpGet:
-              path: /readyz
+              path: /readyz/health
               port: http-api
             timeoutSeconds: 2
           securityContext:
