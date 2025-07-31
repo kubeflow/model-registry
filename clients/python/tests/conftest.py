@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import contextlib
 import inspect
@@ -19,7 +18,6 @@ from urllib.parse import urlparse
 import pytest
 import requests
 import schemathesis
-import uvloop
 from schemathesis import Case, Response
 from schemathesis.generation.stateful.state_machine import APIStateMachine
 from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
@@ -129,24 +127,6 @@ def cleanup(client):
     return yield_and_restart
 
 
-# workaround: https://github.com/pytest-dev/pytest-asyncio/issues/706#issuecomment-2147044022
-@pytest.fixture(scope="session", autouse=True)
-def event_loop():
-    loop = asyncio.get_event_loop_policy().get_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture
-def uv_event_loop():
-    old_policy = asyncio.get_event_loop_policy()
-    policy = uvloop.EventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
-    loop = uvloop.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
-    asyncio.set_event_loop_policy(old_policy)
 
 
 @pytest.fixture
