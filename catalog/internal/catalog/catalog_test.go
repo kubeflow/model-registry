@@ -21,7 +21,7 @@ func TestLoadCatalogSources(t *testing.T) {
 		{
 			name:    "test-catalog-sources",
 			args:    args{catalogsPath: "testdata/test-catalog-sources.yaml"},
-			want:    []string{"catalog1", "catalog2", "catalog3"},
+			want:    []string{"catalog1", "catalog3"},
 			wantErr: false,
 		},
 	}
@@ -63,11 +63,6 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Id:      "catalog1",
 					Name:    "Catalog 1",
 					Enabled: &trueValue,
-				},
-				"catalog2": {
-					Id:      "catalog2",
-					Name:    "Catalog 2",
-					Enabled: &[]bool{false}[0],
 				},
 				"catalog3": {
 					Id:      "catalog3",
