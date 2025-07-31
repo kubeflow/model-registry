@@ -20,7 +20,7 @@ import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersion
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
-  LatestmodelVersion: ModelVersion | undefined;
+  latestModelVersion: ModelVersion | undefined;
   isArchiveRow?: boolean;
   hasDeploys?: boolean;
   refresh: () => void;
@@ -28,7 +28,7 @@ type RegisteredModelTableRowProps = {
 
 const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
   registeredModel: rm,
-  LatestmodelVersion,
+  latestModelVersion,
   isArchiveRow,
   hasDeploys = false,
   refresh,
@@ -116,16 +116,16 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
         )}
       </Td>
       <Td dataLabel="Latest version">
-        {LatestmodelVersion ? (
+        {latestModelVersion ? (
           <div id="latest-version" data-testid="latest-version">
             <FlexItem>
               <Button
                 variant="link"
                 isInline
-                onClick={() => handleVersionNameNavigation(LatestmodelVersion)}
+                onClick={() => handleVersionNameNavigation(latestModelVersion)}
               >
                 <Truncate
-                  content={LatestmodelVersion.name}
+                  content={latestModelVersion.name}
                   style={{ textDecoration: 'underline' }}
                 />
               </Button>
