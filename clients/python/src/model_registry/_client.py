@@ -644,8 +644,8 @@ class ModelRegistry:
         run_id: str | None = None,
         *,
         owner: str | None = None,
-        desc: str | None = None,
-        run_desc: str | None = None,
+        description: str | None = None,
+        run_description: str | None = None,
         nested: bool = False,
         nested_tag: str | None = "kubeflow.parent_run_id",
     ) -> ActiveExperimentRun:
@@ -659,8 +659,8 @@ class ModelRegistry:
 
         Keyword Args:
             owner: Owner of the experiment.
-            desc: Description of the experiment.
-            run_desc: Description of the run.
+            description: Description of the experiment.
+            run_description: Description of the run.
             nested: Whether the run is nested.
 
         Returns:
@@ -695,6 +695,7 @@ class ModelRegistry:
                     Experiment(
                         name=experiment_name,
                         owner=owner,
+                        description=description,
                     )
                 )
             )
@@ -725,7 +726,7 @@ class ModelRegistry:
                     ExperimentRun(
                         experiment_id=exp.id,
                         name=generate_name("run"),
-                        description=run_desc,
+                        description=run_description,
                         custom_properties={**_parent_obj},
                     )
                 )
