@@ -63,6 +63,21 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services",
 			c.CreateEnvironmentInferenceService,
 		},
+		"CreateExperiment": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/experiments",
+			c.CreateExperiment,
+		},
+		"CreateExperimentExperimentRun": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs",
+			c.CreateExperimentExperimentRun,
+		},
+		"CreateExperimentRun": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/experiment_runs",
+			c.CreateExperimentRun,
+		},
 		"CreateInferenceService": Route{
 			strings.ToUpper("Post"),
 			"/api/model_registry/v1alpha3/inference_services",
@@ -103,6 +118,16 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/artifact",
 			c.FindArtifact,
 		},
+		"FindExperiment": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment",
+			c.FindExperiment,
+		},
+		"FindExperimentRun": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_run",
+			c.FindExperimentRun,
+		},
 		"FindInferenceService": Route{
 			strings.ToUpper("Get"),
 			"/api/model_registry/v1alpha3/inference_service",
@@ -142,6 +167,41 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			strings.ToUpper("Get"),
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services",
 			c.GetEnvironmentInferenceServices,
+		},
+		"GetExperiment": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiments/{experimentId}",
+			c.GetExperiment,
+		},
+		"GetExperimentExperimentRuns": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs",
+			c.GetExperimentExperimentRuns,
+		},
+		"GetExperimentRun": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}",
+			c.GetExperimentRun,
+		},
+		"GetExperimentRunArtifacts": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
+			c.GetExperimentRunArtifacts,
+		},
+		"GetExperimentRunMetricHistory": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history",
+			c.GetExperimentRunMetricHistory,
+		},
+		"GetExperimentRuns": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_runs",
+			c.GetExperimentRuns,
+		},
+		"GetExperiments": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiments",
+			c.GetExperiments,
 		},
 		"GetInferenceService": Route{
 			strings.ToUpper("Get"),
@@ -223,6 +283,16 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/artifacts/{id}",
 			c.UpdateArtifact,
 		},
+		"UpdateExperiment": Route{
+			strings.ToUpper("Patch"),
+			"/api/model_registry/v1alpha3/experiments/{experimentId}",
+			c.UpdateExperiment,
+		},
+		"UpdateExperimentRun": Route{
+			strings.ToUpper("Patch"),
+			"/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}",
+			c.UpdateExperimentRun,
+		},
 		"UpdateInferenceService": Route{
 			strings.ToUpper("Patch"),
 			"/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}",
@@ -247,6 +317,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			strings.ToUpper("Patch"),
 			"/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}",
 			c.UpdateServingEnvironment,
+		},
+		"UpsertExperimentRunArtifact": Route{
+			strings.ToUpper("Post"),
+			"/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
+			c.UpsertExperimentRunArtifact,
 		},
 		"UpsertModelVersionArtifact": Route{
 			strings.ToUpper("Post"),
@@ -302,6 +377,88 @@ func (c *ModelRegistryServiceAPIController) CreateEnvironmentInferenceService(w 
 		return
 	}
 	result, err := c.service.CreateEnvironmentInferenceService(r.Context(), servingenvironmentIdParam, inferenceServiceCreateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// CreateExperiment - Create an Experiment
+func (c *ModelRegistryServiceAPIController) CreateExperiment(w http.ResponseWriter, r *http.Request) {
+	experimentCreateParam := *model.NewExperimentCreateWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&experimentCreateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertExperimentCreateRequired(experimentCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertExperimentCreateConstraints(experimentCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateExperiment(r.Context(), experimentCreateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// CreateExperimentExperimentRun - Create an ExperimentRun in Experiment
+func (c *ModelRegistryServiceAPIController) CreateExperimentExperimentRun(w http.ResponseWriter, r *http.Request) {
+	experimentIdParam := chi.URLParam(r, "experimentId")
+	experimentRunParam := *model.NewExperimentRunWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&experimentRunParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertExperimentRunRequired(experimentRunParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertExperimentRunConstraints(experimentRunParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateExperimentExperimentRun(r.Context(), experimentIdParam, experimentRunParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// CreateExperimentRun - Create an ExperimentRun
+func (c *ModelRegistryServiceAPIController) CreateExperimentRun(w http.ResponseWriter, r *http.Request) {
+	experimentRunCreateParam := *model.NewExperimentRunCreateWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&experimentRunCreateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertExperimentRunCreateRequired(experimentRunCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertExperimentRunCreateConstraints(experimentRunCreateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateExperimentRun(r.Context(), experimentRunCreateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -518,6 +675,37 @@ func (c *ModelRegistryServiceAPIController) FindArtifact(w http.ResponseWriter, 
 	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
+// FindExperiment - Get an Experiment that matches search parameters.
+func (c *ModelRegistryServiceAPIController) FindExperiment(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	result, err := c.service.FindExperiment(r.Context(), nameParam, externalIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// FindExperimentRun - Get an ExperimentRun that matches search parameters.
+func (c *ModelRegistryServiceAPIController) FindExperimentRun(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	parentResourceIdParam := query.Get("parentResourceId")
+	result, err := c.service.FindExperimentRun(r.Context(), nameParam, externalIdParam, parentResourceIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
 // FindInferenceService - Get an InferenceServices that matches search parameters.
 func (c *ModelRegistryServiceAPIController) FindInferenceService(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -612,11 +800,13 @@ func (c *ModelRegistryServiceAPIController) GetArtifact(w http.ResponseWriter, r
 // GetArtifacts - List All Artifacts
 func (c *ModelRegistryServiceAPIController) GetArtifacts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
+	artifactTypeParam := query.Get("artifactType")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetArtifacts(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetArtifacts(r.Context(), filterQueryParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -630,13 +820,140 @@ func (c *ModelRegistryServiceAPIController) GetArtifacts(w http.ResponseWriter, 
 func (c *ModelRegistryServiceAPIController) GetEnvironmentInferenceServices(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	servingenvironmentIdParam := chi.URLParam(r, "servingenvironmentId")
+	filterQueryParam := query.Get("filterQuery")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperiment - Get an Experiment
+func (c *ModelRegistryServiceAPIController) GetExperiment(w http.ResponseWriter, r *http.Request) {
+	experimentIdParam := chi.URLParam(r, "experimentId")
+	result, err := c.service.GetExperiment(r.Context(), experimentIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentExperimentRuns - List All Experiment's ExperimentRuns
+func (c *ModelRegistryServiceAPIController) GetExperimentExperimentRuns(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	experimentIdParam := chi.URLParam(r, "experimentId")
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	filterQueryParam := query.Get("filterQuery")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperimentExperimentRuns(r.Context(), experimentIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentRun - Get an ExperimentRun
+func (c *ModelRegistryServiceAPIController) GetExperimentRun(w http.ResponseWriter, r *http.Request) {
+	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
+	result, err := c.service.GetExperimentRun(r.Context(), experimentrunIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentRunArtifacts - List all artifacts associated with the `ExperimentRun`
+func (c *ModelRegistryServiceAPIController) GetExperimentRunArtifacts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
+	filterQueryParam := query.Get("filterQuery")
+	nameParam := query.Get("name")
+	externalIdParam := query.Get("externalId")
+	artifactTypeParam := query.Get("artifactType")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperimentRunArtifacts(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, externalIdParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentRunMetricHistory - Get metric history for an ExperimentRun
+func (c *ModelRegistryServiceAPIController) GetExperimentRunMetricHistory(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
+	filterQueryParam := query.Get("filterQuery")
+	nameParam := query.Get("name")
+	stepIdsParam := query.Get("stepIds")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperimentRunMetricHistory(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, stepIdsParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentRuns - List All ExperimentRuns
+func (c *ModelRegistryServiceAPIController) GetExperimentRuns(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperimentRuns(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperiments - List All Experiments
+func (c *ModelRegistryServiceAPIController) GetExperiments(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperiments(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -676,13 +993,14 @@ func (c *ModelRegistryServiceAPIController) GetInferenceServiceModel(w http.Resp
 func (c *ModelRegistryServiceAPIController) GetInferenceServiceServes(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	inferenceserviceIdParam := chi.URLParam(r, "inferenceserviceId")
+	filterQueryParam := query.Get("filterQuery")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -708,11 +1026,12 @@ func (c *ModelRegistryServiceAPIController) GetInferenceServiceVersion(w http.Re
 // GetInferenceServices - List All InferenceServices
 func (c *ModelRegistryServiceAPIController) GetInferenceServices(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetInferenceServices(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetInferenceServices(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -738,11 +1057,12 @@ func (c *ModelRegistryServiceAPIController) GetModelArtifact(w http.ResponseWrit
 // GetModelArtifacts - List All ModelArtifacts
 func (c *ModelRegistryServiceAPIController) GetModelArtifacts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelArtifacts(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelArtifacts(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -769,13 +1089,15 @@ func (c *ModelRegistryServiceAPIController) GetModelVersion(w http.ResponseWrite
 func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	modelversionIdParam := chi.URLParam(r, "modelversionId")
+	filterQueryParam := query.Get("filterQuery")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	artifactTypeParam := query.Get("artifactType")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, filterQueryParam, nameParam, externalIdParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -788,11 +1110,12 @@ func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.Resp
 // GetModelVersions - List All ModelVersions
 func (c *ModelRegistryServiceAPIController) GetModelVersions(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetModelVersions(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersions(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -821,11 +1144,12 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 	registeredmodelIdParam := chi.URLParam(r, "registeredmodelId")
 	nameParam := query.Get("name")
 	externalIdParam := query.Get("externalId")
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -838,11 +1162,12 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 // GetRegisteredModels - List All RegisteredModels
 func (c *ModelRegistryServiceAPIController) GetRegisteredModels(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetRegisteredModels(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModels(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -868,11 +1193,12 @@ func (c *ModelRegistryServiceAPIController) GetServingEnvironment(w http.Respons
 // GetServingEnvironments - List All ServingEnvironments
 func (c *ModelRegistryServiceAPIController) GetServingEnvironments(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetServingEnvironments(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetServingEnvironments(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -901,6 +1227,62 @@ func (c *ModelRegistryServiceAPIController) UpdateArtifact(w http.ResponseWriter
 		return
 	}
 	result, err := c.service.UpdateArtifact(r.Context(), idParam, artifactUpdateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// UpdateExperiment - Update an Experiment
+func (c *ModelRegistryServiceAPIController) UpdateExperiment(w http.ResponseWriter, r *http.Request) {
+	experimentIdParam := chi.URLParam(r, "experimentId")
+	experimentUpdateParam := *model.NewExperimentUpdateWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&experimentUpdateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertExperimentUpdateRequired(experimentUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertExperimentUpdateConstraints(experimentUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpdateExperiment(r.Context(), experimentIdParam, experimentUpdateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// UpdateExperimentRun - Update an ExperimentRun
+func (c *ModelRegistryServiceAPIController) UpdateExperimentRun(w http.ResponseWriter, r *http.Request) {
+	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
+	experimentRunUpdateParam := *model.NewExperimentRunUpdateWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&experimentRunUpdateParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertExperimentRunUpdateRequired(experimentRunUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertExperimentRunUpdateConstraints(experimentRunUpdateParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpdateExperimentRun(r.Context(), experimentrunIdParam, experimentRunUpdateParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1041,6 +1423,34 @@ func (c *ModelRegistryServiceAPIController) UpdateServingEnvironment(w http.Resp
 		return
 	}
 	result, err := c.service.UpdateServingEnvironment(r.Context(), servingenvironmentIdParam, servingEnvironmentUpdateParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// UpsertExperimentRunArtifact - Upsert an Artifact in an ExperimentRun
+func (c *ModelRegistryServiceAPIController) UpsertExperimentRunArtifact(w http.ResponseWriter, r *http.Request) {
+	experimentrunIdParam := chi.URLParam(r, "experimentrunId")
+	artifactParam := *model.NewArtifactWithDefaults()
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&artifactParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertArtifactRequired(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertArtifactConstraints(artifactParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpsertExperimentRunArtifact(r.Context(), experimentrunIdParam, artifactParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

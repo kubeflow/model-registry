@@ -24,26 +24,17 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
+		withNotEditable, err := b.mapper.UpdateExistingServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		serveModel = &withNotEditable
 	}
 
-	srvModel, err := b.mapper.MapFromServeModel(serveModel)
+	srvModel, err := b.mapper.MapFromServeModel(serveModel, inferenceServiceId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	name := ""
-
-	if srvModel.GetAttributes().Name != nil {
-		name = *srvModel.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, name)
-	srvModel.GetAttributes().Name = &prefixedName
 
 	if inferenceServiceId == nil && srvModel.GetID() == nil {
 		return nil, fmt.Errorf("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: %w", api.ErrBadRequest)

@@ -17,8 +17,18 @@ import (
 
 // Artifact - A metadata Artifact Entity.
 type Artifact struct {
+	DataSet       *DataSet
 	DocArtifact   *DocArtifact
+	Metric        *Metric
 	ModelArtifact *ModelArtifact
+	Parameter     *Parameter
+}
+
+// DataSetAsArtifact is a convenience function that returns DataSet wrapped in Artifact
+func DataSetAsArtifact(v *DataSet) Artifact {
+	return Artifact{
+		DataSet: v,
+	}
 }
 
 // DocArtifactAsArtifact is a convenience function that returns DocArtifact wrapped in Artifact
@@ -28,10 +38,24 @@ func DocArtifactAsArtifact(v *DocArtifact) Artifact {
 	}
 }
 
+// MetricAsArtifact is a convenience function that returns Metric wrapped in Artifact
+func MetricAsArtifact(v *Metric) Artifact {
+	return Artifact{
+		Metric: v,
+	}
+}
+
 // ModelArtifactAsArtifact is a convenience function that returns ModelArtifact wrapped in Artifact
 func ModelArtifactAsArtifact(v *ModelArtifact) Artifact {
 	return Artifact{
 		ModelArtifact: v,
+	}
+}
+
+// ParameterAsArtifact is a convenience function that returns Parameter wrapped in Artifact
+func ParameterAsArtifact(v *Parameter) Artifact {
+	return Artifact{
+		Parameter: v,
 	}
 }
 
@@ -45,6 +69,18 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
+	// check if the discriminator value is 'DataSet'
+	if jsonDict["artifactType"] == "DataSet" {
+		// try to unmarshal JSON data into DataSet
+		err = json.Unmarshal(data, &dst.DataSet)
+		if err == nil {
+			return nil // data stored in dst.DataSet, return on the first match
+		} else {
+			dst.DataSet = nil
+			return fmt.Errorf("failed to unmarshal Artifact as DataSet: %s", err.Error())
+		}
+	}
+
 	// check if the discriminator value is 'DocArtifact'
 	if jsonDict["artifactType"] == "DocArtifact" {
 		// try to unmarshal JSON data into DocArtifact
@@ -54,6 +90,18 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		} else {
 			dst.DocArtifact = nil
 			return fmt.Errorf("failed to unmarshal Artifact as DocArtifact: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'Metric'
+	if jsonDict["artifactType"] == "Metric" {
+		// try to unmarshal JSON data into Metric
+		err = json.Unmarshal(data, &dst.Metric)
+		if err == nil {
+			return nil // data stored in dst.Metric, return on the first match
+		} else {
+			dst.Metric = nil
+			return fmt.Errorf("failed to unmarshal Artifact as Metric: %s", err.Error())
 		}
 	}
 
@@ -69,6 +117,30 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		}
 	}
 
+	// check if the discriminator value is 'Parameter'
+	if jsonDict["artifactType"] == "Parameter" {
+		// try to unmarshal JSON data into Parameter
+		err = json.Unmarshal(data, &dst.Parameter)
+		if err == nil {
+			return nil // data stored in dst.Parameter, return on the first match
+		} else {
+			dst.Parameter = nil
+			return fmt.Errorf("failed to unmarshal Artifact as Parameter: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'dataset-artifact'
+	if jsonDict["artifactType"] == "dataset-artifact" {
+		// try to unmarshal JSON data into DataSet
+		err = json.Unmarshal(data, &dst.DataSet)
+		if err == nil {
+			return nil // data stored in dst.DataSet, return on the first match
+		} else {
+			dst.DataSet = nil
+			return fmt.Errorf("failed to unmarshal Artifact as DataSet: %s", err.Error())
+		}
+	}
+
 	// check if the discriminator value is 'doc-artifact'
 	if jsonDict["artifactType"] == "doc-artifact" {
 		// try to unmarshal JSON data into DocArtifact
@@ -78,6 +150,18 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		} else {
 			dst.DocArtifact = nil
 			return fmt.Errorf("failed to unmarshal Artifact as DocArtifact: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'metric'
+	if jsonDict["artifactType"] == "metric" {
+		// try to unmarshal JSON data into Metric
+		err = json.Unmarshal(data, &dst.Metric)
+		if err == nil {
+			return nil // data stored in dst.Metric, return on the first match
+		} else {
+			dst.Metric = nil
+			return fmt.Errorf("failed to unmarshal Artifact as Metric: %s", err.Error())
 		}
 	}
 
@@ -93,17 +177,41 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		}
 	}
 
+	// check if the discriminator value is 'parameter'
+	if jsonDict["artifactType"] == "parameter" {
+		// try to unmarshal JSON data into Parameter
+		err = json.Unmarshal(data, &dst.Parameter)
+		if err == nil {
+			return nil // data stored in dst.Parameter, return on the first match
+		} else {
+			dst.Parameter = nil
+			return fmt.Errorf("failed to unmarshal Artifact as Parameter: %s", err.Error())
+		}
+	}
+
 	return nil
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src Artifact) MarshalJSON() ([]byte, error) {
+	if src.DataSet != nil {
+		return json.Marshal(&src.DataSet)
+	}
+
 	if src.DocArtifact != nil {
 		return json.Marshal(&src.DocArtifact)
 	}
 
+	if src.Metric != nil {
+		return json.Marshal(&src.Metric)
+	}
+
 	if src.ModelArtifact != nil {
 		return json.Marshal(&src.ModelArtifact)
+	}
+
+	if src.Parameter != nil {
+		return json.Marshal(&src.Parameter)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -114,12 +222,24 @@ func (obj *Artifact) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
+	if obj.DataSet != nil {
+		return obj.DataSet
+	}
+
 	if obj.DocArtifact != nil {
 		return obj.DocArtifact
 	}
 
+	if obj.Metric != nil {
+		return obj.Metric
+	}
+
 	if obj.ModelArtifact != nil {
 		return obj.ModelArtifact
+	}
+
+	if obj.Parameter != nil {
+		return obj.Parameter
 	}
 
 	// all schemas are nil

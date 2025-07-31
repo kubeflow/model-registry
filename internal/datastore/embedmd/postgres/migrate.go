@@ -48,7 +48,6 @@ func NewPostgresMigrator(db *gorm.DB) (*PostgresMigrator, error) {
 		return nil, err
 	}
 
-
 	return &PostgresMigrator{
 		migrator: m,
 	}, nil
@@ -84,4 +83,4 @@ func (m *PostgresMigrator) Down(steps *int) error {
 	}
 
 	return m.migrator.Steps(*steps)
-} 
+}

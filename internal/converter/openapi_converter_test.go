@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/stretchr/testify/assert"
 )
 
 // visitor
@@ -36,6 +37,15 @@ func newVisitor(t *testing.T, _ *ast.File) visitor {
 			"ModelArtifact": {
 				obj: openapi.ModelArtifact{},
 			},
+			"DataSet": {
+				obj: openapi.DataSet{},
+			},
+			"Metric": {
+				obj: openapi.Metric{},
+			},
+			"Parameter": {
+				obj: openapi.Parameter{},
+			},
 			"ServingEnvironment": {
 				obj: openapi.ServingEnvironment{},
 			},
@@ -47,6 +57,12 @@ func newVisitor(t *testing.T, _ *ast.File) visitor {
 			},
 			"Artifact": {
 				obj: openapi.Artifact{},
+			},
+			"Experiment": {
+				obj: openapi.Experiment{},
+			},
+			"ExperimentRun": {
+				obj: openapi.ExperimentRun{},
 			},
 		},
 	}
@@ -145,6 +161,10 @@ var (
 	overrideNotEditableMethodPattern *regexp.Regexp = regexp.MustCompile(`OverrideNotEditableFor(?P<entity>\w+)`)
 	ignoreDirectivePattern           *regexp.Regexp = regexp.MustCompile(`// goverter:ignore (?P<fields>.+)`)
 )
+
+func setup(t *testing.T) *assert.Assertions {
+	return assert.New(t)
+}
 
 func TestOverrideNotEditableFields(t *testing.T) {
 	_ = setup(t)

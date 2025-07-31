@@ -13,7 +13,8 @@ import (
 )
 
 func TestUpsertModelVersion(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		// First create a registered model
@@ -428,7 +429,8 @@ func TestUpsertModelVersion(t *testing.T) {
 }
 
 func TestGetModelVersionById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a registered model
@@ -482,7 +484,8 @@ func TestGetModelVersionById(t *testing.T) {
 }
 
 func TestGetModelVersionByInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get with specific model version", func(t *testing.T) {
 		// Create a registered model
@@ -593,7 +596,8 @@ func TestGetModelVersionByInferenceService(t *testing.T) {
 }
 
 func TestGetModelVersionByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name and registered model id", func(t *testing.T) {
 		// Create a registered model
@@ -671,7 +675,8 @@ func TestGetModelVersionByParams(t *testing.T) {
 }
 
 func TestGetModelVersions(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create a registered model
@@ -797,7 +802,8 @@ func TestGetModelVersions(t *testing.T) {
 }
 
 func TestModelVersionRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a registered model
