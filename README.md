@@ -206,5 +206,5 @@ spec.template.spec.containers.image: public.ecr.aws/docker/library/mysql:8.3.0
 ```
 
 > The Swagger Editor no longer supports external URLs directly.  
-You can view the UI API spec using Redoc here:
-[View UI Swagger Spec (Redoc)](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/clients/ui/api/openapi/mod-arch.yaml)
+You can view the UI API spec via the official Kubeflow documentation:  
+[View UI Swagger Spec](https://www.kubeflow.org/docs/components/model-registry/reference/rest-api/#swagger-ui)
