@@ -7,7 +7,7 @@ import {
 } from 'mod-arch-shared';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
 import * as k8sApi from '~/app/api/k8s';
-import useModelRegistryRoleBindings from '../useModelRegistryRoleBindings';
+import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 
 // Mock mod-arch-shared
 jest.mock('mod-arch-shared', () => ({
