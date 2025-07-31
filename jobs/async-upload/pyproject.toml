@@ -12,6 +12,7 @@ configargparse = ">=1.7.1,<2.0.0"
 model-registry = { version = ">=0.2.19,<0.3.0", extras = ["boto3", "olot"] }
 pydantic = ">=2.0.0,<3.0.0"
 huggingface-hub = "^0.33.5"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3.5,<9.0.0"
@@ -19,7 +20,6 @@ aiohttp = "^3.12.14"
 
 [tool.poetry.group.integration.dependencies]
 kubernetes = "^33.0.0"
-requests = "^2.31.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -35,3 +35,6 @@ markers = [
 
 [tool.poetry.scripts]
 debug-test = "debugpy:main --listen 5678 --wait-for-client -m pytest jobs/async-upload/tests/test_config.py -v"
+
+[tool.ruff]
+line-length = 119
