@@ -16,6 +16,8 @@ try:
 except ImportError:
     pytest.skip("model-registry client not available", allow_module_level=True)
 
+HTTP_SOURCE = "https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx"
+
 
 @pytest.fixture(scope="session")
 def k8s_client():
@@ -238,9 +240,7 @@ def _setup_s3(tmp_path):
     model_filepath = model_dirpath / "mnist-8.onnx"
 
     # Download the model
-    response = requests.get(
-        "https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx"
-    )
+    response = requests.get(HTTP_SOURCE)
     response.raise_for_status()
 
     model_dirpath.mkdir()
@@ -260,7 +260,7 @@ def _setup_s3(tmp_path):
             None,
             {
                 "MODEL_SYNC_SOURCE_TYPE": "uri",
-                "MODEL_SYNC_SOURCE_URI": "https://huggingface.co/sadhaklal/logistic-regression-iris/resolve/main/pytorch_model.bin",
+                "MODEL_SYNC_SOURCE_URI": HTTP_SOURCE,
             },
         ),
         (
