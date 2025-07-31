@@ -1,10 +1,13 @@
 import { mockRoleBindingK8sResource } from '~/__mocks__/mockRoleBindingK8sResource';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+import { NamespaceKind } from '~/app/shared/components/types';
 import {
   castRoleBindingPermissionsRoleType,
   firstSubject,
   isCurrentUserChanging,
   roleLabel,
+  namespaceToDisplayName,
+  displayNameToNamespace,
 } from '~/app/pages/settings/roleBinding/utils';
 
 describe('firstSubject', () => {
@@ -80,5 +83,79 @@ describe('roleLabel', () => {
   it('should return Admin, when the RoleBindingPermissionsRoleType is Admin', () => {
     const result = roleLabel(RoleBindingPermissionsRoleType.ADMIN);
     expect(result).toBe('Admin');
+  });
+});
+
+describe('namespaceToDisplayName', () => {
+  const mockNamespaces: NamespaceKind[] = [
+    { name: 'default', 'display-name': 'Default Namespace' },
+    { name: 'kube-system', 'display-name': 'Kubernetes System' },
+    { name: 'my-project', 'display-name': 'My Project' },
+  ];
+
+  it('should return display name when namespace exists', () => {
+    const result = namespaceToDisplayName('default', mockNamespaces);
+    expect(result).toBe('Default Namespace');
+  });
+
+  it('should return original namespace name when namespace not found', () => {
+    const result = namespaceToDisplayName('non-existent', mockNamespaces);
+    expect(result).toBe('non-existent');
+  });
+
+  it('should return namespace name when namespaces array is empty', () => {
+    const result = namespaceToDisplayName('default', []);
+    expect(result).toBe('default');
+  });
+
+  it('should handle namespace with same name and display-name', () => {
+    const namespaces: NamespaceKind[] = [{ name: 'test', 'display-name': 'test' }];
+    const result = namespaceToDisplayName('test', namespaces);
+    expect(result).toBe('test');
+  });
+
+  it('should handle empty display name gracefully', () => {
+    const namespaces: NamespaceKind[] = [{ name: 'test', 'display-name': '' }];
+    const result = namespaceToDisplayName('test', namespaces);
+    expect(result).toBe('test');
+  });
+});
+
+describe('displayNameToNamespace', () => {
+  const mockNamespaces: NamespaceKind[] = [
+    { name: 'default', 'display-name': 'Default Namespace' },
+    { name: 'kube-system', 'display-name': 'Kubernetes System' },
+    { name: 'my-project', 'display-name': 'My Project' },
+  ];
+
+  it('should return namespace name when display name exists', () => {
+    const result = displayNameToNamespace('Default Namespace', mockNamespaces);
+    expect(result).toBe('default');
+  });
+
+  it('should return original display name when namespace not found', () => {
+    const result = displayNameToNamespace('Non Existent', mockNamespaces);
+    expect(result).toBe('Non Existent');
+  });
+
+  it('should return display name when namespaces array is empty', () => {
+    const result = displayNameToNamespace('Default Namespace', []);
+    expect(result).toBe('Default Namespace');
+  });
+
+  it('should handle namespace with same name and display-name', () => {
+    const namespaces: NamespaceKind[] = [{ name: 'test', 'display-name': 'test' }];
+    const result = displayNameToNamespace('test', namespaces);
+    expect(result).toBe('test');
+  });
+
+  it('should be case sensitive', () => {
+    const result = displayNameToNamespace('default namespace', mockNamespaces);
+    expect(result).toBe('default namespace');
+  });
+
+  it('should handle exact matches only', () => {
+    const result = displayNameToNamespace('Default', mockNamespaces);
+    expect(result).toBe('Default');
   });
 });
