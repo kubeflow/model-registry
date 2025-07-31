@@ -133,11 +133,15 @@ func (sc *SourceCollection) load(path string) error {
 
 	sources := make(map[string]CatalogSource, len(config.Catalogs))
 	for _, catalogConfig := range config.Catalogs {
-		// If explicitly set to false, skip
-		// If not explicitly set, default to enabled
+		// If enabled is explicitly set to false, skip
 		hasEnabled := catalogConfig.HasEnabled()
 		if hasEnabled && *catalogConfig.Enabled == false {
 			continue
+		}
+		// If not explicitly set, default to enabled
+		if !hasEnabled {
+			t := true
+			catalogConfig.CatalogSource.Enabled = &t
 		}
 
 		catalogType := catalogConfig.Type
@@ -156,12 +160,6 @@ func (sc *SourceCollection) load(path string) error {
 		provider, err := registerFunc(&catalogConfig)
 		if err != nil {
 			return fmt.Errorf("error reading catalog type %s with id %s: %v", catalogType, id, err)
-		}
-		// If not explicitly set, default to enabled
-		hasEnabled := catalogConfig.HasEnabled()
-		if !hasEnabled {
-			t := true
-			catalogConfig.CatalogSource.Enabled = &t
 		}
 
 		sources[id] = CatalogSource{
