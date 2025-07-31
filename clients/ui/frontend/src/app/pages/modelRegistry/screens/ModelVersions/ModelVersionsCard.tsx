@@ -11,24 +11,34 @@ import {
   Flex,
   FlexItem,
   Divider,
+  Truncate,
 } from '@patternfly/react-core';
 import { Link } from 'react-router';
 import { ArrowRightIcon } from '@patternfly/react-icons';
+import { TruncatedText } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { filterLiveVersions } from '~/app/utils';
+import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
-import { modelVersionListUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import {
+  archiveModelVersionDetailsUrl,
+  archiveModelVersionListUrl,
+  modelVersionListUrl,
+  modelVersionUrl,
+} from '~/app/pages/modelRegistry/screens/routeUtils';
 
 type ModelVersionsCardProps = {
   rm: RegisteredModel;
+  isArchiveModel?: boolean;
 };
 
-const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm }) => {
+const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveModel }) => {
   const [modelVersions] = useModelVersionsByRegisteredModel(rm.id);
-  const liveModelVersions = filterLiveVersions(modelVersions.items);
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
-  const latestModelVersions = liveModelVersions
+  const filteredVersions = isArchiveModel
+    ? filterArchiveVersions(modelVersions.items)
+    : filterLiveVersions(modelVersions.items);
+  const latestModelVersions = filteredVersions
     .toSorted((a, b) => Number(b.createTimeSinceEpoch) - Number(a.createTimeSinceEpoch))
     .slice(0, 3);
 
@@ -37,7 +47,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm }) => {
       <CardTitle>Latest versions</CardTitle>
       <CardBody>
         <Divider />
-        {modelVersions.items.length > 0 ? (
+        {latestModelVersions.length > 0 ? (
           <List isPlain isBordered>
             {latestModelVersions.map((mv) => (
               <ListItem
@@ -48,14 +58,22 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm }) => {
                 <Flex spaceItems={{ default: 'spaceItemsXs' }} direction={{ default: 'column' }}>
                   <FlexItem>
                     <Link
-                      to={modelVersionUrl(mv.id, rm.id, preferredModelRegistry?.name)}
+                      to={
+                        isArchiveModel
+                          ? archiveModelVersionDetailsUrl(
+                              mv.id,
+                              rm.id,
+                              preferredModelRegistry?.name,
+                            )
+                          : modelVersionUrl(mv.id, rm.id, preferredModelRegistry?.name)
+                      }
                       data-testid={`model-version-${mv.id}-link`}
                     >
-                      {mv.name}
+                      <Truncate content={mv.name} />
                     </Link>
                   </FlexItem>
                   <FlexItem>
-                    <>{mv.description}</>
+                    <TruncatedText content={mv.description} maxLines={2} />
                   </FlexItem>
                   <FlexItem>
                     <LabelGroup>
@@ -78,12 +96,16 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm }) => {
                 component="a"
                 isInline
                 data-testid="versions-route-link"
-                href={modelVersionListUrl(rm.id, preferredModelRegistry?.name)}
+                href={
+                  isArchiveModel
+                    ? archiveModelVersionListUrl(rm.id, preferredModelRegistry?.name)
+                    : modelVersionListUrl(rm.id, preferredModelRegistry?.name)
+                }
                 variant="link"
                 icon={<ArrowRightIcon />}
                 iconPosition="right"
               >
-                View all versions
+                {`View all ${filteredVersions.length} versions`}
               </Button>
             </ListItem>
           </List>
