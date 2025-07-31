@@ -45,6 +45,7 @@ func TestLoadCatalogSources(t *testing.T) {
 }
 
 func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
+	trueValue := true
 	type args struct {
 		catalogsPath string
 	}
@@ -61,7 +62,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				"catalog1": {
 					Id:      "catalog1",
 					Name:    "Catalog 1",
-					Enabled: &[]bool{true}[0],
+					Enabled: &trueValue,
 				},
 				"catalog2": {
 					Id:      "catalog2",
@@ -71,7 +72,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				"catalog3": {
 					Id:      "catalog3",
 					Name:    "Catalog 3",
-					Enabled: &[]bool{true}[0],
+					Enabled: &trueValue,
 				},
 			},
 			wantErr: false,

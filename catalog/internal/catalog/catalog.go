@@ -153,7 +153,8 @@ func (sc *SourceCollection) load(path string) error {
 		// If not explicitly set, default to enabled
 		hasEnabled := catalogConfig.HasEnabled()
 		if !hasEnabled {
-			catalogConfig.CatalogSource.Enabled = &[]bool{true}[0]
+			t := true
+			catalogConfig.CatalogSource.Enabled = &t
 		}
 
 		sources[id] = CatalogSource{
