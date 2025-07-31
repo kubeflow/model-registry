@@ -3,8 +3,8 @@ import * as k8sApi from '~/app/api/k8s';
 import {
   createModelRegistryRoleBindingWrapper,
   deleteModelRegistryRoleBindingWrapper,
-  createModelRegistryProjectRoleBinding,
-  deleteModelRegistryProjectRoleBinding,
+  createModelRegistryNamespaceRoleBinding,
+  deleteModelRegistryNamespaceRoleBinding,
 } from '~/app/pages/settings/roleBindingUtils';
 
 // Mock the k8s API functions
@@ -108,25 +108,25 @@ describe('roleBindingUtils', () => {
     });
   });
 
-  describe('createModelRegistryProjectRoleBinding', () => {
-    it('should add project-specific label before calling createRoleBinding', async () => {
+  describe('createModelRegistryNamespaceRoleBinding', () => {
+    it('should add namespace-specific label before calling createRoleBinding', async () => {
       const mockFinalCall = jest.fn().mockResolvedValue(mockRoleBinding);
       mockedK8sApi.createRoleBinding.mockReturnValue((opts, data) => mockFinalCall(opts, data));
 
-      const result = await createModelRegistryProjectRoleBinding(mockRoleBinding);
+      const result = await createModelRegistryNamespaceRoleBinding(mockRoleBinding);
 
       expect(mockedK8sApi.createRoleBinding).toHaveBeenCalledWith('https://example.com', {});
 
-      // Verify that the project-specific label was added
+      // Verify that the namespace-specific label was added
       const callArgs = mockFinalCall.mock.calls[0];
       const modifiedRoleBinding = callArgs[1];
       expect(modifiedRoleBinding.metadata.labels['app.kubernetes.io/component']).toBe(
-        'model-registry-project-rbac',
+        'model-registry-namespace-rbac',
       );
       expect(result).toEqual(mockRoleBinding);
     });
 
-    it('should preserve existing labels when adding project label', async () => {
+    it('should preserve existing labels when adding namespace label', async () => {
       const roleBindingWithLabels: RoleBindingKind = {
         ...mockRoleBinding,
         metadata: {
@@ -141,7 +141,7 @@ describe('roleBindingUtils', () => {
       const mockFinalCall = jest.fn().mockResolvedValue(roleBindingWithLabels);
       mockedK8sApi.createRoleBinding.mockReturnValue((opts, data) => mockFinalCall(opts, data));
 
-      await createModelRegistryProjectRoleBinding(roleBindingWithLabels);
+      await createModelRegistryNamespaceRoleBinding(roleBindingWithLabels);
 
       const callArgs = mockFinalCall.mock.calls[0];
       const modifiedRoleBinding = callArgs[1];
@@ -149,7 +149,7 @@ describe('roleBindingUtils', () => {
       expect(modifiedRoleBinding.metadata.labels['existing.label']).toBe('value');
       expect(modifiedRoleBinding.metadata.labels['another.label']).toBe('another-value');
       expect(modifiedRoleBinding.metadata.labels['app.kubernetes.io/component']).toBe(
-        'model-registry-project-rbac',
+        'model-registry-namespace-rbac',
       );
     });
 
@@ -165,49 +165,49 @@ describe('roleBindingUtils', () => {
       const mockFinalCall = jest.fn().mockResolvedValue(roleBindingWithoutLabels);
       mockedK8sApi.createRoleBinding.mockReturnValue((opts, data) => mockFinalCall(opts, data));
 
-      await createModelRegistryProjectRoleBinding(roleBindingWithoutLabels);
+      await createModelRegistryNamespaceRoleBinding(roleBindingWithoutLabels);
 
       const callArgs = mockFinalCall.mock.calls[0];
       const modifiedRoleBinding = callArgs[1];
 
       expect(modifiedRoleBinding.metadata.labels['app.kubernetes.io/component']).toBe(
-        'model-registry-project-rbac',
+        'model-registry-namespace-rbac',
       );
     });
   });
 
-  describe('deleteModelRegistryProjectRoleBinding', () => {
-    it('should call deleteRoleBinding and return project-specific success status', async () => {
+  describe('deleteModelRegistryNamespaceRoleBinding', () => {
+    it('should call deleteRoleBinding and return namespace-specific success status', async () => {
       const mockFinalCall = jest.fn().mockResolvedValue(undefined);
       mockedK8sApi.deleteRoleBinding.mockReturnValue((opts, name) => mockFinalCall(opts, name));
 
-      const result = await deleteModelRegistryProjectRoleBinding(
-        'test-project-role-binding',
+      const result = await deleteModelRegistryNamespaceRoleBinding(
+        'test-namespace-role-binding',
         'test-namespace',
       );
 
       expect(mockedK8sApi.deleteRoleBinding).toHaveBeenCalledWith('https://example.com', {});
-      expect(mockFinalCall).toHaveBeenCalledWith({}, 'test-project-role-binding');
+      expect(mockFinalCall).toHaveBeenCalledWith({}, 'test-namespace-role-binding');
 
       const expectedStatus: K8sStatus = {
         apiVersion: 'v1',
         kind: 'Status',
         status: 'Success',
         code: 200,
-        message: 'Project role binding deleted successfully',
+        message: 'Namespace role binding deleted successfully',
         reason: 'Deleted',
       };
       expect(result).toEqual(expectedStatus);
     });
 
     it('should propagate errors from deleteRoleBinding', async () => {
-      const error = new Error('Delete project failed');
+      const error = new Error('Delete namespace failed');
       const mockFinalCall = jest.fn().mockRejectedValue(error);
       mockedK8sApi.deleteRoleBinding.mockReturnValue((opts, name) => mockFinalCall(opts, name));
 
       await expect(
-        deleteModelRegistryProjectRoleBinding('test-project-role-binding', 'test-namespace'),
-      ).rejects.toThrow('Delete project failed');
+        deleteModelRegistryNamespaceRoleBinding('test-namespace-role-binding', 'test-namespace'),
+      ).rejects.toThrow('Delete namespace failed');
     });
   });
 });

@@ -1,40 +1,55 @@
 import React from 'react';
-import { Breadcrumb, BreadcrumbItem, PageSection, Tab, Tabs } from '@patternfly/react-core';
-import { Link, Navigate } from 'react-router-dom';
-import { ApplicationsPage } from 'mod-arch-shared';
+import { Navigate } from 'react-router-dom';
+import {
+  Tabs,
+  Tab,
+  TabTitleText,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateVariant,
+  Title,
+} from '@patternfly/react-core';
+import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
-import RedirectErrorState from '~/app/shared/components/RedirectErrorState';
 import { useModelRegistryPermissionsLogic } from './useModelRegistryPermissionsLogic';
 
-const ModelRegistriesManagePermissions: React.FC = () => {
+const ModelRegistriesPermissions: React.FC = () => {
   const {
     activeTabKey,
     setActiveTabKey,
     ownerReference,
     groups,
     filteredRoleBindings,
-    filteredProjectRoleBindings,
+    filteredNamespaceRoleBindings,
     mrName,
     modelRegistryNamespace,
     roleBindings,
     userPermissionOptions,
-    projectPermissionOptions,
+    namespacePermissionOptions,
     createUserRoleBinding,
     deleteUserRoleBinding,
-    createProjectRoleBinding,
-    deleteProjectRoleBinding,
+    createNamespaceRoleBinding,
+    deleteNamespaceRoleBinding,
     userRoleRefName,
-    projectRoleRefName,
+    namespaceRoleRefName,
     shouldShowError,
     shouldRedirect,
   } = useModelRegistryPermissionsLogic();
 
-  // Handle error states
   if (shouldShowError) {
     return (
-      <ApplicationsPage loaded empty={false}>
-        <RedirectErrorState title="Could not load component state" />
-      </ApplicationsPage>
+      <EmptyState
+        headingLevel="h2"
+        icon={ExclamationCircleIcon}
+        titleText="There was an issue loading permissions."
+        variant={EmptyStateVariant.lg}
+        data-id="error-empty-state"
+        id="permissions"
+      >
+        <EmptyStateBody>
+          Unable to load model registry permissions. Refresh the page to try again.
+        </EmptyStateBody>
+      </EmptyState>
     );
   }
 
@@ -43,26 +58,17 @@ const ModelRegistriesManagePermissions: React.FC = () => {
   }
 
   return (
-    <ApplicationsPage
-      title={`Manage ${mrName ?? ''} permissions`}
-      description="Manage access to this model registry for individual users and user groups, and for service accounts in a project."
-      breadcrumb={
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <Link to="/modelRegistrySettings">Model registry settings</Link>
-          </BreadcrumbItem>
-          <BreadcrumbItem isActive>Manage Permissions</BreadcrumbItem>
-        </Breadcrumb>
-      }
-      loaded
-      empty={false}
-    >
-      <Tabs activeKey={activeTabKey} onSelect={(_e, tabIndex) => setActiveTabKey(Number(tabIndex))}>
-        <Tab eventKey={0} title="Users" />
-        <Tab eventKey={1} title="Projects" />
-      </Tabs>
-      <PageSection isFilled>
-        {activeTabKey === 0 && (
+    <>
+      <Title headingLevel="h2" size="xl">
+        Manage {mrName} permissions
+      </Title>
+      <Tabs
+        activeKey={activeTabKey}
+        onSelect={(event, tabIndex) => setActiveTabKey(Number(tabIndex))}
+        usePageInsets
+        id="manage-permissions-tabs"
+      >
+        <Tab eventKey={0} title={<TabTitleText>Users</TabTitleText>}>
           <RoleBindingPermissions
             ownerReference={ownerReference}
             roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
@@ -72,28 +78,28 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             projectName={modelRegistryNamespace}
             permissionOptions={userPermissionOptions}
             description="To enable access for all cluster users, add system:authenticated to the group list."
-            roleRefKind="Role"
+            roleRefKind="ClusterRole"
             roleRefName={userRoleRefName}
           />
-        )}
-        {activeTabKey === 1 && (
+        </Tab>
+        <Tab eventKey={1} title={<TabTitleText>Namespaces</TabTitleText>}>
           <RoleBindingPermissions
             ownerReference={ownerReference}
-            roleBindingPermissionsRB={{ ...roleBindings, data: filteredProjectRoleBindings }}
-            groups={[]} // Projects don't use groups
-            createRoleBinding={createProjectRoleBinding}
-            deleteRoleBinding={deleteProjectRoleBinding}
+            roleBindingPermissionsRB={{ ...roleBindings, data: filteredNamespaceRoleBindings }}
+            groups={[]} // Namespaces don't use groups
+            createRoleBinding={createNamespaceRoleBinding}
+            deleteRoleBinding={deleteNamespaceRoleBinding}
             projectName={modelRegistryNamespace}
-            permissionOptions={projectPermissionOptions}
-            description="Grant access to model registry for service accounts within specific projects."
-            roleRefKind="Role"
-            roleRefName={projectRoleRefName}
+            permissionOptions={namespacePermissionOptions}
+            description="Grant access to model registry for service accounts within specific namespaces."
+            roleRefKind="ClusterRole"
+            roleRefName={namespaceRoleRefName}
             isProjectSubject
           />
-        )}
-      </PageSection>
-    </ApplicationsPage>
+        </Tab>
+      </Tabs>
+    </>
   );
 };
 
-export default ModelRegistriesManagePermissions;
+export default ModelRegistriesPermissions;

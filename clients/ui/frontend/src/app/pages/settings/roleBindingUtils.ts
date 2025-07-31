@@ -25,25 +25,25 @@ export const deleteModelRegistryRoleBindingWrapper = async (
   };
 };
 
-export const createModelRegistryProjectRoleBinding = async (
+export const createModelRegistryNamespaceRoleBinding = async (
   roleBinding: RoleBindingKind,
 ): Promise<RoleBindingKind> => {
   const hostPath = window.location.origin;
-  // Add project-specific labels
-  const projectRoleBinding = {
+  // Add namespace-specific labels
+  const namespaceRoleBinding = {
     ...roleBinding,
     metadata: {
       ...roleBinding.metadata,
       labels: {
         ...roleBinding.metadata.labels,
-        'app.kubernetes.io/component': 'model-registry-project-rbac',
+        'app.kubernetes.io/component': 'model-registry-namespace-rbac',
       },
     },
   };
-  return createRoleBinding(hostPath, {})({}, projectRoleBinding);
+  return createRoleBinding(hostPath, {})({}, namespaceRoleBinding);
 };
 
-export const deleteModelRegistryProjectRoleBinding = async (
+export const deleteModelRegistryNamespaceRoleBinding = async (
   name: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   namespace: string,
@@ -55,7 +55,7 @@ export const deleteModelRegistryProjectRoleBinding = async (
     kind: 'Status',
     status: 'Success' as const,
     code: 200,
-    message: 'Project role binding deleted successfully',
+    message: 'Namespace role binding deleted successfully',
     reason: 'Deleted',
   };
 };
