@@ -842,53 +842,68 @@ def test_nested_recursive_store_in_s3(
 
 
 @pytest.mark.e2e
-async def test_custom_async_runner_with_ray(
+def test_custom_async_runner_with_ray(
     client_attrs: dict[str, any], client: ModelRegistry
 ):
+    """Test Ray integration with uvloop event loop policy"""
     import asyncio
+    from unittest.mock import patch
 
     ray = pytest.importorskip("ray")
     import uvloop
 
-    # Test that uvloop is available and can be created
-    # In pytest-asyncio 1.0.0, we can't easily change the running loop to uvloop
-    # but we can verify uvloop works and test the Ray functionality
-    uvloop_available = True
-    try:
-        test_loop = uvloop.new_event_loop()
-        test_loop.close()
-    except Exception:
-        uvloop_available = False
+    def run_test_with_uvloop():
+        # Set up uvloop policy in this thread
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        loop = uvloop.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-    assert uvloop_available, "uvloop should be available"
+        try:
+            # Start the loop and verify we're actually using uvloop
+            async def verify_uvloop():
+                current_loop = asyncio.get_running_loop()
+                assert isinstance(current_loop, uvloop.Loop), (
+                    f"Expected uvloop.Loop, got {type(current_loop)}"
+                )
 
-    # Test the actual functionality with Ray
-    current_loop = asyncio.get_running_loop()
-    assert current_loop is not None
+            loop.run_until_complete(verify_uvloop())
 
-    @ray.remote
-    def test_with_ray():
-        atr = AsyncTaskRunner()
-        # we have to construct a client from scratch due to serialization issues from Ray
-        client = ModelRegistry(
-            server_address=client_attrs["host"],
-            port=client_attrs["port"],
-            author=client_attrs["author"],
-            is_secure=client_attrs["ssl"],
-            async_runner=atr.run,
-        )
-        client.register_model(
-            name="test_model",
-            uri="https://acme.org/something",
-            version="v1",
-            model_format_version="random",
-            model_format_name="onnx",
-        )
-        ma = client.get_model_artifact(name="test_model", version="v1")
-        assert ma.uri == "https://acme.org/something"
-        assert ma.model_format_name == "onnx"
+            # Mock nest_asyncio.apply to prevent conflicts with uvloop
+            with patch("nest_asyncio.apply"):
+                # Import here to avoid the nest_asyncio.apply() call during module loading
+                from tests.extras.async_task_runner import AsyncTaskRunner
 
-    ray.get(test_with_ray.remote())
+                @ray.remote
+                def test_with_ray():
+                    atr = AsyncTaskRunner()
+                    # we have to construct a client from scratch due to serialization issues from Ray
+                    client = ModelRegistry(
+                        server_address=client_attrs["host"],
+                        port=client_attrs["port"],
+                        author=client_attrs["author"],
+                        is_secure=client_attrs["ssl"],
+                        async_runner=atr.run,
+                    )
+                    client.register_model(
+                        name="test_model",
+                        uri="https://acme.org/something",
+                        version="v1",
+                        model_format_version="random",
+                        model_format_name="onnx",
+                    )
+                    ma = client.get_model_artifact(name="test_model", version="v1")
+                    assert ma.uri == "https://acme.org/something"
+                    assert ma.model_format_name == "onnx"
+
+                # Run the Ray test - ray.get is synchronous
+                ray.get(test_with_ray.remote())
+
+        finally:
+            if not loop.is_closed():
+                loop.close()
+
+    # Run the test - ray.get is synchronous and doesn't need the event loop
+    run_test_with_uvloop()
 
 
 @pytest.mark.e2e
