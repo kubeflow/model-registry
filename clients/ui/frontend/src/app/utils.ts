@@ -68,14 +68,14 @@ export const getLastCreatedItem = <T extends { createTimeSinceEpoch?: string }>(
     },
   )[0];
 
-export const filterArchiveVersions = (modelVersions?: ModelVersion[]): ModelVersion[] =>
-  modelVersions?.filter((mv) => mv.state === ModelState.ARCHIVED) ?? [];
+export const filterArchiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
+  modelVersions.filter((mv) => mv.state === ModelState.ARCHIVED);
 
-export const filterLiveVersions = (modelVersions?: ModelVersion[]): ModelVersion[] =>
-  modelVersions?.filter((mv) => mv.state === ModelState.LIVE) ?? [];
+export const filterLiveVersions = (modelVersions: ModelVersion[]): ModelVersion[] =>
+  modelVersions.filter((mv) => mv.state === ModelState.LIVE);
 
-export const filterArchiveModels = (registeredModels?: RegisteredModel[]): RegisteredModel[] =>
-  registeredModels?.filter((rm) => rm.state === ModelState.ARCHIVED) ?? [];
+export const filterArchiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
+  registeredModels.filter((rm) => rm.state === ModelState.ARCHIVED);
 
-export const filterLiveModels = (registeredModels?: RegisteredModel[]): RegisteredModel[] =>
-  registeredModels?.filter((rm) => rm.state === ModelState.LIVE) ?? [];
+export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
+  registeredModels.filter((rm) => rm.state === ModelState.LIVE);
