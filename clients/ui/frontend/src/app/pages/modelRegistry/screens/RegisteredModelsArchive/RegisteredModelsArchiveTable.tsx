@@ -32,7 +32,7 @@ const RegisteredModelsArchiveTable: React.FC<RegisteredModelsArchiveTableProps> 
       <RegisteredModelTableRow
         key={rm.name}
         registeredModel={rm}
-        LatestmodelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
+        latestModelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
         isArchiveRow
         refresh={refresh}
       />

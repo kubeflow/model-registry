@@ -33,7 +33,7 @@ const RegisteredModelTable: React.FC<RegisteredModelTableProps> = ({
         key={rm.name}
         hasDeploys={false}
         registeredModel={rm}
-        LatestmodelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
+        latestModelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
         refresh={refresh}
       />
     )}
