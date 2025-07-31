@@ -2,7 +2,7 @@ import { capitalize } from '@patternfly/react-core';
 import { RoleBindingKind } from 'mod-arch-shared';
 import { patchRoleBinding } from '~/app/api/k8s';
 import { getDisplayNameFromK8sResource } from '~/app/shared/components/utils';
-import { ProjectKind } from '~/app/shared/components/types';
+import { ProjectKind, NamespaceKind } from '~/app/shared/components/types';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 
 export const filterRoleBindingSubjects = (
@@ -105,4 +105,21 @@ export const projectDisplayNameToNamespace = (
     (p) => p.metadata.annotations?.['openshift.io/display-name'] === displayName,
   );
   return project?.metadata.name || displayName;
+};
+
+// New utility functions for NamespaceKind
+export const namespaceToDisplayName = (
+  namespaceName: string,
+  namespaces: NamespaceKind[],
+): string => {
+  const namespace = namespaces.find((ns) => ns.name === namespaceName);
+  return namespace?.['display-name'] || namespaceName;
+};
+
+export const displayNameToNamespace = (
+  displayName: string,
+  namespaces: NamespaceKind[],
+): string => {
+  const namespace = namespaces.find((ns) => ns['display-name'] === displayName);
+  return namespace?.name || displayName;
 };
