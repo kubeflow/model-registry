@@ -342,7 +342,7 @@ func TestFindSources(t *testing.T) {
 			name: "Single catalog",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -357,13 +357,13 @@ func TestFindSources(t *testing.T) {
 			name: "Multiple catalogs with no filter",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -378,13 +378,13 @@ func TestFindSources(t *testing.T) {
 			name: "Filter by name",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "Test",
@@ -399,13 +399,13 @@ func TestFindSources(t *testing.T) {
 			name: "Filter by name case insensitive",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "test",
@@ -420,13 +420,13 @@ func TestFindSources(t *testing.T) {
 			name: "Pagination - limit results",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -441,10 +441,10 @@ func TestFindSources(t *testing.T) {
 			name: "Default page size",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -459,7 +459,7 @@ func TestFindSources(t *testing.T) {
 			name: "Invalid page size",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -472,13 +472,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by ID ascending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -494,13 +494,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by ID descending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -516,13 +516,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by name ascending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &[]bool{true}[0]},
 				},
 			},
 			nameFilter:     "",
@@ -538,10 +538,10 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by name descending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &[]bool{true}[0]},
 				},
 				"catalog3": {
 					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
