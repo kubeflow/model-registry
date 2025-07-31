@@ -9,8 +9,6 @@ from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
 from model_registry.types.artifacts import DocArtifact
 
-from .extras.async_task_runner import AsyncTaskRunner
-
 
 def test_secure_client():
     os.environ["CERT"] = ""
