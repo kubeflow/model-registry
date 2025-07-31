@@ -150,6 +150,11 @@ func (sc *SourceCollection) load(path string) error {
 		if err != nil {
 			return fmt.Errorf("error reading catalog type %s with id %s: %v", catalogType, id, err)
 		}
+		// If not explicitly set, default to enabled
+		hasEnabled := catalogConfig.HasEnabled()
+		if !hasEnabled {
+			catalogConfig.CatalogSource.Enabled = &[]bool{true}[0]
+		}
 
 		sources[id] = CatalogSource{
 			Provider: provider,
