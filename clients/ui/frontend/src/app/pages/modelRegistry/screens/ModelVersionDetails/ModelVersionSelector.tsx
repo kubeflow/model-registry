@@ -1,7 +1,5 @@
 import * as React from 'react';
 import {
-  HelperText,
-  HelperTextItem,
   Menu,
   MenuContainer,
   MenuContent,
@@ -11,10 +9,19 @@ import {
   MenuSearchInput,
   MenuToggle,
   SearchInput,
+  Divider,
+  Button,
+  Label,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
+import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
 type ModelVersionSelectorProps = {
   rmId?: string;
@@ -32,15 +39,25 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 
   const toggleRef = React.useRef(null);
   const menuRef = React.useRef(null);
+  const navigate = useNavigate();
+  const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
   const liveModelVersions = filterLiveVersions(modelVersions.items);
+  const latestVersion = modelVersions.items.reduce(
+    (latest, current) =>
+      Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
+    modelVersions.items[0],
+  );
 
   const menuListItems = liveModelVersions
     .filter((item) => !input || item.name.toLowerCase().includes(input.toString().toLowerCase()))
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
-        {mv.name}
+        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+          <FlexItem>{mv.name}</FlexItem>
+          <FlexItem>{mv.id === latestVersion.id && <Label color="blue">Latest</Label>}</FlexItem>
+        </Flex>
       </MenuItem>
     ));
 
@@ -75,13 +92,25 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
               onChange={(_event, value) => setInput(value)}
             />
           </MenuSearchInput>
-          <HelperText style={{ paddingTop: '0.5rem' }}>
-            <HelperTextItem>
-              {`Type a name to search your ${liveModelVersions.length} versions.`}
-            </HelperTextItem>
-          </HelperText>
         </MenuSearch>
+        <Divider />
         <MenuList data-testid="model-version-selector-list">{menuListItems}</MenuList>
+        <MenuItem>
+          <Button
+            variant="link"
+            isInline
+            style={{ textTransform: 'none' }}
+            icon={<ArrowRightIcon />}
+            iconPosition="right"
+            onClick={() => {
+              setOpen(false);
+              navigate(modelVersionListUrl(rmId, preferredModelRegistry?.name));
+            }}
+            data-testid="view-all-versions-link"
+          >
+            {`View all ${modelVersions.items.length} versions`}
+          </Button>
+        </MenuItem>
       </MenuContent>
     </Menu>
   );
@@ -104,7 +133,6 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       }
       menu={menu}
       menuRef={menuRef}
-      popperProps={{ maxWidth: 'trigger' }}
       onOpenChange={(open) => setOpen(open)}
     />
   );

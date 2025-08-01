@@ -209,8 +209,9 @@ describe('Model version details', () => {
       verifyRelativeURL(
         '/model-registry/modelregistry-sample/registeredModels/1/versions/1/details',
       );
-      cy.findByTestId('app-page-title').should('have.text', 'Version 1');
+      cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
+      cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
     });
 
     it('should add a property', () => {
