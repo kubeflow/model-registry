@@ -16,6 +16,7 @@ import {
 } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionArchive';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { ToastNotification } from '~/__tests__/cypress/cypress/pages/components/Notification';
+import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 
 type HandlersProps = {
   registeredModelsSize?: number;
@@ -146,6 +147,18 @@ const initIntercepts = ({
       },
     },
     mockModelVersion({ id: '3', name: 'model version 3', state: ModelState.LIVE }),
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts`,
+    {
+      path: {
+        modelRegistryName: 'modelregistry-sample',
+        apiVersion: MODEL_REGISTRY_API_VERSION,
+        modelVersionId: 3,
+      },
+    },
+    mockModelArtifactList({}),
   );
 };
 
