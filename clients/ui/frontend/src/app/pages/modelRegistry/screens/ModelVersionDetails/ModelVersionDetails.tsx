@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem, Flex, FlexItem } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
@@ -95,7 +95,6 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
           </Flex>
         )
       }
-      description={<Truncate content={mv?.description || ''} />}
       loadError={mvLoadError}
       loaded={mvLoaded}
       provideChildrenPadding
