@@ -2,7 +2,7 @@ import { capitalize } from '@patternfly/react-core';
 import { RoleBindingKind } from 'mod-arch-shared';
 import { patchRoleBinding } from '~/app/api/k8s';
 import { getDisplayNameFromK8sResource } from '~/app/shared/components/utils';
-import { ProjectKind } from '~/app/shared/components/types';
+import { ProjectKind, NamespaceKind } from '~/app/shared/components/types';
 import { RoleBindingPermissionsRBType, RoleBindingPermissionsRoleType } from './types';
 
 export const filterRoleBindingSubjects = (
@@ -106,3 +106,24 @@ export const projectDisplayNameToNamespace = (
   );
   return project?.metadata.name || displayName;
 };
+
+// New utility functions for NamespaceKind
+/**
+ * Get the display name for a namespace.
+ * @param namespaceName The name of the namespace
+ * @param namespaces Array of NamespaceKind objects
+ * @returns The display name or namespace name if not found
+ */
+export const namespaceToDisplayName = (
+  namespaceName: string,
+  namespaces: NamespaceKind[],
+): string => namespaces.find((ns) => ns.name === namespaceName)?.displayName || namespaceName;
+
+/**
+ * Find a namespace by its display name.
+ * @param displayName The display name to search for
+ * @param namespaces Array of NamespaceKind objects
+ * @returns The namespace name or the display name if not found
+ */
+export const displayNameToNamespace = (displayName: string, namespaces: NamespaceKind[]): string =>
+  namespaces.find((ns) => ns.displayName === displayName)?.name || displayName;

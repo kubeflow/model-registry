@@ -2,21 +2,14 @@ import * as React from 'react';
 import { ActionsColumn, Tbody, Td, Tr } from '@patternfly/react-table';
 import {
   Button,
-  Popover,
   Split,
   SplitItem,
-  Content,
   Timestamp,
   TimestampTooltipVariant,
-  Tooltip,
   Truncate,
+  Skeleton,
 } from '@patternfly/react-core';
-import {
-  CheckIcon,
-  OutlinedQuestionCircleIcon,
-  TimesIcon,
-  EllipsisVIcon,
-} from '@patternfly/react-icons';
+import { CheckIcon, TimesIcon, EllipsisVIcon } from '@patternfly/react-icons';
 import {
   DashboardPopupIconButton,
   relativeTime,
@@ -24,24 +17,22 @@ import {
   RoleBindingSubject,
 } from 'mod-arch-shared';
 import useUser from '~/app/hooks/useUser';
-import { ProjectKind } from '~/app/shared/components/types';
+import { useNamespaces } from '~/app/hooks/useNamespaces';
+import { NamespaceKind } from '~/app/shared/components/types';
 import {
   castRoleBindingPermissionsRoleType,
-  firstSubject,
   roleLabel,
   isCurrentUserChanging,
-  projectDisplayNameToNamespace,
+  displayNameToNamespace,
 } from './utils';
 import { RoleBindingPermissionsRoleType } from './types';
-import RoleBindingPermissionsNameInput from './RoleBindingPermissionsNameInput';
+import { RoleBindingPermissionsNameInput } from './RoleBindingPermissionsNameInput';
 import RoleBindingPermissionsPermissionSelection from './RoleBindingPermissionsPermissionSelection';
 import RoleBindingPermissionsChangeModal from './RoleBindingPermissionsChangeModal';
 
 type RoleBindingPermissionsTableRowProps = {
   roleBindingObject?: RoleBindingKind;
   subjectKind: RoleBindingSubject['kind'];
-  isEditing: boolean;
-  isAdding: boolean;
   defaultRoleBindingName?: string;
   permissionOptions: {
     type: RoleBindingPermissionsRoleType;
@@ -49,8 +40,10 @@ type RoleBindingPermissionsTableRowProps = {
   }[];
   typeAhead?: string[];
   isProjectSubject?: boolean;
-  onChange: (name: string, roleType: RoleBindingPermissionsRoleType) => void;
-  onCancel: () => void;
+  isEditing?: boolean;
+  isAdding?: boolean;
+  onChange?: (subjectName: string, roleRefName: string) => void;
+  onCancel?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -58,8 +51,16 @@ type RoleBindingPermissionsTableRowProps = {
 const defaultValueName = (
   obj: RoleBindingKind,
   isProjectSubject?: boolean,
-  projects?: ProjectKind[],
-) => firstSubject(obj, isProjectSubject, projects);
+  namespaces?: NamespaceKind[],
+): string =>
+  isProjectSubject && namespaces
+    ? namespaces.find(
+        (ns) => ns.name === obj.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''),
+      )?.displayName ||
+      obj.subjects[0]?.name ||
+      ''
+    : obj.subjects[0]?.name || '';
+
 const defaultValueRole = (obj: RoleBindingKind) =>
   castRoleBindingPermissionsRoleType(obj.roleRef.name);
 
@@ -77,15 +78,14 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
   onEdit,
   onDelete,
 }) => {
-  // TODO: We don't have project context yet - might need to move the project-context part to shared library
-  const projects: ProjectKind[] = React.useMemo(() => [], []);
+  const [namespaces, namespacesLoaded] = useNamespaces();
   const currentUser = useUser();
   const isCurrentUserBeingChanged = isCurrentUserChanging(obj, currentUser.userId);
   const [roleBindingName, setRoleBindingName] = React.useState(() => {
     if (isAdding || !obj) {
       return '';
     }
-    return defaultValueName(obj, isProjectSubject, projects);
+    return defaultValueName(obj, isProjectSubject, namespaces);
   });
   const [roleBindingRoleRef, setRoleBindingRoleRef] =
     React.useState<RoleBindingPermissionsRoleType>(() => {
@@ -95,22 +95,33 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
       return defaultValueRole(obj);
     });
   const [isLoading, setIsLoading] = React.useState(false);
-  const createdDate = new Date(obj?.metadata.creationTimestamp ?? '');
+  const createdDate = obj?.metadata.creationTimestamp
+    ? new Date(obj.metadata.creationTimestamp)
+    : null;
   const isDefaultGroup = obj?.metadata.name === defaultRoleBindingName;
   const [showModal, setShowModal] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // Update name when namespaces load or change
+  React.useEffect(() => {
+    if (namespacesLoaded && obj && !isAdding && isProjectSubject) {
+      setRoleBindingName(defaultValueName(obj, isProjectSubject, namespaces));
+    }
+  }, [namespacesLoaded, obj, isAdding, isProjectSubject, namespaces]);
 
   //Sync local state with props if exiting edit mode
   React.useEffect(() => {
     if (!isEditing && obj) {
       setRoleBindingName(
         isProjectSubject
-          ? defaultValueName(obj, isProjectSubject, projects)
+          ? defaultValueName(obj, isProjectSubject, namespaces)
           : defaultValueName(obj),
       );
       setRoleBindingRoleRef(defaultValueRole(obj));
     }
-  }, [obj, isEditing, isProjectSubject, projects]);
+  }, [obj, isEditing, isProjectSubject, namespaces]);
+
+  const showLoadingSkeleton = isProjectSubject && !namespacesLoaded;
 
   return (
     <>
@@ -118,127 +129,116 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
         <Tr>
           <Td dataLabel="Username">
             {isEditing || isAdding ? (
-              <RoleBindingPermissionsNameInput
-                subjectKind={subjectKind}
-                value={roleBindingName}
-                onChange={(selection: React.SetStateAction<string>) => {
-                  setRoleBindingName(selection);
-                }}
-                onClear={() => setRoleBindingName('')}
-                placeholderText={isProjectSubject ? 'Select or enter a project' : 'Select a group'}
-                typeAhead={typeAhead}
-                isProjectSubject={isProjectSubject}
-              />
+              showLoadingSkeleton ? (
+                <Skeleton height="36px" />
+              ) : (
+                <RoleBindingPermissionsNameInput
+                  subjectKind={subjectKind}
+                  value={roleBindingName}
+                  onChange={(selection) => setRoleBindingName(selection)}
+                  onClear={() => setRoleBindingName('')}
+                  placeholderText={`Type ${
+                    isProjectSubject
+                      ? 'project name'
+                      : subjectKind === 'Group'
+                        ? 'group name'
+                        : 'username'
+                  }`}
+                  typeAhead={typeAhead}
+                  isProjectSubject={isProjectSubject}
+                />
+              )
+            ) : showLoadingSkeleton ? (
+              <Skeleton height="20px" />
             ) : (
-              <Content component="p">
-                <Truncate content={roleBindingName} />
-                {` `}
-                {isDefaultGroup && (
-                  <Popover
-                    bodyContent={
-                      <div>
-                        This group is created by default. You can add users to this group in
-                        OpenShift user management, or ask the cluster admin to do so.
-                      </div>
-                    }
-                  >
-                    <DashboardPopupIconButton
-                      icon={<OutlinedQuestionCircleIcon />}
-                      aria-label="More info"
-                    />
-                  </Popover>
-                )}
-              </Content>
+              <Truncate content={roleBindingName} />
             )}
           </Td>
           <Td dataLabel="Permission">
-            {(isEditing || isAdding) && permissionOptions.length > 1 ? (
+            {isEditing || isAdding ? (
               <RoleBindingPermissionsPermissionSelection
                 permissionOptions={permissionOptions}
                 selection={roleBindingRoleRef}
-                onSelect={(selection) => {
-                  setRoleBindingRoleRef(selection);
-                }}
+                onSelect={(roleType) => setRoleBindingRoleRef(roleType)}
               />
             ) : (
-              <Content component="p">{roleLabel(roleBindingRoleRef)}</Content>
+              roleLabel(roleBindingRoleRef)
             )}
           </Td>
           <Td dataLabel="Date added">
-            {!isEditing && !isAdding && (
-              <Content component="p">
-                <Timestamp
-                  date={createdDate}
-                  tooltip={{ variant: TimestampTooltipVariant.default }}
-                >
-                  {relativeTime(Date.now(), createdDate.getTime())}
-                </Timestamp>
-              </Content>
-            )}
+            {createdDate && !isAdding ? (
+              <Timestamp
+                date={createdDate}
+                tooltip={{
+                  variant: TimestampTooltipVariant.default,
+                }}
+              >
+                {relativeTime(Date.now(), createdDate.getTime())}
+              </Timestamp>
+            ) : null}
           </Td>
-          <Td isActionCell modifier="nowrap" style={{ textAlign: 'right' }}>
+          <Td isActionCell>
             {isEditing || isAdding ? (
-              <Split>
+              <Split hasGutter>
                 <SplitItem>
                   <Button
-                    data-testid={isAdding ? `save-new-button` : `save-button ${roleBindingName}`}
-                    data-id="save-rolebinding-button"
-                    aria-label="Save role binding"
+                    data-testid="save-rolebinding-button"
+                    aria-label="Save role binding edits"
                     variant="link"
                     icon={<CheckIcon />}
-                    isDisabled={isLoading || !roleBindingName || !roleBindingRoleRef}
-                    onClick={() => {
-                      if (isCurrentUserBeingChanged) {
-                        setIsDeleting(false);
-                        setShowModal(true);
-                      } else {
-                        setIsLoading(true);
-                        onChange(
+                    onClick={async () => {
+                      if (!roleBindingName) {
+                        return;
+                      }
+                      setIsLoading(true);
+                      try {
+                        await onChange?.(
                           isProjectSubject
-                            ? `system:serviceaccounts:${projectDisplayNameToNamespace(
+                            ? `system:serviceaccounts:${displayNameToNamespace(
                                 roleBindingName,
-                                projects,
+                                namespaces,
                               )}`
                             : roleBindingName,
                           roleBindingRoleRef,
                         );
+                      } finally {
                         setIsLoading(false);
                       }
                     }}
+                    isLoading={isLoading}
+                    isDisabled={isLoading || !roleBindingName || showLoadingSkeleton}
                   />
                 </SplitItem>
                 <SplitItem>
                   <Button
-                    data-id="cancel-rolebinding-button"
-                    aria-label="Cancel role binding"
+                    aria-label="Cancel role binding edits"
                     variant="plain"
-                    isDisabled={isLoading}
                     icon={<TimesIcon />}
                     onClick={() => {
-                      onCancel();
+                      onCancel?.();
                     }}
+                    isDisabled={isLoading}
                   />
                 </SplitItem>
               </Split>
-            ) : isDefaultGroup ? (
-              <Tooltip content="The default group cannot be edited or deleted. The group's members can be managed via the API.">
-                <Button
-                  icon={<EllipsisVIcon />}
-                  variant="plain"
-                  isAriaDisabled
-                  aria-label="The default group always has access to model registry."
-                />
-              </Tooltip>
             ) : (
               <ActionsColumn
                 items={[
                   {
                     title: 'Edit',
                     onClick: () => {
-                      onEdit?.();
+                      if (isCurrentUserBeingChanged) {
+                        setIsDeleting(false);
+                        setShowModal(true);
+                      } else {
+                        onEdit?.();
+                      }
                     },
+                    isDisabled: showLoadingSkeleton,
                   },
-                  { isSeparator: true },
+                  {
+                    isSeparator: true,
+                  },
                   {
                     title: 'Delete',
                     onClick: () => {
@@ -249,8 +249,17 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
                         onDelete?.();
                       }
                     },
+                    isDisabled: isDefaultGroup || showLoadingSkeleton,
                   },
                 ]}
+                rowData={{}}
+                actionsToggle={(props) => (
+                  <DashboardPopupIconButton
+                    icon={<EllipsisVIcon />}
+                    aria-label="Role binding table row actions"
+                    {...props}
+                  />
+                )}
               />
             )}
           </Td>
@@ -258,29 +267,20 @@ const RoleBindingPermissionsTableRow: React.FC<RoleBindingPermissionsTableRowPro
       </Tbody>
       {showModal && (
         <RoleBindingPermissionsChangeModal
-          roleName={currentUser.userId}
-          onClose={() => {
-            setShowModal(false);
-            if (isEditing) {
-              onCancel();
-            }
-          }}
+          onClose={() => setShowModal(false)}
           onEdit={() => {
-            setIsLoading(true);
-            onChange(
-              isProjectSubject
-                ? `system:serviceaccounts:${projectDisplayNameToNamespace(
-                    roleBindingName,
-                    projects,
-                  )}`
-                : roleBindingName,
-              roleBindingRoleRef,
-            );
-            setIsLoading(false);
             setShowModal(false);
+            const finalSubjectName = isProjectSubject
+              ? `system:serviceaccounts:${displayNameToNamespace(roleBindingName, namespaces)}`
+              : roleBindingName;
+            onChange?.(finalSubjectName, roleBindingRoleRef);
           }}
-          onDelete={() => onDelete?.()}
+          onDelete={() => {
+            setShowModal(false);
+            onDelete?.();
+          }}
           isDeleting={isDeleting}
+          roleName={roleBindingName}
         />
       )}
     </>
