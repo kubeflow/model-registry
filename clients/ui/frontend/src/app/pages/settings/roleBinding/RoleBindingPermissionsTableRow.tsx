@@ -56,7 +56,7 @@ const defaultValueName = (
   isProjectSubject && namespaces
     ? namespaces.find(
         (ns) => ns.name === obj.subjects[0]?.name.replace(/^system:serviceaccounts:/, ''),
-      )?.['display-name'] ||
+      )?.displayName ||
       obj.subjects[0]?.name ||
       ''
     : obj.subjects[0]?.name || '';

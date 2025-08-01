@@ -108,18 +108,22 @@ export const projectDisplayNameToNamespace = (
 };
 
 // New utility functions for NamespaceKind
+/**
+ * Get the display name for a namespace.
+ * @param namespaceName The name of the namespace
+ * @param namespaces Array of NamespaceKind objects
+ * @returns The display name or namespace name if not found
+ */
 export const namespaceToDisplayName = (
   namespaceName: string,
   namespaces: NamespaceKind[],
-): string => {
-  const namespace = namespaces.find((ns) => ns.name === namespaceName);
-  return namespace?.['display-name'] || namespaceName;
-};
+): string => namespaces.find((ns) => ns.name === namespaceName)?.displayName || namespaceName;
 
-export const displayNameToNamespace = (
-  displayName: string,
-  namespaces: NamespaceKind[],
-): string => {
-  const namespace = namespaces.find((ns) => ns['display-name'] === displayName);
-  return namespace?.name || displayName;
-};
+/**
+ * Find a namespace by its display name.
+ * @param displayName The display name to search for
+ * @param namespaces Array of NamespaceKind objects
+ * @returns The namespace name or the display name if not found
+ */
+export const displayNameToNamespace = (displayName: string, namespaces: NamespaceKind[]): string =>
+  namespaces.find((ns) => ns.displayName === displayName)?.name || displayName;

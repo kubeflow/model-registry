@@ -33,7 +33,7 @@ export const RoleBindingPermissionsNameInput: React.FC<RoleBindingPermissionsNam
     if (isProjectSubject) {
       const namespaceOptions = namespaces.map((namespace) => ({
         value: namespace.name,
-        content: namespace['display-name'],
+        content: namespace.displayName || namespace.name,
       }));
       options = [...options, ...namespaceOptions];
     }
