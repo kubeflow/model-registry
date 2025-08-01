@@ -14,6 +14,7 @@ export type ModelCatalogItem = {
   description?: string;
   provider?: string;
   url?: string;
+  logo?: string;
   tags?: string[];
   framework?: string;
   task?: string;
