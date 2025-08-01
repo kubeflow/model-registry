@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from '@patternfly/react-core';
+import { Button, Badge, ExpandableSection, ExpandableSectionToggle } from '@patternfly/react-core';
 import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
@@ -49,88 +49,110 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
     </span>
   );
 
+  // State to control the ExpandableSection itself, default to expanded
+  const [isPropertiesSectionExpanded, setIsPropertiesSectionExpanded] = React.useState(true);
+
   return (
     <DashboardDescriptionListGroup
-      title="Properties"
-      action={
-        !isArchive && (
-          <Button
-            variant="link"
-            data-testid="add-property-button"
-            icon={<PlusCircleIcon />}
-            iconPosition="start"
-            isDisabled={isAdding || isSavingEdits}
-            onClick={() => {
-              setIsShowingMoreProperties(true);
-              setIsAdding(true);
-            }}
-          >
-            Add property
-          </Button>
-        )
-      }
+      title=""
       isEmpty={!isAdding && keys.length === 0}
       contentWhenEmpty="No properties"
     >
-      <Table aria-label="Properties table" data-testid="properties-table" variant="compact">
-        <Thead>
-          <Tr>
-            <Th>Key {isEditingSomeRow && requiredAsterisk}</Th>
-            <Th>Value {isEditingSomeRow && requiredAsterisk}</Th>
-            <Th screenReaderText="Actions" />
-          </Tr>
-        </Thead>
-        <Tbody>
-          {shownKeys.map((key) => (
-            <ModelPropertiesTableRow
-              key={key}
-              isArchive={isArchive}
-              keyValuePair={{ key, value: filteredProperties[key].string_value }}
-              allExistingKeys={allExistingKeys}
-              isEditing={editingPropertyKeys.includes(key)}
-              setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
-              isSavingEdits={isSavingEdits}
-              setIsSavingEdits={setIsSavingEdits}
-              saveEditedProperty={(oldKey, newPair) =>
-                saveEditedCustomProperties(
-                  mergeUpdatedProperty({ customProperties, op: 'update', oldKey, newPair }),
-                )
-              }
-              deleteProperty={(oldKey) =>
-                saveEditedCustomProperties(
-                  mergeUpdatedProperty({ customProperties, op: 'delete', oldKey }),
-                )
-              }
-            />
-          ))}
-          {isAdding && (
-            <ModelPropertiesTableRow
-              isAddRow
-              allExistingKeys={allExistingKeys}
-              setIsEditing={setIsAdding}
-              isSavingEdits={isSavingEdits}
-              setIsSavingEdits={setIsSavingEdits}
-              saveEditedProperty={(_oldKey, newPair) =>
-                saveEditedCustomProperties(
-                  mergeUpdatedProperty({ customProperties, op: 'create', newPair }),
-                )
-              }
-            />
-          )}
-        </Tbody>
-      </Table>
-      {needExpandControl && (
-        <Button
-          variant="link"
-          className={spacing.mtSm}
-          data-testid="expand-control-button"
-          onClick={() => setIsShowingMoreProperties(!isShowingMoreProperties)}
+      <ExpandableSectionToggle
+        isExpanded={isPropertiesSectionExpanded}
+        onToggle={setIsPropertiesSectionExpanded}
+        id="model-properties-expandable-toggle"
+        contentId="model-properties-expandable-content"
+        data-testid="model-properties-toggle"
+      >
+        <span>Properties </span>
+        <Badge isRead data-testid="properties-count-badge">
+          {keys.length}
+        </Badge>
+      </ExpandableSectionToggle>
+      {isPropertiesSectionExpanded ? (
+        <ExpandableSection
+          isExpanded
+          isDetached
+          toggleId="model-properties-expandable-toggle"
+          contentId="model-properties-expandable-content"
         >
-          {isShowingMoreProperties
-            ? 'Show fewer properties'
-            : `Show ${numHiddenKeys} more ${numHiddenKeys === 1 ? 'property' : 'properties'}`}
-        </Button>
-      )}
+          <Table aria-label="Properties table" data-testid="properties-table" variant="compact">
+            <Thead>
+              <Tr>
+                <Th>Key {isEditingSomeRow && requiredAsterisk}</Th>
+                <Th>Value {isEditingSomeRow && requiredAsterisk}</Th>
+                <Th screenReaderText="Actions" />
+              </Tr>
+            </Thead>
+            <Tbody>
+              {shownKeys.map((key) => (
+                <ModelPropertiesTableRow
+                  key={key}
+                  isArchive={isArchive}
+                  keyValuePair={{ key, value: filteredProperties[key].string_value }}
+                  allExistingKeys={allExistingKeys}
+                  isEditing={editingPropertyKeys.includes(key)}
+                  setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
+                  isSavingEdits={isSavingEdits}
+                  setIsSavingEdits={setIsSavingEdits}
+                  saveEditedProperty={(oldKey, newPair) =>
+                    saveEditedCustomProperties(
+                      mergeUpdatedProperty({ customProperties, op: 'update', oldKey, newPair }),
+                    )
+                  }
+                  deleteProperty={(oldKey) =>
+                    saveEditedCustomProperties(
+                      mergeUpdatedProperty({ customProperties, op: 'delete', oldKey }),
+                    )
+                  }
+                />
+              ))}
+              {isAdding && (
+                <ModelPropertiesTableRow
+                  isAddRow
+                  allExistingKeys={allExistingKeys}
+                  setIsEditing={setIsAdding}
+                  isSavingEdits={isSavingEdits}
+                  setIsSavingEdits={setIsSavingEdits}
+                  saveEditedProperty={(_oldKey, newPair) =>
+                    saveEditedCustomProperties(
+                      mergeUpdatedProperty({ customProperties, op: 'create', newPair }),
+                    )
+                  }
+                />
+              )}
+            </Tbody>
+          </Table>
+          {needExpandControl && (
+            <Button
+              variant="link"
+              className={spacing.mtSm}
+              data-testid="expand-control-button"
+              onClick={() => setIsShowingMoreProperties(!isShowingMoreProperties)}
+            >
+              {isShowingMoreProperties
+                ? 'Show fewer properties'
+                : `Show ${numHiddenKeys} more ${numHiddenKeys === 1 ? 'property' : 'properties'}`}
+            </Button>
+          )}
+          {!isArchive && (
+            <Button
+              variant="link"
+              data-testid="add-property-button"
+              icon={<PlusCircleIcon />}
+              iconPosition="start"
+              isDisabled={isAdding || isSavingEdits}
+              onClick={() => {
+                setIsShowingMoreProperties(true);
+                setIsAdding(true);
+              }}
+            >
+              Add property
+            </Button>
+          )}
+        </ExpandableSection>
+      ) : null}
     </DashboardDescriptionListGroup>
   );
 };
