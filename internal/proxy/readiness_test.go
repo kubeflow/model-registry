@@ -196,7 +196,7 @@ func TestReadinessHandler_NonEmbedMD(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "OK", rr.Body.String())
+	assert.Equal(t, responseOK, rr.Body.String())
 }
 
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
@@ -214,7 +214,7 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "OK", rr.Body.String())
+	assert.Equal(t, responseOK, rr.Body.String())
 }
 
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
@@ -277,7 +277,7 @@ func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "OK", rr.Body.String())
+	assert.Equal(t, responseOK, rr.Body.String())
 }
 
 func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
@@ -305,23 +305,23 @@ func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, "pass", healthStatus.Status)
-	assert.Contains(t, healthStatus.Checks, "database")
-	assert.Contains(t, healthStatus.Checks, "model-registry")
-	assert.Contains(t, healthStatus.Checks, "meta")
+	assert.Equal(t, StatusPass, healthStatus.Status)
+	assert.Contains(t, healthStatus.Checks, HealthCheckDatabase)
+	assert.Contains(t, healthStatus.Checks, HealthCheckModelRegistry)
+	assert.Contains(t, healthStatus.Checks, HealthCheckMeta)
 
 	// Check database health details
-	dbCheck := healthStatus.Checks["database"]
-	assert.Equal(t, "pass", dbCheck.Status)
+	dbCheck := healthStatus.Checks[HealthCheckDatabase]
+	assert.Equal(t, StatusPass, dbCheck.Status)
 	assert.Equal(t, "database is healthy", dbCheck.Message)
 
 	// Check model registry health details
-	mrCheck := healthStatus.Checks["model-registry"]
-	assert.Equal(t, "pass", mrCheck.Status)
+	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
+	assert.Equal(t, StatusPass, mrCheck.Status)
 	assert.Equal(t, "model registry service is healthy", mrCheck.Message)
-	assert.Equal(t, float64(5), mrCheck.Details["total_resources_checked"])
-	assert.Equal(t, true, mrCheck.Details["registered_models_accessible"])
-	assert.Equal(t, true, mrCheck.Details["artifacts_accessible"])
+	assert.Equal(t, float64(5), mrCheck.Details[detailTotalResourcesChecked])
+	assert.Equal(t, true, mrCheck.Details[detailRegisteredModelsAccessible])
+	assert.Equal(t, true, mrCheck.Details[detailArtifactsAccessible])
 }
 
 func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
@@ -349,16 +349,16 @@ func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, "fail", healthStatus.Status)
+	assert.Equal(t, StatusFail, healthStatus.Status)
 
 	// Database should fail
-	dbCheck := healthStatus.Checks["database"]
-	assert.Equal(t, "fail", dbCheck.Status)
+	dbCheck := healthStatus.Checks[HealthCheckDatabase]
+	assert.Equal(t, StatusFail, dbCheck.Status)
 	assert.Contains(t, dbCheck.Message, "database schema is in dirty state")
 
 	// Model registry should still pass (if database connection works for queries)
-	mrCheck := healthStatus.Checks["model-registry"]
-	assert.Equal(t, "pass", mrCheck.Status)
+	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
+	assert.Equal(t, StatusPass, mrCheck.Status)
 }
 
 func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T) {
@@ -385,15 +385,15 @@ func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, "fail", healthStatus.Status)
+	assert.Equal(t, StatusFail, healthStatus.Status)
 
 	// Database should pass
-	dbCheck := healthStatus.Checks["database"]
-	assert.Equal(t, "pass", dbCheck.Status)
+	dbCheck := healthStatus.Checks[HealthCheckDatabase]
+	assert.Equal(t, StatusPass, dbCheck.Status)
 
 	// Model registry should fail
-	mrCheck := healthStatus.Checks["model-registry"]
-	assert.Equal(t, "fail", mrCheck.Status)
+	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
+	assert.Equal(t, StatusFail, mrCheck.Status)
 	assert.Equal(t, "model registry service not available", mrCheck.Message)
 }
 
@@ -432,8 +432,8 @@ func TestDatabaseHealthChecker_EmptyDSN(t *testing.T) {
 	checker := NewDatabaseHealthChecker(ds)
 	result := checker.Check()
 
-	assert.Equal(t, "database", result.Name)
-	assert.Equal(t, "fail", result.Status)
+	assert.Equal(t, HealthCheckDatabase, result.Name)
+	assert.Equal(t, StatusFail, result.Status)
 	assert.Equal(t, "database DSN not configured", result.Message)
 }
 
@@ -460,12 +460,12 @@ func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, "fail", healthStatus.Status)
+	assert.Equal(t, StatusFail, healthStatus.Status)
 
 	// Both checks should fail
-	dbCheck := healthStatus.Checks["database"]
-	assert.Equal(t, "fail", dbCheck.Status)
+	dbCheck := healthStatus.Checks[HealthCheckDatabase]
+	assert.Equal(t, StatusFail, dbCheck.Status)
 
-	mrCheck := healthStatus.Checks["model-registry"]
-	assert.Equal(t, "fail", mrCheck.Status)
+	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
+	assert.Equal(t, StatusFail, mrCheck.Status)
 }

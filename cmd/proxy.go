@@ -74,8 +74,8 @@ func (c *ConditionalModelRegistryHealthChecker) Check() proxy.HealthCheck {
 	service := c.holder.Get()
 	if service == nil {
 		return proxy.HealthCheck{
-			Name:    "model-registry",
-			Status:  "fail",
+			Name:    proxy.HealthCheckModelRegistry,
+			Status:  proxy.StatusFail,
 			Message: "model registry service not yet initialized",
 			Details: map[string]interface{}{
 				"service_ready": false,

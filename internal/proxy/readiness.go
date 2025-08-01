@@ -11,6 +11,42 @@ import (
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
+const (
+	// Health check names
+	HealthCheckDatabase      = "database"
+	HealthCheckModelRegistry = "model-registry"
+	HealthCheckMeta          = "meta"
+
+	// Health check statuses
+	StatusPass = "pass"
+	StatusFail = "fail"
+
+	// HTTP response messages
+	responseOK   = "OK"
+	responseFail = "FAIL"
+
+	// Database schema query
+	schemaMigrationsQuery = "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
+
+	// Detail keys
+	detailDatastoreType                 = "datastore_type"
+	detailSchemaVersion                 = "schema_version"
+	detailSchemaDirty                   = "schema_dirty"
+	detailRegisteredModelsAccessible    = "registered_models_accessible"
+	detailRegisteredModelsCount         = "registered_models_count"
+	detailArtifactsAccessible           = "artifacts_accessible"
+	detailArtifactsCount                = "artifacts_count"
+	detailModelVersionsAccessible       = "model_versions_accessible"
+	detailModelVersionsCount            = "model_versions_count"
+	detailServingEnvironmentsAccessible = "serving_environments_accessible"
+	detailServingEnvironmentsCount      = "serving_environments_count"
+	detailInferenceServicesAccessible   = "inference_services_accessible"
+	detailInferenceServicesCount        = "inference_services_count"
+	detailTotalResourcesChecked         = "total_resources_checked"
+	detailCheckDurationMs               = "check_duration_ms"
+	detailTimestamp                     = "timestamp"
+)
+
 // HealthCheck represents a single health check
 type HealthCheck struct {
 	Name    string
@@ -43,22 +79,22 @@ func NewDatabaseHealthChecker(datastore datastore.Datastore) *DatabaseHealthChec
 
 func (d *DatabaseHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
-		Name:    "database",
+		Name:    HealthCheckDatabase,
 		Details: make(map[string]interface{}),
 	}
 
 	// Skip embedmd check for mlmd datastore
 	if d.datastore.Type != "embedmd" {
-		check.Status = "pass"
+		check.Status = StatusPass
 		check.Message = "MLMD datastore - skipping database check"
-		check.Details["datastore_type"] = d.datastore.Type
+		check.Details[detailDatastoreType] = d.datastore.Type
 		return check
 	}
 
 	// Check DSN configuration
 	dsn := d.datastore.EmbedMD.DatabaseDSN
 	if dsn == "" {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = "database DSN not configured"
 		return check
 	}
@@ -66,7 +102,7 @@ func (d *DatabaseHealthChecker) Check() HealthCheck {
 	// Check database connector
 	dbConnector, ok := db.GetConnector()
 	if !ok {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = "database connector not initialized"
 		return check
 	}
@@ -74,7 +110,7 @@ func (d *DatabaseHealthChecker) Check() HealthCheck {
 	// Test database connection
 	database, err := dbConnector.Connect()
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("database connection error: %v", err)
 		return check
 	}
@@ -85,23 +121,23 @@ func (d *DatabaseHealthChecker) Check() HealthCheck {
 		Dirty   bool
 	}
 
-	query := "SELECT version, dirty FROM schema_migrations ORDER BY version DESC LIMIT 1"
+	query := schemaMigrationsQuery
 	if err := database.Raw(query).Scan(&result).Error; err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("schema_migrations query error: %v", err)
 		return check
 	}
 
-	check.Details["schema_version"] = result.Version
-	check.Details["schema_dirty"] = result.Dirty
+	check.Details[detailSchemaVersion] = result.Version
+	check.Details[detailSchemaDirty] = result.Dirty
 
 	if result.Dirty {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = "database schema is in dirty state"
 		return check
 	}
 
-	check.Status = "pass"
+	check.Status = StatusPass
 	check.Message = "database is healthy"
 	return check
 }
@@ -119,12 +155,12 @@ func NewModelRegistryHealthChecker(service api.ModelRegistryApi) *ModelRegistryH
 
 func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
-		Name:    "model-registry",
+		Name:    HealthCheckModelRegistry,
 		Details: make(map[string]interface{}),
 	}
 
 	if m.service == nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = "model registry service not available"
 		return check
 	}
@@ -137,61 +173,61 @@ func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 	// Test registered models listing
 	models, err := m.service.GetRegisteredModels(listOptions)
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list registered models: %v", err)
 		return check
 	}
 
-	check.Details["registered_models_accessible"] = true
-	check.Details["registered_models_count"] = models.Size
+	check.Details[detailRegisteredModelsAccessible] = true
+	check.Details[detailRegisteredModelsCount] = models.Size
 
 	// Test artifacts listing (all artifacts, not tied to specific model version)
 	artifacts, err := m.service.GetArtifacts(listOptions, nil)
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list artifacts: %v", err)
 		return check
 	}
 
-	check.Details["artifacts_accessible"] = true
-	check.Details["artifacts_count"] = artifacts.Size
+	check.Details[detailArtifactsAccessible] = true
+	check.Details[detailArtifactsCount] = artifacts.Size
 
 	// Test model versions listing
 	versions, err := m.service.GetModelVersions(listOptions, nil)
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list model versions: %v", err)
 		return check
 	}
 
-	check.Details["model_versions_accessible"] = true
-	check.Details["model_versions_count"] = versions.Size
+	check.Details[detailModelVersionsAccessible] = true
+	check.Details[detailModelVersionsCount] = versions.Size
 
 	// Test serving environments listing
 	servingEnvs, err := m.service.GetServingEnvironments(listOptions)
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list serving environments: %v", err)
 		return check
 	}
 
-	check.Details["serving_environments_accessible"] = true
-	check.Details["serving_environments_count"] = servingEnvs.Size
+	check.Details[detailServingEnvironmentsAccessible] = true
+	check.Details[detailServingEnvironmentsCount] = servingEnvs.Size
 
 	// Test inference services listing (all services, not tied to specific serving environment or runtime)
 	inferenceServices, err := m.service.GetInferenceServices(listOptions, nil, nil)
 	if err != nil {
-		check.Status = "fail"
+		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list inference services: %v", err)
 		return check
 	}
 
-	check.Details["inference_services_accessible"] = true
-	check.Details["inference_services_count"] = inferenceServices.Size
+	check.Details[detailInferenceServicesAccessible] = true
+	check.Details[detailInferenceServicesCount] = inferenceServices.Size
 
-	check.Status = "pass"
+	check.Status = StatusPass
 	check.Message = "model registry service is healthy"
-	check.Details["total_resources_checked"] = 5
+	check.Details[detailTotalResourcesChecked] = 5
 
 	return check
 }
@@ -208,7 +244,7 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 
 		// Initialize health status
 		health := HealthStatus{
-			Status: "pass",
+			Status: StatusPass,
 			Checks: make(map[string]HealthCheck),
 		}
 
@@ -217,27 +253,27 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 			check := checker.Check()
 			health.Checks[check.Name] = check
 
-			if check.Status == "fail" {
-				health.Status = "fail"
+			if check.Status == StatusFail {
+				health.Status = StatusFail
 			}
 		}
 
 		// Add timing information
 		duration := time.Since(start)
-		if _, exists := health.Checks["meta"]; !exists {
-			health.Checks["meta"] = HealthCheck{
-				Name:   "meta",
-				Status: "pass",
+		if _, exists := health.Checks[HealthCheckMeta]; !exists {
+			health.Checks[HealthCheckMeta] = HealthCheck{
+				Name:   HealthCheckMeta,
+				Status: StatusPass,
 				Details: map[string]interface{}{
-					"check_duration_ms": duration.Milliseconds(),
-					"timestamp":         time.Now().UTC().Format(time.RFC3339),
+					detailCheckDurationMs: duration.Milliseconds(),
+					detailTimestamp:       time.Now().UTC().Format(time.RFC3339),
 				},
 			}
 		}
 
 		// Set response status
 		statusCode := http.StatusOK
-		if health.Status == "fail" {
+		if health.Status == StatusFail {
 			statusCode = http.StatusServiceUnavailable
 		}
 
@@ -248,17 +284,17 @@ func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers .
 			_ = json.NewEncoder(w).Encode(health)
 		} else {
 			w.WriteHeader(statusCode)
-			if health.Status == "pass" {
-				_, _ = w.Write([]byte("OK"))
+			if health.Status == StatusPass {
+				_, _ = w.Write([]byte(responseOK))
 			} else {
 				// Return the first failed check's error message
 				for _, check := range health.Checks {
-					if check.Status == "fail" {
+					if check.Status == StatusFail {
 						_, _ = w.Write([]byte(check.Message))
 						return
 					}
 				}
-				_, _ = w.Write([]byte("FAIL"))
+				_, _ = w.Write([]byte(responseFail))
 			}
 		}
 	})
