@@ -51,5 +51,5 @@ export type ProjectKind = K8sResourceCommon & {
 
 export type NamespaceKind = {
   name: string;
-  'display-name': string;
+  displayName?: string;
 };

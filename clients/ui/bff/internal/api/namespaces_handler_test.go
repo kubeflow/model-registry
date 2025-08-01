@@ -57,7 +57,8 @@ var _ = Describe("TestNamespacesHandler", func() {
 			Expect(rr.Code).To(Equal(http.StatusOK))
 
 			By("validating the response contains only dora-namespace")
-			expected := []models.NamespaceModel{{Name: "dora-namespace", DisplayName: "dora-namespace"}}
+			doraDisplayName := "Dora's Data Science Workspace"
+			expected := []models.NamespaceModel{{Name: "dora-namespace", DisplayName: &doraDisplayName}}
 			Expect(actual.Data).To(ConsistOf(expected))
 		})
 
@@ -87,9 +88,11 @@ var _ = Describe("TestNamespacesHandler", func() {
 			Expect(rr.Code).To(Equal(http.StatusOK))
 
 			By("validating the response contains all namespaces")
+			kubeflowDisplayName := "Kubeflow Platform"
+			doraDisplayName := "Dora's Data Science Workspace"
 			expected := []models.NamespaceModel{
-				{Name: "kubeflow", DisplayName: "kubeflow"},
-				{Name: "dora-namespace", DisplayName: "dora-namespace"},
+				{Name: "kubeflow", DisplayName: &kubeflowDisplayName},
+				{Name: "dora-namespace", DisplayName: &doraDisplayName},
 			}
 			Expect(actual.Data).To(ContainElements(expected))
 		})
