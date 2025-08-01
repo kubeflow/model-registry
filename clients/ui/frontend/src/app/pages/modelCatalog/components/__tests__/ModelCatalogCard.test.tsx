@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 
@@ -11,47 +12,54 @@ const mockModel: ModelCatalogItem = {
   description: 'Test model description',
   provider: 'Test Provider',
   url: 'https://test.com/model',
-  tags: ['test', 'mock'],
+  tags: ['1.0.0', 'feature1', 'feature2'],
   framework: 'Test Framework',
   task: 'test-task',
   license: 'MIT',
-  metrics: {
-    accuracy: 0.95,
-  },
 };
+
+const renderWithRouter = (ui: React.ReactElement) => render(ui, { wrapper: MemoryRouter });
 
 describe('ModelCatalogCard', () => {
   it('renders model information correctly', () => {
-    render(<ModelCatalogCard model={mockModel} />);
+    renderWithRouter(<ModelCatalogCard model={mockModel} source="Test Source" />);
 
-    expect(screen.getByText(mockModel.displayName)).toBeInTheDocument();
-    expect(screen.getByText(mockModel.description!)).toBeInTheDocument();
-    expect(screen.getByText(mockModel.provider!)).toBeInTheDocument();
-    expect(screen.getByText(mockModel.framework!)).toBeInTheDocument();
-    expect(screen.getByText(mockModel.task!)).toBeInTheDocument();
-    expect(screen.getByText(mockModel.license!)).toBeInTheDocument();
+    expect(screen.getByText('test-model')).toBeInTheDocument();
+    expect(screen.getByText('Test model description')).toBeInTheDocument();
+    expect(screen.getByText('Test Source')).toBeInTheDocument();
+    expect(screen.getByText('Test Framework')).toBeInTheDocument();
+    expect(screen.getByText('test-task')).toBeInTheDocument();
+    expect(screen.getByText('MIT')).toBeInTheDocument();
+    expect(screen.getByText('1.0.0')).toBeInTheDocument();
+    expect(screen.getByText('feature1')).toBeInTheDocument();
+    expect(screen.getByText('feature2')).toBeInTheDocument();
   });
 
   it('calls onSelect when select button is clicked', () => {
     const onSelect = jest.fn();
-    render(<ModelCatalogCard model={mockModel} onSelect={onSelect} />);
+    renderWithRouter(
+      <ModelCatalogCard model={mockModel} source="Test Source" onSelect={onSelect} />,
+    );
 
-    fireEvent.click(screen.getByTestId('select-model-button'));
+    fireEvent.click(screen.getByTestId('model-catalog-detail-link'));
     expect(onSelect).toHaveBeenCalledWith(mockModel);
   });
 
-  it('renders view model link when url is provided', () => {
-    render(<ModelCatalogCard model={mockModel} />);
+  it('navigates when no onSelect is provided', () => {
+    renderWithRouter(<ModelCatalogCard model={mockModel} source="Test Source" />);
 
-    const link = screen.getByTestId('view-model-link');
-    expect(link).toHaveAttribute('href', mockModel.url);
+    const link = screen.getByTestId('model-catalog-detail-link');
+    expect(link).toBeInTheDocument();
   });
 
-  it('renders metrics when provided', () => {
-    render(<ModelCatalogCard model={mockModel} />);
+  it('shows version from tags', () => {
+    renderWithRouter(<ModelCatalogCard model={mockModel} source="Test Source" />);
+    expect(screen.getByText('1.0.0')).toBeInTheDocument();
+  });
 
-    Object.entries(mockModel.metrics!).forEach(([key, value]) => {
-      expect(screen.getByText(new RegExp(`${key}.*${value}`))).toBeInTheDocument();
-    });
+  it('shows "No version" when no version tag is present', () => {
+    const modelWithoutVersion = { ...mockModel, tags: ['feature1', 'feature2'] };
+    renderWithRouter(<ModelCatalogCard model={modelWithoutVersion} source="Test Source" />);
+    expect(screen.getByText('No version')).toBeInTheDocument();
   });
 });

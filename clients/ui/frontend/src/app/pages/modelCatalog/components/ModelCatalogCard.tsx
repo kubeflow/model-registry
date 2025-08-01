@@ -1,73 +1,137 @@
-import * as React from 'react';
+import React from 'react';
 import {
+  Button,
   Card,
-  CardHeader,
-  CardTitle,
   CardBody,
   CardFooter,
+  CardHeader,
+  CardTitle,
   Flex,
   FlexItem,
-  Button,
+  Icon,
+  Label,
+  Skeleton,
+  Split,
+  SplitItem,
+  Stack,
+  StackItem,
+  Truncate,
 } from '@patternfly/react-core';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { TagIcon } from '@patternfly/react-icons';
+import { useNavigate } from 'react-router-dom';
 import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
   model: ModelCatalogItem;
+  source: string;
+  truncate?: boolean;
   onSelect?: (model: ModelCatalogItem) => void;
 };
 
-const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, onSelect }) => {
-  const { displayName, description, provider, url, tags, framework, task, license, metrics } =
-    model;
+const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
+  model,
+  source,
+  truncate = false,
+  onSelect,
+}) => {
+  const navigate = useNavigate();
+
+  // Extract version from tags (assuming version tag matches semantic versioning pattern)
+  const versionTag = model.tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
+  // Filter out version tag from tags passed to ModelCatalogLabels
+  const nonVersionTags = model.tags?.filter((tag) => tag !== versionTag);
 
   return (
-    <Card isCompact>
+    <Card isFullHeight data-testid="model-catalog-card">
       <CardHeader>
-        <CardTitle>{displayName}</CardTitle>
-        {provider && <div className="pf-v5-u-color-200">{provider}</div>}
+        <CardTitle>
+          <Flex alignItems={{ default: 'alignItemsCenter' }}>
+            {model.logo ? (
+              <img src={model.logo} alt="model logo" style={{ height: '36px', width: '36px' }} />
+            ) : (
+              <Skeleton
+                shape="square"
+                width="36px"
+                height="36px"
+                screenreaderText="Brand image loading"
+              />
+            )}
+            <FlexItem align={{ default: 'alignRight' }}>
+              <Label>{source}</Label>
+            </FlexItem>
+          </Flex>
+        </CardTitle>
       </CardHeader>
       <CardBody>
-        {description && <p>{description}</p>}
-        <ModelCatalogLabels tags={tags} framework={framework} task={task} license={license} />
-        {metrics && Object.keys(metrics).length > 0 && (
-          <div className="pf-v5-u-font-size-sm">
-            Metrics:{' '}
-            {Object.entries(metrics)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(', ')}
-          </div>
-        )}
+        <Stack hasGutter>
+          <StackItem isFilled>
+            <Button
+              data-testid="model-catalog-detail-link"
+              variant="link"
+              isInline
+              component="a"
+              onClick={() => {
+                if (onSelect) {
+                  onSelect(model);
+                } else {
+                  navigate(`/model-catalog/${model.id}` || '#');
+                }
+              }}
+              style={{
+                fontSize: 'var(--pf-t--global--font--size--body--default)',
+                fontWeight: 'var(--pf-t--global--font--weight--body--bold)',
+              }}
+            >
+              {truncate ? (
+                <Truncate
+                  data-testid="model-catalog-card-name"
+                  content={model.name}
+                  position="middle"
+                  tooltipPosition="top"
+                  style={{ textDecoration: 'underline' }}
+                />
+              ) : (
+                <span>{model.name}</span>
+              )}
+            </Button>
+            <Split hasGutter>
+              <SplitItem>
+                <Icon isInline>
+                  <TagIcon />
+                </Icon>
+                <span style={{ marginLeft: 'var(--pf-t--global--spacer--sm)' }}>
+                  {versionTag || 'No version'}
+                </span>
+              </SplitItem>
+            </Split>
+          </StackItem>
+          <StackItem isFilled data-testid="model-catalog-card-description">
+            {truncate ? (
+              <div
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  display: '-webkit-box',
+                }}
+              >
+                {model.description}
+              </div>
+            ) : (
+              model.description
+            )}
+          </StackItem>
+        </Stack>
       </CardBody>
       <CardFooter>
-        <Flex>
-          <FlexItem>
-            <Button
-              variant="primary"
-              onClick={() => onSelect?.(model)}
-              data-testid="select-model-button"
-            >
-              Select model
-            </Button>
-          </FlexItem>
-          {url && (
-            <FlexItem>
-              <Button
-                variant="link"
-                component="a"
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                icon={<ExternalLinkAltIcon />}
-                iconPosition="right"
-                data-testid="view-model-link"
-              >
-                View model
-              </Button>
-            </FlexItem>
-          )}
-        </Flex>
+        <ModelCatalogLabels
+          tags={nonVersionTags}
+          framework={model.framework}
+          task={model.task}
+          license={model.license}
+        />
       </CardFooter>
     </Card>
   );

@@ -50,9 +50,7 @@ const ModelCatalogPage: React.FC = () => {
     );
   }
 
-  const allModels = sources.flatMap((source) => source.models || []);
-
-  if (allModels.length === 0) {
+  if (sources.length === 0) {
     return (
       <PageSection>
         <EmptyState>
@@ -74,15 +72,24 @@ const ModelCatalogPage: React.FC = () => {
 
   return (
     <PageSection>
-      <Title headingLevel="h1" size="2xl" className="pf-v5-u-mb-lg">
+      <Title headingLevel="h1" size="2xl" className="pf-v5-u-mb-md">
         Model Catalog
       </Title>
+      <p className="pf-v5-u-mb-lg">
+        Discover models that are available for your organization to register, deploy, and customize.
+      </p>
       <Gallery hasGutter minWidths={{ default: '300px' }}>
-        {allModels.map((model) => (
-          <GalleryItem key={model.id}>
-            <ModelCatalogCard model={model} onSelect={handleModelSelect} />
-          </GalleryItem>
-        ))}
+        {sources.map((source) =>
+          (source.models || []).map((model) => (
+            <GalleryItem key={model.id}>
+              <ModelCatalogCard
+                model={model}
+                source={source.displayName}
+                onSelect={handleModelSelect}
+              />
+            </GalleryItem>
+          )),
+        )}
       </Gallery>
     </PageSection>
   );
