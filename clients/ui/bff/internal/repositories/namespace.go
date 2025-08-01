@@ -22,7 +22,7 @@ func (r *NamespaceRepository) GetNamespaces(client k8s.KubernetesClientInterface
 
 	var namespaceModels = []models.NamespaceModel{}
 	for _, ns := range namespaces {
-		namespaceModels = append(namespaceModels, models.NewNamespaceModelFromK8sNamespace(ns))
+		namespaceModels = append(namespaceModels, models.NewNamespaceModelFromNamespace(ns.Name))
 	}
 
 	return namespaceModels, nil
