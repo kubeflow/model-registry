@@ -18,13 +18,10 @@ import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtil
 
 interface ModelVersionsDetailsHeaderActionsProps {
   mv: ModelVersion;
-  refresh: () => void;
 }
 
 const ModelVersionsDetailsHeaderActions: React.FC<ModelVersionsDetailsHeaderActionsProps> = ({
   mv,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  refresh,
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);

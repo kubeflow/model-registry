@@ -90,7 +90,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
               />
             </FlexItem>
             <FlexItem>
-              <ModelVersionsDetailsHeaderActions mv={mv} refresh={refresh} />
+              <ModelVersionsDetailsHeaderActions mv={mv} />
             </FlexItem>
           </Flex>
         )
