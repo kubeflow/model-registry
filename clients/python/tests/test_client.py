@@ -841,11 +841,10 @@ def test_nested_recursive_store_in_s3(
 
 @pytest.mark.e2e
 def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry
+    client_attrs: dict[str, any], client: ModelRegistry, monkeypatch
 ):
     """Test Ray integration with uvloop event loop policy"""
     import asyncio
-    from unittest.mock import patch
 
     ray = pytest.importorskip("ray")
     import uvloop
@@ -867,34 +866,34 @@ def test_custom_async_runner_with_ray(
             loop.run_until_complete(verify_uvloop())
 
             # Mock nest_asyncio.apply to prevent conflicts with uvloop
-            with patch("nest_asyncio.apply"):
-                # Import here to avoid the nest_asyncio.apply() call during module loading
-                from tests.extras.async_task_runner import AsyncTaskRunner
+            monkeypatch.setattr("nest_asyncio.apply", lambda *args, **kwargs: "patched")
+            # Import here to avoid the nest_asyncio.apply() call during module loading
+            from tests.extras.async_task_runner import AsyncTaskRunner
 
-                @ray.remote
-                def test_with_ray():
-                    atr = AsyncTaskRunner()
-                    # we have to construct a client from scratch due to serialization issues from Ray
-                    client = ModelRegistry(
-                        server_address=client_attrs["host"],
-                        port=client_attrs["port"],
-                        author=client_attrs["author"],
-                        is_secure=client_attrs["ssl"],
-                        async_runner=atr.run,
-                    )
-                    client.register_model(
-                        name="test_model",
-                        uri="https://acme.org/something",
-                        version="v1",
-                        model_format_version="random",
-                        model_format_name="onnx",
-                    )
-                    ma = client.get_model_artifact(name="test_model", version="v1")
-                    assert ma.uri == "https://acme.org/something"
-                    assert ma.model_format_name == "onnx"
+            @ray.remote
+            def test_with_ray():
+                atr = AsyncTaskRunner()
+                # we have to construct a client from scratch due to serialization issues from Ray
+                client = ModelRegistry(
+                    server_address=client_attrs["host"],
+                    port=client_attrs["port"],
+                    author=client_attrs["author"],
+                    is_secure=client_attrs["ssl"],
+                    async_runner=atr.run,
+                )
+                client.register_model(
+                    name="test_model",
+                    uri="https://acme.org/something",
+                    version="v1",
+                    model_format_version="random",
+                    model_format_name="onnx",
+                )
+                ma = client.get_model_artifact(name="test_model", version="v1")
+                assert ma.uri == "https://acme.org/something"
+                assert ma.model_format_name == "onnx"
 
-                # Run the Ray test - ray.get is synchronous
-                ray.get(test_with_ray.remote())
+            # Run the Ray test - ray.get is synchronous
+            ray.get(test_with_ray.remote())
 
         finally:
             if not loop.is_closed():
