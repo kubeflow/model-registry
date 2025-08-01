@@ -133,6 +133,17 @@ func (sc *SourceCollection) load(path string) error {
 
 	sources := make(map[string]CatalogSource, len(config.Catalogs))
 	for _, catalogConfig := range config.Catalogs {
+		// If enabled is explicitly set to false, skip
+		hasEnabled := catalogConfig.HasEnabled()
+		if hasEnabled && *catalogConfig.Enabled == false {
+			continue
+		}
+		// If not explicitly set, default to enabled
+		if !hasEnabled {
+			t := true
+			catalogConfig.CatalogSource.Enabled = &t
+		}
+
 		catalogType := catalogConfig.Type
 		glog.Infof("reading config type %s...", catalogType)
 		registerFunc, ok := registeredCatalogTypes[catalogType]

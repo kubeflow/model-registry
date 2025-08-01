@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
 func TestRhecCatalogImpl_GetModel(t *testing.T) {
@@ -162,6 +163,181 @@ func TestRhecCatalogImpl_GetArtifacts(t *testing.T) {
 			}
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("GetArtifacts() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestRhecCatalogListModels(t *testing.T) {
+	modelTime := time.Now()
+	createTime := modelTime.Format(time.RFC3339)
+	lastUpdateTime := modelTime.Add(5 * time.Minute).Format(time.RFC3339)
+	sourceId := "rhec"
+	provider := "redhat"
+	artifactCreateTime := modelTime.Add(10 * time.Minute).Format(time.RFC3339)
+	artifactLastUpdateTime := modelTime.Add(15 * time.Minute).Format(time.RFC3339)
+
+	testModels := map[string]*rhecModel{
+		"model3": {
+			CatalogModel: openapi.CatalogModel{
+				Name:                     "model3",
+				CreateTimeSinceEpoch:     &createTime,
+				LastUpdateTimeSinceEpoch: &lastUpdateTime,
+				Provider:                 &provider,
+				SourceId:                 &sourceId,
+			},
+			Artifacts: []*openapi.CatalogModelArtifact{
+				{
+					Uri:                      "test-uri",
+					CreateTimeSinceEpoch:     &artifactCreateTime,
+					LastUpdateTimeSinceEpoch: &artifactLastUpdateTime,
+				},
+			},
+		},
+		"model1": {
+			CatalogModel: openapi.CatalogModel{
+				Name:                     "model1",
+				CreateTimeSinceEpoch:     &createTime,
+				LastUpdateTimeSinceEpoch: &lastUpdateTime,
+				Provider:                 &provider,
+				SourceId:                 &sourceId,
+			},
+			Artifacts: []*openapi.CatalogModelArtifact{
+				{
+					Uri:                      "test-uri",
+					CreateTimeSinceEpoch:     &artifactCreateTime,
+					LastUpdateTimeSinceEpoch: &artifactLastUpdateTime,
+				},
+			},
+		},
+		"model1:v2": {
+			CatalogModel: openapi.CatalogModel{
+				Name:                     "model1:v2",
+				CreateTimeSinceEpoch:     &createTime,
+				LastUpdateTimeSinceEpoch: &lastUpdateTime,
+				Provider:                 &provider,
+				SourceId:                 &sourceId,
+			},
+			Artifacts: []*openapi.CatalogModelArtifact{
+				{
+					Uri:                      "test-uri",
+					CreateTimeSinceEpoch:     &artifactCreateTime,
+					LastUpdateTimeSinceEpoch: &artifactLastUpdateTime,
+				},
+			},
+		},
+		"model2": {
+			CatalogModel: openapi.CatalogModel{
+				Name:                     "model2",
+				CreateTimeSinceEpoch:     &createTime,
+				LastUpdateTimeSinceEpoch: &lastUpdateTime,
+				Provider:                 &provider,
+				SourceId:                 &sourceId,
+			},
+			Artifacts: []*openapi.CatalogModelArtifact{},
+		},
+	}
+
+	r := &rhecCatalogImpl{
+		models: testModels,
+	}
+
+	tests := []struct {
+		name      string
+		modelName string
+		params    ListModelsParams
+		want      openapi.CatalogModelList
+		wantErr   bool
+	}{
+		{
+			name: "list models and sort order",
+			want: openapi.CatalogModelList{
+				Items: []openapi.CatalogModel{
+					{
+						Name:                     "model1",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+					{
+						Name:                     "model1:v2",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+					{
+						Name:                     "model2",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+					{
+						Name:                     "model3",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+				},
+				PageSize: 4,
+				Size:     4,
+			},
+			wantErr: false,
+		},
+		{
+			name:      "list models with query and sort order",
+			modelName: "model1",
+			params: ListModelsParams{
+				Query:     "model1",
+				OrderBy:   model.ORDERBYFIELD_NAME,
+				SortOrder: model.SORTORDER_ASC,
+			},
+			want: openapi.CatalogModelList{
+				Items: []openapi.CatalogModel{
+					{
+						Name:                     "model1",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+					{
+						Name:                     "model1:v2",
+						CreateTimeSinceEpoch:     &createTime,
+						LastUpdateTimeSinceEpoch: &lastUpdateTime,
+						Provider:                 &provider,
+						SourceId:                 &sourceId,
+					},
+				},
+				PageSize: 2,
+				Size:     2,
+			},
+			wantErr: false,
+		},
+		{
+			name:      "get non-existent model",
+			modelName: "not-exist",
+			params: ListModelsParams{
+				Query:     "not-exist",
+				OrderBy:   model.ORDERBYFIELD_NAME,
+				SortOrder: model.SORTORDER_ASC,
+			},
+			want:    openapi.CatalogModelList{Items: []openapi.CatalogModel{}},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.ListModels(context.Background(), tt.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListModels() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("ListModels() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
