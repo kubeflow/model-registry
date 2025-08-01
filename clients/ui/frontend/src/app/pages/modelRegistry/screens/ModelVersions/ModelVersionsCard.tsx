@@ -13,12 +13,11 @@ import {
   Divider,
   Truncate,
 } from '@patternfly/react-core';
-import { Link } from 'react-router';
 import { ArrowRightIcon } from '@patternfly/react-icons';
 import { TruncatedText } from 'mod-arch-shared';
-import { RegisteredModel } from '~/app/types';
+import { ModelState, RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
+import { filterLiveVersions } from '~/app/utils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import {
   archiveModelVersionDetailsUrl,
@@ -26,6 +25,7 @@ import {
   modelVersionListUrl,
   modelVersionUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 
 type ModelVersionsCardProps = {
   rm: RegisteredModel;
@@ -36,7 +36,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
   const [modelVersions] = useModelVersionsByRegisteredModel(rm.id);
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
   const filteredVersions = isArchiveModel
-    ? filterArchiveVersions(modelVersions.items)
+    ? modelVersions.items
     : filterLiveVersions(modelVersions.items);
   const latestModelVersions = filteredVersions
     .toSorted((a, b) => Number(b.createTimeSinceEpoch) - Number(a.createTimeSinceEpoch))
@@ -57,9 +57,12 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
               >
                 <Flex spaceItems={{ default: 'spaceItemsXs' }} direction={{ default: 'column' }}>
                   <FlexItem>
-                    <Link
-                      to={
-                        isArchiveModel
+                    <Button
+                      component="a"
+                      isInline
+                      data-testid={`model-version-${mv.id}-link`}
+                      href={
+                        mv.state === ModelState.ARCHIVED
                           ? archiveModelVersionDetailsUrl(
                               mv.id,
                               rm.id,
@@ -67,23 +70,23 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                             )
                           : modelVersionUrl(mv.id, rm.id, preferredModelRegistry?.name)
                       }
-                      data-testid={`model-version-${mv.id}-link`}
+                      variant="link"
                     >
                       <Truncate content={mv.name} />
-                    </Link>
+                    </Button>
                   </FlexItem>
                   <FlexItem>
-                    <TruncatedText content={mv.description} maxLines={2} />
+                    <TruncatedText content={mv.description} maxLines={1} />
                   </FlexItem>
                   <FlexItem>
                     <LabelGroup>
-                      {Object.keys(mv.customProperties).map((key) => (
+                      {getLabels(mv.customProperties).map((label) => (
                         <Label
                           variant="outline"
-                          key={key}
-                          data-testid={`model-version-${mv.id}-property-${key}`}
+                          key={label}
+                          data-testid={`model-version-${mv.id}-property-${label}`}
                         >
-                          {key}
+                          {label}
                         </Label>
                       ))}
                     </LabelGroup>
