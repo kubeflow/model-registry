@@ -55,11 +55,11 @@ const mockArchivedRegisteredModelWithData = mockRegisteredModel({
     },
     property1: {
       metadataType: ModelRegistryMetadataType.STRING,
-      string_value: 'value1',
+      string_value: '',
     },
     property2: {
       metadataType: ModelRegistryMetadataType.STRING,
-      string_value: 'value2',
+      string_value: '',
     },
     'url-property': {
       metadataType: ModelRegistryMetadataType.STRING,
@@ -87,11 +87,11 @@ const mockModelVersionListWithData = mockModelVersionList({
         },
         property1: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: 'value1',
+          string_value: '',
         },
         property2: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: 'value2',
+          string_value: '',
         },
       },
       state: ModelState.LIVE,
@@ -124,7 +124,7 @@ const mockModelVersionListWithData = mockModelVersionList({
       id: '5',
       name: 'Version 5',
       author: 'Author 5',
-      registeredModelId: '1',
+      registeredModelId: '2',
       createTimeSinceEpoch: '1725282349921',
       state: ModelState.ARCHIVED,
       customProperties: {
@@ -138,11 +138,11 @@ const mockModelVersionListWithData = mockModelVersionList({
         },
         property1: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: 'value1',
+          string_value: '',
         },
         property2: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: 'value2',
+          string_value: '',
         },
       },
     }),
@@ -150,7 +150,7 @@ const mockModelVersionListWithData = mockModelVersionList({
       id: '6',
       name: 'Version 6',
       author: 'Author 6',
-      registeredModelId: '1',
+      registeredModelId: '2',
       createTimeSinceEpoch: '1725282348921',
       state: ModelState.ARCHIVED,
     }),
@@ -158,7 +158,7 @@ const mockModelVersionListWithData = mockModelVersionList({
       id: '7',
       name: 'Version 7',
       author: 'Author 7',
-      registeredModelId: '1',
+      registeredModelId: '2',
       createTimeSinceEpoch: '1725282359921',
       state: ModelState.ARCHIVED,
     }),
@@ -166,9 +166,9 @@ const mockModelVersionListWithData = mockModelVersionList({
       id: '8',
       name: 'Version 8',
       author: 'Author 8',
-      registeredModelId: '1',
+      registeredModelId: '2',
       createTimeSinceEpoch: '1725282349925',
-      state: ModelState.ARCHIVED,
+      state: ModelState.LIVE,
     }),
   ],
 });
@@ -229,7 +229,7 @@ const initIntercepts = ({
     },
     {
       ...mockModelVersionListWithData,
-      items: mockModelVersionListWithData.items.filter((mv) => mv.state === ModelState.LIVE),
+      items: mockModelVersionListWithData.items.filter((mv) => mv.registeredModelId === '1'),
     },
   );
 
@@ -244,7 +244,7 @@ const initIntercepts = ({
     },
     {
       ...mockModelVersionListWithData,
-      items: mockModelVersionListWithData.items.filter((mv) => mv.state === ModelState.ARCHIVED),
+      items: mockModelVersionListWithData.items.filter((mv) => mv.registeredModelId === '2'),
     },
   );
 };
