@@ -1,9 +1,9 @@
 export enum ModelVersionsTab {
+  OVERVIEW = 'overview',
   VERSIONS = 'versions',
-  DETAILS = 'details',
 }
 
 export enum ModelVersionsTabTitle {
+  OVERVIEW = 'Overview',
   VERSIONS = 'Versions',
-  DETAILS = 'Details',
 }

@@ -36,8 +36,6 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
 
   const [isArchiveModalOpen, setIsArchiveModalOpen] = React.useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
-  // TODO: [Model Serving] Uncomment when model serving is available
-  // const [isDeployModalOpen, setIsDeployModalOpen] = React.useState(false);
 
   if (!preferredModelRegistry) {
     return null;
@@ -51,11 +49,6 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
         },
       ]
     : [
-        // TODO: [Model Serving] Uncomment when model serving is available
-        // {
-        //   title: 'Deploy',
-        //   onClick: () => setIsDeployModalOpen(true),
-        // },
         { isSeparator: true },
         {
           title: 'Archive model version',
@@ -126,22 +119,6 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
               modelVersionName={mv.name}
             />
           ) : null}
-          {/* TODO: [Model Serving] Uncomment when model serving is available */}
-          {/* {isDeployModalOpen ? (
-            <DeployRegisteredModelModal
-              onSubmit={() => {
-                navigate(
-                  modelVersionDeploymentsUrl(
-                    mv.id,
-                    mv.registeredModelId,
-                    preferredModelRegistry.metadata.name,
-                  ),
-                );
-              }}
-              onCancel={() => setIsDeployModalOpen(false)}
-              modelVersion={mv}
-            />
-          ) : null} */}
           {isRestoreModalOpen ? (
             <RestoreModelVersionModal
               onCancel={() => setIsRestoreModalOpen(false)}
