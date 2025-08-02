@@ -36,7 +36,7 @@ var (
 	parserOnce   sync.Once
 )
 
-// initParser builds the parser once using sync.Once for thread safety
+// initParser builds the parser, called in getParser using sync.Once for thread safety
 func initParser() {
 	globalParser = participle.MustBuild[WhereClause](
 		participle.Lexer(sqlLexer),
