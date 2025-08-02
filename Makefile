@@ -175,7 +175,7 @@ endif
 .PHONY: vet
 vet:
 	@echo "Running go vet on all packages..."
-	@${GO} vet $$(${GO} list ./... | grep -v github.com/kubeflow/model-registry/internal/db/filter) && \
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
 	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
 	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 
@@ -398,7 +398,7 @@ controller/vet: ## Run go vet against code.
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -v /e2e) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -vF /e2e) -coverprofile cover.out
 
 ##@ Build
 
