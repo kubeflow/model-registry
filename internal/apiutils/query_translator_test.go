@@ -355,11 +355,22 @@ func TestUnescapeDots(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"model\\.version", "model.version"},
-		{"my\\.complex\\.property", "my.complex.property"},
-		{"no_escaped_dots", "no_escaped_dots"},
-		{"model\\\\version", "model\\\\version"}, // escaped backslash, not escaped dot
+		// Basic cases
+		{"model\\.version", "model.version"},               // \. -> . (unescape dot)
+		{"my\\.complex\\.property", "my.complex.property"}, // multiple escaped dots
+		{"no_escaped_dots", "no_escaped_dots"},             // no changes needed
+		{"model\\\\version", "model\\\\version"},           // \\ (no dot after, no change)
+
+		// Cases with escaped backslashes
+		{"model\\\\.version", "model\\\\.version"},           // \\. -> \\. (escaped backslash + regular dot, no change)
+		{"model\\\\\\.version", "model\\\\.version"},         // \\\. -> \\. (escaped backslash + escaped dot -> unescape dot)
+		{"model\\\\\\\\.version", "model\\\\\\\\.version"},   // \\\\. -> \\\\. (two escaped backslashes + regular dot, no change)
+		{"model\\\\\\\\\\.version", "model\\\\\\\\.version"}, // \\\\\. -> \\\\. (two escaped backslashes + escaped dot -> unescape dot)
+
+		// Edge cases
 		{"", ""},
+		{"\\.\\.", ".."}, // two escaped dots
+		{"test\\\\\\.complex\\.name", "test\\\\.complex.name"}, // mixed escaping
 	}
 
 	for _, tt := range tests {

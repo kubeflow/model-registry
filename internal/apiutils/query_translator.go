@@ -112,8 +112,34 @@ func isValidValueType(valueType string) bool {
 }
 
 // unescapeDots converts escaped dots (\.) back to regular dots (.) in property names
+// It properly handles escaped backslashes: \. is unescaped to ., but \\. remains as \.
 func unescapeDots(s string) string {
-	return strings.ReplaceAll(s, "\\.", ".")
+	var result strings.Builder
+	i := 0
+	for i < len(s) {
+		if i < len(s)-1 && s[i] == '\\' && s[i+1] == '.' {
+			// Count preceding backslashes
+			backslashCount := 0
+			for j := i - 1; j >= 0 && s[j] == '\\'; j-- {
+				backslashCount++
+			}
+			// If even number of preceding backslashes (including 0), this \ is not escaped
+			// so \. is an escaped dot and should be converted to .
+			if backslashCount%2 == 0 {
+				result.WriteByte('.')
+				i += 2 // Skip both \ and .
+			} else {
+				// Odd number of preceding backslashes means this \ is escaped
+				// so \. should remain as \.
+				result.WriteByte(s[i])
+				i++
+			}
+		} else {
+			result.WriteByte(s[i])
+			i++
+		}
+	}
+	return result.String()
 }
 
 // findLastUnescapedDot finds the position of the last unescaped dot in a string
