@@ -90,7 +90,7 @@ func (qb *QueryBuilder) buildExpression(db *gorm.DB, expr *FilterExpression) *go
 // conditionResult holds a condition string and its arguments
 type conditionResult struct {
 	condition string
-	args      []interface{}
+	args      []any
 }
 
 // buildConditionString builds a condition string from an expression (for OR grouping)
@@ -119,7 +119,7 @@ func (qb *QueryBuilder) buildConditionString(expr *FilterExpression) conditionRe
 		return conditionResult{condition: condition, args: args}
 	}
 
-	return conditionResult{condition: "1=1", args: []interface{}{}}
+	return conditionResult{condition: "1=1", args: []any{}}
 }
 
 // buildPropertyReference creates a property reference from a filter expression
@@ -177,8 +177,8 @@ func (qb *QueryBuilder) buildLeafConditionString(expr *FilterExpression) conditi
 	return qb.buildPropertyConditionString(propRef, expr.Operator, expr.Value)
 }
 
-// inferValueTypeFromInterface infers the value type from an interface{} value
-func (qb *QueryBuilder) inferValueTypeFromInterface(value interface{}) string {
+// inferValueTypeFromInterface infers the value type from an any value
+func (qb *QueryBuilder) inferValueTypeFromInterface(value any) string {
 	switch value.(type) {
 	case string:
 		return StringValueType
@@ -194,7 +194,7 @@ func (qb *QueryBuilder) inferValueTypeFromInterface(value interface{}) string {
 }
 
 // buildPropertyCondition builds a GORM query condition for a property
-func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value interface{}) *gorm.DB {
+func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 
 	switch propDef.Location {
@@ -208,7 +208,7 @@ func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyRef
 }
 
 // buildPropertyConditionString builds a condition string for a property
-func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference, operator string, value interface{}) conditionResult {
+func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 
 	switch propDef.Location {
@@ -222,7 +222,7 @@ func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference,
 }
 
 // buildEntityTablePropertyCondition builds a condition for properties stored in the entity table
-func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value interface{}) *gorm.DB {
+func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
 
@@ -256,7 +256,7 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 }
 
 // buildEntityTablePropertyConditionString builds a condition string for properties stored in the entity table
-func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *PropertyReference, operator string, value interface{}) conditionResult {
+func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
 
@@ -284,7 +284,7 @@ func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *Propert
 }
 
 // buildPropertyTableCondition builds a condition for properties stored in the property table (requires join)
-func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *PropertyReference, operator string, value interface{}) *gorm.DB {
+func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
 	qb.joinCounter++
 	alias := fmt.Sprintf("prop_%d", qb.joinCounter)
 
@@ -324,7 +324,7 @@ func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *Proper
 }
 
 // buildPropertyTableConditionString builds a condition string for properties stored in the property table
-func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyReference, operator string, value interface{}) conditionResult {
+func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
 	// This is more complex for OR conditions - we need to handle joins differently
 	// For now, we'll create a subquery-based approach
 
@@ -350,46 +350,46 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 	subquery := fmt.Sprintf("EXISTS (SELECT 1 FROM %s WHERE %s.%s = %s.id AND %s.name = ? AND %s)",
 		propertyTable, propertyTable, joinColumn, qb.tablePrefix, propertyTable, condition.condition)
 
-	args := []interface{}{propRef.Name}
+	args := []any{propRef.Name}
 	args = append(args, condition.args...)
 
 	return conditionResult{condition: subquery, args: args}
 }
 
 // buildOperatorCondition builds a condition string for an operator
-func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, value interface{}) conditionResult {
+func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, value any) conditionResult {
 	switch operator {
 	case "=":
-		return conditionResult{condition: fmt.Sprintf("%s = ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s = ?", column), args: []any{value}}
 	case "!=":
-		return conditionResult{condition: fmt.Sprintf("%s != ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s != ?", column), args: []any{value}}
 	case ">":
-		return conditionResult{condition: fmt.Sprintf("%s > ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s > ?", column), args: []any{value}}
 	case ">=":
-		return conditionResult{condition: fmt.Sprintf("%s >= ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s >= ?", column), args: []any{value}}
 	case "<":
-		return conditionResult{condition: fmt.Sprintf("%s < ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s < ?", column), args: []any{value}}
 	case "<=":
-		return conditionResult{condition: fmt.Sprintf("%s <= ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s <= ?", column), args: []any{value}}
 	case "LIKE":
-		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []any{value}}
 	case "ILIKE":
 		// Cross-database case-insensitive LIKE using UPPER()
 		// This works across MySQL, PostgreSQL, SQLite, and most other databases
 		if strValue, ok := value.(string); ok {
 			return conditionResult{
 				condition: fmt.Sprintf("UPPER(%s) LIKE UPPER(?)", column),
-				args:      []interface{}{strValue},
+				args:      []any{strValue},
 			}
 		}
 		// Fallback to regular LIKE if value is not a string
-		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []any{value}}
 	case "IN":
 		// Handle IN operator with array values
-		return conditionResult{condition: fmt.Sprintf("%s IN ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s IN ?", column), args: []any{value}}
 	default:
 		// Default to equality
-		return conditionResult{condition: fmt.Sprintf("%s = ?", column), args: []interface{}{value}}
+		return conditionResult{condition: fmt.Sprintf("%s = ?", column), args: []any{value}}
 	}
 }
 
@@ -397,7 +397,7 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 // This method provides different implementations based on the database type for optimal performance
 //
 //nolint:staticcheck // Embedded field access is intentional for database dialect checking
-func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column string, value interface{}) *gorm.DB {
+func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column string, value any) *gorm.DB {
 	if strValue, ok := value.(string); ok {
 		// Check database type for optimal implementation
 		switch db.Dialector.Name() {
