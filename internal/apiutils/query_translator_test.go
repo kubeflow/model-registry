@@ -474,6 +474,13 @@ func TestParseCustomPropertyField(t *testing.T) {
 			expectedValueType: "",
 			expectedIsCustom:  false,
 		},
+		{
+			name:              "field ending with dot",
+			input:             "field.",
+			expectedProperty:  "",
+			expectedValueType: "",
+			expectedIsCustom:  false,
+		},
 	}
 
 	for _, tt := range tests {
