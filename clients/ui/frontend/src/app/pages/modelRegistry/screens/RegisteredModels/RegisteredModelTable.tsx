@@ -1,18 +1,21 @@
 import * as React from 'react';
 import { Table, DashboardEmptyTableView } from 'mod-arch-shared';
-import { RegisteredModel } from '~/app/types';
+import { ModelVersion, RegisteredModel } from '~/app/types';
+import { getLatestVersionForRegisteredModel } from '~/app/pages/modelRegistry/screens/utils';
 import { rmColumns } from './RegisteredModelsTableColumns';
 import RegisteredModelTableRow from './RegisteredModelTableRow';
 
 type RegisteredModelTableProps = {
   clearFilters: () => void;
   registeredModels: RegisteredModel[];
+  modelVersions: ModelVersion[];
   refresh: () => void;
 } & Partial<Pick<React.ComponentProps<typeof Table>, 'toolbarContent'>>;
 
 const RegisteredModelTable: React.FC<RegisteredModelTableProps> = ({
   clearFilters,
   registeredModels,
+  modelVersions,
   toolbarContent,
   refresh,
 }) => (
@@ -30,6 +33,7 @@ const RegisteredModelTable: React.FC<RegisteredModelTableProps> = ({
         key={rm.name}
         hasDeploys={false}
         registeredModel={rm}
+        latestModelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
         refresh={refresh}
       />
     )}

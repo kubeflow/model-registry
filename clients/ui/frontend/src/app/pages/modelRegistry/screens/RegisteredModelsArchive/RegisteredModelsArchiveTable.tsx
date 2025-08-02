@@ -1,18 +1,21 @@
 import * as React from 'react';
 import { Table, DashboardEmptyTableView } from 'mod-arch-shared';
-import { RegisteredModel } from '~/app/types';
+import { ModelVersion, RegisteredModel } from '~/app/types';
 import { rmColumns } from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelsTableColumns';
 import RegisteredModelTableRow from '~/app/pages/modelRegistry/screens/RegisteredModels/RegisteredModelTableRow';
+import { getLatestVersionForRegisteredModel } from '~/app/pages/modelRegistry/screens/utils';
 
 type RegisteredModelsArchiveTableProps = {
   clearFilters: () => void;
   registeredModels: RegisteredModel[];
+  modelVersions: ModelVersion[];
   refresh: () => void;
 } & Partial<Pick<React.ComponentProps<typeof Table>, 'toolbarContent'>>;
 
 const RegisteredModelsArchiveTable: React.FC<RegisteredModelsArchiveTableProps> = ({
   clearFilters,
   registeredModels,
+  modelVersions,
   toolbarContent,
   refresh,
 }) => (
@@ -26,7 +29,13 @@ const RegisteredModelsArchiveTable: React.FC<RegisteredModelsArchiveTableProps> 
     enablePagination
     emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
     rowRenderer={(rm: RegisteredModel) => (
-      <RegisteredModelTableRow key={rm.name} registeredModel={rm} isArchiveRow refresh={refresh} />
+      <RegisteredModelTableRow
+        key={rm.name}
+        registeredModel={rm}
+        latestModelVersion={getLatestVersionForRegisteredModel(modelVersions, rm.id)}
+        isArchiveRow
+        refresh={refresh}
+      />
     )}
   />
 );

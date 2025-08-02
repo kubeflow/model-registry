@@ -10,6 +10,10 @@ class ArchiveModelTableRow extends TableRow {
     return this.find().findByTestId('description');
   }
 
+  findLatestVersion() {
+    return this.find().findByTestId('latest-version');
+  }
+
   findLabelPopoverText() {
     return this.find().findByTestId('popover-label-text');
   }
