@@ -24,7 +24,7 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
+		withNotEditable, err := b.mapper.UpdateExistingRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -136,6 +136,7 @@ func (b *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) 
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 	})
 	if err != nil {

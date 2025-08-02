@@ -1,28 +1,21 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getModelArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.ModelArtifactTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find ModelArtifact type")
-	return int64(typeRecord.ID)
-}
-
 func TestModelArtifactRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual ModelArtifact type ID from the database
 	typeID := getModelArtifactTypeID(t, sharedDB)
@@ -65,7 +58,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		modelArtifact := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("test-model-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:test-model-artifact", *savedModelVersion.GetID())),
 				ExternalID:   apiutils.Of("artifact-ext-123"),
 				URI:          apiutils.Of("s3://bucket/model.pkl"),
 				State:        apiutils.Of("LIVE"),
@@ -90,21 +83,23 @@ func TestModelArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "test-model-artifact", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-model-artifact", *savedModelVersion.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "artifact-ext-123", *saved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/model.pkl", *saved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *saved.GetAttributes().State)
 
 		// Test updating the same model artifact
 		modelArtifact.ID = saved.GetID()
-		modelArtifact.GetAttributes().Name = apiutils.Of("updated-model-artifact")
+		modelArtifact.GetAttributes().Name = apiutils.Of(fmt.Sprintf("%d:updated-model-artifact", *savedModelVersion.GetID()))
 		modelArtifact.GetAttributes().State = apiutils.Of("PENDING")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		modelArtifact.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(modelArtifact, savedModelVersion.GetID())
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *saved.GetID(), *updated.GetID())
-		assert.Equal(t, "updated-model-artifact", *updated.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:updated-model-artifact", *savedModelVersion.GetID()), *updated.GetAttributes().Name)
 		assert.Equal(t, "PENDING", *updated.GetAttributes().State)
 	})
 
@@ -138,7 +133,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		modelArtifact := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("get-test-model-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:get-test-model-artifact", *savedModelVersion.GetID())),
 				ExternalID:   apiutils.Of("get-artifact-ext-123"),
 				URI:          apiutils.Of("s3://bucket/get-model.pkl"),
 				State:        apiutils.Of("LIVE"),
@@ -155,7 +150,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
-		assert.Equal(t, "get-test-model-artifact", *retrieved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:get-test-model-artifact", *savedModelVersion.GetID()), *retrieved.GetAttributes().Name)
 		assert.Equal(t, "get-artifact-ext-123", *retrieved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/get-model.pkl", *retrieved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *retrieved.GetAttributes().State)
@@ -196,7 +191,7 @@ func TestModelArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelArtifactAttributes{
-					Name:         apiutils.Of("list-artifact-1"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-artifact-ext-1"),
 					URI:          apiutils.Of("s3://bucket/list-model-1.pkl"),
 					State:        apiutils.Of("LIVE"),
@@ -206,7 +201,7 @@ func TestModelArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelArtifactAttributes{
-					Name:         apiutils.Of("list-artifact-2"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-artifact-ext-2"),
 					URI:          apiutils.Of("s3://bucket/list-model-2.pkl"),
 					State:        apiutils.Of("PENDING"),
@@ -216,7 +211,7 @@ func TestModelArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelArtifactAttributes{
-					Name:         apiutils.Of("list-artifact-3"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-artifact-3", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-artifact-ext-3"),
 					URI:          apiutils.Of("s3://bucket/list-model-3.pkl"),
 					State:        apiutils.Of("LIVE"),
@@ -251,7 +246,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		require.NotNil(t, result)
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-artifact-1", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:list-artifact-1", *savedModelVersion.GetID()), *result.Items[0].GetAttributes().Name)
 		}
 
 		// Test listing by external ID
@@ -270,7 +265,7 @@ func TestModelArtifactRepository(t *testing.T) {
 
 		// Test listing by model version ID
 		listOptions = models.ModelArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -330,7 +325,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		artifact1 := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("time-test-artifact-1"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:time-test-artifact-1", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/time-model-1.pkl"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("model-artifact"),
@@ -345,7 +340,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		artifact2 := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("time-test-artifact-2"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:time-test-artifact-2", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/time-model-2.pkl"),
 				State:        apiutils.Of("PENDING"),
 				ArtifactType: apiutils.Of("model-artifact"),
@@ -449,7 +444,7 @@ func TestModelArtifactRepository(t *testing.T) {
 		modelArtifact := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("props-test-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:props-test-artifact", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/props-model.pkl"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("model-artifact"),

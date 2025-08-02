@@ -1,28 +1,21 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getDocArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.DocArtifactTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find DocArtifact type")
-	return int64(typeRecord.ID)
-}
-
 func TestDocArtifactRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual DocArtifact type ID from the database
 	typeID := getDocArtifactTypeID(t, sharedDB)
@@ -65,7 +58,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("test-doc-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:test-doc-artifact", *savedModelVersion.GetID())),
 				ExternalID:   apiutils.Of("doc-artifact-ext-123"),
 				URI:          apiutils.Of("s3://bucket/documentation.pdf"),
 				State:        apiutils.Of("LIVE"),
@@ -90,21 +83,23 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "test-doc-artifact", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-doc-artifact", *savedModelVersion.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "doc-artifact-ext-123", *saved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/documentation.pdf", *saved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *saved.GetAttributes().State)
 
 		// Test updating the same doc artifact
 		docArtifact.ID = saved.GetID()
-		docArtifact.GetAttributes().Name = apiutils.Of("updated-doc-artifact")
+		docArtifact.GetAttributes().Name = apiutils.Of(fmt.Sprintf("%d:updated-doc-artifact", *savedModelVersion.GetID()))
 		docArtifact.GetAttributes().State = apiutils.Of("PENDING")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		docArtifact.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(docArtifact, savedModelVersion.GetID())
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *saved.GetID(), *updated.GetID())
-		assert.Equal(t, "updated-doc-artifact", *updated.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:updated-doc-artifact", *savedModelVersion.GetID()), *updated.GetAttributes().Name)
 		assert.Equal(t, "PENDING", *updated.GetAttributes().State)
 	})
 
@@ -138,7 +133,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("get-test-doc-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:get-test-doc-artifact", *savedModelVersion.GetID())),
 				ExternalID:   apiutils.Of("get-doc-artifact-ext-123"),
 				URI:          apiutils.Of("s3://bucket/get-documentation.pdf"),
 				State:        apiutils.Of("LIVE"),
@@ -155,7 +150,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
-		assert.Equal(t, "get-test-doc-artifact", *retrieved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:get-test-doc-artifact", *savedModelVersion.GetID()), *retrieved.GetAttributes().Name)
 		assert.Equal(t, "get-doc-artifact-ext-123", *retrieved.GetAttributes().ExternalID)
 		assert.Equal(t, "s3://bucket/get-documentation.pdf", *retrieved.GetAttributes().URI)
 		assert.Equal(t, "LIVE", *retrieved.GetAttributes().State)
@@ -196,7 +191,7 @@ func TestDocArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         apiutils.Of("list-doc-artifact-1"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-doc-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-doc-artifact-ext-1"),
 					URI:          apiutils.Of("s3://bucket/list-doc-1.pdf"),
 					State:        apiutils.Of("LIVE"),
@@ -206,7 +201,7 @@ func TestDocArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         apiutils.Of("list-doc-artifact-2"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-doc-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-doc-artifact-ext-2"),
 					URI:          apiutils.Of("s3://bucket/list-doc-2.pdf"),
 					State:        apiutils.Of("PENDING"),
@@ -216,7 +211,7 @@ func TestDocArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         apiutils.Of("list-doc-artifact-3"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-doc-artifact-3", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-doc-artifact-ext-3"),
 					URI:          apiutils.Of("s3://bucket/list-doc-3.pdf"),
 					State:        apiutils.Of("LIVE"),
@@ -249,10 +244,8 @@ func TestDocArtifactRepository(t *testing.T) {
 		result, err = repo.List(listOptions)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		if len(result.Items) > 0 {
-			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-doc-artifact-1", *result.Items[0].GetAttributes().Name)
-		}
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, fmt.Sprintf("%d:list-doc-artifact-1", *savedModelVersion.GetID()), *result.Items[0].GetAttributes().Name)
 
 		// Test listing by external ID
 		listOptions = models.DocArtifactListOptions{
@@ -263,14 +256,12 @@ func TestDocArtifactRepository(t *testing.T) {
 		result, err = repo.List(listOptions)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		if len(result.Items) > 0 {
-			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-doc-artifact-ext-2", *result.Items[0].GetAttributes().ExternalID)
-		}
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "list-doc-artifact-ext-2", *result.Items[0].GetAttributes().ExternalID)
 
 		// Test listing by model version ID
 		listOptions = models.DocArtifactListOptions{
-			ModelVersionID: savedModelVersion.GetID(),
+			ParentResourceID: savedModelVersion.GetID(),
 		}
 		listOptions.PageSize = &pageSize
 
@@ -330,7 +321,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		artifact1 := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("time-test-doc-artifact-1"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:time-test-doc-artifact-1", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/time-doc-1.pdf"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("doc-artifact"),
@@ -345,7 +336,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		artifact2 := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("time-test-doc-artifact-2"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:time-test-doc-artifact-2", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/time-doc-2.pdf"),
 				State:        apiutils.Of("PENDING"),
 				ArtifactType: apiutils.Of("doc-artifact"),
@@ -355,7 +346,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test ordering by CREATE_TIME
-		pageSize := int32(10)
+		pageSize := int32(100) // Increased page size to ensure all test entities are included
 		listOptions := models.DocArtifactListOptions{
 			Pagination: models.Pagination{
 				OrderBy: apiutils.Of("CREATE_TIME"),
@@ -394,7 +385,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("standalone-doc-artifact"),
+				Name:         apiutils.Of("standalone-doc-artifact-without-mv"),
 				URI:          apiutils.Of("s3://bucket/standalone-doc.pdf"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("doc-artifact"),
@@ -411,13 +402,13 @@ func TestDocArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "standalone-doc-artifact", *saved.GetAttributes().Name)
+		assert.Equal(t, "standalone-doc-artifact-without-mv", *saved.GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/standalone-doc.pdf", *saved.GetAttributes().URI)
 
 		// Verify it can be retrieved
 		retrieved, err := repo.GetByID(*saved.GetID())
 		require.NoError(t, err)
-		assert.Equal(t, "standalone-doc-artifact", *retrieved.GetAttributes().Name)
+		assert.Equal(t, "standalone-doc-artifact-without-mv", *retrieved.GetAttributes().Name)
 	})
 
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
@@ -449,7 +440,7 @@ func TestDocArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("props-test-doc-artifact"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:props-test-doc-artifact", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/props-doc.pdf"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("doc-artifact"),

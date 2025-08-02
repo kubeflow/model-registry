@@ -13,7 +13,7 @@ import (
 // REGISTERED MODELS
 
 func (suite *CoreTestSuite) TestCreateRegisteredModel() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
@@ -60,7 +60,7 @@ func (suite *CoreTestSuite) TestCreateRegisteredModel() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModelFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.REGISTEREDMODELSTATE_ARCHIVED
@@ -90,7 +90,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateRegisteredModelFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new model
@@ -184,7 +184,7 @@ func (suite *CoreTestSuite) TestUpdateRegisteredModel() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	state := openapi.REGISTEREDMODELSTATE_LIVE
@@ -217,7 +217,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelById() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.GetRegisteredModelByParams(apiutils.Of("not-present"), nil)
@@ -226,7 +226,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new model
@@ -246,7 +246,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsName() {
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsInvalid() {
 	// trigger a 400 bad request to test unallowed query params
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModel := &openapi.RegisteredModel{
@@ -267,7 +267,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new model
@@ -286,7 +286,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new model
@@ -304,7 +304,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "ID"
@@ -356,7 +356,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedById() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedByLastUpdate() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "LAST_UPDATE_TIME"
@@ -413,7 +413,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsOrderedByLastUpdate() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelsWithPageSize() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	pageSize := int32(1)
@@ -466,7 +466,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelsWithPageSize() {
 }
 
 func (suite *CoreTestSuite) TestCreateRegisteredModelWithCustomPropFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new model with incomplete customProperty fields

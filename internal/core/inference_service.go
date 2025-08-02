@@ -25,7 +25,7 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
+		withNotEditable, err := b.mapper.UpdateExistingInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -41,15 +41,6 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	name := ""
-
-	if infSvc.GetAttributes().Name != nil {
-		name = *infSvc.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
-	infSvc.GetAttributes().Name = &prefixedName
 
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
 	if err != nil {
@@ -90,17 +81,13 @@ func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.Infe
 }
 
 func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
-	var combinedName *string
-
-	if name != nil && parentResourceId != nil {
-		n := converter.PrefixWhenOwned(parentResourceId, *name)
-		combinedName = &n
-	} else if externalId == nil {
+	// Caller MUST provide either name and parentResourceId or externalId
+	if (name == nil || parentResourceId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
-		Name:       combinedName,
+		Name:       name,
 		ExternalID: externalId,
 	})
 	if err != nil {

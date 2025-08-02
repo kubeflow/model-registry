@@ -12,6 +12,43 @@ import (
 
 type MLMDToOpenAPIConverterImpl struct{}
 
+func (c *MLMDToOpenAPIConverterImpl) ConvertDataSet(source *proto.Artifact) (*openapi.DataSet, error) {
+	var pOpenapiDataSet *openapi.DataSet
+	if source != nil {
+		var openapiDataSet openapi.DataSet
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiDataSet.Description = converter.MapDescription((*source).Properties)
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			openapiDataSet.ExternalId = &xstring
+		}
+		openapiDataSet.Name = converter.MapNameFromOwned((*source).Name)
+		openapiDataSet.Id = converter.Int64ToString((*source).Id)
+		openapiDataSet.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiDataSet.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		pString, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiDataSet.ArtifactType = pString
+		openapiDataSet.Digest = converter.MapPropertyDigest((*source).Properties)
+		openapiDataSet.SourceType = converter.MapPropertySourceType((*source).Properties)
+		openapiDataSet.Source = converter.MapPropertySource((*source).Properties)
+		openapiDataSet.Schema = converter.MapPropertySchema((*source).Properties)
+		openapiDataSet.Profile = converter.MapPropertyProfile((*source).Properties)
+		if (*source).Uri != nil {
+			xstring2 := *(*source).Uri
+			openapiDataSet.Uri = &xstring2
+		}
+		openapiDataSet.State = converter.MapMLMDArtifactState((*source).State)
+		pOpenapiDataSet = &openapiDataSet
+	}
+	return pOpenapiDataSet, nil
+}
 func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) (*openapi.DocArtifact, error) {
 	var pOpenapiDocArtifact *openapi.DocArtifact
 	if source != nil {
@@ -44,6 +81,64 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertDocArtifact(source *proto.Artifact) 
 	}
 	return pOpenapiDocArtifact, nil
 }
+func (c *MLMDToOpenAPIConverterImpl) ConvertExperiment(source *proto.Context) (*openapi.Experiment, error) {
+	var pOpenapiExperiment *openapi.Experiment
+	if source != nil {
+		var openapiExperiment openapi.Experiment
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiExperiment.Description = converter.MapDescription((*source).Properties)
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			openapiExperiment.ExternalId = &xstring
+		}
+		if (*source).Name != nil {
+			openapiExperiment.Name = *(*source).Name
+		}
+		openapiExperiment.Id = converter.Int64ToString((*source).Id)
+		openapiExperiment.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiExperiment.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		openapiExperiment.Owner = converter.MapOwner((*source).Properties)
+		openapiExperiment.State = converter.MapExperimentState((*source).Properties)
+		pOpenapiExperiment = &openapiExperiment
+	}
+	return pOpenapiExperiment, nil
+}
+func (c *MLMDToOpenAPIConverterImpl) ConvertExperimentRun(source *proto.Context) (*openapi.ExperimentRun, error) {
+	var pOpenapiExperimentRun *openapi.ExperimentRun
+	if source != nil {
+		var openapiExperimentRun openapi.ExperimentRun
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiExperimentRun.Description = converter.MapDescription((*source).Properties)
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			openapiExperimentRun.ExternalId = &xstring
+		}
+		openapiExperimentRun.Name = converter.MapNameFromOwned((*source).Name)
+		openapiExperimentRun.EndTimeSinceEpoch = converter.MapPropertyEndTimeSinceEpoch((*source).Properties)
+		openapiExperimentRun.Status = converter.MapExperimentRunStatus((*source).Properties)
+		openapiExperimentRun.State = converter.MapExperimentRunState((*source).Properties)
+		openapiExperimentRun.Owner = converter.MapOwner((*source).Properties)
+		xstring2, err := converter.MapExperimentIdFromOwned((*source).Name)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ExperimentId: %w", err)
+		}
+		openapiExperimentRun.ExperimentId = xstring2
+		openapiExperimentRun.StartTimeSinceEpoch = converter.MapPropertyStartTimeSinceEpoch((*source).Properties)
+		openapiExperimentRun.Id = converter.Int64ToString((*source).Id)
+		openapiExperimentRun.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiExperimentRun.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		pOpenapiExperimentRun = &openapiExperimentRun
+	}
+	return pOpenapiExperimentRun, nil
+}
 func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Context) (*openapi.InferenceService, error) {
 	var pOpenapiInferenceService *openapi.InferenceService
 	if source != nil {
@@ -70,6 +165,37 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertInferenceService(source *proto.Conte
 		pOpenapiInferenceService = &openapiInferenceService
 	}
 	return pOpenapiInferenceService, nil
+}
+func (c *MLMDToOpenAPIConverterImpl) ConvertMetric(source *proto.Artifact) (*openapi.Metric, error) {
+	var pOpenapiMetric *openapi.Metric
+	if source != nil {
+		var openapiMetric openapi.Metric
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiMetric.Description = converter.MapDescription((*source).Properties)
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			openapiMetric.ExternalId = &xstring
+		}
+		openapiMetric.Name = converter.MapNameFromOwned((*source).Name)
+		openapiMetric.Id = converter.Int64ToString((*source).Id)
+		openapiMetric.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiMetric.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		pString, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiMetric.ArtifactType = pString
+		openapiMetric.Value = converter.MapMetricPropertyValue((*source).Properties)
+		openapiMetric.Timestamp = converter.MapPropertyTimestamp((*source).Properties)
+		openapiMetric.Step = converter.MapPropertyStep((*source).Properties)
+		openapiMetric.State = converter.MapMLMDArtifactState((*source).State)
+		pOpenapiMetric = &openapiMetric
+	}
+	return pOpenapiMetric, nil
 }
 func (c *MLMDToOpenAPIConverterImpl) ConvertModelArtifact(source *proto.Artifact) (*openapi.ModelArtifact, error) {
 	var pOpenapiModelArtifact *openapi.ModelArtifact
@@ -141,6 +267,36 @@ func (c *MLMDToOpenAPIConverterImpl) ConvertModelVersion(source *proto.Context) 
 		pOpenapiModelVersion = &openapiModelVersion
 	}
 	return pOpenapiModelVersion, nil
+}
+func (c *MLMDToOpenAPIConverterImpl) ConvertParameter(source *proto.Artifact) (*openapi.Parameter, error) {
+	var pOpenapiParameter *openapi.Parameter
+	if source != nil {
+		var openapiParameter openapi.Parameter
+		mapStringOpenapiMetadataValue, err := converter.MapMLMDCustomProperties((*source).CustomProperties)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
+		}
+		openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+		openapiParameter.Description = converter.MapDescription((*source).Properties)
+		if (*source).ExternalId != nil {
+			xstring := *(*source).ExternalId
+			openapiParameter.ExternalId = &xstring
+		}
+		openapiParameter.Name = converter.MapNameFromOwned((*source).Name)
+		openapiParameter.Id = converter.Int64ToString((*source).Id)
+		openapiParameter.CreateTimeSinceEpoch = converter.Int64ToString((*source).CreateTimeSinceEpoch)
+		openapiParameter.LastUpdateTimeSinceEpoch = converter.Int64ToString((*source).LastUpdateTimeSinceEpoch)
+		pString, err := converter.MapArtifactType(source)
+		if err != nil {
+			return nil, fmt.Errorf("error setting field ArtifactType: %w", err)
+		}
+		openapiParameter.ArtifactType = pString
+		openapiParameter.Value = converter.MapParameterPropertyValue((*source).Properties)
+		openapiParameter.ParameterType = converter.MapPropertyParameterType((*source).Properties)
+		openapiParameter.State = converter.MapMLMDArtifactState((*source).State)
+		pOpenapiParameter = &openapiParameter
+	}
+	return pOpenapiParameter, nil
 }
 func (c *MLMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *proto.Context) (*openapi.RegisteredModel, error) {
 	var pOpenapiRegisteredModel *openapi.RegisteredModel

@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	github.com/Khan/genqlient v0.8.1
+	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.2
 	github.com/go-logr/logr v1.4.3

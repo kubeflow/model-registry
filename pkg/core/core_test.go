@@ -48,6 +48,16 @@ var (
 	entityDescription string
 	// ServeModel
 	executionState string
+	// experiment
+	experimentName        string
+	experimentDescription string
+	experimentExternalId  string
+	experimentOwner       string
+	// experiment run
+	experimentRunName        string
+	experimentRunDescription string
+	experimentRunExternalId  string
+	experimentRunOwner       string
 )
 
 type CoreTestSuite struct {
@@ -65,6 +75,8 @@ var (
 	servingEnvironmentTypeName = apiutils.Of(defaults.ServingEnvironmentTypeName)
 	inferenceServiceTypeName   = apiutils.Of(defaults.InferenceServiceTypeName)
 	serveModelTypeName         = apiutils.Of(defaults.ServeModelTypeName)
+	experimentTypeName         = apiutils.Of(defaults.ExperimentTypeName)
+	experimentRunTypeName      = apiutils.Of(defaults.ExperimentRunTypeName)
 	canAddFields               = apiutils.Of(true)
 )
 
@@ -105,6 +117,16 @@ func (suite *CoreTestSuite) SetupTest() {
 	entityExternalId2 = "entityExternalID2"
 	entityDescription = "lorem ipsum entity description"
 	executionState = "RUNNING"
+	// experiment
+	experimentName = "MyAwesomeExperiment"
+	experimentDescription = "experiment description"
+	experimentExternalId = "org.myawesomeexperiment"
+	experimentOwner = "experiment owner"
+	// experiment run
+	experimentRunName = "MyAwesomeExperimentRun"
+	experimentRunDescription = "experiment run description"
+	experimentRunExternalId = "org.myawesomeexperiment.run1"
+	experimentRunOwner = "experiment run owner"
 
 	// sanity check before each test: connect to MLMD directly, and dry-run any of the gRPC (read) operations;
 	// on newer Podman might delay in recognising volume mount files for sqlite3 db,
@@ -262,6 +284,71 @@ func (suite *CoreTestSuite) registerInferenceService(service api.ModelRegistryAp
 	suite.Nilf(err, "error creating InferenceService: %v", err)
 
 	return *createdEntity.Id
+}
+
+// utility function that register a new simple experiment and return its ID
+func (suite *CoreTestSuite) registerExperiment(service api.ModelRegistryApi, overrideName *string, overrideExternalId *string) string {
+	experiment := &openapi.Experiment{
+		Name:        experimentName,
+		ExternalId:  &experimentExternalId,
+		Description: &experimentDescription,
+		Owner:       &experimentOwner,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	if overrideName != nil {
+		experiment.Name = *overrideName
+	}
+
+	if overrideExternalId != nil {
+		experiment.ExternalId = overrideExternalId
+	}
+
+	// test
+	createdExperiment, err := service.UpsertExperiment(experiment)
+	suite.Nilf(err, "error creating experiment: %v", err)
+
+	return *createdExperiment.Id
+}
+
+// utility function that register a new simple experiment run and return its ID
+func (suite *CoreTestSuite) registerExperimentRun(
+	service api.ModelRegistryApi,
+	overrideExperimentName *string,
+	overrideExperimentExternalId *string,
+	overrideRunName *string,
+	overrideRunExternalId *string,
+) string {
+	experimentId := suite.registerExperiment(service, overrideExperimentName, overrideExperimentExternalId)
+
+	experimentRun := &openapi.ExperimentRun{
+		Name:        &experimentRunName,
+		ExternalId:  &experimentRunExternalId,
+		Description: &experimentRunDescription,
+		Owner:       &experimentRunOwner,
+		CustomProperties: &map[string]openapi.MetadataValue{
+			"myCustomProp": {
+				MetadataStringValue: converter.NewMetadataStringValue(myCustomProp),
+			},
+		},
+	}
+
+	if overrideRunName != nil {
+		experimentRun.Name = overrideRunName
+	}
+
+	if overrideRunExternalId != nil {
+		experimentRun.ExternalId = overrideRunExternalId
+	}
+
+	createdExperimentRun, err := service.UpsertExperimentRun(experimentRun, &experimentId)
+	suite.Nilf(err, "error creating experiment run: %v", err)
+
+	return *createdExperimentRun.Id
 }
 
 func (suite *CoreTestSuite) TestModelRegistryStartupWithExistingEmptyTypes() {
