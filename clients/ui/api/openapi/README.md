@@ -1,0 +1,1 @@
+For detailed API reference, please see the [UI Swagger API Spec](https://www.kubeflow.org/docs/components/model-registry/reference/rest-api/#swagger-ui).

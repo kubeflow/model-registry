@@ -204,3 +204,7 @@ manifests/kustomize/overlays/db/model-registry-db-deployment.yaml file.
 
 spec.template.spec.containers.image: public.ecr.aws/docker/library/mysql:8.3.0
 ```
+
+> The Swagger Editor no longer supports external URLs directly.  
+You can view the UI API spec via the official Kubeflow documentation:  
+[View UI Swagger Spec](https://www.kubeflow.org/docs/components/model-registry/reference/rest-api/#swagger-ui)
