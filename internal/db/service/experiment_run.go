@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -44,7 +45,11 @@ func (r *ExperimentRunRepositoryImpl) List(listOptions models.ExperimentRunListO
 
 func applyExperimentRunListFilters(query *gorm.DB, listOptions *models.ExperimentRunListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		if listOptions.ExperimentID != nil {
+			query = query.Where("name LIKE ?", fmt.Sprintf("%d:%s", *listOptions.ExperimentID, *listOptions.Name))
+		} else {
+			query = query.Where("name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
+		}
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}

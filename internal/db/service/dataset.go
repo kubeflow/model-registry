@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -42,10 +43,16 @@ func (r *DataSetRepositoryImpl) List(listOptions models.DataSetListOptions) (*mo
 
 func applyDataSetListFilters(query *gorm.DB, listOptions *models.DataSetListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		query = query.Where("name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
+
+	if listOptions.ParentResourceID != nil {
+		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
+			Where("Attribution.context_id = ?", listOptions.ParentResourceID)
+	}
+
 	return query
 }
 

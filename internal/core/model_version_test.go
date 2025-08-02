@@ -861,3 +861,390 @@ func TestModelVersionRoundTrip(t *testing.T) {
 		assert.Equal(t, openapi.MODELVERSIONSTATE_ARCHIVED, *final.State)
 	})
 }
+
+func TestGetModelVersionsWithFilterQuery(t *testing.T) {
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create a registered model to associate versions with
+	registeredModel := &openapi.RegisteredModel{
+		Name: "test-model-for-versions",
+	}
+	createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+	require.NoError(t, err)
+
+	// Create test model versions with various properties for filtering
+	testVersions := []struct {
+		version *openapi.ModelVersion
+	}{
+		{
+			version: &openapi.ModelVersion{
+				Name:              "v1.0.0",
+				Description:       apiutils.Of("Initial release version"),
+				ExternalId:        apiutils.Of("ext-v1-001"),
+				Author:            apiutils.Of("alice"),
+				State:             (*openapi.ModelVersionState)(apiutils.Of("LIVE")),
+				RegisteredModelId: *createdModel.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"stage": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "production",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.95,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"batch_size": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "32",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			version: &openapi.ModelVersion{
+				Name:              "v2.0.0",
+				Description:       apiutils.Of("Major update with improvements"),
+				ExternalId:        apiutils.Of("ext-v2-002"),
+				Author:            apiutils.Of("bob"),
+				State:             (*openapi.ModelVersionState)(apiutils.Of("ARCHIVED")),
+				RegisteredModelId: *createdModel.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"stage": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "staging",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.87,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"batch_size": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "64",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			version: &openapi.ModelVersion{
+				Name:              "v1.1.0",
+				Description:       apiutils.Of("Minor update with bug fixes"),
+				ExternalId:        apiutils.Of("ext-v1-1-003"),
+				Author:            apiutils.Of("alice"),
+				RegisteredModelId: *createdModel.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"stage": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "production",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.96,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"batch_size": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "32",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+					"experimental": {
+						MetadataBoolValue: &openapi.MetadataBoolValue{
+							BoolValue:    true,
+							MetadataType: "MetadataBoolValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			version: &openapi.ModelVersion{
+				Name:              "v3.0.0-beta",
+				Description:       apiutils.Of("Beta version for testing"),
+				ExternalId:        apiutils.Of("ext-v3-beta-004"),
+				Author:            apiutils.Of("charlie"),
+				RegisteredModelId: *createdModel.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"stage": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "development",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.92,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create all test versions
+	for _, tv := range testVersions {
+		_, err := _service.UpsertModelVersion(tv.version, createdModel.Id)
+		require.NoError(t, err)
+	}
+
+	testCases := []struct {
+		name          string
+		filterQuery   string
+		expectedCount int
+		expectedNames []string
+	}{
+		{
+			name:          "Filter by exact name",
+			filterQuery:   "name = 'v1.0.0'",
+			expectedCount: 1,
+			expectedNames: []string{"v1.0.0"},
+		},
+		{
+			name:          "Filter by name pattern",
+			filterQuery:   "name LIKE 'v1.%'",
+			expectedCount: 2,
+			expectedNames: []string{"v1.0.0", "v1.1.0"},
+		},
+		{
+			name:          "Filter by description",
+			filterQuery:   "description LIKE '%bug fixes%'",
+			expectedCount: 1,
+			expectedNames: []string{"v1.1.0"},
+		},
+		{
+			name:          "Filter by author",
+			filterQuery:   "author = 'alice'",
+			expectedCount: 2,
+			expectedNames: []string{"v1.0.0", "v1.1.0"},
+		},
+		{
+			name:          "Filter by external ID",
+			filterQuery:   "externalId = 'ext-v2-002'",
+			expectedCount: 1,
+			expectedNames: []string{"v2.0.0"},
+		},
+		{
+			name:          "Filter by state",
+			filterQuery:   "state = 'ARCHIVED'",
+			expectedCount: 1,
+			expectedNames: []string{"v2.0.0"},
+		},
+		{
+			name:          "Filter by custom property - string",
+			filterQuery:   "stage = 'production'",
+			expectedCount: 2,
+			expectedNames: []string{"v1.0.0", "v1.1.0"},
+		},
+		{
+			name:          "Filter by custom property - numeric comparison",
+			filterQuery:   "accuracy > 0.94",
+			expectedCount: 2,
+			expectedNames: []string{"v1.0.0", "v1.1.0"},
+		},
+		{
+			name:          "Filter by custom property - integer",
+			filterQuery:   "batch_size = 32",
+			expectedCount: 2,
+			expectedNames: []string{"v1.0.0", "v1.1.0"},
+		},
+		{
+			name:          "Filter by custom property - boolean",
+			filterQuery:   "experimental = true",
+			expectedCount: 1,
+			expectedNames: []string{"v1.1.0"},
+		},
+		{
+			name:          "Complex filter with AND",
+			filterQuery:   "stage = 'production' AND accuracy > 0.95",
+			expectedCount: 1,
+			expectedNames: []string{"v1.1.0"},
+		},
+		{
+			name:          "Complex filter with OR",
+			filterQuery:   "author = 'alice' OR author = 'charlie'",
+			expectedCount: 3,
+			expectedNames: []string{"v1.0.0", "v1.1.0", "v3.0.0-beta"},
+		},
+		{
+			name:          "Complex filter with parentheses",
+			filterQuery:   "(stage = 'production' OR stage = 'staging') AND accuracy < 0.95",
+			expectedCount: 1,
+			expectedNames: []string{"v2.0.0"},
+		},
+		{
+			name:          "Case insensitive pattern matching",
+			filterQuery:   "name ILIKE '%BETA%'",
+			expectedCount: 1,
+			expectedNames: []string{"v3.0.0-beta"},
+		},
+		{
+			name:          "Filter with NOT condition",
+			filterQuery:   "stage != 'development'",
+			expectedCount: 3,
+			expectedNames: []string{"v1.0.0", "v2.0.0", "v1.1.0"},
+		},
+
+		{
+			name:          "Filter by name pattern with version suffix",
+			filterQuery:   "name LIKE '%-beta'",
+			expectedCount: 1,
+			expectedNames: []string{"v3.0.0-beta"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			pageSize := int32(10)
+			listOptions := api.ListOptions{
+				PageSize:    &pageSize,
+				FilterQuery: &tc.filterQuery,
+			}
+
+			result, err := _service.GetModelVersions(listOptions, nil)
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Extract names from results
+			var actualNames []string
+			for _, item := range result.Items {
+				for _, expectedName := range tc.expectedNames {
+					if item.Name == expectedName {
+						actualNames = append(actualNames, item.Name)
+						break
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedCount, len(actualNames),
+				"Expected %d versions for filter '%s', but got %d",
+				tc.expectedCount, tc.filterQuery, len(actualNames))
+
+			// Verify the expected versions are present
+			assert.ElementsMatch(t, tc.expectedNames, actualNames,
+				"Expected versions %v for filter '%s', but got %v",
+				tc.expectedNames, tc.filterQuery, actualNames)
+		})
+	}
+
+	// Test error cases
+	t.Run("Invalid filter syntax", func(t *testing.T) {
+		pageSize := int32(10)
+		invalidFilter := "invalid <<< syntax"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := _service.GetModelVersions(listOptions, nil)
+
+		if assert.Error(t, err) {
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		}
+	})
+
+	// Test combining filterQuery with registeredModelId parameter
+	t.Run("Filter with registeredModelId parameter", func(t *testing.T) {
+		// Create another registered model with versions
+		anotherModel := &openapi.RegisteredModel{
+			Name: "another-model",
+		}
+		anotherCreatedModel, err := _service.UpsertRegisteredModel(anotherModel)
+		require.NoError(t, err)
+
+		anotherVersion := &openapi.ModelVersion{
+			Name:              "v1.0.0",
+			RegisteredModelId: *anotherCreatedModel.Id,
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"stage": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "production",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			},
+		}
+		_, err = _service.UpsertModelVersion(anotherVersion, anotherCreatedModel.Id)
+		require.NoError(t, err)
+
+		// Filter by stage=production should return versions from both models
+		pageSize := int32(10)
+		filterQuery := "stage = 'production'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Without registeredModelId - should get 3 (2 from first model + 1 from second)
+		allResult, err := _service.GetModelVersions(listOptions, nil)
+		require.NoError(t, err)
+		assert.Equal(t, 3, len(allResult.Items))
+
+		// With registeredModelId - should only get 2 from first model
+		filteredResult, err := _service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 2, len(filteredResult.Items))
+		for _, item := range filteredResult.Items {
+			assert.Equal(t, *createdModel.Id, item.RegisteredModelId)
+		}
+	})
+
+	// Test combining filterQuery with pagination
+	t.Run("Filter with pagination", func(t *testing.T) {
+		pageSize := int32(1)
+		filterQuery := "stage = 'production'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Get first page
+		firstPage, err := _service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(firstPage.Items))
+		assert.NotEmpty(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = &firstPage.NextPageToken
+		secondPage, err := _service.GetModelVersions(listOptions, createdModel.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(secondPage.Items))
+
+		// Ensure different items on each page
+		assert.NotEqual(t, firstPage.Items[0].Id, secondPage.Items[0].Id)
+	})
+
+	// Test empty results
+	t.Run("Filter with no matches", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "stage = 'nonexistent'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := _service.GetModelVersions(listOptions, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items))
+		assert.Equal(t, int32(0), result.Size)
+	})
+}

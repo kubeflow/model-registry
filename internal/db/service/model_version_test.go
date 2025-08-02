@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -39,7 +40,7 @@ func TestModelVersionRepository(t *testing.T) {
 		modelVersion := &models.ModelVersionImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name:       apiutils.Of("test-version"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:test-version", *savedParent.GetID())),
 				ExternalID: apiutils.Of("version-ext-123"),
 			},
 			Properties: &[]models.Properties{
@@ -64,12 +65,12 @@ func TestModelVersionRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "test-version", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-version", *savedParent.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "version-ext-123", *saved.GetAttributes().ExternalID)
 
 		// Test updating the same model version
 		modelVersion.ID = saved.GetID()
-		modelVersion.GetAttributes().Name = apiutils.Of("updated-version")
+		modelVersion.GetAttributes().Name = apiutils.Of(fmt.Sprintf("%d:updated-version", *savedParent.GetID()))
 		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
 		modelVersion.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
@@ -77,7 +78,7 @@ func TestModelVersionRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *saved.GetID(), *updated.GetID())
-		assert.Equal(t, "updated-version", *updated.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:updated-version", *savedParent.GetID()), *updated.GetAttributes().Name)
 	})
 
 	t.Run("TestGetByID", func(t *testing.T) {
@@ -95,7 +96,7 @@ func TestModelVersionRepository(t *testing.T) {
 		modelVersion := &models.ModelVersionImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name:       apiutils.Of("get-test-version"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:get-test-version", *savedParent.GetID())),
 				ExternalID: apiutils.Of("get-version-ext-123"),
 			},
 			Properties: &[]models.Properties{
@@ -115,7 +116,7 @@ func TestModelVersionRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
-		assert.Equal(t, "get-test-version", *retrieved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:get-test-version", *savedParent.GetID()), *retrieved.GetAttributes().Name)
 		assert.Equal(t, "get-version-ext-123", *retrieved.GetAttributes().ExternalID)
 
 		// Test retrieving non-existent ID
@@ -139,7 +140,7 @@ func TestModelVersionRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       apiutils.Of("list-version-1"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-version-1", *savedParent.GetID())),
 					ExternalID: apiutils.Of("list-version-ext-1"),
 				},
 				Properties: &[]models.Properties{
@@ -152,7 +153,7 @@ func TestModelVersionRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       apiutils.Of("list-version-2"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-version-2", *savedParent.GetID())),
 					ExternalID: apiutils.Of("list-version-ext-2"),
 				},
 				Properties: &[]models.Properties{
@@ -165,7 +166,7 @@ func TestModelVersionRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ModelVersionAttributes{
-					Name:       apiutils.Of("list-version-3"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-version-3", *savedParent.GetID())),
 					ExternalID: apiutils.Of("list-version-ext-3"),
 				},
 				Properties: &[]models.Properties{
@@ -203,7 +204,7 @@ func TestModelVersionRepository(t *testing.T) {
 		require.NotNil(t, result)
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-version-1", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:list-version-1", *savedParent.GetID()), *result.Items[0].GetAttributes().Name)
 		}
 
 		// Test listing by external ID
@@ -266,7 +267,7 @@ func TestModelVersionRepository(t *testing.T) {
 		version1 := &models.ModelVersionImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: apiutils.Of("time-test-version-1"),
+				Name: apiutils.Of(fmt.Sprintf("%d:time-test-version-1", *savedParent.GetID())),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -284,7 +285,7 @@ func TestModelVersionRepository(t *testing.T) {
 		version2 := &models.ModelVersionImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: apiutils.Of("time-test-version-2"),
+				Name: apiutils.Of(fmt.Sprintf("%d:time-test-version-2", *savedParent.GetID())),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -345,7 +346,7 @@ func TestModelVersionRepository(t *testing.T) {
 		modelVersion := &models.ModelVersionImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ModelVersionAttributes{
-				Name: apiutils.Of("props-test-version"),
+				Name: apiutils.Of(fmt.Sprintf("%d:props-test-version", *savedParent.GetID())),
 			},
 			Properties: &[]models.Properties{
 				{
@@ -414,7 +415,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 	modelVersion1 := &models.ModelVersionImpl{
 		TypeID: apiutils.Of(int32(modelVersionTypeID)),
 		Attributes: &models.ModelVersionAttributes{
-			Name: apiutils.Of("pytorch-model-version"),
+			Name: apiutils.Of(fmt.Sprintf("%d:pytorch-model-version", *savedRegisteredModel.GetID())),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -454,7 +455,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 	modelVersion2 := &models.ModelVersionImpl{
 		TypeID: apiutils.Of(int32(modelVersionTypeID)),
 		Attributes: &models.ModelVersionAttributes{
-			Name: apiutils.Of("tensorflow-model-version"),
+			Name: apiutils.Of(fmt.Sprintf("%d:tensorflow-model-version", *savedRegisteredModel.GetID())),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -494,7 +495,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 	modelVersion3 := &models.ModelVersionImpl{
 		TypeID: apiutils.Of(int32(modelVersionTypeID)),
 		Attributes: &models.ModelVersionAttributes{
-			Name: apiutils.Of("sklearn-model-version"),
+			Name: apiutils.Of(fmt.Sprintf("%d:sklearn-model-version", *savedRegisteredModel.GetID())),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -546,7 +547,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-model-version", *savedRegisteredModel.GetID()), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test custom property filtering
@@ -564,7 +565,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "tensorflow-model-version", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:tensorflow-model-version", *savedRegisteredModel.GetID()), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test numeric custom property filtering
@@ -633,7 +634,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-model-version", *savedRegisteredModel.GetID()), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test complex OR filter
@@ -685,7 +686,7 @@ func TestModelVersionRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-model-version", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-model-version", *savedRegisteredModel.GetID()), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test author property filtering

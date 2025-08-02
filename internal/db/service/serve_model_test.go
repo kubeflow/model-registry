@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -93,7 +94,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("test-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:test-serve-model", *savedInferenceService.GetID())),
 				ExternalID:     apiutils.Of("serve-ext-123"),
 				LastKnownState: apiutils.Of("RUNNING"),
 			},
@@ -120,20 +121,20 @@ func TestServeModelRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "test-serve-model", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-serve-model", *savedInferenceService.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "serve-ext-123", *saved.GetAttributes().ExternalID)
 		assert.Equal(t, "RUNNING", *saved.GetAttributes().LastKnownState)
 
 		// Test updating the same serve model
 		serveModel.ID = saved.GetID()
-		serveModel.GetAttributes().Name = apiutils.Of("updated-serve-model")
+		serveModel.GetAttributes().Name = apiutils.Of(fmt.Sprintf("%d:updated-serve-model", *savedInferenceService.GetID()))
 		serveModel.GetAttributes().LastKnownState = apiutils.Of("COMPLETE")
 
 		updated, err := repo.Save(serveModel, nil)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *saved.GetID(), *updated.GetID())
-		assert.Equal(t, "updated-serve-model", *updated.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:updated-serve-model", *savedInferenceService.GetID()), *updated.GetAttributes().Name)
 		assert.Equal(t, "COMPLETE", *updated.GetAttributes().LastKnownState)
 	})
 
@@ -196,7 +197,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("get-test-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:get-test-serve-model", *savedInferenceService.GetID())),
 				ExternalID:     apiutils.Of("get-serve-ext-123"),
 				LastKnownState: apiutils.Of("NEW"),
 			},
@@ -217,7 +218,7 @@ func TestServeModelRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
-		assert.Equal(t, "get-test-serve-model", *retrieved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:get-test-serve-model", *savedInferenceService.GetID()), *retrieved.GetAttributes().Name)
 		assert.Equal(t, "get-serve-ext-123", *retrieved.GetAttributes().ExternalID)
 		assert.Equal(t, "NEW", *retrieved.GetAttributes().LastKnownState)
 
@@ -286,7 +287,7 @@ func TestServeModelRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           apiutils.Of("list-serve-model-1"),
+					Name:           apiutils.Of(fmt.Sprintf("%d:list-serve-model-1", *savedInferenceService.GetID())),
 					ExternalID:     apiutils.Of("list-serve-ext-1"),
 					LastKnownState: apiutils.Of("RUNNING"),
 				},
@@ -300,7 +301,7 @@ func TestServeModelRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           apiutils.Of("list-serve-model-2"),
+					Name:           apiutils.Of(fmt.Sprintf("%d:list-serve-model-2", *savedInferenceService.GetID())),
 					ExternalID:     apiutils.Of("list-serve-ext-2"),
 					LastKnownState: apiutils.Of("COMPLETE"),
 				},
@@ -314,7 +315,7 @@ func TestServeModelRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           apiutils.Of("list-serve-model-3"),
+					Name:           apiutils.Of(fmt.Sprintf("%d:list-serve-model-3", *savedInferenceService.GetID())),
 					ExternalID:     apiutils.Of("list-serve-ext-3"),
 					LastKnownState: apiutils.Of("FAILED"),
 				},
@@ -353,7 +354,7 @@ func TestServeModelRepository(t *testing.T) {
 		require.NotNil(t, result)
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-serve-model-1", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:list-serve-model-1", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 		}
 
 		// Test listing by external ID
@@ -450,7 +451,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel1 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("time-test-serve-model-1"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:time-test-serve-model-1", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
@@ -469,7 +470,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel2 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("time-test-serve-model-2"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:time-test-serve-model-2", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("COMPLETE"),
 			},
 			Properties: &[]models.Properties{
@@ -597,7 +598,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel1 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("serve-model-with-inference-1"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:serve-model-with-inference-1", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
@@ -613,7 +614,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel2 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("serve-model-with-inference-2"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:serve-model-with-inference-2", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("COMPLETE"),
 			},
 			Properties: &[]models.Properties{
@@ -630,7 +631,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel3 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("serve-model-with-inference-3"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:serve-model-with-inference-3", *savedInferenceService2.GetID())),
 				LastKnownState: apiutils.Of("NEW"),
 			},
 			Properties: &[]models.Properties{
@@ -660,9 +661,9 @@ func TestServeModelRepository(t *testing.T) {
 		for _, item := range result.Items {
 			foundNames[*item.GetAttributes().Name] = true
 		}
-		assert.True(t, foundNames["serve-model-with-inference-1"])
-		assert.True(t, foundNames["serve-model-with-inference-2"])
-		assert.False(t, foundNames["serve-model-with-inference-3"])
+		assert.True(t, foundNames[fmt.Sprintf("%d:serve-model-with-inference-1", *savedInferenceService.GetID())])
+		assert.True(t, foundNames[fmt.Sprintf("%d:serve-model-with-inference-2", *savedInferenceService.GetID())])
+		assert.False(t, foundNames[fmt.Sprintf("%d:serve-model-with-inference-3", *savedInferenceService2.GetID())])
 
 		// Test listing serve models by second inference service ID
 		listOptions = models.ServeModelListOptions{
@@ -676,7 +677,7 @@ func TestServeModelRepository(t *testing.T) {
 		assert.Equal(t, 1, len(result.Items)) // Should find exactly 1 serve model associated with the second inference service
 
 		// Verify the correct serve model is returned
-		assert.Equal(t, "serve-model-with-inference-3", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:serve-model-with-inference-3", *savedInferenceService2.GetID()), *result.Items[0].GetAttributes().Name)
 	})
 
 	t.Run("TestSaveWithProperties", func(t *testing.T) {
@@ -737,7 +738,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("props-test-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:props-test-serve-model", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
@@ -849,7 +850,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel1 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("pytorch-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("RUNNING"),
 			},
 			Properties: &[]models.Properties{
@@ -882,7 +883,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel2 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("tensorflow-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:tensorflow-serve-model", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("COMPLETE"),
 			},
 			Properties: &[]models.Properties{
@@ -915,7 +916,7 @@ func TestServeModelRepository(t *testing.T) {
 		serveModel3 := &models.ServeModelImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ServeModelAttributes{
-				Name:           apiutils.Of("sklearn-serve-model"),
+				Name:           apiutils.Of(fmt.Sprintf("%d:sklearn-serve-model", *savedInferenceService.GetID())),
 				LastKnownState: apiutils.Of("NEW"),
 			},
 			Properties: &[]models.Properties{
@@ -960,7 +961,7 @@ func TestServeModelRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 		})
 
 		// Test custom property filtering
@@ -978,7 +979,7 @@ func TestServeModelRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "tensorflow-serve-model", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:tensorflow-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 		})
 
 		// Test numeric custom property filtering
@@ -1030,7 +1031,7 @@ func TestServeModelRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 		})
 
 		// Test complex OR filter
@@ -1082,7 +1083,7 @@ func TestServeModelRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 		})
 
 		// Test invalid filter query
@@ -1108,7 +1109,7 @@ func TestServeModelRepository(t *testing.T) {
 			serveModelWithExternalID := &models.ServeModelImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ServeModelAttributes{
-					Name:           apiutils.Of("pytorch-serve-model-with-external-id"),
+					Name:           apiutils.Of(fmt.Sprintf("%d:pytorch-serve-model-with-external-id", *savedInferenceService.GetID())),
 					ExternalID:     apiutils.Of("ext-pytorch-123"),
 					LastKnownState: apiutils.Of("RUNNING"),
 				},
@@ -1143,7 +1144,7 @@ func TestServeModelRepository(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Equal(t, 1, len(result.Items))
-				assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+				assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 			})
 
 			// Test old Name parameter combined with filterQuery (should be AND)
@@ -1163,7 +1164,7 @@ func TestServeModelRepository(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Equal(t, 1, len(result.Items))
-				assert.Equal(t, "pytorch-serve-model", *result.Items[0].GetAttributes().Name)
+				assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 			})
 
 			// Test old Name parameter combined with filterQuery (should return 0 results)
@@ -1220,7 +1221,7 @@ func TestServeModelRepository(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Equal(t, 1, len(result.Items))
-				assert.Equal(t, "pytorch-serve-model-with-external-id", *result.Items[0].GetAttributes().Name)
+				assert.Equal(t, fmt.Sprintf("%d:pytorch-serve-model-with-external-id", *savedInferenceService.GetID()), *result.Items[0].GetAttributes().Name)
 			})
 
 			// Test old InferenceServiceID parameter combined with filterQuery

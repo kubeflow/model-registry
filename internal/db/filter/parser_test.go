@@ -89,6 +89,69 @@ func TestParseBasicExpressions(t *testing.T) {
 	}
 }
 
+func TestParsePropertyTypeSuffix(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Property with double_value suffix",
+			input:    `budget.double_value > 12000`,
+			expected: "budget.double_value > 12000",
+		},
+		{
+			name:     "Property with int_value suffix",
+			input:    `priority.int_value <= 2`,
+			expected: "priority.int_value <= 2",
+		},
+		{
+			name:     "Property with string_value suffix",
+			input:    `status.string_value = "active"`,
+			expected: "status.string_value = active",
+		},
+		{
+			name:     "Property with bool_value suffix",
+			input:    `enabled.bool_value = true`,
+			expected: "enabled.bool_value = true",
+		},
+		{
+			name:     "Multiple properties with type suffixes",
+			input:    `budget.double_value > 10000 AND priority.int_value < 5`,
+			expected: "(budget.double_value > 10000 AND priority.int_value < 5)",
+		},
+		{
+			name:     "Mixed properties with and without type suffixes",
+			input:    `name = "test" AND budget.double_value > 5000`,
+			expected: "(name = test AND budget.double_value > 5000)",
+		},
+		{
+			name:     "Complex expression with type suffixes",
+			input:    `(budget.double_value > 10000 OR budget.double_value < 5000) AND active.bool_value = true`,
+			expected: "((budget.double_value > 10000 OR budget.double_value < 5000) AND active.bool_value = true)",
+		},
+		{
+			name:     "LIKE pattern with type suffix",
+			input:    `description.string_value LIKE "%test%"`,
+			expected: "description.string_value LIKE %test%",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			expr, err := Parse(tt.input)
+			if err != nil {
+				t.Fatalf("Parse() error = %v", err)
+			}
+
+			result := exprToString(expr)
+			if result != tt.expected {
+				t.Errorf("Parse() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestParseComplexExpressions(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -166,22 +229,22 @@ func TestParseTypeInferenceAndExplicitTypes(t *testing.T) {
 		{
 			name:     "Explicit string type",
 			input:    `framework.string_value = "tensorflow"`,
-			expected: "framework = tensorflow",
+			expected: "framework.string_value = tensorflow",
 		},
 		{
 			name:     "Explicit double type",
 			input:    `accuracy.double_value > 0.95`,
-			expected: "accuracy > 0.95",
+			expected: "accuracy.double_value > 0.95",
 		},
 		{
 			name:     "Explicit bool type",
 			input:    `enabled.bool_value = true`,
-			expected: "enabled = true",
+			expected: "enabled.bool_value = true",
 		},
 		{
 			name:     "Explicit int type",
 			input:    `count.int_value = 5`,
-			expected: "count = 5",
+			expected: "count.int_value = 5",
 		},
 	}
 

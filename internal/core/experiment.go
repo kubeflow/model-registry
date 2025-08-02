@@ -110,6 +110,7 @@ func (b *ModelRegistryService) GetExperiments(listOptions api.ListOptions) (*ope
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 	})
 	if err != nil {

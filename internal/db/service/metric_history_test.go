@@ -336,7 +336,7 @@ func TestMetricHistoryRepository(t *testing.T) {
 		metricHistory := &models.MetricHistoryImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.MetricHistoryAttributes{
-				Name:         apiutils.Of("experiment-run-metric-history"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:experiment-run-metric-history", *savedExperimentRun.GetID())),
 				URI:          apiutils.Of("s3://bucket/experiment-run-metric-history.json"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("metric-history"),
@@ -357,7 +357,7 @@ func TestMetricHistoryRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "experiment-run-metric-history", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:experiment-run-metric-history", *savedExperimentRun.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/experiment-run-metric-history.json", *saved.GetAttributes().URI)
 
 		// Test listing by experiment run ID

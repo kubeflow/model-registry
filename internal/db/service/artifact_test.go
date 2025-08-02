@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -63,7 +64,7 @@ func TestArtifactRepository(t *testing.T) {
 		modelArtifact := &models.ModelArtifactImpl{
 			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
 			Attributes: &models.ModelArtifactAttributes{
-				Name:         apiutils.Of("test-model-artifact-for-getbyid"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:test-model-artifact-for-getbyid", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/model.pkl"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("model-artifact"),
@@ -77,7 +78,7 @@ func TestArtifactRepository(t *testing.T) {
 		docArtifact := &models.DocArtifactImpl{
 			TypeID: apiutils.Of(int32(docArtifactTypeID)),
 			Attributes: &models.DocArtifactAttributes{
-				Name:         apiutils.Of("unified-test-doc-artifact-for-getbyid"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:unified-test-doc-artifact-for-getbyid", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/doc.pdf"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("doc-artifact"),
@@ -92,7 +93,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NotNil(t, retrievedModelArtifact.ModelArtifact)
 		require.Nil(t, retrievedModelArtifact.DocArtifact)
 		assert.Equal(t, *savedModelArtifact.GetID(), *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetID())
-		assert.Equal(t, "test-model-artifact-for-getbyid", *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-model-artifact-for-getbyid", *savedModelVersion.GetID()), *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/model.pkl", *apiutils.ZeroIfNil(retrievedModelArtifact.ModelArtifact).GetAttributes().URI)
 
 		// Test retrieving doc artifact by ID
@@ -101,7 +102,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NotNil(t, retrievedDocArtifact.DocArtifact)
 		require.Nil(t, retrievedDocArtifact.ModelArtifact)
 		assert.Equal(t, *savedDocArtifact.GetID(), *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetID())
-		assert.Equal(t, "unified-test-doc-artifact-for-getbyid", *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:unified-test-doc-artifact-for-getbyid", *savedModelVersion.GetID()), *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/doc.pdf", *apiutils.ZeroIfNil(retrievedDocArtifact.DocArtifact).GetAttributes().URI)
 
 		// Test retrieving non-existent ID
@@ -119,7 +120,7 @@ func TestArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(modelArtifactTypeID)),
 				Attributes: &models.ModelArtifactAttributes{
-					Name:         apiutils.Of("list-model-artifact-1"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-model-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-model-ext-1"),
 					URI:          apiutils.Of("s3://bucket/list-model-1.pkl"),
 					State:        apiutils.Of("LIVE"),
@@ -129,7 +130,7 @@ func TestArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(modelArtifactTypeID)),
 				Attributes: &models.ModelArtifactAttributes{
-					Name:         apiutils.Of("list-model-artifact-2"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:list-model-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-model-ext-2"),
 					URI:          apiutils.Of("s3://bucket/list-model-2.pkl"),
 					State:        apiutils.Of("PENDING"),
@@ -148,7 +149,7 @@ func TestArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(docArtifactTypeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         apiutils.Of("unified-list-doc-artifact-1"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:unified-list-doc-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("unified-list-doc-ext-1"),
 					URI:          apiutils.Of("s3://bucket/list-doc-1.pdf"),
 					State:        apiutils.Of("LIVE"),
@@ -158,7 +159,7 @@ func TestArtifactRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(docArtifactTypeID)),
 				Attributes: &models.DocArtifactAttributes{
-					Name:         apiutils.Of("unified-list-doc-artifact-2"),
+					Name:         apiutils.Of(fmt.Sprintf("%d:unified-list-doc-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("unified-list-doc-ext-2"),
 					URI:          apiutils.Of("s3://bucket/list-doc-2.pdf"),
 					State:        apiutils.Of("PENDING"),
@@ -206,7 +207,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
 		assert.NotNil(t, result.Items[0].ModelArtifact)
-		assert.Equal(t, "list-model-artifact-1", *apiutils.ZeroIfNil(result.Items[0].ModelArtifact).GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:list-model-artifact-1", *savedModelVersion.GetID()), *apiutils.ZeroIfNil(result.Items[0].ModelArtifact).GetAttributes().Name)
 
 		// Test listing by name (doc artifact)
 		listOptions = models.ArtifactListOptions{
@@ -219,7 +220,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
 		assert.NotNil(t, result.Items[0].DocArtifact)
-		assert.Equal(t, "unified-list-doc-artifact-1", *apiutils.ZeroIfNil(result.Items[0].DocArtifact).GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:unified-list-doc-artifact-1", *savedModelVersion.GetID()), *apiutils.ZeroIfNil(result.Items[0].DocArtifact).GetAttributes().Name)
 
 		// Test listing by external ID
 		listOptions = models.ArtifactListOptions{

@@ -116,7 +116,7 @@ func (b *ModelRegistryService) GetExperimentRunById(id string) (*openapi.Experim
 }
 
 func (b *ModelRegistryService) GetExperimentRunByParams(name *string, experimentId *string, externalId *string) (*openapi.ExperimentRun, error) {
-	if name == nil && experimentId == nil && externalId == nil {
+	if (name == nil || experimentId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (name and experimentId), or externalId: %w", api.ErrBadRequest)
 	}
 
@@ -130,14 +130,8 @@ func (b *ModelRegistryService) GetExperimentRunByParams(name *string, experiment
 		experimentIDPtr = &convertedIdInt32
 	}
 
-	var queryName *string
-	if name != nil && experimentId != nil {
-		combinedName := converter.PrefixWhenOwned(experimentId, *name)
-		queryName = &combinedName
-	}
-
 	experimentRuns, err := b.experimentRunRepository.List(models.ExperimentRunListOptions{
-		Name:         queryName,
+		Name:         name,
 		ExternalID:   externalId,
 		ExperimentID: experimentIDPtr,
 	})
@@ -178,6 +172,7 @@ func (b *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions, ex
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ExperimentID: experimentIDPtr,
 	})

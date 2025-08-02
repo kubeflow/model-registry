@@ -12,8 +12,8 @@ const (
 // PropertyDefinition defines how a property should be handled
 type PropertyDefinition struct {
 	Location  PropertyLocation
-	ValueType string // "int_value", "string_value", "double_value", "bool_value"
-	Column    string // Database column name (for entity table properties)
+	ValueType string // IntValueType, StringValueType, DoubleValueType, BoolValueType
+	Column    string // Database column name (for entity table) or property name (for property table)
 }
 
 // EntityPropertyMap maps property names to their definitions for each entity type
@@ -30,7 +30,8 @@ func GetPropertyDefinition(entityType EntityType, propertyName string) PropertyD
 	// If not found in the map, assume it's a custom property
 	return PropertyDefinition{
 		Location:  Custom,
-		ValueType: "string_value", // Default to string, will be inferred at runtime
+		ValueType: StringValueType, // Default to string, will be inferred at runtime
+		Column:    propertyName,    // Use the property name as-is for custom properties
 	}
 }
 
@@ -52,73 +53,73 @@ func getEntityPropertyMap(entityType EntityType) EntityPropertyMap {
 // Used by: RegisteredModel, ModelVersion, InferenceService, ServingEnvironment, Experiment, ExperimentRun
 var contextPropertyMap = EntityPropertyMap{
 	// Entity table columns (Context table)
-	"id":                       {EntityTable, "int_value", "id"},
-	"name":                     {EntityTable, "string_value", "name"},
-	"externalId":               {EntityTable, "string_value", "external_id"},
-	"createTimeSinceEpoch":     {EntityTable, "int_value", "create_time_since_epoch"},
-	"lastUpdateTimeSinceEpoch": {EntityTable, "int_value", "last_update_time_since_epoch"},
+	"id":                       {EntityTable, IntValueType, "id"},
+	"name":                     {EntityTable, StringValueType, "name"},
+	"externalId":               {EntityTable, StringValueType, "external_id"},
+	"createTimeSinceEpoch":     {EntityTable, IntValueType, "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {EntityTable, IntValueType, "last_update_time_since_epoch"},
 
 	// Properties that are stored in ContextProperty table but are "well-known" (not custom)
 	// These are properties that the application manages, not user-defined custom properties
-	"registeredModelId":    {PropertyTable, "int_value", ""},
-	"modelVersionId":       {PropertyTable, "int_value", ""},
-	"servingEnvironmentId": {PropertyTable, "int_value", ""},
-	"experimentId":         {PropertyTable, "int_value", ""},
-	"runtime":              {PropertyTable, "string_value", ""},
-	"desiredState":         {PropertyTable, "string_value", ""},
-	"state":                {PropertyTable, "string_value", ""},
-	"owner":                {PropertyTable, "string_value", ""},
-	"author":               {PropertyTable, "string_value", ""},
-	"status":               {PropertyTable, "string_value", ""},
-	"endTimeSinceEpoch":    {PropertyTable, "int_value", ""},
-	"startTimeSinceEpoch":  {PropertyTable, "int_value", ""},
+	"registeredModelId":    {PropertyTable, IntValueType, "registered_model_id"},
+	"modelVersionId":       {PropertyTable, IntValueType, "model_version_id"},
+	"servingEnvironmentId": {PropertyTable, IntValueType, "serving_environment_id"},
+	"experimentId":         {PropertyTable, IntValueType, "experiment_id"},
+	"runtime":              {PropertyTable, StringValueType, "runtime"},
+	"desiredState":         {PropertyTable, StringValueType, "desired_state"},
+	"state":                {PropertyTable, StringValueType, "state"},
+	"owner":                {PropertyTable, StringValueType, "owner"},
+	"author":               {PropertyTable, StringValueType, "author"},
+	"status":               {PropertyTable, StringValueType, "status"},
+	"endTimeSinceEpoch":    {PropertyTable, StringValueType, "end_time_since_epoch"},
+	"startTimeSinceEpoch":  {PropertyTable, StringValueType, "start_time_since_epoch"},
 }
 var artifactPropertyMap = EntityPropertyMap{
 	// Entity table columns (Artifact table)
-	"id":                       {EntityTable, "int_value", "id"},
-	"name":                     {EntityTable, "string_value", "name"},
-	"externalId":               {EntityTable, "string_value", "external_id"},
-	"createTimeSinceEpoch":     {EntityTable, "int_value", "create_time_since_epoch"},
-	"lastUpdateTimeSinceEpoch": {EntityTable, "int_value", "last_update_time_since_epoch"},
-	"uri":                      {EntityTable, "string_value", "uri"},
-	"state":                    {EntityTable, "int_value", "state"},
+	"id":                       {EntityTable, IntValueType, "id"},
+	"name":                     {EntityTable, StringValueType, "name"},
+	"externalId":               {EntityTable, StringValueType, "external_id"},
+	"createTimeSinceEpoch":     {EntityTable, IntValueType, "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {EntityTable, IntValueType, "last_update_time_since_epoch"},
+	"uri":                      {EntityTable, StringValueType, "uri"},
+	"state":                    {EntityTable, IntValueType, "state"},
 
 	// Properties that are stored in ArtifactProperty table but are "well-known"
-	"modelFormatName":    {PropertyTable, "string_value", ""},
-	"modelFormatVersion": {PropertyTable, "string_value", ""},
-	"storageKey":         {PropertyTable, "string_value", ""},
-	"storagePath":        {PropertyTable, "string_value", ""},
-	"serviceAccountName": {PropertyTable, "string_value", ""},
-	"modelSourceKind":    {PropertyTable, "string_value", ""},
-	"modelSourceClass":   {PropertyTable, "string_value", ""},
-	"modelSourceGroup":   {PropertyTable, "string_value", ""},
-	"modelSourceId":      {PropertyTable, "string_value", ""},
-	"modelSourceName":    {PropertyTable, "string_value", ""},
-	"value":              {PropertyTable, "double_value", ""}, // For metrics/parameters
-	"timestamp":          {PropertyTable, "int_value", ""},    // For metrics
-	"step":               {PropertyTable, "int_value", ""},    // For metrics
-	"parameterType":      {PropertyTable, "string_value", ""}, // For parameters
-	"digest":             {PropertyTable, "string_value", ""}, // For datasets
-	"sourceType":         {PropertyTable, "string_value", ""}, // For datasets
-	"source":             {PropertyTable, "string_value", ""}, // For datasets
-	"schema":             {PropertyTable, "string_value", ""}, // For datasets
-	"profile":            {PropertyTable, "string_value", ""}, // For datasets
+	"modelFormatName":    {PropertyTable, StringValueType, "model_format_name"},
+	"modelFormatVersion": {PropertyTable, StringValueType, "model_format_version"},
+	"storageKey":         {PropertyTable, StringValueType, "storage_key"},
+	"storagePath":        {PropertyTable, StringValueType, "storage_path"},
+	"serviceAccountName": {PropertyTable, StringValueType, "service_account_name"},
+	"modelSourceKind":    {PropertyTable, StringValueType, "model_source_kind"},
+	"modelSourceClass":   {PropertyTable, StringValueType, "model_source_class"},
+	"modelSourceGroup":   {PropertyTable, StringValueType, "model_source_group"},
+	"modelSourceId":      {PropertyTable, StringValueType, "model_source_id"},
+	"modelSourceName":    {PropertyTable, StringValueType, "model_source_name"},
+	"value":              {PropertyTable, DoubleValueType, "value"},          // For metrics/parameters
+	"timestamp":          {PropertyTable, IntValueType, "timestamp"},         // For metrics
+	"step":               {PropertyTable, IntValueType, "step"},              // For metrics
+	"parameterType":      {PropertyTable, StringValueType, "parameter_type"}, // For parameters
+	"digest":             {PropertyTable, StringValueType, "digest"},         // For datasets
+	"sourceType":         {PropertyTable, StringValueType, "source_type"},    // For datasets
+	"source":             {PropertyTable, StringValueType, "source"},         // For datasets
+	"schema":             {PropertyTable, StringValueType, "schema"},         // For datasets
+	"profile":            {PropertyTable, StringValueType, "profile"},        // For datasets
 }
 
 // executionPropertyMap defines properties for Execution entities
 // Used by: ServeModel
 var executionPropertyMap = EntityPropertyMap{
 	// Entity table columns (Execution table)
-	"id":                       {EntityTable, "int_value", "id"},
-	"name":                     {EntityTable, "string_value", "name"},
-	"externalId":               {EntityTable, "string_value", "external_id"},
-	"createTimeSinceEpoch":     {EntityTable, "int_value", "create_time_since_epoch"},
-	"lastUpdateTimeSinceEpoch": {EntityTable, "int_value", "last_update_time_since_epoch"},
-	"lastKnownState":           {EntityTable, "int_value", "last_known_state"},
+	"id":                       {EntityTable, IntValueType, "id"},
+	"name":                     {EntityTable, StringValueType, "name"},
+	"externalId":               {EntityTable, StringValueType, "external_id"},
+	"createTimeSinceEpoch":     {EntityTable, IntValueType, "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {EntityTable, IntValueType, "last_update_time_since_epoch"},
+	"lastKnownState":           {EntityTable, IntValueType, "last_known_state"},
 
 	// Properties that are stored in ExecutionProperty table but are "well-known"
-	"modelVersionId":       {PropertyTable, "int_value", ""},
-	"inferenceServiceId":   {PropertyTable, "int_value", ""},
-	"registeredModelId":    {PropertyTable, "int_value", ""},
-	"servingEnvironmentId": {PropertyTable, "int_value", ""},
+	"modelVersionId":       {PropertyTable, IntValueType, "model_version_id"},
+	"inferenceServiceId":   {PropertyTable, IntValueType, "inference_service_id"},
+	"registeredModelId":    {PropertyTable, IntValueType, "registered_model_id"},
+	"servingEnvironmentId": {PropertyTable, IntValueType, "serving_environment_id"},
 }

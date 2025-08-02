@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -371,5 +372,446 @@ func TestGetExperimentRuns(t *testing.T) {
 		_, err := service.GetExperimentRuns(api.ListOptions{}, &invalidId)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid experiment ID")
+	})
+}
+
+func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create an experiment to associate runs with
+	experiment := &openapi.Experiment{
+		Name: "test-experiment-for-runs",
+	}
+	createdExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create test experiment runs with various properties for filtering
+	testRuns := []struct {
+		run *openapi.ExperimentRun
+	}{
+		{
+			run: &openapi.ExperimentRun{
+				Name:                apiutils.Of("pytorch-run-1"),
+				Description:         apiutils.Of("PyTorch training run with hyperparameter tuning"),
+				ExternalId:          apiutils.Of("ext-pytorch-run-001"),
+				Status:              (*openapi.ExperimentRunStatus)(apiutils.Of("FINISHED")),
+				StartTimeSinceEpoch: apiutils.Of("1700000000"),
+				EndTimeSinceEpoch:   apiutils.Of("1700003600"),
+				ExperimentId:        *createdExperiment.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"learning_rate": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.001,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"epochs": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "100",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+					"gpu_enabled": {
+						MetadataBoolValue: &openapi.MetadataBoolValue{
+							BoolValue:    true,
+							MetadataType: "MetadataBoolValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			run: &openapi.ExperimentRun{
+				Name:                apiutils.Of("tensorflow-run-2"),
+				Description:         apiutils.Of("TensorFlow training run for NLP model"),
+				ExternalId:          apiutils.Of("ext-tf-run-002"),
+				Status:              (*openapi.ExperimentRunStatus)(apiutils.Of("FAILED")),
+				StartTimeSinceEpoch: apiutils.Of("1700010000"),
+				ExperimentId:        *createdExperiment.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "tensorflow",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"learning_rate": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.01,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"epochs": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "50",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+					"gpu_enabled": {
+						MetadataBoolValue: &openapi.MetadataBoolValue{
+							BoolValue:    false,
+							MetadataType: "MetadataBoolValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			run: &openapi.ExperimentRun{
+				Name:                apiutils.Of("pytorch-run-2"),
+				Description:         apiutils.Of("PyTorch run with distributed training"),
+				ExternalId:          apiutils.Of("ext-pytorch-run-003"),
+				Status:              (*openapi.ExperimentRunStatus)(apiutils.Of("RUNNING")),
+				StartTimeSinceEpoch: apiutils.Of("1700020000"),
+				ExperimentId:        *createdExperiment.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"learning_rate": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.0001,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"epochs": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "200",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+					"distributed": {
+						MetadataBoolValue: &openapi.MetadataBoolValue{
+							BoolValue:    true,
+							MetadataType: "MetadataBoolValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			run: &openapi.ExperimentRun{
+				Name:         apiutils.Of("sklearn-run"),
+				Description:  apiutils.Of("Scikit-learn baseline model"),
+				ExternalId:   apiutils.Of("ext-sklearn-run-004"),
+				Status:       (*openapi.ExperimentRunStatus)(apiutils.Of("FINISHED")),
+				ExperimentId: *createdExperiment.Id,
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "sklearn",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"learning_rate": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.1,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create all test runs
+	createdRuns := make([]*openapi.ExperimentRun, 0)
+	for _, tr := range testRuns {
+		created, err := service.UpsertExperimentRun(tr.run, createdExperiment.Id)
+		require.NoError(t, err)
+		createdRuns = append(createdRuns, created)
+	}
+
+	// Debug: Check if names were saved correctly
+	for i, created := range createdRuns {
+		fetched, err := service.GetExperimentRunById(*created.Id)
+		require.NoError(t, err)
+		nameStr := "<nil>"
+		if created.Name != nil {
+			nameStr = *created.Name
+		}
+		fetchedNameStr := "<nil>"
+		if fetched.Name != nil {
+			fetchedNameStr = *fetched.Name
+		}
+		t.Logf("Created run %d: ID=%s, Name=%s", i, *created.Id, nameStr)
+		t.Logf("Fetched run %d: ID=%s, Name=%s", i, *fetched.Id, fetchedNameStr)
+		if testRuns[i].run.Name != nil {
+			require.NotNil(t, fetched.Name, "Fetched run should have a name")
+			require.Equal(t, *testRuns[i].run.Name, *fetched.Name, "Fetched run name should match")
+		}
+	}
+
+	testCases := []struct {
+		name          string
+		filterQuery   string
+		expectedCount int
+		expectedNames []string
+	}{
+		{
+			name:          "Filter by exact name",
+			filterQuery:   "name = 'pytorch-run-1'",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-run-1"},
+		},
+		{
+			name:          "Get all runs (no filter)",
+			filterQuery:   "",
+			expectedCount: 4,
+			expectedNames: []string{"pytorch-run-1", "tensorflow-run-2", "pytorch-run-2", "sklearn-run"},
+		},
+		{
+			name:          "Filter by name pattern",
+			filterQuery:   "name LIKE 'pytorch-%'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "pytorch-run-2"},
+		},
+		{
+			name:          "Filter by description",
+			filterQuery:   "description LIKE '%NLP%'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-run-2"},
+		},
+		{
+			name:          "Filter by external ID",
+			filterQuery:   "externalId = 'ext-tf-run-002'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-run-2"},
+		},
+		{
+			name:          "Filter by status",
+			filterQuery:   "status = 'FINISHED'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "sklearn-run"},
+		},
+		{
+			name:          "Filter by custom property - string",
+			filterQuery:   "framework = 'pytorch'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "pytorch-run-2"},
+		},
+		{
+			name:          "Filter by custom property - numeric comparison",
+			filterQuery:   "learning_rate < 0.01",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "pytorch-run-2"},
+		},
+		{
+			name:          "Filter by custom property - integer",
+			filterQuery:   "epochs >= 100",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "pytorch-run-2"},
+		},
+		{
+			name:          "Filter by custom property - boolean",
+			filterQuery:   "gpu_enabled = true",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-run-1"},
+		},
+		{
+			name:          "Complex filter with AND",
+			filterQuery:   "framework = 'pytorch' AND epochs > 150",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-run-2"},
+		},
+		{
+			name:          "Complex filter with OR",
+			filterQuery:   "status = 'FAILED' OR status = 'RUNNING'",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-run-2", "pytorch-run-2"},
+		},
+		{
+			name:          "Complex filter with parentheses",
+			filterQuery:   "(framework = 'pytorch' OR framework = 'tensorflow') AND learning_rate <= 0.001",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-run-1", "pytorch-run-2"},
+		},
+		{
+			name:          "Case insensitive pattern matching",
+			filterQuery:   "name ILIKE '%RUN%'",
+			expectedCount: 4,
+			expectedNames: []string{"pytorch-run-1", "tensorflow-run-2", "pytorch-run-2", "sklearn-run"},
+		},
+		{
+			name:          "Filter with NOT condition",
+			filterQuery:   "status != 'FINISHED'",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-run-2", "pytorch-run-2"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			pageSize := int32(10)
+			listOptions := api.ListOptions{
+				PageSize:    &pageSize,
+				FilterQuery: &tc.filterQuery,
+			}
+
+			// Debug: Log the filter query
+			t.Logf("Running filter query: %s", tc.filterQuery)
+			result, err := service.GetExperimentRuns(listOptions, nil)
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Extract names from results
+			var actualNames []string
+			for _, item := range result.Items {
+				for _, expectedName := range tc.expectedNames {
+					if *item.Name == expectedName {
+						actualNames = append(actualNames, *item.Name)
+						break
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedCount, len(actualNames),
+				"Expected %d runs for filter '%s', but got %d",
+				tc.expectedCount, tc.filterQuery, len(actualNames))
+
+			// Verify the expected runs are present
+			assert.ElementsMatch(t, tc.expectedNames, actualNames,
+				"Expected runs %v for filter '%s', but got %v",
+				tc.expectedNames, tc.filterQuery, actualNames)
+		})
+	}
+
+	// Test error cases
+	t.Run("Invalid filter syntax", func(t *testing.T) {
+		pageSize := int32(10)
+		invalidFilter := "invalid <<< syntax"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := service.GetExperimentRuns(listOptions, nil)
+
+		if assert.Error(t, err) {
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		}
+	})
+
+	// Test combining filterQuery with experimentId parameter
+	t.Run("Filter with experimentId parameter", func(t *testing.T) {
+		// Create another experiment with runs
+		anotherExperiment := &openapi.Experiment{
+			Name: "another-experiment",
+		}
+		anotherCreatedExperiment, err := service.UpsertExperiment(anotherExperiment)
+		require.NoError(t, err)
+
+		anotherRun := &openapi.ExperimentRun{
+			Name:         apiutils.Of("another-pytorch-run"),
+			ExperimentId: *anotherCreatedExperiment.Id,
+			CustomProperties: &map[string]openapi.MetadataValue{
+				"framework": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "pytorch",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			},
+		}
+		_, err = service.UpsertExperimentRun(anotherRun, anotherCreatedExperiment.Id)
+		require.NoError(t, err)
+
+		// Filter by framework=pytorch should return runs from both experiments
+		pageSize := int32(10)
+		filterQuery := "framework = 'pytorch'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Without experimentId - should get 3 (2 from first experiment + 1 from second)
+		allResult, err := service.GetExperimentRuns(listOptions, nil)
+		require.NoError(t, err)
+		assert.Equal(t, 3, len(allResult.Items))
+
+		// With experimentId - should only get 2 from first experiment
+		filteredResult, err := service.GetExperimentRuns(listOptions, createdExperiment.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 2, len(filteredResult.Items))
+		for _, item := range filteredResult.Items {
+			assert.Equal(t, *createdExperiment.Id, item.ExperimentId)
+		}
+	})
+
+	// Test combining filterQuery with pagination
+	t.Run("Filter with pagination", func(t *testing.T) {
+		pageSize := int32(1)
+		filterQuery := "framework = 'pytorch'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Get first page
+		firstPage, err := service.GetExperimentRuns(listOptions, createdExperiment.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(firstPage.Items))
+		assert.NotEmpty(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = &firstPage.NextPageToken
+		secondPage, err := service.GetExperimentRuns(listOptions, createdExperiment.Id)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(secondPage.Items))
+
+		// Ensure different items on each page
+		assert.NotEqual(t, firstPage.Items[0].Id, secondPage.Items[0].Id)
+	})
+
+	// Test empty results
+	t.Run("Filter with no matches", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "framework = 'nonexistent'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetExperimentRuns(listOptions, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items))
+		assert.Equal(t, int32(0), result.Size)
+	})
+
+	// Test filtering with time range
+	t.Run("Filter by time range", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "startTimeSinceEpoch >= '1700010000'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetExperimentRuns(listOptions, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items))
+
+		// Verify all results have start time >= 1700010000
+		for _, item := range result.Items {
+			startTime, err := strconv.ParseInt(*item.StartTimeSinceEpoch, 10, 64)
+			require.NoError(t, err)
+			assert.GreaterOrEqual(t, startTime, int64(1700010000))
+		}
 	})
 }

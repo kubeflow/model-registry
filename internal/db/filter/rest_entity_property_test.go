@@ -19,7 +19,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityRegisteredModel,
 			propertyName:      "name",
 			expectedLocation:  EntityTable,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "RegisteredModel name should be EntityTable/string_value",
 		},
 		{
@@ -27,7 +27,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityRegisteredModel,
 			propertyName:      "state",
 			expectedLocation:  PropertyTable,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "RegisteredModel state should be PropertyTable/string_value",
 		},
 		{
@@ -35,7 +35,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityServeModel,
 			propertyName:      "lastKnownState",
 			expectedLocation:  EntityTable,
-			expectedValueType: "int_value",
+			expectedValueType: IntValueType,
 			description:       "ServeModel lastKnownState should be EntityTable/int_value",
 		},
 		{
@@ -43,7 +43,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityMetric,
 			propertyName:      "step",
 			expectedLocation:  PropertyTable,
-			expectedValueType: "int_value",
+			expectedValueType: IntValueType,
 			description:       "Metric step should be PropertyTable/int_value",
 		},
 
@@ -53,7 +53,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityRegisteredModel,
 			propertyName:      "customProperty123",
 			expectedLocation:  Custom,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "Custom properties should be Custom/string_value",
 		},
 		{
@@ -61,7 +61,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityRegisteredModel,
 			propertyName:      "experimentId",
 			expectedLocation:  Custom,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "Properties from other entities should be treated as custom",
 		},
 		{
@@ -69,7 +69,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityMetric,
 			propertyName:      "modelFormatName",
 			expectedLocation:  Custom,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "Properties from other entities should be treated as custom",
 		},
 		{
@@ -77,7 +77,7 @@ func TestRestEntityPropertyTypeDistinction(t *testing.T) {
 			restEntityType:    RestEntityServeModel,
 			propertyName:      "myCustomField",
 			expectedLocation:  Custom,
-			expectedValueType: "string_value",
+			expectedValueType: StringValueType,
 			description:       "Custom properties should be Custom/string_value",
 		},
 	}

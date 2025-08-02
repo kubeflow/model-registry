@@ -40,7 +40,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		experimentRun := &models.ExperimentRunImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ExperimentRunAttributes{
-				Name:       apiutils.Of("test-experiment-run"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:test-experiment-run", *savedExperiment.GetID())),
 				ExternalID: apiutils.Of("experiment-run-ext-123"),
 			},
 			Properties: &[]models.Properties{
@@ -70,14 +70,14 @@ func TestExperimentRunRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "test-experiment-run", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:test-experiment-run", *savedExperiment.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "experiment-run-ext-123", *saved.GetAttributes().ExternalID)
 		assert.NotNil(t, saved.GetAttributes().CreateTimeSinceEpoch)
 		assert.NotNil(t, saved.GetAttributes().LastUpdateTimeSinceEpoch)
 
 		// Test updating the same experiment run
 		experimentRun.ID = saved.GetID()
-		experimentRun.GetAttributes().Name = apiutils.Of("updated-experiment-run")
+		experimentRun.GetAttributes().Name = apiutils.Of(fmt.Sprintf("%d:updated-experiment-run", *savedExperiment.GetID()))
 		experimentRun.GetAttributes().ExternalID = apiutils.Of("updated-experiment-run-ext-123")
 		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
 		experimentRun.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
@@ -86,7 +86,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *saved.GetID(), *updated.GetID())
-		assert.Equal(t, "updated-experiment-run", *updated.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:updated-experiment-run", *savedExperiment.GetID()), *updated.GetAttributes().Name)
 		assert.Equal(t, "updated-experiment-run-ext-123", *updated.GetAttributes().ExternalID)
 		assert.Equal(t, *saved.GetAttributes().CreateTimeSinceEpoch, *updated.GetAttributes().CreateTimeSinceEpoch)
 		assert.Greater(t, *updated.GetAttributes().LastUpdateTimeSinceEpoch, *saved.GetAttributes().LastUpdateTimeSinceEpoch)
@@ -108,7 +108,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		experimentRun := &models.ExperimentRunImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ExperimentRunAttributes{
-				Name:       apiutils.Of("get-test-experiment-run"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:get-test-experiment-run", *savedExperiment.GetID())),
 				ExternalID: apiutils.Of("get-experiment-run-ext-123"),
 			},
 			Properties: &[]models.Properties{
@@ -132,7 +132,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
-		assert.Equal(t, "get-test-experiment-run", *retrieved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:get-test-experiment-run", *savedExperiment.GetID()), *retrieved.GetAttributes().Name)
 		assert.Equal(t, "get-experiment-run-ext-123", *retrieved.GetAttributes().ExternalID)
 
 		// Test retrieving non-existent ID
@@ -158,7 +158,7 @@ func TestExperimentRunRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ExperimentRunAttributes{
-					Name:       apiutils.Of("list-experiment-run-1"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-experiment-run-1", *savedExperiment.GetID())),
 					ExternalID: apiutils.Of("list-experiment-run-ext-1"),
 				},
 				Properties: &[]models.Properties{
@@ -175,7 +175,7 @@ func TestExperimentRunRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ExperimentRunAttributes{
-					Name:       apiutils.Of("list-experiment-run-2"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-experiment-run-2", *savedExperiment.GetID())),
 					ExternalID: apiutils.Of("list-experiment-run-ext-2"),
 				},
 				Properties: &[]models.Properties{
@@ -192,7 +192,7 @@ func TestExperimentRunRepository(t *testing.T) {
 			{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ExperimentRunAttributes{
-					Name:       apiutils.Of("list-experiment-run-3"),
+					Name:       apiutils.Of(fmt.Sprintf("%d:list-experiment-run-3", *savedExperiment.GetID())),
 					ExternalID: apiutils.Of("list-experiment-run-ext-3"),
 				},
 				Properties: &[]models.Properties{
@@ -234,7 +234,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		require.NotNil(t, result)
 		if len(result.Items) > 0 {
 			assert.Equal(t, 1, len(result.Items))
-			assert.Equal(t, "list-experiment-run-1", *result.Items[0].GetAttributes().Name)
+			assert.Equal(t, fmt.Sprintf("%d:list-experiment-run-1", *savedExperiment.GetID()), *result.Items[0].GetAttributes().Name)
 		}
 
 		// Test listing by external ID
@@ -299,7 +299,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		experimentRun1 := &models.ExperimentRunImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ExperimentRunAttributes{
-				Name:       apiutils.Of("time-test-experiment-run-1"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:time-test-experiment-run-1", *savedExperiment.GetID())),
 				ExternalID: apiutils.Of("time-experiment-run-ext-1"),
 			},
 			Properties: &[]models.Properties{
@@ -318,7 +318,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		experimentRun2 := &models.ExperimentRunImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ExperimentRunAttributes{
-				Name:       apiutils.Of("time-test-experiment-run-2"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:time-test-experiment-run-2", *savedExperiment.GetID())),
 				ExternalID: apiutils.Of("time-experiment-run-ext-2"),
 			},
 			Properties: &[]models.Properties{
@@ -381,7 +381,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		experimentRun := &models.ExperimentRunImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ExperimentRunAttributes{
-				Name:       apiutils.Of("props-test-experiment-run"),
+				Name:       apiutils.Of(fmt.Sprintf("%d:props-test-experiment-run", *savedExperiment.GetID())),
 				ExternalID: apiutils.Of("props-experiment-run-ext-123"),
 			},
 			Properties: &[]models.Properties{
@@ -591,12 +591,13 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 	}
 	savedExperiment, err := experimentRepo.Save(experiment)
 	require.NoError(t, err)
+	experimentID := savedExperiment.GetID()
 
 	// Create multiple experiment runs with different properties for filtering
 	experimentRun1 := &models.ExperimentRunImpl{
 		TypeID: apiutils.Of(int32(experimentRunTypeID)),
 		Attributes: &models.ExperimentRunAttributes{
-			Name: apiutils.Of("pytorch-experiment-run"),
+			Name: apiutils.Of(fmt.Sprintf("%d:pytorch-experiment-run", *experimentID)),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -632,7 +633,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 	experimentRun2 := &models.ExperimentRunImpl{
 		TypeID: apiutils.Of(int32(experimentRunTypeID)),
 		Attributes: &models.ExperimentRunAttributes{
-			Name: apiutils.Of("tensorflow-experiment-run"),
+			Name: apiutils.Of(fmt.Sprintf("%d:tensorflow-experiment-run", *experimentID)),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -668,7 +669,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 	experimentRun3 := &models.ExperimentRunImpl{
 		TypeID: apiutils.Of(int32(experimentRunTypeID)),
 		Attributes: &models.ExperimentRunAttributes{
-			Name: apiutils.Of("sklearn-experiment-run"),
+			Name: apiutils.Of(fmt.Sprintf("%d:sklearn-experiment-run", *experimentID)),
 		},
 		Properties: &[]models.Properties{
 			{
@@ -716,7 +717,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-experiment-run", *experimentID), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test custom property filtering
@@ -734,7 +735,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "tensorflow-experiment-run", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:tensorflow-experiment-run", *experimentID), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test numeric custom property filtering
@@ -786,7 +787,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "tensorflow-experiment-run", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:tensorflow-experiment-run", *experimentID), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test complex AND filter
@@ -804,7 +805,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-experiment-run", *experimentID), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test complex OR filter
@@ -856,7 +857,7 @@ func TestExperimentRunRepository_FilterQuery(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 1, len(result.Items))
-		assert.Equal(t, "pytorch-experiment-run", *result.Items[0].GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:pytorch-experiment-run", *experimentID), *result.Items[0].GetAttributes().Name)
 	})
 
 	// Test invalid filter query

@@ -133,17 +133,12 @@ func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServic
 }
 
 func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, registeredModelId *string, externalId *string) (*openapi.ModelVersion, error) {
-	var combinedName *string
-
-	if versionName != nil && registeredModelId != nil {
-		n := converter.PrefixWhenOwned(registeredModelId, *versionName)
-		combinedName = &n
-	} else if externalId == nil {
+	if (versionName == nil || registeredModelId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
-		Name:       combinedName,
+		Name:       versionName,
 		ExternalID: externalId,
 	})
 	if err != nil {
@@ -185,6 +180,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ParentResourceID: parentResourceID,
 	})

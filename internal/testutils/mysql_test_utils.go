@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -33,6 +34,7 @@ func SetupSharedMySQL() error {
 			cont_mysql.WithDatabase("test"),
 			cont_mysql.WithUsername("root"),
 			cont_mysql.WithPassword("root"),
+			cont_mysql.WithConfigFile(filepath.Join("testdata", "testdb.cnf")),
 		)
 		if err != nil {
 			setupErr = err

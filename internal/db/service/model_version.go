@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -54,7 +55,11 @@ func (r *ModelVersionRepositoryImpl) List(listOptions models.ModelVersionListOpt
 
 func applyModelVersionListFilters(query *gorm.DB, listOptions *models.ModelVersionListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		if listOptions.ParentResourceID != nil {
+			query = query.Where("name LIKE ?", fmt.Sprintf("%d:%s", *listOptions.ParentResourceID, *listOptions.Name))
+		} else {
+			query = query.Where("name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
+		}
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}

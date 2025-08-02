@@ -136,6 +136,7 @@ func (b *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) 
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 	})
 	if err != nil {

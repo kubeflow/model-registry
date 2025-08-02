@@ -423,7 +423,7 @@ func TestParameterRepository(t *testing.T) {
 		parameter := &models.ParameterImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.ParameterAttributes{
-				Name:         apiutils.Of("model-version-parameter"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:model-version-parameter", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/model-version-parameter.json"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("parameter"),
@@ -440,7 +440,7 @@ func TestParameterRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "model-version-parameter", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:model-version-parameter", *savedModelVersion.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/model-version-parameter.json", *saved.GetAttributes().URI)
 
 		// Test listing by model version ID

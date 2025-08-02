@@ -423,7 +423,7 @@ func TestMetricRepository(t *testing.T) {
 		metric := &models.MetricImpl{
 			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.MetricAttributes{
-				Name:         apiutils.Of("model-version-metric"),
+				Name:         apiutils.Of(fmt.Sprintf("%d:model-version-metric", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/model-version-metric.json"),
 				State:        apiutils.Of("LIVE"),
 				ArtifactType: apiutils.Of("metric"),
@@ -440,7 +440,7 @@ func TestMetricRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.NotNil(t, saved.GetID())
-		assert.Equal(t, "model-version-metric", *saved.GetAttributes().Name)
+		assert.Equal(t, fmt.Sprintf("%d:model-version-metric", *savedModelVersion.GetID()), *saved.GetAttributes().Name)
 		assert.Equal(t, "s3://bucket/model-version-metric.json", *saved.GetAttributes().URI)
 
 		// Test listing by model version ID

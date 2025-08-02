@@ -331,14 +331,8 @@ func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, er
 }
 
 func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentResourceId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {
-
-	if artifactName == nil && parentResourceId == nil && externalId == nil {
+	if (artifactName == nil || parentResourceId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
-	}
-
-	if artifactName != nil && parentResourceId != nil {
-		combinedName := converter.PrefixWhenOwned(parentResourceId, *artifactName)
-		artifactName = &combinedName
 	}
 
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{

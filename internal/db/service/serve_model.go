@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -44,7 +45,7 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 
 func applyServeModelListFilters(query *gorm.DB, listOptions *models.ServeModelListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("Execution.name = ?", listOptions.Name)
+		query = query.Where("Execution.name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("Execution.external_id = ?", listOptions.ExternalID)
 	}

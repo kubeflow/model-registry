@@ -74,7 +74,9 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	query = query.Where("type_id != ?", r.metricHistoryTypeID)
 
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		// Name is not prefixed with the parent resource id to allow for filtering by name only
+		// Parent resource Id is used later to filter by Attribution.context_id
+		query = query.Where("name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}

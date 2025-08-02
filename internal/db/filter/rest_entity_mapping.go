@@ -23,6 +23,18 @@ const (
 	RestEntityServeModel RestEntityType = "ServeModel"
 )
 
+// isChildEntity returns true if the REST entity type uses prefixed names (parentId:name)
+func isChildEntity(entityType RestEntityType) bool {
+	// Only top-level entities don't use prefixed names
+	switch entityType {
+	case RestEntityRegisteredModel, RestEntityExperiment, RestEntityServingEnvironment:
+		return false
+	default:
+		// All other entities are child entities that use prefixed names
+		return true
+	}
+}
+
 // RestEntityPropertyMap maps REST entity types to their allowed properties
 var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 	// Context-based entities
@@ -181,7 +193,7 @@ func GetPropertyDefinitionForRestEntity(restEntityType RestEntityType, propertyN
 	// Not a well-known property for this entity type, treat as custom
 	return PropertyDefinition{
 		Location:  Custom,
-		ValueType: "string_value", // Default, will be inferred at runtime
-		Column:    "",             // Custom properties don't have direct columns
+		ValueType: StringValueType, // Default, will be inferred at runtime
+		Column:    propertyName,    // Use the property name as-is for custom properties
 	}
 }

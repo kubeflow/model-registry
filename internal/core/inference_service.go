@@ -81,17 +81,13 @@ func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.Infe
 }
 
 func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
-	var combinedName *string
-
-	if name != nil && parentResourceId != nil {
-		n := converter.PrefixWhenOwned(parentResourceId, *name)
-		combinedName = &n
-	} else if externalId == nil {
+	// Caller MUST provide either name and parentResourceId or externalId
+	if (name == nil || parentResourceId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
-		Name:       combinedName,
+		Name:       name,
 		ExternalID: externalId,
 	})
 	if err != nil {

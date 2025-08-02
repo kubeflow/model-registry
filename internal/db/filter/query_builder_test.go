@@ -226,3 +226,119 @@ func countExpectedJoins(expr *FilterExpression, entityType EntityType) int {
 
 	return leftJoins + rightJoins
 }
+
+func TestQueryBuilderPropertyTypeSuffix(t *testing.T) {
+	tests := []struct {
+		name              string
+		entityType        EntityType
+		restEntityType    RestEntityType
+		query             string
+		expectedSQL       string
+		expectedValueType string
+		description       string
+	}{
+		{
+			name:              "Custom property with explicit double_value",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityExperiment,
+			query:             `budget.double_value > 12000`,
+			expectedSQL:       "budget",
+			expectedValueType: DoubleValueType,
+			description:       "Should use double_value column for budget property",
+		},
+		{
+			name:              "Custom property with explicit int_value",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityExperiment,
+			query:             `priority.int_value <= 2`,
+			expectedSQL:       "priority",
+			expectedValueType: IntValueType,
+			description:       "Should use int_value column for priority property",
+		},
+		{
+			name:              "Custom property without explicit type (numeric)",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityExperiment,
+			query:             `budget > 12000`,
+			expectedSQL:       "budget",
+			expectedValueType: IntValueType, // Inferred from integer value
+			description:       "Should infer int_value from integer value",
+		},
+		{
+			name:              "Custom property without explicit type (float)",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityExperiment,
+			query:             `budget > 12000.5`,
+			expectedSQL:       "budget",
+			expectedValueType: DoubleValueType, // Inferred from float value
+			description:       "Should infer double_value from float value",
+		},
+		{
+			name:              "Well-known property with explicit type override",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityModelVersion,
+			query:             `author.string_value = "alice"`,
+			expectedSQL:       "author",
+			expectedValueType: StringValueType,
+			description:       "Should respect explicit type even for well-known properties",
+		},
+		{
+			name:              "Complex query with mixed type specifications",
+			entityType:        EntityTypeContext,
+			restEntityType:    RestEntityExperiment,
+			query:             `budget.double_value > 10000 AND priority < 3`,
+			expectedSQL:       "budget",
+			expectedValueType: DoubleValueType,
+			description:       "Should handle mixed explicit and inferred types",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Parse the query
+			expr, err := Parse(tt.query)
+			if err != nil {
+				t.Fatalf("Failed to parse query: %v", err)
+			}
+
+			// Create query builder
+			qb := NewQueryBuilderForRestEntity(tt.restEntityType)
+
+			// Build property reference from the first leaf expression
+			leafExpr := findFirstLeafExpression(expr)
+			if leafExpr == nil {
+				t.Fatal("No leaf expression found")
+			}
+
+			propRef := qb.buildPropertyReference(leafExpr)
+
+			// Check property name
+			if propRef.Name != tt.expectedSQL {
+				t.Errorf("Expected property name %s, got %s", tt.expectedSQL, propRef.Name)
+			}
+
+			// Check value type
+			if propRef.ValueType != tt.expectedValueType {
+				t.Errorf("Expected value type %s, got %s", tt.expectedValueType, propRef.ValueType)
+			}
+		})
+	}
+}
+
+// Helper function to find the first leaf expression
+func findFirstLeafExpression(expr *FilterExpression) *FilterExpression {
+	if expr.IsLeaf {
+		return expr
+	}
+	if expr.Left != nil {
+		if leaf := findFirstLeafExpression(expr.Left); leaf != nil {
+			return leaf
+		}
+	}
+	if expr.Right != nil {
+		if leaf := findFirstLeafExpression(expr.Right); leaf != nil {
+			return leaf
+		}
+	}
+	return nil
+}

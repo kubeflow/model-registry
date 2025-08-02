@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -42,7 +43,7 @@ func (r *MetricRepositoryImpl) List(listOptions models.MetricListOptions) (*mode
 
 func applyMetricListFilters(query *gorm.DB, listOptions *models.MetricListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("name = ?", listOptions.Name)
+		query = query.Where("name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}

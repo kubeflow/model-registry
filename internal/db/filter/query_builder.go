@@ -2,6 +2,7 @@ package filter
 
 import (
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,8 @@ const (
 )
 
 // QueryBuilder builds GORM queries from filter expressions
+// It handles special cases like prefixed names for child entities (e.g., ModelVersion, ExperimentRun)
+// where names are stored as "parentId:actualName" in the database
 type QueryBuilder struct {
 	entityType     EntityType
 	restEntityType RestEntityType
@@ -122,23 +125,40 @@ func (qb *QueryBuilder) buildConditionString(expr *FilterExpression) conditionRe
 // buildPropertyReference creates a property reference from a filter expression
 func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *PropertyReference {
 	var propDef PropertyDefinition
+	propertyName := expr.Property
+
+	// Check if the property has an explicit type suffix (e.g., "budget.double_value")
+	var explicitType string
+	if parts := strings.Split(propertyName, "."); len(parts) == 2 {
+		propertyName = parts[0]
+		explicitType = parts[1]
+	}
 
 	// Use REST entity type-aware property mapping if available
 	if qb.restEntityType != "" {
-		propDef = GetPropertyDefinitionForRestEntity(qb.restEntityType, expr.Property)
+		propDef = GetPropertyDefinitionForRestEntity(qb.restEntityType, propertyName)
 	} else {
 		// Fallback to MLMD entity type only
-		propDef = GetPropertyDefinition(qb.entityType, expr.Property)
+		propDef = GetPropertyDefinition(qb.entityType, propertyName)
+	}
+
+	// For property table properties, use the Column field as the database property name
+	propName := propertyName
+	if propDef.Location == PropertyTable && propDef.Column != "" {
+		propName = propDef.Column
 	}
 
 	propRef := &PropertyReference{
-		Name:      expr.Property,
+		Name:      propName,
 		IsCustom:  propDef.Location == Custom,
 		ValueType: propDef.ValueType,
 	}
 
-	// For custom properties, infer type from value since we don't know the type ahead of time
-	if propRef.IsCustom {
+	// If explicit type was specified, use it
+	if explicitType != "" {
+		propRef.ValueType = explicitType
+	} else if propRef.IsCustom {
+		// For custom properties without explicit type, infer from value
 		propRef.ValueType = qb.inferValueTypeFromInterface(expr.Value)
 	}
 
@@ -161,15 +181,15 @@ func (qb *QueryBuilder) buildLeafConditionString(expr *FilterExpression) conditi
 func (qb *QueryBuilder) inferValueTypeFromInterface(value interface{}) string {
 	switch value.(type) {
 	case string:
-		return "string_value"
+		return StringValueType
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return "int_value"
+		return IntValueType
 	case float32, float64:
-		return "double_value"
+		return DoubleValueType
 	case bool:
-		return "bool_value"
+		return BoolValueType
 	default:
-		return "string_value" // fallback
+		return StringValueType // fallback
 	}
 }
 
@@ -206,6 +226,26 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
 
+	// Handle prefixed names for child entities
+	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
+		if strValue, ok := value.(string); ok {
+			// For exact match, convert to LIKE pattern with prefix
+			if operator == "=" {
+				operator = "LIKE"
+				value = "%:" + strValue
+			} else if operator == "LIKE" && !strings.Contains(strValue, ":") {
+				// For LIKE patterns without ':', add prefix handling
+				if !strings.HasPrefix(strValue, "%") {
+					// Pattern like 'pattern%' -> needs prefix wildcard -> '%:pattern%'
+					value = "%:" + strValue
+				}
+				// Pattern like '%something' or '%-beta' -> keep as is
+				// because names are stored as 'parentId:actualName' and '%' will match 'parentId:'
+			}
+			// If pattern already contains ':', assume it's already properly formatted
+		}
+	}
+
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
 		return qb.buildCaseInsensitiveLikeCondition(db, column, value)
@@ -219,6 +259,27 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *PropertyReference, operator string, value interface{}) conditionResult {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
+
+	// Handle prefixed names for child entities
+	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
+		if strValue, ok := value.(string); ok {
+			// For exact match, convert to LIKE pattern with prefix
+			if operator == "=" {
+				operator = "LIKE"
+				value = "%:" + strValue
+			} else if operator == "LIKE" && !strings.Contains(strValue, ":") {
+				// For LIKE patterns without ':', add prefix handling
+				if !strings.HasPrefix(strValue, "%") {
+					// Pattern like 'pattern%' -> needs prefix wildcard -> '%:pattern%'
+					value = "%:" + strValue
+				}
+				// Pattern like '%something' or '%-beta' -> keep as is
+				// because names are stored as 'parentId:actualName' and '%' will match 'parentId:'
+			}
+			// If pattern already contains ':', assume it's already properly formatted
+		}
+	}
+
 	return qb.buildOperatorCondition(column, operator, value)
 }
 

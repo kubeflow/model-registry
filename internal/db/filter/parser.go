@@ -9,6 +9,14 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+// Constants for property value types
+const (
+	StringValueType = "string_value"
+	DoubleValueType = "double_value"
+	IntValueType    = "int_value"
+	BoolValueType   = "bool_value"
+)
+
 // Define the lexer for SQL WHERE clauses
 var sqlLexer = lexer.MustSimple([]lexer.SimpleRule{
 	{Name: "whitespace", Pattern: `\s+`},
@@ -34,7 +42,7 @@ func initParser() {
 		participle.Lexer(sqlLexer),
 		participle.Elide("whitespace", "Comment"),
 		participle.CaseInsensitive("OR", "AND", "LIKE", "ILIKE", "IN", "true", "false", "TRUE", "FALSE"),
-		participle.CaseInsensitive("string_value", "double_value", "int_value", "bool_value"),
+		participle.CaseInsensitive(StringValueType, DoubleValueType, IntValueType, BoolValueType),
 	)
 }
 
@@ -110,7 +118,7 @@ type FilterExpression struct {
 type PropertyReference struct {
 	Name      string
 	IsCustom  bool
-	ValueType string // "string_value", "double_value", "int_value", "bool_value"
+	ValueType string // StringValueType, DoubleValueType, IntValueType, BoolValueType
 	IsEscaped bool   // whether the property name was escaped with backticks
 }
 
@@ -128,20 +136,6 @@ func Parse(input string) (*FilterExpression, error) {
 	}
 
 	return convertToFilterExpression(whereClause.Expression), nil
-}
-
-// Deprecated: NewParser is deprecated, use Parse() function directly
-// This is kept for backward compatibility but will be removed in future versions
-func NewParser() *Parser {
-	return &Parser{}
-}
-
-// Parser is deprecated, use Parse() function directly
-type Parser struct{}
-
-// Parse is deprecated, use the package-level Parse() function directly
-func (p *Parser) Parse(input string) (*FilterExpression, error) {
-	return Parse(input)
 }
 
 // convertToFilterExpression converts the participle AST to our FilterExpression
@@ -193,8 +187,14 @@ func convertComparison(comp *Comparison) *FilterExpression {
 	propRef := convertPropertyRef(comp.Left, comp.Right)
 	value := convertValue(comp.Right)
 
+	// Preserve the full property name with type suffix if specified
+	propertyName := propRef.Name
+	if comp.Left.Type != "" {
+		propertyName = propRef.Name + "." + comp.Left.Type
+	}
+
 	return &FilterExpression{
-		Property: propRef.Name,
+		Property: propertyName,
 		Operator: comp.Operator,
 		Value:    value,
 		IsLeaf:   true,
@@ -271,16 +271,16 @@ func convertValue(val *Value) interface{} {
 // inferValueType determines the appropriate value type based on the actual value
 func inferValueType(val *Value) string {
 	if val.String != nil {
-		return "string_value"
+		return StringValueType
 	}
 	if val.Integer != nil {
-		return "int_value"
+		return IntValueType
 	}
 	if val.Float != nil {
-		return "double_value"
+		return DoubleValueType
 	}
 	if val.Boolean != nil {
-		return "bool_value"
+		return BoolValueType
 	}
-	return "string_value" // default to string
+	return StringValueType // default to string
 }

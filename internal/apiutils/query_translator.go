@@ -91,9 +91,12 @@ func getFieldMappings() map[EntityType]map[string]FieldMapping {
 			"lastUpdateTimeSinceEpoch": {MLMDField: "last_update_time_since_epoch", FieldType: MLMDField},
 
 			// Properties defined in ExperimentRun schema
-			"description":  {MLMDField: "properties.description.string_value", FieldType: Property},
-			"state":        {MLMDField: "properties.state.string_value", FieldType: Property},
-			"experimentId": {MLMDField: "properties.experiment_id.string_value", FieldType: Property},
+			"description":         {MLMDField: "properties.description.string_value", FieldType: Property},
+			"state":               {MLMDField: "properties.state.string_value", FieldType: Property},
+			"experimentId":        {MLMDField: "properties.experiment_id.string_value", FieldType: Property},
+			"status":              {MLMDField: "properties.status.string_value", FieldType: Property},
+			"startTimeSinceEpoch": {MLMDField: "properties.start_time_since_epoch.string_value", FieldType: Property},
+			"endTimeSinceEpoch":   {MLMDField: "properties.end_time_since_epoch.string_value", FieldType: Property},
 		},
 	}
 }
@@ -101,10 +104,10 @@ func getFieldMappings() map[EntityType]map[string]FieldMapping {
 // isValidValueType checks if the provided value type is valid for MLMD filter queries
 func isValidValueType(valueType string) bool {
 	switch valueType {
-		case "string_value", "int_value", "double_value", "bool_value":
-			return true
-		default:
-			return false
+	case "string_value", "int_value", "double_value", "bool_value":
+		return true
+	default:
+		return false
 	}
 }
 

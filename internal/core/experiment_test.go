@@ -340,3 +340,389 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 		assert.Contains(t, *updated.CustomProperties, "keep_this", "CustomProperties should be preserved from existing")
 	})
 }
+
+func TestGetExperimentsWithFilterQuery(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create test experiments with various properties for filtering
+	testExperiments := []struct {
+		experiment *openapi.Experiment
+	}{
+		{
+			experiment: &openapi.Experiment{
+				Name:        "nlp-experiment-1",
+				Description: apiutils.Of("Natural Language Processing experiment"),
+				ExternalId:  apiutils.Of("ext-nlp-001"),
+				Owner:       apiutils.Of("alice"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"project": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "nlp",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"team": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "research",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"budget": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  10000.0,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"priority": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "1",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			experiment: &openapi.Experiment{
+				Name:        "cv-experiment-2",
+				Description: apiutils.Of("Computer Vision experiment with object detection"),
+				ExternalId:  apiutils.Of("ext-cv-002"),
+				Owner:       apiutils.Of("bob"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"project": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "vision",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"team": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "engineering",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"budget": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  25000.0,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"priority": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "2",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+					"active": {
+						MetadataBoolValue: &openapi.MetadataBoolValue{
+							BoolValue:    true,
+							MetadataType: "MetadataBoolValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			experiment: &openapi.Experiment{
+				Name:        "nlp-experiment-2",
+				Description: apiutils.Of("NLP sentiment analysis experiment"),
+				ExternalId:  apiutils.Of("ext-nlp-003"),
+				Owner:       apiutils.Of("alice"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"project": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "nlp",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"team": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "research",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"budget": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  15000.0,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"priority": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "3",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			experiment: &openapi.Experiment{
+				Name:        "rl-experiment",
+				Description: apiutils.Of("Reinforcement Learning experiment"),
+				ExternalId:  apiutils.Of("ext-rl-004"),
+				Owner:       apiutils.Of("charlie"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"project": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "reinforcement-learning",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"team": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "research",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"budget": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  8000.0,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create all test experiments
+	for _, te := range testExperiments {
+		_, err := service.UpsertExperiment(te.experiment)
+		require.NoError(t, err)
+	}
+
+	testCases := []struct {
+		name          string
+		filterQuery   string
+		expectedCount int
+		expectedNames []string
+	}{
+		{
+			name:          "Filter by exact name",
+			filterQuery:   "name = 'nlp-experiment-1'",
+			expectedCount: 1,
+			expectedNames: []string{"nlp-experiment-1"},
+		},
+		{
+			name:          "Filter by name pattern",
+			filterQuery:   "name LIKE 'nlp-%'",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2"},
+		},
+		{
+			name:          "Filter by description",
+			filterQuery:   "description LIKE '%Computer Vision%'",
+			expectedCount: 1,
+			expectedNames: []string{"cv-experiment-2"},
+		},
+		{
+			name:          "Filter by owner",
+			filterQuery:   "owner = 'alice'",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2"},
+		},
+		{
+			name:          "Filter by external ID",
+			filterQuery:   "externalId = 'ext-cv-002'",
+			expectedCount: 1,
+			expectedNames: []string{"cv-experiment-2"},
+		},
+		{
+			name:          "Filter by custom property - string",
+			filterQuery:   "project = 'nlp'",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2"},
+		},
+		{
+			name:          "Filter by custom property - team",
+			filterQuery:   "team = 'engineering'",
+			expectedCount: 1,
+			expectedNames: []string{"cv-experiment-2"},
+		},
+		{
+			name:          "Filter by custom property - numeric comparison",
+			filterQuery:   "budget.double_value > 12000",
+			expectedCount: 2,
+			expectedNames: []string{"cv-experiment-2", "nlp-experiment-2"},
+		},
+		{
+			name:          "Filter by custom property - integer",
+			filterQuery:   "priority <= 2",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2"},
+		},
+		{
+			name:          "Filter by custom property - boolean",
+			filterQuery:   "active = true",
+			expectedCount: 1,
+			expectedNames: []string{"cv-experiment-2"},
+		},
+		{
+			name:          "Complex filter with AND",
+			filterQuery:   "project = 'nlp' AND budget > 12000.0",
+			expectedCount: 1,
+			expectedNames: []string{"nlp-experiment-2"},
+		},
+		{
+			name:          "Complex filter with OR",
+			filterQuery:   "owner = 'alice' OR owner = 'charlie'",
+			expectedCount: 3,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2", "rl-experiment"},
+		},
+		{
+			name:          "Complex filter with parentheses",
+			filterQuery:   "(project = 'nlp' OR project = 'vision') AND budget.double_value < 20000",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2"},
+		},
+		{
+			name:          "Case insensitive pattern matching",
+			filterQuery:   "name ILIKE '%EXPERIMENT%'",
+			expectedCount: 4,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2", "nlp-experiment-2", "rl-experiment"},
+		},
+		{
+			name:          "Filter with NOT condition",
+			filterQuery:   "team != 'engineering'",
+			expectedCount: 3,
+			expectedNames: []string{"nlp-experiment-1", "nlp-experiment-2", "rl-experiment"},
+		},
+
+		{
+			name:          "Filter by name pattern with suffix",
+			filterQuery:   "name LIKE '%-2'",
+			expectedCount: 2,
+			expectedNames: []string{"cv-experiment-2", "nlp-experiment-2"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			pageSize := int32(10)
+			listOptions := api.ListOptions{
+				PageSize:    &pageSize,
+				FilterQuery: &tc.filterQuery,
+			}
+
+			result, err := service.GetExperiments(listOptions)
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Extract names from results
+			var actualNames []string
+			for _, item := range result.Items {
+				for _, expectedName := range tc.expectedNames {
+					if item.Name == expectedName {
+						actualNames = append(actualNames, item.Name)
+						break
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedCount, len(actualNames),
+				"Expected %d experiments for filter '%s', but got %d",
+				tc.expectedCount, tc.filterQuery, len(actualNames))
+
+			// Verify the expected experiments are present
+			assert.ElementsMatch(t, tc.expectedNames, actualNames,
+				"Expected experiments %v for filter '%s', but got %v",
+				tc.expectedNames, tc.filterQuery, actualNames)
+		})
+	}
+
+	// Test error cases
+	t.Run("Invalid filter syntax", func(t *testing.T) {
+		pageSize := int32(10)
+		invalidFilter := "invalid <<< syntax"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := service.GetExperiments(listOptions)
+
+		if assert.Error(t, err) {
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		}
+	})
+
+	// Test combining filterQuery with pagination
+	t.Run("Filter with pagination", func(t *testing.T) {
+		pageSize := int32(1)
+		filterQuery := "team = 'research'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Get first page
+		firstPage, err := service.GetExperiments(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(firstPage.Items))
+		assert.NotEmpty(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = &firstPage.NextPageToken
+		secondPage, err := service.GetExperiments(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(secondPage.Items))
+
+		// Ensure different items on each page
+		assert.NotEqual(t, firstPage.Items[0].Id, secondPage.Items[0].Id)
+
+		// Get third page
+		listOptions.NextPageToken = &secondPage.NextPageToken
+		thirdPage, err := service.GetExperiments(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(thirdPage.Items))
+
+		// Ensure all pages have different items
+		assert.NotEqual(t, firstPage.Items[0].Id, thirdPage.Items[0].Id)
+		assert.NotEqual(t, secondPage.Items[0].Id, thirdPage.Items[0].Id)
+	})
+
+	// Test empty results
+	t.Run("Filter with no matches", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "project = 'nonexistent'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetExperiments(listOptions)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items))
+		assert.Equal(t, int32(0), result.Size)
+	})
+
+	// Test filtering with ordering
+	t.Run("Filter with ordering", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "project = 'nlp'"
+		orderBy := "name"
+		sortOrder := "DESC"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+			OrderBy:     &orderBy,
+			SortOrder:   &sortOrder,
+		}
+
+		result, err := service.GetExperiments(listOptions)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items))
+
+		// Verify descending order
+		assert.Equal(t, "nlp-experiment-2", result.Items[0].Name)
+		assert.Equal(t, "nlp-experiment-1", result.Items[1].Name)
+	})
+}
