@@ -131,12 +131,18 @@ const initIntercepts = ({
     },
     mockModelVersionList({
       items: [
-        mockModelVersion({ name: 'Version 1', author: 'Author 1', registeredModelId: '1' }),
+        mockModelVersion({
+          name: 'Version 1',
+          author: 'Author 1',
+          registeredModelId: '1',
+          createTimeSinceEpoch: '1712234877000', // Older
+        }),
         mockModelVersion({
           author: 'Author 2',
           registeredModelId: '1',
           id: '2',
           name: 'Version 2',
+          createTimeSinceEpoch: '1712234879000', // Latest
         }),
         mockModelVersion({
           author: 'Author 3',
@@ -211,7 +217,7 @@ describe('Model version details', () => {
       );
       cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
-      cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
+      cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
     });
 
     it('should add a property', () => {
@@ -317,6 +323,22 @@ describe('Model version details', () => {
       modelVersionDetails.findModelVersionDropdownSearch().fill('Version 2');
       modelVersionDetails.findModelVersionDropdownItem('Version 2').click();
       modelVersionDetails.findVersionId().contains('2');
+    });
+
+    it('should show "Latest" badge on the most recent version', () => {
+      modelVersionDetails.findModelVersionDropdownButton().click();
+
+      // Check that the "Latest" badge exists and is associated with Version 2
+      cy.findByTestId('model-version-selector-list')
+        .should('contain.text', 'Latest')
+        .and('contain.text', 'Version 2');
+
+      // Verify that Version 1 exists but doesn't have its own "Latest" badge
+      cy.findByTestId('model-version-selector-list').should('contain.text', 'Version 1');
+
+      cy.findByTestId('model-version-selector-list')
+        .find('.pf-v6-c-badge')
+        .should('have.length', 1);
     });
 
     it('should handle label editing', () => {
