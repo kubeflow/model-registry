@@ -76,6 +76,7 @@ from mr_openapi.models.metadata_struct_value import MetadataStructValue
 from mr_openapi.models.metadata_value import MetadataValue
 from mr_openapi.models.metric import Metric
 from mr_openapi.models.metric_create import MetricCreate
+from mr_openapi.models.metric_list import MetricList
 from mr_openapi.models.metric_update import MetricUpdate
 from mr_openapi.models.model_artifact import ModelArtifact
 from mr_openapi.models.model_artifact_create import ModelArtifactCreate

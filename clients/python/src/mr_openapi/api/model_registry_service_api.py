@@ -31,6 +31,7 @@ from mr_openapi.models.inference_service import InferenceService
 from mr_openapi.models.inference_service_create import InferenceServiceCreate
 from mr_openapi.models.inference_service_list import InferenceServiceList
 from mr_openapi.models.inference_service_update import InferenceServiceUpdate
+from mr_openapi.models.metric_list import MetricList
 from mr_openapi.models.model_artifact import ModelArtifact
 from mr_openapi.models.model_artifact_create import ModelArtifactCreate
 from mr_openapi.models.model_artifact_list import ModelArtifactList
@@ -7557,7 +7558,7 @@ class ModelRegistryServiceApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ArtifactList:
+    ) -> MetricList:
         r"""Get metric history for an ExperimentRun.
 
         Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
@@ -7615,7 +7616,7 @@ class ModelRegistryServiceApi:
         )
 
         _response_types_map: dict[str, Optional[str]] = {
-            "200": "ArtifactList",
+            "200": "MetricList",
             "401": "Error",
             "404": "Error",
             "500": "Error",
@@ -7661,7 +7662,7 @@ class ModelRegistryServiceApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ArtifactList]:
+    ) -> ApiResponse[MetricList]:
         r"""Get metric history for an ExperimentRun.
 
         Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
@@ -7719,7 +7720,7 @@ class ModelRegistryServiceApi:
         )
 
         _response_types_map: dict[str, Optional[str]] = {
-            "200": "ArtifactList",
+            "200": "MetricList",
             "401": "Error",
             "404": "Error",
             "500": "Error",
@@ -7823,7 +7824,7 @@ class ModelRegistryServiceApi:
         )
 
         _response_types_map: dict[str, Optional[str]] = {
-            "200": "ArtifactList",
+            "200": "MetricList",
             "401": "Error",
             "404": "Error",
             "500": "Error",

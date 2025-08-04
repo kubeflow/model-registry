@@ -51,6 +51,7 @@ mr_openapi/models/metadata_struct_value.py
 mr_openapi/models/metadata_value.py
 mr_openapi/models/metric.py
 mr_openapi/models/metric_create.py
+mr_openapi/models/metric_list.py
 mr_openapi/models/metric_update.py
 mr_openapi/models/model_artifact.py
 mr_openapi/models/model_artifact_create.py

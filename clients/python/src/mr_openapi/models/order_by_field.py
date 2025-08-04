@@ -25,7 +25,6 @@ class OrderByField(str, Enum):
     CREATE_TIME = "CREATE_TIME"
     LAST_UPDATE_TIME = "LAST_UPDATE_TIME"
     ID = "ID"
-    NAME = "NAME"
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:

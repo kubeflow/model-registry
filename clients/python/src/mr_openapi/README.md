@@ -177,6 +177,7 @@ Class | Method | HTTP request | Description
  - [MetadataValue](mr_openapi/docs/MetadataValue.md)
  - [Metric](mr_openapi/docs/Metric.md)
  - [MetricCreate](mr_openapi/docs/MetricCreate.md)
+ - [MetricList](mr_openapi/docs/MetricList.md)
  - [MetricUpdate](mr_openapi/docs/MetricUpdate.md)
  - [ModelArtifact](mr_openapi/docs/ModelArtifact.md)
  - [ModelArtifactCreate](mr_openapi/docs/ModelArtifactCreate.md)
