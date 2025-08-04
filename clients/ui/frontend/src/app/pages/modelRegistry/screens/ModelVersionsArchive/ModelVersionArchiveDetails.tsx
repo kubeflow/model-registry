@@ -6,6 +6,7 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
+import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelState } from '~/app/types';
 import {
   archiveModelVersionDetailsUrl,
@@ -35,7 +36,17 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
+  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
+    useModelArtifactsByVersionId(mvId);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
+
+  const refresh = React.useCallback(() => {
+    refreshModelVersion();
+    refreshModelArtifacts();
+  }, [refreshModelVersion, refreshModelArtifacts]);
+
+  const loaded = mvLoaded && modelArtifactsLoaded;
+  const loadError = mvLoadError || modelArtifactsLoadError;
 
   useEffect(() => {
     if (rm?.state === ModelState.ARCHIVED && mv?.id) {
@@ -72,8 +83,8 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
           </Button>
         }
         description={<Truncate content={mv?.description || ''} />}
-        loadError={mvLoadError}
-        loaded={mvLoaded}
+        loadError={loadError}
+        loaded={loaded}
         provideChildrenPadding
       >
         {mv !== null && (
@@ -81,7 +92,8 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
             isArchiveVersion
             tab={tab}
             modelVersion={mv}
-            refresh={refreshModelVersion}
+            refresh={refresh}
+            modelArtifacts={modelArtifacts}
           />
         )}
       </ApplicationsPage>

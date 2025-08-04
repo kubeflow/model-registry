@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +15,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/genqlient"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	models "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
@@ -50,22 +54,79 @@ func (r *rhecCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	r.modelsLock.RLock()
 	defer r.modelsLock.RUnlock()
 
-	items := make([]openapi.CatalogModel, 0, len(r.models))
+	var filteredModels []*model.CatalogModel
 	for _, rm := range r.models {
-		items = append(items, rm.CatalogModel)
+		cm := rm.CatalogModel
+		if params.Query != "" {
+			query := strings.ToLower(params.Query)
+			// Check if query matches name, description, tasks, provider, or libraryName
+			if !strings.Contains(strings.ToLower(cm.Name), query) &&
+				!strings.Contains(strings.ToLower(cm.GetDescription()), query) &&
+				!strings.Contains(strings.ToLower(cm.GetProvider()), query) &&
+				!strings.Contains(strings.ToLower(cm.GetLibraryName()), query) {
+
+				// Check tasks
+				foundInTasks := false
+				for _, task := range cm.GetTasks() { // Use GetTasks() for nil safety
+					if strings.Contains(strings.ToLower(task), query) {
+						foundInTasks = true
+						break
+					}
+				}
+				if !foundInTasks {
+					continue // Skip if no match in any searchable field
+				}
+			}
+		}
+		filteredModels = append(filteredModels, &cm)
 	}
 
-	count := len(items)
+	// Sort the filtered models
+	sort.Slice(filteredModels, func(i, j int) bool {
+		a := filteredModels[i]
+		b := filteredModels[j]
+
+		var less bool
+		switch params.OrderBy {
+		case model.ORDERBYFIELD_CREATE_TIME:
+			// Convert CreateTimeSinceEpoch (string) to int64 for comparison
+			// Handle potential nil or conversion errors by treating as 0
+			aTime, _ := strconv.ParseInt(a.GetCreateTimeSinceEpoch(), 10, 64)
+			bTime, _ := strconv.ParseInt(b.GetCreateTimeSinceEpoch(), 10, 64)
+			less = aTime < bTime
+		case model.ORDERBYFIELD_LAST_UPDATE_TIME:
+			// Convert LastUpdateTimeSinceEpoch (string) to int64 for comparison
+			// Handle potential nil or conversion errors by treating as 0
+			aTime, _ := strconv.ParseInt(a.GetLastUpdateTimeSinceEpoch(), 10, 64)
+			bTime, _ := strconv.ParseInt(b.GetLastUpdateTimeSinceEpoch(), 10, 64)
+			less = aTime < bTime
+		case model.ORDERBYFIELD_NAME:
+			fallthrough
+		default:
+			// Fallback to name sort if an unknown sort field is provided
+			less = strings.Compare(a.Name, b.Name) < 0
+		}
+
+		if params.SortOrder == model.SORTORDER_DESC {
+			return !less
+		}
+		return less
+	})
+
+	count := len(filteredModels)
 	if count > math.MaxInt32 {
 		count = math.MaxInt32
 	}
 
-	return openapi.CatalogModelList{
-		Items:         items,
-		PageSize:      int32(count),
-		Size:          int32(count),
-		NextPageToken: "",
-	}, nil
+	list := model.CatalogModelList{
+		Items:    make([]model.CatalogModel, count),
+		PageSize: int32(count),
+		Size:     int32(count),
+	}
+	for i := range list.Items {
+		list.Items[i] = *filteredModels[i]
+	}
+	return list, nil // Return the struct value directly
 }
 
 func (r *rhecCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogModelArtifactList, error) {
@@ -160,7 +221,7 @@ func newRhecModel(repoData *genqlient.GetRepositoryResponse, imageData genqlient
 		},
 		Artifacts: []*openapi.CatalogModelArtifact{
 			{
-				Uri:                      "registry.redhat.io/" + repositoryName + ":" + imageTagName,
+				Uri:                      "oci://registry.redhat.io/" + repositoryName + ":" + imageTagName,
 				CreateTimeSinceEpoch:     &imageCreationDate,
 				LastUpdateTimeSinceEpoch: &imageLastUpdateDate,
 			},

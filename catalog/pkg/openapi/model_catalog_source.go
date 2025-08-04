@@ -23,6 +23,8 @@ type CatalogSource struct {
 	Id string `json:"id"`
 	// The name of the catalog source.
 	Name string `json:"name"`
+	// Whether the catalog source is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // NewCatalogSource instantiates a new CatalogSource object
@@ -33,6 +35,8 @@ func NewCatalogSource(id string, name string) *CatalogSource {
 	this := CatalogSource{}
 	this.Id = id
 	this.Name = name
+	var enabled bool = true
+	this.Enabled = &enabled
 	return &this
 }
 
@@ -41,6 +45,8 @@ func NewCatalogSource(id string, name string) *CatalogSource {
 // but it doesn't guarantee that properties required by API are set
 func NewCatalogSourceWithDefaults() *CatalogSource {
 	this := CatalogSource{}
+	var enabled bool = true
+	this.Enabled = &enabled
 	return &this
 }
 
@@ -92,6 +98,38 @@ func (o *CatalogSource) SetName(v string) {
 	o.Name = v
 }
 
+// GetEnabled returns the Enabled field value if set, zero value otherwise.
+func (o *CatalogSource) GetEnabled() bool {
+	if o == nil || IsNil(o.Enabled) {
+		var ret bool
+		return ret
+	}
+	return *o.Enabled
+}
+
+// GetEnabledOk returns a tuple with the Enabled field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetEnabledOk() (*bool, bool) {
+	if o == nil || IsNil(o.Enabled) {
+		return nil, false
+	}
+	return o.Enabled, true
+}
+
+// HasEnabled returns a boolean if a field has been set.
+func (o *CatalogSource) HasEnabled() bool {
+	if o != nil && !IsNil(o.Enabled) {
+		return true
+	}
+
+	return false
+}
+
+// SetEnabled gets a reference to the given bool and assigns it to the Enabled field.
+func (o *CatalogSource) SetEnabled(v bool) {
+	o.Enabled = &v
+}
+
 func (o CatalogSource) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -104,6 +142,9 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["name"] = o.Name
+	if !IsNil(o.Enabled) {
+		toSerialize["enabled"] = o.Enabled
+	}
 	return toSerialize, nil
 }
 

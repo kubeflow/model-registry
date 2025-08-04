@@ -1,13 +1,14 @@
-import { useContext } from 'react';
-import type { ModelVersion, RegisteredModel } from '~/app/types';
-import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
+import type { ModelVersion, RegisteredModel, ModelArtifactList, ModelRegistry } from '~/app/types';
 import { getServerAddress } from '~/app/pages/modelRegistry/screens/utils';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
-export const useModelVersionTuningData = (
+// Utility function to get model version tuning data without hook dependencies
+export const getModelVersionTuningData = (
   modelVersionId: string | null,
   modelVersion: ModelVersion | null,
   registeredModel: RegisteredModel | null,
+  artifacts: ModelArtifactList,
+  preferredModelRegistry: ModelRegistry | undefined,
+  modelRegistries: ModelRegistry[],
 ): {
   tuningData: {
     modelRegistryName: string;
@@ -19,14 +20,8 @@ export const useModelVersionTuningData = (
     inputModelLocationUri: string;
     outputModelRegistryApiUrl: string;
   } | null;
-  loaded: boolean;
-  loadError: Error | null;
 } => {
-  const { preferredModelRegistry, modelRegistries } = useContext(ModelRegistrySelectorContext);
   const registryService = modelRegistries.find((s) => s.name === preferredModelRegistry?.name);
-
-  const [artifacts, loaded, loadError] = useModelArtifactsByVersionId(modelVersionId || undefined);
-
   const inputModelLocationUri = artifacts.items[0]?.uri;
   const modelRegistryDisplayName = registryService ? registryService.displayName : '';
   const outputModelRegistryApiUrl = registryService ? getServerAddress(registryService) : '';
@@ -45,7 +40,5 @@ export const useModelVersionTuningData = (
             outputModelRegistryApiUrl,
           }
         : null,
-    loaded,
-    loadError: loadError || null,
   };
 };
