@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageSection, Tab, Tabs, TabTitleText } from '@patternfly/react-core';
-import { ModelVersion } from '~/app/types';
+import { ModelVersion, ModelArtifactList } from '~/app/types';
 import { ModelVersionDetailsTabTitle, ModelVersionDetailsTab } from './const';
 import ModelVersionDetailsView from './ModelVersionDetailsView';
 
@@ -10,6 +10,7 @@ type ModelVersionDetailTabsProps = {
   modelVersion: ModelVersion;
   isArchiveVersion?: boolean;
   refresh: () => void;
+  modelArtifacts: ModelArtifactList;
 };
 
 const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
@@ -17,6 +18,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
   modelVersion: mv,
   isArchiveVersion,
   refresh,
+  modelArtifacts,
 }) => {
   const navigate = useNavigate();
   return (
@@ -42,6 +44,7 @@ const ModelVersionDetailsTabs: React.FC<ModelVersionDetailTabsProps> = ({
             modelVersion={mv}
             refresh={refresh}
             isArchiveVersion={isArchiveVersion}
+            modelArtifacts={modelArtifacts}
           />
         </PageSection>
       </Tab>

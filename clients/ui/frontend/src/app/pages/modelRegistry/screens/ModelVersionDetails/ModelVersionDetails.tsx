@@ -13,6 +13,7 @@ import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
+import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelState } from '~/app/types';
 import {
   archiveModelVersionDetailsUrl,
@@ -40,10 +41,16 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
+  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
+    useModelArtifactsByVersionId(mvId);
 
   const refresh = React.useCallback(() => {
     refreshModelVersion();
-  }, [refreshModelVersion]);
+    refreshModelArtifacts();
+  }, [refreshModelVersion, refreshModelArtifacts]);
+
+  const loaded = mvLoaded && modelArtifactsLoaded;
+  const loadError = mvLoadError || modelArtifactsLoadError;
 
   useEffect(() => {
     if (rm?.state === ModelState.ARCHIVED && mv?.id) {
@@ -103,15 +110,26 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       headerAction={
         mvLoaded &&
         mv && (
-          <ModelVersionsDetailsHeaderActions mv={mv} refresh={refresh} />
+          <ModelVersionsDetailsHeaderActions 
+            mv={mv} 
+            refresh={refresh} 
+            modelArtifacts={modelArtifacts}
+          />
         )
       }
       description={<Truncate content={mv?.description || ''} />}
-      loadError={mvLoadError}
-      loaded={mvLoaded}
+      loadError={loadError}
+      loaded={loaded}
       provideChildrenPadding
     >
-      {mv !== null && <ModelVersionDetailsTabs tab={tab} modelVersion={mv} refresh={refresh} />}
+      {mv !== null && (
+        <ModelVersionDetailsTabs
+          tab={tab}
+          modelVersion={mv}
+          refresh={refresh}
+          modelArtifacts={modelArtifacts}
+        />
+      )}
     </ApplicationsPage>
   );
 };
