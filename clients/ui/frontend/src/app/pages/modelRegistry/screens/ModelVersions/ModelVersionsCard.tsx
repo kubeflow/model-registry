@@ -13,7 +13,6 @@ import {
   Divider,
   Truncate,
 } from '@patternfly/react-core';
-import { ArrowRightIcon } from '@patternfly/react-icons';
 import { TruncatedText } from 'mod-arch-shared';
 import { ModelState, RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
@@ -21,11 +20,10 @@ import { filterLiveVersions } from '~/app/utils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import {
   archiveModelVersionDetailsUrl,
-  archiveModelVersionListUrl,
-  modelVersionListUrl,
   modelVersionUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
+import ViewAllVersionsButton from '~/app/shared/components/ViewAllVersionsButton';
 
 type ModelVersionsCardProps = {
   rm: RegisteredModel;
@@ -95,21 +93,12 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
               </ListItem>
             ))}
             <ListItem className="pf-v6-u-pt-md">
-              <Button
-                component="a"
-                isInline
-                data-testid="versions-route-link"
-                href={
-                  isArchiveModel
-                    ? archiveModelVersionListUrl(rm.id, preferredModelRegistry?.name)
-                    : modelVersionListUrl(rm.id, preferredModelRegistry?.name)
-                }
-                variant="link"
-                icon={<ArrowRightIcon />}
-                iconPosition="right"
-              >
-                {`View all ${filteredVersions.length} versions`}
-              </Button>
+              <ViewAllVersionsButton
+                rmId={rm.id}
+                totalVersions={filteredVersions.length}
+                isArchiveModel={isArchiveModel}
+                preferredModelRegistry={preferredModelRegistry}
+              />
             </ListItem>
           </List>
         ) : (
