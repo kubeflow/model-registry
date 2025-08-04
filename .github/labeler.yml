@@ -20,7 +20,7 @@
 - changed-files:
   - any-glob-to-any-file: "csi/**"
 
-"Area/Jobs/async-upload":
+"Area/Jobs/Async-upload":
 - changed-files:
   - any-glob-to-any-file: "jobs/async-upload/**"
 
