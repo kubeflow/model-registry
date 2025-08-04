@@ -20,6 +20,10 @@
 - changed-files:
   - any-glob-to-any-file: "csi/**"
 
+"Area/Jobs/Async-upload":
+- changed-files:
+  - any-glob-to-any-file: "jobs/async-upload/**"
+
 "Area/Manifests":
 - changed-files:
   - any-glob-to-any-file: "manifests/**"
