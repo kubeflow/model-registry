@@ -85,14 +85,14 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
               <DashboardDescriptionListGroup
                 isEmpty={!rm.lastUpdateTimeSinceEpoch}
                 contentWhenEmpty="Unknown"
-                title="Last modified at"
+                title="Last modified"
               >
                 <ModelTimestamp timeSinceEpoch={rm.lastUpdateTimeSinceEpoch} />
               </DashboardDescriptionListGroup>
               <DashboardDescriptionListGroup
                 isEmpty={!rm.createTimeSinceEpoch}
                 contentWhenEmpty="Unknown"
-                title="Created at"
+                title="Created"
               >
                 <ModelTimestamp timeSinceEpoch={rm.createTimeSinceEpoch} />
               </DashboardDescriptionListGroup>
