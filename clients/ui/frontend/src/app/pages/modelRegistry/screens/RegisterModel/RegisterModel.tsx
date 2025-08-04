@@ -11,7 +11,7 @@ import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
@@ -61,7 +61,7 @@ const RegisterModel: React.FC = () => {
       errors,
     } = await registerModel(apiState, formData, author);
     if (registeredModel && modelVersion && modelArtifact) {
-      navigate(registeredModelUrl(registeredModel.id, mrName));
+      navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
     } else if (Object.keys(errors).length > 0) {
       setIsSubmitting(false);
       setSubmittedRegisteredModelName(formData.modelName);
