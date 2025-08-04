@@ -112,6 +112,9 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       }
       headerAction={
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 393f9fb (fix type-check error)
         mvLoaded &&
         mv && (
           <ModelVersionsDetailsHeaderActions
@@ -120,9 +123,12 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
             modelArtifacts={modelArtifacts}
           />
         )
+<<<<<<< HEAD
 =======
         mvLoaded && mv && <ModelVersionsDetailsHeaderActions mv={mv} refresh={refresh} />
 >>>>>>> 982ab17 (type check error fix)
+=======
+>>>>>>> 393f9fb (fix type-check error)
       }
       description={<Truncate content={mv?.description || ''} />}
       loadError={loadError}
