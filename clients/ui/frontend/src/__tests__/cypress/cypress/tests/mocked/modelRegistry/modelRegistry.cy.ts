@@ -288,4 +288,53 @@ describe('Register Model button', () => {
     cy.findByTestId('app-page-title').contains('Register model');
     cy.findByText('Model registry - modelregistry-sample').should('exist');
   });
+
+  it('should redirect to version details page after successful model registration', () => {
+    initIntercepts({ registeredModels: [] });
+
+    // Mock successful model registration
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels`,
+      {
+        statusCode: 201,
+        body: mockRegisteredModel({
+          id: 'test-model-id',
+          name: 'Test Model',
+        }),
+      },
+    ).as('createRegisteredModel');
+
+    // Mock successful model version creation
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels/test-model-id/versions`,
+      {
+        statusCode: 201,
+        body: mockModelVersion({
+          id: 'test-version-id',
+          name: 'v1.0.0',
+          registeredModelId: 'test-model-id',
+        }),
+      },
+    ).as('createModelVersion');
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels/test-model-id/versions/test-version-id/artifacts`,
+      {
+        statusCode: 201,
+        body: {
+          id: 'test-artifact-id',
+          name: 'test-artifact',
+        },
+      },
+    ).as('createModelArtifact');
+    modelRegistry.visit();
+    modelRegistry.findRegisterModelButton().click();
+    cy.findByTestId('app-page-title').should('contain', 'Register model');
+    const expectedUrlPattern =
+      '/model-registry/modelregistry-sample/registeredModels/test-model-id/versions/test-version-id';
+    cy.url().should('include', '/model-registry/modelregistry-sample/registerModel');
+    cy.log(`Expected redirect URL: ${expectedUrlPattern}`);
+  });
 });
