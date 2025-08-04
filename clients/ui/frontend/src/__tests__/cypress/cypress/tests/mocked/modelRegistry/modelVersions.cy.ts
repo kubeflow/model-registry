@@ -260,10 +260,14 @@ describe('Model Versions', () => {
     cy.findByTestId('app-page-title').should('contain.text', 'test');
     cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
 <<<<<<< HEAD
+<<<<<<< HEAD
     cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
 =======
     cy.findByTestId('breadcrumb-model').should('contain.text', 'test');
 >>>>>>> 04cb7a3 (address comments)
+=======
+    cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
+>>>>>>> eff089f (address comments for version selector changes)
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions');
   });

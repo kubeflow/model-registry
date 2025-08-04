@@ -11,6 +11,9 @@ import {
   SearchInput,
   Divider,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> eff089f (address comments for version selector changes)
   Badge,
   Flex,
   FlexItem,
@@ -24,17 +27,19 @@ import {
   FlexItem,
 >>>>>>> 04cb7a3 (address comments)
 } from '@patternfly/react-core';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
+<<<<<<< HEAD
 <<<<<<< HEAD
 import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 =======
 import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+import ViewAllVersionsButton from '~/app/shared/components/ViewAllVersionsButton';
+>>>>>>> eff089f (address comments for version selector changes)
 
 type ModelVersionSelectorProps = {
   rmId?: string;
@@ -52,13 +57,14 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 
   const toggleRef = React.useRef(null);
   const menuRef = React.useRef(null);
-  const navigate = useNavigate();
-  const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
   const liveModelVersions = filterLiveVersions(modelVersions.items);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> eff089f (address comments for version selector changes)
   const latestVersion = liveModelVersions.reduce<ModelVersion | null>((latest, current) => {
     if (
       latest === null ||
@@ -68,6 +74,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
     }
     return latest;
   }, null);
+<<<<<<< HEAD
 =======
   const latestVersion = modelVersions.items.reduce((latest, current) =>
     Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch) ? current : latest,
@@ -80,6 +87,8 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 >>>>>>> 56365a8 (version details version selector)
   );
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+>>>>>>> eff089f (address comments for version selector changes)
 
   const menuListItems = liveModelVersions
     .filter((item) => input === '' || item.name.toLowerCase().includes(input.toLowerCase()))
@@ -104,7 +113,9 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 =======
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>{mv.name}</FlexItem>
-          <FlexItem>{mv.id === latestVersion.id && <Label color="blue">Latest</Label>}</FlexItem>
+          <FlexItem>
+            {latestVersion && mv.id === latestVersion.id && <Badge color="blue">Latest</Badge>}
+          </FlexItem>
         </Flex>
 >>>>>>> 04cb7a3 (address comments)
       </MenuItem>
@@ -145,6 +156,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       <Divider />
       <MenuContent>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <MenuList data-testid="model-version-selector-list">
           {menuListItems}
           <MenuItem>
@@ -181,6 +193,18 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
           </Button>
         </MenuItem>
 >>>>>>> 7ad51d9 (improving the version selector in version details)
+=======
+        <MenuList data-testid="model-version-selector-list">
+          {menuListItems}
+          <MenuItem>
+            <ViewAllVersionsButton
+              rmId={rmId}
+              totalVersions={modelVersions.items.length}
+              onClose={() => setOpen(false)}
+            />
+          </MenuItem>
+        </MenuList>
+>>>>>>> eff089f (address comments for version selector changes)
       </MenuContent>
     </Menu>
   );
