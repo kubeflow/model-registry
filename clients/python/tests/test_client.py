@@ -9,8 +9,6 @@ from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
 from model_registry.types.artifacts import DocArtifact
 
-from .extras.async_task_runner import AsyncTaskRunner
-
 
 def test_secure_client():
     os.environ["CERT"] = ""
@@ -23,8 +21,7 @@ def test_secure_client():
 
 @pytest.mark.e2e
 async def test_register_new(client: ModelRegistry):
-    """As a MLOps engineer I would like to store Model name
-    """
+    """As a MLOps engineer I would like to store Model name"""
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
@@ -35,7 +32,7 @@ async def test_register_new(client: ModelRegistry):
         version=version,
     )
     assert rm.id
-    assert rm.name == name # check the Model name
+    assert rm.name == name  # check the Model name
 
     mr_api = client._api
     mv = await mr_api.get_model_version_by_params(rm.id, version)
@@ -842,43 +839,68 @@ def test_nested_recursive_store_in_s3(
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.usefixtures("uv_event_loop")
 @pytest.mark.e2e
-async def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry
+def test_custom_async_runner_with_ray(
+    client_attrs: dict[str, any], client: ModelRegistry, monkeypatch
 ):
+    """Test Ray integration with uvloop event loop policy"""
     import asyncio
 
     ray = pytest.importorskip("ray")
     import uvloop
 
-    # Check to make sure the uvloop event loop is running
-    loop = asyncio.get_event_loop()
-    assert isinstance(loop, uvloop.Loop)
+    def run_test_with_uvloop():
+        # Set up uvloop policy in this thread
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        loop = uvloop.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-    @ray.remote
-    def test_with_ray():
-        atr = AsyncTaskRunner()
-        # we have to construct a client from scratch due to serialization issues from Ray
-        client = ModelRegistry(
-            server_address=client_attrs["host"],
-            port=client_attrs["port"],
-            author=client_attrs["author"],
-            is_secure=client_attrs["ssl"],
-            async_runner=atr.run,
-        )
-        client.register_model(
-            name="test_model",
-            uri="https://acme.org/something",
-            version="v1",
-            model_format_version="random",
-            model_format_name="onnx",
-        )
-        ma = client.get_model_artifact(name="test_model", version="v1")
-        assert ma.uri == "https://acme.org/something"
-        assert ma.model_format_name == "onnx"
+        try:
+            # Start the loop and verify we're actually using uvloop
+            async def verify_uvloop():
+                current_loop = asyncio.get_running_loop()
+                assert isinstance(current_loop, uvloop.Loop), (
+                    f"Expected uvloop.Loop, got {type(current_loop)}"
+                )
 
-    ray.get(test_with_ray.remote())
+            loop.run_until_complete(verify_uvloop())
+
+            # Mock nest_asyncio.apply to prevent conflicts with uvloop
+            monkeypatch.setattr("nest_asyncio.apply", lambda *args, **kwargs: "patched")
+            # Import here to avoid the nest_asyncio.apply() call during module loading
+            from tests.extras.async_task_runner import AsyncTaskRunner
+
+            @ray.remote
+            def test_with_ray():
+                atr = AsyncTaskRunner()
+                # we have to construct a client from scratch due to serialization issues from Ray
+                client = ModelRegistry(
+                    server_address=client_attrs["host"],
+                    port=client_attrs["port"],
+                    author=client_attrs["author"],
+                    is_secure=client_attrs["ssl"],
+                    async_runner=atr.run,
+                )
+                client.register_model(
+                    name="test_model",
+                    uri="https://acme.org/something",
+                    version="v1",
+                    model_format_version="random",
+                    model_format_name="onnx",
+                )
+                ma = client.get_model_artifact(name="test_model", version="v1")
+                assert ma.uri == "https://acme.org/something"
+                assert ma.model_format_name == "onnx"
+
+            # Run the Ray test - ray.get is synchronous
+            ray.get(test_with_ray.remote())
+
+        finally:
+            if not loop.is_closed():
+                loop.close()
+
+    # Run the test - ray.get is synchronous and doesn't need the event loop
+    run_test_with_uvloop()
 
 
 @pytest.mark.e2e
@@ -1097,9 +1119,10 @@ def test_upload_large_model_file(
 
 
 @pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_model(client: ModelRegistry):
-    """As a MLOps engineer I would like to update a description of the model
-    """
+async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_model(
+    client: ModelRegistry,
+):
+    """As a MLOps engineer I would like to update a description of the model"""
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
@@ -1114,13 +1137,15 @@ async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_mod
     assert rm.id
 
     rm.description = "New description"
-    rm =client.update(rm)
+    rm = client.update(rm)
     assert rm.description == "New description"
     assert rm.owner == "me"
 
 
 @pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_model(client: ModelRegistry):
+async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_model(
+    client: ModelRegistry,
+):
     """As a MLOps engineer I would like to store a description of the model
     Note: on Creation, the Description belongs to the Model Version; we could improve the logic to maintain it for the Registered Model if it's not already existing
     """
@@ -1153,9 +1178,10 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_mode
 
 
 @pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model(client: ModelRegistry):
-    """As a MLOps engineer I would like to store a longer documentation for the model
-    """
+async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model(
+    client: ModelRegistry,
+):
+    """As a MLOps engineer I would like to store a longer documentation for the model"""
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
@@ -1173,6 +1199,8 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
     assert mv
     assert mv.id
 
-    da = await mr_api.upsert_model_version_artifact(DocArtifact(uri="https://README.md"), mv.id)
+    da = await mr_api.upsert_model_version_artifact(
+        DocArtifact(uri="https://README.md"), mv.id
+    )
     assert da
     assert da.uri == "https://README.md"

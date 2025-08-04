@@ -2,15 +2,11 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Breadcrumb, BreadcrumbItem, Flex, FlexItem, Truncate } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import {
-  InferenceServiceKind,
-  ServingRuntimeKind,
-  FetchStateObject,
-  ApplicationsPage,
-} from 'mod-arch-shared';
+import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
+import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { ModelState } from '~/app/types';
 import {
   archiveModelVersionDetailsUrl,
@@ -38,23 +34,16 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
   const [rm] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
-
-  const inferenceServices: FetchStateObject<InferenceServiceKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
-  const servingRuntimes: FetchStateObject<ServingRuntimeKind[]> = {
-    data: [],
-    loaded: false,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    refresh: () => {},
-  };
+  const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
+    useModelArtifactsByVersionId(mvId);
 
   const refresh = React.useCallback(() => {
     refreshModelVersion();
-  }, [refreshModelVersion]);
+    refreshModelArtifacts();
+  }, [refreshModelVersion, refreshModelArtifacts]);
+
+  const loaded = mvLoaded && modelArtifactsLoaded;
+  const loadError = mvLoadError || modelArtifactsLoadError;
 
   useEffect(() => {
     if (rm?.state === ModelState.ARCHIVED && mv?.id) {
@@ -92,7 +81,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
       }
       title={mv?.name}
       headerAction={
-        mvLoaded &&
+        loaded &&
         mv && (
           <Flex
             spaceItems={{ default: 'spaceItemsMd' }}
@@ -110,25 +99,24 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
             <FlexItem>
               <ModelVersionsDetailsHeaderActions
                 mv={mv}
-                hasDeployment={inferenceServices.data.length > 0}
                 refresh={refresh}
+                modelArtifacts={modelArtifacts}
               />
             </FlexItem>
           </Flex>
         )
       }
       description={<Truncate content={mv?.description || ''} />}
-      loadError={mvLoadError}
-      loaded={mvLoaded}
+      loadError={loadError}
+      loaded={loaded}
       provideChildrenPadding
     >
       {mv !== null && (
         <ModelVersionDetailsTabs
           tab={tab}
           modelVersion={mv}
-          inferenceServices={inferenceServices}
-          servingRuntimes={servingRuntimes}
           refresh={refresh}
+          modelArtifacts={modelArtifacts}
         />
       )}
     </ApplicationsPage>

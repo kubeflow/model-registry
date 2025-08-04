@@ -36,6 +36,20 @@ const ModelVersionsTabs: React.FC<ModelVersionsTabProps> = ({
       onSelect={(_event, eventKey) => navigate(`../${eventKey}`, { relative: 'path' })}
     >
       <Tab
+        eventKey={ModelVersionsTab.OVERVIEW}
+        title={<TabTitleText>{ModelVersionsTabTitle.OVERVIEW}</TabTitleText>}
+        aria-label="Model Overview tab"
+        data-testid="model-overview-tab"
+      >
+        <PageSection hasBodyWrapper={false} isFilled data-testid="model-details-tab-content">
+          <ModelDetailsView
+            registeredModel={rm}
+            refresh={refresh}
+            isArchiveModel={isArchiveModel}
+          />
+        </PageSection>
+      </Tab>
+      <Tab
         eventKey={ModelVersionsTab.VERSIONS}
         title={<TabTitleText>{ModelVersionsTabTitle.VERSIONS}</TabTitleText>}
         aria-label="Model versions tab"
@@ -47,20 +61,6 @@ const ModelVersionsTabs: React.FC<ModelVersionsTabProps> = ({
             modelVersions={modelVersions}
             registeredModel={rm}
             refresh={mvRefresh}
-          />
-        </PageSection>
-      </Tab>
-      <Tab
-        eventKey={ModelVersionsTab.DETAILS}
-        title={<TabTitleText>{ModelVersionsTabTitle.DETAILS}</TabTitleText>}
-        aria-label="Model Details tab"
-        data-testid="model-details-tab"
-      >
-        <PageSection hasBodyWrapper={false} isFilled data-testid="model-details-tab-content">
-          <ModelDetailsView
-            registeredModel={rm}
-            refresh={refresh}
-            isArchiveModel={isArchiveModel}
           />
         </PageSection>
       </Tab>

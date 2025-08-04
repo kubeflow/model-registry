@@ -2,11 +2,13 @@ catalogs:
 - name: Sample Catalog
   id: sample_catalog
   type: yaml
+  enabled: true
   properties:
     yamlCatalogPath: sample-catalog.yaml
 - name: Red Hat Ecosystem Catalog
   id: rhec
   type: rhec
+  enabled: true
   properties:
     models:
     - repository: rhelai1/modelcar-granite-7b-starter

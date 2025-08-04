@@ -111,7 +111,7 @@ class ModelRegistry {
     return cy.findByTestId('model-registry-help-content');
   }
 
-  shouldmodelVersionsEmpty() {
+  shouldModelVersionsEmpty() {
     cy.findByTestId('empty-model-versions').should('exist');
   }
 

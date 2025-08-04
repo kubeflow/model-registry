@@ -34,10 +34,12 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
   const { apiState } = React.useContext(ModelRegistryContext);
 
+  // TODO: Fetch model artifacts for when deploy functionality is enabled
+  // const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError] =
+  //   useModelArtifactsByVersionId(mv.id);
+
   const [isArchiveModalOpen, setIsArchiveModalOpen] = React.useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = React.useState(false);
-  // TODO: [Model Serving] Uncomment when model serving is available
-  // const [isDeployModalOpen, setIsDeployModalOpen] = React.useState(false);
 
   if (!preferredModelRegistry) {
     return null;
@@ -51,11 +53,6 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
         },
       ]
     : [
-        // TODO: [Model Serving] Uncomment when model serving is available
-        // {
-        //   title: 'Deploy',
-        //   onClick: () => setIsDeployModalOpen(true),
-        // },
         { isSeparator: true },
         {
           title: 'Archive model version',
@@ -127,6 +124,7 @@ const ModelVersionsTableRow: React.FC<ModelVersionsTableRowProps> = ({
             />
           ) : null}
           {/* TODO: [Model Serving] Uncomment when model serving is available */}
+          {/* NOTE: When uncommenting, pass modelArtifacts prop to avoid duplicate fetching */}
           {/* {isDeployModalOpen ? (
             <DeployRegisteredModelModal
               onSubmit={() => {

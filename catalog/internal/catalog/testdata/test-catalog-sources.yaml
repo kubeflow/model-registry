@@ -2,6 +2,7 @@ catalogs:
   - name: "Catalog 1"
     id: catalog1
     type: yaml
+    enabled: true
     properties:
       privateProp11: 54321
       privateProp12: privateStringValue
@@ -9,7 +10,15 @@ catalogs:
   - name: "Catalog 2"
     id: catalog2
     type: yaml
+    enabled: false
     properties:
       privateProp21: 12345
       privateProp22: privateStringValue2
       yamlCatalogPath: test-yaml-catalog.yaml
+  - name: "Catalog 3"
+    id: catalog3
+    type: rhec
+    enabled: true
+    properties:
+      models:
+      - repository: rhelai1/modelcar-granite-7b-starter
