@@ -52,6 +52,9 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
   const loaded = mvLoaded && modelArtifactsLoaded;
   const loadError = mvLoadError || modelArtifactsLoadError;
 
+  const loaded = mvLoaded;
+  const loadError = mvLoadError;
+
   useEffect(() => {
     if (rm?.state === ModelState.ARCHIVED && mv?.id) {
       navigate(
