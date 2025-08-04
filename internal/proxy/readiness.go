@@ -42,6 +42,10 @@ const (
 	detailServingEnvironmentsCount      = "serving_environments_count"
 	detailInferenceServicesAccessible   = "inference_services_accessible"
 	detailInferenceServicesCount        = "inference_services_count"
+	detailExperimentsAccessible         = "experiments_accessible"
+	detailExperimentsCount              = "experiments_count"
+	detailExperimentRunsAccessible      = "experiment_runs_accessible"
+	detailExperimentRunsCount           = "experiment_runs_count"
 	detailTotalResourcesChecked         = "total_resources_checked"
 	detailCheckDurationMs               = "check_duration_ms"
 	detailTimestamp                     = "timestamp"
@@ -182,7 +186,7 @@ func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 	check.Details[detailRegisteredModelsCount] = models.Size
 
 	// Test artifacts listing (all artifacts, not tied to specific model version)
-	artifacts, err := m.service.GetArtifacts(listOptions, nil)
+	artifacts, err := m.service.GetArtifacts("", listOptions, nil)
 	if err != nil {
 		check.Status = StatusFail
 		check.Message = fmt.Sprintf("failed to list artifacts: %v", err)
@@ -224,6 +228,28 @@ func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 
 	check.Details[detailInferenceServicesAccessible] = true
 	check.Details[detailInferenceServicesCount] = inferenceServices.Size
+
+	// Test experiments listing
+	experiments, err := m.service.GetExperiments(listOptions)
+	if err != nil {
+		check.Status = StatusFail
+		check.Message = fmt.Sprintf("failed to list experiments: %v", err)
+		return check
+	}
+
+	check.Details[detailExperimentsAccessible] = true
+	check.Details[detailExperimentsCount] = experiments.Size
+
+	// Test experiment runs listing
+	experimentRuns, err := m.service.GetExperimentRuns(listOptions, nil)
+	if err != nil {
+		check.Status = StatusFail
+		check.Message = fmt.Sprintf("failed to list experiment runs: %v", err)
+		return check
+	}
+
+	check.Details[detailExperimentRunsAccessible] = true
+	check.Details[detailExperimentRunsCount] = experimentRuns.Size
 
 	check.Status = StatusPass
 	check.Message = "model registry service is healthy"

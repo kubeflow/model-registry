@@ -23,6 +23,8 @@ import (
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	testcontainers "github.com/testcontainers/testcontainers-go"
+	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"gorm.io/gorm"
 )
 
@@ -131,7 +133,7 @@ func setupModelRegistryService() api.ModelRegistryApi {
 	typesMap := getTypeIDs()
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName])
+	artifactRepo := service.NewArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
 	modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepo := service.NewDocArtifactRepository(sharedDB, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, typesMap[defaults.RegisteredModelTypeName])
@@ -139,6 +141,12 @@ func setupModelRegistryService() api.ModelRegistryApi {
 	servingEnvironmentRepo := service.NewServingEnvironmentRepository(sharedDB, typesMap[defaults.ServingEnvironmentTypeName])
 	inferenceServiceRepo := service.NewInferenceServiceRepository(sharedDB, typesMap[defaults.InferenceServiceTypeName])
 	serveModelRepo := service.NewServeModelRepository(sharedDB, typesMap[defaults.ServeModelTypeName])
+	experimentRepo := service.NewExperimentRepository(sharedDB, typesMap[defaults.ExperimentTypeName])
+	experimentRunRepo := service.NewExperimentRunRepository(sharedDB, typesMap[defaults.ExperimentRunTypeName])
+	dataSetRepo := service.NewDataSetRepository(sharedDB, typesMap[defaults.DataSetTypeName])
+	metricRepo := service.NewMetricRepository(sharedDB, typesMap[defaults.MetricTypeName])
+	parameterRepo := service.NewParameterRepository(sharedDB, typesMap[defaults.ParameterTypeName])
+	metricHistoryRepo := service.NewMetricHistoryRepository(sharedDB, typesMap[defaults.MetricHistoryTypeName])
 
 	// Create the core service
 	service := core.NewModelRegistryService(
@@ -150,6 +158,12 @@ func setupModelRegistryService() api.ModelRegistryApi {
 		servingEnvironmentRepo,
 		inferenceServiceRepo,
 		serveModelRepo,
+		experimentRepo,
+		experimentRunRepo,
+		dataSetRepo,
+		metricRepo,
+		parameterRepo,
+		metricHistoryRepo,
 		typesMap,
 	)
 
