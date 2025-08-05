@@ -881,6 +881,388 @@ func TestGetArtifactByParams(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "no artifacts found")
 	})
+
+	t.Run("same artifact name across different model versions - all artifact types", func(t *testing.T) {
+		// This test verifies that parentResourceId filtering works correctly for all artifact types
+
+		// Create a registered model
+		registeredModel := &openapi.RegisteredModel{
+			Name: "model-for-all-artifact-types",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Create two model versions
+		version1 := &openapi.ModelVersion{
+			Name: "version-with-all-artifacts-1",
+		}
+		createdVersion1, err := _service.UpsertModelVersion(version1, createdModel.Id)
+		require.NoError(t, err)
+
+		version2 := &openapi.ModelVersion{
+			Name: "version-with-all-artifacts-2",
+		}
+		createdVersion2, err := _service.UpsertModelVersion(version2, createdModel.Id)
+		require.NoError(t, err)
+
+		// Test cases for each artifact type
+		artifactTypes := []struct {
+			name            string
+			artifactName    string
+			createArtifact1 *openapi.Artifact
+			createArtifact2 *openapi.Artifact
+			checkField      func(*openapi.Artifact) interface{}
+			getDescription  func(*openapi.Artifact) string
+		}{
+			{
+				name:         "ModelArtifact",
+				artifactName: "shared-model-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					ModelArtifact: &openapi.ModelArtifact{
+						Name:        apiutils.Of("shared-model-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/model-v1.pkl"),
+						Description: apiutils.Of("Model artifact for version 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					ModelArtifact: &openapi.ModelArtifact{
+						Name:        apiutils.Of("shared-model-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/model-v2.pkl"),
+						Description: apiutils.Of("Model artifact for version 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
+						return *a.ModelArtifact.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "DocArtifact",
+				artifactName: "shared-doc-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					DocArtifact: &openapi.DocArtifact{
+						Name:        apiutils.Of("shared-doc-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/doc-v1.pdf"),
+						Description: apiutils.Of("Doc artifact for version 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					DocArtifact: &openapi.DocArtifact{
+						Name:        apiutils.Of("shared-doc-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/doc-v2.pdf"),
+						Description: apiutils.Of("Doc artifact for version 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
+						return *a.DocArtifact.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "DataSet",
+				artifactName: "shared-dataset-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					DataSet: &openapi.DataSet{
+						Name:        apiutils.Of("shared-dataset-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/dataset-v1.csv"),
+						Description: apiutils.Of("Dataset for version 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					DataSet: &openapi.DataSet{
+						Name:        apiutils.Of("shared-dataset-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/dataset-v2.csv"),
+						Description: apiutils.Of("Dataset for version 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.DataSet != nil && a.DataSet.Description != nil {
+						return *a.DataSet.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "Metric",
+				artifactName: "shared-metric-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					Metric: &openapi.Metric{
+						Name:        apiutils.Of("shared-metric-artifact-name"),
+						Value:       apiutils.Of(0.95),
+						Description: apiutils.Of("Metric for version 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					Metric: &openapi.Metric{
+						Name:        apiutils.Of("shared-metric-artifact-name"),
+						Value:       apiutils.Of(0.97),
+						Description: apiutils.Of("Metric for version 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.Metric != nil && a.Metric.Description != nil {
+						return *a.Metric.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "Parameter",
+				artifactName: "shared-parameter-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					Parameter: &openapi.Parameter{
+						Name:        apiutils.Of("shared-parameter-artifact-name"),
+						Value:       apiutils.Of("0.001"),
+						Description: apiutils.Of("Parameter for version 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					Parameter: &openapi.Parameter{
+						Name:        apiutils.Of("shared-parameter-artifact-name"),
+						Value:       apiutils.Of("0.002"),
+						Description: apiutils.Of("Parameter for version 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.Parameter != nil && a.Parameter.Description != nil {
+						return *a.Parameter.Description
+					}
+					return ""
+				},
+			},
+		}
+
+		for _, tc := range artifactTypes {
+			t.Run(tc.name, func(t *testing.T) {
+				// Create artifact with same name for version 1
+				created1, err := _service.UpsertModelVersionArtifact(tc.createArtifact1, *createdVersion1.Id)
+				require.NoError(t, err)
+				require.NotNil(t, tc.checkField(created1))
+
+				// Create artifact with same name for version 2
+				created2, err := _service.UpsertModelVersionArtifact(tc.createArtifact2, *createdVersion2.Id)
+				require.NoError(t, err)
+				require.NotNil(t, tc.checkField(created2))
+
+				// Query for artifact by name and version 1
+				result1, err := _service.GetArtifactByParams(&tc.artifactName, createdVersion1.Id, nil)
+				require.NoError(t, err)
+				require.NotNil(t, result1)
+				require.NotNil(t, tc.checkField(result1))
+				assert.Contains(t, tc.getDescription(result1), "version 1")
+
+				// Query for artifact by name and version 2
+				result2, err := _service.GetArtifactByParams(&tc.artifactName, createdVersion2.Id, nil)
+				require.NoError(t, err)
+				require.NotNil(t, result2)
+				require.NotNil(t, tc.checkField(result2))
+				assert.Contains(t, tc.getDescription(result2), "version 2")
+
+				// Ensure we got different artifacts
+				assert.NotEqual(t, tc.getDescription(result1), tc.getDescription(result2))
+			})
+		}
+	})
+
+	t.Run("same artifact name across different experiment runs - all artifact types", func(t *testing.T) {
+		// This test verifies that parentResourceId filtering works correctly for all artifact types in experiment runs
+
+		// Create an experiment
+		experiment := &openapi.Experiment{
+			Name: "experiment-for-all-artifact-types",
+		}
+		createdExperiment, err := _service.UpsertExperiment(experiment)
+		require.NoError(t, err)
+
+		// Create two experiment runs
+		run1 := &openapi.ExperimentRun{
+			Name: apiutils.Of("run-with-all-artifacts-1"),
+		}
+		createdRun1, err := _service.UpsertExperimentRun(run1, createdExperiment.Id)
+		require.NoError(t, err)
+
+		run2 := &openapi.ExperimentRun{
+			Name: apiutils.Of("run-with-all-artifacts-2"),
+		}
+		createdRun2, err := _service.UpsertExperimentRun(run2, createdExperiment.Id)
+		require.NoError(t, err)
+
+		// Test cases for each artifact type
+		artifactTypes := []struct {
+			name            string
+			artifactName    string
+			createArtifact1 *openapi.Artifact
+			createArtifact2 *openapi.Artifact
+			checkField      func(*openapi.Artifact) interface{}
+			getDescription  func(*openapi.Artifact) string
+		}{
+			{
+				name:         "ModelArtifact",
+				artifactName: "shared-run-model-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					ModelArtifact: &openapi.ModelArtifact{
+						Name:        apiutils.Of("shared-run-model-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run1-model.pkl"),
+						Description: apiutils.Of("Model artifact for run 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					ModelArtifact: &openapi.ModelArtifact{
+						Name:        apiutils.Of("shared-run-model-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run2-model.pkl"),
+						Description: apiutils.Of("Model artifact for run 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
+						return *a.ModelArtifact.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "DocArtifact",
+				artifactName: "shared-run-doc-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					DocArtifact: &openapi.DocArtifact{
+						Name:        apiutils.Of("shared-run-doc-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run1-doc.pdf"),
+						Description: apiutils.Of("Doc artifact for run 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					DocArtifact: &openapi.DocArtifact{
+						Name:        apiutils.Of("shared-run-doc-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run2-doc.pdf"),
+						Description: apiutils.Of("Doc artifact for run 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
+						return *a.DocArtifact.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "DataSet",
+				artifactName: "shared-run-dataset-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					DataSet: &openapi.DataSet{
+						Name:        apiutils.Of("shared-run-dataset-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run1-dataset.csv"),
+						Description: apiutils.Of("Dataset for run 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					DataSet: &openapi.DataSet{
+						Name:        apiutils.Of("shared-run-dataset-artifact-name"),
+						Uri:         apiutils.Of("s3://bucket/run2-dataset.csv"),
+						Description: apiutils.Of("Dataset for run 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.DataSet != nil && a.DataSet.Description != nil {
+						return *a.DataSet.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "Metric",
+				artifactName: "shared-run-metric-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					Metric: &openapi.Metric{
+						Name:        apiutils.Of("shared-run-metric-artifact-name"),
+						Value:       apiutils.Of(0.91),
+						Description: apiutils.Of("Metric for run 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					Metric: &openapi.Metric{
+						Name:        apiutils.Of("shared-run-metric-artifact-name"),
+						Value:       apiutils.Of(0.93),
+						Description: apiutils.Of("Metric for run 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.Metric != nil && a.Metric.Description != nil {
+						return *a.Metric.Description
+					}
+					return ""
+				},
+			},
+			{
+				name:         "Parameter",
+				artifactName: "shared-run-parameter-artifact-name",
+				createArtifact1: &openapi.Artifact{
+					Parameter: &openapi.Parameter{
+						Name:        apiutils.Of("shared-run-parameter-artifact-name"),
+						Value:       apiutils.Of("0.01"),
+						Description: apiutils.Of("Parameter for run 1"),
+					},
+				},
+				createArtifact2: &openapi.Artifact{
+					Parameter: &openapi.Parameter{
+						Name:        apiutils.Of("shared-run-parameter-artifact-name"),
+						Value:       apiutils.Of("0.02"),
+						Description: apiutils.Of("Parameter for run 2"),
+					},
+				},
+				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				getDescription: func(a *openapi.Artifact) string {
+					if a.Parameter != nil && a.Parameter.Description != nil {
+						return *a.Parameter.Description
+					}
+					return ""
+				},
+			},
+		}
+
+		for _, tc := range artifactTypes {
+			t.Run(tc.name, func(t *testing.T) {
+				// Create artifact with same name for run 1
+				created1, err := _service.UpsertExperimentRunArtifact(tc.createArtifact1, *createdRun1.Id)
+				require.NoError(t, err)
+				require.NotNil(t, tc.checkField(created1))
+
+				// Create artifact with same name for run 2
+				created2, err := _service.UpsertExperimentRunArtifact(tc.createArtifact2, *createdRun2.Id)
+				require.NoError(t, err)
+				require.NotNil(t, tc.checkField(created2))
+
+				// Query for artifact by name and run 1
+				result1, err := _service.GetArtifactByParams(&tc.artifactName, createdRun1.Id, nil)
+				require.NoError(t, err)
+				require.NotNil(t, result1)
+				require.NotNil(t, tc.checkField(result1))
+				assert.Contains(t, tc.getDescription(result1), "run 1")
+
+				// Query for artifact by name and run 2
+				result2, err := _service.GetArtifactByParams(&tc.artifactName, createdRun2.Id, nil)
+				require.NoError(t, err)
+				require.NotNil(t, result2)
+				require.NotNil(t, tc.checkField(result2))
+				assert.Contains(t, tc.getDescription(result2), "run 2")
+
+				// Ensure we got different artifacts
+				assert.NotEqual(t, tc.getDescription(result1), tc.getDescription(result2))
+			})
+		}
+	})
 }
 
 func TestGetArtifacts(t *testing.T) {
@@ -1338,6 +1720,79 @@ func TestGetModelArtifactByParams(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "is not a model artifact")
+	})
+
+	t.Run("same model artifact name across different model versions", func(t *testing.T) {
+		// This test catches the bug where ParentResourceID was not being used to filter artifacts
+
+		// Create a registered model
+		registeredModel := &openapi.RegisteredModel{
+			Name: "model-with-shared-artifacts",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Create first model version
+		version1 := &openapi.ModelVersion{
+			Name:              "version-with-shared-artifact-1",
+			RegisteredModelId: *createdModel.Id,
+		}
+		createdVersion1, err := _service.UpsertModelVersion(version1, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create second model version
+		version2 := &openapi.ModelVersion{
+			Name:              "version-with-shared-artifact-2",
+			RegisteredModelId: *createdModel.Id,
+		}
+		createdVersion2, err := _service.UpsertModelVersion(version2, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create model artifact "shared-artifact-name-test" for the first version
+		artifact1 := &openapi.ModelArtifact{
+			Name:            apiutils.Of("shared-artifact-name-test"),
+			Uri:             apiutils.Of("s3://bucket/artifact-v1.pkl"),
+			Description:     apiutils.Of("Artifact for version 1"),
+			ModelFormatName: apiutils.Of("pickle"),
+		}
+		artifactWrapper1 := &openapi.Artifact{
+			ModelArtifact: artifact1,
+		}
+		createdArtifact1, err := _service.UpsertModelVersionArtifact(artifactWrapper1, *createdVersion1.Id)
+		require.NoError(t, err)
+
+		// Create model artifact "shared-artifact-name-test" for the second version
+		artifact2 := &openapi.ModelArtifact{
+			Name:            apiutils.Of("shared-artifact-name-test"),
+			Uri:             apiutils.Of("s3://bucket/artifact-v2.pkl"),
+			Description:     apiutils.Of("Artifact for version 2"),
+			ModelFormatName: apiutils.Of("pickle"),
+		}
+		artifactWrapper2 := &openapi.Artifact{
+			ModelArtifact: artifact2,
+		}
+		createdArtifact2, err := _service.UpsertModelVersionArtifact(artifactWrapper2, *createdVersion2.Id)
+		require.NoError(t, err)
+
+		// Query for artifact "shared-artifact-name-test" of the first version
+		artifactName := "shared-artifact-name-test"
+		result1, err := _service.GetModelArtifactByParams(&artifactName, createdVersion1.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result1)
+		assert.Equal(t, *createdArtifact1.ModelArtifact.Id, *result1.Id)
+		assert.Equal(t, "Artifact for version 1", *result1.Description)
+		assert.Equal(t, "s3://bucket/artifact-v1.pkl", *result1.Uri)
+
+		// Query for artifact "shared-artifact-name-test" of the second version
+		result2, err := _service.GetModelArtifactByParams(&artifactName, createdVersion2.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result2)
+		assert.Equal(t, *createdArtifact2.ModelArtifact.Id, *result2.Id)
+		assert.Equal(t, "Artifact for version 2", *result2.Description)
+		assert.Equal(t, "s3://bucket/artifact-v2.pkl", *result2.Uri)
+
+		// Ensure we got different artifacts
+		assert.NotEqual(t, *result1.Id, *result2.Id)
 	})
 }
 

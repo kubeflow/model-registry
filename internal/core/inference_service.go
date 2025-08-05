@@ -86,9 +86,20 @@ func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentR
 		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
+	var parentResourceID *int32
+	if parentResourceId != nil {
+		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parentResourceId: %v: %w", err, api.ErrBadRequest)
+		}
+		id := int32(convertedId)
+		parentResourceID = &id
+	}
+
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
-		Name:       name,
-		ExternalID: externalId,
+		Name:             name,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err

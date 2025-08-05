@@ -276,6 +276,60 @@ func TestGetExperimentRunByParams(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
 	})
+
+	t.Run("same experiment run name across different experiments", func(t *testing.T) {
+		// This test catches the bug where ExperimentID was not being used to filter experiment runs
+
+		// Create third experiment
+		experiment3 := &openapi.Experiment{
+			Name: "experiment-with-shared-run-1",
+		}
+		createdExperiment1, err := service.UpsertExperiment(experiment3)
+		require.NoError(t, err)
+
+		// Create fourth experiment
+		experiment4 := &openapi.Experiment{
+			Name: "experiment-with-shared-run-2",
+		}
+		createdExperiment2, err := service.UpsertExperiment(experiment4)
+		require.NoError(t, err)
+
+		// Create experiment run "shared-run-name-test" for the first experiment
+		run1 := &openapi.ExperimentRun{
+			Name:        apiutils.Of("shared-run-name-test"),
+			Description: apiutils.Of("Run for experiment 1"),
+		}
+		createdRun1, err := service.UpsertExperimentRun(run1, createdExperiment1.Id)
+		require.NoError(t, err)
+
+		// Create experiment run "shared-run-name-test" for the second experiment
+		run2 := &openapi.ExperimentRun{
+			Name:        apiutils.Of("shared-run-name-test"),
+			Description: apiutils.Of("Run for experiment 2"),
+		}
+		createdRun2, err := service.UpsertExperimentRun(run2, createdExperiment2.Id)
+		require.NoError(t, err)
+
+		// Query for run "shared-run-name-test" of the first experiment
+		runName := "shared-run-name-test"
+		result1, err := service.GetExperimentRunByParams(&runName, createdExperiment1.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result1)
+		assert.Equal(t, *createdRun1.Id, *result1.Id)
+		assert.Equal(t, *createdExperiment1.Id, result1.ExperimentId)
+		assert.Equal(t, "Run for experiment 1", *result1.Description)
+
+		// Query for run "shared-run-name-test" of the second experiment
+		result2, err := service.GetExperimentRunByParams(&runName, createdExperiment2.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result2)
+		assert.Equal(t, *createdRun2.Id, *result2.Id)
+		assert.Equal(t, *createdExperiment2.Id, result2.ExperimentId)
+		assert.Equal(t, "Run for experiment 2", *result2.Description)
+
+		// Ensure we got different runs
+		assert.NotEqual(t, *result1.Id, *result2.Id)
+	})
 }
 
 func TestGetExperimentRuns(t *testing.T) {

@@ -335,9 +335,20 @@ func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentR
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
+	var parentResourceID *int32
+	if parentResourceId != nil {
+		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parentResourceId: %v: %w", err, api.ErrBadRequest)
+		}
+		id := int32(convertedId)
+		parentResourceID = &id
+	}
+
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{
-		Name:       artifactName,
-		ExternalID: externalId,
+		Name:             artifactName,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err

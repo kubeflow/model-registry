@@ -672,6 +672,62 @@ func TestGetModelVersionByParams(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "no model versions found")
 	})
+
+	t.Run("same version name across different models", func(t *testing.T) {
+		// This test catches the bug where ParentResourceID was not being used to filter model versions
+
+		// Create first registered model
+		registeredModel1 := &openapi.RegisteredModel{
+			Name: "model-with-shared-version-1",
+		}
+		createdModel1, err := _service.UpsertRegisteredModel(registeredModel1)
+		require.NoError(t, err)
+
+		// Create second registered model
+		registeredModel2 := &openapi.RegisteredModel{
+			Name: "model-with-shared-version-2",
+		}
+		createdModel2, err := _service.UpsertRegisteredModel(registeredModel2)
+		require.NoError(t, err)
+
+		// Create version "shared-version-name-test" for the first model
+		version1 := &openapi.ModelVersion{
+			Name:              "shared-version-name-test",
+			RegisteredModelId: *createdModel1.Id,
+			Description:       apiutils.Of("Version for model 1"),
+		}
+		createdVersion1, err := _service.UpsertModelVersion(version1, createdModel1.Id)
+		require.NoError(t, err)
+
+		// Create version "shared-version-name-test" for the second model
+		version2 := &openapi.ModelVersion{
+			Name:              "shared-version-name-test",
+			RegisteredModelId: *createdModel2.Id,
+			Description:       apiutils.Of("Version for model 2"),
+		}
+		createdVersion2, err := _service.UpsertModelVersion(version2, createdModel2.Id)
+		require.NoError(t, err)
+
+		// Query for version "shared-version-name-test" of the first model
+		versionName := "shared-version-name-test"
+		result1, err := _service.GetModelVersionByParams(&versionName, createdModel1.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result1)
+		assert.Equal(t, *createdVersion1.Id, *result1.Id)
+		assert.Equal(t, *createdModel1.Id, result1.RegisteredModelId)
+		assert.Equal(t, "Version for model 1", *result1.Description)
+
+		// Query for version "shared-version-name-test" of the second model
+		result2, err := _service.GetModelVersionByParams(&versionName, createdModel2.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result2)
+		assert.Equal(t, *createdVersion2.Id, *result2.Id)
+		assert.Equal(t, *createdModel2.Id, result2.RegisteredModelId)
+		assert.Equal(t, "Version for model 2", *result2.Description)
+
+		// Ensure we got different versions
+		assert.NotEqual(t, *result1.Id, *result2.Id)
+	})
 }
 
 func TestGetModelVersions(t *testing.T) {

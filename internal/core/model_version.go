@@ -137,9 +137,20 @@ func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, regi
 		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId: %w", api.ErrBadRequest)
 	}
 
+	var parentResourceID *int32
+	if registeredModelId != nil {
+		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid registeredModelId: %v: %w", err, api.ErrBadRequest)
+		}
+		id := int32(convertedId)
+		parentResourceID = &id
+	}
+
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
-		Name:       versionName,
-		ExternalID: externalId,
+		Name:             versionName,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err
