@@ -157,6 +157,21 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid artifact type, must be either ModelArtifact, DocArtifact, DataSet, Metric, or Parameter")
 	})
 
+	t.Run("metric without value error", func(t *testing.T) {
+		artifact := &openapi.Artifact{
+			Metric: &openapi.Metric{
+				Name: apiutils.Of("test-metric-no-value"),
+				// Value is intentionally omitted
+			},
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "metric value is required")
+	})
+
 	t.Run("unicode characters in model artifact name", func(t *testing.T) {
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
 		unicodeName := "模型工件-тест-モデルアーティファクト-🚀"

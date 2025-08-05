@@ -152,6 +152,11 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 		return artToReturn, nil
 	} else if me := artifact.Metric; me != nil {
 		// Handle metric artifacts using embedmd converters
+		// Validate that metric has a value
+		if me.Value == nil {
+			return nil, fmt.Errorf("metric value is required: %w", api.ErrBadRequest)
+		}
+
 		if me.Id != nil {
 			existing, err := b.getArtifact(*me.Id)
 			if err != nil {
