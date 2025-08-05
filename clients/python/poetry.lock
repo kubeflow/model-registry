@@ -2614,14 +2614,14 @@ crt = ["botocore[crt] (>=1.37.4,<2.0a.0)"]
 
 [[package]]
 name = "schemathesis"
-version = "4.0.9"
+version = "4.0.21"
 description = "Property-based testing framework for Open API and GraphQL based apps"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "schemathesis-4.0.9-py3-none-any.whl", hash = "sha256:655b01aa276e4c4389e2983af0657bd2ac09a68c1fd900edc917376c65d12c40"},
-    {file = "schemathesis-4.0.9.tar.gz", hash = "sha256:47ab1a791413f4731a8953f44d6968a519d1137d37739f47d7b587af3b4ef1be"},
+    {file = "schemathesis-4.0.21-py3-none-any.whl", hash = "sha256:329ad303f0d119e3d8f187e48479027c9de27c6d04cb7112fc15867e5486c08d"},
+    {file = "schemathesis-4.0.21.tar.gz", hash = "sha256:2004f6b0bba6508ec48377d00d22aca2eeaa0d1fc9613b6f0c8dd1f52c69c1a8"},
 ]
 
 [package.dependencies]
