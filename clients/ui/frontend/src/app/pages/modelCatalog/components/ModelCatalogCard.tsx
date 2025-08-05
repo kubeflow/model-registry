@@ -20,6 +20,10 @@ import {
 import { TagIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { ModelCatalogItem } from '~/app/modelCatalogTypes';
+import {
+  extractVersionTag,
+  filterNonVersionTags,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
@@ -37,10 +41,8 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Extract version from tags (assuming version tag matches semantic versioning pattern)
-  const versionTag = model.tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
-  // Filter out version tag from tags passed to ModelCatalogLabels
-  const nonVersionTags = model.tags?.filter((tag) => tag !== versionTag);
+  const versionTag = extractVersionTag(model.tags);
+  const nonVersionTags = filterNonVersionTags(model.tags);
 
   return (
     <Card isFullHeight data-testid="model-catalog-card">
