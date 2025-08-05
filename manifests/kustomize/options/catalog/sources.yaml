@@ -1,12 +1,12 @@
 catalogs:
 - name: Sample Catalog
-  id: sample_catalog
+  id: sample_custom_catalog
   type: yaml
   enabled: true
   properties:
     yamlCatalogPath: sample-catalog.yaml
 - name: Red Hat Ecosystem Catalog
-  id: rhec
+  id: sample_rhec_catalog
   type: rhec
   enabled: true
   properties:

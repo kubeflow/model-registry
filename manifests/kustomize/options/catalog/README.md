@@ -8,9 +8,61 @@ kubectl apply -k . -n NAMESPACE
 
 Replace `NAMESPACE` with your desired Kubernetes namespace.
 
-## Configure Custom Models
-To configure customized models, update `sources.yaml` and `sample-catalog.yaml`.
+## sources.yaml Configuration
 
-## [Adding Red Hat Ecosystem Catalog models](https://github.com/kubeflow/model-registry/blob/679114f0e9cca631e4c16166affa0966c6a371ff/catalog/internal/catalog/genqlient/README.md?plain=1#L1)
-To add Red Hat Ecosystem Catalog models, update `sources.yaml` and add each path as a separate repository under `models`.
+The `sources.yaml` file configures the model catalog sources. It contains a top-level `catalogs` list, where each entry defines a single catalog source.
 
+### Common Properties
+
+Each catalog source entry supports the following common properties:
+
+- **`name`** (*string*, required): A user-friendly name for the catalog source.
+- **`id`** (*string*, required): A unique identifier for the catalog source.
+- **`type`** (*string*, required): The type of catalog source. Supported values are `yaml` and `rhec`.
+- **`enabled`** (*boolean*, optional): Whether the catalog source is enabled. Defaults to `true` if not specified.
+
+### Catalog Source Types
+
+Below are the supported catalog source types and their specific `properties`.
+
+#### `yaml`
+
+The `yaml` type sources model metadata from a local YAML file.
+
+##### Properties
+
+- **`yamlCatalogPath`** (*string*, required): The path to the YAML file containing the model definitions. This path is relative to the directory where the `sources.yaml` file is located.
+
+##### Example
+
+```yaml
+catalogs:
+  - name: Sample Catalog
+    id: sample_custom_catalog
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: sample-catalog.yaml
+```
+
+#### `rhec`
+
+The `rhec` type sources model metadata from the Red Hat Ecosystem Catalog.
+
+##### Properties
+
+- **`models`** (*list*, required): A list of models to include from the Red Hat Ecosystem Catalog. Each entry in the list must contain a `repository` field.
+  - **`repository`** (*string*, required): The name of the model repository in the Red Hat Ecosystem Catalog (e.g., `rhelai1/modelcar-granite-7b-starter`).
+
+##### Example
+
+```yaml
+catalogs:
+  - name: Red Hat Ecosystem Catalog
+    id: sample_rhec_catalog
+    type: rhec
+    enabled: true
+    properties:
+      models:
+      - repository: rhelai1/modelcar-granite-7b-starter
+```
