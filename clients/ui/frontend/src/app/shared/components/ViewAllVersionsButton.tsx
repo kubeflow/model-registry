@@ -11,14 +11,14 @@ type ViewAllVersionsButtonProps = {
   rmId?: string;
   totalVersions: number;
   isArchiveModel?: boolean;
-  className?: string;
+  showIcon?: boolean;
 };
 
 const ViewAllVersionsButton: React.FC<ViewAllVersionsButtonProps> = ({
   rmId,
   totalVersions,
   isArchiveModel,
-  className,
+  showIcon = false,
 }) => {
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
@@ -33,10 +33,8 @@ const ViewAllVersionsButton: React.FC<ViewAllVersionsButtonProps> = ({
           : modelVersionListUrl(rmId, preferredModelRegistry?.name)
       }
       variant="link"
-      icon={<ArrowRightIcon />}
-      iconPosition="right"
-      style={{ textTransform: 'none' }}
-      className={className}
+      icon={showIcon ? <ArrowRightIcon /> : undefined}
+      iconPosition={showIcon ? 'right' : undefined}
     >
       {`View all ${totalVersions} versions`}
     </Button>

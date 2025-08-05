@@ -416,5 +416,29 @@ describe('Model version details', () => {
           cy.contains('Testing label already exists').should('exist');
         });
     });
+
+    it('should navigate to versions list when clicking ViewAllVersionsButton', () => {
+      modelVersionDetails.visit();
+      modelVersionDetails.findModelVersionDropdownButton().click();
+
+      cy.findByTestId('versions-route-link')
+        .should('exist')
+        .and('contain.text', 'View all')
+        .and('contain.text', 'versions');
+
+      cy.findByTestId('versions-route-link')
+        .should('have.attr', 'href')
+        .and('include', '/model-registry/modelregistry-sample/registeredModels/1/versions');
+
+      // Click the link and verify navigation
+      cy.findByTestId('versions-route-link').click();
+
+      // Verify we navigated to the versions list page
+      cy.url().should(
+        'include',
+        '/model-registry/modelregistry-sample/registeredModels/1/versions',
+      );
+      cy.findByTestId('model-versions-tab-content').should('exist');
+    });
   });
 });
