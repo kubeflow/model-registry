@@ -14,6 +14,7 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { TruncatedText } from 'mod-arch-shared';
+import { ArrowRightIcon } from '@patternfly/react-icons';
 import { ModelState, RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
@@ -98,6 +99,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                 totalVersions={filteredVersions.length}
                 isArchiveModel={isArchiveModel}
                 preferredModelRegistry={preferredModelRegistry}
+                icon={<ArrowRightIcon />}
               />
             </ListItem>
           </List>
