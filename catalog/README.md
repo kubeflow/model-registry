@@ -13,7 +13,7 @@ The catalog service operates as a **metadata aggregation layer** that:
 ### Supported Catalog Sources
 
 - **YAML Catalog** - Static YAML files containing model metadata
-- **Red Hat Ecosystem Catalog (RHEC)** - GraphQL API integration for container and model discovery
+- **Red Hat Ecosystem Catalog (RHEC)** - GraphQL API integration for container and model discovery. Can be used as a reference implementation of how one could extend with their own graphql providers.
 
 ## REST API
 

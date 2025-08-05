@@ -29,7 +29,6 @@ Model registry provides a central repository for model developers to store and m
  - [Logical Model](./docs/logical_model.md)
 4. Python client
  - [installing and using the Model Registry Python client](https://model-registry.readthedocs.io/en/latest/)
- - [Python client development](clients/python/README.md)
 5. Tutorials
  - [end-to-end tutorial](https://www.kubeflow.org/docs/components/model-registry/getting-started/)
  - [demonstration video](https://www.youtube.com/watch?v=JVxUTkAKsMU)
