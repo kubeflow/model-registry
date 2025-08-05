@@ -23,7 +23,7 @@ import {
   modelVersionUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import ViewAllVersionsButton from '~/app/shared/components/ViewAllVersionsButton';
+import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 
 type ModelVersionsCardProps = {
   rm: RegisteredModel;
