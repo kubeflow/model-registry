@@ -1,40 +1,41 @@
 import * as React from 'react';
 import { Button } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
-import { useNavigate } from 'react-router-dom';
-import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import {
+  modelVersionListUrl,
+  archiveModelVersionListUrl,
+} from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
 type ViewAllVersionsButtonProps = {
   rmId?: string;
   totalVersions: number;
-  onClose?: () => void;
+  isArchiveModel?: boolean;
   className?: string;
 };
 
 const ViewAllVersionsButton: React.FC<ViewAllVersionsButtonProps> = ({
   rmId,
   totalVersions,
-  onClose,
+  isArchiveModel,
   className,
 }) => {
-  const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
-
-  const handleClick = () => {
-    onClose?.();
-    navigate(modelVersionListUrl(rmId, preferredModelRegistry?.name));
-  };
 
   return (
     <Button
-      variant="link"
+      component="a"
       isInline
-      style={{ textTransform: 'none' }}
+      data-testid="versions-route-link"
+      href={
+        isArchiveModel
+          ? archiveModelVersionListUrl(rmId, preferredModelRegistry?.name)
+          : modelVersionListUrl(rmId, preferredModelRegistry?.name)
+      }
+      variant="link"
       icon={<ArrowRightIcon />}
       iconPosition="right"
-      onClick={handleClick}
-      data-testid="view-all-versions-link"
+      style={{ textTransform: 'none' }}
       className={className}
     >
       {`View all ${totalVersions} versions`}
