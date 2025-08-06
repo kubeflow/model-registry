@@ -12,7 +12,6 @@ func TestBuildCombinedFilterQuery(t *testing.T) {
 		filterQuery string
 		nameParam   string
 		externalID  string
-		tablePrefix string
 		expected    string
 	}{
 		{
@@ -20,7 +19,6 @@ func TestBuildCombinedFilterQuery(t *testing.T) {
 			filterQuery: "",
 			nameParam:   "",
 			externalID:  "",
-			tablePrefix: "Artifact",
 			expected:    "",
 		},
 		{
@@ -28,7 +26,6 @@ func TestBuildCombinedFilterQuery(t *testing.T) {
 			filterQuery: "state = 'LIVE'",
 			nameParam:   "",
 			externalID:  "",
-			tablePrefix: "Artifact",
 			expected:    "(state = 'LIVE')",
 		},
 		{
@@ -36,86 +33,55 @@ func TestBuildCombinedFilterQuery(t *testing.T) {
 			filterQuery: "",
 			nameParam:   "my-artifact",
 			externalID:  "",
-			tablePrefix: "Artifact",
-			expected:    "Artifact.name = 'my-artifact'",
+			expected:    "name = 'my-artifact'",
 		},
 		{
 			name:        "only externalID parameter",
 			filterQuery: "",
 			nameParam:   "",
 			externalID:  "ext-123",
-			tablePrefix: "Artifact",
-			expected:    "Artifact.external_id = 'ext-123'",
+			expected:    "externalId = 'ext-123'",
 		},
 		{
-			name:        "name takes precedence over externalID (MLMD behavior)",
+			name:        "name takes precedence over externalID",
 			filterQuery: "",
 			nameParam:   "my-artifact",
 			externalID:  "ext-123",
-			tablePrefix: "Artifact",
-			expected:    "Artifact.name = 'my-artifact'",
+			expected:    "name = 'my-artifact'",
 		},
 		{
 			name:        "filter query with name",
 			filterQuery: "state = 'LIVE'",
 			nameParam:   "my-artifact",
 			externalID:  "",
-			tablePrefix: "Artifact",
-			expected:    "(state = 'LIVE') AND Artifact.name = 'my-artifact'",
+			expected:    "(state = 'LIVE') AND name = 'my-artifact'",
 		},
 		{
 			name:        "filter query with externalID",
 			filterQuery: "state = 'LIVE'",
 			nameParam:   "",
 			externalID:  "ext-123",
-			tablePrefix: "Artifact",
-			expected:    "(state = 'LIVE') AND Artifact.external_id = 'ext-123'",
+			expected:    "(state = 'LIVE') AND externalId = 'ext-123'",
 		},
 		{
-			name:        "filter query with both name and externalID (name wins)",
-			filterQuery: "state = 'LIVE'",
-			nameParam:   "my-artifact",
-			externalID:  "ext-123",
-			tablePrefix: "Artifact",
-			expected:    "(state = 'LIVE') AND Artifact.name = 'my-artifact'",
-		},
-		{
-			name:        "name with single quotes (escaped)",
+			name:        "single quotes escaped in name",
 			filterQuery: "",
 			nameParam:   "my-artifact's-name",
 			externalID:  "",
-			tablePrefix: "Artifact",
-			expected:    "Artifact.name = 'my-artifact''s-name'",
+			expected:    "name = 'my-artifact''s-name'",
 		},
 		{
-			name:        "externalID with single quotes (escaped)",
+			name:        "single quotes escaped in externalID",
 			filterQuery: "",
 			nameParam:   "",
 			externalID:  "ext-'123'",
-			tablePrefix: "Artifact",
-			expected:    "Artifact.external_id = 'ext-''123'''",
-		},
-		{
-			name:        "Context table prefix with name",
-			filterQuery: "",
-			nameParam:   "my-model-version",
-			externalID:  "",
-			tablePrefix: "Context",
-			expected:    "Context.name = 'my-model-version'",
-		},
-		{
-			name:        "Context table prefix with externalID",
-			filterQuery: "",
-			nameParam:   "",
-			externalID:  "ctx-123",
-			tablePrefix: "Context",
-			expected:    "Context.external_id = 'ctx-123'",
+			expected:    "externalId = 'ext-''123'''",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := buildCombinedFilterQuery(tc.filterQuery, tc.nameParam, tc.externalID, tc.tablePrefix)
+			result := buildCombinedFilterQuery(tc.filterQuery, tc.nameParam, tc.externalID)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
