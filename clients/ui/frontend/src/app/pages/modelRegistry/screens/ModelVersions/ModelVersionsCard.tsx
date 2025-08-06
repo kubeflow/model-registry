@@ -15,7 +15,7 @@ import {
 } from '@patternfly/react-core';
 import { TruncatedText } from 'mod-arch-shared';
 import { ArrowRightIcon } from '@patternfly/react-icons';
-import { ModelState, RegisteredModel } from '~/app/types';
+import { RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
@@ -61,7 +61,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                       isInline
                       data-testid={`model-version-${mv.id}-link`}
                       href={
-                        mv.state === ModelState.ARCHIVED
+                        isArchiveModel
                           ? archiveModelVersionDetailsUrl(
                               mv.id,
                               rm.id,
