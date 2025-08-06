@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  ModelRegistryKind,
   APIOptions,
   useFetchState,
   useDeepCompareMemoize,
   FetchState,
   FetchStateCallbackPromise,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
+import { ModelRegistryKind } from 'mod-arch-shared';
 import { getModelRegistrySettings } from '~/app/api/k8s';
 
 const useModelRegistryCR = (

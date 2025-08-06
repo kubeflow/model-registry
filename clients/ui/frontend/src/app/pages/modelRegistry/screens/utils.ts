@@ -1,4 +1,4 @@
-import { KeyValuePair } from 'mod-arch-shared';
+import { KeyValuePair } from 'mod-arch-core';
 import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import {
   ModelRegistry,

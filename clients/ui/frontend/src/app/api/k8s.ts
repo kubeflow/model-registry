@@ -1,15 +1,5 @@
 import {
-  APIOptions,
-  handleRestFailures,
-  Namespace,
-  UserSettings,
   ModelRegistryKind,
-  assembleModArchBody,
-  isModArchResponse,
-  restCREATE,
-  restDELETE,
-  restGET,
-  restPATCH,
   GroupKind,
   RoleBindingKind,
   K8sResourceCommon,
@@ -17,6 +7,18 @@ import {
   RoleBindingRoleRef,
   genRandomChars,
 } from 'mod-arch-shared';
+import {
+  APIOptions,
+  handleRestFailures,
+  Namespace,
+  UserSettings,
+  assembleModArchBody,
+  isModArchResponse,
+  restCREATE,
+  restDELETE,
+  restGET,
+  restPATCH,
+} from 'mod-arch-core';
 import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';

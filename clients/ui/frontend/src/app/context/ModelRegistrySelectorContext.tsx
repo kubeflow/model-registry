@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useQueryParamNamespaces } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import { ModelRegistry } from '~/app/types';
 import useModelRegistries from '~/app/hooks/useModelRegistries';
 

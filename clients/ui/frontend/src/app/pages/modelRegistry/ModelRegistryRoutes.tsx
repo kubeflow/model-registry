@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { DeploymentMode, useModularArchContext } from 'mod-arch-shared';
+import { DeploymentMode, useModularArchContext } from 'mod-arch-core';
 import ModelRegistry from './screens/ModelRegistry';
 import ModelRegistryCoreLoader from './ModelRegistryCoreLoader';
 import { modelRegistryUrl } from './screens/routeUtils';
