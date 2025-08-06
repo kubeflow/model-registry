@@ -217,7 +217,12 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 
 	queries := []string{}
 	if servingEnvironmentId != nil {
-		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *servingEnvironmentId)
+		// Validate that servingEnvironmentId is a valid integer
+		servingEnvIdInt, err := apiutils.ValidateIDAsInt64Ptr(servingEnvironmentId, "serving environment")
+		if err != nil {
+			return nil, err
+		}
+		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %d", *servingEnvIdInt)
 		queries = append(queries, queryParentCtxId)
 	}
 

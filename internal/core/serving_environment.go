@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -54,12 +53,12 @@ func (b *ModelRegistryService) UpsertServingEnvironment(servingEnvironment *open
 }
 
 func (b *ModelRegistryService) GetServingEnvironmentById(id string) (*openapi.ServingEnvironment, error) {
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "serving environment")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.servingEnvironmentRepository.GetByID(int32(convertedId))
+	model, err := b.servingEnvironmentRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no serving environment found for id %s: %w", id, api.ErrNotFound)
 	}

@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -62,12 +61,12 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
 	glog.Infof("Getting InferenceService by id %s", id)
 
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "inference service")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	model, err := b.inferenceServiceRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no InferenceService found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -88,12 +87,11 @@ func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentR
 
 	var parentResourceID *int32
 	if parentResourceId != nil {
-		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("invalid parentResourceId: %v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-		id := int32(convertedId)
-		parentResourceID = &id
 	}
 
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
@@ -127,14 +125,11 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	var parentResourceID *int32
 
 	if servingEnvironmentId != nil {
-		convertedId, err := strconv.ParseInt(*servingEnvironmentId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(servingEnvironmentId, "serving environment")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-
-		parentResourceID = &id
 	}
 
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{

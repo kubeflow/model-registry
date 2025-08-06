@@ -225,7 +225,12 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 	}
 
 	if registeredModelId != nil {
-		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *registeredModelId)
+		// Validate that registeredModelId is a valid integer
+		registeredModelIdInt, err := apiutils.ValidateIDAsInt64Ptr(registeredModelId, "registered model")
+		if err != nil {
+			return nil, err
+		}
+		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %d", *registeredModelIdInt)
 		if listOperationOptions.FilterQuery != nil {
 			existingFilter := *listOperationOptions.FilterQuery
 			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, queryParentCtxId)

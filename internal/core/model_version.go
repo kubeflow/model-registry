@@ -61,12 +61,12 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
 	glog.Infof("Getting ModelVersion by id %s", id)
 
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "model version")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.modelVersionRepository.GetByID(int32(convertedId))
+	model, err := b.modelVersionRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no model version found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -80,12 +80,12 @@ func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVer
 }
 
 func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
-	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(inferenceServiceId, "inference service")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	infSvc, err := b.inferenceServiceRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
@@ -139,12 +139,11 @@ func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, regi
 
 	var parentResourceID *int32
 	if registeredModelId != nil {
-		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(registeredModelId, "registered model")
 		if err != nil {
-			return nil, fmt.Errorf("invalid registeredModelId: %v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-		id := int32(convertedId)
-		parentResourceID = &id
 	}
 
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
@@ -176,13 +175,11 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	var parentResourceID *int32
 
 	if registeredModelId != nil {
-		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(registeredModelId, "registered model")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-		parentResourceID = &id
 	}
 
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{

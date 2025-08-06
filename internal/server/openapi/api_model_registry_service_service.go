@@ -348,8 +348,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 	orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 
 	// Build combined filter query from filterQuery, name, and externalID parameters
-	// Following MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
-	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID, "Artifact")
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID)
 
 	listOpts, err := apiutils.BuildListOption(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
@@ -363,8 +362,7 @@ func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Co
 }
 
 // buildCombinedFilterQuery combines filterQuery with name and externalID parameters
-// Follows MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
-func buildCombinedFilterQuery(filterQuery, name, externalID, tablePrefix string) string {
+func buildCombinedFilterQuery(filterQuery, name, externalID string) string {
 	var conditions []string
 
 	// Add existing filter query if provided
@@ -372,16 +370,15 @@ func buildCombinedFilterQuery(filterQuery, name, externalID, tablePrefix string)
 		conditions = append(conditions, "("+filterQuery+")")
 	}
 
-	// Add name or externalID filter (exclusive, following MLMD behavior)
-	// Use proper string escaping and table prefixes for filter queries
+	// Add name or externalID filter (exclusive)
 	if name != "" {
 		// Escape single quotes in the name by doubling them
 		escapedName := strings.ReplaceAll(name, "'", "''")
-		conditions = append(conditions, tablePrefix+".name = '"+escapedName+"'")
+		conditions = append(conditions, "name = '"+escapedName+"'")
 	} else if externalID != "" {
 		// Escape single quotes in the externalID by doubling them
 		escapedExternalID := strings.ReplaceAll(externalID, "'", "''")
-		conditions = append(conditions, tablePrefix+".external_id = '"+escapedExternalID+"'")
+		conditions = append(conditions, "externalId = '"+escapedExternalID+"'")
 	}
 
 	// Combine all conditions with AND
@@ -398,7 +395,7 @@ func buildCombinedFilterQuery(filterQuery, name, externalID, tablePrefix string)
 
 // GetModelVersions - List All ModelVersions
 func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ModelVersionEntity)
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -420,12 +417,10 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context,
 
 // GetRegisteredModelVersions - List All RegisteredModel&#39;s ModelVersions
 func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.Context, registeredmodelId string, name string, externalID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-
 	// Build combined filter query from filterQuery, name, and externalID parameters
-	// Following MLMD behavior: name takes precedence over externalID (exclusive, not inclusive)
-	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID, "Context")
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID)
 
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ModelVersionEntity)
+	listOpts, err := apiutils.BuildListOption(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -438,7 +433,7 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 
 // GetRegisteredModels - List All RegisteredModels
 func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.RegisteredModelEntity)
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -674,7 +669,7 @@ func (s *ModelRegistryServiceAPIService) GetExperiment(ctx context.Context, expe
 
 // GetExperimentExperimentRuns - List All Experiment's ExperimentRuns
 func (s *ModelRegistryServiceAPIService) GetExperimentExperimentRuns(ctx context.Context, experimentId string, name string, externalId string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ExperimentRunEntity)
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -710,7 +705,7 @@ func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.C
 
 // GetExperimentRuns - List All ExperimentRuns
 func (s *ModelRegistryServiceAPIService) GetExperimentRuns(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ExperimentRunEntity)
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -723,7 +718,7 @@ func (s *ModelRegistryServiceAPIService) GetExperimentRuns(ctx context.Context, 
 
 // GetExperiments - List All Experiments
 func (s *ModelRegistryServiceAPIService) GetExperiments(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOptionWithFilterTranslation(filterQuery, pageSize, orderBy, sortOrder, nextPageToken, apiutils.ExperimentEntity)
+	listOpts, err := apiutils.BuildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}

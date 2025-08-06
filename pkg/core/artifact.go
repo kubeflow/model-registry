@@ -297,10 +297,15 @@ func (serv *ModelRegistryService) GetArtifactByParams(artifactName *string, pare
 	if externalId != nil {
 		filterQuery = fmt.Sprintf("external_id = \"%s\"", *externalId)
 	} else if artifactName != nil && parentResourceId != nil {
+		// Validate parentResourceId is a valid integer
+		parentIdInt, err := apiutils.ValidateIDAsInt64Ptr(parentResourceId, "parent resource")
+		if err != nil {
+			return nil, err
+		}
 		// search for the artifact name or the artifact name with the parent resource id as a prefix
 		// and the parent resource id is the same as parentResourceId
-		filterQuery = fmt.Sprintf("(name = \"%s\" or name like \"%%:%s\") and contexts_a.id = %s",
-			*artifactName, *artifactName, *parentResourceId)
+		filterQuery = fmt.Sprintf("(name = \"%s\" or name like \"%%:%s\") and contexts_a.id = %d",
+			*artifactName, *artifactName, *parentIdInt)
 	} else {
 		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}

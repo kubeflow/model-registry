@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -56,12 +55,12 @@ func (b *ModelRegistryService) UpsertExperiment(experiment *openapi.Experiment) 
 }
 
 func (b *ModelRegistryService) GetExperimentById(id string) (*openapi.Experiment, error) {
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "experiment")
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	experiment, err := b.experimentRepository.GetByID(int32(convertedId))
+	experiment, err := b.experimentRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no experiment found for id %s: %w", id, api.ErrNotFound)
 	}

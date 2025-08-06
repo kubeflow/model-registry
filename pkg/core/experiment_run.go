@@ -171,7 +171,12 @@ func (serv *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions,
 
 	// Add experiment ID filter if provided
 	if experimentId != nil {
-		filterQuery := fmt.Sprintf("parent_contexts_a.id = %s", *experimentId)
+		// Validate that experimentId is a valid integer
+		experimentIdInt, err := apiutils.ValidateIDAsInt64Ptr(experimentId, "experiment")
+		if err != nil {
+			return nil, err
+		}
+		filterQuery := fmt.Sprintf("parent_contexts_a.id = %d", *experimentIdInt)
 		if listOperationOptions.FilterQuery != nil {
 			existingFilter := *listOperationOptions.FilterQuery
 			filterQuery = fmt.Sprintf("(%s) AND (%s)", existingFilter, filterQuery)

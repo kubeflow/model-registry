@@ -27,11 +27,10 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 	}
 
 	// Convert experiment ID to int32
-	convertedId, err := strconv.ParseInt(*experimentId, 10, 32)
+	experimentIDPtr, err := apiutils.ValidateIDAsInt32(*experimentId, "experiment")
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
-	experimentIDPtr := int32(convertedId)
 
 	// Validate that the experiment exists
 	_, err = b.GetExperimentById(*experimentId)
@@ -97,12 +96,12 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 }
 
 func (b *ModelRegistryService) GetExperimentRunById(id string) (*openapi.ExperimentRun, error) {
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "experiment run")
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment run ID: %v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	experimentRun, err := b.experimentRunRepository.GetByID(int32(convertedId))
+	experimentRun, err := b.experimentRunRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no experiment run found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -122,12 +121,11 @@ func (b *ModelRegistryService) GetExperimentRunByParams(name *string, experiment
 
 	var experimentIDPtr *int32
 	if experimentId != nil {
-		convertedId, err := strconv.ParseInt(*experimentId, 10, 32)
+		var err error
+		experimentIDPtr, err = apiutils.ValidateIDAsInt32Ptr(experimentId, "experiment")
 		if err != nil {
-			return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-		convertedIdInt32 := int32(convertedId)
-		experimentIDPtr = &convertedIdInt32
 	}
 
 	experimentRuns, err := b.experimentRunRepository.List(models.ExperimentRunListOptions{
@@ -158,12 +156,11 @@ func (b *ModelRegistryService) GetExperimentRunByParams(name *string, experiment
 func (b *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions, experimentId *string) (*openapi.ExperimentRunList, error) {
 	var experimentIDPtr *int32
 	if experimentId != nil {
-		convertedId, err := strconv.ParseInt(*experimentId, 10, 32)
+		var err error
+		experimentIDPtr, err = apiutils.ValidateIDAsInt32Ptr(experimentId, "experiment")
 		if err != nil {
-			return nil, fmt.Errorf("invalid experiment ID: %w", err)
+			return nil, err
 		}
-		convertedIdInt32 := int32(convertedId)
-		experimentIDPtr = &convertedIdInt32
 	}
 
 	experimentRuns, err := b.experimentRunRepository.List(models.ExperimentRunListOptions{
@@ -236,11 +233,10 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 	}
 
 	// Convert experiment run ID to int32 for repository queries
-	convertedId, err := strconv.ParseInt(*experimentRunId, 10, 32)
+	experimentRunIdInt32, err := apiutils.ValidateIDAsInt32(*experimentRunId, "experiment run")
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment run ID: %w", err)
+		return nil, err
 	}
-	experimentRunIdInt32 := int32(convertedId)
 
 	listOptsCopy := models.MetricHistoryListOptions{
 		Pagination: models.Pagination{
@@ -318,11 +314,10 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 	}
 
 	// Convert experiment run ID to int32
-	convertedId, err := strconv.ParseInt(experimentRunId, 10, 32)
+	experimentRunIdInt32, err := apiutils.ValidateIDAsInt32(experimentRunId, "experiment run")
 	if err != nil {
-		return fmt.Errorf("invalid experiment run ID: %w", err)
+		return err
 	}
-	experimentRunIdInt32 := int32(convertedId)
 
 	// Create a copy of the metric for history
 	metricHistory := *metric

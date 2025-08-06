@@ -1108,6 +1108,12 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 			expectedNames: []string{"v1.0.0", "v1.1.0"},
 		},
 		{
+			name:          "OpenAPI example: Filter by name and state",
+			filterQuery:   "name='v1.0.0' AND state='LIVE'",
+			expectedCount: 1,
+			expectedNames: []string{"v1.0.0"},
+		},
+		{
 			name:          "Filter by custom property - numeric comparison",
 			filterQuery:   "accuracy > 0.94",
 			expectedCount: 2,

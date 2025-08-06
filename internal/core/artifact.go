@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -24,12 +23,11 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 
 	// Only convert parentResourceId to int32 if it's provided
 	if parentResourceId != nil {
-		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-		convertedIdInt32 := int32(convertedId)
-		parentResourceIDPtr = &convertedIdInt32
 	}
 
 	if ma := artifact.ModelArtifact; ma != nil {
@@ -286,12 +284,12 @@ func (b *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*open
 
 func (b *ModelRegistryService) getArtifact(id string) (*openapi.Artifact, error) {
 	artToReturn := &openapi.Artifact{}
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "artifact")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	artifact, err := b.artifactRepository.GetByID(int32(convertedId))
+	artifact, err := b.artifactRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no artifact found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -342,12 +340,11 @@ func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentR
 
 	var parentResourceID *int32
 	if parentResourceId != nil {
-		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("invalid parentResourceId: %v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-		id := int32(convertedId)
-		parentResourceID = &id
 	}
 
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{
@@ -387,14 +384,11 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 	var parentResourceIDPtr *int32
 
 	if parentResourceId != nil {
-		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		convertedIdInt32 := int32(convertedId)
-
-		parentResourceIDPtr = &convertedIdInt32
 	}
 
 	// Convert artifactType parameter to string if provided
@@ -503,14 +497,11 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, pa
 	var parentResourceIDPtr *int32
 
 	if parentResourceId != nil {
-		convertedId, err := strconv.ParseInt(*parentResourceId, 10, 32)
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		convertedIdInt32 := int32(convertedId)
-
-		parentResourceIDPtr = &convertedIdInt32
 	}
 
 	modelArtifacts, err := b.modelArtifactRepository.List(models.ModelArtifactListOptions{
