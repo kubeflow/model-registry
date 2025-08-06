@@ -182,6 +182,26 @@ Python client is also tested with Unit Tests and Integration Tests written in Py
 
 End-to-end testing is developed with KinD and Pytest; this higher-lever layer of testing is used to demonstrate *User Stories* from high level perspective.
 
+## Related Components
+
+### Model Catalog Service
+- [Model Catalog Service](catalog/README.md) - Federated model discovery across external catalogs
+
+### Kubernetes Components
+- [Controller](cmd/controller/README.md) - Kubernetes controller for model registry CRDs
+- [CSI Driver](cmd/csi/README.md) - Container Storage Interface for model artifacts
+
+### Client Components
+- [UI Backend for Frontend (BFF)](clients/ui/bff/README.md) - Go-based BFF service for the React UI
+- [UI Frontend](clients/ui/frontend/README.md) - React-based frontend application
+
+### Job Components
+- [Async Upload Job](jobs/async-upload/README.md) - Background job for handling asynchronous model uploads
+
+### Development & Deployment
+- [Development Environment](devenv/README.md) - Local development setup and tools
+- [Kubernetes Manifests](manifests/kustomize/README.md) - Kustomize-based Kubernetes deployment manifests
+
 ## FAQ
 
 ### How do I delete metadata resources using the Model Registry API?

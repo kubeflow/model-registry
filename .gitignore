@@ -55,3 +55,4 @@ istio-*
 
 # Python
 venv/
+.python-version
