@@ -17,7 +17,7 @@ import {
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
-import ViewAllVersionsButton from '~/app/shared/components/ViewAllVersionsButton';
+import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 
 type ModelVersionSelectorProps = {
   rmId?: string;
