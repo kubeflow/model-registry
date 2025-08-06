@@ -2568,7 +2568,7 @@ func TestArtifactTypeFiltering(t *testing.T) {
 			result, err := service.GetArtifacts("invalid-artifact-type", listOptions, nil)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "unsupported artifact type")
+			assert.Contains(t, err.Error(), "invalid artifact type")
 		})
 
 		t.Run("empty result with valid filter", func(t *testing.T) {
