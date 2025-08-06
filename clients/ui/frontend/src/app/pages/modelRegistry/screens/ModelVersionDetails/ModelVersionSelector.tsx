@@ -32,6 +32,7 @@ import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByReg
 import { filterLiveVersions } from '~/app/utils';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 =======
 import { modelVersionListUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
@@ -40,6 +41,9 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 =======
 import ViewAllVersionsButton from '~/app/shared/components/ViewAllVersionsButton';
 >>>>>>> eff089f (address comments for version selector changes)
+=======
+import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
+>>>>>>> fe57b68 (moved the veiw button to screens)
 
 type ModelVersionSelectorProps = {
   rmId?: string;
