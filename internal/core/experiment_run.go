@@ -161,6 +161,12 @@ func (b *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions, ex
 		if err != nil {
 			return nil, err
 		}
+
+		// Validate that the experiment exists
+		_, err = b.GetExperimentById(*experimentId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	experimentRuns, err := b.experimentRunRepository.List(models.ExperimentRunListOptions{

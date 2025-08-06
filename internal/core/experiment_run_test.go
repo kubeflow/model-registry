@@ -3,6 +3,7 @@ package core_test
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -426,6 +427,34 @@ func TestGetExperimentRuns(t *testing.T) {
 		_, err := service.GetExperimentRuns(api.ListOptions{}, &invalidId)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid experiment ID")
+	})
+
+	t.Run("error on non-existent experiment id", func(t *testing.T) {
+		// Use a valid ID format but for an experiment that doesn't exist
+		nonExistentId := "999999"
+		_, err := service.GetExperimentRuns(api.ListOptions{}, &nonExistentId)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("error on empty experiment id", func(t *testing.T) {
+		// Empty string should be invalid
+		emptyId := ""
+		_, err := service.GetExperimentRuns(api.ListOptions{}, &emptyId)
+		assert.Error(t, err)
+		// Should fail ID validation
+		assert.Contains(t, err.Error(), "invalid")
+	})
+
+	t.Run("error on negative experiment id", func(t *testing.T) {
+		// Negative number should either be invalid or not found
+		negativeId := "-1"
+		_, err := service.GetExperimentRuns(api.ListOptions{}, &negativeId)
+		assert.Error(t, err)
+		// Could be either invalid ID or not found depending on validation
+		errorMsg := err.Error()
+		assert.True(t, strings.Contains(errorMsg, "invalid") || strings.Contains(errorMsg, "not found"),
+			"Error should contain 'invalid' or 'not found', but got: %s", errorMsg)
 	})
 }
 
