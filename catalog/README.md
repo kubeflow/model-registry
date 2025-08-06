@@ -32,7 +32,7 @@ The catalog service operates as a **metadata aggregation layer** that:
 ### OpenAPI Specification
 
 View the complete API specification:
-- [ReDoc](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/catalog.yaml)
+- [Swagger UI](https://www.kubeflow.org/docs/components/model-registry/reference/model-catalog-rest-api/#swagger-ui)
 - [Swagger Playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/catalog.yaml)
 
 ## Data Models
