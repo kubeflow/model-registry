@@ -7,6 +7,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"gorm.io/gorm"
 )
@@ -83,9 +84,13 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 
 	// Filter by artifact type if specified
 	if listOptions.ArtifactType != nil {
+		// Handle "null" string as invalid artifact type
+		if *listOptions.ArtifactType == "null" || *listOptions.ArtifactType == "" {
+			return nil, fmt.Errorf("invalid artifact type: empty or null value provided: %w", api.ErrBadRequest)
+		}
 		typeID, err := r.getTypeIDFromArtifactType(*listOptions.ArtifactType)
 		if err != nil {
-			return nil, fmt.Errorf("invalid artifact type %s: %w", *listOptions.ArtifactType, err)
+			return nil, fmt.Errorf("invalid artifact type %s: %w", *listOptions.ArtifactType, api.ErrBadRequest)
 		}
 		query = query.Where("Artifact.type_id = ?", typeID)
 	}
@@ -170,7 +175,7 @@ func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) 
 	case string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER):
 		return r.parameterTypeID, nil
 	default:
-		return 0, fmt.Errorf("unsupported artifact type: %s", artifactType)
+		return 0, fmt.Errorf("unsupported artifact type: %s: %w", artifactType, api.ErrBadRequest)
 	}
 }
 

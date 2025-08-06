@@ -58,7 +58,7 @@ func (b *ModelRegistryService) UpsertExperiment(experiment *openapi.Experiment) 
 func (b *ModelRegistryService) GetExperimentById(id string) (*openapi.Experiment, error) {
 	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
 	}
 
 	experiment, err := b.experimentRepository.GetByID(int32(convertedId))

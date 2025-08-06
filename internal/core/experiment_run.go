@@ -29,7 +29,7 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 	// Convert experiment ID to int32
 	convertedId, err := strconv.ParseInt(*experimentId, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment ID: %w", err)
+		return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
 	}
 	experimentIDPtr := int32(convertedId)
 
@@ -99,7 +99,7 @@ func (b *ModelRegistryService) UpsertExperimentRun(experimentRun *openapi.Experi
 func (b *ModelRegistryService) GetExperimentRunById(id string) (*openapi.ExperimentRun, error) {
 	convertedId, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid experiment run ID: %w", err)
+		return nil, fmt.Errorf("invalid experiment run ID: %v: %w", err, api.ErrBadRequest)
 	}
 
 	experimentRun, err := b.experimentRunRepository.GetByID(int32(convertedId))
@@ -124,7 +124,7 @@ func (b *ModelRegistryService) GetExperimentRunByParams(name *string, experiment
 	if experimentId != nil {
 		convertedId, err := strconv.ParseInt(*experimentId, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid experiment ID: %w", err)
+			return nil, fmt.Errorf("invalid experiment ID: %v: %w", err, api.ErrBadRequest)
 		}
 		convertedIdInt32 := int32(convertedId)
 		experimentIDPtr = &convertedIdInt32

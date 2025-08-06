@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"gorm.io/gorm"
 )
 
@@ -116,7 +117,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 		if filterApplier, ok := any(listOptions).(FilterApplier); ok {
 			filterExpr, err := filter.Parse(filterQuery)
 			if err != nil {
-				return nil, fmt.Errorf("invalid filter query: %w", err)
+				return nil, fmt.Errorf("invalid filter query: %v: %w", err, api.ErrBadRequest)
 			}
 
 			if filterExpr != nil {
