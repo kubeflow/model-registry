@@ -29,6 +29,9 @@ type rhecCatalogConfig struct {
 	Models []struct {
 		Repository string `yaml:"repository"`
 	} `yaml:"models"`
+	ExcludedModels []struct {
+		Repository string `yaml:"repository"`
+	} `yaml:"excludedModels"`
 }
 
 type rhecCatalogImpl struct {
@@ -229,9 +232,19 @@ func newRhecModel(repoData *genqlient.GetRepositoryResponse, imageData genqlient
 	}
 }
 
-func (r *rhecCatalogImpl) load(modelsList []any) error {
+func (r *rhecCatalogImpl) load(modelsList []any, excludedModelsList []any) error {
 	graphqlClient := graphql.NewClient("https://catalog.redhat.com/api/containers/graphql/", http.DefaultClient)
 	ctx := context.Background()
+
+	// Prepare exclusion patterns from the config.
+	var exclusionPatterns []string
+	for _, item := range excludedModelsList {
+		if entry, ok := item.(map[string]any); ok {
+			if repo, ok := entry["repository"].(string); ok {
+				exclusionPatterns = append(exclusionPatterns, repo)
+			}
+		}
+	}
 
 	models := make(map[string]*rhecModel)
 	for _, modelEntry := range modelsList {
@@ -261,6 +274,12 @@ func (r *rhecCatalogImpl) load(modelsList []any) error {
 				for _, imageTag := range imageRepository.Tags {
 					tagName := imageTag.Name
 					fullModelName := repo + ":" + tagName
+
+					if isModelExcluded(fullModelName, exclusionPatterns) {
+						glog.Infof("skipping excluded model: %s", fullModelName)
+						continue
+					}
+
 					model := newRhecModel(repoData, image, tagName, repo)
 					models[fullModelName] = model
 				}
@@ -275,6 +294,19 @@ func (r *rhecCatalogImpl) load(modelsList []any) error {
 	return nil
 }
 
+func isModelExcluded(modelName string, patterns []string) bool {
+	for _, pattern := range patterns {
+		if strings.HasSuffix(pattern, "*") {
+			if strings.HasPrefix(modelName, strings.TrimSuffix(pattern, "*")) {
+				return true
+			}
+		} else if modelName == pattern {
+			return true
+		}
+	}
+	return false
+}
+
 func newRhecCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
 	modelsData, ok := source.Properties["models"]
 	if !ok {
@@ -286,11 +318,21 @@ func newRhecCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) 
 		return nil, fmt.Errorf("'models' property should be a list")
 	}
 
+	// Excluded models is an optional source property.
+	excludedModelsList := []any{}
+	if excludedModelsData, ok := source.Properties["excludedModels"]; ok {
+		if l, ok := excludedModelsData.([]any); ok {
+			excludedModelsList = l
+		} else {
+			return nil, fmt.Errorf("'excludedModels' property should be a list")
+		}
+	}
+
 	r := &rhecCatalogImpl{
 		models: make(map[string]*rhecModel),
 	}
 
-	err := r.load(modelsList)
+	err := r.load(modelsList, excludedModelsList)
 	if err != nil {
 		return nil, fmt.Errorf("error loading rhec catalog: %w", err)
 	}
