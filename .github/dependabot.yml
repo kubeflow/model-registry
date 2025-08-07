@@ -12,7 +12,9 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/clients/python/"
+    directories:
+      - "/clients/python/"
+      - "/jobs/async-upload"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
