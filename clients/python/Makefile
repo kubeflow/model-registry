@@ -2,7 +2,7 @@ all: install tidy
 
 IMG_REGISTRY ?= quay.io
 IMG_VERSION ?= latest
-IMG ?= quay.io/opendatahub/model-registry:${IMG_VERSION}
+IMG ?= ghcr.io/kubeflow/model-registry/server
 BUILD_IMAGE ?= true # whether to build the MR server image
 include odh_rules.mk
 
