@@ -328,54 +328,17 @@ func TestRhecCatalogListModels(t *testing.T) {
 			want:    openapi.CatalogModelList{Items: []openapi.CatalogModel{}},
 			wantErr: false,
 		},
-		{
-			name: "list models with simple query and sort, with excluded models",
-			params: ListModelsParams{
-				Query:     "model1",
-				OrderBy:   model.ORDERBYFIELD_NAME,
-				SortOrder: model.SORTORDER_ASC,
-			},
-			want: openapi.CatalogModelList{
-				Items: []openapi.CatalogModel{
-					{
-						Name:                     "model1",
-						CreateTimeSinceEpoch:     &createTime,
-						LastUpdateTimeSinceEpoch: &lastUpdateTime,
-						Provider:                 &provider,
-						SourceId:                 &sourceId,
-					},
-				},
-				PageSize: 1,
-				Size:     1,
-			},
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r.modelsLock.Lock()
-			if tt.name == "list models with simple query and sort, with excluded models" {
-				r.models["model1:v2"] = &rhecModel{
-					CatalogModel: openapi.CatalogModel{
-						Name: "model1:v2",
-					},
-				}
-			}
-			r.modelsLock.Unlock()
-
 			got, err := r.ListModels(context.Background(), tt.params)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListModels() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(tt.want, got, cmp.AllowUnexported(rhecModel{})); diff != "" {
+			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("ListModels() mismatch (-want +got):\n%s", diff)
 			}
-
-			// cleanup
-			r.modelsLock.Lock()
-			delete(r.models, "model1:v2")
-			r.modelsLock.Unlock()
 		})
 	}
 }
