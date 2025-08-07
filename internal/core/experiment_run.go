@@ -338,6 +338,8 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 
 	// Set the ID to nil to create a new artifact
 	metricHistory.Id = nil
+	// Clear the external ID to avoid duplicate key error
+	metricHistory.ExternalId = nil
 
 	// Create the MetricHistory entity with the correct TypeID
 	// Get the metric history type ID from the types map
