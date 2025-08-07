@@ -78,7 +78,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
-  /api/v1/model_catalog/sources/{source_id}/models/{model_name+}:
+  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
     get:
@@ -87,13 +87,13 @@ paths:
         - ModelCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
-        - name: source_id
+        - name: sourceId
           description: A unique identifier for a `CatalogSource`.
           schema:
             type: string
           in: path
           required: true
-        - name: model_name+
+        - name: CatalogModelName+
           description: A unique identifier for the model.
           schema:
             type: string
@@ -109,7 +109,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getModel
-  /api/v1/model_catalog/sources/{source_id}/models/{model_name}/artifacts:
+  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName}/artifacts:
     description: >-
       The REST endpoint/path used to list `CatalogModelArtifacts`.
     get:
@@ -118,13 +118,13 @@ paths:
         - ModelCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
-        - name: source_id
+        - name: sourceId
           description: A unique identifier for a `CatalogSource`.
           schema:
             type: string
           in: path
           required: true
-        - name: model_name
+        - name: CatalogModelName
           description: A unique identifier for the model.
           schema:
             type: string
@@ -141,123 +141,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
 
-  # Admin endpoints
-  /api/v1/settings/model_catalog/sources:
-    summary: Path used to manage Model catalog resources.
-    description: >-
-      The REST endpoint/path used to list and create Model catalog resources.
-    get:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getCatalogSources
-      summary: List All Model Registry Settings
-      description: Gets a list of all Model catalog settings.
-    post:
-      requestBody:
-        description: A new Model catalog source to be created.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CatalogSourcePayload" # New schema for create payload
-        required: true
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-      responses:
-        "201":
-          $ref: "#/components/responses/CatalogSourceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: createCatalogSource
-      summary: Create Model catalog source
-      description: Creates a new model catalog source.
-  /api/v1/settings/model_catalog/sources/{source_id}:
-    summary: Path used to manage Model catalog sources.
-    description: >-
-      The REST endpoint/path used to get, update and delete a single Model catalog source.
-    # Add GET operation
-    get:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/source_id" # Use the correct parameter name
-      responses:
-        "200":
-          # Define a response that might include credentials
-          $ref: "#/components/responses/CatalogSourceResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getModelCatalogResource # Renamed for clarity
-      summary: Get Model Registry Settings
-      description: Gets the details of a single Model Registry settings, potentially including related credentials.
-    patch:
-      requestBody:
-        description: Updated Model Registry settings information.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CatalogSourcePayload"
-        required: true
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/source_id"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: updateCatalogSource
-      summary: Update Model catalog source
-      description: Updates an existing Model catalog source.
-    delete:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/source_id"
-      responses:
-        "204":
-          description: Successfully deleted
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: deleteCatalogSource
-      summary: Delete Model catalog source
-      description: Deletes an existing Model catalog source.
+  # TODO: Admin endpoints for model catalog
 
   /healthcheck:
     summary: Path targeted for healthcheck purposes.
@@ -1906,7 +1790,7 @@ components:
               type: string
               description: Name of the model. Must be unique within a source.
               example: ibm-granite/granite-3.1-8b-base
-            source_id:
+            sourceId:
               type: string
               description: ID of the source this model belongs to.
         - $ref: "#/components/schemas/BaseResourceDates"
@@ -2328,8 +2212,8 @@ components:
         type: string
       in: path
       required: true
-    source_id:
-      name: source_id
+    sourceId:
+      name: sourceId
       description: A unique identifier for catalog source.
       schema:
         type: string
