@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useQueryParamNamespaces } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import useModelRegistryAPIState, {
   ModelRegistryAPIState,
 } from '~/app/hooks/useModelRegistryAPIState';

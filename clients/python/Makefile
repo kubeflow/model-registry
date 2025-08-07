@@ -1,7 +1,7 @@
 all: install tidy
 
 IMG_VERSION ?= latest
-IMG ?= ghcr.io/kubeflow/model-registry/server:${IMG_VERSION}
+IMG ?= ghcr.io/kubeflow/model-registry/server
 BUILD_IMAGE ?= true # whether to build the MR server image
 
 .PHONY: install

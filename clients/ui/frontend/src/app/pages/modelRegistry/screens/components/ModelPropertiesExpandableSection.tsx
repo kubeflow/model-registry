@@ -70,7 +70,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
               <ModelPropertiesTableRow
                 key={key}
                 isArchive={isArchive}
-                keyValuePair={{ key, value: filteredProperties[key].string_value }}
+                keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
                 allExistingKeys={allExistingKeys}
                 isEditing={editingPropertyKeys.includes(key)}
                 setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}

@@ -4,12 +4,12 @@ import { Bullseye, Alert, Divider, Stack, StackItem } from '@patternfly/react-co
 import {
   ProjectObjectType,
   typedEmptyImage,
-  useThemeContext,
   TitleWithIcon,
   WhosMyAdministrator,
   KubeflowDocs,
   ApplicationsPage,
 } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AlertVariant } from '@patternfly/react-core';
-import { NotificationContext, NotificationActionTypes } from 'mod-arch-shared';
+import { NotificationContext, NotificationActionTypes } from 'mod-arch-core';
 
 enum NotificationTypes {
   SUCCESS = 'success',

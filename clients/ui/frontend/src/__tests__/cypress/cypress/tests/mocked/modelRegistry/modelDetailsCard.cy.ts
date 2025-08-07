@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { mockModArchResponse } from 'mod-arch-shared';
+import { mockModArchResponse } from 'mod-arch-core';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';

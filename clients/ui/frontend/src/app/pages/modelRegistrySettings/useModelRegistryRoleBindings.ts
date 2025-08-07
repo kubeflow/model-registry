@@ -1,11 +1,11 @@
 import * as React from 'react';
 import {
-  RoleBindingKind,
   POLL_INTERVAL,
   useFetchState,
   FetchStateObject,
   useDeepCompareMemoize,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
+import { RoleBindingKind } from 'mod-arch-shared';
 import { getRoleBindings } from '~/app/api/k8s';
 
 const useModelRegistryRoleBindings = (

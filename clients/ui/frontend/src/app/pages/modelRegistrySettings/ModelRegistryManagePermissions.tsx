@@ -1,12 +1,8 @@
 import React from 'react';
 import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import {
-  ApplicationsPage,
-  ModelRegistryKind,
-  RoleBindingKind,
-  useQueryParamNamespaces,
-} from 'mod-arch-shared';
+import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import { useGroups } from '~/app/hooks/useGroups';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';

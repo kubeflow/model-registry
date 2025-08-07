@@ -4,8 +4,8 @@ import {
   FetchState,
   FetchStateCallbackPromise,
   useFetchState,
-  ModelRegistryKind,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
+import { ModelRegistryKind } from 'mod-arch-shared';
 import { listModelRegistrySettings } from '~/app/api/k8s';
 
 const useModelRegistriesSettings = (
