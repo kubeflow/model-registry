@@ -22,6 +22,10 @@ schema = (
         path="/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
         method="POST"
     )
+    .exclude(
+        path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
+        method="POST"
+    )
 )
 @schema.parametrize()
 @settings(
@@ -39,7 +43,6 @@ def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case):
 
     This test uses schemathesis to generate and validate API requests
     """
-
     case.call_and_validate(headers=auth_headers)
 
 @pytest.mark.fuzz
@@ -56,19 +59,146 @@ def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, ur
     payload = {
         "artifactType": artifact_type,
         "name": "my-test-model-artifact-post",
-        "uri": f"{uri_prefix}my-test-model.pkl",
         "state": state,
         "description": "A test model artifact created via direct POST test.",
         "externalId": str(secrets.randbelow(2000000000 - 100000 + 1) + 100000)
     }
 
-    response = requests.post(endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
-    artifact_id = response.json()["id"]
-    cleanup_artifacts(artifact_id)
+    # Add type-specific properties
+    if artifact_type == "model-artifact":
+        payload["modelFormatName"] = "tensorflow"
+        payload["modelFormatVersion"] = "1.0"
+        payload["uri"] = f"{uri_prefix}my-test-model.pkl"
+    elif artifact_type == "doc-artifact":
+        payload["uri"] = f"{uri_prefix}documentation.pdf"
+    elif artifact_type == "dataset-artifact":
+        payload["uri"] = f"{uri_prefix}dataset.parquet"
+        payload["sourceType"] = "s3"
+        payload["source"] = "s3://test-bucket/datasets/"
+    elif artifact_type == "metric":
+        payload["value"] = 0.95  # Example accuracy value
+        # Use current time in milliseconds plus random offset to ensure uniqueness
+        import time
+        current_ms = int(time.time() * 1000)
+        random_offset = secrets.randbelow(1000000)  # Random offset up to 1 million ms (1000 seconds)
+        payload["timestamp"] = str(current_ms + random_offset)
+    elif artifact_type == "parameter":
+        payload["value"] = "0.001"  # Example learning rate
+        payload["parameterType"] = "string"
 
+    response = requests.post(endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+    
+    # Check response status before accessing JSON
     assert response.status_code in {200, 201}, f"Expected 200 or 201, got {response.status_code}: {response.text}"
+    
     response_json = response.json()
     assert response_json.get("id"), "Response body should contain 'id'"
+    
+    # Cleanup after successful creation
+    artifact_id = response_json["id"]
+    cleanup_artifacts(artifact_id)
+    
+    assert response_json.get("name") == payload["name"], "Response name should match payload name"
+    assert response_json.get("artifactType") == payload["artifactType"], "Response artifactType should match payload"
+
+
+@pytest.mark.fuzz
+@pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
+@pytest.mark.parametrize("state", ARTIFACT_STATES)
+def test_post_experiment_run_artifacts(auth_headers: dict, artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
+    """
+    Direct test for POST /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts.
+    """
+    # First, create an experiment
+    experiment_payload = {
+        "name": f"test-experiment-{secrets.randbelow(1000000)}",
+        "externalId": str(secrets.randbelow(2000000000 - 100000 + 1) + 100000),
+        "description": "Test experiment for artifact testing"
+    }
+    exp_response = requests.post(
+        f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiments",
+        headers=auth_headers,
+        json=experiment_payload,
+        timeout=DEFAULT_API_TIMEOUT
+    )
+    assert exp_response.status_code in {200, 201}, f"Failed to create experiment: {exp_response.text}"
+    experiment_id = exp_response.json()["id"]
+    
+    # Then, create an experiment run for that experiment
+    experiment_run_payload = {
+        "experimentId": experiment_id,
+        "name": f"test-run-{secrets.randbelow(1000000)}",
+        "externalId": str(secrets.randbelow(2000000000 - 100000 + 1) + 100000),
+        "description": "Test experiment run for artifact testing"
+    }
+    run_response = requests.post(
+        f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs",
+        headers=auth_headers,
+        json=experiment_run_payload,
+        timeout=DEFAULT_API_TIMEOUT
+    )
+    assert run_response.status_code in {200, 201}, f"Failed to create experiment run: {run_response.text}"
+    experiment_run_id = run_response.json()["id"]
+
+    endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs/{experiment_run_id}/artifacts"
+
+    payload = {
+        "artifactType": artifact_type,
+        "name": f"my-test-experiment-artifact-post-{secrets.randbelow(1000000)}",
+        "state": state,
+        "description": "A test experiment artifact created via direct POST test.",
+        "externalId": str(secrets.randbelow(2000000000 - 100000 + 1) + 100000)
+    }
+
+    # Add type-specific properties
+    if artifact_type == "model-artifact":
+        payload["modelFormatName"] = "tensorflow"
+        payload["modelFormatVersion"] = "1.0"
+        payload["uri"] = f"{uri_prefix}my-test-model.pkl"
+    elif artifact_type == "doc-artifact":
+        payload["uri"] = f"{uri_prefix}documentation.pdf"
+    elif artifact_type == "dataset-artifact":
+        payload["uri"] = f"{uri_prefix}dataset.parquet"
+        payload["sourceType"] = "s3"
+        payload["source"] = "s3://test-bucket/datasets/"
+    elif artifact_type == "metric":
+        payload["value"] = 0.95  # Example accuracy value
+        # Use current time in milliseconds plus random offset to ensure uniqueness
+        import time
+        current_ms = int(time.time() * 1000)
+        random_offset = secrets.randbelow(1000000)  # Random offset up to 1 million ms (1000 seconds)
+        payload["timestamp"] = str(current_ms + random_offset)
+    elif artifact_type == "parameter":
+        payload["value"] = "0.001"  # Example learning rate
+        payload["parameterType"] = "string"
+
+    response = requests.post(endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+    
+    # Check response status before accessing JSON
+    assert response.status_code in {200, 201}, f"Expected 200 or 201, got {response.status_code}: {response.text}"
+    
+    response_json = response.json()
+    assert response_json.get("id"), "Response body should contain 'id'"
+    
+    # Cleanup after successful creation
+    artifact_id = response_json["id"]
+    cleanup_artifacts(artifact_id)
+    
+    # Also cleanup the experiment run and experiment
+    try:
+        requests.delete(
+            f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs/{experiment_run_id}",
+            headers=auth_headers,
+            timeout=DEFAULT_API_TIMEOUT
+        )
+        requests.delete(
+            f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiments/{experiment_id}",
+            headers=auth_headers,
+            timeout=DEFAULT_API_TIMEOUT
+        )
+    except Exception:
+        pass  # Best effort cleanup
+    
     assert response_json.get("name") == payload["name"], "Response name should match payload name"
     assert response_json.get("artifactType") == payload["artifactType"], "Response artifactType should match payload"
 
@@ -85,13 +215,25 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
     create_payload = {
         "artifactType": artifact_type,
         "name": "test-create-for-patch",
-        "uri": "s3://my-test-bucket/models/initial-model.pkl",
         "state": initial_state,
     }
+
+    # Add type-specific properties for creation
     if artifact_type == "model-artifact":
         create_payload["modelFormatName"] = "tensorflow"
         create_payload["modelFormatVersion"] = "1.0"
-
+        create_payload["uri"] = "s3://my-test-bucket/models/initial-model.pkl"
+    elif artifact_type == "doc-artifact":
+        create_payload["uri"] = "https://docs.example.com/initial-doc.pdf"
+    elif artifact_type == "dataset-artifact":
+        create_payload["uri"] = "s3://my-test-bucket/datasets/initial-dataset.parquet"
+        create_payload["sourceType"] = "s3"
+    elif artifact_type == "metric":
+        create_payload["value"] = 0.85
+        create_payload["timestamp"] = "1000000000"
+    elif artifact_type == "parameter":
+        create_payload["value"] = "0.01"
+        create_payload["parameterType"] = "string"
 
     with artifact_resource(auth_headers, create_payload) as artifact_id:
         patch_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
@@ -100,6 +242,13 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
             "description": f"Updated description for {artifact_type} ({target_state})",
             "state": target_state,
         }
+
+        # Add type-specific update properties if needed
+        if artifact_type == "metric":
+            patch_payload["value"] = 0.99  # Updated metric value
+        elif artifact_type == "parameter":
+            patch_payload["value"] = "0.001"  # Updated parameter value
+
         patch_response = requests.patch(patch_endpoint, headers=auth_headers, json=patch_payload, timeout=DEFAULT_API_TIMEOUT)
         assert patch_response.status_code == 200
         patch_response_json = patch_response.json()
