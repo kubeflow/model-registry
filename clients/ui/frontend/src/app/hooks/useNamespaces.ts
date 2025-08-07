@@ -1,4 +1,4 @@
-import { useFetchState, APIOptions, FetchStateCallbackPromise } from 'mod-arch-shared';
+import { useFetchState, APIOptions, FetchStateCallbackPromise } from 'mod-arch-core';
 import React from 'react';
 import { getNamespaces } from '~/app/api/k8s';
 import { NamespaceKind } from '~/app/shared/components/types';

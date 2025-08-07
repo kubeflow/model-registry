@@ -1,12 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  GroupKind,
-  RoleBindingKind,
-  FetchStateObject,
-  ModelRegistryKind,
-  useQueryParamNamespaces,
-} from 'mod-arch-shared';
+import { GroupKind, RoleBindingKind, FetchStateObject, ModelRegistryKind } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import { useGroups } from '~/app/hooks/useGroups';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';

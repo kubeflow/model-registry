@@ -1,19 +1,29 @@
 import { waitFor } from '@testing-library/react';
-import {
-  useFetchState,
-  useDeepCompareMemoize,
-  POLL_INTERVAL,
-  RoleBindingKind,
-} from 'mod-arch-shared';
+import { RoleBindingKind } from 'mod-arch-shared';
+import { useFetchState, POLL_INTERVAL, useDeepCompareMemoize } from 'mod-arch-core';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
 import * as k8sApi from '~/app/api/k8s';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
 
-// Mock mod-arch-shared
-jest.mock('mod-arch-shared', () => ({
+// Mock mod-arch-core
+jest.mock('mod-arch-core', () => ({
   useFetchState: jest.fn(),
   useDeepCompareMemoize: jest.fn(),
   POLL_INTERVAL: 5000,
+  asEnumMember: jest.fn((value, enumObj) => {
+    if (!enumObj) {
+      return value;
+    }
+    return value || Object.values(enumObj)[0];
+  }),
+  DeploymentMode: {
+    Federated: 'federated',
+    Standalone: 'standalone',
+  },
+}));
+
+// Mock mod-arch-shared
+jest.mock('mod-arch-shared', () => ({
   asEnumMember: jest.fn((value, enumObj) => value || Object.values(enumObj)[0]),
   Theme: {
     Patternfly: 'patternfly',
