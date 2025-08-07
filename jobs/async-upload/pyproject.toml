@@ -16,7 +16,7 @@ requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3.5,<9.0.0"
-aiohttp = "^3.12.14"
+aiohttp = "^3.12.15"
 
 [tool.poetry.group.integration.dependencies]
 kubernetes = "^33.0.0"
