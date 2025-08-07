@@ -1,12 +1,8 @@
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem, PageSection, Tab, Tabs } from '@patternfly/react-core';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import {
-  ApplicationsPage,
-  ModelRegistryKind,
-  RoleBindingKind,
-  useQueryParamNamespaces,
-} from 'mod-arch-shared';
+import { ApplicationsPage, ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
 import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';

@@ -1,4 +1,4 @@
-import { useThemeContext } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import React, { ReactNode } from 'react';
 
 interface FormFieldsetProps {

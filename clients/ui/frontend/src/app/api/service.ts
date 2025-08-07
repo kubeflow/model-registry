@@ -6,7 +6,7 @@ import {
   restGET,
   restPATCH,
   handleRestFailures,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
 import {
   CreateModelArtifactData,
   CreateModelVersionData,

@@ -17,13 +17,13 @@ import text from '@patternfly/react-styles/css/utilities/Text/text';
 import truncateStyles from '@patternfly/react-styles/css/components/Truncate/truncate';
 import { InfoCircleIcon, BlueprintIcon } from '@patternfly/react-icons';
 import {
-  useBrowserStorage,
   WhosMyAdministrator,
   KubeflowDocs,
-  useThemeContext,
   SimpleSelect,
   InlineTruncatedClipboardCopy,
 } from 'mod-arch-shared';
+import { useBrowserStorage } from 'mod-arch-core';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';

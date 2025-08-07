@@ -13,19 +13,18 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import {
-  ToastNotifications,
-  useSettings,
-  logout,
-  NavBar,
-  useModularArchContext,
   DeploymentMode,
+  logout,
+  useModularArchContext,
   useNamespaceSelector,
-} from 'mod-arch-shared';
-import AppRoutes from './AppRoutes';
-import { AppContext } from './context/AppContext';
-import { ModelRegistrySelectorContextProvider } from './context/ModelRegistrySelectorContext';
-import 'mod-arch-shared/style/MUI-theme.scss';
-import AppNavSidebar from './AppNavSidebar';
+  useSettings,
+} from 'mod-arch-core';
+import NavBar from '~/app/standalone/NavBar';
+import ToastNotifications from '~/app/standalone/ToastNotifications';
+import AppNavSidebar from '~/app/standalone/AppNavSidebar';
+import AppRoutes from '~/app/AppRoutes';
+import { AppContext } from '~/app/context/AppContext';
+import { ModelRegistrySelectorContextProvider } from '~/app/context/ModelRegistrySelectorContext';
 
 const App: React.FC = () => {
   const {

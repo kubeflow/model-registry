@@ -3,13 +3,8 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
-import {
-  DeploymentMode,
-  ModelRegistryKind,
-  ResourceNameTooltip,
-  useModularArchContext,
-  RoleBindingKind,
-} from 'mod-arch-shared';
+import { ModelRegistryKind, ResourceNameTooltip, RoleBindingKind } from 'mod-arch-shared';
+import { DeploymentMode, useModularArchContext } from 'mod-arch-core';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
 type ModelRegistriesTableRowProps = {

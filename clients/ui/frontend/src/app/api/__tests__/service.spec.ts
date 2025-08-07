@@ -4,7 +4,7 @@ import {
   restGET,
   restPATCH,
   handleRestFailures,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
 import { ModelState, ModelArtifactState } from '~/app/types';
 import {
   createRegisteredModel,
@@ -27,7 +27,7 @@ import { BFF_API_VERSION } from '~/app/utilities/const';
 const mockRestPromise = Promise.resolve({ data: {} });
 const mockRestResponse = {};
 
-jest.mock('mod-arch-shared', () => ({
+jest.mock('mod-arch-core', () => ({
   restCREATE: jest.fn(() => mockRestPromise),
   restGET: jest.fn(() => mockRestPromise),
   restPATCH: jest.fn(() => mockRestPromise),

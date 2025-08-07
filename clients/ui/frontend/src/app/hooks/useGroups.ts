@@ -1,4 +1,5 @@
-import { GroupKind, useFetchState, APIOptions, FetchStateCallbackPromise } from 'mod-arch-shared';
+import { GroupKind } from 'mod-arch-shared';
+import { useFetchState, APIOptions, FetchStateCallbackPromise } from 'mod-arch-core';
 import React from 'react';
 import { getGroups } from '~/app/api/k8s';
 

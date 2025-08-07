@@ -1,4 +1,5 @@
-import { Theme, DeploymentMode, asEnumMember } from 'mod-arch-shared';
+import { DeploymentMode, asEnumMember } from 'mod-arch-core';
+import { Theme } from 'mod-arch-kubeflow';
 
 const STYLE_THEME = asEnumMember(process.env.STYLE_THEME, Theme) || Theme.Patternfly;
 const DEPLOYMENT_MODE =

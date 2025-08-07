@@ -27,7 +27,7 @@ module.exports = {
 
   // include projects from node_modules as required
   transformIgnorePatterns: [
-    'node_modules/(?!yaml|lodash-es|uuid|@patternfly|delaunator|mod-arch-shared)',
+    'node_modules/(?!yaml|lodash-es|uuid|@patternfly|delaunator|mod-arch-shared|mod-arch-core|mod-arch-kubeflow)',
   ],
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
