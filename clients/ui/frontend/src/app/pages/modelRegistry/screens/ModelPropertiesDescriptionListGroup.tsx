@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DashboardDescriptionListGroup } from 'mod-arch-shared';
+import { DescriptionListGroup, DescriptionListDescription } from '@patternfly/react-core';
 import { ModelRegistryCustomProperties } from '~/app/types';
 import ModelPropertiesExpandableSection from '~/app/pages/modelRegistry/screens/components/ModelPropertiesExpandableSection';
 
@@ -14,18 +14,16 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
   isArchive,
   saveEditedCustomProperties,
 }) => (
-  <DashboardDescriptionListGroup
-    title=""
-    isEmpty={Object.keys(customProperties).length === 0}
-    contentWhenEmpty="No properties"
-  >
-    <ModelPropertiesExpandableSection
-      customProperties={customProperties}
-      isArchive={isArchive}
-      saveEditedCustomProperties={saveEditedCustomProperties}
-      isExpandedByDefault
-    />
-  </DashboardDescriptionListGroup>
+  <DescriptionListGroup>
+    <DescriptionListDescription>
+      <ModelPropertiesExpandableSection
+        customProperties={customProperties}
+        isArchive={isArchive}
+        saveEditedCustomProperties={saveEditedCustomProperties}
+        isExpandedByDefault
+      />
+    </DescriptionListDescription>
+  </DescriptionListGroup>
 );
 
 export default ModelPropertiesDescriptionListGroup;
