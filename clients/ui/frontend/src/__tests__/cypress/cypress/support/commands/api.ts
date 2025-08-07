@@ -1,6 +1,7 @@
 import type { GenericStaticResponse, RouteHandlerController } from 'cypress/types/net-stubbing';
-import type { ModelRegistryKind, Namespace, UserSettings, RoleBindingKind } from 'mod-arch-shared';
-import { mockModArchResponse } from 'mod-arch-shared';
+import type { ModelRegistryKind, RoleBindingKind } from 'mod-arch-shared';
+import type { Namespace, UserSettings } from 'mod-arch-core';
+import { mockModArchResponse } from 'mod-arch-core';
 import type {
   ModelArtifact,
   ModelArtifactList,

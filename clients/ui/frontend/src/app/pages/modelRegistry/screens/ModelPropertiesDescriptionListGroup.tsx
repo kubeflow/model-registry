@@ -7,7 +7,7 @@ import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { DashboardDescriptionListGroup } from 'mod-arch-shared';
 import { getProperties, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
-import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/ModelPropertiesTableRow';
+import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/components/ModelPropertiesTableRow';
 
 type ModelPropertiesDescriptionListGroupProps = {
   customProperties: ModelRegistryCustomProperties;

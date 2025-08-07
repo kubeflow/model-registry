@@ -7,7 +7,7 @@ import {
   TextArea,
   TextInput,
 } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import ResourceNameField from './ResourceNameField';

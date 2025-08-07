@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FormGroup, HelperText, HelperTextItem, TextInput } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ResourceNameFieldProps = {
