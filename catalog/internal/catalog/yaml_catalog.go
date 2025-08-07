@@ -150,7 +150,7 @@ func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 	return &list, nil
 }
 
-func (y *yamlCatalogImpl) load(path string) error {
+func (y *yamlCatalogImpl) load(path string, excludedModelsList []any) error {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("failed to read %s file: %v", yamlCatalogPath, err)
@@ -161,9 +161,23 @@ func (y *yamlCatalogImpl) load(path string) error {
 		return fmt.Errorf("failed to parse %s file: %v", yamlCatalogPath, err)
 	}
 
-	models := make(map[string]*yamlModel, len(contents.Models))
+	var exclusionPatterns []string
+	for _, item := range excludedModelsList {
+		if entry, ok := item.(map[string]any); ok {
+			if repo, ok := entry["repository"].(string); ok {
+				exclusionPatterns = append(exclusionPatterns, repo)
+			}
+		}
+	}
+
+	models := make(map[string]*yamlModel)
 	for i := range contents.Models {
-		models[contents.Models[i].Name] = &contents.Models[i]
+		modelName := contents.Models[i].Name
+		if isModelExcluded(modelName, exclusionPatterns) {
+			glog.Infof("skipping excluded model from yaml catalog: %s", modelName)
+			continue
+		}
+		models[modelName] = &contents.Models[i]
 	}
 
 	y.modelsLock.Lock()
@@ -186,8 +200,20 @@ func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) 
 		return nil, fmt.Errorf("abs: %w", err)
 	}
 
-	p := &yamlCatalogImpl{}
-	err = p.load(yamlModelFile)
+	// Excluded models is an optional source property.
+	excludedModelsList := []any{}
+	if excludedModelsData, ok := source.Properties["excludedModels"]; ok {
+		if l, ok := excludedModelsData.([]any); ok {
+			excludedModelsList = l
+		} else {
+			return nil, fmt.Errorf("'excludedModels' property should be a list")
+		}
+	}
+
+	p := &yamlCatalogImpl{
+		models: make(map[string]*yamlModel),
+	}
+	err = p.load(yamlModelFile, excludedModelsList)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +228,7 @@ func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) 
 		for range changes {
 			glog.Infof("Reloading YAML catalog %s", yamlModelFile)
 
-			err = p.load(yamlModelFile)
+			err = p.load(yamlModelFile, excludedModelsList)
 			if err != nil {
 				glog.Errorf("unable to load YAML catalog: %v", err)
 			}

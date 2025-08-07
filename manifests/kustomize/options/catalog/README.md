@@ -32,6 +32,8 @@ The `yaml` type sources model metadata from a local YAML file.
 ##### Properties
 
 - **`yamlCatalogPath`** (*string*, required): The path to the YAML file containing the model definitions. This path is relative to the directory where the `sources.yaml` file is located.
+- **`excludedModels`** (*list*, optional): A list of models to exclude from the catalog. Each entry in the list must contain a `repository` field.
+  - **`repository`** (*string*, required): The model to exclude. This can be an exact name with a tag (e.g., `model-a:1.0`) or a pattern ending with `*` to exclude all tags for a repository (e.g., `model-b:*`).
 
 ##### Example
 
@@ -43,6 +45,9 @@ catalogs:
     enabled: true
     properties:
       yamlCatalogPath: sample-catalog.yaml
+      excludedModels:
+      - repository: model-a:1.0
+      - repository: model-b:*
 ```
 
 #### `rhec`
@@ -68,6 +73,6 @@ catalogs:
       models:
       - repository: rhelai1/modelcar-granite-7b-starter
       excludedModels:
-      - repository: rhelai1/modelcar-granite-7b-starter:v1
-      - repository: rhelai1/some-other-model:*
+      - repository: rhelai1/modelcar-granite-7b-starter:v0
+      - repository: rhelai1/modelcar-granite-*
 ```
