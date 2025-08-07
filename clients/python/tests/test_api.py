@@ -1,3 +1,4 @@
+import logging
 import secrets
 import time
 from typing import Any, Callable
@@ -161,8 +162,8 @@ def cleanup_experiment_and_run(auth_headers: dict[str, str], experiment_id: str,
             headers=auth_headers,
             timeout=DEFAULT_API_TIMEOUT
         )
-    except Exception:
-        pass  # Best effort cleanup
+    except Exception as e:
+        logging.warning(f"Failed to cleanup experiment (id={experiment_id}) and/or experiment run (id={experiment_run_id}): {e}")
 
 
 schema = schemathesis.pytest.from_fixture("generated_schema")
