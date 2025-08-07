@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { NotFound, NavDataItem, useModularArchContext, DeploymentMode } from 'mod-arch-shared';
+import { NotFound } from 'mod-arch-shared';
+import { useModularArchContext, DeploymentMode } from 'mod-arch-core';
+import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogPage from './pages/modelCatalog/screens/ModelCatalogPage';
