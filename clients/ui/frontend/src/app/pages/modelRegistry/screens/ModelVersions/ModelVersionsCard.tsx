@@ -71,7 +71,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                       }
                       variant="link"
                     >
-                      <Truncate content={mv.name} />
+                      <Truncate content={mv.name} style={{ textDecoration: 'underline' }} />
                     </Button>
                   </FlexItem>
                   <FlexItem>
