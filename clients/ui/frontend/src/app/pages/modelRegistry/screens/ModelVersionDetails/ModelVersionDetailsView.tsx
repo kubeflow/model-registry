@@ -258,14 +258,14 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             {mv.author}
           </DashboardDescriptionListGroup>
           <DashboardDescriptionListGroup
-            title="Last modified at"
+            title="Last modified"
             isEmpty={!mv.lastUpdateTimeSinceEpoch}
             contentWhenEmpty="Unknown"
           >
             <ModelTimestamp timeSinceEpoch={mv.lastUpdateTimeSinceEpoch} />
           </DashboardDescriptionListGroup>
           <DashboardDescriptionListGroup
-            title="Registered"
+            title="Created"
             isEmpty={!mv.createTimeSinceEpoch}
             contentWhenEmpty="Unknown"
           >
