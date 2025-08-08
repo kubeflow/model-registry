@@ -1,14 +1,14 @@
+import { Button, Content, ContentVariants, FlexItem, Truncate } from '@patternfly/react-core';
+import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
-import { Button, Content, ContentVariants, FlexItem, Truncate } from '@patternfly/react-core';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
 import ModelLabels from '~/app/pages/modelRegistry/screens/components/ModelLabels';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
-import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
 import { RestoreRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
+import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
 import {
   archiveModelVersionDetailsUrl,
   modelVersionUrl,
@@ -16,7 +16,7 @@ import {
   registeredModelArchiveUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
+import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
@@ -105,7 +105,7 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
         <div id="model-name" data-testid="model-name">
           <FlexItem>
             <Button variant="link" isInline onClick={() => handleModelNameNavigation(rm.id)}>
-              <Truncate content={rm.name} style={{ textDecoration: 'underline' }} />
+              <Truncate content={rm.name} />
             </Button>
           </FlexItem>
         </div>
@@ -124,10 +124,7 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
                 isInline
                 onClick={() => handleVersionNameNavigation(latestModelVersion)}
               >
-                <Truncate
-                  content={latestModelVersion.name}
-                  style={{ textDecoration: 'underline' }}
-                />
+                <Truncate content={latestModelVersion.name} />
               </Button>
             </FlexItem>
           </div>
