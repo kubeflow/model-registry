@@ -14,9 +14,15 @@ type MLMDTypeNamesConfig struct {
 	ModelVersionTypeName       string
 	ModelArtifactTypeName      string
 	DocArtifactTypeName        string
+	DataSetTypeName            string
+	MetricTypeName             string
+	MetricHistoryTypeName      string
+	ParameterTypeName          string
 	ServingEnvironmentTypeName string
 	InferenceServiceTypeName   string
 	ServeModelTypeName         string
+	ExperimentTypeName         string
+	ExperimentRunTypeName      string
 	CanAddFields               bool
 }
 
@@ -26,9 +32,15 @@ func NewMLMDTypeNamesConfigFromDefaults() MLMDTypeNamesConfig {
 		ModelVersionTypeName:       defaults.ModelVersionTypeName,
 		ModelArtifactTypeName:      defaults.ModelArtifactTypeName,
 		DocArtifactTypeName:        defaults.DocArtifactTypeName,
+		DataSetTypeName:            defaults.DataSetTypeName,
+		MetricTypeName:             defaults.MetricTypeName,
+		MetricHistoryTypeName:      defaults.MetricHistoryTypeName,
+		ParameterTypeName:          defaults.ParameterTypeName,
 		ServingEnvironmentTypeName: defaults.ServingEnvironmentTypeName,
 		InferenceServiceTypeName:   defaults.InferenceServiceTypeName,
 		ServeModelTypeName:         defaults.ServeModelTypeName,
+		ExperimentTypeName:         defaults.ExperimentTypeName,
+		ExperimentRunTypeName:      defaults.ExperimentRunTypeName,
 		CanAddFields:               true,
 	}
 }
@@ -103,6 +115,59 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		},
 	}
 
+	dataSetReq := proto.PutArtifactTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: &nameConfig.DataSetTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"digest":      proto.PropertyType_STRING,
+				"source_type": proto.PropertyType_STRING,
+				"source":      proto.PropertyType_STRING,
+				"schema":      proto.PropertyType_STRING,
+				"profile":     proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	metricArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: &nameConfig.MetricTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"value":       proto.PropertyType_DOUBLE,
+				"timestamp":   proto.PropertyType_STRING,
+				"step":        proto.PropertyType_INT,
+			},
+		},
+	}
+
+	metricHistoryArtifactReq := proto.PutArtifactTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: &nameConfig.MetricHistoryTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"value":       proto.PropertyType_DOUBLE,
+				"timestamp":   proto.PropertyType_STRING,
+				"step":        proto.PropertyType_INT,
+			},
+		},
+	}
+
+	parameterReq := proto.PutArtifactTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ArtifactType: &proto.ArtifactType{
+			Name: &nameConfig.ParameterTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description":    proto.PropertyType_STRING,
+				"value":          proto.PropertyType_STRING,
+				"parameter_type": proto.PropertyType_STRING,
+			},
+		},
+	}
+
 	servingEnvironmentReq := proto.PutContextTypeRequest{
 		CanAddFields: &nameConfig.CanAddFields,
 		ContextType: &proto.ContextType{
@@ -140,6 +205,33 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		},
 	}
 
+	experimentReq := proto.PutContextTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ContextType: &proto.ContextType{
+			Name: &nameConfig.ExperimentTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description": proto.PropertyType_STRING,
+				"owner":       proto.PropertyType_STRING,
+				"state":       proto.PropertyType_STRING,
+			},
+		},
+	}
+
+	experimentRunReq := proto.PutContextTypeRequest{
+		CanAddFields: &nameConfig.CanAddFields,
+		ContextType: &proto.ContextType{
+			Name: &nameConfig.ExperimentRunTypeName,
+			Properties: map[string]proto.PropertyType{
+				"description":            proto.PropertyType_STRING,
+				"owner":                  proto.PropertyType_STRING,
+				"state":                  proto.PropertyType_STRING,
+				"status":                 proto.PropertyType_STRING,
+				"start_time_since_epoch": proto.PropertyType_STRING,
+				"end_time_since_epoch":   proto.PropertyType_STRING,
+			},
+		},
+	}
+
 	registeredModelResp, err := client.PutContextType(context.Background(), &registeredModelReq)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.RegisteredModelTypeName, err)
@@ -160,6 +252,26 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.ModelArtifactTypeName, err)
 	}
 
+	dataSetResp, err := client.PutArtifactType(context.Background(), &dataSetReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.DataSetTypeName, err)
+	}
+
+	metricArtifactResp, err := client.PutArtifactType(context.Background(), &metricArtifactReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.MetricTypeName, err)
+	}
+
+	metricHistoryArtifactResp, err := client.PutArtifactType(context.Background(), &metricHistoryArtifactReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.MetricHistoryTypeName, err)
+	}
+
+	parameterResp, err := client.PutArtifactType(context.Background(), &parameterReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up artifact type %s: %w", nameConfig.ParameterTypeName, err)
+	}
+
 	servingEnvironmentResp, err := client.PutContextType(context.Background(), &servingEnvironmentReq)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ServingEnvironmentTypeName, err)
@@ -175,14 +287,30 @@ func CreateMLMDTypes(cc grpc.ClientConnInterface, nameConfig MLMDTypeNamesConfig
 		return nil, fmt.Errorf("error setting up execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
+	experimentResp, err := client.PutContextType(context.Background(), &experimentReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ExperimentTypeName, err)
+	}
+
+	experimentRunResp, err := client.PutContextType(context.Background(), &experimentRunReq)
+	if err != nil {
+		return nil, fmt.Errorf("error setting up context type %s: %w", nameConfig.ExperimentRunTypeName, err)
+	}
+
 	typesMap := map[string]int64{
 		defaults.RegisteredModelTypeName:    registeredModelResp.GetTypeId(),
 		defaults.ModelVersionTypeName:       modelVersionResp.GetTypeId(),
 		defaults.DocArtifactTypeName:        docArtifactResp.GetTypeId(),
 		defaults.ModelArtifactTypeName:      modelArtifactResp.GetTypeId(),
+		defaults.DataSetTypeName:            dataSetResp.GetTypeId(),
+		defaults.MetricTypeName:             metricArtifactResp.GetTypeId(),
+		defaults.MetricHistoryTypeName:      metricHistoryArtifactResp.GetTypeId(),
+		defaults.ParameterTypeName:          parameterResp.GetTypeId(),
 		defaults.ServingEnvironmentTypeName: servingEnvironmentResp.GetTypeId(),
 		defaults.InferenceServiceTypeName:   inferenceServiceResp.GetTypeId(),
 		defaults.ServeModelTypeName:         serveModelResp.GetTypeId(),
+		defaults.ExperimentTypeName:         experimentResp.GetTypeId(),
+		defaults.ExperimentRunTypeName:      experimentRunResp.GetTypeId(),
 	}
 	return typesMap, nil
 }

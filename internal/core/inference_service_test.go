@@ -13,7 +13,8 @@ import (
 )
 
 func TestUpsertInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		// Create prerequisites: registered model and serving environment
@@ -485,7 +486,8 @@ func TestUpsertInferenceService(t *testing.T) {
 }
 
 func TestGetInferenceServiceById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create prerequisites
@@ -545,7 +547,8 @@ func TestGetInferenceServiceById(t *testing.T) {
 }
 
 func TestGetInferenceServiceByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name and parent resource id", func(t *testing.T) {
 		// Create prerequisites
@@ -621,6 +624,71 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid parameters call")
 	})
 
+	t.Run("same inference service name across different serving environments", func(t *testing.T) {
+		// This test catches the bug where ParentResourceID was not being used to filter inference services
+
+		// Create first serving environment
+		servingEnv1 := &openapi.ServingEnvironment{
+			Name: "serving-env-with-shared-service-1",
+		}
+		createdEnv1, err := _service.UpsertServingEnvironment(servingEnv1)
+		require.NoError(t, err)
+
+		// Create second serving environment
+		servingEnv2 := &openapi.ServingEnvironment{
+			Name: "serving-env-with-shared-service-2",
+		}
+		createdEnv2, err := _service.UpsertServingEnvironment(servingEnv2)
+		require.NoError(t, err)
+
+		// Create registered model for the services
+		registeredModel := &openapi.RegisteredModel{
+			Name: "model-for-shared-services",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		// Create inference service "shared-service-name-test" for the first environment
+		service1 := &openapi.InferenceService{
+			Name:                 apiutils.Of("shared-service-name-test"),
+			ServingEnvironmentId: *createdEnv1.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Description:          apiutils.Of("Service for environment 1"),
+		}
+		createdService1, err := _service.UpsertInferenceService(service1)
+		require.NoError(t, err)
+
+		// Create inference service "shared-service-name-test" for the second environment
+		service2 := &openapi.InferenceService{
+			Name:                 apiutils.Of("shared-service-name-test"),
+			ServingEnvironmentId: *createdEnv2.Id,
+			RegisteredModelId:    *createdModel.Id,
+			Description:          apiutils.Of("Service for environment 2"),
+		}
+		createdService2, err := _service.UpsertInferenceService(service2)
+		require.NoError(t, err)
+
+		// Query for service "shared-service-name-test" of the first environment
+		serviceName := "shared-service-name-test"
+		result1, err := _service.GetInferenceServiceByParams(&serviceName, createdEnv1.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result1)
+		assert.Equal(t, *createdService1.Id, *result1.Id)
+		assert.Equal(t, *createdEnv1.Id, result1.ServingEnvironmentId)
+		assert.Equal(t, "Service for environment 1", *result1.Description)
+
+		// Query for service "shared-service-name-test" of the second environment
+		result2, err := _service.GetInferenceServiceByParams(&serviceName, createdEnv2.Id, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result2)
+		assert.Equal(t, *createdService2.Id, *result2.Id)
+		assert.Equal(t, *createdEnv2.Id, result2.ServingEnvironmentId)
+		assert.Equal(t, "Service for environment 2", *result2.Description)
+
+		// Ensure we got different services
+		assert.NotEqual(t, *result1.Id, *result2.Id)
+	})
+
 	t.Run("no inference service found", func(t *testing.T) {
 		serviceName := "nonexistent-inference-service"
 		parentResourceId := "999"
@@ -633,7 +701,8 @@ func TestGetInferenceServiceByParams(t *testing.T) {
 }
 
 func TestGetInferenceServices(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create prerequisites
@@ -881,7 +950,8 @@ func TestGetInferenceServices(t *testing.T) {
 }
 
 func TestInferenceServiceRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create prerequisites

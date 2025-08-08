@@ -13,7 +13,7 @@ import (
 // SERVING ENVIRONMENT
 
 func (suite *CoreTestSuite) TestCreateServingEnvironment() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -55,7 +55,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironment() {
 }
 
 func (suite *CoreTestSuite) TestCreateServingEnvironmentEmptyFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// use a ServingEnvironment with no params
@@ -69,7 +69,7 @@ func (suite *CoreTestSuite) TestCreateServingEnvironmentEmptyFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateServingEnvironmentFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -97,7 +97,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateServingEnvironmentFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -180,7 +180,7 @@ func (suite *CoreTestSuite) TestUpdateServingEnvironment() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new entity
@@ -210,7 +210,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentById() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.GetServingEnvironmentByParams(apiutils.Of("not-present"), nil)
@@ -219,7 +219,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -238,7 +238,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsName() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsInvalid() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	eut := &openapi.ServingEnvironment{
@@ -259,7 +259,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -278,7 +278,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	// register a new ServingEnvironment
@@ -296,7 +296,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "ID"
@@ -348,7 +348,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedById() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedByLastUpdate() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	orderBy := "LAST_UPDATE_TIME"
@@ -405,7 +405,7 @@ func (suite *CoreTestSuite) TestGetServingEnvironmentsOrderedByLastUpdate() {
 }
 
 func (suite *CoreTestSuite) TestGetServingEnvironmentsWithPageSize() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	pageSize := int32(1)

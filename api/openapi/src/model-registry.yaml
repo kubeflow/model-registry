@@ -45,6 +45,8 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -182,6 +184,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -318,6 +321,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
@@ -436,6 +440,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -571,6 +576,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -677,8 +683,10 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -765,6 +773,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -871,6 +880,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -956,6 +966,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -1060,6 +1071,7 @@ paths:
       tags:
         - ModelRegistryService
       parameters:
+        - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/externalId"
         - $ref: "#/components/parameters/pageSize"
@@ -1115,28 +1127,469 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_registry/v1alpha3/experiment:
+    summary: Path used to search for an experiment.
+    description: >-
+      The REST endpoint/path used to search for an `Experiment` entity.  This path contains a `GET` operation to perform the find task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: findExperiment
+      summary: Get an Experiment that matches search parameters.
+      description: Gets the details of a single instance of an `Experiment` that matches search parameters.
+    parameters:
+      - $ref: "#/components/parameters/name"
+      - $ref: "#/components/parameters/externalId"
+  /api/model_registry/v1alpha3/experiments:
+    summary: Path used to manage the list of experiments.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Experiment` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperiments
+      summary: List All Experiments
+      description: Gets a list of all `Experiment` entities.
+    post:
+      requestBody:
+        description: A new `Experiment` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentCreate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "201":
+          $ref: "#/components/responses/ExperimentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: createExperiment
+      summary: Create an Experiment
+      description: Creates a new instance of an `Experiment`.
+  "/api/model_registry/v1alpha3/experiments/{experimentId}":
+    summary: Path used to manage a single Experiment.
+    description: >-
+      The REST endpoint/path used to get and update single instances of an `Experiment`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperiment
+      summary: Get an Experiment
+      description: Gets the details of a single instance of an `Experiment`.
+    patch:
+      requestBody:
+        description: Updated `Experiment` information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentUpdate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: updateExperiment
+      summary: Update an Experiment
+      description: Updates an existing `Experiment`.
+    parameters:
+      - name: experimentId
+        description: A unique identifier for an `Experiment`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs":
+    summary: Path used to manage the list of experiment runs for an experiment.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `ExperimentRun` entities for an `Experiment`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentRunListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentExperimentRuns
+      summary: List All Experiment's ExperimentRuns
+      description: Gets a list of all `ExperimentRun` entities for the `Experiment`.
+    post:
+      requestBody:
+        description: A new `ExperimentRun` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentRun"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "201":
+          $ref: "#/components/responses/ExperimentRunResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: createExperimentExperimentRun
+      summary: Create an ExperimentRun in Experiment
+      description: Creates a new instance of an `ExperimentRun`.
+    parameters:
+      - name: experimentId
+        description: A unique identifier for an `Experiment`.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_registry/v1alpha3/experiment_run:
+    summary: Path used to search for an experiment run.
+    description: >-
+      The REST endpoint/path used to search for an `ExperimentRun` entity.  This path contains a `GET` operation to perform the find task.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentRunResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: findExperimentRun
+      summary: Get an ExperimentRun that matches search parameters.
+      description: Gets the details of a single instance of an `ExperimentRun` that matches search parameters.
+    parameters:
+      - $ref: "#/components/parameters/name"
+      - $ref: "#/components/parameters/externalId"
+      - $ref: "#/components/parameters/parentResourceId"
+  /api/model_registry/v1alpha3/experiment_runs:
+    summary: Path used to manage the list of experiment runs.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `ExperimentRun` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentRunListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRuns
+      summary: List All ExperimentRuns
+      description: Gets a list of all `ExperimentRun` entities.
+    post:
+      requestBody:
+        description: A new `ExperimentRun` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentRunCreate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "201":
+          $ref: "#/components/responses/ExperimentRunResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: createExperimentRun
+      summary: Create an ExperimentRun
+      description: Creates a new instance of an `ExperimentRun`.
+  "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}":
+    summary: Path used to manage a single ExperimentRun.
+    description: >-
+      The REST endpoint/path used to get and update single instances of an `ExperimentRun`. This path contains `GET` and `PATCH` operations used to perform the get and update tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentRunResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRun
+      summary: Get an ExperimentRun
+      description: Gets the details of a single instance of an `ExperimentRun`.
+    patch:
+      requestBody:
+        description: Updated `ExperimentRun` information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentRunUpdate"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ExperimentRunResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: updateExperimentRun
+      summary: Update an ExperimentRun
+      description: Updates an existing `ExperimentRun`.
+    parameters:
+      - name: experimentrunId
+        description: A unique identifier for an `ExperimentRun`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts":
+    summary: Path used to manage the list of artifacts for an experiment run.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Artifact` entities for an `ExperimentRun`.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/externalId"
+        - $ref: "#/components/parameters/artifactType"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRunArtifacts
+      summary: List all artifacts associated with the `ExperimentRun`
+    post:
+      requestBody:
+        description: A new or existing `Artifact` to be associated with the `ExperimentRun`.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Artifact"
+        required: true
+      tags:
+        - ModelRegistryService
+      responses:
+        "200":
+          $ref: "#/components/responses/ArtifactResponse"
+        "201":
+          $ref: "#/components/responses/ArtifactResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: upsertExperimentRunArtifact
+      summary: Upsert an Artifact in an ExperimentRun
+      description: Creates a new instance of an Artifact if needed and associates it with `ExperimentRun`.
+    parameters:
+      - name: experimentrunId
+        description: A unique identifier for an `ExperimentRun`.
+        schema:
+          type: string
+        in: path
+        required: true
+  "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history":
+    summary: Path used to get metric history for an experiment run.
+    description: >-
+      The REST endpoint/path used to get metric history for an `ExperimentRun`. This path contains a `GET` operation to retrieve metrics with optional filtering by name and step IDs.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/stepIds"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRunMetricHistory
+      summary: Get metric history for an ExperimentRun
+      description: Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+    parameters:
+      - name: experimentrunId
+        description: A unique identifier for an `ExperimentRun`.
+        schema:
+          type: string
+        in: path
+        required: true
 components:
   schemas:
     Artifact:
       oneOf:
         - $ref: "#/components/schemas/ModelArtifact"
         - $ref: "#/components/schemas/DocArtifact"
+        - $ref: "#/components/schemas/DataSet"
+        - $ref: "#/components/schemas/Metric"
+        - $ref: "#/components/schemas/Parameter"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifact"
           doc-artifact: "#/components/schemas/DocArtifact"
+          dataset-artifact: "#/components/schemas/DataSet"
+          metric: "#/components/schemas/Metric"
+          parameter: "#/components/schemas/Parameter"
       description: A metadata Artifact Entity.
     ArtifactCreate:
       description: An Artifact to be created.
       oneOf:
         - $ref: "#/components/schemas/ModelArtifactCreate"
         - $ref: "#/components/schemas/DocArtifactCreate"
+        - $ref: "#/components/schemas/DataSetCreate"
+        - $ref: "#/components/schemas/MetricCreate"
+        - $ref: "#/components/schemas/ParameterCreate"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactCreate"
           doc-artifact: "#/components/schemas/DocArtifactCreate"
+          dataset-artifact: "#/components/schemas/DataSetCreate"
+          metric: "#/components/schemas/MetricCreate"
+          parameter: "#/components/schemas/ParameterCreate"
     ArtifactList:
       description: A list of Artifact entities.
       allOf:
@@ -1183,11 +1636,17 @@ components:
       oneOf:
         - $ref: "#/components/schemas/ModelArtifactUpdate"
         - $ref: "#/components/schemas/DocArtifactUpdate"
+        - $ref: "#/components/schemas/DataSetUpdate"
+        - $ref: "#/components/schemas/MetricUpdate"
+        - $ref: "#/components/schemas/ParameterUpdate"
       discriminator:
         propertyName: artifactType
         mapping:
           model-artifact: "#/components/schemas/ModelArtifactUpdate"
           doc-artifact: "#/components/schemas/DocArtifactUpdate"
+          dataset-artifact: "#/components/schemas/DataSetUpdate"
+          metric: "#/components/schemas/MetricUpdate"
+          parameter: "#/components/schemas/ParameterUpdate"
     BaseResource:
       allOf:
         - type: object
@@ -1203,7 +1662,7 @@ components:
               type: string
             externalId:
               description: |-
-                The external id that come from the clients' system. This field is optional.
+                The external id that come from the clients’ system. This field is optional.
                 If set, it must be unique among all resources within a database instance.
               type: string
             name:
@@ -1291,6 +1750,150 @@ components:
                 The uniform resource identifier of the physical artifact.
                 May be empty if there is no physical artifact.
               type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    DataSet:
+      description: A dataset artifact representing training or test data.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/DataSetCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+    DataSetCreate:
+      description: A dataset artifact to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/DataSetUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+    DataSetUpdate:
+      description: A dataset artifact to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "dataset-artifact"
+            digest:
+              description: A unique hash or identifier for the dataset content.
+              type: string
+            sourceType:
+              description: The type of data source (e.g., "s3", "hdfs", "local", "database").
+              type: string
+            source:
+              description: The location or connection string for the dataset source.
+              type: string
+            schema:
+              description: JSON schema or description of the dataset structure.
+              type: string
+            profile:
+              description: Statistical profile or summary of the dataset.
+              type: string
+            uri:
+              description: |-
+                The uniform resource identifier of the physical dataset.
+                May be empty if there is no physical dataset.
+              type: string
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    Metric:
+      description: A metric representing a numerical measurement from model training or evaluation.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/MetricCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+    MetricCreate:
+      description: A metric to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/MetricUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+            name:
+              description: The name/key of the metric (e.g., "accuracy", "loss", "f1_score").
+              type: string
+    MetricUpdate:
+      description: A metric to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "metric"
+            value:
+              description: The numeric value of the metric.
+              type: number
+              format: double
+            timestamp:
+              description: Unix timestamp in milliseconds when the metric was recorded.
+              type: string
+              format: int64
+            step:
+              description: The step number for multi-step metrics (e.g., training epochs).
+              type: integer
+              format: int64
+            state:
+              $ref: "#/components/schemas/ArtifactState"
+    Parameter:
+      description: A parameter representing a configuration parameter used in model training or execution.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ParameterCreate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+    ParameterCreate:
+      description: A parameter to be created.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ParameterUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+            name:
+              description: The name/key of the parameter (e.g., "learning_rate", "batch_size", "epochs").
+              type: string
+    ParameterType:
+      description: The data type of the parameter (e.g., "string", "number", "boolean", "object").
+      enum:
+        - string
+        - number
+        - boolean
+        - object
+    ParameterUpdate:
+      description: A parameter to be updated.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            artifactType:
+              type: string
+              default: "parameter"
+            value:
+              description: The value of the parameter.
+              type: string
+            parameterType:
+              $ref: "#/components/schemas/ParameterType"
+              default: "string"
             state:
               $ref: "#/components/schemas/ArtifactState"
     ExecutionState:
@@ -1410,6 +2013,19 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    MetricList:
+      description: List of Metric entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `Metric` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/Metric"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     ModelArtifactUpdate:
       description: An ML model artifact to be updated.
       allOf:
@@ -1517,13 +2133,6 @@ components:
             author:
               description: Name of the author.
               type: string
-    OrderByField:
-      description: Supported fields for ordering result entities.
-      enum:
-        - CREATE_TIME
-        - LAST_UPDATE_TIME
-        - ID
-      type: string
     RegisteredModel:
       description: A registered model in model registry. A registered model has ModelVersion children.
       allOf:
@@ -1650,6 +2259,151 @@ components:
       description: A Model Serving environment for serving `RegisteredModels`.
       allOf:
         - $ref: "#/components/schemas/BaseResourceUpdate"
+    Experiment:
+      description: An experiment in model registry. An experiment has ExperimentRun children.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/ExperimentCreate"
+    ExperimentCreate:
+      description: An experiment in model registry. An experiment has ExperimentRun children.
+      required:
+        - name
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ExperimentUpdate"
+        - type: object
+          properties:
+            name:
+              description: |-
+                The client provided name of the experiment. It must be unique among all the Experiments of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
+    ExperimentList:
+      description: List of Experiments.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: ""
+              type: array
+              items:
+                $ref: "#/components/schemas/Experiment"
+              readOnly: false
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    ExperimentState:
+      description: |-
+        - LIVE: A state indicating that the `Experiment` exists
+        - ARCHIVED: A state indicating that the `Experiment` has been archived.
+      default: LIVE
+      enum:
+        - LIVE
+        - ARCHIVED
+      type: string
+    ExperimentUpdate:
+      description: An experiment in model registry. An experiment has ExperimentRun children.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            owner:
+              type: string
+            state:
+              $ref: "#/components/schemas/ExperimentState"
+    ExperimentRun:
+      description: Represents an ExperimentRun belonging to an Experiment.
+      allOf:
+        - $ref: "#/components/schemas/ExperimentRunCreate"
+        - $ref: "#/components/schemas/BaseResource"
+    ExperimentRunCreate:
+      description: Represents an ExperimentRun belonging to an Experiment.
+      required:
+        - experimentId
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceCreate"
+        - $ref: "#/components/schemas/ExperimentRunUpdate"
+        - type: object
+          properties:
+            experimentId:
+              description: ID of the `Experiment` to which this experiment run belongs.
+              type: string
+            startTimeSinceEpoch:
+              description: |-
+                Start time of the experiment run in milliseconds since epoch.
+                Different from createTimeSinceEpoch, which is registry resource creation time.
+              format: int64
+              type: string
+            name:
+              description: |-
+                The client provided name of the experiment run. It must be unique among all the ExperimentRuns of the same
+                type within a Model Registry instance and cannot be changed once set.
+              type: string
+    ExperimentRunList:
+      description: List of ExperimentRun entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `ExperimentRun` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/ExperimentRun"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    ExperimentRunState:
+      description: |-
+        - LIVE: A state indicating that the `ExperimentRun` exists
+        - ARCHIVED: A state indicating that the `ExperimentRun` has been archived.
+      default: LIVE
+      enum:
+        - LIVE
+        - ARCHIVED
+      type: string
+    ExperimentRunStatus:
+      description: |-
+        The state of the Experiment Run. The state transitions are
+          [SCHEDULED ->] RUNNING -> FINISHED | FAILED | KILLED
+        RUNNING: Run has been initiated.
+        SCHEDULED: Run is scheduled to run at a later time.
+        FINISHED: Run has completed.
+        FAILED: Run execution failed.
+        KILLED: Run killed by user.
+      default: RUNNING
+      enum:
+        - RUNNING
+        - SCHEDULED
+        - FINISHED
+        - FAILED
+        - KILLED
+      type: string
+    ExperimentRunUpdate:
+      description: Represents an ExperimentRun belonging to an Experiment.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceUpdate"
+        - type: object
+          properties:
+            endTimeSinceEpoch:
+              description: |-
+                End time of the actual experiment run in milliseconds since epoch.
+                Different from lastUpdateTimeSinceEpoch, which is registry resource update time.
+              format: int64
+              type: string
+            status:
+              $ref: "#/components/schemas/ExperimentRunStatus"
+            state:
+              $ref: "#/components/schemas/ExperimentRunState"
+            owner:
+              description: Experiment run owner id or name.
+              type: string
+    OrderByField:
+      description: Supported fields for ordering result entities.
+      enum:
+        - CREATE_TIME
+        - LAST_UPDATE_TIME
+        - ID
+      type: string
   responses:
     ArtifactListResponse:
       content:
@@ -1736,6 +2490,12 @@ components:
           $ref: '#/components/links/SearchModelArtifactByName'
         SearchModelArtifactByParentResourceId:
           $ref: '#/components/links/SearchModelArtifactByParentResourceId'
+    MetricListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetricList"
+      description: A response containing a list of Metric entities.
     ModelArtifactResponse:
       content:
         application/json:
@@ -1855,6 +2615,66 @@ components:
           $ref: '#/components/links/SearchServingEnvironmentByExternalId'
         SearchServingEnvironmentByName:
           $ref: '#/components/links/SearchServingEnvironmentByName'
+    ExperimentListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ExperimentList"
+      description: A response containing a list of `Experiment` entities.
+      links:
+        GetExperimentById:
+          $ref: '#/components/links/GetExperimentById'
+        PatchExperimentById:
+          $ref: '#/components/links/PatchExperimentById'
+        SearchExperimentByExternalId:
+          $ref: '#/components/links/SearchExperimentByExternalId'
+        SearchExperimentByName:
+          $ref: '#/components/links/SearchExperimentByName'
+    ExperimentResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Experiment"
+      description: A response containing an `Experiment` entity.
+      links:
+        GetExperimentById:
+          $ref: '#/components/links/GetExperimentById'
+        PatchExperimentById:
+          $ref: '#/components/links/PatchExperimentById'
+        SearchExperimentByExternalId:
+          $ref: '#/components/links/SearchExperimentByExternalId'
+        SearchExperimentByName:
+          $ref: '#/components/links/SearchExperimentByName'
+    ExperimentRunListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ExperimentRunList"
+      description: A response containing a list of `ExperimentRun` entities.
+      links:
+        GetExperimentRunById:
+          $ref: '#/components/links/GetExperimentRunById'
+        PatchExperimentRunById:
+          $ref: '#/components/links/PatchExperimentRunById'
+        SearchExperimentRunByExternalId:
+          $ref: '#/components/links/SearchExperimentRunByExternalId'
+        SearchExperimentRunByName:
+          $ref: '#/components/links/SearchExperimentRunByName'
+    ExperimentRunResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ExperimentRun"
+      description: A response containing an `ExperimentRun` entity.
+      links:
+        GetExperimentRunById:
+          $ref: '#/components/links/GetExperimentRunById'
+        PatchExperimentRunById:
+          $ref: '#/components/links/PatchExperimentRunById'
+        SearchExperimentRunByExternalId:
+          $ref: '#/components/links/SearchExperimentRunByExternalId'
+        SearchExperimentRunByName:
+          $ref: '#/components/links/SearchExperimentRunByName'
   parameters:
     orderBy:
       style: form
@@ -2069,6 +2889,64 @@ components:
         The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/serving_environment`.
 
       #What about ServeModel?
+    # Experiment
+    GetExperimentById:
+      operationId: getExperiment
+      parameters:
+        experimentId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `experimentId` parameter in `GET /api/model_registry/v1alpha3/experiments/{experimentId}`.
+
+    PatchExperimentById:
+      operationId: updateExperiment
+      parameters:
+        experimentId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `experimentId` parameter in `PATCH /api/model_registry/v1alpha3/experiments/{experimentId}`.
+
+    SearchExperimentByExternalId:
+      operationId: findExperiment
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/experiment`.
+
+    SearchExperimentByName:
+      operationId: findExperiment
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/experiment`.
+
+    # ExperimentRun
+    GetExperimentRunById:
+      operationId: getExperimentRun
+      parameters:
+        experimentrunId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `experimentrunId` parameter in `GET /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}`.
+
+    PatchExperimentRunById:
+      operationId: updateExperimentRun
+      parameters:
+        experimentrunId: "$response.body#/id"
+      description: >
+        The `id` value returned in the response can be used as the `experimentrunId` parameter in `PATCH /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}`.
+
+    SearchExperimentRunByExternalId:
+      operationId: findExperimentRun
+      parameters:
+        externalId: "$response.body#/externalId"
+      description: >
+        The `externalId` value returned in the response can be used as the `externalId` parameter in `GET /api/model_registry/v1alpha3/experiment_run`.
+
+    SearchExperimentRunByName:
+      operationId: findExperimentRun
+      parameters:
+        name: "$response.body#/name"
+      description: >
+        The `name` value returned in the response can be used as the `name` parameter in `GET /api/model_registry/v1alpha3/experiment_run`.
+
 tags:
   - name: ModelRegistryService
     description: Model Registry Service REST API

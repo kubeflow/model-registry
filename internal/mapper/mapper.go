@@ -47,43 +47,76 @@ func (m *Mapper) MapFromModelVersion(modelVersion *openapi.ModelVersion, registe
 	})
 }
 
-func (m *Mapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact, modelVersionId *string) (*proto.Artifact, error) {
+func (m *Mapper) MapFromModelArtifact(modelArtifact *openapi.ModelArtifact, parentResourceId *string) (*proto.Artifact, error) {
 	return m.OpenAPIConverter.ConvertModelArtifact(&converter.OpenAPIModelWrapper[openapi.ModelArtifact]{
 		TypeId:           m.MLMDTypes[defaults.ModelArtifactTypeName],
 		Model:            modelArtifact,
-		ParentResourceId: modelVersionId,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (m *Mapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact, modelVersionId *string) (*proto.Artifact, error) {
+func (m *Mapper) MapFromDocArtifact(docArtifact *openapi.DocArtifact, parentResourceId *string) (*proto.Artifact, error) {
 	return m.OpenAPIConverter.ConvertDocArtifact(&converter.OpenAPIModelWrapper[openapi.DocArtifact]{
 		TypeId:           m.MLMDTypes[defaults.DocArtifactTypeName],
 		Model:            docArtifact,
-		ParentResourceId: modelVersionId,
+		ParentResourceId: parentResourceId,
 	})
 }
 
-func (m *Mapper) MapFromArtifact(artifact *openapi.Artifact, modelVersionId *string) (*proto.Artifact, error) {
+func (m *Mapper) MapFromDataSet(dataSet *openapi.DataSet, parentResourceId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertDataSet(&converter.OpenAPIModelWrapper[openapi.DataSet]{
+		TypeId:           m.MLMDTypes[defaults.DataSetTypeName],
+		Model:            dataSet,
+		ParentResourceId: parentResourceId,
+	})
+}
+
+func (m *Mapper) MapFromMetricArtifact(metric *openapi.Metric, parentResourceId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertMetric(&converter.OpenAPIModelWrapper[openapi.Metric]{
+		TypeId:           m.MLMDTypes[defaults.MetricTypeName],
+		Model:            metric,
+		ParentResourceId: parentResourceId,
+	})
+}
+
+func (m *Mapper) MapFromParameter(parameter *openapi.Parameter, parentResourceId *string) (*proto.Artifact, error) {
+	return m.OpenAPIConverter.ConvertParameter(&converter.OpenAPIModelWrapper[openapi.Parameter]{
+		TypeId:           m.MLMDTypes[defaults.ParameterTypeName],
+		Model:            parameter,
+		ParentResourceId: parentResourceId,
+	})
+}
+
+func (m *Mapper) MapFromArtifact(artifact *openapi.Artifact, parentResourceId *string) (*proto.Artifact, error) {
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, can't map from nil")
 	}
 	if artifact.ModelArtifact != nil {
-		return m.MapFromModelArtifact(artifact.ModelArtifact, modelVersionId)
+		return m.MapFromModelArtifact(artifact.ModelArtifact, parentResourceId)
 	}
 	if artifact.DocArtifact != nil {
-		return m.MapFromDocArtifact(artifact.DocArtifact, modelVersionId)
+		return m.MapFromDocArtifact(artifact.DocArtifact, parentResourceId)
+	}
+	if artifact.DataSet != nil {
+		return m.MapFromDataSet(artifact.DataSet, parentResourceId)
+	}
+	if artifact.Metric != nil {
+		return m.MapFromMetricArtifact(artifact.Metric, parentResourceId)
+	}
+	if artifact.Parameter != nil {
+		return m.MapFromParameter(artifact.Parameter, parentResourceId)
 	}
 	// TODO: print type on error
 	return nil, fmt.Errorf("unknown artifact type")
 }
 
-func (m *Mapper) MapFromModelArtifacts(modelArtifacts []openapi.ModelArtifact, modelVersionId *string) ([]*proto.Artifact, error) {
+func (m *Mapper) MapFromModelArtifacts(modelArtifacts []openapi.ModelArtifact, parentResourceId *string) ([]*proto.Artifact, error) {
 	artifacts := []*proto.Artifact{}
 	if modelArtifacts == nil {
 		return artifacts, nil
 	}
 	for _, a := range modelArtifacts {
-		mapped, err := m.MapFromModelArtifact(&a, modelVersionId)
+		mapped, err := m.MapFromModelArtifact(&a, parentResourceId)
 		if err != nil {
 			return nil, err
 		}
@@ -115,6 +148,21 @@ func (m *Mapper) MapFromServeModel(serveModel *openapi.ServeModel, inferenceServ
 	})
 }
 
+func (m *Mapper) MapFromExperiment(experiment *openapi.Experiment) (*proto.Context, error) {
+	return m.OpenAPIConverter.ConvertExperiment(&converter.OpenAPIModelWrapper[openapi.Experiment]{
+		TypeId: m.MLMDTypes[defaults.ExperimentTypeName],
+		Model:  experiment,
+	})
+}
+
+func (m *Mapper) MapFromExperimentRun(experimentRun *openapi.ExperimentRun, experimentId *string) (*proto.Context, error) {
+	return m.OpenAPIConverter.ConvertExperimentRun(&converter.OpenAPIModelWrapper[openapi.ExperimentRun]{
+		TypeId:           m.MLMDTypes[defaults.ExperimentRunTypeName],
+		Model:            experimentRun,
+		ParentResourceId: experimentId,
+	})
+}
+
 // Utilities for MLMD --> OpenAPI mapping, make use of generated Converters
 
 func (m *Mapper) MapToRegisteredModel(ctx *proto.Context) (*openapi.RegisteredModel, error) {
@@ -131,6 +179,22 @@ func (m *Mapper) MapToModelArtifact(art *proto.Artifact) (*openapi.ModelArtifact
 
 func (m *Mapper) MapToDocArtifact(art *proto.Artifact) (*openapi.DocArtifact, error) {
 	return mapTo(art, m.MLMDTypes, defaults.DocArtifactTypeName, m.MLMDConverter.ConvertDocArtifact)
+}
+
+func (m *Mapper) MapToDataSet(art *proto.Artifact) (*openapi.DataSet, error) {
+	return mapTo(art, m.MLMDTypes, defaults.DataSetTypeName, m.MLMDConverter.ConvertDataSet)
+}
+
+func (m *Mapper) MapToMetricArtifact(art *proto.Artifact) (*openapi.Metric, error) {
+	return mapTo(art, m.MLMDTypes, defaults.MetricTypeName, m.MLMDConverter.ConvertMetric)
+}
+
+func (m *Mapper) MapToMetricHistory(art *proto.Artifact) (*openapi.Metric, error) {
+	return mapTo(art, m.MLMDTypes, defaults.MetricHistoryTypeName, m.MLMDConverter.ConvertMetric)
+}
+
+func (m *Mapper) MapToParameter(art *proto.Artifact) (*openapi.Parameter, error) {
+	return mapTo(art, m.MLMDTypes, defaults.ParameterTypeName, m.MLMDConverter.ConvertParameter)
 }
 
 func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
@@ -151,6 +215,26 @@ func (m *Mapper) MapToArtifact(art *proto.Artifact) (*openapi.Artifact, error) {
 		return &openapi.Artifact{
 			DocArtifact: da,
 		}, err
+	case defaults.DataSetTypeName:
+		ds, err := m.MapToDataSet(art)
+		return &openapi.Artifact{
+			DataSet: ds,
+		}, err
+	case defaults.MetricTypeName:
+		mt, err := m.MapToMetricArtifact(art)
+		return &openapi.Artifact{
+			Metric: mt,
+		}, err
+	case defaults.MetricHistoryTypeName:
+		mt, err := m.MapToMetricHistory(art) // metric history is a special case, it also maps to a metric
+		return &openapi.Artifact{
+			Metric: mt,
+		}, err
+	case defaults.ParameterTypeName:
+		pm, err := m.MapToParameter(art)
+		return &openapi.Artifact{
+			Parameter: pm,
+		}, err
 	default:
 		return nil, fmt.Errorf("unknown artifact type: %s", art.GetType())
 	}
@@ -166,6 +250,14 @@ func (m *Mapper) MapToInferenceService(ctx *proto.Context) (*openapi.InferenceSe
 
 func (m *Mapper) MapToServeModel(ex *proto.Execution) (*openapi.ServeModel, error) {
 	return mapTo(ex, m.MLMDTypes, defaults.ServeModelTypeName, m.MLMDConverter.ConvertServeModel)
+}
+
+func (m *Mapper) MapToExperiment(ctx *proto.Context) (*openapi.Experiment, error) {
+	return mapTo(ctx, m.MLMDTypes, defaults.ExperimentTypeName, m.MLMDConverter.ConvertExperiment)
+}
+
+func (m *Mapper) MapToExperimentRun(ctx *proto.Context) (*openapi.ExperimentRun, error) {
+	return mapTo(ctx, m.MLMDTypes, defaults.ExperimentRunTypeName, m.MLMDConverter.ConvertExperimentRun)
 }
 
 type getTypeIder interface {

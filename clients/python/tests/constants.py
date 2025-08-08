@@ -10,6 +10,9 @@ ARTIFACT_STATES = [
 ARTIFACT_TYPE_PARAMS = [
     ("model-artifact", "s3://test-bucket/models/"),
     ("doc-artifact", "https://docs.example.com/docs/"),
+    ("dataset-artifact", "s3://test-bucket/datasets/"),
+    ("metric", "metrics://experiment/"),
+    ("parameter", "params://experiment/"),
 ]
 DEFAULT_API_TIMEOUT = 5.0
 

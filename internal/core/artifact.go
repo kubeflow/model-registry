@@ -3,55 +3,45 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/mapper"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"gorm.io/gorm"
 )
 
-type ModelRegistryService struct {
-	artifactRepository           models.ArtifactRepository
-	modelArtifactRepository      models.ModelArtifactRepository
-	docArtifactRepository        models.DocArtifactRepository
-	registeredModelRepository    models.RegisteredModelRepository
-	modelVersionRepository       models.ModelVersionRepository
-	servingEnvironmentRepository models.ServingEnvironmentRepository
-	inferenceServiceRepository   models.InferenceServiceRepository
-	serveModelRepository         models.ServeModelRepository
-	mapper                       mapper.EmbedMDMapper
-}
+// ensureArtifactName ensures that an artifact has a name during creation.
+// If the artifact has no ID (creation) and no name, it generates a UUID.
+func ensureArtifactName(artifact *openapi.Artifact) {
+	if artifact == nil {
+		return
+	}
 
-func NewModelRegistryService(
-	artifactRepository models.ArtifactRepository,
-	modelArtifactRepository models.ModelArtifactRepository,
-	docArtifactRepository models.DocArtifactRepository,
-	registeredModelRepository models.RegisteredModelRepository,
-	modelVersionRepository models.ModelVersionRepository,
-	servingEnvironmentRepository models.ServingEnvironmentRepository,
-	inferenceServiceRepository models.InferenceServiceRepository,
-	serveModelRepository models.ServeModelRepository,
-	typesMap map[string]int64) *ModelRegistryService {
-	return &ModelRegistryService{
-		artifactRepository:           artifactRepository,
-		modelArtifactRepository:      modelArtifactRepository,
-		docArtifactRepository:        docArtifactRepository,
-		registeredModelRepository:    registeredModelRepository,
-		modelVersionRepository:       modelVersionRepository,
-		servingEnvironmentRepository: servingEnvironmentRepository,
-		inferenceServiceRepository:   inferenceServiceRepository,
-		serveModelRepository:         serveModelRepository,
-		mapper:                       *mapper.NewEmbedMDMapper(typesMap),
+	// Helper function to generate name if needed
+	generateNameIfNeeded := func(id *string, name **string) {
+		if id == nil && *name == nil {
+			// This is a create operation with no name, generate UUID
+			*name = converter.GenerateNewName()
+		}
+	}
+
+	if artifact.ModelArtifact != nil {
+		generateNameIfNeeded(artifact.ModelArtifact.Id, &artifact.ModelArtifact.Name)
+	} else if artifact.DocArtifact != nil {
+		generateNameIfNeeded(artifact.DocArtifact.Id, &artifact.DocArtifact.Name)
+	} else if artifact.DataSet != nil {
+		generateNameIfNeeded(artifact.DataSet.Id, &artifact.DataSet.Name)
+	} else if artifact.Metric != nil {
+		generateNameIfNeeded(artifact.Metric.Id, &artifact.Metric.Name)
+	} else if artifact.Parameter != nil {
+		generateNameIfNeeded(artifact.Parameter.Id, &artifact.Parameter.Name)
 	}
 }
 
-func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelVersionId *string) (*openapi.Artifact, error) {
-	var modelVersionIDPtr *int32
+func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parentResourceId *string) (*openapi.Artifact, error) {
+	var parentResourceIDPtr *int32
 
 	artToReturn := &openapi.Artifact{}
 
@@ -59,26 +49,21 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 		return nil, fmt.Errorf("invalid artifact pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
 
-	// If modelVersionId is nil, we need to generate a new UUID for the model version ID for the name prefixing,
-	// the id will still be nil when invoking the Save method so that the attribution is created only when needed.
-	if modelVersionId == nil {
-		uuid := uuid.New().String()
+	// Ensure artifact has a name if it's being created
+	ensureArtifactName(artifact)
 
-		modelVersionId = &uuid
-	} else {
-		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
+	// Only convert parentResourceId to int32 if it's provided
+	if parentResourceId != nil {
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		convertedIdInt32 := int32(convertedId)
-
-		modelVersionIDPtr = &convertedIdInt32
 	}
 
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id != nil {
-			existing, err := b.getArtifact(*ma.Id, true)
+			existing, err := b.getArtifact(*ma.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
 			}
@@ -87,34 +72,24 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 				return nil, fmt.Errorf("artifact with id %s is not a model artifact: %w", *ma.Id, api.ErrBadRequest)
 			}
 
-			withNotEditable, err := b.mapper.OverrideNotEditableForModelArtifact(converter.NewOpenapiUpdateWrapper(existing.ModelArtifact, ma))
+			withNotEditable, err := b.mapper.UpdateExistingModelArtifact(converter.NewOpenapiUpdateWrapper(existing.ModelArtifact, ma))
 			if err != nil {
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 
 			ma = &withNotEditable
-		} else {
-			name := ""
-
-			if ma.Name != nil {
-				name = *ma.Name
-			}
-
-			prefixedName := converter.PrefixWhenOwned(modelVersionId, name)
-			ma.Name = &prefixedName
 		}
 
-		modelArtifact, err := b.mapper.MapFromModelArtifact(ma)
+		modelArtifact, err := b.mapper.MapFromModelArtifact(ma, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
-		modelArtifact, err = b.modelArtifactRepository.Save(modelArtifact, modelVersionIDPtr)
+		modelArtifact, err = b.modelArtifactRepository.Save(modelArtifact, parentResourceIDPtr)
 		if err != nil {
 			if errors.Is(err, gorm.ErrDuplicatedKey) {
 				return nil, fmt.Errorf("model artifact with name %s already exists: %w", *ma.Name, api.ErrConflict)
 			}
-
 			return nil, err
 		}
 
@@ -124,11 +99,10 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 		}
 
 		artToReturn.ModelArtifact = toReturn
-
 		return artToReturn, nil
 	} else if da := artifact.DocArtifact; da != nil {
 		if da.Id != nil {
-			existing, err := b.getArtifact(*da.Id, true)
+			existing, err := b.getArtifact(*da.Id)
 			if err != nil {
 				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
 			}
@@ -137,34 +111,24 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 				return nil, fmt.Errorf("artifact with id %s is not a doc artifact: %w", *da.Id, api.ErrBadRequest)
 			}
 
-			withNotEditable, err := b.mapper.OverrideNotEditableForDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
+			withNotEditable, err := b.mapper.UpdateExistingDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
 			if err != nil {
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 
 			da = &withNotEditable
-		} else {
-			name := ""
-
-			if da.Name != nil {
-				name = *da.Name
-			}
-
-			prefixedName := converter.PrefixWhenOwned(modelVersionId, name)
-			da.Name = &prefixedName
 		}
 
-		docArtifact, err := b.mapper.MapFromDocArtifact(da)
+		docArtifact, err := b.mapper.MapFromDocArtifact(da, parentResourceId)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
-		docArtifact, err = b.docArtifactRepository.Save(docArtifact, modelVersionIDPtr)
+		docArtifact, err = b.docArtifactRepository.Save(docArtifact, parentResourceIDPtr)
 		if err != nil {
 			if errors.Is(err, gorm.ErrDuplicatedKey) {
 				return nil, fmt.Errorf("doc artifact with name %s already exists: %w", *da.Name, api.ErrConflict)
 			}
-
 			return nil, err
 		}
 
@@ -174,29 +138,189 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, modelV
 		}
 
 		artToReturn.DocArtifact = toReturn
+		return artToReturn, nil
+	} else if ds := artifact.DataSet; ds != nil {
+		// Handle DataSet artifacts using embedmd converters
+		if ds.Id != nil {
+			existing, err := b.getArtifact(*ds.Id)
+			if err != nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a dataset artifact: %w", *ds.Id, api.ErrBadRequest)
+			}
 
+			if existing.DataSet == nil {
+				return nil, fmt.Errorf("artifact with id %s is not a dataset artifact: %w", *ds.Id, api.ErrBadRequest)
+			}
+
+			withNotEditable, err := b.mapper.UpdateExistingDataSet(converter.NewOpenapiUpdateWrapper(existing.DataSet, ds))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			ds = &withNotEditable
+		}
+
+		dataSetEntity, err := b.mapper.MapFromDataSet(ds)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		dataSetEntity, err = b.dataSetRepository.Save(dataSetEntity, parentResourceIDPtr)
+		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("dataset artifact with name %s already exists: %w", *ds.Name, api.ErrConflict)
+			}
+			return nil, err
+		}
+
+		toReturn, err := b.mapper.MapToDataSet(dataSetEntity)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		artToReturn.DataSet = toReturn
+		return artToReturn, nil
+	} else if me := artifact.Metric; me != nil {
+		// Handle metric artifacts using embedmd converters
+		// Validate that metric has a value
+		if me.Value == nil {
+			return nil, fmt.Errorf("metric value is required: %w", api.ErrBadRequest)
+		}
+
+		if me.Id != nil {
+			existing, err := b.getArtifact(*me.Id)
+			if err != nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a metric artifact: %w", *me.Id, api.ErrBadRequest)
+			}
+
+			if existing.Metric == nil {
+				return nil, fmt.Errorf("artifact with id %s is not a metric artifact: %w", *me.Id, api.ErrBadRequest)
+			}
+
+			withNotEditable, err := b.mapper.UpdateExistingMetric(converter.NewOpenapiUpdateWrapper(existing.Metric, me))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			me = &withNotEditable
+		} else {
+			// For new metrics (no ID), check if a metric with the same name already exists
+			// in the same parent context - similar to MLMD behavior
+			if parentResourceId != nil && me.Name != nil {
+				existing, err := b.getArtifactByParams(me.Name, parentResourceId, nil, string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC))
+				if err == nil && existing != nil && existing.Metric != nil {
+					// Metric with same name exists, update it instead of creating new one
+					withNotEditable, err := b.mapper.UpdateExistingMetric(converter.NewOpenapiUpdateWrapper(existing.Metric, me))
+					if err != nil {
+						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+					}
+					me = &withNotEditable
+				} else if api.IgnoreNotFound(err) != nil {
+					// Only return error if it's not a "not found" error
+					return nil, fmt.Errorf("error checking for existing metric: %w", err)
+				}
+				// If not found, continue with creating new metric
+			}
+		}
+
+		metricEntity, err := b.mapper.MapFromMetric(me, parentResourceId)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		metricEntity, err = b.metricRepository.Save(metricEntity, parentResourceIDPtr)
+		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("metric artifact with name %s already exists: %w", *me.Name, api.ErrConflict)
+			}
+			return nil, err
+		}
+
+		toReturn, err := b.mapper.MapToMetricFromMetric(metricEntity)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		artToReturn.Metric = toReturn
+		return artToReturn, nil
+	} else if pa := artifact.Parameter; pa != nil {
+		// ADD PARAMETER SUPPORT using embedmd converters
+		if pa.Id != nil {
+			existing, err := b.getArtifact(*pa.Id)
+			if err != nil {
+				return nil, fmt.Errorf("mismatched types, artifact with id %s is not a parameter artifact: %w", *pa.Id, api.ErrBadRequest)
+			}
+
+			if existing.Parameter == nil {
+				return nil, fmt.Errorf("artifact with id %s is not a parameter artifact: %w", *pa.Id, api.ErrBadRequest)
+			}
+
+			withNotEditable, err := b.mapper.UpdateExistingParameter(converter.NewOpenapiUpdateWrapper(existing.Parameter, pa))
+			if err != nil {
+				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			pa = &withNotEditable
+		} else {
+			// For new parameters (no ID), check if a parameter with the same name already exists
+			// in the same parent context - similar to metric behavior
+			if parentResourceId != nil && pa.Name != nil {
+				existing, err := b.getArtifactByParams(pa.Name, parentResourceId, nil, "parameter")
+				if err == nil && existing != nil && existing.Parameter != nil {
+					// Parameter with same name exists, update it instead of creating new one
+					withNotEditable, err := b.mapper.UpdateExistingParameter(converter.NewOpenapiUpdateWrapper(existing.Parameter, pa))
+					if err != nil {
+						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+					}
+					pa = &withNotEditable
+				} else if api.IgnoreNotFound(err) != nil {
+					// Only return error if it's not a "not found" error
+					return nil, fmt.Errorf("error checking for existing parameter: %w", err)
+				}
+				// If not found, continue with creating new parameter
+			}
+		}
+
+		parameterEntity, err := b.mapper.MapFromParameter(pa, parentResourceId)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		parameterEntity, err = b.parameterRepository.Save(parameterEntity, parentResourceIDPtr)
+		if err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return nil, fmt.Errorf("parameter artifact with name %s already exists: %w", *pa.Name, api.ErrConflict)
+			}
+			return nil, err
+		}
+
+		toReturn, err := b.mapper.MapToParameter(parameterEntity)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+
+		artToReturn.Parameter = toReturn
 		return artToReturn, nil
 	}
 
-	return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact or DocArtifact: %w", api.ErrBadRequest)
+	return nil, fmt.Errorf("invalid artifact type, must be either ModelArtifact, DocArtifact, DataSet, Metric, or Parameter: %w", api.ErrBadRequest)
 }
 
-func (b *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error) {
-	return b.upsertArtifact(artifact, &modelVersionId)
+func (b *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, parentResourceId string) (*openapi.Artifact, error) {
+	return b.upsertArtifact(artifact, &parentResourceId)
 }
 
 func (b *ModelRegistryService) UpsertArtifact(artifact *openapi.Artifact) (*openapi.Artifact, error) {
 	return b.upsertArtifact(artifact, nil)
 }
 
-func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*openapi.Artifact, error) {
+func (b *ModelRegistryService) getArtifact(id string) (*openapi.Artifact, error) {
 	artToReturn := &openapi.Artifact{}
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "artifact")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	artifact, err := b.artifactRepository.GetByID(int32(convertedId))
+	artifact, err := b.artifactRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no artifact found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -207,45 +331,57 @@ func (b *ModelRegistryService) getArtifact(id string, preserveName bool) (*opena
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		artToReturn.ModelArtifact = toReturn
-	} else {
+	} else if artifact.DocArtifact != nil {
 		toReturn, err := b.mapper.MapToDocArtifact(*artifact.DocArtifact)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		artToReturn.DocArtifact = toReturn
-	}
-
-	if preserveName {
-		if artifact.ModelArtifact != nil {
-			artToReturn.ModelArtifact.Name = (*artifact.ModelArtifact).GetAttributes().Name
+	} else if artifact.DataSet != nil {
+		toReturn, err := b.mapper.MapToDataSet(*artifact.DataSet)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
-		if artifact.DocArtifact != nil {
-			artToReturn.DocArtifact.Name = (*artifact.DocArtifact).GetAttributes().Name
+		artToReturn.DataSet = toReturn
+	} else if artifact.Metric != nil {
+		toReturn, err := b.mapper.MapToMetricFromMetric(*artifact.Metric)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		artToReturn.Metric = toReturn
+	} else if artifact.Parameter != nil {
+		toReturn, err := b.mapper.MapToParameter(*artifact.Parameter)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		artToReturn.Parameter = toReturn
 	}
 
 	return artToReturn, nil
 }
 
 func (b *ModelRegistryService) GetArtifactById(id string) (*openapi.Artifact, error) {
-	return b.getArtifact(id, false)
+	return b.getArtifact(id)
 }
 
-func (b *ModelRegistryService) getArtifactsByParams(artifactName *string, modelVersionId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {
-	artToReturn := &openapi.Artifact{}
-
-	if artifactName == nil && modelVersionId == nil && externalId == nil {
-		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and modelVersionId), or externalId: %w", api.ErrBadRequest)
+func (b *ModelRegistryService) getArtifactByParams(artifactName *string, parentResourceId *string, externalId *string, artifactType string) (*openapi.Artifact, error) {
+	if (artifactName == nil || parentResourceId == nil) && externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either (artifactName and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
-	if artifactName != nil && modelVersionId != nil {
-		combinedName := converter.PrefixWhenOwned(modelVersionId, *artifactName)
-		artifactName = &combinedName
+	var parentResourceID *int32
+	if parentResourceId != nil {
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{
-		Name:       artifactName,
-		ExternalID: externalId,
+		Name:             artifactName,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err
@@ -256,46 +392,40 @@ func (b *ModelRegistryService) getArtifactsByParams(artifactName *string, modelV
 	}
 
 	if len(artifacts.Items) == 0 {
-		return nil, fmt.Errorf("no %sartifacts found for name=%v, modelVersionId=%v, externalId=%v: %w", artifactType, apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("no %sartifacts found for name=%v, parentResourceId=%v, externalId=%v: %w", artifactType, apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(artifacts.Items) > 1 {
-		return nil, fmt.Errorf("multiple %sartifacts found for name=%v, modelVersionId=%v, externalId=%v: %w", artifactType, apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("multiple %sartifacts found for name=%v, parentResourceId=%v, externalId=%v: %w", artifactType, apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
-	if artifacts.Items[0].ModelArtifact != nil {
-		modelArtifact, err := b.mapper.MapToModelArtifact(*artifacts.Items[0].ModelArtifact)
-		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-		}
-		artToReturn.ModelArtifact = modelArtifact
-	} else {
-		docArtifact, err := b.mapper.MapToDocArtifact(*artifacts.Items[0].DocArtifact)
-		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-		}
-		artToReturn.DocArtifact = docArtifact
+	mappedArtifact, err := b.mapper.MapToArtifact(artifacts.Items[0])
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
 
-	return artToReturn, nil
+	return mappedArtifact, nil
 }
 
-func (b *ModelRegistryService) GetArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.Artifact, error) {
-	return b.getArtifactsByParams(artifactName, modelVersionId, externalId, "")
+func (b *ModelRegistryService) GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error) {
+	return b.getArtifactByParams(artifactName, parentResourceId, externalId, "")
 }
 
-func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ArtifactList, error) {
-	var modelVersionIDPtr *int32
+func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions api.ListOptions, parentResourceId *string) (*openapi.ArtifactList, error) {
+	var parentResourceIDPtr *int32
 
-	if modelVersionId != nil {
-		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
+	if parentResourceId != nil {
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
+	}
 
-		convertedIdInt32 := int32(convertedId)
-
-		modelVersionIDPtr = &convertedIdInt32
+	// Convert artifactType parameter to string if provided
+	var artifactTypeStr *string
+	if artifactType != "" {
+		artifactTypeStr = (*string)(&artifactType)
 	}
 
 	artifacts, err := b.artifactRepository.List(models.ArtifactListOptions{
@@ -305,7 +435,8 @@ func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVe
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
 		},
-		ModelVersionID: modelVersionIDPtr,
+		ParentResourceID: parentResourceIDPtr,
+		ArtifactType:     artifactTypeStr,
 	})
 	if err != nil {
 		return nil, err
@@ -316,19 +447,11 @@ func (b *ModelRegistryService) GetArtifacts(listOptions api.ListOptions, modelVe
 	}
 
 	for _, artifact := range artifacts.Items {
-		if artifact.ModelArtifact != nil {
-			modelArtifact, err := b.mapper.MapToModelArtifact(*artifact.ModelArtifact)
-			if err != nil {
-				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-			}
-			artifactsList.Items = append(artifactsList.Items, openapi.Artifact{ModelArtifact: modelArtifact})
-		} else {
-			docArtifact, err := b.mapper.MapToDocArtifact(*artifact.DocArtifact)
-			if err != nil {
-				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
-			}
-			artifactsList.Items = append(artifactsList.Items, openapi.Artifact{DocArtifact: docArtifact})
+		mappedArtifact, err := b.mapper.MapToArtifact(artifact)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		artifactsList.Items = append(artifactsList.Items, *mappedArtifact)
 	}
 
 	artifactsList.NextPageToken = artifacts.NextPageToken
@@ -372,7 +495,7 @@ func (b *ModelRegistryService) GetModelArtifactByInferenceService(inferenceServi
 		return nil, err
 	}
 
-	artifactList, err := b.GetArtifacts(api.ListOptions{}, mv.Id)
+	artifactList, err := b.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, api.ListOptions{}, mv.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -388,31 +511,28 @@ func (b *ModelRegistryService) GetModelArtifactByInferenceService(inferenceServi
 	return artifactList.Items[0].ModelArtifact, nil
 }
 
-func (b *ModelRegistryService) GetModelArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.ModelArtifact, error) {
-	art, err := b.getArtifactsByParams(artifactName, modelVersionId, externalId, "model")
+func (b *ModelRegistryService) GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error) {
+	art, err := b.getArtifactByParams(artifactName, parentResourceId, externalId, "model")
 	if err != nil {
 		return nil, err
 	}
 
 	if art.ModelArtifact == nil {
-		return nil, fmt.Errorf("artifact with name=%v, modelVersionId=%v, externalId=%v is not a model artifact: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(modelVersionId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("artifact with name=%v, parentResourceId=%v, externalId=%v is not a model artifact: %w", apiutils.ZeroIfNil(artifactName), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	return art.ModelArtifact, nil
 }
 
-func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, modelVersionId *string) (*openapi.ModelArtifactList, error) {
-	var modelVersionIDPtr *int32
+func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error) {
+	var parentResourceIDPtr *int32
 
-	if modelVersionId != nil {
-		convertedId, err := strconv.ParseInt(*modelVersionId, 10, 32)
+	if parentResourceId != nil {
+		var err error
+		parentResourceIDPtr, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		convertedIdInt32 := int32(convertedId)
-
-		modelVersionIDPtr = &convertedIdInt32
 	}
 
 	modelArtifacts, err := b.modelArtifactRepository.List(models.ModelArtifactListOptions{
@@ -422,7 +542,7 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, mo
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
 		},
-		ModelVersionID: modelVersionIDPtr,
+		ParentResourceID: parentResourceIDPtr,
 	})
 	if err != nil {
 		return nil, err

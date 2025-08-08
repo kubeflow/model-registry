@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -24,7 +23,7 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
+		withNotEditable, err := b.mapper.UpdateExistingRegisteredModel(converter.NewOpenapiUpdateWrapper(existing, registeredModel))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -49,12 +48,12 @@ func (b *ModelRegistryService) UpsertRegisteredModel(registeredModel *openapi.Re
 }
 
 func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.RegisteredModel, error) {
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "registered model")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.registeredModelRepository.GetByID(int32(convertedId))
+	model, err := b.registeredModelRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no registered model found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -63,12 +62,12 @@ func (b *ModelRegistryService) GetRegisteredModelById(id string) (*openapi.Regis
 }
 
 func (b *ModelRegistryService) GetRegisteredModelByInferenceService(inferenceServiceId string) (*openapi.RegisteredModel, error) {
-	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(inferenceServiceId, "inference service")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	infSvc, err := b.inferenceServiceRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
@@ -136,6 +135,7 @@ func (b *ModelRegistryService) GetRegisteredModels(listOptions api.ListOptions) 
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 	})
 	if err != nil {

@@ -217,7 +217,12 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 
 	queries := []string{}
 	if servingEnvironmentId != nil {
-		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *servingEnvironmentId)
+		// Validate that servingEnvironmentId is a valid integer
+		servingEnvIdInt, err := apiutils.ValidateIDAsInt64Ptr(servingEnvironmentId, "serving environment")
+		if err != nil {
+			return nil, err
+		}
+		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %d", *servingEnvIdInt)
 		queries = append(queries, queryParentCtxId)
 	}
 
@@ -226,8 +231,16 @@ func (serv *ModelRegistryService) GetInferenceServices(listOptions api.ListOptio
 		queries = append(queries, queryRuntimeProp)
 	}
 
-	query := strings.Join(queries, " and ")
-	listOperationOptions.FilterQuery = &query
+	if len(queries) > 0 {
+		additionalQuery := strings.Join(queries, " and ")
+		if listOperationOptions.FilterQuery != nil {
+			existingFilter := *listOperationOptions.FilterQuery
+			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, additionalQuery)
+			listOperationOptions.FilterQuery = &combinedQuery
+		} else {
+			listOperationOptions.FilterQuery = &additionalQuery
+		}
+	}
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
 		TypeName: &serv.nameConfig.InferenceServiceTypeName,
