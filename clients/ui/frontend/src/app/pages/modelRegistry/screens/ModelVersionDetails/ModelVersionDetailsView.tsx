@@ -248,35 +248,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                 contentWhenEmpty="No model format version"
               />
             </DescriptionList>
-<<<<<<< HEAD
-          </>
-        )}
-        <Divider style={{ marginTop: '1em' }} />
-        <DescriptionList isFillColumns style={{ marginTop: '1em' }}>
-          <DashboardDescriptionListGroup
-            title="Author"
-            popover="The author is the user who registered the model version."
-          >
-            {mv.author}
-          </DashboardDescriptionListGroup>
-          <DashboardDescriptionListGroup
-            title="Last modified"
-            isEmpty={!mv.lastUpdateTimeSinceEpoch}
-            contentWhenEmpty="Unknown"
-          >
-            <ModelTimestamp timeSinceEpoch={mv.lastUpdateTimeSinceEpoch} />
-          </DashboardDescriptionListGroup>
-          <DashboardDescriptionListGroup
-            title="Created"
-            isEmpty={!mv.createTimeSinceEpoch}
-            contentWhenEmpty="Unknown"
-          >
-            <ModelTimestamp timeSinceEpoch={mv.createTimeSinceEpoch} />
-          </DashboardDescriptionListGroup>
-        </DescriptionList>
-      </FlexItem>
-    </Flex>
-=======
             <Divider style={{ marginTop: '1em' }} />
             <DescriptionList isFillColumns style={{ marginTop: '1em' }}>
               <DashboardDescriptionListGroup
@@ -311,7 +282,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
         </Flex>
       </CardBody>
     </Card>
->>>>>>> c5cd043 (changes to the version details page format)
   );
 };
 export default ModelVersionDetailsView;
