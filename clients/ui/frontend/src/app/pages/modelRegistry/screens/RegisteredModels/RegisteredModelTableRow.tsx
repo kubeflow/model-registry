@@ -8,12 +8,12 @@ import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/c
 import ModelLabels from '~/app/pages/modelRegistry/screens/components/ModelLabels';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import { RestoreRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
-import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
 import {
   archiveModelVersionDetailsUrl,
+  archiveModelVersionListUrl,
+  modelVersionListUrl,
   modelVersionUrl,
   registeredModelArchiveDetailsUrl,
-  registeredModelArchiveUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
@@ -46,27 +46,22 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
       onClick: () => {
         navigate(
           isArchiveRow
-            ? `${registeredModelArchiveUrl(preferredModelRegistry?.name)}/${rm.id}/${
-                ModelVersionsTab.OVERVIEW
-              }`
-            : `${rmUrl}/${ModelVersionsTab.OVERVIEW}`,
+            ? registeredModelArchiveDetailsUrl(rm.id, preferredModelRegistry?.name)
+            : rmUrl,
         );
       },
     },
     {
       title: 'Versions',
       onClick: () => {
-        if (isArchiveRow) {
-          navigate(
-            `${registeredModelArchiveUrl(preferredModelRegistry?.name)}/${rm.id}/${
-              ModelVersionsTab.VERSIONS
-            }`,
-          );
-        } else {
-          navigate(`${rmUrl}/${ModelVersionsTab.VERSIONS}`);
-        }
+        navigate(
+          isArchiveRow
+            ? archiveModelVersionListUrl(rm.id, preferredModelRegistry?.name)
+            : modelVersionListUrl(rm.id, preferredModelRegistry?.name),
+        );
       },
     },
+
     { isSeparator: true },
     ...(isArchiveRow
       ? [
