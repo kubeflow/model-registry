@@ -5,10 +5,10 @@ import (
 )
 
 type CatalogModelArtifact struct {
-	CreateTimeSinceEpoch     *string                            `json:"createTimeSinceEpoch,omitempty"`
-	LastUpdateTimeSinceEpoch *string                            `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	Uri                      string                             `json:"uri"`
-	CustomProperties         *map[string]*openapi.MetadataValue `json:"customProperties,omitempty"`
+	CreateTimeSinceEpoch     *string                           `json:"createTimeSinceEpoch,omitempty"`
+	LastUpdateTimeSinceEpoch *string                           `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	Uri                      string                            `json:"uri"`
+	CustomProperties         *map[string]openapi.MetadataValue `json:"customProperties,omitempty"`
 }
 
 type CatalogModelArtifactList struct {

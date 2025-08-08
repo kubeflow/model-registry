@@ -765,3 +765,25 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 		NextPageToken: "",
 	}
 }
+
+func GetCatalogModelArtifactMock() []models.CatalogModelArtifact {
+	return []models.CatalogModelArtifact{
+		{
+			Uri:                      "oci://registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0",
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+			CustomProperties:         newCustomProperties(),
+		},
+	}
+}
+
+func GetCatalogModelArtifactListMock() models.CatalogModelArtifactList {
+	artifactMock := GetCatalogModelArtifactMock()
+
+	return models.CatalogModelArtifactList{
+		Items:         artifactMock,
+		Size:          int32(len(artifactMock)),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+}
