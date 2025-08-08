@@ -21,4 +21,13 @@ catalogs:
     enabled: true
     properties:
       models:
-      - repository: rhelai1/modelcar-granite-7b-starter
+      - rhelai1/modelcar-granite-7b-starter
+  - name: "Catalog 4"
+    id: catalog4
+    type: rhec
+    enabled: true
+    properties:
+      models:
+      - rhelai1/modelcar-granite-7b-starter
+      excludedModels:
+      - rhelai1/modelcar-granite-7b-starter:latest
