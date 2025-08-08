@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Grid, GridItem, Stack } from '@patternfly/react-core';
 import { RegisteredModel } from '~/app/types';
 import ModelDetailsCard from './ModelDetailsCard';
+import ModelVersionsCard from './ModelVersionsCard';
 
 type ModelDetailsViewProps = {
   registeredModel: RegisteredModel;
@@ -20,7 +21,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
     </GridItem>
     <GridItem span={12} lg={4}>
       <Stack hasGutter>
-        {/* TODO: Add latest model versions card here */}
+        <ModelVersionsCard rm={rm} isArchiveModel={isArchiveModel} />
         {/* TODO: Add latest deployments card here (as an extension)*/}
       </Stack>
     </GridItem>
