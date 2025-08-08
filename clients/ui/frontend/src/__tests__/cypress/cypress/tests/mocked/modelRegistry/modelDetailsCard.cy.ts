@@ -115,8 +115,8 @@ describe('Model Details Card', () => {
     cy.contains('Model ID').should('be.visible');
     cy.findByTestId('registered-model-id-clipboard-copy').should('exist');
 
-    cy.contains('Last modified at').should('be.visible');
-    cy.contains('Created at').should('be.visible');
+    cy.contains('Last modified').should('be.visible');
+    cy.contains('Created').should('be.visible');
   });
 
   it('displays labels section correctly', () => {
