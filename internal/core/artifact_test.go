@@ -172,6 +172,139 @@ func TestUpsertArtifact(t *testing.T) {
 		assert.Contains(t, err.Error(), "metric value is required")
 	})
 
+	// Tests for null name handling - should generate UUID for all artifact types
+	t.Run("create model artifact with null name generates UUID", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			// Name is intentionally nil/not set
+			Uri: apiutils.Of("s3://bucket/model-no-name.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.ModelArtifact)
+		assert.NotNil(t, result.ModelArtifact.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.ModelArtifact.Name, "Generated name should not be empty")
+		// Check if it looks like a UUID (basic check for format)
+		assert.Len(t, *result.ModelArtifact.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.ModelArtifact.Name, "-", "Generated name should have UUID format")
+	})
+
+	t.Run("create doc artifact with null name generates UUID", func(t *testing.T) {
+		docArtifact := &openapi.DocArtifact{
+			// Name is intentionally nil/not set
+			Uri: apiutils.Of("s3://bucket/doc-no-name.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.DocArtifact)
+		assert.NotNil(t, result.DocArtifact.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.DocArtifact.Name, "Generated name should not be empty")
+		assert.Len(t, *result.DocArtifact.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.DocArtifact.Name, "-", "Generated name should have UUID format")
+	})
+
+	t.Run("create dataset with null name generates UUID", func(t *testing.T) {
+		dataSet := &openapi.DataSet{
+			// Name is intentionally nil/not set
+			Uri: apiutils.Of("s3://bucket/dataset-no-name.csv"),
+		}
+
+		artifact := &openapi.Artifact{
+			DataSet: dataSet,
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.DataSet)
+		assert.NotNil(t, result.DataSet.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.DataSet.Name, "Generated name should not be empty")
+		assert.Len(t, *result.DataSet.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.DataSet.Name, "-", "Generated name should have UUID format")
+	})
+
+	t.Run("create metric with null name generates UUID", func(t *testing.T) {
+		metric := &openapi.Metric{
+			// Name is intentionally nil/not set
+			Value: apiutils.Of(0.99),
+		}
+
+		artifact := &openapi.Artifact{
+			Metric: metric,
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.Metric)
+		assert.NotNil(t, result.Metric.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.Metric.Name, "Generated name should not be empty")
+		assert.Len(t, *result.Metric.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.Metric.Name, "-", "Generated name should have UUID format")
+	})
+
+	t.Run("create parameter with null name generates UUID", func(t *testing.T) {
+		parameter := &openapi.Parameter{
+			// Name is intentionally nil/not set
+			Value: apiutils.Of("param-value"),
+		}
+
+		artifact := &openapi.Artifact{
+			Parameter: parameter,
+		}
+
+		result, err := _service.UpsertArtifact(artifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.Parameter)
+		assert.NotNil(t, result.Parameter.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.Parameter.Name, "Generated name should not be empty")
+		assert.Len(t, *result.Parameter.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.Parameter.Name, "-", "Generated name should have UUID format")
+	})
+
+	t.Run("update artifact with null name preserves existing name", func(t *testing.T) {
+		// First create an artifact with a specific name
+		originalName := "original-artifact-name"
+		modelArtifact := &openapi.ModelArtifact{
+			Name: apiutils.Of(originalName),
+			Uri:  apiutils.Of("s3://bucket/original.pkl"),
+		}
+
+		created, err := _service.UpsertModelArtifact(modelArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.Id)
+
+		// Update with nil name - should preserve existing name
+		updateArtifact := &openapi.ModelArtifact{
+			Id: created.Id,
+			// Name is intentionally nil
+			Uri: apiutils.Of("s3://bucket/updated.pkl"),
+		}
+
+		updated, err := _service.UpsertModelArtifact(updateArtifact)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+		assert.Equal(t, originalName, *updated.Name, "Name should be preserved during update")
+		assert.Equal(t, "s3://bucket/updated.pkl", *updated.Uri, "Uri should be updated")
+	})
+
 	t.Run("unicode characters in model artifact name", func(t *testing.T) {
 		// Test with unicode characters: Chinese, Russian, Japanese, and emoji
 		unicodeName := "模型工件-тест-モデルアーティファクト-🚀"
@@ -1493,6 +1626,25 @@ func TestUpsertModelArtifact(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, mixedName, *retrieved.Name)
 		assert.Equal(t, "tensorflow@#$%-测试", *retrieved.ModelFormatName)
+	})
+
+	t.Run("create with null name generates UUID", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			// Name is intentionally nil
+			Uri:             apiutils.Of("s3://bucket/direct-no-name.pkl"),
+			ModelFormatName: apiutils.Of("tensorflow"),
+		}
+
+		result, err := _service.UpsertModelArtifact(modelArtifact)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.NotNil(t, result.Name, "Name should be auto-generated")
+		assert.NotEmpty(t, *result.Name, "Generated name should not be empty")
+		assert.Len(t, *result.Name, 36, "Generated name should be UUID length")
+		assert.Contains(t, *result.Name, "-", "Generated name should have UUID format")
+		assert.Equal(t, "s3://bucket/direct-no-name.pkl", *result.Uri)
+		assert.Equal(t, "tensorflow", *result.ModelFormatName)
 	})
 
 	t.Run("pagination test", func(t *testing.T) {

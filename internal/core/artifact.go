@@ -12,6 +12,34 @@ import (
 	"gorm.io/gorm"
 )
 
+// ensureArtifactName ensures that an artifact has a name during creation.
+// If the artifact has no ID (creation) and no name, it generates a UUID.
+func ensureArtifactName(artifact *openapi.Artifact) {
+	if artifact == nil {
+		return
+	}
+
+	// Helper function to generate name if needed
+	generateNameIfNeeded := func(id *string, name **string) {
+		if id == nil && *name == nil {
+			// This is a create operation with no name, generate UUID
+			*name = converter.GenerateNewName()
+		}
+	}
+
+	if artifact.ModelArtifact != nil {
+		generateNameIfNeeded(artifact.ModelArtifact.Id, &artifact.ModelArtifact.Name)
+	} else if artifact.DocArtifact != nil {
+		generateNameIfNeeded(artifact.DocArtifact.Id, &artifact.DocArtifact.Name)
+	} else if artifact.DataSet != nil {
+		generateNameIfNeeded(artifact.DataSet.Id, &artifact.DataSet.Name)
+	} else if artifact.Metric != nil {
+		generateNameIfNeeded(artifact.Metric.Id, &artifact.Metric.Name)
+	} else if artifact.Parameter != nil {
+		generateNameIfNeeded(artifact.Parameter.Id, &artifact.Parameter.Name)
+	}
+}
+
 func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parentResourceId *string) (*openapi.Artifact, error) {
 	var parentResourceIDPtr *int32
 
@@ -20,6 +48,9 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 	if artifact == nil {
 		return nil, fmt.Errorf("invalid artifact pointer, cannot be nil: %w", api.ErrBadRequest)
 	}
+
+	// Ensure artifact has a name if it's being created
+	ensureArtifactName(artifact)
 
 	// Only convert parentResourceId to int32 if it's provided
 	if parentResourceId != nil {
