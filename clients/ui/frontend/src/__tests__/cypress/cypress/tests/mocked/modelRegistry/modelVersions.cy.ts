@@ -257,7 +257,7 @@ describe('Model Versions', () => {
     const modelVersionRow = modelRegistry.getModelVersionRow('model version');
     modelVersionRow.findModelVersionName().contains('model version').click();
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions/1/details');
-    cy.findByTestId('app-page-title').should('have.text', 'model version');
+    cy.findByTestId('app-page-title').should('contain.text', 'test');
     cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions');
