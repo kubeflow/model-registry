@@ -11,5 +11,5 @@ catalogs:
   enabled: true
   properties:
     models:
-    - repository: rhelai1/modelcar-granite-7b-starter
+    - rhelai1/modelcar-granite-7b-starter
 

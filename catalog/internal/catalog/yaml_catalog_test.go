@@ -174,7 +174,7 @@ func TestYAMLCatalogListModels(t *testing.T) {
 
 	// Test case 13: Test with excluded models
 	excludedProvider := testYAMLProviderWithExclusions(t, "testdata/test-list-models-catalog.yaml", []any{
-		map[string]any{"repository": "model-alpha"},
+		"model-alpha",
 	})
 	excludedModels, err := excludedProvider.ListModels(ctx, ListModelsParams{})
 	if assert.NoError(err) {
