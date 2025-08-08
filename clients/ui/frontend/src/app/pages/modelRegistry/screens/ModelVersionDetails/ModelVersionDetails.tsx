@@ -87,15 +87,15 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      title={
-        <Flex alignItems={{ default: 'alignItemsCenter' }}>
-          <FlexItem>
-            <Title headingLevel="h1" size="xl">
-              {rm?.name || 'Loading...'}
-            </Title>
-          </FlexItem>
-          <FlexItem>
-            {mv && (
+      title={mv?.name}
+      headerAction={
+        loaded &&
+        mv && (
+          <Flex
+            spaceItems={{ default: 'spaceItemsMd' }}
+            alignItems={{ default: 'alignItemsFlexStart' }}
+          >
+            <FlexItem style={{ width: '300px' }}>
               <ModelVersionSelector
                 rmId={rmId}
                 selection={mv}
@@ -103,18 +103,15 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
                   navigate(modelVersionUrl(modelVersionId, rmId, preferredModelRegistry?.name))
                 }
               />
-            )}
-          </FlexItem>
-        </Flex>
-      }
-      headerAction={
-        mvLoaded &&
-        mv && (
-          <ModelVersionsDetailsHeaderActions
-            mv={mv}
-            refresh={refresh}
-            modelArtifacts={modelArtifacts}
-          />
+            </FlexItem>
+            <FlexItem>
+              <ModelVersionsDetailsHeaderActions
+                mv={mv}
+                refresh={refresh}
+                modelArtifacts={modelArtifacts}
+              />
+            </FlexItem>
+          </Flex>
         )
       }
       description={<Truncate content={mv?.description || ''} />}
