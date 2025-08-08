@@ -13,6 +13,7 @@ import {
 } from '~/app/types';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];
@@ -61,6 +62,7 @@ const initIntercepts = ({
     }),
     mockRegisteredModel({
       name: 'Label modal',
+      id: '2',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
       customProperties: {
@@ -224,6 +226,24 @@ describe('Model Registry core', () => {
       ]);
     });
 
+    it('latest version column', () => {
+      const registeredModelRow = modelRegistry.getRow('Fraud detection model');
+      registeredModelRow.findLatestVersion().contains('new model version');
+      registeredModelRow.findLatestVersion().click();
+      verifyRelativeURL(
+        `/model-registry/modelregistry-sample/registeredModels/1/versions/1/details`,
+      );
+    });
+
+    it('table kebab actions', () => {
+      const registeredModelRow = modelRegistry.getRow('Fraud detection model');
+      registeredModelRow.findKebabAction('Versions').click();
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
+      cy.go('back');
+      registeredModelRow.findKebabAction('Overview').click();
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+    });
+
     it('Renders labels in modal', () => {
       const registeredModelRow2 = modelRegistry.getRow('Label modal');
       registeredModelRow2.findLabelModalText().contains('6 more');
@@ -252,9 +272,12 @@ describe('Model Registry core', () => {
     });
 
     it('Sort by Last modified', () => {
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortDescending);
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
     });
 
     it('Filter by keyword', () => {
