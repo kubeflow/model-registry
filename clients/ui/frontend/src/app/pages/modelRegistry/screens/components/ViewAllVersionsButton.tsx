@@ -7,7 +7,6 @@ import {
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
-
 type ViewAllVersionsButtonProps = {
   rmId?: string;
   totalVersions: number;
@@ -41,6 +40,5 @@ const ViewAllVersionsButton: React.FC<ViewAllVersionsButtonProps> = ({
     </Button>
   );
 };
-
 
 export default ViewAllVersionsButton;
