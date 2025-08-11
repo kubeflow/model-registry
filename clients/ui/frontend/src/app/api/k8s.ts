@@ -1,15 +1,5 @@
 import {
-  APIOptions,
-  handleRestFailures,
-  Namespace,
-  UserSettings,
   ModelRegistryKind,
-  assembleModArchBody,
-  isModArchResponse,
-  restCREATE,
-  restDELETE,
-  restGET,
-  restPATCH,
   GroupKind,
   RoleBindingKind,
   K8sResourceCommon,
@@ -17,9 +7,21 @@ import {
   RoleBindingRoleRef,
   genRandomChars,
 } from 'mod-arch-shared';
+import {
+  APIOptions,
+  handleRestFailures,
+  UserSettings,
+  assembleModArchBody,
+  isModArchResponse,
+  restCREATE,
+  restDELETE,
+  restGET,
+  restPATCH,
+} from 'mod-arch-core';
 import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
+import { NamespaceKind } from '~/app/shared/components/types';
 
 export const getListModelRegistries =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -47,11 +49,11 @@ export const getUser =
 
 export const getNamespaces =
   (hostPath: string) =>
-  (opts: APIOptions): Promise<Namespace[]> =>
+  (opts: APIOptions): Promise<NamespaceKind[]> =>
     handleRestFailures(
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/namespaces`, {}, opts),
     ).then((response) => {
-      if (isModArchResponse<Namespace[]>(response)) {
+      if (isModArchResponse<NamespaceKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -59,11 +61,11 @@ export const getNamespaces =
 
 export const getNamespacesForSettings =
   (hostPath: string) =>
-  (opts: APIOptions): Promise<Namespace[]> =>
+  (opts: APIOptions): Promise<NamespaceKind[]> =>
     handleRestFailures(
       restGET(hostPath, `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/namespaces`, {}, opts),
     ).then((response) => {
-      if (isModArchResponse<Namespace[]>(response)) {
+      if (isModArchResponse<NamespaceKind[]>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');

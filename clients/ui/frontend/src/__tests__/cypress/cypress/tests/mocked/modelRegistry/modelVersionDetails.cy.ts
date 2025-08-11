@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { mockModArchResponse } from 'mod-arch-shared';
+import { mockModArchResponse } from 'mod-arch-core';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
@@ -9,6 +9,7 @@ import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
+import { modelDetailsCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
 
 const mockModelVersions = mockModelVersion({
   id: '1',
@@ -392,6 +393,22 @@ describe('Model version details', () => {
         .within(() => {
           cy.contains('Testing label already exists').should('exist');
         });
+    });
+
+    it('should expand and collapse the model details card', () => {
+      cy.contains('Model details').should('be.visible');
+      modelDetailsCard.findToggleButton().should('exist').and('be.visible');
+      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'false');
+
+      modelDetailsCard.findToggleButton().click();
+      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'true');
+
+      cy.contains('Description').should('be.visible');
+      cy.contains('Labels').should('be.visible');
+      cy.contains('Properties').should('be.visible');
+
+      modelDetailsCard.findToggleButton().click();
+      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'false');
     });
   });
 });

@@ -1,23 +1,26 @@
-import * as React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Button, Content, ContentVariants, FlexItem, Truncate } from '@patternfly/react-core';
 import { ActionsColumn, IAction, Td, Tr } from '@patternfly/react-table';
-import { Content, ContentVariants, FlexItem, Truncate } from '@patternfly/react-core';
+import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
-import { ModelState, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
 import ModelLabels from '~/app/pages/modelRegistry/screens/components/ModelLabels';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
-import { ArchiveRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/ArchiveRegisteredModelModal';
 import { RestoreRegisteredModelModal } from '~/app/pages/modelRegistry/screens/components/RestoreRegisteredModel';
 import {
+  archiveModelVersionDetailsUrl,
+  archiveModelVersionListUrl,
+  modelVersionListUrl,
+  modelVersionUrl,
   registeredModelArchiveDetailsUrl,
-  registeredModelArchiveUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { ModelVersionsTab } from '~/app/pages/modelRegistry/screens/ModelVersions/const';
+import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
+  latestModelVersion: ModelVersion | undefined;
   isArchiveRow?: boolean;
   hasDeploys?: boolean;
   refresh: () => void;
@@ -25,6 +28,7 @@ type RegisteredModelTableRowProps = {
 
 const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
   registeredModel: rm,
+  latestModelVersion,
   isArchiveRow,
   hasDeploys = false,
   refresh,
@@ -42,13 +46,23 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
       onClick: () => {
         navigate(
           isArchiveRow
-            ? `${registeredModelArchiveUrl(preferredModelRegistry?.name)}/${rm.id}/${
-                ModelVersionsTab.OVERVIEW
-              }`
-            : `${rmUrl}/${ModelVersionsTab.OVERVIEW}`,
+            ? registeredModelArchiveDetailsUrl(rm.id, preferredModelRegistry?.name)
+            : rmUrl,
         );
       },
     },
+    {
+      title: 'Versions',
+      onClick: () => {
+        navigate(
+          isArchiveRow
+            ? archiveModelVersionListUrl(rm.id, preferredModelRegistry?.name)
+            : modelVersionListUrl(rm.id, preferredModelRegistry?.name),
+        );
+      },
+    },
+
+    { isSeparator: true },
     ...(isArchiveRow
       ? [
           {
@@ -57,7 +71,6 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
           },
         ]
       : [
-          { isSeparator: true },
           {
             title: 'Archive model',
             onClick: () => setIsArchiveModalOpen(true),
@@ -69,26 +82,49 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
         ]),
   ];
 
+  const handleModelNameNavigation = (rmId: string) =>
+    isArchiveRow
+      ? navigate(registeredModelArchiveDetailsUrl(rmId, preferredModelRegistry?.name))
+      : navigate(rmUrl);
+
+  const handleVersionNameNavigation = (mv: ModelVersion) =>
+    isArchiveRow
+      ? navigate(
+          archiveModelVersionDetailsUrl(mv.id, mv.registeredModelId, preferredModelRegistry?.name),
+        )
+      : navigate(modelVersionUrl(mv.id, mv.registeredModelId, preferredModelRegistry?.name));
+
   return (
     <Tr>
       <Td dataLabel="Model name">
         <div id="model-name" data-testid="model-name">
           <FlexItem>
-            <Link
-              to={
-                isArchiveRow
-                  ? registeredModelArchiveDetailsUrl(rm.id, preferredModelRegistry?.name)
-                  : rmUrl
-              }
-            >
+            <Button variant="link" isInline onClick={() => handleModelNameNavigation(rm.id)}>
               <Truncate content={rm.name} />
-            </Link>
+            </Button>
           </FlexItem>
         </div>
         {rm.description && (
           <Content data-testid="description" component={ContentVariants.small}>
             <Truncate content={rm.description} />
           </Content>
+        )}
+      </Td>
+      <Td dataLabel="Latest version">
+        {latestModelVersion ? (
+          <div id="latest-version" data-testid="latest-version">
+            <FlexItem>
+              <Button
+                variant="link"
+                isInline
+                onClick={() => handleVersionNameNavigation(latestModelVersion)}
+              >
+                <Truncate content={latestModelVersion.name} />
+              </Button>
+            </FlexItem>
+          </div>
+        ) : (
+          '-'
         )}
       </Td>
       <Td dataLabel="Labels">

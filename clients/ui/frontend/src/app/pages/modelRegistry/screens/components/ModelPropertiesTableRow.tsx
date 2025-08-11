@@ -12,7 +12,7 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-icons';
-import { KeyValuePair, EitherNotBoth } from 'mod-arch-shared';
+import { KeyValuePair, EitherNotBoth } from 'mod-arch-core';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isValidHttpUrl } from '~/app/pages/modelRegistry/screens/utils';
 
@@ -49,7 +49,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   const [unsavedKey, setUnsavedKey] = React.useState(key);
   const [unsavedValue, setUnsavedValue] = React.useState(value);
 
-  const [isValueExpanded, setIsValueExpanded] = React.useState(false);
+  const [isValueExpanded, setIsValueExpanded] = React.useState(true);
 
   let keyValidationError: string | null = null;
   if (unsavedKey !== key && allExistingKeys.includes(unsavedKey)) {

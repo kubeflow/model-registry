@@ -8,12 +8,8 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
-import {
-  ProjectObjectType,
-  TitleWithIcon,
-  ApplicationsPage,
-  useQueryParamNamespaces,
-} from 'mod-arch-shared';
+import { ProjectObjectType, TitleWithIcon, ApplicationsPage } from 'mod-arch-shared';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 // import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useModelRegistriesSettings from '~/app/hooks/useModelRegistriesSetting';
 import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';

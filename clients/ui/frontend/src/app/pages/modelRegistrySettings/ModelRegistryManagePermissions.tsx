@@ -1,46 +1,36 @@
 import React from 'react';
 import { Breadcrumbs, Link as MUILink, Tabs, Tab, Box, Typography } from '@mui/material';
-import { Link, Navigate, useParams } from 'react-router-dom';
-import {
-  ApplicationsPage,
-  ModelRegistryKind,
-  RoleBindingKind,
-  useQueryParamNamespaces,
-} from 'mod-arch-shared';
-import { useGroups } from '~/app/hooks/useGroups';
+import { Link, Navigate } from 'react-router-dom';
+import { ApplicationsPage } from 'mod-arch-shared';
 import RoleBindingPermissions from '~/app/pages/settings/roleBinding/RoleBindingPermissions';
-import { useModelRegistryCR } from '~/app/hooks/useModelRegistryCR';
-import useModelRegistryRoleBindings from '~/app/pages/modelRegistrySettings/useModelRegistryRoleBindings';
-import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
-import {
-  createModelRegistryRoleBindingWrapper,
-  deleteModelRegistryRoleBindingWrapper,
-} from '~/app/pages/settings/roleBindingUtils';
 import RedirectErrorState from '~/app/shared/components/RedirectErrorState';
+import { useModelRegistryPermissionsLogic } from './useModelRegistryPermissionsLogic';
 
-const ModelRegistriesManagePermissions: React.FC = () => {
-  const modelRegistryNamespace = 'model-registry'; // TODO: This is a placeholder
-  const [activeTabKey, setActiveTabKey] = React.useState(0);
-  const [ownerReference, setOwnerReference] = React.useState<ModelRegistryKind>();
-  const queryParams = useQueryParamNamespaces();
-  const [groups] = useGroups(queryParams);
-  const roleBindings = useModelRegistryRoleBindings(queryParams);
-  const { mrName } = useParams<{ mrName: string }>();
-  const [modelRegistryCR, crLoaded] = useModelRegistryCR(modelRegistryNamespace, queryParams);
+const ModelRegistryManagePermissions: React.FC = () => {
+  const {
+    activeTabKey,
+    setActiveTabKey,
+    ownerReference,
+    groups,
+    filteredRoleBindings,
+    filteredNamespaceRoleBindings,
+    mrName,
+    modelRegistryNamespace,
+    roleBindings,
+    userPermissionOptions,
+    namespacePermissionOptions,
+    createUserRoleBinding,
+    deleteUserRoleBinding,
+    createNamespaceRoleBinding,
+    deleteNamespaceRoleBinding,
+    userRoleRefName,
+    namespaceRoleRefName,
+    shouldShowError,
+    shouldRedirect,
+  } = useModelRegistryPermissionsLogic();
 
-  const filteredRoleBindings = roleBindings.data.filter(
-    (rb: RoleBindingKind) => rb.metadata.labels?.['app.kubernetes.io/name'] === mrName,
-  );
-
-  React.useEffect(() => {
-    if (modelRegistryCR) {
-      setOwnerReference(modelRegistryCR);
-    } else {
-      setOwnerReference(undefined);
-    }
-  }, [modelRegistryCR]);
-
-  if (!queryParams.namespace) {
+  // Handle error states
+  if (shouldShowError) {
     return (
       <ApplicationsPage loaded empty={false}>
         <RedirectErrorState title="Could not load component state" />
@@ -48,17 +38,14 @@ const ModelRegistriesManagePermissions: React.FC = () => {
     );
   }
 
-  if (
-    (roleBindings.loaded && filteredRoleBindings.length === 0) ||
-    (crLoaded && !modelRegistryCR)
-  ) {
+  if (shouldRedirect) {
     return <Navigate to="/modelRegistrySettings" replace />;
   }
 
   return (
     <ApplicationsPage
       title={`Manage ${mrName ?? ''} permissions`}
-      description="Manage access to this model registry for individual users and user groups, and for service accounts in a project."
+      description="Manage access to this model registry for individual users and user groups, and for service accounts in a namespace."
       breadcrumb={
         <Breadcrumbs>
           <MUILink component={Link} to="/modelRegistrySettings">
@@ -74,7 +61,7 @@ const ModelRegistriesManagePermissions: React.FC = () => {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTabKey} onChange={(e, newValue) => setActiveTabKey(newValue)}>
           <Tab label="Users" />
-          <Tab label="Projects" />
+          <Tab label="Namespaces" />
         </Tabs>
       </Box>
       <Box sx={{ pt: 2 }}>
@@ -83,24 +70,33 @@ const ModelRegistriesManagePermissions: React.FC = () => {
             ownerReference={ownerReference}
             roleBindingPermissionsRB={{ ...roleBindings, data: filteredRoleBindings }}
             groups={groups}
-            createRoleBinding={createModelRegistryRoleBindingWrapper}
-            deleteRoleBinding={deleteModelRegistryRoleBindingWrapper}
+            createRoleBinding={createUserRoleBinding}
+            deleteRoleBinding={deleteUserRoleBinding}
             projectName={modelRegistryNamespace}
-            permissionOptions={[
-              {
-                type: RoleBindingPermissionsRoleType.DEFAULT,
-                description: 'Default role for all users',
-              },
-            ]}
+            permissionOptions={userPermissionOptions}
             description="To enable access for all cluster users, add system:authenticated to the group list."
-            roleRefKind="Role"
-            roleRefName={`registry-user-${mrName ?? ''}`}
+            roleRefKind="ClusterRole"
+            roleRefName={userRoleRefName}
           />
         )}
-        {/* TODO: Projects tab */}
+        {activeTabKey === 1 && (
+          <RoleBindingPermissions
+            ownerReference={ownerReference}
+            roleBindingPermissionsRB={{ ...roleBindings, data: filteredNamespaceRoleBindings }}
+            groups={[]} // Namespaces don't use groups
+            createRoleBinding={createNamespaceRoleBinding}
+            deleteRoleBinding={deleteNamespaceRoleBinding}
+            projectName={modelRegistryNamespace}
+            permissionOptions={namespacePermissionOptions}
+            description="Grant access to model registry for service accounts within specific namespaces."
+            roleRefKind="ClusterRole"
+            roleRefName={namespaceRoleRefName}
+            isProjectSubject
+          />
+        )}
       </Box>
     </ApplicationsPage>
   );
 };
 
-export default ModelRegistriesManagePermissions;
+export default ModelRegistryManagePermissions;

@@ -1,4 +1,4 @@
-import { APIOptions } from 'mod-arch-shared';
+import { APIOptions } from 'mod-arch-core';
 import { ModelSourceProperties } from '~/concepts/modelRegistry/types';
 
 export enum ModelState {

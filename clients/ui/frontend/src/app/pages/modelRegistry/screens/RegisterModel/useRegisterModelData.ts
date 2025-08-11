@@ -1,5 +1,5 @@
-import { GenericObjectState } from 'mod-arch-shared';
-import useGenericObjectState from 'mod-arch-shared/dist/utilities/useGenericObjectState';
+import { GenericObjectState } from 'mod-arch-core';
+import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
 import { ModelRegistryCustomProperties } from '~/app/types';
 
 export enum ModelLocationType {

@@ -23,19 +23,18 @@ else
     # Step 2: Create kubeflow namespace
     echo "Creating kubeflow namespace..."
     kubectl create namespace kubeflow
-
-    # Step 3: Deploy Model Registry to cluster
-    echo "Deploying Model Registry to cluster..."
-    kubectl apply -k "https://github.com/alexcreasy/model-registry/manifests/kustomize/overlays/db?ref=kind"
-
-    # Wait for deployment to be available
-    echo "Waiting for Model Registry deployment to be available..."
-    kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=1m
-
-    # Verify deployment
-    echo "Verifying deployment..."
-    kubectl get pods -n kubeflow
 fi
+# Step 3: Deploy Model Registry to cluster
+echo "Deploying Model Registry to cluster..."
+kubectl apply -k "https://github.com/kubeflow/model-registry/manifests/kustomize/overlays/db"
+
+# Wait for deployment to be available
+echo "Waiting for Model Registry deployment to be available..."
+kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=1m
+
+# Verify deployment
+echo "Verifying deployment..."
+kubectl get pods -n kubeflow
 
 # Step 4: Deploy model registry UI
 echo "Editing kustomize image..."

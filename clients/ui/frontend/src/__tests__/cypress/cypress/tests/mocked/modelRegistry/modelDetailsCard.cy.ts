@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { mockModArchResponse } from 'mod-arch-shared';
+import { mockModArchResponse } from 'mod-arch-core';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
@@ -115,8 +115,8 @@ describe('Model Details Card', () => {
     cy.contains('Model ID').should('be.visible');
     cy.findByTestId('registered-model-id-clipboard-copy').should('exist');
 
-    cy.contains('Last modified at').should('be.visible');
-    cy.contains('Created at').should('be.visible');
+    cy.contains('Last modified').should('be.visible');
+    cy.contains('Created').should('be.visible');
   });
 
   it('displays labels section correctly', () => {

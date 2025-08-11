@@ -63,7 +63,7 @@ func GetRegisteredModelListMock() openapi.RegisteredModelList {
 }
 
 func GetModelVersionMocks() []openapi.ModelVersion {
-	model1 := openapi.ModelVersion{
+	modelVersion1 := openapi.ModelVersion{
 		CustomProperties:         newCustomProperties(),
 		Name:                     "Version One",
 		Description:              stringToPointer("This version improves stuff and things"),
@@ -76,12 +76,25 @@ func GetModelVersionMocks() []openapi.ModelVersion {
 		State:                    stateToPointer(openapi.MODELVERSIONSTATE_LIVE),
 	}
 
-	model2 := openapi.ModelVersion{
+	modelVersion2 := openapi.ModelVersion{
 		CustomProperties:         newCustomProperties(),
 		Name:                     "Version Two",
+		Description:              stringToPointer("This version improves stuff and things better"),
+		ExternalId:               stringToPointer("934589798"),
+		Id:                       stringToPointer("2"),
+		CreateTimeSinceEpoch:     stringToPointer("1725282259922"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1725282259922"),
+		RegisteredModelId:        "1",
+		Author:                   stringToPointer("Sherlock Holmes"),
+		State:                    stateToPointer(openapi.MODELVERSIONSTATE_LIVE),
+	}
+
+	modelVersion3 := openapi.ModelVersion{
+		CustomProperties:         newCustomProperties(),
+		Name:                     "Version Three",
 		Description:              stringToPointer("This version improves stuff and things"),
 		ExternalId:               stringToPointer("934589799"),
-		Id:                       stringToPointer("2"),
+		Id:                       stringToPointer("3"),
 		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
 		RegisteredModelId:        "2",
@@ -89,12 +102,12 @@ func GetModelVersionMocks() []openapi.ModelVersion {
 		State:                    stateToPointer(openapi.MODELVERSIONSTATE_LIVE),
 	}
 
-	model3 := openapi.ModelVersion{
+	modelVersion4 := openapi.ModelVersion{
 		CustomProperties:         newCustomProperties(),
-		Name:                     "Version Three",
+		Name:                     "Version Four",
 		Description:              stringToPointer("This version didn't improve stuff and things"),
 		ExternalId:               stringToPointer("934589791"),
-		Id:                       stringToPointer("3"),
+		Id:                       stringToPointer("4"),
 		CreateTimeSinceEpoch:     stringToPointer("1725282249921"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1725282249921"),
 		RegisteredModelId:        "3",
@@ -102,7 +115,7 @@ func GetModelVersionMocks() []openapi.ModelVersion {
 		State:                    stateToPointer(openapi.MODELVERSIONSTATE_ARCHIVED),
 	}
 
-	return []openapi.ModelVersion{model1, model2, model3}
+	return []openapi.ModelVersion{modelVersion1, modelVersion2, modelVersion3, modelVersion4}
 }
 
 func GetModelVersionListMock() openapi.ModelVersionList {

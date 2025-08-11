@@ -1,9 +1,10 @@
 package mocks
 
 import (
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"log/slog"
 	"net/url"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/mock"
@@ -32,6 +33,10 @@ func (m *ModelRegistryClientMock) GetRegisteredModel(_ mrserver.HTTPClientInterf
 		mockData := GetRegisteredModelMocks()[2]
 		return &mockData, nil
 	}
+	if id == "2" {
+		mockData := GetRegisteredModelMocks()[1]
+		return &mockData, nil
+	}
 	mockData := GetRegisteredModelMocks()[0]
 	return &mockData, nil
 }
@@ -47,6 +52,11 @@ func (m *ModelRegistryClientMock) GetAllModelVersions(_ mrserver.HTTPClientInter
 }
 
 func (m *ModelRegistryClientMock) GetModelVersion(_ mrserver.HTTPClientInterface, id string) (*openapi.ModelVersion, error) {
+	if id == "4" {
+		mockData := GetModelVersionMocks()[3]
+		return &mockData, nil
+	}
+
 	if id == "3" {
 		mockData := GetModelVersionMocks()[2]
 		return &mockData, nil

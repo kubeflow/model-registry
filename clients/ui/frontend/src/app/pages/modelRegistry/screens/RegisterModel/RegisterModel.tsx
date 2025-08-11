@@ -78,7 +78,7 @@ const RegisterModel: React.FC = () => {
   return (
     <ApplicationsPage
       title="Register model"
-      description="Create a new model and register the first version of your new model."
+      description="Create and register the first version of a new model."
       breadcrumb={
         <Breadcrumb>
           <BreadcrumbItem

@@ -39,6 +39,7 @@ type RoleBindingPermissionsProps = {
   description: React.ReactElement | string;
   groups: GroupKind[];
   isGroupFirst?: boolean;
+  isProjectSubject?: boolean;
 };
 
 const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
@@ -55,6 +56,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
   description,
   groups,
   isGroupFirst = false,
+  isProjectSubject = false,
 }) => {
   const {
     data: roleBindings,
@@ -106,6 +108,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="user"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      isProjectSubject={isProjectSubject}
     />
   );
 
@@ -127,6 +130,7 @@ const RoleBindingPermissions: React.FC<RoleBindingPermissionsProps> = ({
       typeModifier="group"
       createRoleBinding={createRoleBinding}
       deleteRoleBinding={deleteRoleBinding}
+      isProjectSubject={isProjectSubject}
     />
   );
 

@@ -104,10 +104,10 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
           value={search}
           onChange={setSearch}
           onClear={resetFilters}
-          placeholder={`Find by ${searchType.toLowerCase()}`}
-          fieldLabel={`Find by ${searchType.toLowerCase()}`}
+          placeholder="Filter by name, description or label"
+          fieldLabel="Filter by name, description or label"
           className="toolbar-fieldset-wrapper"
-          style={{ minWidth: '200px' }}
+          style={{ minWidth: '270px' }}
           data-testid="registered-model-table-search"
         />
       </ToolbarItem>
@@ -119,6 +119,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
       refresh={refresh}
       clearFilters={resetFilters}
       registeredModels={filteredRegisteredModels}
+      modelVersions={modelVersions}
       toolbarContent={
         <RegisteredModelsTableToolbar
           toggleGroupItems={toggleGroupItems}
