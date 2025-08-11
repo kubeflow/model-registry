@@ -267,6 +267,43 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
               </>
             )}
             <Divider style={{ marginTop: '1em' }} />
+            <DescriptionList>
+              <EditableTextDescriptionListGroup
+                editableVariant="TextInput"
+                baseTestId="source-model-format"
+                isArchive={isArchiveVersion}
+                value={modelArtifact?.modelFormatName || ''}
+                saveEditedValue={(value) =>
+                  handleArtifactUpdate(
+                    apiState.api.patchModelArtifact(
+                      {},
+                      { modelFormatName: value },
+                      modelArtifact?.id || '',
+                    ),
+                  )
+                }
+                title="Model format"
+                contentWhenEmpty="No model format specified"
+              />
+              <EditableTextDescriptionListGroup
+                editableVariant="TextInput"
+                baseTestId="source-model-version"
+                value={modelArtifact?.modelFormatVersion || ''}
+                isArchive={isArchiveVersion}
+                saveEditedValue={(newVersion) =>
+                  handleArtifactUpdate(
+                    apiState.api.patchModelArtifact(
+                      {},
+                      { modelFormatVersion: newVersion },
+                      modelArtifact?.id || '',
+                    ),
+                  )
+                }
+                title="Model format version"
+                contentWhenEmpty="No model format version"
+              />
+            </DescriptionList>
+            <Divider style={{ marginTop: '1em' }} />
             <DescriptionList isFillColumns style={{ marginTop: '1em' }}>
               <DashboardDescriptionListGroup
                 title="Author"
