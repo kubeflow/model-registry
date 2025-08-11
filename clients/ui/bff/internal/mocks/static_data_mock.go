@@ -683,43 +683,31 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	otherModel1 := models.CatalogModel{
-		Name:        "codellama-7b-instruct",
-		Description: stringToPointer("Code Llama 7B model fine-tuned for instruction following and code generation"),
+		Name:        "admin-model-2",
+		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
 		Tasks:       []string{"code-generation", "instruction-following"},
-		License:     stringToPointer("llama2"),
+		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
-		SourceId:    stringToPointer("adminModel1"),
+		SourceId:    stringToPointer("adminModel2"),
 	}
 
 	otherModel2 := models.CatalogModel{
-		Name:        "llama-2-7b-chat",
-		Description: stringToPointer("Llama 2 Chat 7B model fine-tuned for conversational use cases"),
+		Name:        "admin-model-1",
+		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
 		Tasks:       []string{"text-generation", "conversational"},
-		License:     stringToPointer("llama2"),
+		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("adminModel1"),
-	}
-
-	sampleModel1 := models.CatalogModel{
-		Name:        "gpt-3.5-turbo",
-		Description: stringToPointer("GPT-3.5 Turbo is optimized for chat and works well for traditional completions tasks"),
-		Provider:    stringToPointer("Admin model 2"),
-		Tasks:       []string{"text-generation", "conversational", "completion"},
-		License:     stringToPointer("proprietary"),
-		Maturity:    stringToPointer("Generally Available"),
-		Language:    []string{"en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh"},
-		SourceId:    stringToPointer("adminModel2"),
 	}
 
 	return []models.CatalogModel{
 		redHatModel1, redHatModel2, redHatModel3,
 		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
 		otherModel1, otherModel2,
-		sampleModel1,
 	}
 }
 
