@@ -45,7 +45,7 @@ func NewHTTPClient(logger *slog.Logger, modelRegistryID string, baseURL string, 
 
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 		}},
 		baseURL:         baseURL,
 		ModelRegistryID: modelRegistryID,
