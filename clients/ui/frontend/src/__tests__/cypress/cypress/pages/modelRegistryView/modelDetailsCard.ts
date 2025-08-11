@@ -41,6 +41,10 @@ class ModelDetailsCard {
   findExpandControlButton() {
     return cy.findByTestId('expand-control-button');
   }
+
+  findToggleButton() {
+    return cy.findByTestId('model-details-card-toggle-button');
+  }
 }
 
 export const modelDetailsCard = new ModelDetailsCard();
