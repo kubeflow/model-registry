@@ -253,6 +253,36 @@ paths:
       operationId: createExperimentRun
       summary: Create an ExperimentRun
       description: Creates a new instance of an `ExperimentRun`.
+  "/api/model_registry/v1alpha3/experiment_runs/metric_history":
+    summary: Path used to get metric history for multiple experiment runs.
+    description: >-
+      The REST endpoint/path used to get metric history for multiple `ExperimentRun` entities. This path contains a `GET` operation to retrieve metrics with optional filtering by experiment run IDs, name, and step IDs.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/stepIds"
+        - $ref: "#/components/parameters/experimentRunIds"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRunsMetricHistory
+      summary: Get metric history for multiple ExperimentRuns
+      description: Gets the metric history for multiple `ExperimentRun` entities with optional filtering by experiment run IDs, metric name, and step IDs.
   "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}":
     summary: Path used to manage a single ExperimentRun.
     description: >-
@@ -3076,6 +3106,18 @@ components:
           value: "1,2,3"
       name: stepIds
       description: "Comma-separated list of step IDs to filter metrics by."
+      schema:
+        type: string
+      in: query
+      required: false
+    experimentRunIds:
+      style: form
+      explode: true
+      examples:
+        experimentRunIds:
+          value: "143,483,193"
+      name: experimentRunIds
+      description: "Comma-separated list of experiment run IDs to filter metric history by."
       schema:
         type: string
       in: query

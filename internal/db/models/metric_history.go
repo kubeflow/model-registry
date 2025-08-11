@@ -4,10 +4,11 @@ const MetricHistoryType = "metric-history"
 
 type MetricHistoryListOptions struct {
 	Pagination
-	Name            *string
-	ExternalID      *string
-	ExperimentRunID *int32
-	StepIds         *string
+	Name             *string
+	ExternalID       *string
+	ExperimentRunID  *int32
+	ExperimentRunIDs []int32
+	StepIds          *string
 }
 
 type MetricHistoryAttributes struct {

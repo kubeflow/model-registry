@@ -58,6 +58,9 @@ func applyMetricHistoryListFilters(query *gorm.DB, listOptions *models.MetricHis
 	if listOptions.ExperimentRunID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
 			Where("Attribution.context_id = ?", listOptions.ExperimentRunID)
+	} else if len(listOptions.ExperimentRunIDs) > 0 {
+		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
+			Where("Attribution.context_id IN ?", listOptions.ExperimentRunIDs)
 	}
 
 	return query
