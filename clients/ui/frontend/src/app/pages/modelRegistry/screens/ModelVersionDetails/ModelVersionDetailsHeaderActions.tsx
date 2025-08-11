@@ -38,8 +38,7 @@ const ModelVersionsDetailsHeaderActions: React.FC<ModelVersionsDetailsHeaderActi
   }
 
   return (
-    <ActionList className="pf-v5-u-display-flex">
-      <ActionListGroup className="pf-v5-u-flex-1">
+   <ActionList className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-md">
         <ActionListItem>
           <Dropdown
             isOpen={isOpenActionDropdown}
