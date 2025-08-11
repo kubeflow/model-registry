@@ -109,6 +109,11 @@ export const getCustomPropString = <
   return '';
 };
 
+const isMatchVersionKeyword = (mv: ModelVersion, keywordFilter: string): boolean =>
+  mv.name.toLowerCase().includes(keywordFilter) ||
+  (mv.description && mv.description.toLowerCase().includes(keywordFilter)) ||
+  getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(keywordFilter));
+
 export const filterModelVersions = (
   unfilteredModelVersions: ModelVersion[],
   filterData: ModelRegistryVersionsFilterDataType,
@@ -121,15 +126,9 @@ export const filterModelVersions = (
       return true;
     }
 
-    const doesNotMatchVersions =
-      keywordFilter &&
-      !(
-        mv.name.toLowerCase().includes(keywordFilter) ||
-        (mv.description && mv.description.toLowerCase().includes(keywordFilter)) ||
-        getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(keywordFilter))
-      );
+    const doesNotMatchVersion = keywordFilter && !isMatchVersionKeyword(mv, keywordFilter);
 
-    if (doesNotMatchVersions) {
+    if (doesNotMatchVersion) {
       return false;
     }
 
@@ -167,14 +166,7 @@ export const filterRegisteredModels = (
 
     const doesNotMatchVersions =
       keywordFilter &&
-      !modelVersions.some(
-        (mv: ModelVersion) =>
-          mv.name.toLowerCase().includes(keywordFilter) ||
-          (mv.description && mv.description.toLowerCase().includes(keywordFilter)) ||
-          getLabels(mv.customProperties).some((label) =>
-            label.toLowerCase().includes(keywordFilter),
-          ),
-      );
+      !modelVersions.some((mv: ModelVersion) => isMatchVersionKeyword(mv, keywordFilter));
 
     if (doesNotMatchModel && doesNotMatchVersions) {
       return false;
