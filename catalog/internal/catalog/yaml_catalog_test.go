@@ -171,16 +171,37 @@ func TestYAMLCatalogListModels(t *testing.T) {
 	assert.Equal(int32(0), emptyModels.Size)
 	assert.Equal(int32(0), emptyModels.PageSize)
 	assert.Len(emptyModels.Items, 0)
+
+	// Test case 13: Test with excluded models
+	excludedProvider := testYAMLProviderWithExclusions(t, "testdata/test-list-models-catalog.yaml", []any{
+		"model-alpha",
+	})
+	excludedModels, err := excludedProvider.ListModels(ctx, ListModelsParams{})
+	if assert.NoError(err) {
+		assert.NotNil(excludedModels)
+		assert.Equal(int32(5), excludedModels.Size)
+		for _, m := range excludedModels.Items {
+			assert.NotEqual("model-alpha", m.Name)
+		}
+	}
 }
 
 func testYAMLProvider(t *testing.T, path string) CatalogSourceProvider {
+	return testYAMLProviderWithExclusions(t, path, nil)
+}
+
+func testYAMLProviderWithExclusions(t *testing.T, path string, excludedModels []any) CatalogSourceProvider {
+	properties := map[string]any{
+		yamlCatalogPath: path,
+	}
+	if excludedModels != nil {
+		properties["excludedModels"] = excludedModels
+	}
 	provider, err := newYamlCatalog(&CatalogSourceConfig{
-		Properties: map[string]any{
-			yamlCatalogPath: path,
-		},
+		Properties: properties,
 	})
 	if err != nil {
-		t.Fatalf("newYamlCatalog(%s) failed: %v", path, err)
+		t.Fatalf("newYamlCatalog(%s) with exclusions failed: %v", path, err)
 	}
 	return provider
 }
