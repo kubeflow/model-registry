@@ -1,3 +1,5 @@
+from __future__ import annotations  # noqa: I001
+
 import time
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
