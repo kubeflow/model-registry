@@ -53,6 +53,30 @@ type OpenAPIToMLMDConverter interface {
 	ConvertDocArtifact(source *OpenAPIModelWrapper[openapi.DocArtifact]) (*proto.Artifact, error)
 
 	// goverter:autoMap Model
+	// goverter:map . Name | MapDataSetName
+	// goverter:map Model Type | MapDataSetType
+	// goverter:map Model Properties | MapDataSetProperties
+	// goverter:map Model.State State | MapOpenAPIArtifactState
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertDataSet(source *OpenAPIModelWrapper[openapi.DataSet]) (*proto.Artifact, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapMetricName
+	// goverter:map Model Type | MapMetricType
+	// goverter:map Model Properties | MapMetricProperties
+	// goverter:map Model.State State | MapOpenAPIArtifactState
+	// goverter:ignore Uri state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertMetric(source *OpenAPIModelWrapper[openapi.Metric]) (*proto.Artifact, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapParameterName
+	// goverter:map Model Type | MapParameterType
+	// goverter:map Model Properties | MapParameterProperties
+	// goverter:map Model.State State | MapOpenAPIArtifactState
+	// goverter:ignore Uri state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertParameter(source *OpenAPIModelWrapper[openapi.Parameter]) (*proto.Artifact, error)
+
+	// goverter:autoMap Model
 	// goverter:map Model Type | MapServingEnvironmentType
 	// goverter:map Model Properties | MapServingEnvironmentProperties
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
@@ -72,4 +96,19 @@ type OpenAPIToMLMDConverter interface {
 	// goverter:map Model.LastKnownState LastKnownState | MapLastKnownState
 	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
 	ConvertServeModel(source *OpenAPIModelWrapper[openapi.ServeModel]) (*proto.Execution, error)
+
+	// ADD EXPERIMENT CONVERTER FUNCTIONS
+
+	// goverter:autoMap Model
+	// goverter:map Model Type | MapExperimentType
+	// goverter:map Model Properties | MapExperimentProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperiment(source *OpenAPIModelWrapper[openapi.Experiment]) (*proto.Context, error)
+
+	// goverter:autoMap Model
+	// goverter:map . Name | MapExperimentRunName
+	// goverter:map Model Type | MapExperimentRunType
+	// goverter:map Model Properties | MapExperimentRunProperties
+	// goverter:ignore state sizeCache unknownFields SystemMetadata CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	ConvertExperimentRun(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*proto.Context, error)
 }

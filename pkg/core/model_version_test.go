@@ -14,7 +14,7 @@ import (
 // MODEL VERSIONS
 
 func (suite *CoreTestSuite) TestCreateModelVersion() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -58,7 +58,7 @@ func (suite *CoreTestSuite) TestCreateModelVersion() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateModelVersionFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -84,7 +84,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateModelVersionFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertModelVersion(nil, nil)
@@ -109,7 +109,7 @@ func (suite *CoreTestSuite) TestCreateModelVersionFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersion() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -187,7 +187,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersion() {
 }
 
 func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -218,7 +218,7 @@ func (suite *CoreTestSuite) TestUpdateModelVersionFailure() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -256,7 +256,7 @@ func (suite *CoreTestSuite) TestGetModelVersionById() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -267,7 +267,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -303,7 +303,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsName() {
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsInvalid() {
 	// trigger a 400 bad request to test unallowed query params
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -327,7 +327,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -362,7 +362,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)
@@ -383,7 +383,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersions() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	registeredModelId := suite.registerModel(service, nil, nil)

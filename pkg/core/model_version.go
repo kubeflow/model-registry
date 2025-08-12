@@ -225,8 +225,19 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 	}
 
 	if registeredModelId != nil {
-		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %s", *registeredModelId)
-		listOperationOptions.FilterQuery = &queryParentCtxId
+		// Validate that registeredModelId is a valid integer
+		registeredModelIdInt, err := apiutils.ValidateIDAsInt64Ptr(registeredModelId, "registered model")
+		if err != nil {
+			return nil, err
+		}
+		queryParentCtxId := fmt.Sprintf("parent_contexts_a.id = %d", *registeredModelIdInt)
+		if listOperationOptions.FilterQuery != nil {
+			existingFilter := *listOperationOptions.FilterQuery
+			combinedQuery := fmt.Sprintf("(%s) AND (%s)", existingFilter, queryParentCtxId)
+			listOperationOptions.FilterQuery = &combinedQuery
+		} else {
+			listOperationOptions.FilterQuery = &queryParentCtxId
+		}
 	}
 
 	contextsResp, err := serv.mlmdClient.GetContextsByType(context.Background(), &proto.GetContextsByTypeRequest{
@@ -253,4 +264,11 @@ func (serv *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, 
 		Items:         results,
 	}
 	return &toReturn, nil
+}
+
+// UpsertModelVersionArtifact creates a new artifact if the provided artifact's ID is nil, or updates an existing artifact if the
+// ID is provided.
+// Upon creation, new artifacts will be associated with their corresponding model version.
+func (serv *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionID string) (*openapi.Artifact, error) {
+	return serv.upsertArtifactWithAssociation(artifact, modelVersionID, "model version")
 }

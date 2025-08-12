@@ -99,7 +99,7 @@ func TestEmbedMDMapFromModelVersion(t *testing.T) {
 		RegisteredModelId: "1",
 	}
 
-	result, err := mapper.MapFromModelVersion(openAPIModel)
+	result, err := mapper.MapFromModelVersion(openAPIModel, &openAPIModel.RegisteredModelId)
 	assertion.Nil(err)
 	assertion.NotNil(result)
 
@@ -109,7 +109,7 @@ func TestEmbedMDMapFromModelVersion(t *testing.T) {
 	// Verify attributes
 	attrs := result.GetAttributes()
 	assertion.NotNil(attrs)
-	assertion.Equal("test-model-version", *attrs.Name)
+	assertion.Equal("1:test-model-version", *attrs.Name) // Now expects prefixed name
 	assertion.Equal("version-ext-123", *attrs.ExternalID)
 
 	// Verify properties
@@ -186,7 +186,7 @@ func TestEmbedMDMapFromInferenceService(t *testing.T) {
 	// Verify attributes
 	attrs := result.GetAttributes()
 	assertion.NotNil(attrs)
-	assertion.Equal("test-inference-service", *attrs.Name)
+	assertion.Equal("5:test-inference-service", *attrs.Name)
 	assertion.Equal("inf-ext-123", *attrs.ExternalID)
 
 	// Verify properties
@@ -235,24 +235,50 @@ func TestEmbedMDMapFromModelArtifact(t *testing.T) {
 		StoragePath:        apiutils.Of("/path/to/model"),
 	}
 
-	result, err := mapper.MapFromModelArtifact(openAPIModel)
-	assertion.Nil(err)
-	assertion.NotNil(result)
+	t.Run("with parent ID", func(t *testing.T) {
+		testParentId := "test-parent-123"
+		result, err := mapper.MapFromModelArtifact(openAPIModel, &testParentId)
+		assertion.Nil(err)
+		assertion.NotNil(result)
 
-	// Verify type ID
-	assertion.Equal(int32(testModelArtifactTypeId), *result.GetTypeID())
+		// Verify type ID
+		assertion.Equal(int32(testModelArtifactTypeId), *result.GetTypeID())
 
-	// Verify attributes
-	attrs := result.GetAttributes()
-	assertion.NotNil(attrs)
-	assertion.Equal("test-model-artifact", *attrs.Name)
-	assertion.Equal("model-art-ext-123", *attrs.ExternalID)
-	assertion.Equal("s3://bucket/model.pkl", *attrs.URI)
-	assertion.Equal("LIVE", *attrs.State)
-	// Add nil check for ArtifactType
-	if attrs.ArtifactType != nil {
-		assertion.Equal("model-artifact", *attrs.ArtifactType)
-	}
+		// Verify attributes
+		attrs := result.GetAttributes()
+		assertion.NotNil(attrs)
+		assertion.Equal("test-parent-123:test-model-artifact", *attrs.Name)
+		assertion.Equal("model-art-ext-123", *attrs.ExternalID)
+		assertion.Equal("s3://bucket/model.pkl", *attrs.URI)
+		assertion.Equal("LIVE", *attrs.State)
+		// Add nil check for ArtifactType
+		if attrs.ArtifactType != nil {
+			assertion.Equal("model-artifact", *attrs.ArtifactType)
+		}
+	})
+
+	t.Run("without parent ID (standalone)", func(t *testing.T) {
+		result, err := mapper.MapFromModelArtifact(openAPIModel, nil)
+		assertion.Nil(err)
+		assertion.NotNil(result)
+
+		// Verify type ID
+		assertion.Equal(int32(testModelArtifactTypeId), *result.GetTypeID())
+
+		// Verify attributes
+		attrs := result.GetAttributes()
+		assertion.NotNil(attrs)
+		// For standalone artifacts, name will be UUID-prefixed
+		assertion.Contains(*attrs.Name, ":test-model-artifact")
+		assertion.True(len(*attrs.Name) > len("test-model-artifact"), "Name should be longer due to UUID prefix")
+		assertion.Equal("model-art-ext-123", *attrs.ExternalID)
+		assertion.Equal("s3://bucket/model.pkl", *attrs.URI)
+		assertion.Equal("LIVE", *attrs.State)
+		// Add nil check for ArtifactType
+		if attrs.ArtifactType != nil {
+			assertion.Equal("model-artifact", *attrs.ArtifactType)
+		}
+	})
 }
 
 func TestEmbedMDMapFromDocArtifact(t *testing.T) {
@@ -266,24 +292,50 @@ func TestEmbedMDMapFromDocArtifact(t *testing.T) {
 		State:       apiutils.Of(openapi.ARTIFACTSTATE_LIVE),
 	}
 
-	result, err := mapper.MapFromDocArtifact(openAPIModel)
-	assertion.Nil(err)
-	assertion.NotNil(result)
+	t.Run("with parent ID", func(t *testing.T) {
+		testParentId := "test-parent-456"
+		result, err := mapper.MapFromDocArtifact(openAPIModel, &testParentId)
+		assertion.Nil(err)
+		assertion.NotNil(result)
 
-	// Verify type ID
-	assertion.Equal(int32(testDocArtifactTypeId), *result.GetTypeID())
+		// Verify type ID
+		assertion.Equal(int32(testDocArtifactTypeId), *result.GetTypeID())
 
-	// Verify attributes
-	attrs := result.GetAttributes()
-	assertion.NotNil(attrs)
-	assertion.Equal("test-doc-artifact", *attrs.Name)
-	assertion.Equal("doc-art-ext-123", *attrs.ExternalID)
-	assertion.Equal("s3://bucket/doc.pdf", *attrs.URI)
-	assertion.Equal("LIVE", *attrs.State)
-	// Add nil check for ArtifactType
-	if attrs.ArtifactType != nil {
-		assertion.Equal("doc-artifact", *attrs.ArtifactType)
-	}
+		// Verify attributes
+		attrs := result.GetAttributes()
+		assertion.NotNil(attrs)
+		assertion.Equal("test-parent-456:test-doc-artifact", *attrs.Name)
+		assertion.Equal("doc-art-ext-123", *attrs.ExternalID)
+		assertion.Equal("s3://bucket/doc.pdf", *attrs.URI)
+		assertion.Equal("LIVE", *attrs.State)
+		// Add nil check for ArtifactType
+		if attrs.ArtifactType != nil {
+			assertion.Equal("doc-artifact", *attrs.ArtifactType)
+		}
+	})
+
+	t.Run("without parent ID (standalone)", func(t *testing.T) {
+		result, err := mapper.MapFromDocArtifact(openAPIModel, nil)
+		assertion.Nil(err)
+		assertion.NotNil(result)
+
+		// Verify type ID
+		assertion.Equal(int32(testDocArtifactTypeId), *result.GetTypeID())
+
+		// Verify attributes
+		attrs := result.GetAttributes()
+		assertion.NotNil(attrs)
+		// For standalone artifacts, name will be UUID-prefixed
+		assertion.Contains(*attrs.Name, ":test-doc-artifact")
+		assertion.True(len(*attrs.Name) > len("test-doc-artifact"), "Name should be longer due to UUID prefix")
+		assertion.Equal("doc-art-ext-123", *attrs.ExternalID)
+		assertion.Equal("s3://bucket/doc.pdf", *attrs.URI)
+		assertion.Equal("LIVE", *attrs.State)
+		// Add nil check for ArtifactType
+		if attrs.ArtifactType != nil {
+			assertion.Equal("doc-artifact", *attrs.ArtifactType)
+		}
+	})
 }
 
 func TestEmbedMDMapFromServeModel(t *testing.T) {
@@ -297,7 +349,10 @@ func TestEmbedMDMapFromServeModel(t *testing.T) {
 		LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_RUNNING),
 	}
 
-	result, err := mapper.MapFromServeModel(openAPIModel)
+	// ServeModel always requires a parent ID (InferenceService)
+	// It does not support standalone operation according to the API design
+	testParentId := "test-parent-789"
+	result, err := mapper.MapFromServeModel(openAPIModel, &testParentId)
 	assertion.Nil(err)
 	assertion.NotNil(result)
 
@@ -307,7 +362,7 @@ func TestEmbedMDMapFromServeModel(t *testing.T) {
 	// Verify attributes
 	attrs := result.GetAttributes()
 	assertion.NotNil(attrs)
-	assertion.Equal("test-serve-model", *attrs.Name)
+	assertion.Equal("test-parent-789:test-serve-model", *attrs.Name)
 	assertion.Equal("serve-ext-123", *attrs.ExternalID)
 	// Add nil check for LastKnownState
 	if attrs.LastKnownState != nil {

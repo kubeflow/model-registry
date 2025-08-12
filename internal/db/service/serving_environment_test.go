@@ -6,23 +6,15 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getServingEnvironmentTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.ServingEnvironmentTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find ServingEnvironment type")
-	return int64(typeRecord.ID)
-}
-
 func TestServingEnvironmentRepository(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	defer cleanup()
 
 	// Get the actual ServingEnvironment type ID from the database
 	typeID := getServingEnvironmentTypeID(t, sharedDB)
@@ -60,6 +52,8 @@ func TestServingEnvironmentRepository(t *testing.T) {
 		// Test updating the same serving environment
 		servingEnvironment.ID = saved.GetID()
 		servingEnvironment.GetAttributes().Name = apiutils.Of("updated-serving-env")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		servingEnvironment.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(servingEnvironment)
 		require.NoError(t, err)
@@ -209,7 +203,7 @@ func TestServingEnvironmentRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test ordering by CREATE_TIME
-		pageSize := int32(10)
+		pageSize := int32(100) // Increased page size to ensure all test entities are included
 		listOptions := models.ServingEnvironmentListOptions{
 			Pagination: models.Pagination{
 				OrderBy: apiutils.Of("CREATE_TIME"),

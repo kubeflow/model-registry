@@ -1,5 +1,7 @@
 package models
 
+import "github.com/kubeflow/model-registry/internal/db/filter"
+
 var (
 	Execution_State_name = map[int32]string{
 		0: "UNKNOWN",
@@ -26,6 +28,11 @@ type ServeModelListOptions struct {
 	Name               *string
 	ExternalID         *string
 	InferenceServiceID *int32
+}
+
+// GetRestEntityType implements the FilterApplier interface
+func (s *ServeModelListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityServeModel
 }
 
 type ServeModelAttributes struct {

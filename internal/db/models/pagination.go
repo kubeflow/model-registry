@@ -17,6 +17,7 @@ type Pagination struct {
 	OrderBy       *string `json:"orderBy,omitempty"`
 	SortOrder     *string `json:"sortOrder,omitempty"`
 	NextPageToken *string `json:"nextPageToken,omitempty"`
+	FilterQuery   *string `json:"filterQuery,omitempty"`
 }
 
 func (p *Pagination) GetNextPageToken() string {
@@ -49,4 +50,16 @@ func (p *Pagination) GetPageSize() int32 {
 	}
 
 	return *p.PageSize
+}
+
+func (p *Pagination) GetFilterQuery() string {
+	if p.FilterQuery == nil {
+		return ""
+	}
+
+	return *p.FilterQuery
+}
+
+func (p *Pagination) SetNextPageToken(token *string) {
+	p.NextPageToken = token
 }

@@ -19,6 +19,7 @@ type ModelRegistryService struct {
 	mapper      *mapper.Mapper
 	openapiConv *generated.OpenAPIConverterImpl
 	nameConfig  mlmdtypes.MLMDTypeNamesConfig
+	reconciler  *generated.OpenAPIReconcilerImpl
 }
 
 // NewModelRegistryService creates a new instance of the ModelRegistryService, initializing it with the provided gRPC client connection.
@@ -40,6 +41,7 @@ func NewModelRegistryService(cc grpc.ClientConnInterface, nameConfig mlmdtypes.M
 		typesMap:    typesMap,
 		openapiConv: &generated.OpenAPIConverterImpl{},
 		mapper:      mapper.NewMapper(typesMap),
+		reconciler:  &generated.OpenAPIReconcilerImpl{},
 	}, nil
 }
 
@@ -73,6 +75,34 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 	if err != nil {
 		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.ModelArtifactTypeName, err)
 	}
+
+	dataSetResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.DataSetTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.DataSetTypeName, err)
+	}
+
+	metricResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.MetricTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.MetricTypeName, err)
+	}
+
+	metricHistoryResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.MetricHistoryTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.MetricHistoryTypeName, err)
+	}
+
+	parameterResp, err := client.GetArtifactType(context.Background(), &proto.GetArtifactTypeRequest{
+		TypeName: &nameConfig.ParameterTypeName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting artifact type %s: %w", nameConfig.ParameterTypeName, err)
+	}
 	servingEnvironmentContextTypeReq := proto.GetContextTypeRequest{
 		TypeName: &nameConfig.ServingEnvironmentTypeName,
 	}
@@ -95,14 +125,37 @@ func BuildTypesMap(cc grpc.ClientConnInterface, nameConfig mlmdtypes.MLMDTypeNam
 		return nil, fmt.Errorf("error getting execution type %s: %w", nameConfig.ServeModelTypeName, err)
 	}
 
+	// Add experiment type retrieval
+	experimentContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: &nameConfig.ExperimentTypeName,
+	}
+	experimentResp, err := client.GetContextType(context.Background(), &experimentContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ExperimentTypeName, err)
+	}
+
+	experimentRunContextTypeReq := proto.GetContextTypeRequest{
+		TypeName: &nameConfig.ExperimentRunTypeName,
+	}
+	experimentRunResp, err := client.GetContextType(context.Background(), &experimentRunContextTypeReq)
+	if err != nil {
+		return nil, fmt.Errorf("error getting context type %s: %w", nameConfig.ExperimentRunTypeName, err)
+	}
+
 	typesMap := map[string]int64{
 		nameConfig.RegisteredModelTypeName:    registeredModelResp.ContextType.GetId(),
 		nameConfig.ModelVersionTypeName:       modelVersionResp.ContextType.GetId(),
 		nameConfig.DocArtifactTypeName:        docArtifactResp.ArtifactType.GetId(),
 		nameConfig.ModelArtifactTypeName:      modelArtifactResp.ArtifactType.GetId(),
+		nameConfig.DataSetTypeName:            dataSetResp.ArtifactType.GetId(),
+		nameConfig.MetricTypeName:             metricResp.ArtifactType.GetId(),
+		nameConfig.MetricHistoryTypeName:      metricHistoryResp.ArtifactType.GetId(),
+		nameConfig.ParameterTypeName:          parameterResp.ArtifactType.GetId(),
 		nameConfig.ServingEnvironmentTypeName: servingEnvironmentResp.ContextType.GetId(),
 		nameConfig.InferenceServiceTypeName:   inferenceServiceResp.ContextType.GetId(),
 		nameConfig.ServeModelTypeName:         serveModelResp.ExecutionType.GetId(),
+		nameConfig.ExperimentTypeName:         experimentResp.ContextType.GetId(),
+		nameConfig.ExperimentRunTypeName:      experimentRunResp.ContextType.GetId(),
 	}
 	return typesMap, nil
 }

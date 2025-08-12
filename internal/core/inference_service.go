@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -25,7 +24,7 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
+		withNotEditable, err := b.mapper.UpdateExistingInferenceService(converter.NewOpenapiUpdateWrapper(existing, inferenceService))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -41,15 +40,6 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	name := ""
-
-	if infSvc.GetAttributes().Name != nil {
-		name = *infSvc.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(&inferenceService.ServingEnvironmentId, name)
-	infSvc.GetAttributes().Name = &prefixedName
 
 	savedInfSvc, err := b.inferenceServiceRepository.Save(infSvc)
 	if err != nil {
@@ -71,12 +61,12 @@ func (b *ModelRegistryService) UpsertInferenceService(inferenceService *openapi.
 func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.InferenceService, error) {
 	glog.Infof("Getting InferenceService by id %s", id)
 
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "inference service")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	model, err := b.inferenceServiceRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no InferenceService found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -90,18 +80,24 @@ func (b *ModelRegistryService) GetInferenceServiceById(id string) (*openapi.Infe
 }
 
 func (b *ModelRegistryService) GetInferenceServiceByParams(name *string, parentResourceId *string, externalId *string) (*openapi.InferenceService, error) {
-	var combinedName *string
-
-	if name != nil && parentResourceId != nil {
-		n := converter.PrefixWhenOwned(parentResourceId, *name)
-		combinedName = &n
-	} else if externalId == nil {
+	// Caller MUST provide either name and parentResourceId or externalId
+	if (name == nil || parentResourceId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
+	var parentResourceID *int32
+	if parentResourceId != nil {
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "parent resource")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{
-		Name:       combinedName,
-		ExternalID: externalId,
+		Name:             name,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err
@@ -129,14 +125,11 @@ func (b *ModelRegistryService) GetInferenceServices(listOptions api.ListOptions,
 	var parentResourceID *int32
 
 	if servingEnvironmentId != nil {
-		convertedId, err := strconv.ParseInt(*servingEnvironmentId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(servingEnvironmentId, "serving environment")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-
-		parentResourceID = &id
 	}
 
 	infServicesList, err := b.inferenceServiceRepository.List(models.InferenceServiceListOptions{

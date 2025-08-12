@@ -14,7 +14,7 @@ import (
 // INFERENCE SERVICE
 
 func (suite *CoreTestSuite) TestCreateInferenceService() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -67,7 +67,7 @@ func (suite *CoreTestSuite) TestCreateInferenceService() {
 }
 
 func (suite *CoreTestSuite) TestCreateDuplicateInferenceServiceFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -102,7 +102,7 @@ func (suite *CoreTestSuite) TestCreateDuplicateInferenceServiceFailure() {
 }
 
 func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	_, err := service.UpsertInferenceService(nil)
@@ -134,7 +134,7 @@ func (suite *CoreTestSuite) TestCreateInferenceServiceFailure() {
 }
 
 func (suite *CoreTestSuite) TestUpdateInferenceService() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -228,7 +228,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceService() {
 }
 
 func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -268,7 +268,7 @@ func (suite *CoreTestSuite) TestUpdateInferenceServiceFailure() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceById() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -314,7 +314,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceById() {
 }
 
 func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -343,7 +343,7 @@ func (suite *CoreTestSuite) TestGetRegisteredModelByInferenceServiceId() {
 }
 
 func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -393,7 +393,7 @@ func (suite *CoreTestSuite) TestGetModelVersionByInferenceServiceId() {
 }
 
 func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -446,7 +446,7 @@ func (suite *CoreTestSuite) TestGetModelArtifactByInferenceServiceId() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -457,7 +457,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsWithNoResults() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -500,7 +500,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamsName() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByParamInvalid() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -532,7 +532,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByParamInvalid() {
 }
 
 func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -575,7 +575,7 @@ func (suite *CoreTestSuite) TestGetInfernenceServiceByParamsExternalId() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
@@ -605,7 +605,7 @@ func (suite *CoreTestSuite) TestGetInferenceServiceByEmptyParams() {
 }
 
 func (suite *CoreTestSuite) TestGetInferenceServices() {
-	// create mode registry service
+	// create model registry service
 	service := suite.setupModelRegistryService()
 
 	parentResourceId := suite.registerServingEnvironment(service, "", nil)
