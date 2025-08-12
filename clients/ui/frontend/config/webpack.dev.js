@@ -24,7 +24,7 @@ const PROXY_HOST = process.env._PROXY_HOST;
 const PROXY_PORT = process.env._PROXY_PORT;
 const DEPLOYMENT_MODE = process.env._DEPLOYMENT_MODE;
 const AUTH_METHOD = process.env._AUTH_METHOD;
-const BASE_PATH = DEPLOYMENT_MODE === 'kubeflow' ? '/model-registry/' : PUBLIC_PATH;
+const BASE_PATH = process.env.BASE_PATH || (DEPLOYMENT_MODE === 'kubeflow' ? '/model-registry/' : PUBLIC_PATH);
 
 // Function to generate headers based on deployment mode
 const getProxyHeaders = () => {

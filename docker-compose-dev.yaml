@@ -1,0 +1,89 @@
+# Development docker-compose file with PostgreSQL, local builds, and full stack
+# Composes:
+# - PostgreSQL database
+# - model-registry server built locally with direct PostgreSQL connection (embedmd)
+# - model-catalog service built locally using same image as model-registry
+# - UI frontend built locally using webpack dev server with proxy
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-dev
+    environment:
+      - POSTGRES_DB=model_registry
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d model_registry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  model-registry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [
+      "proxy",
+      "--hostname", "0.0.0.0",
+      "--datastore-type", "embedmd",
+      "--embedmd-database-type", "postgres",
+      "--embedmd-database-dsn", "host=postgres port=5432 user=postgres password=demo dbname=model_registry sslmode=disable"
+    ]
+    container_name: model-registry-dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+
+  model-catalog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["catalog", "--listen", "0.0.0.0:8081", "--catalogs-path", "/testdata/test-catalog-sources.yaml"]
+    container_name: model-catalog-dev
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./catalog/internal/catalog/testdata:/testdata
+
+  mock-bff:
+    build:
+      context: ./clients/ui/mock-bff
+      dockerfile: Dockerfile
+    container_name: mock-bff-dev
+    ports:
+      - "4000:4000"
+    depends_on:
+      - model-registry
+      - model-catalog
+
+  ui-frontend:
+    build:
+      context: ./clients/ui/frontend
+      dockerfile: Dockerfile.dev
+    container_name: ui-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - DEPLOYMENT_MODE=standalone
+      - AUTH_METHOD=internal
+      - PROXY_PROTOCOL=http
+      - PROXY_HOST=mock-bff
+      - PROXY_PORT=4000
+      - HOST=0.0.0.0
+      - PORT=3000
+      - PUBLIC_PATH=/
+      - BASE_PATH=/
+    depends_on:
+      - mock-bff
+
+volumes:
+  postgres_data:

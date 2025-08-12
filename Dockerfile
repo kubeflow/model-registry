@@ -9,6 +9,7 @@ COPY ["go.mod", "go.sum", "go.work", "./"]
 COPY ["pkg/openapi/go.mod", "pkg/openapi/"]
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
+USER root
 RUN go mod download
 
 # Download tools

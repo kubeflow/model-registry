@@ -1,0 +1,21 @@
+# Development Dockerfile for frontend only
+FROM node:20
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Clean cache and install dependencies including optional ones, rebuilding native modules
+RUN npm cache clean --force
+RUN npm ci
+RUN npm rebuild @swc/core
+
+# Copy source code
+COPY . .
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start the webpack dev server
+CMD ["npm", "run", "start:dev"]
