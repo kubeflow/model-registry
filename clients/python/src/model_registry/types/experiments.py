@@ -7,7 +7,8 @@ Experiment types are used to map between proto types based on experiments and Py
 
 from __future__ import annotations  # noqa: I001
 
-from typing import Any, override
+from typing import Any
+from typing_extensions import override
 
 from mr_openapi import (
     Experiment as ExperimentBaseModel,
