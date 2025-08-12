@@ -847,23 +847,3 @@ func (s *ModelRegistryServiceAPIService) buildListOption(filterQuery string, pag
 		NextPageToken: nextPageTokenParam,
 	}, nil
 }
-
-// buildListOptionWithFilterTranslation builds list options and translates filter queries from REST API to MLMD format
-func (s *ModelRegistryServiceAPIService) buildListOptionWithFilterTranslation(filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string, entityType apiutils.EntityType) (api.ListOptions, error) {
-	// First build the basic list options
-	listOptions, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
-	if err != nil {
-		return api.ListOptions{}, err
-	}
-
-	// Translate the filter query if present
-	if listOptions.FilterQuery != nil && *listOptions.FilterQuery != "" {
-		translatedQuery, err := apiutils.TranslateFilterQuery(*listOptions.FilterQuery, entityType)
-		if err != nil {
-			return api.ListOptions{}, fmt.Errorf("filter query translation failed: %v: %w", err, api.ErrBadRequest)
-		}
-		listOptions.FilterQuery = &translatedQuery
-	}
-
-	return listOptions, nil
-}
