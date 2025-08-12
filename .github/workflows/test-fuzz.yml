@@ -46,13 +46,15 @@ jobs:
       - name: Save PR details (for cleanup)
         if: always()  # Run even on failure to allow cleanup
         run: |
-          mkdir -p ./pr
-          echo ${{ github.event.pull_request.number }} > ./pr/number
+          mkdir -p ${{ github.workspace }}/pr
+          echo ${{ github.event.pull_request.number }} > ${{ github.workspace }}/pr/number
+          ls -la ${{ github.workspace }}/pr  # Debug: List directory contents
 
       - name: Upload PR details artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pr-details
-          path: pr/
-          retention-days: 1  # Short retention since only needed for immediate cleanup
+          path: ${{ github.workspace }}/pr/
+          retention-days: 1
+          if-no-files-found: warn
