@@ -52,5 +52,45 @@ services:
       retries: 5
       start_period: 20s
 
+  model-catalog:
+    image: ghcr.io/kubeflow/model-registry/server:latest
+    command: ["catalog", "--listen", "0.0.0.0:8081", "--catalogs-path", "/testdata/test-catalog-sources.yaml"]
+    container_name: model-catalog-dev
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./catalog/internal/catalog/testdata:/testdata
+
+  mock-bff:
+    build:
+      context: ./clients/ui/mock-bff
+      dockerfile: Dockerfile
+    container_name: mock-bff-dev
+    ports:
+      - "4000:4000"
+    depends_on:
+      - model-registry
+      - model-catalog
+
+  ui-frontend:
+    build:
+      context: ./clients/ui/frontend
+      dockerfile: Dockerfile.dev
+    container_name: ui-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - DEPLOYMENT_MODE=standalone
+      - AUTH_METHOD=internal
+      - PROXY_PROTOCOL=http
+      - PROXY_HOST=mock-bff
+      - PROXY_PORT=4000
+      - HOST=0.0.0.0
+      - PORT=3000
+      - PUBLIC_PATH=/
+      - BASE_PATH=/
+    depends_on:
+      - mock-bff
+
 volumes:
   mysql_data:
