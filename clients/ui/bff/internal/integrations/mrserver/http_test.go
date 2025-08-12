@@ -37,7 +37,7 @@ func TestHTTPClient_GET_Success(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Make the request
@@ -73,7 +73,7 @@ func TestHTTPClient_GET_Error(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Make the request
@@ -123,7 +123,7 @@ func TestHTTPClient_POST_Success(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Prepare request body
@@ -164,7 +164,7 @@ func TestHTTPClient_POST_Error(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Prepare request body
@@ -218,7 +218,7 @@ func TestHTTPClient_PATCH_Success(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Prepare request body
@@ -259,7 +259,7 @@ func TestHTTPClient_PATCH_Error(t *testing.T) {
 
 	// Create client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Prepare request body
@@ -300,7 +300,7 @@ func TestHTTPClient_GET_NonJSONError(t *testing.T) {
 
 	// Create http client pointing to test server
 	logger := setupTestLogger()
-	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil)
+	client, err := NewHTTPClient(logger, "test-registry", server.URL, nil, false)
 	require.NoError(t, err)
 
 	// Make the request
