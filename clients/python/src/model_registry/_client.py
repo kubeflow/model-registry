@@ -662,6 +662,7 @@ class ModelRegistry:
             description: Description of the experiment.
             run_description: Description of the run.
             nested: Whether the run is nested.
+            nested_tag: Tag to use for nested runs.
 
         Returns:
             Experiment run.

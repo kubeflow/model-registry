@@ -14,7 +14,10 @@ from __future__ import annotations  # noqa: I001
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, TypeVar, override
+from typing import Any, TypeVar
+
+from typing_extensions import override
+
 
 import json
 
