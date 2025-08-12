@@ -41,7 +41,7 @@ var (
 		Short: "Starts the go OpenAPI proxy server to connect to a metadata store",
 		Long: `This command launches the go OpenAPI proxy server.
 
-The server connects to a metadata store, currently only MLMD is supported. It supports options to customize the
+The server connects to a metadata store, currently only the internal store is supported. It supports options to customize the
 hostname and port where it listens.`,
 		RunE: runProxyServer,
 	}
