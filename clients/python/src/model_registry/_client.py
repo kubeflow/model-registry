@@ -667,46 +667,118 @@ class ModelRegistry:
         Returns:
             Experiment run.
         """
-        # Retrieve the active experiment context and determine nested runs
-        active_exp: RunContext = self._active_experiment_context.get()
-        if active_exp.active and not nested:
+        active_ctx = self._get_active_context()
+        self._validate_nested_run(active_ctx, nested)
+
+        # Resolve experiment details
+        exp_name, exp_id = self._resolve_experiment_info(
+            experiment_name, experiment_id, active_ctx, nested
+        )
+
+        # Get or create experiment
+        experiment = self._get_or_create_experiment(
+            exp_name, exp_id, owner, description
+        )
+
+        # Get or create run
+        parent_props = (
+            self._get_parent_properties(active_ctx, nested_tag) if nested else {}
+        )
+        exp_run = self._get_or_create_run(
+            experiment, run_name, run_id, run_description, parent_props, nested
+        )
+
+        # Update context if not nested
+        if not active_ctx.active:
+            self._set_active_context(experiment.id, exp_name, exp_run.id)
+
+        return ActiveExperimentRun(
+            thread_safe_ctx=self._active_experiment_context,
+            experiment_run=exp_run,
+            api=self._api,
+            async_runner=self.async_runner,
+        )
+
+    def _get_active_context(self) -> RunContext:
+        """Get the current active experiment context."""
+        return self._active_experiment_context.get()
+
+    def _validate_nested_run(self, active_ctx: RunContext, nested: bool) -> None:
+        """Validate nested run configuration."""
+        if active_ctx.active and not nested:
             msg = "Experiment run is already active. Please set nested=True to start a nested run."
             raise ValueError(msg)
 
-        # Ensure argument pairs are provided
-        if not any([experiment_name, experiment_id, nested]):
-            experiment_name = generate_name("experiment")
+    def _resolve_experiment_info(
+        self,
+        exp_name: str | None,
+        exp_id: str | None,
+        active_ctx: RunContext,
+        nested: bool,
+    ) -> tuple[str | None, str | None]:
+        """Resolve experiment name and ID from inputs or context."""
+        # Use provided values or inherit from active context
+        exp_name = exp_name or active_ctx.name
+        exp_id = exp_id or active_ctx.id
 
-        _parent_obj = {nested_tag: active_exp.run_id} if active_exp.active else {}
+        # Generate name if nothing provided and not nested
+        if not any([exp_name, exp_id, nested]):
+            exp_name = generate_name("experiment")
 
-        # Create or retrieve the experiment
+        return exp_name, exp_id
 
-        if experiment_name := experiment_name or active_exp.name:
-            exp = self.async_runner(self._api.get_experiment_by_name(experiment_name))
-        elif experiment_id := experiment_id or active_exp.id:
-            exp = self.async_runner(self._api.get_experiment_by_id(experiment_id))
+    def _get_or_create_experiment(
+        self,
+        exp_name: str | None,
+        exp_id: str | None,
+        owner: str | None,
+        description: str | None,
+    ) -> Experiment:
+        """Get existing experiment or create new one."""
+        # Try to get existing experiment
+        if exp_name:
+            exp = self.async_runner(self._api.get_experiment_by_name(exp_name))
+        elif exp_id:
+            exp = self.async_runner(self._api.get_experiment_by_id(exp_id))
         else:
             msg = "Either experiment_name or experiment_id must be provided"
             raise ValueError(msg)
 
-        # Create the experiment if it doesn't exist
+        # Create if doesn't exist
         if not exp:
             exp = self.async_runner(
                 self._api.upsert_experiment(
                     Experiment(
-                        name=experiment_name,
+                        name=exp_name,
                         owner=owner,
                         description=description,
                     )
                 )
             )
-            print(f"Experiment {experiment_name} created with ID: {exp.id}")
+            print(f"Experiment {exp_name} created with ID: {exp.id}")
 
-        # Create or reuse the experiment run
+        return exp
+
+    def _get_parent_properties(self, active_ctx: RunContext, nested_tag: str) -> dict:
+        """Get parent run properties for nested runs."""
+        return {nested_tag: active_ctx.run_id} if active_ctx.active else {}
+
+    def _get_or_create_run(
+        self,
+        experiment: Experiment,
+        run_name: str | None,
+        run_id: str | None,
+        run_description: str | None,
+        parent_props: dict,
+        nested: bool,
+    ) -> ExperimentRun:
+        """Get existing run or create new one."""
         exp_run_args = {
-            "experiment_name": experiment_name,
-            "experiment_id": exp.id,
+            "experiment_name": experiment.name,
+            "experiment_id": experiment.id,
         }
+
+        # Try to get existing run
         if run_name:
             exp_run = self.async_runner(
                 self._api.get_experiment_run_by_experiment_and_run_name(
@@ -722,32 +794,28 @@ class ModelRegistry:
                 )
             )
         else:
+            # Create new run
             exp_run = self.async_runner(
                 self._api.upsert_experiment_run(
                     ExperimentRun(
-                        experiment_id=exp.id,
+                        experiment_id=experiment.id,
                         name=generate_name("run"),
                         description=run_description,
-                        custom_properties={**_parent_obj},
+                        custom_properties=parent_props,
                     )
                 )
             )
+            prefix = "Nested " if nested else ""
             print(
-                f"{'Nested ' if nested else ''}Experiment Run {exp_run.name} created with ID: {exp_run.id}"
+                f"{prefix}Experiment Run {exp_run.name} created with ID: {exp_run.id}"
             )
 
-        if not active_exp.active:
-            new_ctx = RunContext(
-                id=experiment_id, name=experiment_name, run_id=exp_run.id, active=True
-            )
-            self._active_experiment_context.set(new_ctx)
+        return exp_run
 
-        return ActiveExperimentRun(
-            thread_safe_ctx=self._active_experiment_context,
-            experiment_run=exp_run,
-            api=self._api,
-            async_runner=self.async_runner,
-        )
+    def _set_active_context(self, exp_id: str, exp_name: str, run_id: str) -> None:
+        """Set the active experiment context."""
+        new_ctx = RunContext(id=exp_id, name=exp_name, run_id=run_id, active=True)
+        self._active_experiment_context.set(new_ctx)
 
     def create_experiment(self, name: str) -> Experiment:
         """Create an experiment.
