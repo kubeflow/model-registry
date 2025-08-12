@@ -49,17 +49,13 @@ func (app *App) GetAllCatalogModelsHandler(w http.ResponseWriter, r *http.Reques
 
 	var filteredModels []models.CatalogModel
 
-	if source == "ALL" || source == "all" {
-		filteredModels = allMockModels
-	} else {
-		for _, model := range allMockModels {
-			if model.SourceId != nil && *model.SourceId == source {
-				filteredModels = append(filteredModels, model)
-			}
+	// TODO: this is to unblock frontend development, will be removed in actual implementation
+	for _, model := range allMockModels {
+		if model.SourceId != nil && *model.SourceId == source {
+			filteredModels = append(filteredModels, model)
 		}
 	}
 
-	// TODO: this is to unblock frontend development, will be removed in actual implementation
 	if query != "" {
 		var queryFilteredModels []models.CatalogModel
 		queryLower := strings.ToLower(query)
@@ -79,21 +75,6 @@ func (app *App) GetAllCatalogModelsHandler(w http.ResponseWriter, r *http.Reques
 
 			// Check provider
 			if !matchFound && model.Provider != nil && strings.Contains(strings.ToLower(*model.Provider), queryLower) {
-				matchFound = true
-			}
-
-			// Check tasks
-			if !matchFound && model.Tasks != nil {
-				for _, task := range model.Tasks {
-					if strings.Contains(strings.ToLower(task), queryLower) {
-						matchFound = true
-						break
-					}
-				}
-			}
-
-			// Check license
-			if !matchFound && model.License != nil && strings.Contains(strings.ToLower(*model.License), queryLower) {
 				matchFound = true
 			}
 
