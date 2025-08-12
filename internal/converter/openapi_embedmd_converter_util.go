@@ -16,6 +16,10 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+func GenerateNewName() *string {
+	return apiutils.Of(uuid.New().String())
+}
+
 // Int32ToString converts int32 to string-based one
 func Int32ToString(id *int32) *string {
 	if id == nil {
