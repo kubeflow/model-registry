@@ -10,7 +10,7 @@ env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
   IMG_REPO: model-registry/server
-  IMG_VERSION: cicd
+  IMG_VERSION: latest
   PUSH_IMAGE: false
 
 jobs:
