@@ -4,7 +4,7 @@ import { FilterIcon, SearchIcon } from '@patternfly/react-icons';
 import { ModelVersion } from '~/app/types';
 import { filterModelVersions } from '~/app/pages/modelRegistry/screens/utils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
-import FilterToolbar from '~/app/pages/modelRegistry/screens/components/FilterToolbar';
+import FilterToolbar from '~/app/shared/components/FilterToolbar';
 import {
   initialModelRegistryVersionsFilterData,
   ModelRegistryVersionsFilterDataType,

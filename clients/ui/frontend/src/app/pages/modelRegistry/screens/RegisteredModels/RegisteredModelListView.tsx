@@ -17,7 +17,7 @@ import {
   modelRegistryFilterOptions,
   ModelRegistryFilterOptions,
 } from '~/app/pages/modelRegistry/screens/const';
-import FilterToolbar from '~/app/pages/modelRegistry/screens/components/FilterToolbar';
+import FilterToolbar from '~/app/shared/components/FilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
