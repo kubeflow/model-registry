@@ -38,15 +38,14 @@ Kubernetes control plane is running at https://127.0.0.1:58635
 CoreDNS is running at https://127.0.0.1:58635/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
 
-#### 2. Create kubeflow namespace
+#### 2. Create kubeflow namespace and switch to it
 
 Create a namespace for model registry to run in, by default this is kubeflow, run:
 
 ```shell
 kubectl create namespace kubeflow
 ```
-
-#### 2a. Switch to that  kubeflow namespace
+then, switch to that  kubeflow namespace
 
 
 ```shell
@@ -94,7 +93,7 @@ Note: an issue has been filed regarding this ticket here:
 #### 4. Setup a port forward to the service
 
 In order to access the MR REST API locally you need to forward a local port to 8080 on the MR service. Run the following
-command: (note this is a long-running service that will not return from the shell command)
+command: (Note: this command starts a long-running service and will not exit the shell)
 
 ```shell
 kubectl port-forward svc/model-registry-service -n kubeflow 8080:8080
