@@ -62,6 +62,7 @@ const initIntercepts = ({
     }),
     mockRegisteredModel({
       name: 'Label modal',
+      owner: 'Author 2',
       id: '2',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
@@ -280,15 +281,26 @@ describe('Model Registry core', () => {
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
     });
 
-    it('Filter by keyword', () => {
+    it('Filter by keyword then both', () => {
       modelRegistry.findTableSearch().type('Fraud detection model');
       modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findFilterDropdownItem('Owner').click();
+      modelRegistry.findTableSearch().type('Author 1');
+      modelRegistry.findTableRows().should('have.length', 1);
       modelRegistry.findTableRows().contains('Fraud detection model');
-      modelRegistry
-        .findRegisteredModelsTableToolbar()
-        .findByRole('button', { name: 'Clear all filters' })
-        .click();
-      modelRegistry.findTableRows().should('have.length', 2);
+      modelRegistry.findTableSearch().type('2');
+      modelRegistry.findTableRows().should('have.length', 0);
+    });
+
+    it('Filter by owner then both', () => {
+      modelRegistry.findFilterDropdownItem('Owner').click();
+      modelRegistry.findTableSearch().type('Author 2');
+      modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findFilterDropdownItem('Keyword').click();
+      modelRegistry.findTableSearch().type('Label modal');
+      modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findTableSearch().type('.');
+      modelRegistry.findTableRows().should('have.length', 0);
     });
   });
 });

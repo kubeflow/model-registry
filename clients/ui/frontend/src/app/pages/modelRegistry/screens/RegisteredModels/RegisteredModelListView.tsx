@@ -1,9 +1,7 @@
 import * as React from 'react';
-import { ToolbarFilter, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
-import { FilterIcon } from '@patternfly/react-icons';
+import { ToolbarGroup } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
-import { ProjectObjectType, typedEmptyImage, asEnumMember, SimpleSelect } from 'mod-arch-shared';
-import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
+import { ProjectObjectType, typedEmptyImage } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import {
@@ -13,6 +11,13 @@ import {
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import { filterArchiveModels, filterLiveModels } from '~/app/utils';
+import {
+  initialModelRegistryFilterData,
+  ModelRegistryFilterDataType,
+  modelRegistryFilterOptions,
+  ModelRegistryFilterOptions,
+} from '~/app/pages/modelRegistry/screens/const';
+import FilterToolbar from '~/app/shared/components/FilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import RegisteredModelTable from './RegisteredModelTable';
 import RegisteredModelsTableToolbar from './RegisteredModelsTableToolbar';
@@ -30,11 +35,22 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
-  const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
-  const [search, setSearch] = React.useState('');
+  const [filterData, setFilterData] = React.useState<ModelRegistryFilterDataType>(
+    initialModelRegistryFilterData,
+  );
   const unfilteredRegisteredModels = filterLiveModels(registeredModels);
   const archiveRegisteredModels = filterArchiveModels(registeredModels);
-  const searchTypes = React.useMemo(() => [SearchType.KEYWORD, SearchType.OWNER], []);
+
+  const onFilterUpdate = React.useCallback(
+    (key: string, value: string | { label: string; value: string } | undefined) =>
+      setFilterData((prevValues) => ({ ...prevValues, [key]: value })),
+    [setFilterData],
+  );
+
+  const onClearFilters = React.useCallback(
+    () => setFilterData(initialModelRegistryFilterData),
+    [setFilterData],
+  );
 
   if (unfilteredRegisteredModels.length === 0) {
     return (
@@ -67,63 +83,51 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
   const filteredRegisteredModels = filterRegisteredModels(
     unfilteredRegisteredModels,
     modelVersions,
-    search,
-    searchType,
+    filterData,
   );
-
-  const resetFilters = () => {
-    setSearch('');
-  };
 
   const toggleGroupItems = (
     <ToolbarGroup variant="filter-group">
-      <ToolbarFilter
-        labels={search === '' ? [] : [search]}
-        deleteLabel={resetFilters}
-        deleteLabelGroup={resetFilters}
-        categoryName="Keyword"
-      >
-        <SimpleSelect
-          options={searchTypes.map((key) => ({
-            key,
-            label: key,
-          }))}
-          value={searchType}
-          toggleProps={{ style: { minWidth: '150px' } }}
-          onChange={(newSearchType) => {
-            const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
-            if (newSearchTypeInput !== null) {
-              setSearchType(newSearchTypeInput);
-            }
-          }}
-          icon={<FilterIcon />}
-        />
-      </ToolbarFilter>
-      <ToolbarItem>
-        <ThemeAwareSearchInput
-          value={search}
-          onChange={setSearch}
-          onClear={resetFilters}
-          placeholder="Filter by name, description or label"
-          fieldLabel="Filter by name, description or label"
-          className="toolbar-fieldset-wrapper"
-          style={{ minWidth: '270px' }}
-          data-testid="registered-model-table-search"
-        />
-      </ToolbarItem>
+      <FilterToolbar
+        filterOptions={modelRegistryFilterOptions}
+        filterOptionRenders={{
+          [ModelRegistryFilterOptions.keyword]: ({ onChange, ...props }) => (
+            <ThemeAwareSearchInput
+              {...props}
+              fieldLabel="Filter by keyword"
+              placeholder="Filter by keyword"
+              className="toolbar-fieldset-wrapper"
+              style={{ minWidth: '270px' }}
+              onChange={(value) => onChange(value)}
+            />
+          ),
+          [ModelRegistryFilterOptions.owner]: ({ onChange, ...props }) => (
+            <ThemeAwareSearchInput
+              {...props}
+              fieldLabel="Filter by owner"
+              placeholder="Filter by owner"
+              className="toolbar-fieldset-wrapper"
+              style={{ minWidth: '270px' }}
+              onChange={(value) => onChange(value)}
+            />
+          ),
+        }}
+        filterData={filterData}
+        onFilterUpdate={onFilterUpdate}
+      />
     </ToolbarGroup>
   );
 
   return (
     <RegisteredModelTable
       refresh={refresh}
-      clearFilters={resetFilters}
+      clearFilters={onClearFilters}
       registeredModels={filteredRegisteredModels}
       modelVersions={modelVersions}
       toolbarContent={
         <RegisteredModelsTableToolbar
           toggleGroupItems={toggleGroupItems}
-          onClearAllFilters={resetFilters}
+          onClearAllFilters={onClearFilters}
         />
       }
     />

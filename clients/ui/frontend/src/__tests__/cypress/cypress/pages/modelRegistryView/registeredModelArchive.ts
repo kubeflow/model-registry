@@ -104,12 +104,16 @@ class ModelArchive {
     return this.findArchiveModelTable().find('thead').findByRole('button', { name });
   }
 
-  findArchiveModelTable() {
-    return cy.findByTestId('registered-models-archive-table');
+  findTableSearch() {
+    return cy.findByTestId('filter-toolbar-text-field');
   }
 
-  findArchiveModelsTableSearch() {
-    return cy.findByTestId('registered-models-archive-table-search');
+  findFilterDropdownItem(name: string) {
+    return cy.findByTestId(`filter-toolbar-dropdown`).findDropdownItem(name);
+  }
+
+  findArchiveModelTable() {
+    return cy.findByTestId('registered-models-archive-table');
   }
 
   findArchiveModelsTableToolbar() {

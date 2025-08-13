@@ -201,7 +201,7 @@ describe('Model version archive list', () => {
     // name, last modified, owner, labels modal
     modelVersionArchive.findArchiveVersionTable().should('be.visible');
 
-    modelVersionArchive.findArchivedVersionTableSearch().type('model version 1');
+    modelVersionArchive.findArchiveVersionTableSearch().type('model version 1');
     modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
     modelVersionArchive
       .findArchivedVersionTableToolbar()
@@ -225,6 +225,56 @@ describe('Model version archive list', () => {
       'Test label y',
     ]);
     labelModal.findCloseModal().click();
+  });
+
+  it('Archived model versions table', () => {
+    initIntercepts({});
+    modelVersionArchive.visit();
+    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions/archive');
+
+    // filtering by keyword then both
+    modelVersionArchive.findArchiveVersionTableSearch().type('model version 1');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('model version 1');
+    modelVersionArchive.findArchiveVersionTableFilterOption('Author').click();
+    modelVersionArchive.findArchiveVersionTableSearch().type('Author 1');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('model version 1');
+    modelVersionArchive.findArchiveVersionTableSearch().type('2');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 0);
+    modelVersionArchive.findArchiveVersionTableSearch().focused().clear();
+    modelVersionArchive.findArchiveVersionTableFilterOption('Keyword').click();
+    modelVersionArchive.findArchiveVersionTableSearch().click();
+    modelVersionArchive.findArchiveVersionTableSearch().focused().clear();
+
+    // filtering by label then both
+    modelVersionArchive.findArchiveVersionTableSearch().type('Financial');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('model version 1');
+    modelVersionArchive.findArchiveVersionTableFilterOption('Author').click();
+    modelVersionArchive.findArchiveVersionTableSearch().type('Author 1');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('model version 1');
+    modelVersionArchive.findArchiveVersionTableSearch().type('2');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 0);
+    modelVersionArchive.findArchiveVersionTableSearch().focused().clear();
+    modelVersionArchive.findArchiveVersionTableFilterOption('Keyword').click();
+    modelVersionArchive.findArchiveVersionTableSearch().click();
+    modelVersionArchive.findArchiveVersionTableSearch().focused().clear();
+
+    // filtering by model version author then both
+    modelVersionArchive.findArchiveVersionTableFilterOption('Author').click();
+    modelVersionArchive.findArchiveVersionTableSearch().type('Test author');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('Test author');
+    modelVersionArchive.findArchiveVersionTableFilterOption('Keyword').click();
+    modelVersionArchive.findArchiveVersionTableSearch().type('model version 2');
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 1);
+    modelVersionArchive.findArchiveVersionsTableRows().contains('model version 2');
+    modelVersionArchive.findArchiveVersionTableSearch().type('2');
+
+    // searching with no matches shows no results
+    modelVersionArchive.findArchiveVersionsTableRows().should('have.length', 0);
   });
 });
 

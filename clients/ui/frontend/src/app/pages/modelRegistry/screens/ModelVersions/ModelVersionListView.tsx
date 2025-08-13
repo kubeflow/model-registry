@@ -10,15 +10,13 @@ import {
   MenuToggleElement,
   Toolbar,
   ToolbarContent,
-  ToolbarFilter,
   ToolbarGroup,
   ToolbarItem,
   ToolbarToggleGroup,
 } from '@patternfly/react-core';
 import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ProjectObjectType, typedEmptyImage, SimpleSelect, asEnumMember } from 'mod-arch-shared';
-import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
+import { ProjectObjectType, typedEmptyImage } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
@@ -32,6 +30,13 @@ import {
 } from '~/app/pages/modelRegistry/screens/utils';
 import ModelVersionsTable from '~/app/pages/modelRegistry/screens/ModelVersions/ModelVersionsTable';
 import { filterArchiveVersions, filterLiveVersions } from '~/app/utils';
+import {
+  initialModelRegistryVersionsFilterData,
+  ModelRegistryVersionsFilterDataType,
+  modelRegistryVersionsFilterOptions,
+  ModelRegistryVersionsFilterOptions,
+} from '~/app/pages/modelRegistry/screens/const';
+import FilterToolbar from '~/app/shared/components/FilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 
 type ModelVersionListViewProps = {
@@ -54,19 +59,26 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
   const archiveModelVersions = filterArchiveVersions(modelVersions);
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
+  const [filterData, setFilterData] = React.useState<ModelRegistryVersionsFilterDataType>(
+    initialModelRegistryVersionsFilterData,
+  );
 
-  const [searchType, setSearchType] = React.useState<SearchType>(SearchType.KEYWORD);
-  const [search, setSearch] = React.useState('');
+  const onFilterUpdate = React.useCallback(
+    (key: string, value: string | { label: string; value: string } | undefined) =>
+      setFilterData((prevValues) => ({ ...prevValues, [key]: value })),
+    [setFilterData],
+  );
 
-  const searchTypes = [SearchType.KEYWORD, SearchType.AUTHOR];
+  const onClearFilters = React.useCallback(
+    () => setFilterData(initialModelRegistryVersionsFilterData),
+    [setFilterData],
+  );
 
   const [isArchivedModelVersionKebabOpen, setIsArchivedModelVersionKebabOpen] =
     React.useState(false);
 
-  const filteredModelVersions = filterModelVersions(unfilteredModelVersions, search, searchType);
+  const filteredModelVersions = filterModelVersions(unfilteredModelVersions, filterData);
   const date = rm.lastUpdateTimeSinceEpoch && new Date(parseInt(rm.lastUpdateTimeSinceEpoch));
-
-  const resetFilters = () => setSearch('');
 
   if (unfilteredModelVersions.length === 0) {
     if (isArchiveModel) {
@@ -128,50 +140,42 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
       <ModelVersionsTable
         refresh={refresh}
         isArchiveModel={isArchiveModel}
-        clearFilters={resetFilters}
+        clearFilters={onClearFilters}
         modelVersions={sortModelVersionsByCreateTime(filteredModelVersions)}
         toolbarContent={
-          <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={resetFilters}>
+          <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={onClearFilters}>
             <ToolbarContent>
               {/* TODO: Remove this Flex after the ToolbarContent can center the children elements */}
               <Flex>
                 <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
                   <ToolbarGroup variant="filter-group">
-                    <ToolbarFilter
-                      labels={search === '' ? [] : [search]}
-                      deleteLabel={resetFilters}
-                      deleteLabelGroup={resetFilters}
-                      categoryName={searchType}
-                    >
-                      <SimpleSelect
-                        dataTestId="model-versions-table-filter"
-                        options={searchTypes.map((key) => ({
-                          key,
-                          label: key,
-                        }))}
-                        value={searchType}
-                        toggleProps={{ style: { minWidth: '150px' } }}
-                        onChange={(newSearchType) => {
-                          const newSearchTypeInput = asEnumMember(newSearchType, SearchType);
-                          if (newSearchTypeInput !== null) {
-                            setSearchType(newSearchTypeInput);
-                          }
-                        }}
-                        icon={<FilterIcon />}
-                      />
-                    </ToolbarFilter>
-                    <ToolbarItem>
-                      <ThemeAwareSearchInput
-                        value={search}
-                        onChange={setSearch}
-                        onClear={resetFilters}
-                        placeholder="Filter by name, description or label"
-                        fieldLabel="Filter by name, description or label"
-                        className="toolbar-fieldset-wrapper"
-                        style={{ minWidth: '270px' }}
-                        data-testid="model-versions-table-search"
-                      />
-                    </ToolbarItem>
+                    <FilterToolbar
+                      filterOptions={modelRegistryVersionsFilterOptions}
+                      filterOptionRenders={{
+                        [ModelRegistryVersionsFilterOptions.keyword]: ({ onChange, ...props }) => (
+                          <ThemeAwareSearchInput
+                            {...props}
+                            fieldLabel="Filter by keyword"
+                            placeholder="Filter by keyword"
+                            className="toolbar-fieldset-wrapper"
+                            style={{ minWidth: '270px' }}
+                            onChange={(value) => onChange(value)}
+                          />
+                        ),
+                        [ModelRegistryVersionsFilterOptions.author]: ({ onChange, ...props }) => (
+                          <ThemeAwareSearchInput
+                            {...props}
+                            fieldLabel="Filter by author"
+                            placeholder="Filter by author"
+                            className="toolbar-fieldset-wrapper"
+                            style={{ minWidth: '270px' }}
+                            onChange={(value) => onChange(value)}
+                          />
+                        ),
+                      }}
+                      filterData={filterData}
+                      onFilterUpdate={onFilterUpdate}
+                    />
                   </ToolbarGroup>
                 </ToolbarToggleGroup>
 
