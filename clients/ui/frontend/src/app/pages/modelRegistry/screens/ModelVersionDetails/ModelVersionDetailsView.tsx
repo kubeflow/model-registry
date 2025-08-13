@@ -20,6 +20,7 @@ import {
   EditableTextDescriptionListGroup,
   DashboardDescriptionListGroup,
   InlineTruncatedClipboardCopy,
+  ModelDetailsCardContextProvider,
 } from 'mod-arch-shared';
 import { ModelVersion, ModelArtifactList } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
@@ -90,12 +91,14 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
     <Stack hasGutter>
       {registeredModel && (
         <StackItem>
-          <ModelDetailsCard
-            registeredModel={registeredModel}
-            refresh={refresh}
-            isArchiveModel={isArchiveVersion}
-            isExpandable
-          />
+          <ModelDetailsCardContextProvider>
+            <ModelDetailsCard
+              registeredModel={registeredModel}
+              refresh={refresh}
+              isArchiveModel={isArchiveVersion}
+              isExpandable
+            />
+          </ModelDetailsCardContextProvider>
         </StackItem>
       )}
       <StackItem>

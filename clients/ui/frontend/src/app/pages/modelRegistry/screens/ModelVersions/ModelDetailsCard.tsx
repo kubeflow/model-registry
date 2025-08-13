@@ -18,6 +18,7 @@ import {
   EditableTextDescriptionListGroup,
   DashboardDescriptionListGroup,
   EditableLabelsDescriptionListGroup,
+  ModelDetailsCardContext,
 } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
@@ -40,6 +41,8 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const { showAlert } = React.useContext(ModelDetailsCardContext);
+  console.log('showAlert', showAlert);
 
   const labelsSection = (
     <EditableLabelsDescriptionListGroup

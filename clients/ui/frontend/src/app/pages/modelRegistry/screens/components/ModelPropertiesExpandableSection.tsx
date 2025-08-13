@@ -4,6 +4,7 @@ import { AddCircleOIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
+import { ModelDetailsCardContext } from 'mod-arch-shared';
 import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/components/ModelPropertiesTableRow';
 import { getProperties, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
@@ -31,6 +32,11 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
   const isEditingSomeRow = isAdding || editingPropertyKeys.length > 0;
 
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
+  const { setIsEditingProperties } = React.useContext(ModelDetailsCardContext);
+
+  React.useEffect(() => {
+    setIsEditingProperties(isEditingSomeRow);
+  }, [isEditingSomeRow, setIsEditingProperties]);
 
   // We only show string properties with a defined value (no labels or other property types)
   const filteredProperties = getProperties(customProperties);
