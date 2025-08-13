@@ -46,6 +46,13 @@ Create a namespace for model registry to run in, by default this is kubeflow, ru
 kubectl create namespace kubeflow
 ```
 
+#### 2a. Switch to that  kubeflow namespace
+
+
+```shell
+  kubectl config set-context --current --namespace=kubeflow
+```
+
 #### 3. Deploy Model Registry to cluster
 
 You can now deploy the MR backend to your newly created cluster using the kustomize configs in the MR repository by
@@ -87,7 +94,7 @@ Note: an issue has been filed regarding this ticket here:
 #### 4. Setup a port forward to the service
 
 In order to access the MR REST API locally you need to forward a local port to 8080 on the MR service. Run the following
-command:
+command: (note this is a long-running service that will not return from the shell command)
 
 ```shell
 kubectl port-forward svc/model-registry-service -n kubeflow 8080:8080
@@ -110,7 +117,7 @@ You should receive a 200 response if everything is working correctly, the body s
 {"items":[],"nextPageToken":"","pageSize":0,"size":0}
 ```
 
-#### 6. Run BFF locally in Dev Mode
+#### 6. (Optional) Run BFF locally in Dev Mode
 
 To access your local kind cluster when running the BFF locally, you can use the `DEV_MODE` option. This is useful for when
 you want to test live changes on real cluster. To do so, simply run:
