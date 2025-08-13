@@ -20,6 +20,9 @@ on:
       - "pkg/openapi/**"
       - "go.mod"
 
+permissions:
+  contents: read
+
 env:
   BRANCH: ${{ github.base_ref }}
 jobs:
