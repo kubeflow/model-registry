@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -240,7 +241,7 @@ func TestMapRegisteredModelPropertiesEmbedMD(t *testing.T) {
 				},
 				{
 					Name:             "state",
-					StringValue:      of(string(state)),
+					StringValue:      apiutils.Of(string(state)),
 					IsCustomProperty: false,
 				},
 				{
@@ -410,7 +411,7 @@ func TestMapModelVersionPropertiesEmbedMD(t *testing.T) {
 				},
 				{
 					Name:             "state",
-					StringValue:      of(string(state)),
+					StringValue:      apiutils.Of(string(state)),
 					IsCustomProperty: false,
 				},
 				{
@@ -681,7 +682,7 @@ func TestMapInferenceServicePropertiesEmbedMD(t *testing.T) {
 				},
 				{
 					Name:             "desired_state",
-					StringValue:      of(string(desiredState)),
+					StringValue:      apiutils.Of(string(desiredState)),
 					IsCustomProperty: false,
 				},
 				{
@@ -956,7 +957,7 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      &uri,
 			},
 			wantErr: false,
@@ -1104,7 +1105,7 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      &uri,
 			},
 			wantErr: false,
@@ -1265,7 +1266,7 @@ func TestMapServeModelAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				LastKnownState:           of(string(lastKnownState)),
+				LastKnownState:           apiutils.Of(string(lastKnownState)),
 			},
 			wantErr: false,
 		},
@@ -1385,7 +1386,7 @@ func TestMapMetricAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      nil, // Metric artifacts don't have URI
 			},
 			wantErr: false,
@@ -1459,7 +1460,7 @@ func TestMapParameterAttributesEmbedMD(t *testing.T) {
 				CreateTimeSinceEpoch:     &now,
 				LastUpdateTimeSinceEpoch: &now,
 				ExternalID:               &externalId,
-				State:                    of(string(state)),
+				State:                    apiutils.Of(string(state)),
 				URI:                      nil, // Parameter artifacts don't have URI
 			},
 			wantErr: false,

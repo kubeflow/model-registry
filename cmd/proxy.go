@@ -41,7 +41,7 @@ var (
 		Short: "Starts the go OpenAPI proxy server to connect to a metadata store",
 		Long: `This command launches the go OpenAPI proxy server.
 
-The server connects to a metadata store, currently only MLMD is supported. It supports options to customize the
+The server connects to a metadata store, currently only the internal store is supported. It supports options to customize the
 hostname and port where it listens.`,
 		RunE: runProxyServer,
 	}
@@ -193,9 +193,6 @@ func init() {
 
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
-
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.MLMD.Hostname, "mlmd-hostname", proxyCfg.Datastore.MLMD.Hostname, "MLMD hostname")
-	proxyCmd.Flags().IntVar(&proxyCfg.Datastore.MLMD.Port, "mlmd-port", proxyCfg.Datastore.MLMD.Port, "MLMD port")
 
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseType, "embedmd-database-type", "mysql", "EmbedMD database type")
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseDSN, "embedmd-database-dsn", "", "EmbedMD database DSN")

@@ -1,11 +1,22 @@
 package converter
 
-import "github.com/kubeflow/model-registry/pkg/openapi"
+import (
+	"github.com/kubeflow/model-registry/pkg/openapi"
+)
 
 // NOTE: methods must follow these patterns, otherwise tests could not find possible issues:
 // Converters createEntity to entity: Convert<ENTITY>Create
 // Converters updateEntity to entity: Convert<ENTITY>Update
 // Converters override fields entity: OverrideNotEditableFor<ENTITY>
+
+type OpenAPIModelWrapper[
+	M OpenAPIModel,
+] struct {
+	Model            *M
+	ParentResourceId *string
+	ModelName        *string
+	TypeId           int64
+}
 
 // goverter:converter
 // goverter:output:file ./generated/openapi_converter.gen.go
