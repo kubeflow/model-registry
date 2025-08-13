@@ -9,6 +9,7 @@ import (
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	k8sfactory "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8sfactory"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
@@ -68,7 +69,7 @@ type App struct {
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	logger.Debug("Initializing app with config", slog.Any("config", cfg))
-	var k8sFactory k8s.KubernetesClientFactory
+	var k8sCliFactory k8s.KubernetesClientFactory
 	var err error
 	// used only on mocked k8s client
 	var testEnv *envtest.Environment
@@ -86,11 +87,11 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 			return nil, fmt.Errorf("failed to setup envtest: %w", err)
 		}
 		//create mocked kubernetes client factory
-		k8sFactory, err = k8mocks.NewMockedKubernetesClientFactory(clientset, testEnv, cfg, logger)
+		k8sCliFactory, err = k8mocks.NewMockedKubernetesClientFactory(clientset, testEnv, cfg, logger)
 
 	} else {
 		//create kubernetes client factory
-		k8sFactory, err = k8s.NewKubernetesClientFactory(cfg, logger)
+		k8sCliFactory, err = k8sfactory.NewKubernetesClientFactory(cfg, logger)
 	}
 
 	if err != nil {
@@ -113,7 +114,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	app := &App{
 		config:                  cfg,
 		logger:                  logger,
-		kubernetesClientFactory: k8sFactory,
+		kubernetesClientFactory: k8sCliFactory,
 		repositories:            repositories.NewRepositories(mrClient),
 		testEnv:                 testEnv,
 	}
