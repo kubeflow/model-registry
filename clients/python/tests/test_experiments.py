@@ -308,12 +308,3 @@ async def test_start_experiment_run_nested_thread_safety(client: ModelRegistry):
 
     assert ctr == 10
 
-
-# @pytest.mark.e2e
-# def test_start_experiment_run_missing_arguments(client: ModelRegistry):
-#     """Test that starting an experiment run without required arguments raises an error."""
-#     with pytest.raises(  # noqa: SIM117
-#         ValueError, match="Either experiment_name or experiment_id must be provided"
-#     ):
-#         with client.start_experiment_run():
-#             pass
