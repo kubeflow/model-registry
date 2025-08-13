@@ -468,3 +468,25 @@ Examples:
 ```shell
 ./bff --allowed-origins="http://my-domain.com,http://my-other-domain.com"
 ```
+
+#### 6. How do I disable TLS verification for local Kubeflow installations?
+
+For local Kubeflow installations with self-signed certificates, you may need to disable TLS certificate verification.
+
+**Kubernetes deployment:**
+
+```yaml
+env:
+  - name: INSECURE_SKIP_VERIFY
+    value: "true"
+```
+
+**Local development:**
+
+```shell
+./bin/bff --insecure-skip-verify
+# or
+export INSECURE_SKIP_VERIFY=true
+```
+
+> **Warning:** Only use in development. Keep TLS verification enabled in production.

@@ -143,9 +143,9 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			}
 		}
 
-		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL, headers)
+		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL, headers, app.config.InsecureSkipVerify)
 		if err != nil {
-			app.serverErrorResponse(w, r, fmt.Errorf("failed to create Kubernetes client: %v", err))
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to create HTTP client: %v", err))
 			return
 		}
 		ctx := context.WithValue(r.Context(), constants.ModelRegistryHttpClientKey, restHttpClient)
