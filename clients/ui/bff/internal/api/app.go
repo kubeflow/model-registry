@@ -55,6 +55,15 @@ const (
 	ModelArtifactPath            = ModelArtifactListPath + "/:" + ModelArtifactId
 	ArtifactListPath             = ModelRegistryPath + "/artifacts"
 	ArtifactPath                 = ArtifactListPath + "/:" + ArtifactId
+
+	// model catalog
+	SourceId                     = "source_id"
+	CatalogModelName             = "model_name"
+	CatalogPathPrefix            = ApiPathPrefix + "/model_catalog"
+	CatalogModelListPath         = CatalogPathPrefix + "/models"
+	CatalogSourceListPath        = CatalogPathPrefix + "/sources"
+	CatalogModelPath             = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/:" + CatalogModelName
+	CatalogModelArtifactListPath = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/:" + CatalogModelName + "/artifacts"
 )
 
 type App struct {
@@ -194,6 +203,11 @@ func (app *App) Routes() http.Handler {
 		//This namespace endpoint is used to get the namespaces for the current user inside the model registry settings
 		apiRouter.GET(SettingsNamespacePath, app.GetNamespacesHandler)
 
+		// Model catalog endpoints
+		apiRouter.GET(CatalogModelListPath, app.AttachNamespace((app.GetAllCatalogModelsHandler)))
+		apiRouter.GET(CatalogSourceListPath, app.AttachNamespace((app.GetAllCatalogSourcesHandler)))
+		apiRouter.GET(CatalogModelPath, app.AttachNamespace((app.GetCatalogModelHandler)))
+		apiRouter.GET(CatalogModelArtifactListPath, app.AttachNamespace((app.GetCatalogModelArtifactsHandler)))
 	}
 
 	// App Router
