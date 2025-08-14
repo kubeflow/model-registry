@@ -1,0 +1,69 @@
+name: Fuzz Test
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'The pull request number to run fuzz tests on'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+env:
+  IMG_REGISTRY: ghcr.io
+  IMG_ORG: kubeflow
+  IMG_REPO: model-registry/server
+  IMG_VERSION: latest
+  PUSH_IMAGE: false
+
+jobs:
+  test-fuzz:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/python
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: ${{ github.event.inputs.pr_number }}
+              });
+              return {
+                sha: pr.data.head.sha,
+                ref: pr.data.head.ref
+              };
+            } catch (error) {
+              console.log(`Error fetching PR #${{ github.event.inputs.pr_number }}: ${error.message}`);
+              throw error;
+            }
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(steps.pr.outputs.result).sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+
+      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
+        run: |
+          set -x
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
+
+      - name: Run Fuzz Tests
+        run: |
+          echo "Starting fuzz tests..."
+          make test-fuzz
