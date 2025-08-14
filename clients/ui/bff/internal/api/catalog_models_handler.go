@@ -13,23 +13,6 @@ import (
 
 type CatalogModelEnvelope Envelope[models.CatalogModel, None]
 type CatalogModelListEnvelope Envelope[models.CatalogModelList, None]
-type CatalogGroupedResponseEnvelope Envelope[CatalogSourceGroup, None]
-
-type CatalogSourceGroup struct {
-	Sources    []SourceGroup  `json:"sources"`
-	Pagination PaginationMeta `json:"pagination"`
-}
-
-type SourceGroup struct {
-	Source string                `json:"source"`
-	Models []models.CatalogModel `json:"models"`
-}
-
-type PaginationMeta struct {
-	ReturnedModels int32  `json:"returnedModels"`
-	PageSize       int32  `json:"pageSize"`
-	NextPageToken  string `json:"nextPageToken"`
-}
 
 func (app *App) GetAllCatalogModelsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
@@ -86,47 +69,21 @@ func (app *App) GetAllCatalogModelsHandler(w http.ResponseWriter, r *http.Reques
 		filteredModels = queryFilteredModels
 	}
 
-	sourceGroups := groupModelsBySource(filteredModels)
-
-	catalogResponse := CatalogSourceGroup{
-		Sources: sourceGroups,
-		Pagination: PaginationMeta{
-			ReturnedModels: int32(len(filteredModels)),
-			PageSize:       int32(10),
-			NextPageToken:  "",
-		},
+	catalogModels := models.CatalogModelList{
+		Items:         filteredModels,
+		Size:          int32(len(filteredModels)),
+		PageSize:      int32(10),
+		NextPageToken: "",
 	}
 
-	catalogRes := CatalogGroupedResponseEnvelope{
-		Data: catalogResponse,
+	catalogModelList := CatalogModelListEnvelope{
+		Data: catalogModels,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, catalogRes, nil)
+	err := app.WriteJSON(w, http.StatusOK, catalogModelList, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-}
-
-func groupModelsBySource(catalogModels []models.CatalogModel) []SourceGroup {
-	sourceMap := make(map[string][]models.CatalogModel)
-
-	for _, model := range catalogModels {
-		source := "unknown"
-		if model.SourceId != nil {
-			source = *model.SourceId
-		}
-		sourceMap[source] = append(sourceMap[source], model)
-	}
-
-	var sources []SourceGroup
-	for source, models := range sourceMap {
-		sources = append(sources, SourceGroup{
-			Source: source,
-			Models: models,
-		})
-	}
-
-	return sources
 }
 
 func (app *App) GetCatalogModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -136,29 +93,18 @@ func (app *App) GetCatalogModelHandler(w http.ResponseWriter, r *http.Request, p
 	catalogSourceID := ps.ByName(SourceId)
 	modelName := ps.ByName(CatalogModelName)
 
+	// TODO: Implement actual catalog API call
 	allMockModels := mocks.GetCatalogModelMocks()
-	var filteredMockModels []models.CatalogModel
+	var catalogMockModels models.CatalogModel
 
 	for _, model := range allMockModels {
 		if model.Name == modelName && model.SourceId != nil && *model.SourceId == catalogSourceID {
-			filteredMockModels = append(filteredMockModels, model)
+			catalogMockModels = model
 		}
 	}
 
-	if len(filteredMockModels) == 0 {
-		app.notFoundResponse(w, r)
-		return
-	}
-
-	catalogModelList := models.CatalogModelList{
-		Items:         filteredMockModels,
-		Size:          int32(len(filteredMockModels)),
-		PageSize:      int32(10),
-		NextPageToken: "",
-	}
-
-	catalogModels := CatalogModelListEnvelope{
-		Data: catalogModelList,
+	catalogModels := CatalogModelEnvelope{
+		Data: catalogMockModels,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, catalogModels, nil)
