@@ -99,7 +99,7 @@ def apply_job_with_strategic_merge(
                     "containers": [
                         {
                             "name": "async-upload",
-                            "image": container_image_uri,
+                            "image": "intentionally-wrong-image",
                             "env": patch_env_list,
                         }
                     ]
@@ -185,13 +185,13 @@ def apply_job_with_strategic_merge(
         cwd=manifest_dir,
         check=False,
     )
-    print(result)
+    print(result.stdout)
 
     # Return the original job name since we're not changing it
     return "my-async-upload-job"
 
 
-def wait_for_job_completion(job_name: str, namespace: str, batch_client, timeout_seconds: int = 600) -> bool:
+def wait_for_job_completion(job_name: str, namespace: str, batch_client, timeout_seconds: int = 60) -> bool:
     """Wait for job completion and return success status."""
     start_time = time.time()
 
@@ -202,6 +202,7 @@ def wait_for_job_completion(job_name: str, namespace: str, batch_client, timeout
             # Check if job is complete
             if job.status.conditions:
                 for condition in job.status.conditions:
+                    print(condition)
                     if condition.type == "Complete" and condition.status == "True":
                         return True
                     elif condition.type == "Failed" and condition.status == "True":
@@ -366,7 +367,7 @@ def test_async_upload_integration(
         job_name = actual_job_name
 
     print(f"Waiting for job completion: {job_name}")
-    success = wait_for_job_completion(job_name, namespace, k8s_batch_client, timeout_seconds=600)
+    success = wait_for_job_completion(job_name, namespace, k8s_batch_client)
 
     if not success:
         # Get job logs for debugging

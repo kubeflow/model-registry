@@ -48,9 +48,14 @@ test-with-cov:
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@echo "Starting test-e2e"
-	-$(MAKE) test-e2e-run; STATUS=$$?
-	$(MAKE) test-e2e-cleanup
-	@exit $$STATUS
+	@set -e; \
+	$(MAKE) test-e2e-run || TEST_STATUS=$$?; \
+	$(MAKE) test-e2e-cleanup || CLEANUP_STATUS=$$?; \
+	if [ -n "$$TEST_STATUS" ]; then \
+		exit $$TEST_STATUS; \
+	elif [ -n "$$CLEANUP_STATUS" ]; then \
+		exit $$CLEANUP_STATUS; \
+	fi
 
 .PHONY: test-e2e-run
 test-e2e-run:
@@ -70,9 +75,14 @@ test-e2e-cleanup:
 .PHONY: test-integration
 test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
 	@echo "Starting test-integration"
-	-$(MAKE) test-integration-run; STATUS=$$?
-	$(MAKE) test-e2e-cleanup
-	@exit $$STATUS
+	@set -e; \
+	$(MAKE) test-integration-run || TEST_STATUS=$$?; \
+	$(MAKE) test-e2e-cleanup || CLEANUP_STATUS=$$?; \
+	if [ -n "$$TEST_STATUS" ]; then \
+		exit $$TEST_STATUS; \
+	elif [ -n "$$CLEANUP_STATUS" ]; then \
+		exit $$CLEANUP_STATUS; \
+	fi
 
 .PHONY: test-integration-run
 test-integration-run:
