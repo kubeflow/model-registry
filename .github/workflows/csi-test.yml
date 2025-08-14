@@ -21,6 +21,9 @@ on:
       # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
       - "go.mod"
 
+permissions:
+  contents: read
+
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub

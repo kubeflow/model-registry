@@ -17,11 +17,21 @@ from mr_openapi.api_response import ApiResponse
 from mr_openapi.models.artifact import Artifact
 from mr_openapi.models.artifact_create import ArtifactCreate
 from mr_openapi.models.artifact_list import ArtifactList
+from mr_openapi.models.artifact_type_query_param import ArtifactTypeQueryParam
 from mr_openapi.models.artifact_update import ArtifactUpdate
+from mr_openapi.models.experiment import Experiment
+from mr_openapi.models.experiment_create import ExperimentCreate
+from mr_openapi.models.experiment_list import ExperimentList
+from mr_openapi.models.experiment_run import ExperimentRun
+from mr_openapi.models.experiment_run_create import ExperimentRunCreate
+from mr_openapi.models.experiment_run_list import ExperimentRunList
+from mr_openapi.models.experiment_run_update import ExperimentRunUpdate
+from mr_openapi.models.experiment_update import ExperimentUpdate
 from mr_openapi.models.inference_service import InferenceService
 from mr_openapi.models.inference_service_create import InferenceServiceCreate
 from mr_openapi.models.inference_service_list import InferenceServiceList
 from mr_openapi.models.inference_service_update import InferenceServiceUpdate
+from mr_openapi.models.metric_list import MetricList
 from mr_openapi.models.model_artifact import ModelArtifact
 from mr_openapi.models.model_artifact_create import ModelArtifactCreate
 from mr_openapi.models.model_artifact_list import ModelArtifactList
@@ -566,6 +576,768 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="POST",
             resource_path="/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def create_experiment(
+        self,
+        experiment_create: Annotated[ExperimentCreate, Field(description="A new `Experiment` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Experiment:
+        """Create an Experiment.
+
+        Creates a new instance of an `Experiment`.
+
+        :param experiment_create: A new `Experiment` to be created. (required)
+        :type experiment_create: ExperimentCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_serialize(
+            experiment_create=experiment_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def create_experiment_with_http_info(
+        self,
+        experiment_create: Annotated[ExperimentCreate, Field(description="A new `Experiment` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Experiment]:
+        """Create an Experiment.
+
+        Creates a new instance of an `Experiment`.
+
+        :param experiment_create: A new `Experiment` to be created. (required)
+        :type experiment_create: ExperimentCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_serialize(
+            experiment_create=experiment_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def create_experiment_without_preload_content(
+        self,
+        experiment_create: Annotated[ExperimentCreate, Field(description="A new `Experiment` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create an Experiment.
+
+        Creates a new instance of an `Experiment`.
+
+        :param experiment_create: A new `Experiment` to be created. (required)
+        :type experiment_create: ExperimentCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_serialize(
+            experiment_create=experiment_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _create_experiment_serialize(
+        self,
+        experiment_create,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if experiment_create is not None:
+            _body_params = experiment_create
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/experiments",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def create_experiment_experiment_run(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRun:
+        """Create an ExperimentRun in Experiment.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_run: A new `ExperimentRun` to be created. (required)
+        :type experiment_run: ExperimentRun
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_experiment_run_serialize(
+            experiment_id=experiment_id,
+            experiment_run=experiment_run,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def create_experiment_experiment_run_with_http_info(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRun]:
+        """Create an ExperimentRun in Experiment.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_run: A new `ExperimentRun` to be created. (required)
+        :type experiment_run: ExperimentRun
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_experiment_run_serialize(
+            experiment_id=experiment_id,
+            experiment_run=experiment_run,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def create_experiment_experiment_run_without_preload_content(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create an ExperimentRun in Experiment.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_run: A new `ExperimentRun` to be created. (required)
+        :type experiment_run: ExperimentRun
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_experiment_run_serialize(
+            experiment_id=experiment_id,
+            experiment_run=experiment_run,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _create_experiment_experiment_run_serialize(
+        self,
+        experiment_id,
+        experiment_run,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experiment_id is not None:
+            _path_params["experimentId"] = experiment_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if experiment_run is not None:
+            _body_params = experiment_run
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def create_experiment_run(
+        self,
+        experiment_run_create: Annotated[
+            ExperimentRunCreate, Field(description="A new `ExperimentRun` to be created.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRun:
+        """Create an ExperimentRun.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_run_create: A new `ExperimentRun` to be created. (required)
+        :type experiment_run_create: ExperimentRunCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_run_serialize(
+            experiment_run_create=experiment_run_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "422": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def create_experiment_run_with_http_info(
+        self,
+        experiment_run_create: Annotated[
+            ExperimentRunCreate, Field(description="A new `ExperimentRun` to be created.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRun]:
+        """Create an ExperimentRun.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_run_create: A new `ExperimentRun` to be created. (required)
+        :type experiment_run_create: ExperimentRunCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_run_serialize(
+            experiment_run_create=experiment_run_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "422": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def create_experiment_run_without_preload_content(
+        self,
+        experiment_run_create: Annotated[
+            ExperimentRunCreate, Field(description="A new `ExperimentRun` to be created.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create an ExperimentRun.
+
+        Creates a new instance of an `ExperimentRun`.
+
+        :param experiment_run_create: A new `ExperimentRun` to be created. (required)
+        :type experiment_run_create: ExperimentRunCreate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._create_experiment_run_serialize(
+            experiment_run_create=experiment_run_create,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "201": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "409": "Error",
+            "422": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _create_experiment_run_serialize(
+        self,
+        experiment_run_create,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if experiment_run_create is not None:
+            _body_params = experiment_run_create
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -2642,6 +3414,538 @@ class ModelRegistryServiceApi:
         )
 
     @validate_call
+    async def find_experiment(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Experiment:
+        """Get an Experiment that matches search parameters.
+
+        Gets the details of a single instance of an `Experiment` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_serialize(
+            name=name,
+            external_id=external_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def find_experiment_with_http_info(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Experiment]:
+        """Get an Experiment that matches search parameters.
+
+        Gets the details of a single instance of an `Experiment` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_serialize(
+            name=name,
+            external_id=external_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def find_experiment_without_preload_content(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an Experiment that matches search parameters.
+
+        Gets the details of a single instance of an `Experiment` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_serialize(
+            name=name,
+            external_id=external_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _find_experiment_serialize(
+        self,
+        name,
+        external_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if external_id is not None:
+
+            _query_params.append(("externalId", external_id))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def find_experiment_run(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRun:
+        """Get an ExperimentRun that matches search parameters.
+
+        Gets the details of a single instance of an `ExperimentRun` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_run_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def find_experiment_run_with_http_info(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRun]:
+        """Get an ExperimentRun that matches search parameters.
+
+        Gets the details of a single instance of an `ExperimentRun` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_run_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def find_experiment_run_without_preload_content(
+        self,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        parent_resource_id: Annotated[
+            Optional[StrictStr], Field(description="ID of the parent resource to use for search.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an ExperimentRun that matches search parameters.
+
+        Gets the details of a single instance of an `ExperimentRun` that matches search parameters.
+
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param parent_resource_id: ID of the parent resource to use for search.
+        :type parent_resource_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._find_experiment_run_serialize(
+            name=name,
+            external_id=external_id,
+            parent_resource_id=parent_resource_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _find_experiment_run_serialize(
+        self,
+        name,
+        external_id,
+        parent_resource_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if external_id is not None:
+
+            _query_params.append(("externalId", external_id))
+
+        if parent_resource_id is not None:
+
+            _query_params.append(("parentResourceId", parent_resource_id))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_run",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
     async def find_inference_service(
         self,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
@@ -4212,6 +5516,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifacts(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -4232,10 +5545,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ArtifactList:
-        """List All Artifacts.
+        r"""List All Artifacts.
 
         Gets a list of all `Artifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -4266,6 +5583,8 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_artifacts_serialize(
+            filter_query=filter_query,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -4294,6 +5613,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifacts_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -4314,10 +5642,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ArtifactList]:
-        """List All Artifacts.
+        r"""List All Artifacts.
 
         Gets a list of all `Artifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -4348,6 +5680,8 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_artifacts_serialize(
+            filter_query=filter_query,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -4376,6 +5710,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifacts_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -4396,10 +5739,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All Artifacts.
+        r"""List All Artifacts.
 
         Gets a list of all `Artifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -4430,6 +5777,8 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_artifacts_serialize(
+            filter_query=filter_query,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -4453,6 +5802,8 @@ class ModelRegistryServiceApi:
 
     def _get_artifacts_serialize(
         self,
+        filter_query,
+        artifact_type,
         page_size,
         order_by,
         sort_order,
@@ -4476,6 +5827,14 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if artifact_type is not None:
+
+            _query_params.append(("artifactType", artifact_type.value))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -4523,6 +5882,12 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -4545,12 +5910,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> InferenceServiceList:
-        """List All ServingEnvironment's InferenceServices.
+        r"""List All ServingEnvironment's InferenceServices.
 
         Gets a list of all `InferenceService` entities for the `ServingEnvironment`.
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -4586,6 +5953,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_environment_inference_services_serialize(
             servingenvironment_id=servingenvironment_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -4618,6 +5986,12 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -4640,12 +6014,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[InferenceServiceList]:
-        """List All ServingEnvironment's InferenceServices.
+        r"""List All ServingEnvironment's InferenceServices.
 
         Gets a list of all `InferenceService` entities for the `ServingEnvironment`.
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -4681,6 +6057,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_environment_inference_services_serialize(
             servingenvironment_id=servingenvironment_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -4713,6 +6090,12 @@ class ModelRegistryServiceApi:
         servingenvironment_id: Annotated[
             StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
         ],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -4735,12 +6118,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All ServingEnvironment's InferenceServices.
+        r"""List All ServingEnvironment's InferenceServices.
 
         Gets a list of all `InferenceService` entities for the `ServingEnvironment`.
 
         :param servingenvironment_id: A unique identifier for a `ServingEnvironment`. (required)
         :type servingenvironment_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -4776,6 +6161,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_environment_inference_services_serialize(
             servingenvironment_id=servingenvironment_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -4801,6 +6187,7 @@ class ModelRegistryServiceApi:
     def _get_environment_inference_services_serialize(
         self,
         servingenvironment_id,
+        filter_query,
         name,
         external_id,
         page_size,
@@ -4828,6 +6215,10 @@ class ModelRegistryServiceApi:
         if servingenvironment_id is not None:
             _path_params["servingenvironmentId"] = servingenvironment_id
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if name is not None:
 
             _query_params.append(("name", name))
@@ -4865,6 +6256,2323 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="GET",
             resource_path="/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Experiment:
+        """Get an Experiment.
+
+        Gets the details of a single instance of an `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_serialize(
+            experiment_id=experiment_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_with_http_info(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Experiment]:
+        """Get an Experiment.
+
+        Gets the details of a single instance of an `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_serialize(
+            experiment_id=experiment_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_without_preload_content(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an Experiment.
+
+        Gets the details of a single instance of an `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_serialize(
+            experiment_id=experiment_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_serialize(
+        self,
+        experiment_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experiment_id is not None:
+            _path_params["experimentId"] = experiment_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiments/{experimentId}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment_experiment_runs(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRunList:
+        r"""List All Experiment's ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities for the `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_experiment_runs_serialize(
+            experiment_id=experiment_id,
+            name=name,
+            external_id=external_id,
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_experiment_runs_with_http_info(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRunList]:
+        r"""List All Experiment's ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities for the `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_experiment_runs_serialize(
+            experiment_id=experiment_id,
+            name=name,
+            external_id=external_id,
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_experiment_runs_without_preload_content(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""List All Experiment's ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities for the `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_experiment_runs_serialize(
+            experiment_id=experiment_id,
+            name=name,
+            external_id=external_id,
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_experiment_runs_serialize(
+        self,
+        experiment_id,
+        name,
+        external_id,
+        filter_query,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experiment_id is not None:
+            _path_params["experimentId"] = experiment_id
+        # process the query parameters
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if external_id is not None:
+
+            _query_params.append(("externalId", external_id))
+
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment_run(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRun:
+        """Get an ExperimentRun.
+
+        Gets the details of a single instance of an `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_run_with_http_info(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRun]:
+        """Get an ExperimentRun.
+
+        Gets the details of a single instance of an `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_run_without_preload_content(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get an ExperimentRun.
+
+        Gets the details of a single instance of an `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_run_serialize(
+        self,
+        experimentrun_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experimentrun_id is not None:
+            _path_params["experimentrunId"] = experimentrun_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment_run_artifacts(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ArtifactList:
+        r"""List all artifacts associated with the `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_artifacts_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            external_id=external_id,
+            artifact_type=artifact_type,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_run_artifacts_with_http_info(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ArtifactList]:
+        r"""List all artifacts associated with the `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_artifacts_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            external_id=external_id,
+            artifact_type=artifact_type,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_run_artifacts_without_preload_content(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""List all artifacts associated with the `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param external_id: External ID of entity to search.
+        :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_artifacts_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            external_id=external_id,
+            artifact_type=artifact_type,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ArtifactList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_run_artifacts_serialize(
+        self,
+        experimentrun_id,
+        filter_query,
+        name,
+        external_id,
+        artifact_type,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experimentrun_id is not None:
+            _path_params["experimentrunId"] = experimentrun_id
+        # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if external_id is not None:
+
+            _query_params.append(("externalId", external_id))
+
+        if artifact_type is not None:
+
+            _query_params.append(("artifactType", artifact_type.value))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment_run_metric_history(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> MetricList:
+        r"""Get metric history for an ExperimentRun.
+
+        Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_metric_history_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_run_metric_history_with_http_info(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[MetricList]:
+        r"""Get metric history for an ExperimentRun.
+
+        Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_metric_history_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_run_metric_history_without_preload_content(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""Get metric history for an ExperimentRun.
+
+        Gets the metric history for an `ExperimentRun` with optional filtering by metric name and step IDs.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_run_metric_history_serialize(
+            experimentrun_id=experimentrun_id,
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_run_metric_history_serialize(
+        self,
+        experimentrun_id,
+        filter_query,
+        name,
+        step_ids,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experimentrun_id is not None:
+            _path_params["experimentrunId"] = experimentrun_id
+        # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if step_ids is not None:
+
+            _query_params.append(("stepIds", step_ids))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiment_runs(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRunList:
+        r"""List All ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_runs_with_http_info(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRunList]:
+        r"""List All ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_runs_without_preload_content(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""List All ExperimentRuns.
+
+        Gets a list of all `ExperimentRun` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRunList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_runs_serialize(
+        self,
+        filter_query,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def get_experiments(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentList:
+        r"""List All Experiments.
+
+        Gets a list of all `Experiment` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiments_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiments_with_http_info(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentList]:
+        r"""List All Experiments.
+
+        Gets a list of all `Experiment` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiments_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiments_without_preload_content(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""List All Experiments.
+
+        Gets a list of all `Experiment` entities.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiments_serialize(
+            filter_query=filter_query,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentList",
+            "401": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiments_serialize(
+        self,
+        filter_query,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiments",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -5349,6 +9057,12 @@ class ModelRegistryServiceApi:
     async def get_inference_service_serves(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -5371,12 +9085,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ServeModelList:
-        """List All InferenceService's ServeModel actions.
+        r"""List All InferenceService's ServeModel actions.
 
         Gets a list of all `ServeModel` entities for the `InferenceService`.
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -5412,6 +9128,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_inference_service_serves_serialize(
             inferenceservice_id=inferenceservice_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -5442,6 +9159,12 @@ class ModelRegistryServiceApi:
     async def get_inference_service_serves_with_http_info(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -5464,12 +9187,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ServeModelList]:
-        """List All InferenceService's ServeModel actions.
+        r"""List All InferenceService's ServeModel actions.
 
         Gets a list of all `ServeModel` entities for the `InferenceService`.
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -5505,6 +9230,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_inference_service_serves_serialize(
             inferenceservice_id=inferenceservice_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -5535,6 +9261,12 @@ class ModelRegistryServiceApi:
     async def get_inference_service_serves_without_preload_content(
         self,
         inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
@@ -5557,12 +9289,14 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All InferenceService's ServeModel actions.
+        r"""List All InferenceService's ServeModel actions.
 
         Gets a list of all `ServeModel` entities for the `InferenceService`.
 
         :param inferenceservice_id: A unique identifier for a `InferenceService`. (required)
         :type inferenceservice_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
@@ -5598,6 +9332,7 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_inference_service_serves_serialize(
             inferenceservice_id=inferenceservice_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
             page_size=page_size,
@@ -5623,6 +9358,7 @@ class ModelRegistryServiceApi:
     def _get_inference_service_serves_serialize(
         self,
         inferenceservice_id,
+        filter_query,
         name,
         external_id,
         page_size,
@@ -5650,6 +9386,10 @@ class ModelRegistryServiceApi:
         if inferenceservice_id is not None:
             _path_params["inferenceserviceId"] = inferenceservice_id
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if name is not None:
 
             _query_params.append(("name", name))
@@ -5936,6 +9676,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_services(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -5956,10 +9702,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> InferenceServiceList:
-        """List All InferenceServices.
+        r"""List All InferenceServices.
 
         Gets a list of all `InferenceService` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -5990,6 +9738,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_inference_services_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6018,6 +9767,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_services_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -6038,10 +9793,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[InferenceServiceList]:
-        """List All InferenceServices.
+        r"""List All InferenceServices.
 
         Gets a list of all `InferenceService` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -6072,6 +9829,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_inference_services_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6100,6 +9858,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_services_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -6120,10 +9884,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All InferenceServices.
+        r"""List All InferenceServices.
 
         Gets a list of all `InferenceService` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -6154,6 +9920,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_inference_services_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6177,6 +9944,7 @@ class ModelRegistryServiceApi:
 
     def _get_inference_services_serialize(
         self,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -6200,6 +9968,10 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -6478,6 +10250,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifacts(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -6498,10 +10276,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ModelArtifactList:
-        """List All ModelArtifacts.
+        r"""List All ModelArtifacts.
 
         Gets a list of all `ModelArtifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -6532,6 +10312,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_artifacts_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6560,6 +10341,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifacts_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -6580,10 +10367,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ModelArtifactList]:
-        """List All ModelArtifacts.
+        r"""List All ModelArtifacts.
 
         Gets a list of all `ModelArtifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -6614,6 +10403,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_artifacts_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6642,6 +10432,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifacts_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -6662,10 +10458,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All ModelArtifacts.
+        r"""List All ModelArtifacts.
 
         Gets a list of all `ModelArtifact` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -6696,6 +10494,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_artifacts_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -6719,6 +10518,7 @@ class ModelRegistryServiceApi:
 
     def _get_model_artifacts_serialize(
         self,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -6742,6 +10542,10 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -7021,8 +10825,17 @@ class ModelRegistryServiceApi:
     async def get_model_version_artifacts(
         self,
         modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7043,14 +10856,18 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ArtifactList:
-        """List all artifacts associated with the `ModelVersion`.
+        r"""List all artifacts associated with the `ModelVersion`.
 
         :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
         :type modelversion_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7082,8 +10899,10 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_model_version_artifacts_serialize(
             modelversion_id=modelversion_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7112,8 +10931,17 @@ class ModelRegistryServiceApi:
     async def get_model_version_artifacts_with_http_info(
         self,
         modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7134,14 +10962,18 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ArtifactList]:
-        """List all artifacts associated with the `ModelVersion`.
+        r"""List all artifacts associated with the `ModelVersion`.
 
         :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
         :type modelversion_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7173,8 +11005,10 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_model_version_artifacts_serialize(
             modelversion_id=modelversion_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7203,8 +11037,17 @@ class ModelRegistryServiceApi:
     async def get_model_version_artifacts_without_preload_content(
         self,
         modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        artifact_type: Annotated[
+            Optional[ArtifactTypeQueryParam], Field(description="Specifies the artifact type for listing artifacts.")
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7225,14 +11068,18 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List all artifacts associated with the `ModelVersion`.
+        r"""List all artifacts associated with the `ModelVersion`.
 
         :param modelversion_id: A unique identifier for a `ModelVersion`. (required)
         :type modelversion_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param name: Name of entity to search.
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param artifact_type: Specifies the artifact type for listing artifacts.
+        :type artifact_type: ArtifactTypeQueryParam
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7264,8 +11111,10 @@ class ModelRegistryServiceApi:
         """  # noqa: E501
         _param = self._get_model_version_artifacts_serialize(
             modelversion_id=modelversion_id,
+            filter_query=filter_query,
             name=name,
             external_id=external_id,
+            artifact_type=artifact_type,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7289,8 +11138,10 @@ class ModelRegistryServiceApi:
     def _get_model_version_artifacts_serialize(
         self,
         modelversion_id,
+        filter_query,
         name,
         external_id,
+        artifact_type,
         page_size,
         order_by,
         sort_order,
@@ -7316,6 +11167,10 @@ class ModelRegistryServiceApi:
         if modelversion_id is not None:
             _path_params["modelversionId"] = modelversion_id
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if name is not None:
 
             _query_params.append(("name", name))
@@ -7323,6 +11178,10 @@ class ModelRegistryServiceApi:
         if external_id is not None:
 
             _query_params.append(("externalId", external_id))
+
+        if artifact_type is not None:
+
+            _query_params.append(("artifactType", artifact_type.value))
 
         if page_size is not None:
 
@@ -7368,6 +11227,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_versions(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7388,10 +11253,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ModelVersionList:
-        """List All ModelVersions.
+        r"""List All ModelVersions.
 
         Gets a list of all `ModelVersion` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7422,6 +11289,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_versions_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7448,6 +11316,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_versions_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7468,10 +11342,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ModelVersionList]:
-        """List All ModelVersions.
+        r"""List All ModelVersions.
 
         Gets a list of all `ModelVersion` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7502,6 +11378,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_versions_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7528,6 +11405,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_versions_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7548,10 +11431,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All ModelVersions.
+        r"""List All ModelVersions.
 
         Gets a list of all `ModelVersion` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7582,6 +11467,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_model_versions_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -7603,6 +11489,7 @@ class ModelRegistryServiceApi:
 
     def _get_model_versions_serialize(
         self,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -7626,6 +11513,10 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -7907,6 +11798,12 @@ class ModelRegistryServiceApi:
         registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -7927,7 +11824,7 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ModelVersionList:
-        """List All RegisteredModel's ModelVersions.
+        r"""List All RegisteredModel's ModelVersions.
 
         Gets a list of all `ModelVersion` entities for the `RegisteredModel`.
 
@@ -7937,6 +11834,8 @@ class ModelRegistryServiceApi:
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -7970,6 +11869,7 @@ class ModelRegistryServiceApi:
             registeredmodel_id=registeredmodel_id,
             name=name,
             external_id=external_id,
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8000,6 +11900,12 @@ class ModelRegistryServiceApi:
         registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8020,7 +11926,7 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ModelVersionList]:
-        """List All RegisteredModel's ModelVersions.
+        r"""List All RegisteredModel's ModelVersions.
 
         Gets a list of all `ModelVersion` entities for the `RegisteredModel`.
 
@@ -8030,6 +11936,8 @@ class ModelRegistryServiceApi:
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8063,6 +11971,7 @@ class ModelRegistryServiceApi:
             registeredmodel_id=registeredmodel_id,
             name=name,
             external_id=external_id,
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8093,6 +12002,12 @@ class ModelRegistryServiceApi:
         registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
         name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
         external_id: Annotated[Optional[StrictStr], Field(description="External ID of entity to search.")] = None,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8113,7 +12028,7 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All RegisteredModel's ModelVersions.
+        r"""List All RegisteredModel's ModelVersions.
 
         Gets a list of all `ModelVersion` entities for the `RegisteredModel`.
 
@@ -8123,6 +12038,8 @@ class ModelRegistryServiceApi:
         :type name: str
         :param external_id: External ID of entity to search.
         :type external_id: str
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8156,6 +12073,7 @@ class ModelRegistryServiceApi:
             registeredmodel_id=registeredmodel_id,
             name=name,
             external_id=external_id,
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8181,6 +12099,7 @@ class ModelRegistryServiceApi:
         registeredmodel_id,
         name,
         external_id,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -8213,6 +12132,10 @@ class ModelRegistryServiceApi:
         if external_id is not None:
 
             _query_params.append(("externalId", external_id))
+
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
 
@@ -8258,6 +12181,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_models(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8278,10 +12207,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RegisteredModelList:
-        """List All RegisteredModels.
+        r"""List All RegisteredModels.
 
         Gets a list of all `RegisteredModel` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8312,6 +12243,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_registered_models_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8338,6 +12270,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_models_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8358,10 +12296,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[RegisteredModelList]:
-        """List All RegisteredModels.
+        r"""List All RegisteredModels.
 
         Gets a list of all `RegisteredModel` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8392,6 +12332,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_registered_models_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8418,6 +12359,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_models_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8438,10 +12385,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All RegisteredModels.
+        r"""List All RegisteredModels.
 
         Gets a list of all `RegisteredModel` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8472,6 +12421,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_registered_models_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8493,6 +12443,7 @@ class ModelRegistryServiceApi:
 
     def _get_registered_models_serialize(
         self,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -8516,6 +12467,10 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -8800,6 +12755,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_serving_environments(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8820,10 +12781,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ServingEnvironmentList:
-        """List All ServingEnvironments.
+        r"""List All ServingEnvironments.
 
         Gets a list of all `ServingEnvironment` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8854,6 +12817,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_serving_environments_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8880,6 +12844,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_serving_environments_with_http_info(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8900,10 +12870,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ServingEnvironmentList]:
-        """List All ServingEnvironments.
+        r"""List All ServingEnvironments.
 
         Gets a list of all `ServingEnvironment` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -8934,6 +12906,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_serving_environments_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -8960,6 +12933,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_serving_environments_without_preload_content(
         self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[
             Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
@@ -8980,10 +12959,12 @@ class ModelRegistryServiceApi:
         _headers: Optional[dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List All ServingEnvironments.
+        r"""List All ServingEnvironments.
 
         Gets a list of all `ServingEnvironment` entities.
 
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
         :param page_size: Number of entities in each page.
         :type page_size: str
         :param order_by: Specifies the order by criteria for listing entities.
@@ -9014,6 +12995,7 @@ class ModelRegistryServiceApi:
         :return: Returns the result object.
         """  # noqa: E501
         _param = self._get_serving_environments_serialize(
+            filter_query=filter_query,
             page_size=page_size,
             order_by=order_by,
             sort_order=sort_order,
@@ -9035,6 +13017,7 @@ class ModelRegistryServiceApi:
 
     def _get_serving_environments_serialize(
         self,
+        filter_query,
         page_size,
         order_by,
         sort_order,
@@ -9058,6 +13041,10 @@ class ModelRegistryServiceApi:
 
         # process the path parameters
         # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
         if page_size is not None:
 
             _query_params.append(("pageSize", page_size))
@@ -9347,6 +13334,532 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="PATCH",
             resource_path="/api/model_registry/v1alpha3/artifacts/{id}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def update_experiment(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Experiment:
+        """Update an Experiment.
+
+        Updates an existing `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_update: Updated `Experiment` information. (required)
+        :type experiment_update: ExperimentUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_serialize(
+            experiment_id=experiment_id,
+            experiment_update=experiment_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def update_experiment_with_http_info(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Experiment]:
+        """Update an Experiment.
+
+        Updates an existing `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_update: Updated `Experiment` information. (required)
+        :type experiment_update: ExperimentUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_serialize(
+            experiment_id=experiment_id,
+            experiment_update=experiment_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def update_experiment_without_preload_content(
+        self,
+        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Update an Experiment.
+
+        Updates an existing `Experiment`.
+
+        :param experiment_id: A unique identifier for an `Experiment`. (required)
+        :type experiment_id: str
+        :param experiment_update: Updated `Experiment` information. (required)
+        :type experiment_update: ExperimentUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_serialize(
+            experiment_id=experiment_id,
+            experiment_update=experiment_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Experiment",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _update_experiment_serialize(
+        self,
+        experiment_id,
+        experiment_update,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experiment_id is not None:
+            _path_params["experimentId"] = experiment_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if experiment_update is not None:
+            _body_params = experiment_update
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="PATCH",
+            resource_path="/api/model_registry/v1alpha3/experiments/{experimentId}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def update_experiment_run(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experiment_run_update: Annotated[
+            ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ExperimentRun:
+        """Update an ExperimentRun.
+
+        Updates an existing `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param experiment_run_update: Updated `ExperimentRun` information. (required)
+        :type experiment_run_update: ExperimentRunUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            experiment_run_update=experiment_run_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def update_experiment_run_with_http_info(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experiment_run_update: Annotated[
+            ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ExperimentRun]:
+        """Update an ExperimentRun.
+
+        Updates an existing `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param experiment_run_update: Updated `ExperimentRun` information. (required)
+        :type experiment_run_update: ExperimentRunUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            experiment_run_update=experiment_run_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def update_experiment_run_without_preload_content(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experiment_run_update: Annotated[
+            ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Update an ExperimentRun.
+
+        Updates an existing `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param experiment_run_update: Updated `ExperimentRun` information. (required)
+        :type experiment_run_update: ExperimentRunUpdate
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._update_experiment_run_serialize(
+            experimentrun_id=experimentrun_id,
+            experiment_run_update=experiment_run_update,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "ExperimentRun",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _update_experiment_run_serialize(
+        self,
+        experimentrun_id,
+        experiment_run_update,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experimentrun_id is not None:
+            _path_params["experimentrunId"] = experimentrun_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if experiment_run_update is not None:
+            _body_params = experiment_run_update
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="PATCH",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -10677,6 +15190,278 @@ class ModelRegistryServiceApi:
         return self.api_client.param_serialize(
             method="PATCH",
             resource_path="/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
+    async def upsert_experiment_run_artifact(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Artifact:
+        """Upsert an Artifact in an ExperimentRun.
+
+        Creates a new instance of an Artifact if needed and associates it with `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ExperimentRun`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_experiment_run_artifact_serialize(
+            experimentrun_id=experimentrun_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def upsert_experiment_run_artifact_with_http_info(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Artifact]:
+        """Upsert an Artifact in an ExperimentRun.
+
+        Creates a new instance of an Artifact if needed and associates it with `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ExperimentRun`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_experiment_run_artifact_serialize(
+            experimentrun_id=experimentrun_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def upsert_experiment_run_artifact_without_preload_content(
+        self,
+        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        artifact: Annotated[
+            Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
+        ],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Upsert an Artifact in an ExperimentRun.
+
+        Creates a new instance of an Artifact if needed and associates it with `ExperimentRun`.
+
+        :param experimentrun_id: A unique identifier for an `ExperimentRun`. (required)
+        :type experimentrun_id: str
+        :param artifact: A new or existing `Artifact` to be associated with the `ExperimentRun`. (required)
+        :type artifact: Artifact
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._upsert_experiment_run_artifact_serialize(
+            experimentrun_id=experimentrun_id,
+            artifact=artifact,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "Artifact",
+            "201": "Artifact",
+            "400": "Error",
+            "401": "Error",
+            "404": "Error",
+            "409": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _upsert_experiment_run_artifact_serialize(
+        self,
+        experimentrun_id,
+        artifact,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if experimentrun_id is not None:
+            _path_params["experimentrunId"] = experimentrun_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if artifact is not None:
+            _body_params = artifact
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params["Content-Type"] = _content_type
+        else:
+            _default_content_type = self.api_client.select_header_content_type(["application/json"])
+            if _default_content_type is not None:
+                _header_params["Content-Type"] = _default_content_type
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="POST",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

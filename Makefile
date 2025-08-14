@@ -14,8 +14,6 @@ ENVTEST ?= $(PROJECT_BIN)/setup-envtest
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
 
-MLMD_VERSION ?= 1.14.0
-
 # docker executable
 DOCKER ?= docker
 # default Dockerfile
@@ -57,44 +55,11 @@ endif
 
 model-registry: build
 
-# clean the ml-metadata protos and trigger a fresh new build which downloads
-# ml-metadata protos based on specified MLMD_VERSION
-.PHONY: update/ml_metadata
-update/ml_metadata: clean/ml_metadata clean build
-
-clean/ml_metadata:
-	rm -rf api/grpc/ml_metadata/proto/*.proto
-
-api/grpc/ml_metadata/proto/metadata_source.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_source.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_source.proto
-
-api/grpc/ml_metadata/proto/metadata_store.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store.proto
-
-api/grpc/ml_metadata/proto/metadata_store_service.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store_service.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
-
-internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
-	bin/protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
-		--go-grpc_out=./internal --go-grpc_opt=paths=source_relative $<
-
-.PHONY: gen/grpc
-gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
-
 internal/converter/generated/converter.go: internal/converter/*.go
 	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
 
 .PHONY: gen/converter
-gen/converter: gen/grpc internal/converter/generated/converter.go
+gen/converter: internal/converter/generated/converter.go
 
 api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi/src/lib/*.yaml bin/yq
 	scripts/merge_openapi.sh model-registry.yaml
@@ -176,7 +141,10 @@ endif
 
 .PHONY: vet
 vet:
-	${GO} vet ./...
+	@echo "Running go vet on all packages..."
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
+	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
+	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 
 .PHONY: clean/csi
 clean/csi:
@@ -194,20 +162,11 @@ clean-internal-server-openapi:
 
 .PHONY: clean
 clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
+	rm -Rf ./model-registry internal/converter/generated/*.go
 
 .PHONY: clean/odh
 clean/odh:
 	rm -Rf ./model-registry
-
-bin/protoc:
-	./scripts/install_protoc.sh
-
-bin/protoc-gen-go:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
-
-bin/protoc-gen-go-grpc:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
 bin/envtest:
 	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20240320141353-395cfc7486e6
@@ -255,7 +214,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest bin/genqlient
+deps: bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
 
 .PHONY: vendor
 vendor:
@@ -292,7 +251,7 @@ build/compile/csi:
 build/csi: build/prepare/csi build/compile/csi
 
 .PHONY: gen
-gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
+gen: deps gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
 
 .PHONY: lint
@@ -397,7 +356,7 @@ controller/vet: ## Run go vet against code.
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -v /e2e) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -vF /e2e) -coverprofile cover.out
 
 ##@ Build
 

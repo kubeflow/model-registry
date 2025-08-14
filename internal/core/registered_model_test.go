@@ -12,7 +12,8 @@ import (
 )
 
 func TestUpsertRegisteredModel(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
@@ -321,7 +322,8 @@ func TestUpsertRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModelById(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// First create a model to retrieve
@@ -366,7 +368,8 @@ func TestGetRegisteredModelById(t *testing.T) {
 }
 
 func TestGetRegisteredModelByInferenceService(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
 		// Create a registered model
@@ -418,7 +421,8 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 }
 
 func TestGetRegisteredModelByParams(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful get by name", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
@@ -491,7 +495,8 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 }
 
 func TestGetRegisteredModels(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
 		// Create multiple models for listing
@@ -565,7 +570,8 @@ func TestGetRegisteredModels(t *testing.T) {
 }
 
 func TestRegisteredModelRoundTrip(t *testing.T) {
-	cleanupTestData(t, sharedDB)
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
 		// Create a model with all fields
@@ -611,5 +617,306 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *final.State)
+	})
+}
+
+func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create test models with various properties for filtering
+	testModels := []struct {
+		model *openapi.RegisteredModel
+	}{
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "pytorch-model-v1",
+				Description: apiutils.Of("PyTorch model for image classification"),
+				ExternalId:  apiutils.Of("ext-pytorch-001"),
+				State:       (*openapi.RegisteredModelState)(apiutils.Of("LIVE")),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.95,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "1",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "tensorflow-model-v2",
+				Description: apiutils.Of("TensorFlow model for NLP"),
+				ExternalId:  apiutils.Of("ext-tf-002"),
+				State:       (*openapi.RegisteredModelState)(apiutils.Of("ARCHIVED")),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "tensorflow",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.87,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "2",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "pytorch-model-v2",
+				Description: apiutils.Of("PyTorch model for object detection"),
+				ExternalId:  apiutils.Of("ext-pytorch-003"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.92,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "2",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "sklearn-model",
+				Description: apiutils.Of("Scikit-learn model for regression"),
+				ExternalId:  apiutils.Of("ext-sklearn-004"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "sklearn",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.89,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create all test models
+	for _, tm := range testModels {
+		_, err := _service.UpsertRegisteredModel(tm.model)
+		require.NoError(t, err)
+	}
+
+	testCases := []struct {
+		name          string
+		filterQuery   string
+		expectedCount int
+		expectedNames []string
+	}{
+		{
+			name:          "Filter by exact name",
+			filterQuery:   "name = 'pytorch-model-v1'",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Filter by name pattern",
+			filterQuery:   "name LIKE 'pytorch-%'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by description",
+			filterQuery:   "description LIKE '%NLP%'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Filter by external ID",
+			filterQuery:   "externalId = 'ext-pytorch-001'",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Filter by state",
+			filterQuery:   "state = 'ARCHIVED'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - string",
+			filterQuery:   "framework = 'pytorch'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - numeric comparison",
+			filterQuery:   "accuracy > 0.9",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - integer",
+			filterQuery:   "version = 2",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-model-v2", "pytorch-model-v2"},
+		},
+		{
+			name:          "Complex filter with AND",
+			filterQuery:   "framework = 'pytorch' AND accuracy > 0.93",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Complex filter with OR",
+			filterQuery:   "framework = 'tensorflow' OR framework = 'sklearn'",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-model-v2", "sklearn-model"},
+		},
+		{
+			name:          "Complex filter with parentheses",
+			filterQuery:   "(framework = 'pytorch' OR framework = 'tensorflow') AND accuracy < 0.9",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Case insensitive pattern matching",
+			filterQuery:   "name ILIKE '%PYTORCH%'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter with NOT condition",
+			filterQuery:   "framework != 'sklearn'",
+			expectedCount: 3,
+			expectedNames: []string{"pytorch-model-v1", "tensorflow-model-v2", "pytorch-model-v2"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			pageSize := int32(10)
+			listOptions := api.ListOptions{
+				PageSize:    &pageSize,
+				FilterQuery: &tc.filterQuery,
+			}
+
+			result, err := _service.GetRegisteredModels(listOptions)
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Extract names from results
+			var actualNames []string
+			for _, item := range result.Items {
+				for _, expectedName := range tc.expectedNames {
+					if item.Name == expectedName {
+						actualNames = append(actualNames, item.Name)
+						break
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedCount, len(actualNames),
+				"Expected %d models for filter '%s', but got %d",
+				tc.expectedCount, tc.filterQuery, len(actualNames))
+
+			// Verify the expected models are present
+			assert.ElementsMatch(t, tc.expectedNames, actualNames,
+				"Expected models %v for filter '%s', but got %v",
+				tc.expectedNames, tc.filterQuery, actualNames)
+		})
+	}
+
+	// Test error cases
+	t.Run("Invalid filter syntax", func(t *testing.T) {
+		pageSize := int32(10)
+		invalidFilter := "invalid <<< syntax"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := _service.GetRegisteredModels(listOptions)
+
+		if assert.Error(t, err) {
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		}
+	})
+
+	// Test combining filterQuery with pagination
+	t.Run("Filter with pagination", func(t *testing.T) {
+		pageSize := int32(1)
+		filterQuery := "framework = 'pytorch'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Get first page
+		firstPage, err := _service.GetRegisteredModels(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(firstPage.Items))
+		assert.NotEmpty(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = &firstPage.NextPageToken
+		secondPage, err := _service.GetRegisteredModels(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(secondPage.Items))
+
+		// Ensure different items on each page
+		assert.NotEqual(t, firstPage.Items[0].Id, secondPage.Items[0].Id)
+	})
+
+	// Test empty results
+	t.Run("Filter with no matches", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "framework = 'nonexistent'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := _service.GetRegisteredModels(listOptions)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items))
+		assert.Equal(t, int32(0), result.Size)
 	})
 }

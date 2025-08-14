@@ -9,7 +9,6 @@ import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
-import { modelDetailsCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
 
 const mockModelVersions = mockModelVersion({
   id: '1',
@@ -132,12 +131,18 @@ const initIntercepts = ({
     },
     mockModelVersionList({
       items: [
-        mockModelVersion({ name: 'Version 1', author: 'Author 1', registeredModelId: '1' }),
+        mockModelVersion({
+          name: 'Version 1',
+          author: 'Author 1',
+          registeredModelId: '1',
+          createTimeSinceEpoch: '1712234877000', // Older
+        }),
         mockModelVersion({
           author: 'Author 2',
           registeredModelId: '1',
           id: '2',
           name: 'Version 2',
+          createTimeSinceEpoch: '1712234879000', // Latest
         }),
         mockModelVersion({
           author: 'Author 3',
@@ -210,8 +215,9 @@ describe('Model version details', () => {
       verifyRelativeURL(
         '/model-registry/modelregistry-sample/registeredModels/1/versions/1/details',
       );
-      cy.findByTestId('app-page-title').should('have.text', 'Version 1');
+      cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
+      cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
     });
 
     it('should add a property', () => {
@@ -319,6 +325,22 @@ describe('Model version details', () => {
       modelVersionDetails.findVersionId().contains('2');
     });
 
+    it('should show "Latest" badge on the most recent version', () => {
+      modelVersionDetails.findModelVersionDropdownButton().click();
+
+      // Check that the "Latest" badge exists and is associated with Version 2
+      cy.findByTestId('model-version-selector-list')
+        .should('contain.text', 'Latest')
+        .and('contain.text', 'Version 2');
+
+      // Verify that Version 1 exists but doesn't have its own "Latest" badge
+      cy.findByTestId('model-version-selector-list').should('contain.text', 'Version 1');
+
+      cy.findByTestId('model-version-selector-list')
+        .find('.pf-v6-c-badge')
+        .should('have.length', 1);
+    });
+
     it('should handle label editing', () => {
       modelVersionDetails.findEditLabelsButton().click();
 
@@ -395,20 +417,28 @@ describe('Model version details', () => {
         });
     });
 
-    it('should expand and collapse the model details card', () => {
-      cy.contains('Model details').should('be.visible');
-      modelDetailsCard.findToggleButton().should('exist').and('be.visible');
-      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'false');
+    it('should navigate to versions list when clicking ViewAllVersionsButton', () => {
+      modelVersionDetails.visit();
+      modelVersionDetails.findModelVersionDropdownButton().click();
 
-      modelDetailsCard.findToggleButton().click();
-      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'true');
+      cy.findByTestId('versions-route-link')
+        .should('exist')
+        .and('contain.text', 'View all')
+        .and('contain.text', 'versions');
 
-      cy.contains('Description').should('be.visible');
-      cy.contains('Labels').should('be.visible');
-      cy.contains('Properties').should('be.visible');
+      cy.findByTestId('versions-route-link')
+        .should('have.attr', 'href')
+        .and('include', '/model-registry/modelregistry-sample/registeredModels/1/versions');
 
-      modelDetailsCard.findToggleButton().click();
-      modelDetailsCard.findToggleButton().should('have.attr', 'aria-expanded', 'false');
+      // Click the link and verify navigation
+      cy.findByTestId('versions-route-link').click();
+
+      // Verify we navigated to the versions list page
+      cy.url().should(
+        'include',
+        '/model-registry/modelregistry-sample/registeredModels/1/versions',
+      );
+      cy.findByTestId('model-versions-tab-content').should('exist');
     });
   });
 });

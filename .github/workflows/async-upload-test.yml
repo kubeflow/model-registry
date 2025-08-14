@@ -16,6 +16,9 @@ on:
       - "jobs/async-upload/**"
       - ".github/workflows/**"
 
+permissions:
+  contents: read
+
 env:
   # Async Job
   JOB_IMG_REGISTRY: quay.io

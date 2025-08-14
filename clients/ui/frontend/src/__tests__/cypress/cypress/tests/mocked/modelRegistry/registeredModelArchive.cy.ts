@@ -65,7 +65,12 @@ const initIntercepts = ({
       },
       state: ModelState.ARCHIVED,
     }),
-    mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.ARCHIVED }),
+    mockRegisteredModel({
+      id: '2',
+      owner: 'Author 2',
+      name: 'model 2',
+      state: ModelState.ARCHIVED,
+    }),
     mockRegisteredModel({ id: '3', name: 'model 3' }),
     mockRegisteredModel({ id: '4', name: 'model 4' }),
   ],
@@ -219,7 +224,7 @@ describe('Model archive list', () => {
 
     // name, last modified, owner, labels modal
     registeredModelArchive.findArchiveModelTable().should('be.visible');
-    registeredModelArchive.findArchiveModelsTableSearch().type('model 1');
+    registeredModelArchive.findTableSearch().type('model 1');
     registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
     registeredModelArchive
       .findArchiveModelsTableToolbar()
@@ -263,6 +268,32 @@ describe('Model archive list', () => {
     registeredModelArchive
       .findRegisteredModelsArchiveTableHeaderButton('Model name')
       .should(be.sortDescending);
+  });
+
+  it('Filter by keyword then both', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    registeredModelArchive.findTableSearch().type('model 1');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findFilterDropdownItem('Owner').click();
+    registeredModelArchive.findTableSearch().type('Author 1');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findArchiveModelsTableRows().contains('model 1');
+    registeredModelArchive.findTableSearch().type('2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 0);
+  });
+
+  it('Filter by owner then both', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    registeredModelArchive.findFilterDropdownItem('Owner').click();
+    registeredModelArchive.findTableSearch().type('Author 2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findFilterDropdownItem('Keyword').click();
+    registeredModelArchive.findTableSearch().type('model 2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findTableSearch().type('.');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 0);
   });
 
   it('latest version column', () => {

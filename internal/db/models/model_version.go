@@ -1,10 +1,17 @@
 package models
 
+import "github.com/kubeflow/model-registry/internal/db/filter"
+
 type ModelVersionListOptions struct {
 	Pagination
 	Name             *string
 	ExternalID       *string
 	ParentResourceID *int32
+}
+
+// GetRestEntityType implements the FilterApplier interface
+func (m *ModelVersionListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityModelVersion
 }
 
 type ModelVersionAttributes struct {

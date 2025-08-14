@@ -75,6 +75,9 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *ModelRegistryServiceApi* | [**create_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#create_artifact) | **POST** /api/model_registry/v1alpha3/artifacts | Create an Artifact
 *ModelRegistryServiceApi* | [**create_environment_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#create_environment_inference_service) | **POST** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services | Create a InferenceService in ServingEnvironment
+*ModelRegistryServiceApi* | [**create_experiment**](mr_openapi/docs/ModelRegistryServiceApi.md#create_experiment) | **POST** /api/model_registry/v1alpha3/experiments | Create an Experiment
+*ModelRegistryServiceApi* | [**create_experiment_experiment_run**](mr_openapi/docs/ModelRegistryServiceApi.md#create_experiment_experiment_run) | **POST** /api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs | Create an ExperimentRun in Experiment
+*ModelRegistryServiceApi* | [**create_experiment_run**](mr_openapi/docs/ModelRegistryServiceApi.md#create_experiment_run) | **POST** /api/model_registry/v1alpha3/experiment_runs | Create an ExperimentRun
 *ModelRegistryServiceApi* | [**create_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#create_inference_service) | **POST** /api/model_registry/v1alpha3/inference_services | Create a InferenceService
 *ModelRegistryServiceApi* | [**create_inference_service_serve**](mr_openapi/docs/ModelRegistryServiceApi.md#create_inference_service_serve) | **POST** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves | Create a ServeModel action in a InferenceService
 *ModelRegistryServiceApi* | [**create_model_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#create_model_artifact) | **POST** /api/model_registry/v1alpha3/model_artifacts | Create a ModelArtifact
@@ -83,6 +86,8 @@ Class | Method | HTTP request | Description
 *ModelRegistryServiceApi* | [**create_registered_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#create_registered_model_version) | **POST** /api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions | Create a ModelVersion in RegisteredModel
 *ModelRegistryServiceApi* | [**create_serving_environment**](mr_openapi/docs/ModelRegistryServiceApi.md#create_serving_environment) | **POST** /api/model_registry/v1alpha3/serving_environments | Create a ServingEnvironment
 *ModelRegistryServiceApi* | [**find_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#find_artifact) | **GET** /api/model_registry/v1alpha3/artifact | Get an Artifact that matches search parameters.
+*ModelRegistryServiceApi* | [**find_experiment**](mr_openapi/docs/ModelRegistryServiceApi.md#find_experiment) | **GET** /api/model_registry/v1alpha3/experiment | Get an Experiment that matches search parameters.
+*ModelRegistryServiceApi* | [**find_experiment_run**](mr_openapi/docs/ModelRegistryServiceApi.md#find_experiment_run) | **GET** /api/model_registry/v1alpha3/experiment_run | Get an ExperimentRun that matches search parameters.
 *ModelRegistryServiceApi* | [**find_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#find_inference_service) | **GET** /api/model_registry/v1alpha3/inference_service | Get an InferenceServices that matches search parameters.
 *ModelRegistryServiceApi* | [**find_model_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#find_model_artifact) | **GET** /api/model_registry/v1alpha3/model_artifact | Get a ModelArtifact that matches search parameters.
 *ModelRegistryServiceApi* | [**find_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#find_model_version) | **GET** /api/model_registry/v1alpha3/model_version | Get a ModelVersion that matches search parameters.
@@ -91,6 +96,13 @@ Class | Method | HTTP request | Description
 *ModelRegistryServiceApi* | [**get_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#get_artifact) | **GET** /api/model_registry/v1alpha3/artifacts/{id} | Get an Artifact
 *ModelRegistryServiceApi* | [**get_artifacts**](mr_openapi/docs/ModelRegistryServiceApi.md#get_artifacts) | **GET** /api/model_registry/v1alpha3/artifacts | List All Artifacts
 *ModelRegistryServiceApi* | [**get_environment_inference_services**](mr_openapi/docs/ModelRegistryServiceApi.md#get_environment_inference_services) | **GET** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services | List All ServingEnvironment&#39;s InferenceServices
+*ModelRegistryServiceApi* | [**get_experiment**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment) | **GET** /api/model_registry/v1alpha3/experiments/{experimentId} | Get an Experiment
+*ModelRegistryServiceApi* | [**get_experiment_experiment_runs**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment_experiment_runs) | **GET** /api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs | List All Experiment&#39;s ExperimentRuns
+*ModelRegistryServiceApi* | [**get_experiment_run**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment_run) | **GET** /api/model_registry/v1alpha3/experiment_runs/{experimentrunId} | Get an ExperimentRun
+*ModelRegistryServiceApi* | [**get_experiment_run_artifacts**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment_run_artifacts) | **GET** /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts | List all artifacts associated with the &#x60;ExperimentRun&#x60;
+*ModelRegistryServiceApi* | [**get_experiment_run_metric_history**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment_run_metric_history) | **GET** /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history | Get metric history for an ExperimentRun
+*ModelRegistryServiceApi* | [**get_experiment_runs**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiment_runs) | **GET** /api/model_registry/v1alpha3/experiment_runs | List All ExperimentRuns
+*ModelRegistryServiceApi* | [**get_experiments**](mr_openapi/docs/ModelRegistryServiceApi.md#get_experiments) | **GET** /api/model_registry/v1alpha3/experiments | List All Experiments
 *ModelRegistryServiceApi* | [**get_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#get_inference_service) | **GET** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId} | Get a InferenceService
 *ModelRegistryServiceApi* | [**get_inference_service_model**](mr_openapi/docs/ModelRegistryServiceApi.md#get_inference_service_model) | **GET** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/model | Get InferenceService&#39;s RegisteredModel
 *ModelRegistryServiceApi* | [**get_inference_service_serves**](mr_openapi/docs/ModelRegistryServiceApi.md#get_inference_service_serves) | **GET** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves | List All InferenceService&#39;s ServeModel actions
@@ -107,11 +119,14 @@ Class | Method | HTTP request | Description
 *ModelRegistryServiceApi* | [**get_serving_environment**](mr_openapi/docs/ModelRegistryServiceApi.md#get_serving_environment) | **GET** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId} | Get a ServingEnvironment
 *ModelRegistryServiceApi* | [**get_serving_environments**](mr_openapi/docs/ModelRegistryServiceApi.md#get_serving_environments) | **GET** /api/model_registry/v1alpha3/serving_environments | List All ServingEnvironments
 *ModelRegistryServiceApi* | [**update_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#update_artifact) | **PATCH** /api/model_registry/v1alpha3/artifacts/{id} | Update an Artifact
+*ModelRegistryServiceApi* | [**update_experiment**](mr_openapi/docs/ModelRegistryServiceApi.md#update_experiment) | **PATCH** /api/model_registry/v1alpha3/experiments/{experimentId} | Update an Experiment
+*ModelRegistryServiceApi* | [**update_experiment_run**](mr_openapi/docs/ModelRegistryServiceApi.md#update_experiment_run) | **PATCH** /api/model_registry/v1alpha3/experiment_runs/{experimentrunId} | Update an ExperimentRun
 *ModelRegistryServiceApi* | [**update_inference_service**](mr_openapi/docs/ModelRegistryServiceApi.md#update_inference_service) | **PATCH** /api/model_registry/v1alpha3/inference_services/{inferenceserviceId} | Update a InferenceService
 *ModelRegistryServiceApi* | [**update_model_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#update_model_artifact) | **PATCH** /api/model_registry/v1alpha3/model_artifacts/{modelartifactId} | Update a ModelArtifact
 *ModelRegistryServiceApi* | [**update_model_version**](mr_openapi/docs/ModelRegistryServiceApi.md#update_model_version) | **PATCH** /api/model_registry/v1alpha3/model_versions/{modelversionId} | Update a ModelVersion
 *ModelRegistryServiceApi* | [**update_registered_model**](mr_openapi/docs/ModelRegistryServiceApi.md#update_registered_model) | **PATCH** /api/model_registry/v1alpha3/registered_models/{registeredmodelId} | Update a RegisteredModel
 *ModelRegistryServiceApi* | [**update_serving_environment**](mr_openapi/docs/ModelRegistryServiceApi.md#update_serving_environment) | **PATCH** /api/model_registry/v1alpha3/serving_environments/{servingenvironmentId} | Update a ServingEnvironment
+*ModelRegistryServiceApi* | [**upsert_experiment_run_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#upsert_experiment_run_artifact) | **POST** /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts | Upsert an Artifact in an ExperimentRun
 *ModelRegistryServiceApi* | [**upsert_model_version_artifact**](mr_openapi/docs/ModelRegistryServiceApi.md#upsert_model_version_artifact) | **POST** /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts | Upsert an Artifact in a ModelVersion
 
 
@@ -121,6 +136,7 @@ Class | Method | HTTP request | Description
  - [ArtifactCreate](mr_openapi/docs/ArtifactCreate.md)
  - [ArtifactList](mr_openapi/docs/ArtifactList.md)
  - [ArtifactState](mr_openapi/docs/ArtifactState.md)
+ - [ArtifactTypeQueryParam](mr_openapi/docs/ArtifactTypeQueryParam.md)
  - [ArtifactUpdate](mr_openapi/docs/ArtifactUpdate.md)
  - [BaseModel](mr_openapi/docs/BaseModel.md)
  - [BaseResource](mr_openapi/docs/BaseResource.md)
@@ -128,11 +144,25 @@ Class | Method | HTTP request | Description
  - [BaseResourceDates](mr_openapi/docs/BaseResourceDates.md)
  - [BaseResourceList](mr_openapi/docs/BaseResourceList.md)
  - [BaseResourceUpdate](mr_openapi/docs/BaseResourceUpdate.md)
+ - [DataSet](mr_openapi/docs/DataSet.md)
+ - [DataSetCreate](mr_openapi/docs/DataSetCreate.md)
+ - [DataSetUpdate](mr_openapi/docs/DataSetUpdate.md)
  - [DocArtifact](mr_openapi/docs/DocArtifact.md)
  - [DocArtifactCreate](mr_openapi/docs/DocArtifactCreate.md)
  - [DocArtifactUpdate](mr_openapi/docs/DocArtifactUpdate.md)
  - [Error](mr_openapi/docs/Error.md)
  - [ExecutionState](mr_openapi/docs/ExecutionState.md)
+ - [Experiment](mr_openapi/docs/Experiment.md)
+ - [ExperimentCreate](mr_openapi/docs/ExperimentCreate.md)
+ - [ExperimentList](mr_openapi/docs/ExperimentList.md)
+ - [ExperimentRun](mr_openapi/docs/ExperimentRun.md)
+ - [ExperimentRunCreate](mr_openapi/docs/ExperimentRunCreate.md)
+ - [ExperimentRunList](mr_openapi/docs/ExperimentRunList.md)
+ - [ExperimentRunState](mr_openapi/docs/ExperimentRunState.md)
+ - [ExperimentRunStatus](mr_openapi/docs/ExperimentRunStatus.md)
+ - [ExperimentRunUpdate](mr_openapi/docs/ExperimentRunUpdate.md)
+ - [ExperimentState](mr_openapi/docs/ExperimentState.md)
+ - [ExperimentUpdate](mr_openapi/docs/ExperimentUpdate.md)
  - [InferenceService](mr_openapi/docs/InferenceService.md)
  - [InferenceServiceCreate](mr_openapi/docs/InferenceServiceCreate.md)
  - [InferenceServiceList](mr_openapi/docs/InferenceServiceList.md)
@@ -145,6 +175,10 @@ Class | Method | HTTP request | Description
  - [MetadataStringValue](mr_openapi/docs/MetadataStringValue.md)
  - [MetadataStructValue](mr_openapi/docs/MetadataStructValue.md)
  - [MetadataValue](mr_openapi/docs/MetadataValue.md)
+ - [Metric](mr_openapi/docs/Metric.md)
+ - [MetricCreate](mr_openapi/docs/MetricCreate.md)
+ - [MetricList](mr_openapi/docs/MetricList.md)
+ - [MetricUpdate](mr_openapi/docs/MetricUpdate.md)
  - [ModelArtifact](mr_openapi/docs/ModelArtifact.md)
  - [ModelArtifactCreate](mr_openapi/docs/ModelArtifactCreate.md)
  - [ModelArtifactList](mr_openapi/docs/ModelArtifactList.md)
@@ -155,6 +189,10 @@ Class | Method | HTTP request | Description
  - [ModelVersionState](mr_openapi/docs/ModelVersionState.md)
  - [ModelVersionUpdate](mr_openapi/docs/ModelVersionUpdate.md)
  - [OrderByField](mr_openapi/docs/OrderByField.md)
+ - [Parameter](mr_openapi/docs/Parameter.md)
+ - [ParameterCreate](mr_openapi/docs/ParameterCreate.md)
+ - [ParameterType](mr_openapi/docs/ParameterType.md)
+ - [ParameterUpdate](mr_openapi/docs/ParameterUpdate.md)
  - [RegisteredModel](mr_openapi/docs/RegisteredModel.md)
  - [RegisteredModelCreate](mr_openapi/docs/RegisteredModelCreate.md)
  - [RegisteredModelList](mr_openapi/docs/RegisteredModelList.md)

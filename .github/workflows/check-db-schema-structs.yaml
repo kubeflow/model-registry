@@ -6,6 +6,10 @@ on:
       - 'main'
     tags:
       - 'v*'
+
+permissions:
+  contents: read
+
 jobs:
   check-mysql-schema-structs:
     runs-on: ubuntu-latest

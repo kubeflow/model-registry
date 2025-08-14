@@ -11,7 +11,9 @@ package openapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
@@ -223,8 +225,8 @@ func (s *ModelRegistryServiceAPIService) FindServingEnvironment(ctx context.Cont
 }
 
 // GetEnvironmentInferenceServices - List All ServingEnvironment&#39;s InferenceServices
-func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetEnvironmentInferenceServices(ctx context.Context, servingenvironmentId string, filterQuery string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -254,8 +256,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceModel(ctx context.Co
 }
 
 // GetInferenceServiceServes - List All InferenceService&#39;s ServeModel actions
-func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetInferenceServiceServes(ctx context.Context, inferenceserviceId string, filterQuery string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -276,8 +278,8 @@ func (s *ModelRegistryServiceAPIService) GetInferenceServiceVersion(ctx context.
 }
 
 // GetInferenceServices - List All InferenceServices
-func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetInferenceServices(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -298,12 +300,12 @@ func (s *ModelRegistryServiceAPIService) GetArtifact(ctx context.Context, artifa
 }
 
 // GetArtifacts - List All Artifacts
-func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetArtifacts(ctx context.Context, filterQuery string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	result, err := s.coreApi.GetArtifacts(listOpts, nil)
+	result, err := s.coreApi.GetArtifacts(artifactType, listOpts, nil)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -320,8 +322,8 @@ func (s *ModelRegistryServiceAPIService) GetModelArtifact(ctx context.Context, m
 }
 
 // GetModelArtifacts - List All ModelArtifacts
-func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetModelArtifacts(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -342,23 +344,59 @@ func (s *ModelRegistryServiceAPIService) GetModelVersion(ctx context.Context, mo
 }
 
 // GetModelVersionArtifacts - List All ModelVersion&#39;s artifacts
-func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO name unused
-	// TODO externalID unused
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetModelVersionArtifacts(ctx context.Context, modelversionId string,
+	filterQuery string, name string, externalID string, artifactType model.ArtifactTypeQueryParam, pageSize string,
+	orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+
+	// Build combined filter query from filterQuery, name, and externalID parameters
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID)
+
+	listOpts, err := s.buildListOption(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
-	result, err := s.coreApi.GetArtifacts(listOpts, apiutils.StrPtr(modelversionId))
+	result, err := s.coreApi.GetArtifacts(artifactType, listOpts, apiutils.StrPtr(modelversionId))
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
 }
 
+// buildCombinedFilterQuery combines filterQuery with name and externalID parameters
+func buildCombinedFilterQuery(filterQuery, name, externalID string) string {
+	var conditions []string
+
+	// Add existing filter query if provided
+	if filterQuery != "" {
+		conditions = append(conditions, "("+filterQuery+")")
+	}
+
+	// Add name or externalID filter (exclusive)
+	if name != "" {
+		// Escape single quotes in the name by doubling them
+		escapedName := strings.ReplaceAll(name, "'", "''")
+		conditions = append(conditions, "name = '"+escapedName+"'")
+	} else if externalID != "" {
+		// Escape single quotes in the externalID by doubling them
+		escapedExternalID := strings.ReplaceAll(externalID, "'", "''")
+		conditions = append(conditions, "externalId = '"+escapedExternalID+"'")
+	}
+
+	// Combine all conditions with AND
+	if len(conditions) == 0 {
+		return ""
+	}
+
+	if len(conditions) == 1 {
+		return conditions[0]
+	}
+
+	return conditions[0] + " AND " + conditions[1]
+}
+
 // GetModelVersions - List All ModelVersions
-func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetModelVersions(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -379,10 +417,11 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModel(ctx context.Context,
 }
 
 // GetRegisteredModelVersions - List All RegisteredModel&#39;s ModelVersions
-func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.Context, registeredmodelId string, name string, externalID string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	// TODO name unused
-	// TODO externalID unused
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.Context, registeredmodelId string, name string, externalID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	// Build combined filter query from filterQuery, name, and externalID parameters
+	combinedFilterQuery := buildCombinedFilterQuery(filterQuery, name, externalID)
+
+	listOpts, err := s.buildListOption(combinedFilterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -394,8 +433,8 @@ func (s *ModelRegistryServiceAPIService) GetRegisteredModelVersions(ctx context.
 }
 
 // GetRegisteredModels - List All RegisteredModels
-func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetRegisteredModels(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -416,8 +455,8 @@ func (s *ModelRegistryServiceAPIService) GetServingEnvironment(ctx context.Conte
 }
 
 // GetServingEnvironments - List All ServingEnvironments
-func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	listOpts, err := apiutils.BuildListOption(pageSize, orderBy, sortOrder, nextPageToken)
+func (s *ModelRegistryServiceAPIService) GetServingEnvironments(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
@@ -563,4 +602,248 @@ func (s *ModelRegistryServiceAPIService) UpdateServingEnvironment(ctx context.Co
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 	return Response(http.StatusOK, result), nil
+}
+
+// CreateExperiment - Create an Experiment
+func (s *ModelRegistryServiceAPIService) CreateExperiment(ctx context.Context, experimentCreate model.ExperimentCreate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentCreate(&experimentCreate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	result, err := s.coreApi.UpsertExperiment(entity)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// CreateExperimentExperimentRun - Create an ExperimentRun in Experiment
+func (s *ModelRegistryServiceAPIService) CreateExperimentExperimentRun(ctx context.Context, experimentId string, experimentRun model.ExperimentRun) (ImplResponse, error) {
+	result, err := s.coreApi.UpsertExperimentRun(&experimentRun, apiutils.StrPtr(experimentId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// CreateExperimentRun - Create an ExperimentRun
+func (s *ModelRegistryServiceAPIService) CreateExperimentRun(ctx context.Context, experimentRunCreate model.ExperimentRunCreate) (ImplResponse, error) {
+	experimentRun, err := s.converter.ConvertExperimentRunCreate(&experimentRunCreate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	result, err := s.coreApi.UpsertExperimentRun(experimentRun, &experimentRunCreate.ExperimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusCreated, result), nil
+}
+
+// FindExperiment - Get an Experiment that matches search parameters
+func (s *ModelRegistryServiceAPIService) FindExperiment(ctx context.Context, name string, externalId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentByParams(apiutils.StrPtr(name), apiutils.StrPtr(externalId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// FindExperimentRun - Get an ExperimentRun that matches search parameters
+func (s *ModelRegistryServiceAPIService) FindExperimentRun(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentRunByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperiment - Get an Experiment
+func (s *ModelRegistryServiceAPIService) GetExperiment(ctx context.Context, experimentId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentById(experimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentExperimentRuns - List All Experiment's ExperimentRuns
+func (s *ModelRegistryServiceAPIService) GetExperimentExperimentRuns(ctx context.Context, experimentId string, name string, externalId string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRuns(listOpts, apiutils.StrPtr(experimentId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRun - Get an ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRun(ctx context.Context, experimentrunId string) (ImplResponse, error) {
+	result, err := s.coreApi.GetExperimentRunById(experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRunArtifacts - List all artifacts associated with the ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRunArtifacts(ctx context.Context, experimentrunId string,
+	filterQuery string, name string, externalId string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRunArtifacts(artifactType, listOpts, apiutils.StrPtr(experimentrunId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRuns - List All ExperimentRuns
+func (s *ModelRegistryServiceAPIService) GetExperimentRuns(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperimentRuns(listOpts, nil)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperiments - List All Experiments
+func (s *ModelRegistryServiceAPIService) GetExperiments(ctx context.Context, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	result, err := s.coreApi.GetExperiments(listOpts)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpdateExperiment - Update an Experiment
+func (s *ModelRegistryServiceAPIService) UpdateExperiment(ctx context.Context, experimentId string, experimentUpdate model.ExperimentUpdate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentUpdate(&experimentUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	entity.Id = &experimentId
+	existing, err := s.coreApi.GetExperimentById(experimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := s.reconciler.UpdateExistingExperiment(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	result, err := s.coreApi.UpsertExperiment(&update)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpdateExperimentRun - Update an ExperimentRun
+func (s *ModelRegistryServiceAPIService) UpdateExperimentRun(ctx context.Context, experimentrunId string, experimentRunUpdate model.ExperimentRunUpdate) (ImplResponse, error) {
+	entity, err := s.converter.ConvertExperimentRunUpdate(&experimentRunUpdate)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	entity.Id = &experimentrunId
+	existing, err := s.coreApi.GetExperimentRunById(experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	update, err := s.reconciler.UpdateExistingExperimentRun(converter.NewOpenapiUpdateWrapper(existing, entity))
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	// Extract experiment ID from existing run for the upsert call
+	result, err := s.coreApi.UpsertExperimentRun(&update, &existing.ExperimentId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// UpsertExperimentRunArtifact - Upsert an Artifact in an ExperimentRun
+func (s *ModelRegistryServiceAPIService) UpsertExperimentRunArtifact(ctx context.Context, experimentrunId string, artifact model.Artifact) (ImplResponse, error) {
+	creating := (artifact.DocArtifact != nil && artifact.DocArtifact.Id == nil) || (artifact.ModelArtifact != nil && artifact.ModelArtifact.Id == nil)
+
+	result, err := s.coreApi.UpsertExperimentRunArtifact(&artifact, experimentrunId)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	if creating {
+		return Response(http.StatusCreated, result), nil
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+// GetExperimentRunMetricHistory - Get metric history for an ExperimentRun
+func (s *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx context.Context, experimentrunId string,
+	filterQuery string, name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+
+	var namePtr *string
+	if name != "" {
+		namePtr = &name
+	}
+
+	var stepIdsPtr *string
+	if stepIds != "" {
+		stepIdsPtr = &stepIds
+	}
+
+	result, err := s.coreApi.GetExperimentRunMetricHistory(namePtr, stepIdsPtr, listOpts, apiutils.StrPtr(experimentrunId))
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}
+
+func (s *ModelRegistryServiceAPIService) buildListOption(filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (api.ListOptions, error) {
+	var filterQueryPtr *string
+	if filterQuery != "" {
+		filterQueryPtr = &filterQuery
+	}
+	var pageSizeInt32 *int32
+	if pageSize != "" {
+		conv, err := converter.StringToInt32(pageSize)
+		if err != nil {
+			return api.ListOptions{}, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		pageSizeInt32 = &conv
+	}
+	var orderByString *string
+	if orderBy != "" {
+		orderByString = (*string)(&orderBy)
+	}
+	var sortOrderString *string
+	if sortOrder != "" {
+		sortOrderString = (*string)(&sortOrder)
+	}
+	var nextPageTokenParam *string
+	if nextPageToken != "" {
+		nextPageTokenParam = &nextPageToken
+	}
+	return api.ListOptions{
+		FilterQuery:   filterQueryPtr,
+		PageSize:      pageSizeInt32,
+		OrderBy:       orderByString,
+		SortOrder:     sortOrderString,
+		NextPageToken: nextPageTokenParam,
+	}, nil
 }

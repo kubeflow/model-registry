@@ -10,6 +10,11 @@ on:
       - "!**.gitignore"
       - "!**.md"
       - "!**.txt"
+
+permissions:
+  contents: read
+  packages: read
+
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry-ui

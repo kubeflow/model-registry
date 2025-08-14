@@ -4,6 +4,10 @@ on:
     paths:
       - ".github/workflows/**"
       - "api/openapi/model-registry.yaml"
+
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
