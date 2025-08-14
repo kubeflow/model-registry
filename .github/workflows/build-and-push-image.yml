@@ -20,6 +20,10 @@ env:
   PUSH_IMAGE: true
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+
+permissions: # default workflow permission, overridden for specific job where required
+  contents: read
+
 jobs:
   prepare:
     uses: ./.github/workflows/prepare.yml
