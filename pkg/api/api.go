@@ -173,4 +173,7 @@ type ModelRegistryApi interface {
 	// GetExperimentRunMetricHistory return metric history for a specific ExperimentRun properly ordered and sized based on listOptions param.
 	// if name is provided, filter metrics by name. if stepIds is provided, filter metrics by step ids
 	GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions ListOptions, experimentRunId *string) (*openapi.MetricList, error)
+	// GetExperimentRunsMetricHistory return metric history for multiple ExperimentRuns properly ordered and sized based on listOptions param.
+	// if name is provided, filter metrics by name. if stepIds is provided, filter metrics by step ids. if experimentRunIds is provided, filter by experiment run IDs
+	GetExperimentRunsMetricHistory(name *string, stepIds *string, experimentRunIds *string, listOptions ListOptions) (*openapi.MetricList, error)
 }

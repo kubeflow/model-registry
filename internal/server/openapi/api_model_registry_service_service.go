@@ -847,3 +847,34 @@ func (s *ModelRegistryServiceAPIService) buildListOption(filterQuery string, pag
 		NextPageToken: nextPageTokenParam,
 	}, nil
 }
+
+func (s *ModelRegistryServiceAPIService) GetExperimentRunsMetricHistory(ctx context.Context,
+	filterQuery string, name string, stepIds string, experimentRunIds string, pageSize string,
+	orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+
+	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+
+	var namePtr *string
+	if name != "" {
+		namePtr = &name
+	}
+
+	var stepIdsPtr *string
+	if stepIds != "" {
+		stepIdsPtr = &stepIds
+	}
+
+	var experimentRunIdsPtr *string
+	if experimentRunIds != "" {
+		experimentRunIdsPtr = &experimentRunIds
+	}
+
+	result, err := s.coreApi.GetExperimentRunsMetricHistory(namePtr, stepIdsPtr, experimentRunIdsPtr, listOpts)
+	if err != nil {
+		return ErrorResponse(api.ErrToStatus(err), err), err
+	}
+	return Response(http.StatusOK, result), nil
+}

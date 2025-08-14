@@ -302,6 +302,99 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 	return &toReturn, nil
 }
 
+func (b *ModelRegistryService) GetExperimentRunsMetricHistory(name *string, stepIds *string, experimentRunIds *string, listOptions api.ListOptions) (*openapi.MetricList, error) {
+	// Parse experiment run IDs if provided
+	var experimentRunIdList []int32
+	if experimentRunIds != nil && *experimentRunIds != "" {
+		idStrings := strings.Split(*experimentRunIds, ",")
+		for _, idStr := range idStrings {
+			idStr = strings.TrimSpace(idStr)
+			if idStr != "" {
+				id, err := apiutils.ValidateIDAsInt32(idStr, "experiment run")
+				if err != nil {
+					return nil, fmt.Errorf("invalid experiment run ID '%s': %w", idStr, err)
+				}
+				experimentRunIdList = append(experimentRunIdList, id)
+			}
+		}
+	}
+
+	// If no experiment run IDs provided, return empty list
+	if len(experimentRunIdList) == 0 {
+		return &openapi.MetricList{
+			NextPageToken: "",
+			PageSize:      apiutils.ZeroIfNil(listOptions.PageSize),
+			Size:          0,
+			Items:         []openapi.Metric{},
+		}, nil
+	}
+
+	// Validate that all experiment runs exist
+	for _, id := range experimentRunIdList {
+		idStr := strconv.Itoa(int(id))
+		_, err := b.GetExperimentRunById(idStr)
+		if err != nil {
+			return nil, fmt.Errorf("experiment run with ID %s not found: %w", idStr, err)
+		}
+	}
+
+	listOptsCopy := models.MetricHistoryListOptions{
+		Pagination: models.Pagination{
+			PageSize:      listOptions.PageSize,
+			OrderBy:       listOptions.OrderBy,
+			SortOrder:     listOptions.SortOrder,
+			NextPageToken: listOptions.NextPageToken,
+		},
+		ExperimentRunIDs: experimentRunIdList,
+	}
+
+	// Add name filter if provided
+	if name != nil && *name != "" {
+		listOptsCopy.Name = name
+	}
+
+	// Add step IDs filter if provided
+	if stepIds != nil && *stepIds != "" {
+		listOptsCopy.StepIds = stepIds
+	}
+
+	// Query metric history repository
+	metricHistories, err := b.metricHistoryRepository.List(listOptsCopy)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert metric history to OpenAPI metrics
+	results := []openapi.Metric{}
+	for _, metricHistory := range metricHistories.Items {
+		mapped, err := b.mapper.MapToMetric(metricHistory)
+		if err != nil {
+			glog.Warningf("Failed to map metric history artifact %v: %v", metricHistory.GetID(), err)
+			continue
+		}
+
+		// Remove timestamp suffix from name after the last __
+		if mapped.Name != nil {
+			lastIndex := strings.LastIndex(*mapped.Name, "__")
+			if lastIndex != -1 {
+				mapped.Name = apiutils.StrPtr((*mapped.Name)[:lastIndex])
+			}
+		}
+
+		results = append(results, *mapped)
+	}
+
+	// Build response
+	toReturn := openapi.MetricList{
+		NextPageToken: metricHistories.NextPageToken,
+		PageSize:      metricHistories.PageSize,
+		Size:          int32(len(results)),
+		Items:         results,
+	}
+
+	return &toReturn, nil
+}
+
 // InsertMetricHistory inserts a metric history record for an experiment run
 func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, experimentRunId string) error {
 
