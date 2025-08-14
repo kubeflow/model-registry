@@ -38,12 +38,18 @@ Kubernetes control plane is running at https://127.0.0.1:58635
 CoreDNS is running at https://127.0.0.1:58635/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
 
-#### 2. Create kubeflow namespace
+#### 2. Create kubeflow namespace and switch to it
 
 Create a namespace for model registry to run in, by default this is kubeflow, run:
 
 ```shell
 kubectl create namespace kubeflow
+```
+then, switch to that  kubeflow namespace
+
+
+```shell
+  kubectl config set-context --current --namespace=kubeflow
 ```
 
 #### 3. Deploy Model Registry to cluster
@@ -87,7 +93,7 @@ Note: an issue has been filed regarding this ticket here:
 #### 4. Setup a port forward to the service
 
 In order to access the MR REST API locally you need to forward a local port to 8080 on the MR service. Run the following
-command:
+command: (Note: this command starts a long-running service and will not exit the shell)
 
 ```shell
 kubectl port-forward svc/model-registry-service -n kubeflow 8080:8080
@@ -110,7 +116,7 @@ You should receive a 200 response if everything is working correctly, the body s
 {"items":[],"nextPageToken":"","pageSize":0,"size":0}
 ```
 
-#### 6. Run BFF locally in Dev Mode
+#### 6. (Optional) Run BFF locally in Dev Mode
 
 To access your local kind cluster when running the BFF locally, you can use the `DEV_MODE` option. This is useful for when
 you want to test live changes on real cluster. To do so, simply run:
