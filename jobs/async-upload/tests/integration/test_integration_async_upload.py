@@ -71,7 +71,6 @@ def apply_job_with_strategic_merge(
     rm_id: str,
     mv_id: str,
     ma_id: str,
-    job_name: str,
     container_image_uri: str,
     k8s_client,
     env,
@@ -100,7 +99,7 @@ def apply_job_with_strategic_merge(
                     "containers": [
                         {
                             "name": "async-upload",
-                            "image": "ghcr.io/kubeflow/model-registry/job/async-upload:e2e",
+                            "image": container_image_uri,
                             "env": patch_env_list,
                         }
                     ]
@@ -176,6 +175,17 @@ def apply_job_with_strategic_merge(
 
     if result.returncode != 0:
         raise Exception(f"kubectl apply failed: {result.stderr}")
+
+    # Describe job
+    print("Applied Job:")
+    result = subprocess.run(
+        ["kubectl", "describe", "jobs/my-async-upload-job"],
+        capture_output=True,
+        text=True,
+        cwd=manifest_dir,
+        check=False,
+    )
+    print(result)
 
     # Return the original job name since we're not changing it
     return "my-async-upload-job"
@@ -345,7 +355,6 @@ def test_async_upload_integration(
         rm_id=rm.id,
         mv_id=mv.id,
         ma_id=ma.id,
-        job_name=job_name,
         container_image_uri=container_image_uri,
         k8s_client=k8s_client,
         env=env,
