@@ -3,9 +3,9 @@ package core
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -24,26 +24,17 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
+		withNotEditable, err := b.mapper.UpdateExistingServeModel(converter.NewOpenapiUpdateWrapper(existing, serveModel))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 		serveModel = &withNotEditable
 	}
 
-	srvModel, err := b.mapper.MapFromServeModel(serveModel)
+	srvModel, err := b.mapper.MapFromServeModel(serveModel, inferenceServiceId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	name := ""
-
-	if srvModel.GetAttributes().Name != nil {
-		name = *srvModel.GetAttributes().Name
-	}
-
-	prefixedName := converter.PrefixWhenOwned(inferenceServiceId, name)
-	srvModel.GetAttributes().Name = &prefixedName
 
 	if inferenceServiceId == nil && srvModel.GetID() == nil {
 		return nil, fmt.Errorf("missing inferenceServiceId, cannot create ServeModel without parent resource InferenceService: %w", api.ErrBadRequest)
@@ -52,14 +43,11 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 	var inferenceServiceID *int32
 
 	if inferenceServiceId != nil {
-		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
+		var err error
+		inferenceServiceID, err = apiutils.ValidateIDAsInt32Ptr(inferenceServiceId, "inference service")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-
-		inferenceServiceID = &id
 
 		_, err = b.inferenceServiceRepository.GetByID(*inferenceServiceID)
 		if err != nil {
@@ -87,11 +75,11 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 func (b *ModelRegistryService) GetServeModelById(id string) (*openapi.ServeModel, error) {
 	glog.Infof("Getting ServeModel by id %s", id)
 
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "serve model")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
-	serveModel, err := b.serveModelRepository.GetByID(int32(convertedId))
+	serveModel, err := b.serveModelRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no serve model found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -108,14 +96,11 @@ func (b *ModelRegistryService) GetServeModels(listOptions api.ListOptions, infer
 	var inferenceServiceID *int32
 
 	if inferenceServiceId != nil {
-		convertedId, err := strconv.ParseInt(*inferenceServiceId, 10, 32)
+		var err error
+		inferenceServiceID, err = apiutils.ValidateIDAsInt32Ptr(inferenceServiceId, "inference service")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-
-		inferenceServiceID = &id
 	}
 
 	serveModels, err := b.serveModelRepository.List(models.ServeModelListOptions{

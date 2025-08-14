@@ -1,5 +1,4 @@
 import { KeyValuePair } from 'mod-arch-core';
-import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
 import {
   ModelRegistry,
   ModelRegistryCustomProperties,
@@ -11,6 +10,10 @@ import {
 } from '~/app/types';
 import { COMPANY_URI } from '~/app/utilities/const';
 import { getLastCreatedItem } from '~/app/utils';
+import {
+  ModelRegistryFilterDataType,
+  ModelRegistryVersionsFilterDataType,
+} from '~/app/pages/modelRegistry/screens/const';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -106,33 +109,30 @@ export const getCustomPropString = <
   return '';
 };
 
+const isMatchVersionKeyword = (mv: ModelVersion, keywordFilter: string): boolean =>
+  mv.name.toLowerCase().includes(keywordFilter) ||
+  (mv.description && mv.description.toLowerCase().includes(keywordFilter)) ||
+  getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(keywordFilter));
+
 export const filterModelVersions = (
   unfilteredModelVersions: ModelVersion[],
-  search: string,
-  searchType: SearchType,
+  filterData: ModelRegistryVersionsFilterDataType,
 ): ModelVersion[] => {
-  const searchLower = search.toLowerCase();
+  const keywordFilter = filterData.Keyword?.toLowerCase();
+  const authorFilter = filterData.Author?.toLowerCase();
 
   return unfilteredModelVersions.filter((mv: ModelVersion) => {
-    if (!search) {
+    if (!keywordFilter && !authorFilter) {
       return true;
     }
 
-    switch (searchType) {
-      case SearchType.KEYWORD:
-        return (
-          mv.name.toLowerCase().includes(searchLower) ||
-          (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
-          getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(searchLower))
-        );
+    const doesNotMatchVersion = keywordFilter && !isMatchVersionKeyword(mv, keywordFilter);
 
-      case SearchType.AUTHOR: {
-        return mv.author && mv.author.toLowerCase().includes(searchLower);
-      }
-
-      default:
-        return true;
+    if (doesNotMatchVersion) {
+      return false;
     }
+
+    return !authorFilter || mv.author?.toLowerCase().includes(authorFilter);
   });
 };
 
@@ -146,42 +146,33 @@ export const sortModelVersionsByCreateTime = (registeredModels: ModelVersion[]):
 export const filterRegisteredModels = (
   unfilteredRegisteredModels: RegisteredModel[],
   unfilteredModelVersions: ModelVersion[],
-  search: string,
-  searchType: SearchType,
+  filterData: ModelRegistryFilterDataType,
 ): RegisteredModel[] => {
-  const searchLower = search.toLowerCase();
+  const keywordFilter = filterData.Keyword?.toLowerCase();
+  const ownerFilter = filterData.Owner?.toLowerCase();
 
   return unfilteredRegisteredModels.filter((rm: RegisteredModel) => {
-    if (!search) {
+    if (!keywordFilter && !ownerFilter) {
       return true;
     }
     const modelVersions = unfilteredModelVersions.filter((mv) => mv.registeredModelId === rm.id);
+    const doesNotMatchModel =
+      keywordFilter &&
+      !(
+        rm.name.toLowerCase().includes(keywordFilter) ||
+        (rm.description && rm.description.toLowerCase().includes(keywordFilter)) ||
+        getLabels(rm.customProperties).some((label) => label.toLowerCase().includes(keywordFilter))
+      );
 
-    switch (searchType) {
-      case SearchType.KEYWORD: {
-        const matchesModel =
-          rm.name.toLowerCase().includes(searchLower) ||
-          (rm.description && rm.description.toLowerCase().includes(searchLower)) ||
-          getLabels(rm.customProperties).some((label) => label.toLowerCase().includes(searchLower));
+    const doesNotMatchVersions =
+      keywordFilter &&
+      !modelVersions.some((mv: ModelVersion) => isMatchVersionKeyword(mv, keywordFilter));
 
-        const matchesVersion = modelVersions.some(
-          (mv: ModelVersion) =>
-            mv.name.toLowerCase().includes(searchLower) ||
-            (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
-            getLabels(mv.customProperties).some((label) =>
-              label.toLowerCase().includes(searchLower),
-            ),
-        );
-
-        return matchesModel || matchesVersion;
-      }
-      case SearchType.OWNER: {
-        return rm.owner && rm.owner.toLowerCase().includes(searchLower);
-      }
-
-      default:
-        return true;
+    if (doesNotMatchModel && doesNotMatchVersions) {
+      return false;
     }
+
+    return !ownerFilter || rm.owner?.toLowerCase().includes(ownerFilter);
   });
 };
 

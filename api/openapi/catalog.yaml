@@ -137,6 +137,15 @@ paths:
         required: true
 components:
   schemas:
+    ArtifactTypeQueryParam:
+      description: Supported artifact types for querying.
+      enum:
+        - model-artifact
+        - doc-artifact
+        - dataset-artifact
+        - metric
+        - parameter
+      type: string
     BaseModel:
       type: object
       properties:
@@ -569,6 +578,43 @@ components:
         type: string
       in: query
       required: false
+    filterQuery:
+      examples:
+        filterQuery:
+          value: "name='my-model' AND state='LIVE'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Data Types:**
+        - Strings: `"value"` or `'value'`
+        - Numbers: `42`, `3.14`, `1e-5`
+        - Booleans: `true`, `false` (case-insensitive)
+
+        **Property Access:**
+        - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch`
+        - Custom properties: Any user-defined property name
+        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
+        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
+
+        **Examples:**
+        - Basic: `name = "my-model"`
+        - Comparison: `accuracy > 0.95`
+        - Pattern: `name LIKE "%tensorflow%"`
+        - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"`
+        - Custom property: `framework.string_value = "pytorch"`
+        - Escaped property: `` `mlflow.source.type` = "notebook" ``
+      schema:
+        type: string
+      in: query
+      required: false
     pageSize:
       examples:
         pageSize:
@@ -596,6 +642,30 @@ components:
       description: "Specifies the sort order for listing entities, defaults to ASC."
       schema:
         $ref: "#/components/schemas/SortOrder"
+      in: query
+      required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
+    stepIds:
+      style: form
+      explode: true
+      examples:
+        stepIds:
+          value: "1,2,3"
+      name: stepIds
+      description: "Comma-separated list of step IDs to filter metrics by."
+      schema:
+        type: string
       in: query
       required: false
   securitySchemes:

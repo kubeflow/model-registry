@@ -18,6 +18,10 @@ on:
       - "!DOCKERFILE*"
       - "!**.gitignore"
       - "!**.md"
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

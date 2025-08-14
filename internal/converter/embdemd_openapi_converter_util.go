@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -416,7 +417,7 @@ func MapEmbedMDURIModelArtifact(source *models.ModelArtifactAttributes) *string 
 }
 
 func MapEmbedMDArtifactTypeModelArtifact(source *models.ModelArtifactAttributes) *string {
-	return of("model-artifact")
+	return apiutils.Of("model-artifact")
 }
 
 func MapEmbedMDPropertyModelFormatName(source *[]models.Properties) *string {
@@ -544,7 +545,7 @@ func MapEmbedMDURIDocArtifact(source *models.DocArtifactAttributes) *string {
 }
 
 func MapEmbedMDArtifactTypeDocArtifact(source *models.DocArtifactAttributes) *string {
-	return of("doc-artifact")
+	return apiutils.Of("doc-artifact")
 }
 
 func MapEmbedMDExternalIDDocArtifact(source *models.DocArtifactAttributes) *string {
@@ -603,4 +604,338 @@ func MapEmbedMDPropertyModelVersionIdServeModel(source *[]models.Properties) (st
 	}
 
 	return *modelVersionId, nil
+}
+
+// Experiment mapping functions
+func MapEmbedMDStateExperiment(source *[]models.Properties) (*openapi.ExperimentState, error) {
+	for _, v := range *source {
+		if v.Name == "state" {
+			if v.StringValue == nil {
+				return nil, fmt.Errorf("%w: state is required", api.ErrBadRequest)
+			}
+
+			experimentState, err := openapi.NewExperimentStateFromValue(*v.StringValue)
+			if err != nil {
+				return nil, err
+			}
+
+			return experimentState, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func MapEmbedMDExternalIDExperiment(source *models.ExperimentAttributes) *string {
+	return source.ExternalID
+}
+
+func MapEmbedMDNameExperiment(source *models.ExperimentAttributes) string {
+	if source.Name == nil {
+		return ""
+	}
+	return *source.Name
+}
+
+func MapEmbedMDCreateTimeSinceEpochExperiment(source *models.ExperimentAttributes) *string {
+	return Int64ToString(source.CreateTimeSinceEpoch)
+}
+
+func MapEmbedMDLastUpdateTimeSinceEpochExperiment(source *models.ExperimentAttributes) *string {
+	return Int64ToString(source.LastUpdateTimeSinceEpoch)
+}
+
+// ExperimentRun mapping functions
+func MapEmbedMDStateExperimentRun(source *[]models.Properties) (*openapi.ExperimentRunState, error) {
+	for _, v := range *source {
+		if v.Name == "state" {
+			if v.StringValue == nil {
+				return nil, fmt.Errorf("%w: state is required", api.ErrBadRequest)
+			}
+
+			experimentRunState, err := openapi.NewExperimentRunStateFromValue(*v.StringValue)
+			if err != nil {
+				return nil, err
+			}
+
+			return experimentRunState, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func MapEmbedMDPropertyStatusExperimentRun(source *[]models.Properties) (*openapi.ExperimentRunStatus, error) {
+	for _, v := range *source {
+		if v.Name == "status" {
+			if v.StringValue == nil {
+				return nil, fmt.Errorf("%w: status is required", api.ErrBadRequest)
+			}
+
+			experimentRunStatus, err := openapi.NewExperimentRunStatusFromValue(*v.StringValue)
+			if err != nil {
+				return nil, err
+			}
+
+			return experimentRunStatus, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func MapEmbedMDPropertyStartTimeSinceEpochExperimentRun(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "start_time_since_epoch" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyEndTimeSinceEpochExperimentRun(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "end_time_since_epoch" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyExperimentIdExperimentRun(source *[]models.Properties) (string, error) {
+	for _, v := range *source {
+		if v.Name == "experiment_id" {
+			result := Int32ToString(v.IntValue)
+			if result == nil {
+				return "", fmt.Errorf("experiment id is required")
+			}
+			return *result, nil
+		}
+	}
+
+	return "", fmt.Errorf("experiment id is required")
+}
+
+func MapEmbedMDExternalIDExperimentRun(source *models.ExperimentRunAttributes) *string {
+	return source.ExternalID
+}
+
+func MapEmbedMDNameExperimentRun(source *models.ExperimentRunAttributes) *string {
+	return MapNameFromOwned(source.Name)
+}
+
+func MapEmbedMDCreateTimeSinceEpochExperimentRun(source *models.ExperimentRunAttributes) *string {
+	return Int64ToString(source.CreateTimeSinceEpoch)
+}
+
+func MapEmbedMDLastUpdateTimeSinceEpochExperimentRun(source *models.ExperimentRunAttributes) *string {
+	return Int64ToString(source.LastUpdateTimeSinceEpoch)
+}
+
+// DataSet property mapping functions
+func MapEmbedMDPropertyDigest(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "digest" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertySourceType(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "source_type" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertySource(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "source" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertySchema(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "schema" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyProfile(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "profile" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+// DataSet mapping functions
+func MapEmbedMDURIDataSet(source *models.DataSetAttributes) *string {
+	return source.URI
+}
+
+func MapEmbedMDArtifactTypeDataSet(source *models.DataSetAttributes) *string {
+	return apiutils.Of("dataset-artifact")
+}
+
+func MapEmbedMDExternalIDDataSet(source *models.DataSetAttributes) *string {
+	return source.ExternalID
+}
+
+func MapEmbedMDNameDataSet(source *models.DataSetAttributes) *string {
+	return MapNameFromOwned(source.Name)
+}
+
+func MapEmbedMDCreateTimeSinceEpochDataSet(source *models.DataSetAttributes) *string {
+	return Int64ToString(source.CreateTimeSinceEpoch)
+}
+
+func MapEmbedMDLastUpdateTimeSinceEpochDataSet(source *models.DataSetAttributes) *string {
+	return Int64ToString(source.LastUpdateTimeSinceEpoch)
+}
+
+func MapEmbedMDStateDataSet(source *models.DataSetAttributes) (*openapi.ArtifactState, error) {
+	if source.State == nil {
+		return nil, nil
+	}
+
+	return openapi.NewArtifactStateFromValue(*source.State)
+}
+
+// Metric mapping functions
+func MapEmbedMDArtifactTypeMetric(source *models.MetricAttributes) *string {
+	return apiutils.Of("metric")
+}
+
+func MapEmbedMDExternalIDMetric(source *models.MetricAttributes) *string {
+	return source.ExternalID
+}
+
+func MapEmbedMDNameMetric(source *models.MetricAttributes) *string {
+	return MapNameFromOwned(source.Name)
+}
+
+func MapEmbedMDCreateTimeSinceEpochMetric(source *models.MetricAttributes) *string {
+	return Int64ToString(source.CreateTimeSinceEpoch)
+}
+
+func MapEmbedMDLastUpdateTimeSinceEpochMetric(source *models.MetricAttributes) *string {
+	return Int64ToString(source.LastUpdateTimeSinceEpoch)
+}
+
+func MapEmbedMDStateMetric(source *models.MetricAttributes) (*openapi.ArtifactState, error) {
+	if source.State == nil {
+		return nil, nil
+	}
+
+	return openapi.NewArtifactStateFromValue(*source.State)
+}
+
+// Metric property mapping functions
+func MapEmbedMDPropertyValueMetric(source *[]models.Properties) *float64 {
+	for _, v := range *source {
+		if v.Name == "value" {
+			return v.DoubleValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyTimestampMetric(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "timestamp" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyStepMetric(source *[]models.Properties) *int64 {
+	for _, v := range *source {
+		if v.Name == "step" {
+			if v.IntValue != nil {
+				int64Value := int64(*v.IntValue)
+				return &int64Value
+			}
+		}
+	}
+
+	return nil
+}
+
+// Parameter property mapping functions
+func MapEmbedMDPropertyValueParameter(source *[]models.Properties) *string {
+	for _, v := range *source {
+		if v.Name == "value" {
+			return v.StringValue
+		}
+	}
+
+	return nil
+}
+
+func MapEmbedMDPropertyParameterTypeParameter(source *[]models.Properties) (*openapi.ParameterType, error) {
+	for _, v := range *source {
+		if v.Name == "parameter_type" {
+			if v.StringValue == nil {
+				return nil, fmt.Errorf("%w: parameter_type is required", api.ErrBadRequest)
+			}
+
+			parameterType, err := openapi.NewParameterTypeFromValue(*v.StringValue)
+			if err != nil {
+				return nil, err
+			}
+
+			return parameterType, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// Parameter mapping functions
+func MapEmbedMDArtifactTypeParameter(source *models.ParameterAttributes) *string {
+	return apiutils.Of("parameter")
+}
+
+func MapEmbedMDExternalIDParameter(source *models.ParameterAttributes) *string {
+	return source.ExternalID
+}
+
+func MapEmbedMDNameParameter(source *models.ParameterAttributes) *string {
+	return MapNameFromOwned(source.Name)
+}
+
+func MapEmbedMDCreateTimeSinceEpochParameter(source *models.ParameterAttributes) *string {
+	return Int64ToString(source.CreateTimeSinceEpoch)
+}
+
+func MapEmbedMDLastUpdateTimeSinceEpochParameter(source *models.ParameterAttributes) *string {
+	return Int64ToString(source.LastUpdateTimeSinceEpoch)
+}
+
+func MapEmbedMDStateParameter(source *models.ParameterAttributes) (*openapi.ArtifactState, error) {
+	if source.State == nil {
+		return nil, nil
+	}
+
+	return openapi.NewArtifactStateFromValue(*source.State)
 }

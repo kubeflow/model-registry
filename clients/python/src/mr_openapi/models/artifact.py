@@ -22,10 +22,13 @@ from pydantic import (
 )
 from typing_extensions import Self
 
+from mr_openapi.models.data_set import DataSet
 from mr_openapi.models.doc_artifact import DocArtifact
+from mr_openapi.models.metric import Metric
 from mr_openapi.models.model_artifact import ModelArtifact
+from mr_openapi.models.parameter import Parameter
 
-ARTIFACT_ONE_OF_SCHEMAS = ["DocArtifact", "ModelArtifact"]
+ARTIFACT_ONE_OF_SCHEMAS = ["DataSet", "DocArtifact", "Metric", "ModelArtifact", "Parameter"]
 
 
 class Artifact(BaseModel):
@@ -35,8 +38,14 @@ class Artifact(BaseModel):
     oneof_schema_1_validator: ModelArtifact | None = None
     # data type: DocArtifact
     oneof_schema_2_validator: DocArtifact | None = None
-    actual_instance: DocArtifact | ModelArtifact | None = None
-    one_of_schemas: set[str] = {"DocArtifact", "ModelArtifact"}
+    # data type: DataSet
+    oneof_schema_3_validator: DataSet | None = None
+    # data type: Metric
+    oneof_schema_4_validator: Metric | None = None
+    # data type: Parameter
+    oneof_schema_5_validator: Parameter | None = None
+    actual_instance: DataSet | DocArtifact | Metric | ModelArtifact | Parameter | None = None
+    one_of_schemas: set[str] = {"DataSet", "DocArtifact", "Metric", "ModelArtifact", "Parameter"}
 
     model_config = ConfigDict(
         validate_assignment=True,
@@ -72,16 +81,31 @@ class Artifact(BaseModel):
             error_messages.append(f"Error! Input type `{type(v)}` is not `DocArtifact`")
         else:
             match += 1
+        # validate data type: DataSet
+        if not isinstance(v, DataSet):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `DataSet`")
+        else:
+            match += 1
+        # validate data type: Metric
+        if not isinstance(v, Metric):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `Metric`")
+        else:
+            match += 1
+        # validate data type: Parameter
+        if not isinstance(v, Parameter):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `Parameter`")
+        else:
+            match += 1
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when setting `actual_instance` in Artifact with oneOf schemas: DocArtifact, ModelArtifact. Details: "
+                "Multiple matches found when setting `actual_instance` in Artifact with oneOf schemas: DataSet, DocArtifact, Metric, ModelArtifact, Parameter. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when setting `actual_instance` in Artifact with oneOf schemas: DocArtifact, ModelArtifact. Details: "
+                "No match found when setting `actual_instance` in Artifact with oneOf schemas: DataSet, DocArtifact, Metric, ModelArtifact, Parameter. Details: "
                 + ", ".join(error_messages)
             )
         return v
@@ -103,9 +127,19 @@ class Artifact(BaseModel):
             msg = "Failed to lookup data type from the field `artifactType` in the input."
             raise ValueError(msg)
 
+        # check if data type is `DataSet`
+        if _data_type == "dataset-artifact":
+            instance.actual_instance = DataSet.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifact`
         if _data_type == "doc-artifact":
             instance.actual_instance = DocArtifact.from_json(json_str)
+            return instance
+
+        # check if data type is `Metric`
+        if _data_type == "metric":
+            instance.actual_instance = Metric.from_json(json_str)
             return instance
 
         # check if data type is `ModelArtifact`
@@ -113,14 +147,34 @@ class Artifact(BaseModel):
             instance.actual_instance = ModelArtifact.from_json(json_str)
             return instance
 
+        # check if data type is `Parameter`
+        if _data_type == "parameter":
+            instance.actual_instance = Parameter.from_json(json_str)
+            return instance
+
+        # check if data type is `DataSet`
+        if _data_type == "DataSet":
+            instance.actual_instance = DataSet.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifact`
         if _data_type == "DocArtifact":
             instance.actual_instance = DocArtifact.from_json(json_str)
             return instance
 
+        # check if data type is `Metric`
+        if _data_type == "Metric":
+            instance.actual_instance = Metric.from_json(json_str)
+            return instance
+
         # check if data type is `ModelArtifact`
         if _data_type == "ModelArtifact":
             instance.actual_instance = ModelArtifact.from_json(json_str)
+            return instance
+
+        # check if data type is `Parameter`
+        if _data_type == "Parameter":
+            instance.actual_instance = Parameter.from_json(json_str)
             return instance
 
         # deserialize data into ModelArtifact
@@ -135,17 +189,35 @@ class Artifact(BaseModel):
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
+        # deserialize data into DataSet
+        try:
+            instance.actual_instance = DataSet.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into Metric
+        try:
+            instance.actual_instance = Metric.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into Parameter
+        try:
+            instance.actual_instance = Parameter.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
 
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when deserializing the JSON string into Artifact with oneOf schemas: DocArtifact, ModelArtifact. Details: "
+                "Multiple matches found when deserializing the JSON string into Artifact with oneOf schemas: DataSet, DocArtifact, Metric, ModelArtifact, Parameter. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when deserializing the JSON string into Artifact with oneOf schemas: DocArtifact, ModelArtifact. Details: "
+                "No match found when deserializing the JSON string into Artifact with oneOf schemas: DataSet, DocArtifact, Metric, ModelArtifact, Parameter. Details: "
                 + ", ".join(error_messages)
             )
         return instance
@@ -159,7 +231,7 @@ class Artifact(BaseModel):
             return self.actual_instance.to_json()
         return json.dumps(self.actual_instance)
 
-    def to_dict(self) -> dict[str, Any] | DocArtifact | ModelArtifact | None:
+    def to_dict(self) -> dict[str, Any] | DataSet | DocArtifact | Metric | ModelArtifact | Parameter | None:
         """Returns the dict representation of the actual instance."""
         if self.actual_instance is None:
             return None

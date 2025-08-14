@@ -73,6 +73,16 @@ func AssertArtifactStateRequired(obj model.ArtifactState) error {
 	return nil
 }
 
+// AssertArtifactTypeQueryParamConstraints checks if the values respects the defined constraints
+func AssertArtifactTypeQueryParamConstraints(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
+// AssertArtifactTypeQueryParamRequired checks if the required fields are not zero-ed
+func AssertArtifactTypeQueryParamRequired(obj model.ArtifactTypeQueryParam) error {
+	return nil
+}
+
 // AssertArtifactUpdateConstraints checks if the values respects the defined constraints
 func AssertArtifactUpdateConstraints(obj model.ArtifactUpdate) error {
 	return nil
@@ -154,6 +164,36 @@ func AssertBaseResourceUpdateRequired(obj model.BaseResourceUpdate) error {
 	return nil
 }
 
+// AssertDataSetConstraints checks if the values respects the defined constraints
+func AssertDataSetConstraints(obj model.DataSet) error {
+	return nil
+}
+
+// AssertDataSetCreateConstraints checks if the values respects the defined constraints
+func AssertDataSetCreateConstraints(obj model.DataSetCreate) error {
+	return nil
+}
+
+// AssertDataSetCreateRequired checks if the required fields are not zero-ed
+func AssertDataSetCreateRequired(obj model.DataSetCreate) error {
+	return nil
+}
+
+// AssertDataSetRequired checks if the required fields are not zero-ed
+func AssertDataSetRequired(obj model.DataSet) error {
+	return nil
+}
+
+// AssertDataSetUpdateConstraints checks if the values respects the defined constraints
+func AssertDataSetUpdateConstraints(obj model.DataSetUpdate) error {
+	return nil
+}
+
+// AssertDataSetUpdateRequired checks if the required fields are not zero-ed
+func AssertDataSetUpdateRequired(obj model.DataSetUpdate) error {
+	return nil
+}
+
 // AssertDocArtifactConstraints checks if the values respects the defined constraints
 func AssertDocArtifactConstraints(obj model.DocArtifact) error {
 	return nil
@@ -211,6 +251,186 @@ func AssertExecutionStateConstraints(obj model.ExecutionState) error {
 
 // AssertExecutionStateRequired checks if the required fields are not zero-ed
 func AssertExecutionStateRequired(obj model.ExecutionState) error {
+	return nil
+}
+
+// AssertExperimentConstraints checks if the values respects the defined constraints
+func AssertExperimentConstraints(obj model.Experiment) error {
+	return nil
+}
+
+// AssertExperimentCreateConstraints checks if the values respects the defined constraints
+func AssertExperimentCreateConstraints(obj model.ExperimentCreate) error {
+	return nil
+}
+
+// AssertExperimentCreateRequired checks if the required fields are not zero-ed
+func AssertExperimentCreateRequired(obj model.ExperimentCreate) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertExperimentListConstraints checks if the values respects the defined constraints
+func AssertExperimentListConstraints(obj model.ExperimentList) error {
+	return nil
+}
+
+// AssertExperimentListRequired checks if the required fields are not zero-ed
+func AssertExperimentListRequired(obj model.ExperimentList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertExperimentRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertExperimentRequired checks if the required fields are not zero-ed
+func AssertExperimentRequired(obj model.Experiment) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertExperimentRunConstraints checks if the values respects the defined constraints
+func AssertExperimentRunConstraints(obj model.ExperimentRun) error {
+	return nil
+}
+
+// AssertExperimentRunCreateConstraints checks if the values respects the defined constraints
+func AssertExperimentRunCreateConstraints(obj model.ExperimentRunCreate) error {
+	return nil
+}
+
+// AssertExperimentRunCreateRequired checks if the required fields are not zero-ed
+func AssertExperimentRunCreateRequired(obj model.ExperimentRunCreate) error {
+	elements := map[string]interface{}{
+		"experimentId": obj.ExperimentId,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertExperimentRunListConstraints checks if the values respects the defined constraints
+func AssertExperimentRunListConstraints(obj model.ExperimentRunList) error {
+	return nil
+}
+
+// AssertExperimentRunListRequired checks if the required fields are not zero-ed
+func AssertExperimentRunListRequired(obj model.ExperimentRunList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertExperimentRunRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertExperimentRunRequired checks if the required fields are not zero-ed
+func AssertExperimentRunRequired(obj model.ExperimentRun) error {
+	elements := map[string]interface{}{
+		"experimentId": obj.ExperimentId,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertExperimentRunStateConstraints checks if the values respects the defined constraints
+func AssertExperimentRunStateConstraints(obj model.ExperimentRunState) error {
+	return nil
+}
+
+// AssertExperimentRunStateRequired checks if the required fields are not zero-ed
+func AssertExperimentRunStateRequired(obj model.ExperimentRunState) error {
+	return nil
+}
+
+// AssertExperimentRunStatusConstraints checks if the values respects the defined constraints
+func AssertExperimentRunStatusConstraints(obj model.ExperimentRunStatus) error {
+	return nil
+}
+
+// AssertExperimentRunStatusRequired checks if the required fields are not zero-ed
+func AssertExperimentRunStatusRequired(obj model.ExperimentRunStatus) error {
+	return nil
+}
+
+// AssertExperimentRunUpdateConstraints checks if the values respects the defined constraints
+func AssertExperimentRunUpdateConstraints(obj model.ExperimentRunUpdate) error {
+	return nil
+}
+
+// AssertExperimentRunUpdateRequired checks if the required fields are not zero-ed
+func AssertExperimentRunUpdateRequired(obj model.ExperimentRunUpdate) error {
+	return nil
+}
+
+// AssertExperimentStateConstraints checks if the values respects the defined constraints
+func AssertExperimentStateConstraints(obj model.ExperimentState) error {
+	return nil
+}
+
+// AssertExperimentStateRequired checks if the required fields are not zero-ed
+func AssertExperimentStateRequired(obj model.ExperimentState) error {
+	return nil
+}
+
+// AssertExperimentUpdateConstraints checks if the values respects the defined constraints
+func AssertExperimentUpdateConstraints(obj model.ExperimentUpdate) error {
+	return nil
+}
+
+// AssertExperimentUpdateRequired checks if the required fields are not zero-ed
+func AssertExperimentUpdateRequired(obj model.ExperimentUpdate) error {
 	return nil
 }
 
@@ -449,6 +669,63 @@ func AssertMetadataValueRequired(obj model.MetadataValue) error {
 	return nil
 }
 
+// AssertMetricConstraints checks if the values respects the defined constraints
+func AssertMetricConstraints(obj model.Metric) error {
+	return nil
+}
+
+// AssertMetricCreateConstraints checks if the values respects the defined constraints
+func AssertMetricCreateConstraints(obj model.MetricCreate) error {
+	return nil
+}
+
+// AssertMetricCreateRequired checks if the required fields are not zero-ed
+func AssertMetricCreateRequired(obj model.MetricCreate) error {
+	return nil
+}
+
+// AssertMetricListConstraints checks if the values respects the defined constraints
+func AssertMetricListConstraints(obj model.MetricList) error {
+	return nil
+}
+
+// AssertMetricListRequired checks if the required fields are not zero-ed
+func AssertMetricListRequired(obj model.MetricList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertMetricRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMetricRequired checks if the required fields are not zero-ed
+func AssertMetricRequired(obj model.Metric) error {
+	return nil
+}
+
+// AssertMetricUpdateConstraints checks if the values respects the defined constraints
+func AssertMetricUpdateConstraints(obj model.MetricUpdate) error {
+	return nil
+}
+
+// AssertMetricUpdateRequired checks if the required fields are not zero-ed
+func AssertMetricUpdateRequired(obj model.MetricUpdate) error {
+	return nil
+}
+
 // AssertModelArtifactConstraints checks if the values respects the defined constraints
 func AssertModelArtifactConstraints(obj model.ModelArtifact) error {
 	return nil
@@ -600,6 +877,46 @@ func AssertOrderByFieldConstraints(obj model.OrderByField) error {
 
 // AssertOrderByFieldRequired checks if the required fields are not zero-ed
 func AssertOrderByFieldRequired(obj model.OrderByField) error {
+	return nil
+}
+
+// AssertParameterConstraints checks if the values respects the defined constraints
+func AssertParameterConstraints(obj model.Parameter) error {
+	return nil
+}
+
+// AssertParameterCreateConstraints checks if the values respects the defined constraints
+func AssertParameterCreateConstraints(obj model.ParameterCreate) error {
+	return nil
+}
+
+// AssertParameterCreateRequired checks if the required fields are not zero-ed
+func AssertParameterCreateRequired(obj model.ParameterCreate) error {
+	return nil
+}
+
+// AssertParameterRequired checks if the required fields are not zero-ed
+func AssertParameterRequired(obj model.Parameter) error {
+	return nil
+}
+
+// AssertParameterTypeConstraints checks if the values respects the defined constraints
+func AssertParameterTypeConstraints(obj model.ParameterType) error {
+	return nil
+}
+
+// AssertParameterTypeRequired checks if the required fields are not zero-ed
+func AssertParameterTypeRequired(obj model.ParameterType) error {
+	return nil
+}
+
+// AssertParameterUpdateConstraints checks if the values respects the defined constraints
+func AssertParameterUpdateConstraints(obj model.ParameterUpdate) error {
+	return nil
+}
+
+// AssertParameterUpdateRequired checks if the required fields are not zero-ed
+func AssertParameterUpdateRequired(obj model.ParameterUpdate) error {
 	return nil
 }
 

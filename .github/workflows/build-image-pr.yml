@@ -11,6 +11,10 @@ on:
       - ".github/dependabot.yml"
       - "docs/**"
       - "clients/python/**"
+
+permissions:
+  contents: read
+
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub

@@ -1,12 +1,10 @@
 package proxy
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -14,95 +12,36 @@ import (
 	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/kubeflow/model-registry/internal/tls"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"gorm.io/gorm"
 )
 
-// Package-level shared database instance
-var (
-	sharedDB                   *gorm.DB
-	sharedDSN                  string
-	mysqlContainer             *cont_mysql.MySQLContainer
-	sharedModelRegistryService api.ModelRegistryApi
-)
-
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+	os.Exit(testutils.TestMainHelper(m))
+}
 
-	// Create MySQL container once for all tests
-	container, err := cont_mysql.Run(
-		ctx,
-		"mysql:8",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("root"),
-		cont_mysql.WithDatabase("test"),
-		cont_mysql.WithConfigFile(filepath.Join("testdata", "testdb.cnf")),
-		testcontainers.WithEnv(map[string]string{
-			"MYSQL_ROOT_HOST": "%",
-		}),
-	)
-	if err != nil {
-		panic("Failed to start MySQL container: " + err.Error())
-	}
-	mysqlContainer = container
+func setupTestDB(t *testing.T) (*gorm.DB, string, api.ModelRegistryApi, func()) {
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	dsn := testutils.GetSharedMySQLDSN(t)
+	svc := setupModelRegistryService(sharedDB)
 
-	defer func() {
-		if sharedDB != nil {
-			if sqlDB, err := sharedDB.DB(); err == nil {
-				sqlDB.Close() //nolint:errcheck
-			}
-		}
+	// Initialize global db connector for health checks
+	err := db.Init("mysql", dsn, &tls.TLSConfig{})
+	require.NoError(t, err)
 
-		if mysqlContainer != nil {
-			testcontainers.TerminateContainer(mysqlContainer) //nolint:errcheck
-		}
-	}()
-
-	// Connect to the database
-	sharedDSN = mysqlContainer.MustConnectionString(ctx)
-	dbConnector := mysql.NewMySQLDBConnector(sharedDSN, &tls.TLSConfig{})
-	sharedDB, err = dbConnector.Connect()
-	if err != nil {
-		panic("Failed to connect to database: " + err.Error())
-	}
-
-	// Initialize the global db connector for health checks
-	err = db.Init("mysql", sharedDSN, &tls.TLSConfig{})
-	if err != nil {
-		panic("Failed to initialize db: " + err.Error())
-	}
-
-	// Run migrations
-	migrator, err := mysql.NewMySQLMigrator(sharedDB)
-	if err != nil {
-		panic("Failed to create migrator: " + err.Error())
-	}
-	err = migrator.Migrate()
-	if err != nil {
-		panic("Failed to migrate database: " + err.Error())
-	}
-
-	// Setup model registry service
-	sharedModelRegistryService = setupModelRegistryService()
-
-	// Run all tests
-	code := m.Run()
-
-	os.Exit(code)
+	return sharedDB, dsn, svc, cleanup
 }
 
 // getTypeIDs retrieves all type IDs from the database for testing
-func getTypeIDs() map[string]int64 {
+func getTypeIDs(sharedDB *gorm.DB) map[string]int64 {
 	typesMap := make(map[string]int64)
 
 	typeNames := []string{
@@ -113,6 +52,12 @@ func getTypeIDs() map[string]int64 {
 		defaults.ServingEnvironmentTypeName,
 		defaults.InferenceServiceTypeName,
 		defaults.ServeModelTypeName,
+		defaults.ExperimentTypeName,
+		defaults.ExperimentRunTypeName,
+		defaults.DataSetTypeName,
+		defaults.MetricTypeName,
+		defaults.ParameterTypeName,
+		defaults.MetricHistoryTypeName,
 	}
 
 	for _, typeName := range typeNames {
@@ -128,12 +73,12 @@ func getTypeIDs() map[string]int64 {
 }
 
 // setupModelRegistryService creates a complete ModelRegistryService with all repositories for testing
-func setupModelRegistryService() api.ModelRegistryApi {
+func setupModelRegistryService(sharedDB *gorm.DB) api.ModelRegistryApi {
 	// Get all type IDs from the database
-	typesMap := getTypeIDs()
+	typesMap := getTypeIDs(sharedDB)
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName])
+	artifactRepo := service.NewArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
 	modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepo := service.NewDocArtifactRepository(sharedDB, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, typesMap[defaults.RegisteredModelTypeName])
@@ -141,6 +86,12 @@ func setupModelRegistryService() api.ModelRegistryApi {
 	servingEnvironmentRepo := service.NewServingEnvironmentRepository(sharedDB, typesMap[defaults.ServingEnvironmentTypeName])
 	inferenceServiceRepo := service.NewInferenceServiceRepository(sharedDB, typesMap[defaults.InferenceServiceTypeName])
 	serveModelRepo := service.NewServeModelRepository(sharedDB, typesMap[defaults.ServeModelTypeName])
+	experimentRepo := service.NewExperimentRepository(sharedDB, typesMap[defaults.ExperimentTypeName])
+	experimentRunRepo := service.NewExperimentRunRepository(sharedDB, typesMap[defaults.ExperimentRunTypeName])
+	dataSetRepo := service.NewDataSetRepository(sharedDB, typesMap[defaults.DataSetTypeName])
+	metricRepo := service.NewMetricRepository(sharedDB, typesMap[defaults.MetricTypeName])
+	parameterRepo := service.NewParameterRepository(sharedDB, typesMap[defaults.ParameterTypeName])
+	metricHistoryRepo := service.NewMetricHistoryRepository(sharedDB, typesMap[defaults.MetricHistoryTypeName])
 
 	// Create the core service
 	service := core.NewModelRegistryService(
@@ -152,6 +103,12 @@ func setupModelRegistryService() api.ModelRegistryApi {
 		servingEnvironmentRepo,
 		inferenceServiceRepo,
 		serveModelRepo,
+		experimentRepo,
+		experimentRunRepo,
+		dataSetRepo,
+		metricRepo,
+		parameterRepo,
+		metricHistoryRepo,
 		typesMap,
 	)
 
@@ -159,20 +116,21 @@ func setupModelRegistryService() api.ModelRegistryApi {
 }
 
 // cleanupSchemaState resets schema_migrations table to clean state
-func cleanupSchemaState(t *testing.T) {
+func cleanupSchemaState(t *testing.T, sharedDB *gorm.DB) {
 	// Reset schema_migrations to clean state
 	err := sharedDB.Exec("UPDATE schema_migrations SET dirty = 0").Error
+
 	require.NoError(t, err)
 }
 
 // setDirtySchemaState sets schema_migrations to dirty state for testing
-func setDirtySchemaState(t *testing.T) {
+func setDirtySchemaState(t *testing.T, sharedDB *gorm.DB) {
 	err := sharedDB.Exec("UPDATE schema_migrations SET dirty = 1").Error
 	require.NoError(t, err)
 }
 
 // createTestDatastore creates a datastore config for testing
-func createTestDatastore() datastore.Datastore {
+func createTestDatastore(sharedDSN string) datastore.Datastore {
 	return datastore.Datastore{
 		Type: "embedmd",
 		EmbedMD: embedmd.EmbedMDConfig{
@@ -182,28 +140,14 @@ func createTestDatastore() datastore.Datastore {
 	}
 }
 
-func TestReadinessHandler_NonEmbedMD(t *testing.T) {
-	ds := datastore.Datastore{
-		Type: "mlmd",
-	}
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker)
-
-	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, responseOK, rr.Body.String())
-}
-
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	// Ensure clean state before test
-	cleanupSchemaState(t)
+	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
 	handler := GeneralReadinessHandler(ds, dbHealthChecker)
@@ -219,10 +163,13 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	// Set dirty state for this test
-	setDirtySchemaState(t)
-	defer cleanupSchemaState(t) // Cleanup after test
+	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	setDirtySchemaState(t, sharedDB)
+	defer cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
 	handler := GeneralReadinessHandler(ds, dbHealthChecker)
@@ -261,9 +208,12 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 	// Ensure clean state before test
-	cleanupSchemaState(t)
+	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	// Create both health checkers
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
@@ -282,9 +232,12 @@ func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 	// Ensure clean state before test
-	cleanupSchemaState(t)
+	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	// Create both health checkers
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
@@ -326,10 +279,13 @@ func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 	// Set dirty state to make database check fail
-	setDirtySchemaState(t)
-	defer cleanupSchemaState(t) // Cleanup after test
+	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	setDirtySchemaState(t, sharedDB)
+	defer cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	// Create both health checkers
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
@@ -363,9 +319,12 @@ func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T) {
 	// Ensure clean state before test
-	cleanupSchemaState(t)
+	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	// Create health checkers - with nil model registry service
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
@@ -399,10 +358,13 @@ func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T
 
 func TestGeneralReadinessHandler_SimpleTextResponse_Failure(t *testing.T) {
 	// Set dirty state to make database check fail
-	setDirtySchemaState(t)
-	defer cleanupSchemaState(t) // Cleanup after test
+	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	setDirtySchemaState(t, sharedDB)
+	defer cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	// Create both health checkers
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
@@ -439,10 +401,13 @@ func TestDatabaseHealthChecker_EmptyDSN(t *testing.T) {
 
 func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
 	// Test with both database and model registry failing
-	setDirtySchemaState(t)
-	defer cleanupSchemaState(t)
+	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	ds := createTestDatastore()
+	setDirtySchemaState(t, sharedDB)
+	defer cleanupSchemaState(t, sharedDB)
+
+	ds := createTestDatastore(sharedDSN)
 
 	dbHealthChecker := NewDatabaseHealthChecker(ds)
 	mrHealthChecker := NewModelRegistryHealthChecker(nil) // Nil service to make it fail
