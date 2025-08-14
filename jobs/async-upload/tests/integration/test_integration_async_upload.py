@@ -99,7 +99,7 @@ def apply_job_with_strategic_merge(
                     "containers": [
                         {
                             "name": "async-upload",
-                            "image": "intentionally-wrong-image",
+                            "image": container_image_uri,
                             "env": patch_env_list,
                         }
                     ]
