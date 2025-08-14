@@ -6,6 +6,9 @@ on:
         - main
     pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   fossa-scan:
     if: github.repository_owner == 'kubeflow' # FOSSA is not intended to run on forks.

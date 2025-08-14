@@ -13,6 +13,10 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
+
+permissions:
+  contents: read
+
 jobs:
   prepare:
     uses: ./.github/workflows/prepare.yml
