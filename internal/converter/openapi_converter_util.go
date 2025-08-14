@@ -117,24 +117,22 @@ func StringToInt64(id *string) (*int64, error) {
 		return nil, nil
 	}
 
-	idAsInt, err := strconv.Atoi(*id)
+	idAsInt64, err := strconv.ParseInt(*id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid numeric string: %v", err)
 	}
 
-	idInt64 := int64(idAsInt)
-	return &idInt64, nil
+	return &idAsInt64, nil
 }
 
 // StringToInt32 converts string-based numeric value (a OpenAPI string literal consisting only of digits) to int32 if numeric, otherwise return error
 func StringToInt32(idString string) (int32, error) {
-	idInt, err := strconv.Atoi(idString)
+	idAsInt32, err := strconv.ParseInt(idString, 10, 32)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("invalid numeric string: %v", err)
 	}
 
-	idInt32 := int32(idInt)
-	return idInt32, nil
+	return int32(idAsInt32), nil
 }
 
 // MapNameFromOwned derive the entity name from the mlmd fullname
