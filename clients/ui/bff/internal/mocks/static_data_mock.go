@@ -264,7 +264,7 @@ func GenerateMockArtifact() openapi.Artifact {
 
 func GetCatalogModelMocks() []models.CatalogModel {
 	redHatModel1 := models.CatalogModel{
-		Name:        "granite-8b-code-instruct",
+		Name:        "rhelai1/granite-8b-code-instruct",
 		Description: stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 		Provider:    stringToPointer("IBM"),
 		Tasks:       []string{"text-generation"},
@@ -625,7 +625,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	redHatModel2 := models.CatalogModel{
-		Name:        "granite-7b-instruct",
+		Name:        "rhelai1/granite-7b-instruct",
 		Description: stringToPointer("IBM Granite 7B instruction-tuned model for enterprise applications"),
 		Provider:    stringToPointer("IBM"),
 		Tasks:       []string{"text-generation", "instruction-following"},
@@ -636,7 +636,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	redHatModel3 := models.CatalogModel{
-		Name:        "granite-3b-code-base",
+		Name:        "rhelai1/granite-3b-code-base",
 		Description: stringToPointer("Granite 3B code generation model for programming tasks"),
 		Provider:    stringToPointer("IBM"),
 		Tasks:       []string{"code-generation"},
@@ -647,7 +647,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	huggingFaceModel1 := models.CatalogModel{
-		Name:        "bert-base-uncased",
+		Name:        "provider1/bert-base-uncased",
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
 		Provider:    stringToPointer("provider1"),
 		Tasks:       []string{"fill-mask", "feature-extraction"},
@@ -659,7 +659,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	huggingFaceModel2 := models.CatalogModel{
-		Name:        "gpt2",
+		Name:        "provider2/gpt2",
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
 		Provider:    stringToPointer("provider2"),
 		Tasks:       []string{"text-generation"},
@@ -671,7 +671,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	huggingFaceModel3 := models.CatalogModel{
-		Name:        "distilbert-base-uncased",
+		Name:        "huggingface/distilbert-base-uncased",
 		Description: stringToPointer("DistilBERT base model (uncased) - A smaller, faster version of BERT"),
 		Provider:    stringToPointer("Hugging Face"),
 		Tasks:       []string{"fill-mask", "text-classification"},
@@ -683,7 +683,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	otherModel1 := models.CatalogModel{
-		Name:        "admin-model-2",
+		Name:        "adminModel2/admin-model-2",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
 		Tasks:       []string{"code-generation", "instruction-following"},
@@ -694,7 +694,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	otherModel2 := models.CatalogModel{
-		Name:        "admin-model-1",
+		Name:        "adminModel1/admin-model-1",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
 		Tasks:       []string{"text-generation", "conversational"},

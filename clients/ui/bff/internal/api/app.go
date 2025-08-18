@@ -57,13 +57,12 @@ const (
 	ArtifactPath                 = ArtifactListPath + "/:" + ArtifactId
 
 	// model catalog
-	SourceId                     = "source_id"
-	CatalogModelName             = "model_name"
-	CatalogPathPrefix            = ApiPathPrefix + "/model_catalog"
-	CatalogModelListPath         = CatalogPathPrefix + "/models"
-	CatalogSourceListPath        = CatalogPathPrefix + "/sources"
-	CatalogModelPath             = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/:" + CatalogModelName
-	CatalogModelArtifactListPath = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/:" + CatalogModelName + "/artifacts"
+	SourceId              = "source_id"
+	CatalogModelName      = "model_name"
+	CatalogPathPrefix     = ApiPathPrefix + "/model_catalog"
+	CatalogModelListPath  = CatalogPathPrefix + "/models"
+	CatalogSourceListPath = CatalogPathPrefix + "/sources"
+	CatalogModelPath      = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/*model_name"
 )
 
 type App struct {
@@ -207,7 +206,7 @@ func (app *App) Routes() http.Handler {
 		apiRouter.GET(CatalogModelListPath, app.AttachNamespace((app.GetAllCatalogModelsHandler)))
 		apiRouter.GET(CatalogSourceListPath, app.AttachNamespace((app.GetAllCatalogSourcesHandler)))
 		apiRouter.GET(CatalogModelPath, app.AttachNamespace((app.GetCatalogModelHandler)))
-		apiRouter.GET(CatalogModelArtifactListPath, app.AttachNamespace((app.GetCatalogModelArtifactsHandler)))
+
 	}
 
 	// App Router

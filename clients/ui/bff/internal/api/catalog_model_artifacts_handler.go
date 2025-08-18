@@ -12,7 +12,7 @@ import (
 type CatalogModelArtifactEnvelope Envelope[models.CatalogModelArtifact, None]
 type CatalogModelArtifactListEnvelope Envelope[models.CatalogModelArtifactList, None]
 
-func (app *App) GetCatalogModelArtifactsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *App) GetAllCatalogModelArtifactsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// TODO: Implement actual catalog API call for model artifacts
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")

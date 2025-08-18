@@ -91,14 +91,22 @@ func (app *App) GetCatalogModelHandler(w http.ResponseWriter, r *http.Request, p
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	catalogSourceID := ps.ByName(SourceId)
-	modelName := ps.ByName(CatalogModelName)
+	modelPath := ps.ByName(CatalogModelName)
+
+	// This will handle tha wildcard route by parsing the model name
+	if _, ok := strings.CutSuffix(modelPath, "/artifacts"); ok {
+		app.GetAllCatalogModelArtifactsHandler(w, r, ps)
+		return
+	}
+
+	modelPath = strings.TrimPrefix(modelPath, "/")
 
 	// TODO: Implement actual catalog API call
 	allMockModels := mocks.GetCatalogModelMocks()
 	var catalogMockModels models.CatalogModel
 
 	for _, model := range allMockModels {
-		if model.Name == modelName && model.SourceId != nil && *model.SourceId == catalogSourceID {
+		if model.Name == modelPath && model.SourceId != nil && *model.SourceId == catalogSourceID {
 			catalogMockModels = model
 		}
 	}
