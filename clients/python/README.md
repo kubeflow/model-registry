@@ -373,7 +373,7 @@ with mr.start_experiment_run(experiment_name="Experiment1") as run:
 ```py
 with mr.start_experiment_run(experiment_name="Experiment1") as run:
     ...
-run.get_log("input1")
+run.get_log("metrics", "rval")
 
 # or
 
