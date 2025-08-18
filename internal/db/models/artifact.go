@@ -30,11 +30,12 @@ type ArtifactListOptions struct {
 }
 
 type Artifact struct {
-	ModelArtifact *ModelArtifact
-	DocArtifact   *DocArtifact
-	DataSet       *DataSet
-	Metric        *Metric
-	Parameter     *Parameter
+	ModelArtifact    *ModelArtifact
+	DocArtifact      *DocArtifact
+	DataSet          *DataSet
+	Metric           *Metric
+	Parameter        *Parameter
+	ParentResourceID *string
 }
 
 type ArtifactRepository interface {

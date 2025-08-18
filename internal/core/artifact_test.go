@@ -950,6 +950,221 @@ func TestGetArtifactById(t *testing.T) {
 	})
 }
 
+func TestArtifactParentResourceId(t *testing.T) {
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("artifact with parent resource has parentResourceId", func(t *testing.T) {
+		// Create registered model and model version
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-parent-id",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name: "v1.0-parent-test",
+		}
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create artifact associated with model version
+		modelArtifact := &openapi.ModelArtifact{
+			Name: apiutils.Of("test-artifact-with-parent"),
+			Uri:  apiutils.Of("s3://bucket/parent-test.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		// Associate artifact with model version (this creates the parent relationship)
+		created, err := _service.UpsertModelVersionArtifact(artifact, *createdVersion.Id)
+		require.NoError(t, err)
+		require.NotNil(t, created.ModelArtifact.Id)
+
+		// Test GetArtifactById returns parentResourceId
+		result, err := _service.GetArtifactById(*created.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, result.ModelArtifact)
+
+		// Verify parentResourceId is set and matches the model version ID
+		require.True(t, result.ModelArtifact.ParentResourceId.IsSet(), "parentResourceId should be set")
+		parentId := result.ModelArtifact.ParentResourceId.Get()
+		require.NotNil(t, parentId, "parentResourceId should not be nil")
+		assert.Equal(t, *createdVersion.Id, *parentId, "parentResourceId should match model version ID")
+
+		// Test GetArtifacts (bulk) also returns parentResourceId
+		listOptions := api.ListOptions{PageSize: apiutils.Of(int32(10))}
+		bulkResult, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, bulkResult.Items, "should return at least one artifact")
+
+		// Find our artifact in the bulk results
+		var foundArtifact *openapi.Artifact
+		for _, item := range bulkResult.Items {
+			if item.ModelArtifact != nil && item.ModelArtifact.Id != nil &&
+				*item.ModelArtifact.Id == *created.ModelArtifact.Id {
+				foundArtifact = &item
+				break
+			}
+		}
+		require.NotNil(t, foundArtifact, "should find our artifact in bulk results")
+		require.NotNil(t, foundArtifact.ModelArtifact)
+
+		// Verify parentResourceId in bulk results
+		require.True(t, foundArtifact.ModelArtifact.ParentResourceId.IsSet(), "parentResourceId should be set in bulk results")
+		bulkParentId := foundArtifact.ModelArtifact.ParentResourceId.Get()
+		require.NotNil(t, bulkParentId, "parentResourceId should not be nil in bulk results")
+		assert.Equal(t, *createdVersion.Id, *bulkParentId, "parentResourceId in bulk results should match model version ID")
+	})
+
+	t.Run("standalone artifact has no parentResourceId", func(t *testing.T) {
+		// Create a standalone artifact (not associated with any parent resource)
+		modelArtifact := &openapi.ModelArtifact{
+			Name: apiutils.Of("standalone-artifact"),
+			Uri:  apiutils.Of("s3://bucket/standalone.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		// Create artifact without parent association
+		created, err := _service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.ModelArtifact.Id)
+
+		// Test GetArtifactById - parentResourceId should not be set
+		result, err := _service.GetArtifactById(*created.ModelArtifact.Id)
+		require.NoError(t, err)
+		require.NotNil(t, result.ModelArtifact)
+
+		// Verify parentResourceId is not set (null/unset)
+		assert.False(t, result.ModelArtifact.ParentResourceId.IsSet(), "parentResourceId should not be set for standalone artifact")
+	})
+
+	t.Run("experiment run artifacts have parentResourceId", func(t *testing.T) {
+		// Create experiment and experiment run
+		experiment := &openapi.Experiment{
+			Name: "test-experiment-for-parent-id",
+		}
+		createdExperiment, err := _service.UpsertExperiment(experiment)
+		require.NoError(t, err)
+
+		experimentRun := &openapi.ExperimentRun{
+			Name: apiutils.Of("test-run-for-parent-id"),
+		}
+		createdRun, err := _service.UpsertExperimentRun(experimentRun, createdExperiment.Id)
+		require.NoError(t, err)
+
+		// Create metric for experiment run
+		metric := &openapi.Metric{
+			Name:  apiutils.Of("test-metric-parent-id"),
+			Value: apiutils.Of(0.85),
+		}
+
+		artifact := &openapi.Artifact{
+			Metric: metric,
+		}
+
+		// Associate artifact with experiment run
+		created, err := _service.UpsertExperimentRunArtifact(artifact, *createdRun.Id)
+		require.NoError(t, err)
+		require.NotNil(t, created.Metric.Id)
+
+		// Test GetArtifactById returns parentResourceId
+		result, err := _service.GetArtifactById(*created.Metric.Id)
+		require.NoError(t, err)
+		require.NotNil(t, result.Metric)
+
+		// Verify parentResourceId is set and matches the experiment run ID
+		require.True(t, result.Metric.ParentResourceId.IsSet(), "parentResourceId should be set")
+		parentId := result.Metric.ParentResourceId.Get()
+		require.NotNil(t, parentId, "parentResourceId should not be nil")
+		assert.Equal(t, *createdRun.Id, *parentId, "parentResourceId should match experiment run ID")
+	})
+
+	t.Run("filtered artifacts by parentResourceId", func(t *testing.T) {
+		// Create two model versions to test filtering
+		registeredModel := &openapi.RegisteredModel{
+			Name: "test-model-for-filtering",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		version1 := &openapi.ModelVersion{
+			Name: "v1.0-filter-test",
+		}
+		createdVersion1, err := _service.UpsertModelVersion(version1, createdModel.Id)
+		require.NoError(t, err)
+
+		version2 := &openapi.ModelVersion{
+			Name: "v2.0-filter-test",
+		}
+		createdVersion2, err := _service.UpsertModelVersion(version2, createdModel.Id)
+		require.NoError(t, err)
+
+		// Create artifacts for each version
+		artifact1 := &openapi.Artifact{
+			ModelArtifact: &openapi.ModelArtifact{
+				Name: apiutils.Of("artifact-for-v1"),
+				Uri:  apiutils.Of("s3://bucket/v1.pkl"),
+			},
+		}
+		created1, err := _service.UpsertModelVersionArtifact(artifact1, *createdVersion1.Id)
+		require.NoError(t, err)
+
+		artifact2 := &openapi.Artifact{
+			ModelArtifact: &openapi.ModelArtifact{
+				Name: apiutils.Of("artifact-for-v2"),
+				Uri:  apiutils.Of("s3://bucket/v2.pkl"),
+			},
+		}
+		created2, err := _service.UpsertModelVersionArtifact(artifact2, *createdVersion2.Id)
+		require.NoError(t, err)
+
+		// Test filtering by parentResourceId for version 1
+		listOptions := api.ListOptions{
+			PageSize: apiutils.Of(int32(10)),
+		}
+		filteredResult, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion1.Id)
+		require.NoError(t, err)
+
+		// Should only return artifacts for version 1
+		assert.Equal(t, int32(1), filteredResult.Size, "should return exactly 1 artifact for version 1")
+		require.Len(t, filteredResult.Items, 1, "should have exactly 1 item")
+
+		foundItem := filteredResult.Items[0]
+		require.NotNil(t, foundItem.ModelArtifact)
+		assert.Equal(t, *created1.ModelArtifact.Id, *foundItem.ModelArtifact.Id, "should return artifact for version 1")
+
+		// Verify parentResourceId is correctly set
+		require.True(t, foundItem.ModelArtifact.ParentResourceId.IsSet(), "parentResourceId should be set")
+		parentId := foundItem.ModelArtifact.ParentResourceId.Get()
+		require.NotNil(t, parentId, "parentResourceId should not be nil")
+		assert.Equal(t, *createdVersion1.Id, *parentId, "parentResourceId should match version 1 ID")
+
+		// Test filtering by parentResourceId for version 2
+		filteredResult2, err := _service.GetArtifacts(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT, listOptions, createdVersion2.Id)
+		require.NoError(t, err)
+
+		// Should only return artifacts for version 2
+		assert.Equal(t, int32(1), filteredResult2.Size, "should return exactly 1 artifact for version 2")
+		require.Len(t, filteredResult2.Items, 1, "should have exactly 1 item")
+
+		foundItem2 := filteredResult2.Items[0]
+		require.NotNil(t, foundItem2.ModelArtifact)
+		assert.Equal(t, *created2.ModelArtifact.Id, *foundItem2.ModelArtifact.Id, "should return artifact for version 2")
+
+		// Verify parentResourceId is correctly set
+		require.True(t, foundItem2.ModelArtifact.ParentResourceId.IsSet(), "parentResourceId should be set")
+		parentId2 := foundItem2.ModelArtifact.ParentResourceId.Get()
+		require.NotNil(t, parentId2, "parentResourceId should not be nil")
+		assert.Equal(t, *createdVersion2.Id, *parentId2, "parentResourceId should match version 2 ID")
+	})
+}
+
 func TestGetArtifactByParams(t *testing.T) {
 	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()

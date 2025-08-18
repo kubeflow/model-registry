@@ -51,34 +51,34 @@ type OpenAPIConverter interface {
 	// goverter:map ParameterUpdate Parameter
 	ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ParentResourceId
 	ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ParentResourceId
 	ConvertDocArtifactUpdate(source *openapi.DocArtifactUpdate) (*openapi.DocArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ParentResourceId
 	ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ParentResourceId
 	ConvertModelArtifactUpdate(source *openapi.ModelArtifactUpdate) (*openapi.ModelArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ParentResourceId
 	ConvertDataSetCreate(source *openapi.DataSetCreate) (*openapi.DataSet, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ParentResourceId
 	ConvertDataSetUpdate(source *openapi.DataSetUpdate) (*openapi.DataSet, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ParentResourceId
 	ConvertMetricCreate(source *openapi.MetricCreate) (*openapi.Metric, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ParentResourceId
 	ConvertMetricUpdate(source *openapi.MetricUpdate) (*openapi.Metric, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ParentResourceId
 	ConvertParameterCreate(source *openapi.ParameterCreate) (*openapi.Parameter, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ParentResourceId
 	ConvertParameterUpdate(source *openapi.ParameterUpdate) (*openapi.Parameter, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
@@ -132,31 +132,31 @@ type OpenAPIConverter interface {
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id Name ArtifactType CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State
+	// goverter:ignore Id Name ArtifactType CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ParentResourceId
 	OverrideNotEditableForDocArtifact(source OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath ModelSourceKind ModelSourceClass ModelSourceGroup ModelSourceId ModelSourceName
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State ServiceAccountName ModelFormatName ModelFormatVersion StorageKey StoragePath ModelSourceKind ModelSourceClass ModelSourceGroup ModelSourceId ModelSourceName ParentResourceId
 	OverrideNotEditableForModelArtifact(source OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State Digest SourceType Source Schema Profile
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties Uri State Digest SourceType Source Schema Profile ParentResourceId
 	OverrideNotEditableForDataSet(source OpenapiUpdateWrapper[openapi.DataSet]) (openapi.DataSet, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value Timestamp Step
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value Timestamp Step ParentResourceId
 	OverrideNotEditableForMetric(source OpenapiUpdateWrapper[openapi.Metric]) (openapi.Metric, error)
 
 	// Ignore all fields that ARE editable
 	// goverter:default InitWithUpdate
 	// goverter:autoMap Existing
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value ParameterType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Description ExternalId CustomProperties State Value ParameterType ParentResourceId
 	OverrideNotEditableForParameter(source OpenapiUpdateWrapper[openapi.Parameter]) (openapi.Parameter, error)
 
 	// Ignore all fields that ARE editable

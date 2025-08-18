@@ -27,31 +27,31 @@ type OpenAPIReconciler interface {
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType ParentResourceId
 	UpdateExistingDocArtifact(source OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error)
 
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType ParentResourceId
 	UpdateExistingModelArtifact(source OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error)
 
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType ParentResourceId
 	UpdateExistingDataSet(source OpenapiUpdateWrapper[openapi.DataSet]) (openapi.DataSet, error)
 
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType ParentResourceId
 	UpdateExistingMetric(source OpenapiUpdateWrapper[openapi.Metric]) (openapi.Metric, error)
 
 	// Ignore all fields that can't be updated
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name ArtifactType ParentResourceId
 	UpdateExistingParameter(source OpenapiUpdateWrapper[openapi.Parameter]) (openapi.Parameter, error)
 
 	// Ignore all fields that can't be updated

@@ -1823,6 +1823,10 @@ components:
             artifactType:
               type: string
               default: "dataset-artifact"
+            parentResourceId:
+              description: The ID of the parent resource that this artifact belongs to.
+              type: string
+              nullable: true
     DataSetCreate:
       description: A dataset artifact to be created.
       allOf:
@@ -1874,6 +1878,10 @@ components:
             artifactType:
               type: string
               default: "doc-artifact"
+            parentResourceId:
+              description: The ID of the parent resource that this artifact belongs to.
+              type: string
+              nullable: true
     DocArtifactCreate:
       description: A document artifact to be created.
       allOf:
@@ -2253,6 +2261,10 @@ components:
             artifactType:
               type: string
               default: "metric"
+            parentResourceId:
+              description: The ID of the parent resource that this metric belongs to.
+              type: string
+              nullable: true
     MetricCreate:
       description: A metric to be created.
       allOf:
@@ -2312,6 +2324,10 @@ components:
             artifactType:
               type: string
               default: "model-artifact"
+            parentResourceId:
+              description: The ID of the parent resource that this artifact belongs to.
+              type: string
+              nullable: true
     ModelArtifactCreate:
       description: An ML model artifact.
       properties:
@@ -2458,6 +2474,10 @@ components:
             artifactType:
               type: string
               default: "parameter"
+            parentResourceId:
+              description: The ID of the parent resource that this artifact belongs to.
+              type: string
+              nullable: true
     ParameterCreate:
       description: A parameter to be created.
       allOf:

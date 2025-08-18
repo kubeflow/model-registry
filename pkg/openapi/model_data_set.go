@@ -47,6 +47,8 @@ type DataSet struct {
 	// The uniform resource identifier of the physical dataset. May be empty if there is no physical dataset.
 	Uri   *string        `json:"uri,omitempty"`
 	State *ArtifactState `json:"state,omitempty"`
+	// The ID of the parent resource that this artifact belongs to.
+	ParentResourceId NullableString `json:"parentResourceId,omitempty"`
 }
 
 // NewDataSet instantiates a new DataSet object
@@ -554,6 +556,49 @@ func (o *DataSet) SetState(v ArtifactState) {
 	o.State = &v
 }
 
+// GetParentResourceId returns the ParentResourceId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *DataSet) GetParentResourceId() string {
+	if o == nil || IsNil(o.ParentResourceId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ParentResourceId.Get()
+}
+
+// GetParentResourceIdOk returns a tuple with the ParentResourceId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *DataSet) GetParentResourceIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ParentResourceId.Get(), o.ParentResourceId.IsSet()
+}
+
+// HasParentResourceId returns a boolean if a field has been set.
+func (o *DataSet) HasParentResourceId() bool {
+	if o != nil && o.ParentResourceId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetParentResourceId gets a reference to the given NullableString and assigns it to the ParentResourceId field.
+func (o *DataSet) SetParentResourceId(v string) {
+	o.ParentResourceId.Set(&v)
+}
+
+// SetParentResourceIdNil sets the value for ParentResourceId to be an explicit nil
+func (o *DataSet) SetParentResourceIdNil() {
+	o.ParentResourceId.Set(nil)
+}
+
+// UnsetParentResourceId ensures that no value is present for ParentResourceId, not even an explicit nil
+func (o *DataSet) UnsetParentResourceId() {
+	o.ParentResourceId.Unset()
+}
+
 func (o DataSet) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -608,6 +653,9 @@ func (o DataSet) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.State) {
 		toSerialize["state"] = o.State
+	}
+	if o.ParentResourceId.IsSet() {
+		toSerialize["parentResourceId"] = o.ParentResourceId.Get()
 	}
 	return toSerialize, nil
 }

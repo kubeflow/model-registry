@@ -55,6 +55,11 @@ class Parameter(BaseModel):
     value: StrictStr | None = Field(default=None, description="The value of the parameter.")
     parameter_type: ParameterType | None = Field(default=None, alias="parameterType")
     state: ArtifactState | None = None
+    parent_resource_id: StrictStr | None = Field(
+        default=None,
+        description="The ID of the parent resource that this artifact belongs to.",
+        alias="parentResourceId",
+    )
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -67,6 +72,7 @@ class Parameter(BaseModel):
         "value",
         "parameterType",
         "state",
+        "parentResourceId",
     ]
 
     model_config = ConfigDict(
@@ -118,6 +124,11 @@ class Parameter(BaseModel):
                 if self.custom_properties[_key]:
                     _field_dict[_key] = self.custom_properties[_key].to_dict()
             _dict["customProperties"] = _field_dict
+        # set to None if parent_resource_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.parent_resource_id is None and "parent_resource_id" in self.model_fields_set:
+            _dict["parentResourceId"] = None
+
         return _dict
 
     @classmethod
@@ -146,5 +157,6 @@ class Parameter(BaseModel):
                 "value": obj.get("value"),
                 "parameterType": obj.get("parameterType"),
                 "state": obj.get("state"),
+                "parentResourceId": obj.get("parentResourceId"),
             }
         )

@@ -330,11 +330,19 @@ func (b *ModelRegistryService) getArtifact(id string) (*openapi.Artifact, error)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			toReturn.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+		}
 		artToReturn.ModelArtifact = toReturn
 	} else if artifact.DocArtifact != nil {
 		toReturn, err := b.mapper.MapToDocArtifact(*artifact.DocArtifact)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			toReturn.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
 		}
 		artToReturn.DocArtifact = toReturn
 	} else if artifact.DataSet != nil {
@@ -342,17 +350,29 @@ func (b *ModelRegistryService) getArtifact(id string) (*openapi.Artifact, error)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			toReturn.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+		}
 		artToReturn.DataSet = toReturn
 	} else if artifact.Metric != nil {
 		toReturn, err := b.mapper.MapToMetricFromMetric(*artifact.Metric)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			toReturn.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+		}
 		artToReturn.Metric = toReturn
 	} else if artifact.Parameter != nil {
 		toReturn, err := b.mapper.MapToParameter(*artifact.Parameter)
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			toReturn.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
 		}
 		artToReturn.Parameter = toReturn
 	}
@@ -451,6 +471,26 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+
+		// Parent resource ID is already populated by the repository JOIN query
+		if artifact.ParentResourceID != nil {
+			if mappedArtifact.ModelArtifact != nil {
+				mappedArtifact.ModelArtifact.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+			}
+			if mappedArtifact.DocArtifact != nil {
+				mappedArtifact.DocArtifact.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+			}
+			if mappedArtifact.DataSet != nil {
+				mappedArtifact.DataSet.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+			}
+			if mappedArtifact.Metric != nil {
+				mappedArtifact.Metric.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+			}
+			if mappedArtifact.Parameter != nil {
+				mappedArtifact.Parameter.ParentResourceId = *openapi.NewNullableString(artifact.ParentResourceID)
+			}
+		}
+
 		artifactsList.Items = append(artifactsList.Items, *mappedArtifact)
 	}
 

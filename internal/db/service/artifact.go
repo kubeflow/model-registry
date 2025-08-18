@@ -37,10 +37,15 @@ func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTy
 }
 
 func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
-	artifact := &schema.Artifact{}
+	var artifactWithParent artifactWithParentID
 	properties := []schema.ArtifactProperty{}
 
-	if err := r.db.Where("id = ?", id).First(artifact).Error; err != nil {
+	// Use LEFT JOIN to get both artifact and parent resource ID in one query
+	if err := r.db.Model(&schema.Artifact{}).
+		Select("Artifact.*, Attribution.context_id").
+		Joins("LEFT JOIN Attribution ON Attribution.artifact_id = Artifact.id").
+		Where("Artifact.id = ?", id).
+		First(&artifactWithParent).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return models.Artifact{}, fmt.Errorf("%w: %v", ErrArtifactNotFound, err)
 		}
@@ -48,17 +53,29 @@ func (r *ArtifactRepositoryImpl) GetByID(id int32) (models.Artifact, error) {
 		return models.Artifact{}, fmt.Errorf("error getting artifact by id: %w", err)
 	}
 
-	if err := r.db.Where("artifact_id = ?", artifact.ID).Find(&properties).Error; err != nil {
+	if err := r.db.Where("artifact_id = ?", artifactWithParent.ID).Find(&properties).Error; err != nil {
 		return models.Artifact{}, fmt.Errorf("error getting properties by artifact id: %w", err)
 	}
 
 	// Use the same logic as mapDataLayerToArtifact to handle all artifact types
-	mappedArtifact, err := r.mapDataLayerToArtifact(*artifact, properties)
+	mappedArtifact, err := r.mapDataLayerToArtifact(artifactWithParent.Artifact, properties)
 	if err != nil {
 		return models.Artifact{}, fmt.Errorf("error mapping artifact: %w", err)
 	}
 
+	// Set parent resource ID from the JOIN result
+	if artifactWithParent.ParentResourceID != nil {
+		parentResourceIDStr := fmt.Sprintf("%d", *artifactWithParent.ParentResourceID)
+		mappedArtifact.ParentResourceID = &parentResourceIDStr
+	}
+
 	return mappedArtifact, nil
+}
+
+// artifactWithParentID represents an artifact with its parent resource ID from Attribution table
+type artifactWithParentID struct {
+	schema.Artifact
+	ParentResourceID *int32 `gorm:"column:context_id"`
 }
 
 func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*models.ListWrapper[models.Artifact], error) {
@@ -67,9 +84,12 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	}
 
 	artifacts := []models.Artifact{}
-	artifactsArt := []schema.Artifact{}
+	artifactsWithParent := []artifactWithParentID{}
 
-	query := r.db.Model(&schema.Artifact{})
+	// Always LEFT JOIN with Attribution to get parent resource ID in a single query
+	query := r.db.Model(&schema.Artifact{}).
+		Select("Artifact.*, Attribution.context_id").
+		Joins("LEFT JOIN Attribution ON Attribution.artifact_id = Artifact.id")
 
 	// Exclude metric history records - they should only be returned via metric history endpoints
 	query = query.Where("type_id != ?", r.metricHistoryTypeID)
@@ -95,44 +115,49 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where("Artifact.type_id = ?", typeID)
 	}
 
+	// Filter by parent resource ID if specified
 	if listOptions.ParentResourceID != nil {
-		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ParentResourceID).
-			Select("Artifact.*") // Explicitly select from Artifact table to avoid ambiguity
-		// Use table-prefixed pagination to avoid column ambiguity
-		query = query.Scopes(scopes.PaginateWithTablePrefix(artifacts, &listOptions.Pagination, r.db, "Artifact"))
-	} else {
-		query = query.Scopes(scopes.Paginate(artifacts, &listOptions.Pagination, r.db))
+		query = query.Where("Attribution.context_id = ?", listOptions.ParentResourceID)
 	}
 
-	if err := query.Find(&artifactsArt).Error; err != nil {
+	// Use table-prefixed pagination to handle JOINs properly
+	query = query.Scopes(scopes.PaginateWithTablePrefix(artifacts, &listOptions.Pagination, r.db, "Artifact"))
+
+	if err := query.Find(&artifactsWithParent).Error; err != nil {
 		return nil, fmt.Errorf("error listing artifacts: %w", err)
 	}
 
 	hasMore := false
 	pageSize := listOptions.GetPageSize()
 	if pageSize > 0 {
-		hasMore = len(artifactsArt) > int(pageSize)
+		hasMore = len(artifactsWithParent) > int(pageSize)
 		if hasMore {
-			artifactsArt = artifactsArt[:len(artifactsArt)-1]
+			artifactsWithParent = artifactsWithParent[:len(artifactsWithParent)-1]
 		}
 	}
 
-	for _, artifactArt := range artifactsArt {
+	for _, artifactWithParent := range artifactsWithParent {
 		properties := []schema.ArtifactProperty{}
-		if err := r.db.Where("artifact_id = ?", artifactArt.ID).Find(&properties).Error; err != nil {
+		if err := r.db.Where("artifact_id = ?", artifactWithParent.ID).Find(&properties).Error; err != nil {
 			return nil, fmt.Errorf("error getting properties by artifact id: %w", err)
 		}
 
-		artifact, err := r.mapDataLayerToArtifact(artifactArt, properties)
+		artifact, err := r.mapDataLayerToArtifact(artifactWithParent.Artifact, properties)
 		if err != nil {
 			return nil, fmt.Errorf("error mapping artifact: %w", err)
 		}
+
+		// Set parent resource ID from the JOIN result
+		if artifactWithParent.ParentResourceID != nil {
+			parentResourceIDStr := fmt.Sprintf("%d", *artifactWithParent.ParentResourceID)
+			artifact.ParentResourceID = &parentResourceIDStr
+		}
+
 		artifacts = append(artifacts, artifact)
 	}
 
-	if hasMore && len(artifactsArt) > 0 {
-		lastArtifact := artifactsArt[len(artifactsArt)-1]
+	if hasMore && len(artifactsWithParent) > 0 {
+		lastArtifact := artifactsWithParent[len(artifactsWithParent)-1]
 		orderBy := listOptions.GetOrderBy()
 		value := ""
 		if orderBy != "" {

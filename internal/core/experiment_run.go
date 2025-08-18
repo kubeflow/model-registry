@@ -288,6 +288,11 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 			}
 		}
 
+		// Set the parent resource ID (experiment run ID)
+		if experimentRunId != nil {
+			mapped.ParentResourceId = *openapi.NewNullableString(experimentRunId)
+		}
+
 		results = append(results, *mapped)
 	}
 

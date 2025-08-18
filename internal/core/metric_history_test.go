@@ -65,6 +65,12 @@ func TestGetExperimentRunMetricHistory(t *testing.T) {
 	foundAccuracy := false
 	foundLoss := false
 	for _, item := range result.Items {
+		// NEW: Verify parentResourceId is set correctly for all metrics
+		require.True(t, item.ParentResourceId.IsSet(), "parentResourceId should be set")
+		parentId := item.ParentResourceId.Get()
+		require.NotNil(t, parentId, "parentResourceId should not be nil")
+		assert.Equal(t, *savedExperimentRun.Id, *parentId, "parentResourceId should match experiment run ID")
+
 		switch *item.Name {
 		case "accuracy":
 			foundAccuracy = true

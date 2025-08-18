@@ -70,6 +70,11 @@ class DataSet(BaseModel):
         description="The uniform resource identifier of the physical dataset. May be empty if there is no physical dataset.",
     )
     state: ArtifactState | None = None
+    parent_resource_id: StrictStr | None = Field(
+        default=None,
+        description="The ID of the parent resource that this artifact belongs to.",
+        alias="parentResourceId",
+    )
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -86,6 +91,7 @@ class DataSet(BaseModel):
         "profile",
         "uri",
         "state",
+        "parentResourceId",
     ]
 
     model_config = ConfigDict(
@@ -137,6 +143,11 @@ class DataSet(BaseModel):
                 if self.custom_properties[_key]:
                     _field_dict[_key] = self.custom_properties[_key].to_dict()
             _dict["customProperties"] = _field_dict
+        # set to None if parent_resource_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.parent_resource_id is None and "parent_resource_id" in self.model_fields_set:
+            _dict["parentResourceId"] = None
+
         return _dict
 
     @classmethod
@@ -169,5 +180,6 @@ class DataSet(BaseModel):
                 "profile": obj.get("profile"),
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
+                "parentResourceId": obj.get("parentResourceId"),
             }
         )

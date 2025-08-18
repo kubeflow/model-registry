@@ -43,6 +43,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochModelVersion
 	ConvertModelVersion(source *models.ModelVersionImpl) (*openapi.ModelVersion, error)
 
+	// goverter:ignore ParentResourceId
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties ModelFormatName | MapEmbedMDPropertyModelFormatName
 	// goverter:map Properties ModelFormatVersion | MapEmbedMDPropertyModelFormatVersion
@@ -63,6 +64,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochModelArtifact
 	ConvertModelArtifact(source *models.ModelArtifactImpl) (*openapi.ModelArtifact, error)
 
+	// goverter:ignore ParentResourceId
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Attributes ExternalId | MapEmbedMDExternalIDDocArtifact
 	// goverter:map Attributes Name | MapEmbedMDNameDocArtifact
@@ -123,6 +125,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochExperimentRun
 	ConvertExperimentRun(source *models.ExperimentRunImpl) (*openapi.ExperimentRun, error)
 
+	// goverter:ignore ParentResourceId
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties Digest | MapEmbedMDPropertyDigest
 	// goverter:map Properties SourceType | MapEmbedMDPropertySourceType
@@ -138,6 +141,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochDataSet
 	ConvertDataSet(source *models.DataSetImpl) (*openapi.DataSet, error)
 
+	// goverter:ignore ParentResourceId
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties Value | MapEmbedMDPropertyValueMetric
 	// goverter:map Properties Timestamp | MapEmbedMDPropertyTimestampMetric
@@ -150,6 +154,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochMetric
 	ConvertMetric(source *models.MetricImpl) (*openapi.Metric, error)
 
+	// goverter:ignore ParentResourceId
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties Value | MapEmbedMDPropertyValueParameter
 	// goverter:map Properties ParameterType | MapEmbedMDPropertyParameterTypeParameter
