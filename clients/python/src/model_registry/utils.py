@@ -9,7 +9,6 @@ import os
 import shutil
 import tempfile
 import threading
-import uuid
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -637,13 +636,13 @@ def _extract_auth_json(auth_data: str) -> str:
         raise ValueError(invalid_json_msg) from e
 
 
-def short_uuid(size: int = 8) -> str:
-    """Generate a short UUID.
+def rand_suffix(size: int = 8) -> str:
+    """Generate a random suffix.
 
     Returns:
-        A short UUID.
+        A random suffix.
     """
-    return str(uuid.uuid4())[:size]
+    return os.urandom(size).hex()
 
 
 def generate_name(prefix: str) -> str:
@@ -652,7 +651,7 @@ def generate_name(prefix: str) -> str:
     Returns:
         A random name for experiments.
     """
-    return f"{prefix}_{short_uuid()}"
+    return f"{prefix}_{rand_suffix()}"
 
 
 def upload_to_s3(

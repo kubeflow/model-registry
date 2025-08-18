@@ -176,18 +176,6 @@ def test_get_experiment_run_with_artifact_types(
         assert True
 
 
-# @pytest.mark.e2e
-# def test_get_experiment_run_artifact_filtering(client: ModelRegistry):
-#     with client.start_experiment_run(experiment_name="Experiment_Test_5") as run:
-#         run.log_dataset(
-#             name="dataset_1",
-#             source_type="local",
-#             uri="s3://datasets/test",
-#             schema=schema_json,
-#             profile="random_profile",
-#         )
-
-
 @pytest.mark.e2e
 def test_start_experiment_run_nested(client: ModelRegistry):
     """Test that starting a nested experiment run without nested=True raises an error."""
@@ -307,4 +295,3 @@ async def test_start_experiment_run_nested_thread_safety(client: ModelRegistry):
             assert r.custom_properties is None
 
     assert ctr == 10
-
