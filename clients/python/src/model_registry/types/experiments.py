@@ -81,18 +81,6 @@ class Experiment(BaseResourceModel):
             else None,
         )
 
-    def __repr_str__(self, join_str: str) -> str:
-        """Overrides pydantic Representation.__repr_str__ to bring name to the front."""
-        result = []
-        for a, v in self.__repr_args__():
-            if a is None:
-                result.append(repr(v))
-            elif a == "name":
-                result.insert(0, f"{a}={v!r}")
-            else:
-                result.append(f"{a}={v!r}")
-        return join_str.join(result)
-
 
 class ExperimentRun(BaseResourceModel):
     """Represents an experiment run model.
@@ -148,15 +136,3 @@ class ExperimentRun(BaseResourceModel):
             if source.custom_properties
             else None,
         )
-
-    def __repr_str__(self, join_str: str) -> str:
-        """Overrides pydantic Representation.__repr_str__ to bring name to the front."""
-        result = []
-        for a, v in self.__repr_args__():
-            if a is None:
-                result.append(repr(v))
-            elif a == "name":
-                result.insert(0, f"{a}={v!r}")
-            else:
-                result.append(f"{a}={v!r}")
-        return join_str.join(result)
