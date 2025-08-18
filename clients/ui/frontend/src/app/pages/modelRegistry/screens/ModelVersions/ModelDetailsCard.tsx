@@ -18,7 +18,6 @@ import {
   EditableTextDescriptionListGroup,
   DashboardDescriptionListGroup,
   EditableLabelsDescriptionListGroup,
-  ModelDetailsCardContext,
 } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
@@ -41,9 +40,12 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const { showAlert } = React.useContext(ModelDetailsCardContext);
-  console.log('showAlert', showAlert);
-
+  const [isEditingProperties, setIsEditingProperties] = React.useState({
+    labels: false,
+    description: false,
+    properties: false,
+  });
+  console.log('isEditingProperties', isEditingProperties);
   const labelsSection = (
     <EditableLabelsDescriptionListGroup
       labels={getLabels(rm.customProperties)}
@@ -64,6 +66,10 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
       }
       isCollapsible={false}
       labelProps={{ variant: 'outline' }}
+      showAlertWhenEditing
+      onEditingChange={(isEditing) =>
+        setIsEditingProperties({ ...isEditingProperties, labels: isEditing })
+      }
     />
   );
 
@@ -86,6 +92,10 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
             rm.id,
           )
           .then(refresh)
+      }
+      showAlertWhenEditing
+      onEditingChange={(isEditing) =>
+        setIsEditingProperties({ ...isEditingProperties, description: isEditing })
       }
     />
   );
@@ -135,6 +145,9 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         apiState.api
           .patchRegisteredModel({}, { customProperties: editedProperties }, rm.id)
           .then(refresh)
+      }
+      onEditingChange={(isEditing) =>
+        setIsEditingProperties({ ...isEditingProperties, properties: isEditing })
       }
     />
   );

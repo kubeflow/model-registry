@@ -4,7 +4,6 @@ import { AddCircleOIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
-import { ModelDetailsCardContext } from 'mod-arch-shared';
 import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/components/ModelPropertiesTableRow';
 import { getProperties, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
@@ -13,12 +12,14 @@ type ModelPropertiesExpandableSectionProps = {
   customProperties?: ModelRegistryCustomProperties;
   isArchive?: boolean;
   saveEditedCustomProperties: (properties: ModelRegistryCustomProperties) => Promise<unknown>;
+  onEditingChange: (isEditing: boolean) => void;
 };
 
 const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectionProps> = ({
   customProperties = {},
   isArchive,
   saveEditedCustomProperties,
+  onEditingChange,
 }) => {
   const [editingPropertyKeys, setEditingPropertyKeys] = React.useState<string[]>([]);
   const setIsEditingKey = (key: string, isEditing: boolean) =>
@@ -30,11 +31,6 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
   const isEditingSomeRow = isAdding || editingPropertyKeys.length > 0;
 
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
-  const { setIsEditingProperties } = React.useContext(ModelDetailsCardContext);
-
-  React.useEffect(() => {
-    setIsEditingProperties(isEditingSomeRow);
-  }, [isEditingSomeRow, setIsEditingProperties]);
 
   // We only show string properties with a defined value (no labels or other property types)
   const filteredProperties = getProperties(customProperties);
@@ -79,7 +75,10 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
                 allExistingKeys={allExistingKeys}
                 isEditing={editingPropertyKeys.includes(key)}
-                setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
+                setIsEditing={(isEditing) => {
+                  setIsEditingKey(key, isEditing);
+                  onEditingChange(isEditing);
+                }}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
                 saveEditedProperty={(oldKey, newPair) =>
