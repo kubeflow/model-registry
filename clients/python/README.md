@@ -343,7 +343,7 @@ with mr.start_experiment_run(experiment_name="Experiment1") as run:
         uri="s3://datasets/test",
         schema=json.dumps({"epochs": {}}),
         profile="random_profile",
-        )
+    )
     run.log_param("input1", 5.75)
 ```
 
