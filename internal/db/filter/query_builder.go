@@ -386,7 +386,21 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []any{value}}
 	case "IN":
 		// Handle IN operator with array values
-		return conditionResult{condition: fmt.Sprintf("%s IN ?", column), args: []any{value}}
+		if valueSlice, ok := value.([]interface{}); ok {
+			if len(valueSlice) == 0 {
+				// Empty list should return false condition
+				return conditionResult{condition: "1 = 0", args: []any{}}
+			}
+			// Create placeholders for each value
+			placeholders := make([]string, len(valueSlice))
+			for i := range placeholders {
+				placeholders[i] = "?"
+			}
+			condition := fmt.Sprintf("%s IN (%s)", column, strings.Join(placeholders, ","))
+			return conditionResult{condition: condition, args: valueSlice}
+		}
+		// Fallback to single value (shouldn't normally happen with proper parsing)
+		return conditionResult{condition: fmt.Sprintf("%s IN (?)", column), args: []any{value}}
 	default:
 		// Default to equality
 		return conditionResult{condition: fmt.Sprintf("%s = ?", column), args: []any{value}}
