@@ -347,7 +347,7 @@ with mr.start_experiment_run(experiment_name="Experiment1") as run:
     run.log_param("input1", 5.75)
 ```
 
-### Nesed runs
+### Nested runs
 
 Set `nested=True` to allow for nested experiments runs.
 
