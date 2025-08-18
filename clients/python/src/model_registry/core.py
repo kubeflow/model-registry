@@ -768,9 +768,9 @@ class ModelRegistryAPIClient:
                     run = next((r for r in exp_runs if r.name == run_name), None)
                     if not run:
                         print(
-                            f"Could not find run {run_name} \
-                                in experiment {experiment_name} within the first 100 runs. \
-                                Please narrow your search by run id."
+                            f"Could not find run {run_name} "
+                            f"in experiment {experiment_name} within the first 100 runs. "
+                            "Please narrow your search by run id."
                         )
                         return []
                     run_id = run.id
