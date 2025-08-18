@@ -915,14 +915,14 @@ files = [
 
 [[package]]
 name = "harfile"
-version = "0.3.0"
+version = "0.3.1"
 description = "Writer for HTTP Archive (HAR) files"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "harfile-0.3.0-py3-none-any.whl", hash = "sha256:ac11177e06c88c9553c8c73c16ab20428a176d1d2ebe00b41ce527ff0bdc47e6"},
-    {file = "harfile-0.3.0.tar.gz", hash = "sha256:23be8037e1296bb4787a15543a37835ed91f408c8296988f9ba022a44accad9e"},
+    {file = "harfile-0.3.1-py3-none-any.whl", hash = "sha256:27e63c98cba93b94175ac6407a5717badc2cd993daffd5a5bfdc893ebffb56ac"},
+    {file = "harfile-0.3.1.tar.gz", hash = "sha256:8998fa4410ad17d7b5671bab36ea058adde835bbb27f6a3da4b423019da584da"},
 ]
 
 [package.extras]
@@ -2641,21 +2641,21 @@ crt = ["botocore[crt] (>=1.37.4,<2.0a.0)"]
 
 [[package]]
 name = "schemathesis"
-version = "4.0.25"
+version = "4.1.0"
 description = "Property-based testing framework for Open API and GraphQL based apps"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "schemathesis-4.0.25-py3-none-any.whl", hash = "sha256:c0ef7eeb7ac188e5de133ffad139cea81b7297ff71df64a404fcc4632ceef6e2"},
-    {file = "schemathesis-4.0.25.tar.gz", hash = "sha256:0cde28c167e562385c59c878667bdc1fb6348ce8125279f12dc85f1da081a0f9"},
+    {file = "schemathesis-4.1.0-py3-none-any.whl", hash = "sha256:b9510510aa3c0f5deb097a7b41e9e60843d14146021be7843f74f73797b636be"},
+    {file = "schemathesis-4.1.0.tar.gz", hash = "sha256:f6e7f3624ac61015a1377fa6ee2d00fa9667a373945f944f9bd4aaf4f46df812"},
 ]
 
 [package.dependencies]
 backoff = ">=2.1.2,<3.0"
 click = ">=8.0,<9"
 colorama = ">=0.4,<1.0"
-harfile = ">=0.3.0,<1.0"
+harfile = ">=0.3.1,<1.0"
 httpx = ">=0.22.0,<1.0"
 hypothesis = ">=6.108.0,<7"
 hypothesis-graphql = ">=0.11.1,<1"
