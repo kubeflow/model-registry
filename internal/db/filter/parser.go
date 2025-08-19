@@ -107,7 +107,7 @@ type Value struct {
 
 //nolint:govet
 type ValueList struct {
-	Values []*SingleValue `"(" @@ ("," @@)* ")"`
+	Values []*SingleValue `"(" (@@  ("," @@)*)? ")"`
 }
 
 //nolint:govet

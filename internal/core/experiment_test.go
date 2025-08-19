@@ -620,7 +620,12 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 			expectedCount: 1,
 			expectedNames: []string{"rl-experiment"},
 		},
-
+		{
+			name:          "Filter using IN operator with empty list",
+			filterQuery:   "project IN ()",
+			expectedCount: 0,
+			expectedNames: []string{},
+		},
 		{
 			name:          "Filter using IN operator with mixed quoted strings",
 			filterQuery:   "team IN ('research', \"engineering\")",
