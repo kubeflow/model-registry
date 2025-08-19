@@ -3,6 +3,10 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
+	"time"
+
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authnv1 "k8s.io/api/authentication/v1"
 	authv1 "k8s.io/api/authorization/v1"
@@ -10,13 +14,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"log/slog"
-	"strings"
-	"time"
 )
 
 type TokenKubernetesClient struct {
 	SharedClientLogic
+	restConfig *rest.Config
 }
 
 func (kc *TokenKubernetesClient) IsClusterAdmin(_ *RequestIdentity) (bool, error) {
@@ -53,7 +55,7 @@ func (kc *TokenKubernetesClient) IsClusterAdmin(_ *RequestIdentity) (bool, error
 }
 
 // newTokenKubernetesClient creates a Kubernetes client using a user bearer token.
-func newTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClientInterface, error) {
+func NewTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClientInterface, error) {
 	baseConfig, err := helper.GetKubeconfig()
 	if err != nil {
 		logger.Error("failed to get kubeconfig", "error", err)
@@ -62,10 +64,7 @@ func newTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClie
 
 	// Start with an anonymous config to avoid preloaded auth
 	cfg := rest.AnonymousClientConfig(baseConfig)
-	if err != nil {
-		logger.Error("failed to create anonymous config", "error", err)
-		return nil, fmt.Errorf("failed to create anonymous config: %w", err)
-	}
+
 	cfg.BearerToken = token
 
 	// Explicitly clear all other auth mechanisms
@@ -88,6 +87,7 @@ func newTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClie
 			// Token is retained for follow-up calls; do not log it.
 			Token: NewBearerToken(token),
 		},
+		restConfig: cfg,
 	}, nil
 }
 
@@ -200,4 +200,8 @@ func (kc *TokenKubernetesClient) GetUser(_ *RequestIdentity) (string, error) {
 	}
 
 	return username, nil
+}
+
+func (kc *TokenKubernetesClient) RESTConfig() *rest.Config {
+	return kc.restConfig
 }
