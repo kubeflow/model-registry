@@ -15,25 +15,37 @@ import (
 type ModelRegistrySettingsListEnvelope Envelope[[]models.ModelRegistryKind, None]
 type ModelRegistrySettingsEnvelope Envelope[models.ModelRegistryKind, None]
 type ModelRegistrySettingsPayloadEnvelope Envelope[models.ModelRegistrySettingsPayload, None]
+type ModelRegistrySettingsUpdateEnvelope Envelope[models.ModelRegistryKind, None]
 
 func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
-
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
-	registries := []models.ModelRegistryKind{createSampleModelRegistry("model-registry", namespace),
-		createSampleModelRegistry("model-registry-dora", namespace),
-		createSampleModelRegistry("model-registry-bella", namespace)}
+	labelSelector, ok := r.Context().Value(constants.LabelSelectorHeaderParameterKey).(string)
+	if !ok {
+		labelSelector = ""
+	}
+
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	registries, err := app.repositories.ModelRegistrySettings.GetAllModelRegistriesSettings(r.Context(), client, namespace, labelSelector)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	modelRegistryRes := ModelRegistrySettingsListEnvelope{
 		Data: registries,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -48,16 +60,29 @@ func (app *App) GetModelRegistrySettingsHandler(w http.ResponseWriter, r *http.R
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
-	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace)
+	modelRegistryName := ps.ByName(ModelRegistryId)
+
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	modelRegistry, err := app.repositories.ModelRegistrySettings.GetModelRegistrySettings(r.Context(), client, namespace, modelRegistryName)
+	if err != nil {
+		ctxLogger.Error("Failed to fetch model registry settings", "name", modelRegistryName, "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
-		Data: registry,
+		Data: modelRegistry,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -71,6 +96,7 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
 	var envelope ModelRegistrySettingsPayloadEnvelope
@@ -78,31 +104,32 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
+	model := envelope.Data.ModelRegistry
+	dbPassword := envelope.Data.DatabasePassword
 
-	var modelRegistryName = envelope.Data.ModelRegistry.Metadata.Name
+	dryRun := false
+	if dr := r.URL.Query().Get("dryRun"); dr == "true" {
+		dryRun = true
+	}
 
-	if modelRegistryName == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+	client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+	created, err := app.repositories.ModelRegistrySettings.CreateModelRegistryKindWithSecret(r.Context(), client, namespace, model, dbPassword, dryRun)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	ctxLogger.Info("Creating model registry", "name", modelRegistryName)
-
-	// For now, we're using the stub implementation, but we'd use envelope.Data.ModelRegistry
-	// and other fields from the payload in a real implementation
-	registry := createSampleModelRegistry(modelRegistryName, namespace)
-
-	modelRegistryRes := ModelRegistrySettingsEnvelope{
-		Data: registry,
-	}
-
-	w.Header().Set("Location", r.URL.JoinPath(modelRegistryRes.Data.Metadata.Name).String())
-	writeErr := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil)
+	w.Header().Set("Location", r.URL.JoinPath(created.Metadata.Name).String())
+	resp := ModelRegistrySettingsEnvelope{Data: created}
+	writeErr := app.WriteJSON(w, http.StatusCreated, resp, nil)
 	if writeErr != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
 	}
-
 }
 
 func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -112,9 +139,25 @@ func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
+	}
+
+	// Read request body for update data (following standard UPDATE pattern)
+	var envelope ModelRegistrySettingsUpdateEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
 	}
 
 	modelId := ps.ByName(ModelRegistryId)
+
+	// TODO: Implement actual update logic here
+	// For now, return mock data but following proper pattern
+	// data := envelope.Data
+	// client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	// updatedRegistry, err := app.repositories.ModelRegistrySettings.UpdateModelRegistrySettings(r.Context(), client, namespace, modelId, data)
+
+	// STUB: Return sample data for now
 	registry := createSampleModelRegistry(modelId, namespace)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
@@ -135,25 +178,26 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
-	// This is a temporary fix to handle frontend error (as it is expecting ModelRegistryKind response) until we have a real implementation
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace)
 
-	modelRegistryRes := ModelRegistrySettingsEnvelope{
-		Data: registry,
-	}
+	// TODO: Implement actual delete logic here
+	// client, err := app.kubernetesClientFactory.GetClient(r.Context())
+	// err := app.repositories.ModelRegistrySettings.DeleteModelRegistrySettings(r.Context(), client, namespace, modelId)
+	// if err != nil {
+	//     app.serverErrorResponse(w, r, err)
+	//     return
+	// }
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
+	ctxLogger.Info("STUB: Deleting Model Registry Settings", "name", modelId, "namespace", namespace)
 
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-
+	// Standard response for successful DELETE (no response body)
+	w.WriteHeader(http.StatusNoContent)
 }
 
-// This function is a temporary function to create a sample model registry kind until we have a real implementation
+// TODO: delete this (move to shared client on mocking for now)
 func createSampleModelRegistry(name string, namespace string) models.ModelRegistryKind {
 
 	creationTime, _ := time.Parse(time.RFC3339, "2024-03-14T08:01:42Z")
