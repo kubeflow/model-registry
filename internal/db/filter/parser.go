@@ -257,7 +257,7 @@ func convertPropertyRef(prop *PropertyRef, value *Value) *PropertyReference {
 
 func convertValue(val *Value) interface{} {
 	if val.String != nil {
-		return processStringValue(*val.String)
+		return unquoteStringValue(*val.String)
 	}
 
 	if val.Integer != nil {
@@ -274,7 +274,7 @@ func convertValue(val *Value) interface{} {
 
 	if val.ValueList != nil {
 		// Convert list of values to slice
-		var values []interface{}
+		var values []any
 		for _, singleVal := range val.ValueList.Values {
 			values = append(values, convertSingleValue(singleVal))
 		}
@@ -286,7 +286,7 @@ func convertValue(val *Value) interface{} {
 
 func convertSingleValue(val *SingleValue) interface{} {
 	if val.String != nil {
-		return processStringValue(*val.String)
+		return unquoteStringValue(*val.String)
 	}
 
 	if val.Integer != nil {
@@ -304,8 +304,8 @@ func convertSingleValue(val *SingleValue) interface{} {
 	return nil
 }
 
-// processStringValue removes quotes and handles escape sequences
-func processStringValue(str string) string {
+// unquoteStringValue removes quotes and handles escape sequences
+func unquoteStringValue(str string) string {
 	// Remove quotes from string
 	result := strings.Trim(str, `"'`)
 	// Handle escape sequences
@@ -317,23 +317,18 @@ func processStringValue(str string) string {
 
 // inferValueType determines the appropriate value type based on the actual value
 func inferValueType(val *Value) string {
-	if val.String != nil {
-		return StringValueType
-	}
-	if val.Integer != nil {
-		return IntValueType
-	}
-	if val.Float != nil {
-		return DoubleValueType
-	}
-	if val.Boolean != nil {
-		return BoolValueType
-	}
 	if val.ValueList != nil && len(val.ValueList.Values) > 0 {
 		// For lists, infer type from the first value
 		return inferSingleValueType(val.ValueList.Values[0])
 	}
-	return StringValueType // default to string
+	// Convert Value to SingleValue for type inference
+	singleVal := &SingleValue{
+		String:  val.String,
+		Integer: val.Integer,
+		Float:   val.Float,
+		Boolean: val.Boolean,
+	}
+	return inferSingleValueType(singleVal)
 }
 
 // inferSingleValueType determines the appropriate value type for a SingleValue

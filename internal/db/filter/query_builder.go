@@ -392,11 +392,7 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 				return conditionResult{condition: "1 = 0", args: []any{}}
 			}
 			// Create placeholders for each value
-			placeholders := make([]string, len(valueSlice))
-			for i := range placeholders {
-				placeholders[i] = "?"
-			}
-			condition := fmt.Sprintf("%s IN (%s)", column, strings.Join(placeholders, ","))
+			condition := fmt.Sprintf("%s IN (?%s)", column, strings.Repeat(",?", len(valueSlice)-1))
 			return conditionResult{condition: condition, args: valueSlice}
 		}
 		// Fallback to single value (shouldn't normally happen with proper parsing)
