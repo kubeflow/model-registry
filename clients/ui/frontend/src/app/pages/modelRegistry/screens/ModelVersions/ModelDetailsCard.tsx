@@ -173,7 +173,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
   );
 
   return (
-    <Card isExpanded={isExpanded}>
+    <Card isExpanded={isExpanded} style={{ overflow: 'visible' }}>
       {isExpandable ? (
         <>
           <CardHeader
