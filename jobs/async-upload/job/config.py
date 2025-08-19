@@ -114,9 +114,9 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
     The path must be a folder, with a number of files that match a typical AWS config, ie - a Secret mounted to a pod with keys:
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
-    - AWS_BUCKET
-    - AWS_REGION
-    - AWS_ENDPOINT_URL
+    - AWS_S3_BUCKET or AWS_BUCKET
+    - AWS_DEFAULT_REGION
+    - AWS_S3_ENDPOINT
 
     These would be mounted as files with the names above and whose contents are the secret values.
 
@@ -135,8 +135,12 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
     # Load the credentials from the files
     for file in p.glob("*"):
         if file.is_file():
-            if file.name.startswith("AWS_"):
-                # Converts a file with name AWS_ACCESS_KEY_ID to access_key_id
+            if file.name.startswith("AWS_S3_"):
+                # e.g. AWS_S3_BUCKET to bucket
+                key_name = file.name.lower().replace("aws_s3_", "")
+                setattr(store, key_name, file.read_text())
+            elif file.name.startswith("AWS_"):
+                # e.g. AWS_ACCESS_KEY_ID to access_key_id
                 key_name = file.name.lower().replace("aws_", "")
                 setattr(store, key_name, file.read_text())
             else:
@@ -218,7 +222,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             region=args.source_aws_region,
             access_key_id=args.source_aws_access_key_id,
             secret_access_key=args.source_aws_secret_access_key,
-            endpoint_url=args.source_aws_endpoint,
+            endpoint=args.source_aws_endpoint,
         )
         # Load credentials from files, if provided
         if args.source_s3_credentials_path:
@@ -256,7 +260,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             region=args.destination_aws_region,
             access_key_id=args.destination_aws_access_key_id,
             secret_access_key=args.destination_aws_secret_access_key,
-            endpoint_url=args.destination_aws_endpoint,
+            endpoint=args.destination_aws_endpoint,
             credentials_path=args.destination_s3_credentials_path
         )
         # Load credentials from files, if provided

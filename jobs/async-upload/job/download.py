@@ -37,7 +37,7 @@ def download_from_s3(config: S3StorageConfig, storage_path: str):
     logger.debug("🔍 Downloading model from S3...")
     logger.debug("🔍 Source config: %s", config)
     s3_client, _ = _connect_to_s3(
-        config.endpoint_url,
+        config.endpoint,
         config.access_key_id,
         config.secret_access_key,
         config.region,
