@@ -42,9 +42,9 @@ You can now deploy the UI and BFF to your newly created cluster using the kustom
 First you need to set up your new image
 
 ```shell
-export MR_UI_IMG="<img url that was set above>"
+export IMG_UI_STANDALONE="<img url that was set above>"
 cd manifests/kustomize/options/ui/base
-kustomize edit set image model-registry-ui=${MR_UI_IMG}
+kustomize edit set image model-registry-ui=$IMG_UI_STANDALONE}
 ```
 
 Now you can set the namespace to kubeflow and apply the manifests:
