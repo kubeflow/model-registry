@@ -14,6 +14,7 @@ import (
 
 type ModelRegistrySettingsListEnvelope Envelope[[]models.ModelRegistryKind, None]
 type ModelRegistrySettingsEnvelope Envelope[models.ModelRegistryKind, None]
+type ModelRegistryAndCredentialsSettingsEnvelope Envelope[models.ModelRegistryAndCredentials, None]
 type ModelRegistrySettingsPayloadEnvelope Envelope[models.ModelRegistrySettingsPayload, None]
 
 func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -25,9 +26,19 @@ func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *h
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
 	}
 
-	registries := []models.ModelRegistryKind{createSampleModelRegistry("model-registry", namespace),
-		createSampleModelRegistry("model-registry-dora", namespace),
-		createSampleModelRegistry("model-registry-bella", namespace)}
+	sslRootCertificateConfigMap := models.Entry{
+		Name: "ssl-config-map-name",
+		Key:  "ssl-config-map-key",
+	}
+
+	sslRootCertificateSecret := models.Entry{
+		Name: "ssl-secret-name",
+		Key:  "ssl-secret-key",
+	}
+
+	registries := []models.ModelRegistryKind{createSampleModelRegistry("model-registry", namespace, &sslRootCertificateConfigMap, nil),
+		createSampleModelRegistry("model-registry-dora", namespace, nil, &sslRootCertificateSecret),
+		createSampleModelRegistry("model-registry-bella", namespace, nil, nil)}
 
 	modelRegistryRes := ModelRegistrySettingsListEnvelope{
 		Data: registries,
@@ -51,10 +62,15 @@ func (app *App) GetModelRegistrySettingsHandler(w http.ResponseWriter, r *http.R
 	}
 
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
 
-	modelRegistryRes := ModelRegistrySettingsEnvelope{
-		Data: registry,
+	modelRegistryWithCreds := models.ModelRegistryAndCredentials{
+		ModelRegistry:    registry,
+		DatabasePassword: "dbpassword",
+	}
+
+	modelRegistryRes := ModelRegistryAndCredentialsSettingsEnvelope{
+		Data: modelRegistryWithCreds,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
@@ -90,7 +106,7 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 
 	// For now, we're using the stub implementation, but we'd use envelope.Data.ModelRegistry
 	// and other fields from the payload in a real implementation
-	registry := createSampleModelRegistry(modelRegistryName, namespace)
+	registry := createSampleModelRegistry(modelRegistryName, namespace, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -115,7 +131,7 @@ func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	}
 
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -139,7 +155,7 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 
 	// This is a temporary fix to handle frontend error (as it is expecting ModelRegistryKind response) until we have a real implementation
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -154,7 +170,7 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 }
 
 // This function is a temporary function to create a sample model registry kind until we have a real implementation
-func createSampleModelRegistry(name string, namespace string) models.ModelRegistryKind {
+func createSampleModelRegistry(name string, namespace string, SSLRootCertificateConfigMap *models.Entry, SSLRootCertificateSecret *models.Entry) models.ModelRegistryKind {
 
 	creationTime, _ := time.Parse(time.RFC3339, "2024-03-14T08:01:42Z")
 	lastTransitionTime, _ := time.Parse(time.RFC3339, "2024-03-22T09:30:02Z")
@@ -193,8 +209,8 @@ func createSampleModelRegistry(name string, namespace string) models.ModelRegist
 				Port:                        5432,
 				SkipDBCreation:              false,
 				Username:                    "mlmduser",
-				SSLRootCertificateConfigMap: "ssl-config-map",
-				SSLRootCertificateSecret:    "ssl-secret",
+				SSLRootCertificateConfigMap: SSLRootCertificateConfigMap,
+				SSLRootCertificateSecret:    SSLRootCertificateSecret,
 			},
 		},
 		Status: models.Status{

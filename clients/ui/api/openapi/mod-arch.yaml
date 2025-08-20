@@ -149,7 +149,7 @@ paths:
       responses:
         "200":
           # Define a response that might include credentials
-          $ref: "#/components/responses/ModelRegistryKindResponse" 
+          $ref: "#/components/responses/ModelRegistryAndCredentialsResponse" 
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -1824,6 +1824,23 @@ components:
               data:
                 $ref: "#/components/schemas/ModelRegistryKind"
       description: A response containing a `ModelRegistryKind` entity.
+    ModelRegistryAndCredentialsResponse:
+      description: A response containing a `ModelRegistryKind` and `database password` entity.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelRegistryKind"
+              databasePassword:
+                type: string
+                description: Optional new password for the database connection. If provided, it will update the associated secret.
+                nullable: true # Indicates it's optional
+                example: "new-secure-password"
 
     # New response for Certificate List
     CertificateListResponse:
