@@ -95,15 +95,17 @@ var artifactPropertyMap = EntityPropertyMap{
 	"modelSourceGroup":   {PropertyTable, StringValueType, "model_source_group"},
 	"modelSourceId":      {PropertyTable, StringValueType, "model_source_id"},
 	"modelSourceName":    {PropertyTable, StringValueType, "model_source_name"},
-	"value":              {PropertyTable, DoubleValueType, "value"},          // For metrics/parameters
-	"timestamp":          {PropertyTable, IntValueType, "timestamp"},         // For metrics
-	"step":               {PropertyTable, IntValueType, "step"},              // For metrics
-	"parameterType":      {PropertyTable, StringValueType, "parameter_type"}, // For parameters
-	"digest":             {PropertyTable, StringValueType, "digest"},         // For datasets
-	"sourceType":         {PropertyTable, StringValueType, "source_type"},    // For datasets
-	"source":             {PropertyTable, StringValueType, "source"},         // For datasets
-	"schema":             {PropertyTable, StringValueType, "schema"},         // For datasets
-	"profile":            {PropertyTable, StringValueType, "profile"},        // For datasets
+	"value":              {PropertyTable, DoubleValueType, "value"},             // For metrics/parameters
+	"timestamp":          {PropertyTable, IntValueType, "timestamp"},            // For metrics
+	"step":               {PropertyTable, IntValueType, "step"},                 // For metrics
+	"parameterType":      {PropertyTable, StringValueType, "parameter_type"},    // For parameters
+	"digest":             {PropertyTable, StringValueType, "digest"},            // For datasets
+	"sourceType":         {PropertyTable, StringValueType, "source_type"},       // For datasets
+	"source":             {PropertyTable, StringValueType, "source"},            // For datasets
+	"schema":             {PropertyTable, StringValueType, "schema"},            // For datasets
+	"profile":            {PropertyTable, StringValueType, "profile"},           // For datasets
+	"experimentId":       {PropertyTable, StringValueType, "experiment_id"},     // For all artifacts
+	"experimentRunId":    {PropertyTable, StringValueType, "experiment_run_id"}, // For all artifacts
 }
 
 // executionPropertyMap defines properties for Execution entities

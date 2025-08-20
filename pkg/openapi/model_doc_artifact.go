@@ -33,7 +33,11 @@ type DocArtifact struct {
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	ArtifactType             *string `json:"artifactType,omitempty"`
+	// Optional id of the experiment that produced this artifact.
+	ExperimentId *string `json:"experimentId,omitempty"`
+	// Optional id of the experiment run that produced this artifact.
+	ExperimentRunId *string `json:"experimentRunId,omitempty"`
+	ArtifactType    *string `json:"artifactType,omitempty"`
 	// The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.
 	Uri   *string        `json:"uri,omitempty"`
 	State *ArtifactState `json:"state,omitempty"`
@@ -288,6 +292,70 @@ func (o *DocArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetExperimentId returns the ExperimentId field value if set, zero value otherwise.
+func (o *DocArtifact) GetExperimentId() string {
+	if o == nil || IsNil(o.ExperimentId) {
+		var ret string
+		return ret
+	}
+	return *o.ExperimentId
+}
+
+// GetExperimentIdOk returns a tuple with the ExperimentId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetExperimentIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExperimentId) {
+		return nil, false
+	}
+	return o.ExperimentId, true
+}
+
+// HasExperimentId returns a boolean if a field has been set.
+func (o *DocArtifact) HasExperimentId() bool {
+	if o != nil && !IsNil(o.ExperimentId) {
+		return true
+	}
+
+	return false
+}
+
+// SetExperimentId gets a reference to the given string and assigns it to the ExperimentId field.
+func (o *DocArtifact) SetExperimentId(v string) {
+	o.ExperimentId = &v
+}
+
+// GetExperimentRunId returns the ExperimentRunId field value if set, zero value otherwise.
+func (o *DocArtifact) GetExperimentRunId() string {
+	if o == nil || IsNil(o.ExperimentRunId) {
+		var ret string
+		return ret
+	}
+	return *o.ExperimentRunId
+}
+
+// GetExperimentRunIdOk returns a tuple with the ExperimentRunId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DocArtifact) GetExperimentRunIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExperimentRunId) {
+		return nil, false
+	}
+	return o.ExperimentRunId, true
+}
+
+// HasExperimentRunId returns a boolean if a field has been set.
+func (o *DocArtifact) HasExperimentRunId() bool {
+	if o != nil && !IsNil(o.ExperimentRunId) {
+		return true
+	}
+
+	return false
+}
+
+// SetExperimentRunId gets a reference to the given string and assigns it to the ExperimentRunId field.
+func (o *DocArtifact) SetExperimentRunId(v string) {
+	o.ExperimentRunId = &v
+}
+
 // GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
 func (o *DocArtifact) GetArtifactType() string {
 	if o == nil || IsNil(o.ArtifactType) {
@@ -414,6 +482,12 @@ func (o DocArtifact) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	}
+	if !IsNil(o.ExperimentId) {
+		toSerialize["experimentId"] = o.ExperimentId
+	}
+	if !IsNil(o.ExperimentRunId) {
+		toSerialize["experimentRunId"] = o.ExperimentRunId
 	}
 	if !IsNil(o.ArtifactType) {
 		toSerialize["artifactType"] = o.ArtifactType

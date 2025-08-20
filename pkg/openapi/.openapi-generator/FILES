@@ -7,6 +7,7 @@ model_artifact_list.go
 model_artifact_state.go
 model_artifact_type_query_param.go
 model_artifact_update.go
+model_base_artifact.go
 model_base_model.go
 model_base_resource.go
 model_base_resource_create.go

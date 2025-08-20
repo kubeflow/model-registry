@@ -50,6 +50,14 @@ class Metric(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    experiment_id: StrictStr | None = Field(
+        default=None, description="Optional id of the experiment that produced this artifact.", alias="experimentId"
+    )
+    experiment_run_id: StrictStr | None = Field(
+        default=None,
+        description="Optional id of the experiment run that produced this artifact.",
+        alias="experimentRunId",
+    )
     artifact_type: StrictStr | None = Field(default="metric", alias="artifactType")
     value: StrictFloat | StrictInt | None = Field(default=None, description="The numeric value of the metric.")
     timestamp: StrictStr | None = Field(
@@ -67,6 +75,8 @@ class Metric(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "experimentId",
+        "experimentRunId",
         "artifactType",
         "value",
         "timestamp",
@@ -147,6 +157,8 @@ class Metric(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "experimentId": obj.get("experimentId"),
+                "experimentRunId": obj.get("experimentRunId"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "metric",
                 "value": obj.get("value"),
                 "timestamp": obj.get("timestamp"),

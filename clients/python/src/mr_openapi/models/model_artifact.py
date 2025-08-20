@@ -51,6 +51,14 @@ class ModelArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    experiment_id: StrictStr | None = Field(
+        default=None, description="Optional id of the experiment that produced this artifact.", alias="experimentId"
+    )
+    experiment_run_id: StrictStr | None = Field(
+        default=None,
+        description="Optional id of the experiment run that produced this artifact.",
+        alias="experimentRunId",
+    )
     artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
@@ -103,6 +111,8 @@ class ModelArtifact(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "experimentId",
+        "experimentRunId",
         "artifactType",
         "modelFormatName",
         "storageKey",
@@ -192,6 +202,8 @@ class ModelArtifact(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "experimentId": obj.get("experimentId"),
+                "experimentRunId": obj.get("experimentRunId"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),

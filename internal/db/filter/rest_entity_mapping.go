@@ -104,6 +104,8 @@ var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 		"storageKey": true, "storagePath": true, "serviceAccountName": true,
 		"modelSourceKind": true, "modelSourceClass": true, "modelSourceGroup": true,
 		"modelSourceId": true, "modelSourceName": true,
+		// Experiment properties (available on all artifacts)
+		"experimentId": true, "experimentRunId": true,
 		// No metric/parameter/dataset-specific properties allowed
 	},
 
@@ -112,6 +114,8 @@ var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 		"id": true, "name": true, "externalId": true,
 		"createTimeSinceEpoch": true, "lastUpdateTimeSinceEpoch": true,
 		"uri": true, "state": true,
+		// Experiment properties (available on all artifacts)
+		"experimentId": true, "experimentRunId": true,
 		// DocArtifact has minimal additional properties
 		// No metric/parameter/dataset-specific properties allowed
 	},
@@ -123,6 +127,8 @@ var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 		"uri": true, "state": true,
 		// DataSet-specific properties
 		"digest": true, "sourceType": true, "source": true, "schema": true, "profile": true,
+		// Experiment properties (available on all artifacts)
+		"experimentId": true, "experimentRunId": true,
 		// No metric/parameter/model-specific properties allowed
 	},
 
@@ -133,6 +139,8 @@ var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 		"uri": true, "state": true,
 		// Metric-specific properties
 		"value": true, "timestamp": true, "step": true,
+		// Experiment properties (available on all artifacts)
+		"experimentId": true, "experimentRunId": true,
 		// No parameter/dataset/model-specific properties allowed
 	},
 
@@ -143,6 +151,8 @@ var RestEntityPropertyMap = map[RestEntityType]map[string]bool{
 		"uri": true, "state": true,
 		// Parameter-specific properties
 		"value": true, "parameterType": true,
+		// Experiment properties (available on all artifacts)
+		"experimentId": true, "experimentRunId": true,
 		// No metric/dataset/model-specific properties allowed
 	},
 
